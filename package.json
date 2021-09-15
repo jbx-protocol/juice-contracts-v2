@@ -6,7 +6,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/jbx-protocol/juice-contracts/"
-  },  
+  },
   "license": "MIT",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
@@ -14,8 +14,28 @@
     "chai": "^4.3.4",
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.4.6",
-    "hardhat": "^2.6.4"
-  },  
+    "hardhat": "^2.6.4",
+    "hardhat-gas-reporter": "^1.0.4"
+  },
+  "dependencies": {
+    "@chainlink/contracts": "^0.1.6",
+    "@nomiclabs/hardhat-etherscan": "^2.1.4",
+    "@openzeppelin/contracts": "^4.1.0",
+    "@paulrberg/contracts": "^3.4.0",
+    "dotenv": "^10.0.0"
+  },
+  "homepage": "https://github.com/jbx-protocol/juicehouse",
+  "keywords": [
+    "blockchain",
+    "erc20",
+    "erc721",
+    "dao",
+    "nft",
+    "ethereum",
+    "library",
+    "smart-contracts",
+    "solidity"
+  ],
   "scripts": {
     "chain": "hardhat node",
     "test": "hardhat test --network localhost",
