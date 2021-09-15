@@ -4,7 +4,7 @@
 */
 module.exports = [
   {
-    description: "Create a project for the initial owner",
+    description: 'Create a project for the initial owner',
     fn: async ({
       contracts,
       constants,
@@ -12,7 +12,7 @@ module.exports = [
       randomStringFn,
       randomSignerFn,
       incrementProjectIdFn,
-      randomBytesFn
+      randomBytesFn,
     }) => {
       const expectedProjectId = incrementProjectIdFn();
 
@@ -22,34 +22,29 @@ module.exports = [
       await executeFn({
         caller: randomSignerFn(),
         contract: contracts.projects,
-        fn: "create",
+        fn: 'create',
         args: [
           owner.address,
           randomBytesFn({
             // Make sure its unique by prepending the id.
-            prepend: expectedProjectId.toString()
+            prepend: expectedProjectId.toString(),
           }),
           randomStringFn(),
-          constants.AddressZero
-        ]
+          constants.AddressZero,
+        ],
       });
       return { owner, expectedProjectId };
-    }
+    },
   },
   {
-    description: "The owner should be able to set a new uri for the project",
-    fn: ({
-      contracts,
-      executeFn,
-      randomStringFn,
-      local: { owner, expectedProjectId }
-    }) =>
+    description: 'The owner should be able to set a new uri for the project',
+    fn: ({ contracts, executeFn, randomStringFn, local: { owner, expectedProjectId } }) =>
       executeFn({
         caller: owner,
         contract: contracts.projects,
-        fn: "setUri",
-        args: [expectedProjectId, randomStringFn()]
-      })
+        fn: 'setUri',
+        args: [expectedProjectId, randomStringFn()],
+      }),
   },
   {
     description: "Non owners that aren't operators cant set the uri",
@@ -58,66 +53,54 @@ module.exports = [
       contracts,
       randomStringFn,
       randomSignerFn,
-      local: { owner, expectedProjectId }
+      local: { owner, expectedProjectId },
     }) =>
       executeFn({
         caller: randomSignerFn({ exclude: [owner.address] }),
         contract: contracts.projects,
-        fn: "setUri",
+        fn: 'setUri',
         args: [expectedProjectId, randomStringFn()],
-        revert: "Operatable: UNAUTHORIZED"
-      })
+        revert: 'Operatable: UNAUTHORIZED',
+      }),
   },
   {
-    description: "Transfer ownership to a new owner",
-    fn: async ({
-      executeFn,
-      contracts,
-      randomSignerFn,
-      local: { owner, expectedProjectId }
-    }) => {
+    description: 'Transfer ownership to a new owner',
+    fn: async ({ executeFn, contracts, randomSignerFn, local: { owner, expectedProjectId } }) => {
       // The address that will own another project.
       const secondOwner = randomSignerFn();
       await executeFn({
         caller: owner,
         contract: contracts.projects,
-        fn: "transferFrom",
-        args: [owner.address, secondOwner.address, expectedProjectId]
+        fn: 'transferFrom',
+        args: [owner.address, secondOwner.address, expectedProjectId],
       });
       return { secondOwner };
-    }
+    },
   },
   {
-    description:
-      "The new owner should be able to set a new uri for the project",
-    fn: ({
-      executeFn,
-      contracts,
-      randomStringFn,
-      local: { secondOwner, expectedProjectId }
-    }) =>
+    description: 'The new owner should be able to set a new uri for the project',
+    fn: ({ executeFn, contracts, randomStringFn, local: { secondOwner, expectedProjectId } }) =>
       executeFn({
         caller: secondOwner,
         contract: contracts.projects,
-        fn: "setUri",
-        args: [expectedProjectId, randomStringFn()]
-      })
+        fn: 'setUri',
+        args: [expectedProjectId, randomStringFn()],
+      }),
   },
   {
-    description: "The old owner can no longer set the uri",
+    description: 'The old owner can no longer set the uri',
     fn: ({
       executeFn,
       contracts,
       randomStringFn,
-      local: { owner, secondOwner, expectedProjectId }
+      local: { owner, secondOwner, expectedProjectId },
     }) =>
       executeFn({
         caller: owner,
         contract: contracts.projects,
-        fn: "setUri",
+        fn: 'setUri',
         args: [expectedProjectId, randomStringFn()],
-        revert:
-          owner.address !== secondOwner.address && "Operatable: UNAUTHORIZED"
-      })
-  }
+        revert: owner.address !== secondOwner.address && 'Operatable: UNAUTHORIZED',
+      }),
+  },
 ];

@@ -22,7 +22,10 @@
     "@nomiclabs/hardhat-etherscan": "^2.1.4",
     "@openzeppelin/contracts": "^4.1.0",
     "@paulrberg/contracts": "^3.4.0",
-    "dotenv": "^10.0.0"
+    "dotenv": "^10.0.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^2.4.0"
   },
   "homepage": "https://github.com/jbx-protocol/juicehouse",
   "keywords": [
@@ -44,6 +47,7 @@
     "test:integration": "mocha --grep \"Integration\" --bail",
     "clean": "rimraf ./cache && rimraf ./artifacts",
     "compile-force": "yarn cleangit && __DANGEROUS_OVM_IGNORE_ERRORS__=true hardhat compile",
-    "compile": "yarn clean && hardhat compile"
+    "compile": "yarn clean && hardhat compile",
+    "pretty": "prettier --write \"./**/*.{js,jsx,json}\""
   }
 }

@@ -1,12 +1,12 @@
 const {
   ethers: { constants },
-} = require("hardhat");
-const { expect } = require("chai");
+} = require('hardhat');
+const { expect } = require('chai');
 
 const tests = {
   success: [
     {
-      description: "transfer tickets",
+      description: 'transfer tickets',
       fn: ({ deployer, addrs }) => ({
         caller: deployer,
         beneficiary: deployer.address,
@@ -18,33 +18,21 @@ const tests = {
 };
 
 module.exports = function () {
-  describe("Success cases", function () {
+  describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {
         const { caller, beneficiary, amount } = successTest.fn(this);
 
         await this.ticketBooth.mock.transfer
-          .withArgs(
-            this.contract.address,
-            this.projectId,
-            amount,
-            beneficiary.address
-          )
+          .withArgs(this.contract.address, this.projectId, amount, beneficiary.address)
           .returns();
 
-        const tx = await this.contract
-          .connect(caller)
-          .transferTickets(beneficiary.address, amount);
+        const tx = await this.contract.connect(caller).transferTickets(beneficiary.address, amount);
 
         // Expect an event to have been emitted.
         await expect(tx)
-          .to.emit(this.contract, "TransferTickets")
-          .withArgs(
-            caller.address,
-            beneficiary.address,
-            this.projectId,
-            amount
-          );
+          .to.emit(this.contract, 'TransferTickets')
+          .withArgs(caller.address, beneficiary.address, this.projectId, amount);
       });
     });
   });

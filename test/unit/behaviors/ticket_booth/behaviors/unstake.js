@@ -1,118 +1,12 @@
 const {
-  ethers: { BigNumber, constants, getContractFactory }
-} = require("hardhat");
-const { expect } = require("chai");
+  ethers: { BigNumber, constants, getContractFactory },
+} = require('hardhat');
+const { expect } = require('chai');
 
 const tests = {
   success: [
     {
-      description: "called by holder",
-      fn: ({ deployer }) => ({
-        caller: deployer,
-        projectId: 1,
-        holder: deployer.address,
-        amount: BigNumber.from(50),
-        setup: {
-          stakedBalance: BigNumber.from(50),
-          lockedAmount: BigNumber.from(0)
-        }
-      })
-    },
-    {
-      description: "with leftovers",
-      fn: ({ deployer }) => ({
-        caller: deployer,
-        projectId: 1,
-        holder: deployer.address,
-        amount: BigNumber.from(50),
-        setup: {
-          stakedBalance: BigNumber.from(150),
-          lockedAmount: BigNumber.from(0)
-        }
-      })
-    },
-    {
-      description: "with leftovers and lock",
-      fn: ({ deployer }) => ({
-        caller: deployer,
-        projectId: 1,
-        holder: deployer.address,
-        amount: BigNumber.from(50),
-        setup: {
-          stakedBalance: BigNumber.from(150),
-          lockedAmount: BigNumber.from(50)
-        }
-      })
-    },
-    {
-      description: "uses all tickets up to lock",
-      fn: ({ deployer }) => ({
-        caller: deployer,
-        projectId: 1,
-        holder: deployer.address,
-        amount: BigNumber.from(50),
-        setup: {
-          stakedBalance: BigNumber.from(150),
-          lockedAmount: BigNumber.from(100)
-        }
-      })
-    },
-    {
-      description: "max uints",
-      fn: ({ deployer }) => ({
-        caller: deployer,
-        projectId: 1,
-        holder: deployer.address,
-        amount: constants.MaxUint256,
-        setup: {
-          stakedBalance: constants.MaxUint256,
-          lockedAmount: 0
-        }
-      })
-    },
-    {
-      description: "called by personal operator",
-      fn: ({ deployer, addrs }) => ({
-        caller: deployer,
-        personalOperator: true,
-        projectId: 1,
-        holder: addrs[0].address,
-        amount: BigNumber.from(50),
-        permissionFlag: true,
-        setup: { stakedBalance: BigNumber.from(50) }
-      })
-    },
-    {
-      description: "called by non personal operator",
-      fn: ({ deployer, addrs }) => ({
-        caller: deployer,
-        personalOperator: false,
-        projectId: 1,
-        holder: addrs[0].address,
-        amount: BigNumber.from(50),
-        permissionFlag: true,
-        setup: { stakedBalance: BigNumber.from(50) }
-      })
-    }
-  ],
-  failure: [
-    {
-      description: "overflow",
-      fn: ({ deployer }) => ({
-        caller: deployer,
-        projectId: 1,
-        holder: deployer.address,
-        amount: BigNumber.from(2),
-        setup: {
-          stakedBalance: BigNumber.from(2),
-          erc20Balance: constants.MaxUint256.sub(1),
-          issue: true
-        },
-        revert: ""
-      })
-    },
-    {
-      description: "tickets not yet issued",
+      description: 'called by holder',
       fn: ({ deployer }) => ({
         caller: deployer,
         projectId: 1,
@@ -121,13 +15,119 @@ const tests = {
         setup: {
           stakedBalance: BigNumber.from(50),
           lockedAmount: BigNumber.from(0),
-          issue: false
         },
-        revert: "TicketBooth::unstake: NOT_FOUND"
-      })
+      }),
     },
     {
-      description: "unauthorized",
+      description: 'with leftovers',
+      fn: ({ deployer }) => ({
+        caller: deployer,
+        projectId: 1,
+        holder: deployer.address,
+        amount: BigNumber.from(50),
+        setup: {
+          stakedBalance: BigNumber.from(150),
+          lockedAmount: BigNumber.from(0),
+        },
+      }),
+    },
+    {
+      description: 'with leftovers and lock',
+      fn: ({ deployer }) => ({
+        caller: deployer,
+        projectId: 1,
+        holder: deployer.address,
+        amount: BigNumber.from(50),
+        setup: {
+          stakedBalance: BigNumber.from(150),
+          lockedAmount: BigNumber.from(50),
+        },
+      }),
+    },
+    {
+      description: 'uses all tickets up to lock',
+      fn: ({ deployer }) => ({
+        caller: deployer,
+        projectId: 1,
+        holder: deployer.address,
+        amount: BigNumber.from(50),
+        setup: {
+          stakedBalance: BigNumber.from(150),
+          lockedAmount: BigNumber.from(100),
+        },
+      }),
+    },
+    {
+      description: 'max uints',
+      fn: ({ deployer }) => ({
+        caller: deployer,
+        projectId: 1,
+        holder: deployer.address,
+        amount: constants.MaxUint256,
+        setup: {
+          stakedBalance: constants.MaxUint256,
+          lockedAmount: 0,
+        },
+      }),
+    },
+    {
+      description: 'called by personal operator',
+      fn: ({ deployer, addrs }) => ({
+        caller: deployer,
+        personalOperator: true,
+        projectId: 1,
+        holder: addrs[0].address,
+        amount: BigNumber.from(50),
+        permissionFlag: true,
+        setup: { stakedBalance: BigNumber.from(50) },
+      }),
+    },
+    {
+      description: 'called by non personal operator',
+      fn: ({ deployer, addrs }) => ({
+        caller: deployer,
+        personalOperator: false,
+        projectId: 1,
+        holder: addrs[0].address,
+        amount: BigNumber.from(50),
+        permissionFlag: true,
+        setup: { stakedBalance: BigNumber.from(50) },
+      }),
+    },
+  ],
+  failure: [
+    {
+      description: 'overflow',
+      fn: ({ deployer }) => ({
+        caller: deployer,
+        projectId: 1,
+        holder: deployer.address,
+        amount: BigNumber.from(2),
+        setup: {
+          stakedBalance: BigNumber.from(2),
+          erc20Balance: constants.MaxUint256.sub(1),
+          issue: true,
+        },
+        revert: '',
+      }),
+    },
+    {
+      description: 'tickets not yet issued',
+      fn: ({ deployer }) => ({
+        caller: deployer,
+        projectId: 1,
+        holder: deployer.address,
+        amount: BigNumber.from(50),
+        setup: {
+          stakedBalance: BigNumber.from(50),
+          lockedAmount: BigNumber.from(0),
+          issue: false,
+        },
+        revert: 'TicketBooth::unstake: NOT_FOUND',
+      }),
+    },
+    {
+      description: 'unauthorized',
       fn: ({ deployer, addrs }) => ({
         caller: deployer,
         projectId: 1,
@@ -137,13 +137,13 @@ const tests = {
         setup: {
           stakedBalance: BigNumber.from(50),
           lockedAmount: BigNumber.from(0),
-          issue: true
+          issue: true,
         },
-        revert: "Operatable: UNAUTHORIZED"
-      })
+        revert: 'Operatable: UNAUTHORIZED',
+      }),
     },
     {
-      description: "insufficient balance",
+      description: 'insufficient balance',
       fn: ({ deployer }) => ({
         caller: deployer,
         projectId: 1,
@@ -152,13 +152,13 @@ const tests = {
         setup: {
           stakedBalance: BigNumber.from(50),
           lockedAmount: BigNumber.from(0),
-          issue: true
+          issue: true,
         },
-        revert: "TicketBooth::unstake: INSUFFICIENT_FUNDS"
-      })
+        revert: 'TicketBooth::unstake: INSUFFICIENT_FUNDS',
+      }),
     },
     {
-      description: "insufficient balance due to lock",
+      description: 'insufficient balance due to lock',
       fn: ({ deployer }) => ({
         caller: deployer,
         projectId: 1,
@@ -167,13 +167,13 @@ const tests = {
         setup: {
           stakedBalance: BigNumber.from(50),
           lockedAmount: BigNumber.from(47),
-          issue: true
+          issue: true,
         },
-        revert: "TicketBooth::unstake: INSUFFICIENT_FUNDS"
-      })
+        revert: 'TicketBooth::unstake: INSUFFICIENT_FUNDS',
+      }),
     },
     {
-      description: "insufficient balance due to lock, max uints",
+      description: 'insufficient balance due to lock, max uints',
       fn: ({ deployer }) => ({
         caller: deployer,
         projectId: 1,
@@ -182,18 +182,18 @@ const tests = {
         setup: {
           stakedBalance: constants.MaxUint256,
           lockedAmount: constants.MaxUint256,
-          issue: true
+          issue: true,
         },
-        revert: "TicketBooth::unstake: INSUFFICIENT_FUNDS"
-      })
-    }
-  ]
+        revert: 'TicketBooth::unstake: INSUFFICIENT_FUNDS',
+      }),
+    },
+  ],
 };
 
-module.exports = function() {
-  describe("Success cases", function() {
-    tests.success.forEach(function(successTest) {
-      it(successTest.description, async function() {
+module.exports = function () {
+  describe('Success cases', function () {
+    tests.success.forEach(function (successTest) {
+      it(successTest.description, async function () {
         const {
           caller,
           personalOperator,
@@ -201,22 +201,16 @@ module.exports = function() {
           holder,
           amount,
           permissionFlag,
-          setup: { stakedBalance, lockedAmount }
+          setup: { stakedBalance, lockedAmount },
         } = successTest.fn(this);
 
         // Mock the caller to be the project's controller.
-        await this.terminalDirectory.mock.terminalOf
-          .withArgs(projectId)
-          .returns(caller.address);
+        await this.terminalDirectory.mock.terminalOf.withArgs(projectId).returns(caller.address);
 
         // Issue ERC-20s if needed.
         // Must make the caller the project owner in order to issue.
-        await this.projects.mock.ownerOf
-          .withArgs(projectId)
-          .returns(caller.address);
-        await this.contract
-          .connect(caller)
-          .issue(projectId, "doesnt", "matter");
+        await this.projects.mock.ownerOf.withArgs(projectId).returns(caller.address);
+        await this.contract.connect(caller).issue(projectId, 'doesnt', 'matter');
 
         // If a permission flag is specified, set the mock to return it.
         if (permissionFlag !== undefined) {
@@ -237,25 +231,19 @@ module.exports = function() {
 
         // If there should be an staked balance set up, print the necessary tickets before issuing a ticket.
         if (stakedBalance) {
-          await this.contract
-            .connect(caller)
-            .print(holder, projectId, stakedBalance, false);
+          await this.contract.connect(caller).print(holder, projectId, stakedBalance, false);
         }
         if (lockedAmount > 0) {
           // Lock the specified amount of tickets.
-          await this.contract
-            .connect(caller)
-            .lock(holder, projectId, lockedAmount);
+          await this.contract.connect(caller).lock(holder, projectId, lockedAmount);
         }
 
         // Execute the transaction.
-        const tx = await this.contract
-          .connect(caller)
-          .unstake(holder, projectId, amount);
+        const tx = await this.contract.connect(caller).unstake(holder, projectId, amount);
 
         // Expect an event to have been emitted.
         await expect(tx)
-          .to.emit(this.contract, "Unstake")
+          .to.emit(this.contract, 'Unstake')
           .withArgs(holder, projectId, amount, caller.address);
 
         // The expected balance is the previous balance minus the amount unstaked.
@@ -281,27 +269,23 @@ module.exports = function() {
         expect(storedStakedTotalSupply).to.equal(expectedStakedTotalSupply);
 
         // Get the stored ticket for the project.
-        const storedTicketAddress = await this.contract
-          .connect(caller)
-          .ticketsOf(projectId);
+        const storedTicketAddress = await this.contract.connect(caller).ticketsOf(projectId);
 
         // Attach the address to the Tickets contract.
-        const TicketFactory = await getContractFactory("Tickets");
+        const TicketFactory = await getContractFactory('Tickets');
         const StoredTicket = await TicketFactory.attach(storedTicketAddress);
 
         // Get the stored ticket balance for the holder.
-        const storedTicketBalance = await StoredTicket.connect(
-          caller
-        ).balanceOf(holder);
+        const storedTicketBalance = await StoredTicket.connect(caller).balanceOf(holder);
 
         // There should now be a balance of tickets for the holder.
         expect(storedTicketBalance).to.equal(amount);
       });
     });
   });
-  describe("Failure cases", function() {
-    tests.failure.forEach(function(failureTest) {
-      it(failureTest.description, async function() {
+  describe('Failure cases', function () {
+    tests.failure.forEach(function (failureTest) {
+      it(failureTest.description, async function () {
         const {
           caller,
           personalOperator,
@@ -310,25 +294,19 @@ module.exports = function() {
           amount,
           permissionFlag,
           setup: { stakedBalance, erc20Balance = 0, lockedAmount, issue },
-          revert
+          revert,
         } = failureTest.fn(this);
 
         // Mock the caller to be the project's controller.
-        await this.terminalDirectory.mock.terminalOf
-          .withArgs(projectId)
-          .returns(caller.address);
+        await this.terminalDirectory.mock.terminalOf.withArgs(projectId).returns(caller.address);
 
         // Issue ERC-20s if needed.
         // Must make the caller the project owner in order to issue.
-        await this.projects.mock.ownerOf
-          .withArgs(projectId)
-          .returns(caller.address);
+        await this.projects.mock.ownerOf.withArgs(projectId).returns(caller.address);
 
         // Issue tickets ahead of the opertion.
         if (issue) {
-          await expect(
-            this.contract.connect(caller).issue(projectId, "doesnt", "matter")
-          );
+          await expect(this.contract.connect(caller).issue(projectId, 'doesnt', 'matter'));
         }
 
         // If a permission flag is specified, set the mock to return it.
@@ -344,36 +322,25 @@ module.exports = function() {
               .returns(false);
           }
           await this.operatorStore.mock.hasPermission
-            .withArgs(
-              caller.address,
-              holder,
-              personalOperator ? 0 : projectId,
-              permissionIndex
-            )
+            .withArgs(caller.address, holder, personalOperator ? 0 : projectId, permissionIndex)
             .returns(permissionFlag);
         }
 
         // If there should be an staked balance set up, print the necessary tickets before issuing a ticket.
         if (stakedBalance) {
-          await this.contract
-            .connect(caller)
-            .print(holder, projectId, stakedBalance, false);
+          await this.contract.connect(caller).print(holder, projectId, stakedBalance, false);
         }
         if (erc20Balance > 0) {
-          await this.contract
-            .connect(caller)
-            .print(holder, projectId, erc20Balance, true);
+          await this.contract.connect(caller).print(holder, projectId, erc20Balance, true);
         }
         if (lockedAmount > 0) {
           // Lock the specified amount of tickets.
-          await this.contract
-            .connect(caller)
-            .lock(holder, projectId, lockedAmount);
+          await this.contract.connect(caller).lock(holder, projectId, lockedAmount);
         }
 
         // Execute the transaction.
         await expect(
-          this.contract.connect(caller).unstake(holder, projectId, amount)
+          this.contract.connect(caller).unstake(holder, projectId, amount),
         ).to.be.revertedWith(revert);
       });
     });

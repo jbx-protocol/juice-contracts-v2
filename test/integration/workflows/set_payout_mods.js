@@ -11,7 +11,7 @@
 
 module.exports = [
   {
-    description: "Deploy first project with at least a locked payout mod",
+    description: 'Deploy first project with at least a locked payout mod',
     fn: async ({
       constants,
       contracts,
@@ -25,7 +25,7 @@ module.exports = [
       randomStringFn,
       randomAddressFn,
       incrementFundingCycleIdFn,
-      incrementProjectIdFn
+      incrementProjectIdFn,
     }) => {
       const expectedProjectId = incrementProjectIdFn();
 
@@ -42,43 +42,43 @@ module.exports = [
         // Arbitrary percent that adds up to <= 100% across all mods.
         percent: randomBigNumberFn({
           min: BigNumber.from(1),
-          max: constants.MaxModPercent.div(2)
+          max: constants.MaxModPercent.div(2),
         }).toNumber(),
         // Lock at least until the end of the tests.
         lockedUntil: (await getTimestampFn())
           .add(
             randomBigNumberFn({
               min: BigNumber.from(1000),
-              max: BigNumber.from(100000000)
-            })
+              max: BigNumber.from(100000000),
+            }),
           )
           .toNumber(),
         beneficiary: randomAddressFn(),
         allocator: constants.AddressZero,
-        projectId: BigNumber.from(0)
+        projectId: BigNumber.from(0),
       };
       const unlockedMod1 = {
         preferUnstaked: randomBoolFn(),
         // Arbitrary percent that adds up to <= 100% across all mods.
         percent: randomBigNumberFn({
           min: BigNumber.from(1),
-          max: constants.MaxModPercent.div(4)
+          max: constants.MaxModPercent.div(4),
         }).toNumber(),
         lockedUntil: 0,
         beneficiary: randomAddressFn(),
         allocator: constants.AddressZero,
-        projectId: BigNumber.from(0)
+        projectId: BigNumber.from(0),
       };
 
       await executeFn({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
-        fn: "deploy",
+        fn: 'deploy',
         args: [
           owner.address,
           randomBytesFn({
             // Make sure its unique by prepending the id.
-            prepend: expectedProjectId.toString()
+            prepend: expectedProjectId.toString(),
           }),
           randomStringFn(),
           {
@@ -86,49 +86,49 @@ module.exports = [
             currency: randomBigNumberFn({ max: constants.MaxUint8 }),
             duration: randomBigNumberFn({
               min: BigNumber.from(1),
-              max: constants.MaxUint16
+              max: constants.MaxUint16,
             }),
             cycleLimit: randomBigNumberFn({
-              max: constants.MaxCycleLimit
+              max: constants.MaxCycleLimit,
             }),
             discountRate: randomBigNumberFn({ max: constants.MaxPercent }),
-            ballot: constants.AddressZero
+            ballot: constants.AddressZero,
           },
           {
             reservedRate: BigNumber.from(0),
             bondingCurveRate: randomBigNumberFn({
-              max: constants.MaxPercent
+              max: constants.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumberFn({
-              max: constants.MaxPercent
-            })
+              max: constants.MaxPercent,
+            }),
           },
           [lockedMod1, unlockedMod1],
-          []
-        ]
+          [],
+        ],
       });
 
       return {
         owner,
         expectedProjectId,
         lockedMod1,
-        unlockedMod1
+        unlockedMod1,
       };
-    }
+    },
   },
   {
-    description: "Check that the payout mod got set",
+    description: 'Check that the payout mod got set',
     fn: async ({
       contracts,
       checkFn,
       randomSignerFn,
       timeMark,
-      local: { expectedProjectId, lockedMod1, unlockedMod1 }
+      local: { expectedProjectId, lockedMod1, unlockedMod1 },
     }) => {
       await checkFn({
         caller: randomSignerFn(),
         contract: contracts.modStore,
-        fn: "payoutModsOf",
+        fn: 'payoutModsOf',
         args: [expectedProjectId, timeMark],
         expect: [
           [
@@ -137,7 +137,7 @@ module.exports = [
             lockedMod1.lockedUntil,
             lockedMod1.beneficiary,
             lockedMod1.allocator,
-            lockedMod1.projectId
+            lockedMod1.projectId,
           ],
           [
             unlockedMod1.preferUnstaked,
@@ -145,16 +145,15 @@ module.exports = [
             unlockedMod1.lockedUntil,
             unlockedMod1.beneficiary,
             unlockedMod1.allocator,
-            unlockedMod1.projectId
-          ]
-        ]
+            unlockedMod1.projectId,
+          ],
+        ],
       });
       return { configurationTimeMark: timeMark };
-    }
+    },
   },
   {
-    description:
-      "Overriding a locked mod shouldn't work when setting payout mods",
+    description: "Overriding a locked mod shouldn't work when setting payout mods",
     fn: async ({
       contracts,
       executeFn,
@@ -165,30 +164,30 @@ module.exports = [
       timeMark,
       constants,
       randomBigNumberFn,
-      local: { owner, expectedProjectId, unlockedMod1 }
+      local: { owner, expectedProjectId, unlockedMod1 },
     }) => {
       const unlockedMod2 = {
         preferUnstaked: randomBoolFn(),
         // Arbitrary percent that adds up to <= 100% across all mods.
         percent: randomBigNumberFn({
           min: BigNumber.from(1),
-          max: constants.MaxModPercent.div(5)
+          max: constants.MaxModPercent.div(5),
         }).toNumber(),
         lockedUntil: 0,
         beneficiary: randomAddressFn(),
-        allocator: (await deployContractFn("ExampleModAllocator")).address,
-        projectId: BigNumber.from(0)
+        allocator: (await deployContractFn('ExampleModAllocator')).address,
+        projectId: BigNumber.from(0),
       };
       await executeFn({
         caller: owner,
         contract: contracts.modStore,
-        fn: "setPayoutMods",
+        fn: 'setPayoutMods',
         args: [expectedProjectId, timeMark, [unlockedMod1, unlockedMod2]],
-        revert: "ModStore::setPayoutMods: SOME_LOCKED"
+        revert: 'ModStore::setPayoutMods: SOME_LOCKED',
       });
 
       return { unlockedMod2 };
-    }
+    },
   },
   {
     description:
@@ -197,75 +196,64 @@ module.exports = [
       contracts,
       executeFn,
       timeMark,
-      local: {
-        owner,
-        expectedProjectId,
-        lockedMod1,
-        unlockedMod1,
-        unlockedMod2
-      }
+      local: { owner, expectedProjectId, lockedMod1, unlockedMod1, unlockedMod2 },
     }) =>
       executeFn({
         caller: owner,
         contract: contracts.modStore,
-        fn: "setPayoutMods",
+        fn: 'setPayoutMods',
         args: [
           expectedProjectId,
           timeMark,
           [
             {
               ...lockedMod1,
-              lockedUntil: lockedMod1.lockedUntil - 1
+              lockedUntil: lockedMod1.lockedUntil - 1,
             },
             unlockedMod1,
-            unlockedMod2
-          ]
+            unlockedMod2,
+          ],
         ],
-        revert: "ModStore::setPayoutMods: SOME_LOCKED"
-      })
+        revert: 'ModStore::setPayoutMods: SOME_LOCKED',
+      }),
   },
   {
-    description: "Set new payout mods, making sure to include any locked mods",
+    description: 'Set new payout mods, making sure to include any locked mods',
     fn: ({
       contracts,
       executeFn,
       timeMark,
-      local: { owner, expectedProjectId, unlockedMod2, lockedMod1 }
+      local: { owner, expectedProjectId, unlockedMod2, lockedMod1 },
     }) =>
       executeFn({
         caller: owner,
         contract: contracts.modStore,
-        fn: "setPayoutMods",
+        fn: 'setPayoutMods',
         args: [
           expectedProjectId,
           timeMark,
           [
             {
               ...lockedMod1,
-              lockedUntil: lockedMod1.lockedUntil + 1
+              lockedUntil: lockedMod1.lockedUntil + 1,
             },
-            unlockedMod2
-          ]
-        ]
-      })
+            unlockedMod2,
+          ],
+        ],
+      }),
   },
   {
-    description: "Check that the new payout mods got set correctly",
+    description: 'Check that the new payout mods got set correctly',
     fn: ({
       contracts,
       checkFn,
       randomSignerFn,
-      local: {
-        expectedProjectId,
-        lockedMod1,
-        unlockedMod2,
-        configurationTimeMark
-      }
+      local: { expectedProjectId, lockedMod1, unlockedMod2, configurationTimeMark },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.modStore,
-        fn: "payoutModsOf",
+        fn: 'payoutModsOf',
         // Subtract 1 from timeMark to get the time of the configuration execution.
         args: [expectedProjectId, configurationTimeMark],
         expect: [
@@ -275,7 +263,7 @@ module.exports = [
             lockedMod1.lockedUntil + 1,
             lockedMod1.beneficiary,
             lockedMod1.allocator,
-            lockedMod1.projectId
+            lockedMod1.projectId,
           ],
           [
             unlockedMod2.preferUnstaked,
@@ -283,26 +271,26 @@ module.exports = [
             unlockedMod2.lockedUntil,
             unlockedMod2.beneficiary,
             unlockedMod2.allocator,
-            unlockedMod2.projectId
-          ]
-        ]
-      })
+            unlockedMod2.projectId,
+          ],
+        ],
+      }),
   },
   {
     description:
-      "Configuring a project should allow overriding locked mods for the new configuration",
+      'Configuring a project should allow overriding locked mods for the new configuration',
     fn: ({
       constants,
       contracts,
       executeFn,
       BigNumber,
       randomBigNumberFn,
-      local: { owner, expectedProjectId, unlockedMod1 }
+      local: { owner, expectedProjectId, unlockedMod1 },
     }) =>
       executeFn({
         caller: owner,
         contract: contracts.terminalV1,
-        fn: "configure",
+        fn: 'configure',
         args: [
           expectedProjectId,
           {
@@ -310,41 +298,41 @@ module.exports = [
             currency: randomBigNumberFn({ max: constants.MaxUint8 }),
             duration: randomBigNumberFn({
               min: BigNumber.from(1),
-              max: constants.MaxUint16
+              max: constants.MaxUint16,
             }),
             cycleLimit: randomBigNumberFn({
-              max: constants.MaxCycleLimit
+              max: constants.MaxCycleLimit,
             }),
             discountRate: randomBigNumberFn({ max: constants.MaxPercent }),
-            ballot: constants.AddressZero
+            ballot: constants.AddressZero,
           },
           {
             reservedRate: BigNumber.from(0),
             bondingCurveRate: randomBigNumberFn({
-              max: constants.MaxPercent
+              max: constants.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumberFn({
-              max: constants.MaxPercent
-            })
+              max: constants.MaxPercent,
+            }),
           },
           [unlockedMod1],
-          []
-        ]
-      })
+          [],
+        ],
+      }),
   },
   {
-    description: "Check that the new configuration has its mods",
+    description: 'Check that the new configuration has its mods',
     fn: ({
       contracts,
       checkFn,
       randomSignerFn,
       timeMark,
-      local: { expectedProjectId, unlockedMod1 }
+      local: { expectedProjectId, unlockedMod1 },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.modStore,
-        fn: "payoutModsOf",
+        fn: 'payoutModsOf',
         args: [expectedProjectId, timeMark],
         expect: [
           [
@@ -353,28 +341,23 @@ module.exports = [
             unlockedMod1.lockedUntil,
             unlockedMod1.beneficiary,
             unlockedMod1.allocator,
-            unlockedMod1.projectId
-          ]
-        ]
-      })
+            unlockedMod1.projectId,
+          ],
+        ],
+      }),
   },
   {
-    description: "Check that the old configuration still has its mods",
+    description: 'Check that the old configuration still has its mods',
     fn: ({
       contracts,
       checkFn,
       randomSignerFn,
-      local: {
-        expectedProjectId,
-        lockedMod1,
-        unlockedMod2,
-        configurationTimeMark
-      }
+      local: { expectedProjectId, lockedMod1, unlockedMod2, configurationTimeMark },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.modStore,
-        fn: "payoutModsOf",
+        fn: 'payoutModsOf',
         // Subtract 2 from timeMark to get the time of the configuration execution.
         args: [expectedProjectId, configurationTimeMark],
         expect: [
@@ -384,7 +367,7 @@ module.exports = [
             lockedMod1.lockedUntil + 1,
             lockedMod1.beneficiary,
             lockedMod1.allocator,
-            lockedMod1.projectId
+            lockedMod1.projectId,
           ],
           [
             unlockedMod2.preferUnstaked,
@@ -392,9 +375,9 @@ module.exports = [
             unlockedMod2.lockedUntil,
             unlockedMod2.beneficiary,
             unlockedMod2.allocator,
-            unlockedMod2.projectId
-          ]
-        ]
-      })
-  }
+            unlockedMod2.projectId,
+          ],
+        ],
+      }),
+  },
 ];

@@ -1,45 +1,45 @@
-const { expect } = require("chai");
-const { BigNumber, utils, constants } = require("ethers");
+const { expect } = require('chai');
+const { BigNumber, utils, constants } = require('ethers');
 
 const tests = {
   success: [
     {
-      description: "deposit for caller",
+      description: 'deposit for caller',
       fn: ({ deployer }) => ({
         caller: deployer,
         owner: deployer.address,
         metadata: {
           reservedRate: 200,
           bondingCurveRate: 200,
-          reconfigurationBondingCurveRate: 200
+          reconfigurationBondingCurveRate: 200,
         },
         payoutMods: [],
-        ticketMods: []
-      })
+        ticketMods: [],
+      }),
     },
     {
-      description: "deposit for another address",
+      description: 'deposit for another address',
       fn: ({ deployer, addrs }) => ({
         caller: deployer,
         owner: addrs[0].address,
         metadata: {
           reservedRate: 200,
           bondingCurveRate: 200,
-          reconfigurationBondingCurveRate: 200
+          reconfigurationBondingCurveRate: 200,
         },
         payoutMods: [],
-        ticketMods: []
-      })
+        ticketMods: [],
+      }),
     },
     {
-      description: "deposit with mods",
+      description: 'deposit with mods',
       fn: async ({ deployer, deployMockLocalContractFn }) => ({
         caller: deployer,
         owner: deployer.address,
         metadata: {
           reservedRate: 200,
           bondingCurveRate: 200,
-          reconfigurationBondingCurveRate: 200
+          reconfigurationBondingCurveRate: 200,
         },
         payoutMods: [
           {
@@ -48,11 +48,10 @@ const tests = {
             percent: 200,
             lockedUntil: 1000,
             beneficiary: constants.AddressZero,
-            allocator: (await deployMockLocalContractFn("ExampleModAllocator"))
-              .address,
+            allocator: (await deployMockLocalContractFn('ExampleModAllocator')).address,
             projectId: 1,
-            note: "banana"
-          }
+            note: 'banana',
+          },
         ],
         ticketMods: [
           {
@@ -60,92 +59,82 @@ const tests = {
             preferUnstaked: false,
             percent: 200,
             lockedUntil: 1000,
-            beneficiary: constants.AddressZero
-          }
-        ]
-      })
-    }
+            beneficiary: constants.AddressZero,
+          },
+        ],
+      }),
+    },
   ],
   failure: [
     {
-      description: "reserved rate over 100%",
+      description: 'reserved rate over 100%',
       fn: ({ deployer }) => ({
         caller: deployer,
         owner: deployer.address,
         metadata: {
           reservedRate: 201,
           bondingCurveRate: 200,
-          reconfigurationBondingCurveRate: 200
+          reconfigurationBondingCurveRate: 200,
         },
         payoutMods: [],
         ticketMods: [],
-        revert:
-          "TerminalV1::_validateAndPackFundingCycleMetadata: BAD_RESERVED_RATE"
-      })
+        revert: 'TerminalV1::_validateAndPackFundingCycleMetadata: BAD_RESERVED_RATE',
+      }),
     },
     {
-      description: "bonding curve rate over 100%",
+      description: 'bonding curve rate over 100%',
       fn: ({ deployer }) => ({
         caller: deployer,
         owner: deployer.address,
         metadata: {
           reservedRate: 200,
           bondingCurveRate: 201,
-          reconfigurationBondingCurveRate: 200
+          reconfigurationBondingCurveRate: 200,
         },
         payoutMods: [],
         ticketMods: [],
-        revert:
-          "TerminalV1::_validateAndPackFundingCycleMetadata: BAD_BONDING_CURVE_RATE"
-      })
+        revert: 'TerminalV1::_validateAndPackFundingCycleMetadata: BAD_BONDING_CURVE_RATE',
+      }),
     },
     {
-      description: "reconfiguration bonding curve rate over 100%",
+      description: 'reconfiguration bonding curve rate over 100%',
       fn: ({ deployer }) => ({
         caller: deployer,
         owner: deployer.address,
         metadata: {
           reservedRate: 200,
           bondingCurveRate: 200,
-          reconfigurationBondingCurveRate: 201
+          reconfigurationBondingCurveRate: 201,
         },
         payoutMods: [],
         ticketMods: [],
         revert:
-          "TerminalV1::_validateAndPackFundingCycleMetadata: BAD_RECONFIGURATION_BONDING_CURVE_RATE"
-      })
-    }
-  ]
+          'TerminalV1::_validateAndPackFundingCycleMetadata: BAD_RECONFIGURATION_BONDING_CURVE_RATE',
+      }),
+    },
+  ],
 };
 
-module.exports = function() {
-  describe("Success cases", function() {
-    tests.success.forEach(function(successTest) {
-      it(successTest.description, async function() {
-        const {
-          caller,
-          owner,
-          metadata,
-          payoutMods,
-          ticketMods
-        } = await successTest.fn(this);
-        const handle = utils.formatBytes32String("something");
-        const uri = "some-uri";
+module.exports = function () {
+  describe('Success cases', function () {
+    tests.success.forEach(function (successTest) {
+      it(successTest.description, async function () {
+        const { caller, owner, metadata, payoutMods, ticketMods } = await successTest.fn(this);
+        const handle = utils.formatBytes32String('something');
+        const uri = 'some-uri';
         const properties = {
           target: 10,
           currency: 1,
           duration: 10,
           cycleLimit: 0,
           discountRate: 10,
-          ballot: constants.AddressZero
+          ballot: constants.AddressZero,
         };
 
         const projectId = 42;
         const configured = 171717;
         let packedMetadata = BigNumber.from(0);
-        packedMetadata = packedMetadata.add(
-          metadata.reconfigurationBondingCurveRate
-        );
+        packedMetadata = packedMetadata.add(metadata.reconfigurationBondingCurveRate);
         packedMetadata = packedMetadata.shl(8);
         packedMetadata = packedMetadata.add(metadata.bondingCurveRate);
         packedMetadata = packedMetadata.shl(8);
@@ -180,7 +169,7 @@ module.exports = function() {
             fee: 0,
             discountRate: 0,
             tapped: 0,
-            metadata: 0
+            metadata: 0,
           });
 
         if (payoutMods.length)
@@ -198,39 +187,29 @@ module.exports = function() {
         // Execute the transaction.
         await this.targetContract
           .connect(caller)
-          .deploy(
-            owner,
-            handle,
-            uri,
-            properties,
-            metadata,
-            payoutMods,
-            ticketMods
-          );
+          .deploy(owner, handle, uri, properties, metadata, payoutMods, ticketMods);
       });
     });
   });
-  describe("Failure cases", function() {
-    tests.failure.forEach(function(failureTest) {
-      it(failureTest.description, async function() {
+  describe('Failure cases', function () {
+    tests.failure.forEach(function (failureTest) {
+      it(failureTest.description, async function () {
         const { caller, owner, metadata, revert } = failureTest.fn(this);
-        const handle = utils.formatBytes32String("something");
-        const uri = "some-uri";
+        const handle = utils.formatBytes32String('something');
+        const uri = 'some-uri';
         const properties = {
           target: 10,
           currency: 1,
           duration: 10,
           cycleLimit: 0,
           discountRate: 10,
-          ballot: constants.AddressZero
+          ballot: constants.AddressZero,
         };
 
         const projectId = 42;
         const configured = 171717;
         let packedMetadata = BigNumber.from(0);
-        packedMetadata = packedMetadata.add(
-          metadata.reconfigurationBondingCurveRate
-        );
+        packedMetadata = packedMetadata.add(metadata.reconfigurationBondingCurveRate);
         packedMetadata = packedMetadata.shl(8);
         packedMetadata = packedMetadata.add(metadata.bondingCurveRate);
         packedMetadata = packedMetadata.shl(8);
@@ -265,14 +244,14 @@ module.exports = function() {
             fee: 0,
             discountRate: 0,
             tapped: 0,
-            metadata: 0
+            metadata: 0,
           });
 
         // Execute the transaction.
         await expect(
           this.targetContract
             .connect(caller)
-            .deploy(owner, handle, uri, properties, metadata, [], [])
+            .deploy(owner, handle, uri, properties, metadata, [], []),
         ).to.be.revertedWith(revert);
       });
     });

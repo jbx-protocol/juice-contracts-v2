@@ -1,5 +1,5 @@
-const receive = require("./receive");
+const receive = require('./receive');
 
 module.exports = {
-  receive
+  receive,
 };

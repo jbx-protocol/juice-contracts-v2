@@ -1,70 +1,66 @@
-const { ethers } = require("hardhat");
-const { expect } = require("chai");
+const { ethers } = require('hardhat');
+const { expect } = require('chai');
 
 const tests = {
   success: [
     {
-      description: "different uri",
+      description: 'different uri',
       fn: ({ deployer }) => ({
         caller: deployer,
-        uri: "some-uri",
+        uri: 'some-uri',
         setup: {
           create: {
-            owner: deployer.address
-          }
-        }
-      })
+            owner: deployer.address,
+          },
+        },
+      }),
     },
     {
-      description: "called by operator",
+      description: 'called by operator',
       fn: ({ deployer, addrs }) => ({
         caller: deployer,
-        uri: "some-uri",
+        uri: 'some-uri',
         setup: {
           create: {
-            owner: addrs[0].address
+            owner: addrs[0].address,
           },
-          permissionFlag: true
-        }
-      })
-    }
+          permissionFlag: true,
+        },
+      }),
+    },
   ],
   failure: [
     {
-      description: "unauthorized",
+      description: 'unauthorized',
       fn: ({ deployer, addrs }) => ({
         caller: deployer,
-        uri: "some-uri",
+        uri: 'some-uri',
         setup: {
           create: {
-            owner: addrs[0].address
+            owner: addrs[0].address,
           },
-          permissionFlag: false
+          permissionFlag: false,
         },
-        revert: "Operatable: UNAUTHORIZED"
-      })
-    }
-  ]
+        revert: 'Operatable: UNAUTHORIZED',
+      }),
+    },
+  ],
 };
 
-module.exports = function() {
-  describe("Success cases", function() {
-    tests.success.forEach(function(successTest) {
-      it(successTest.description, async function() {
-        const {
-          caller,
-          uri,
-          setup: { create, permissionFlag } = {}
-        } = successTest.fn(this);
+module.exports = function () {
+  describe('Success cases', function () {
+    tests.success.forEach(function (successTest) {
+      it(successTest.description, async function () {
+        const { caller, uri, setup: { create, permissionFlag } = {} } = successTest.fn(this);
 
         // Setup by creating a project.
         await this.contract
           .connect(caller)
           .create(
             create.owner,
-            ethers.utils.formatBytes32String("some-handle"),
-            "",
-            this.constants.AddressZero
+            ethers.utils.formatBytes32String('some-handle'),
+            '',
+            this.constants.AddressZero,
           );
         if (permissionFlag !== undefined) {
           const permissionIndex = 6;
@@ -79,9 +75,7 @@ module.exports = function() {
         const tx = await this.contract.connect(caller).setUri(1, uri);
 
         // Expect an event to have been emitted.
-        expect(tx)
-          .to.emit(this.contract, "SetUri")
-          .withArgs(1, uri, caller.address);
+        expect(tx).to.emit(this.contract, 'SetUri').withArgs(1, uri, caller.address);
 
         // Get the stored uri value.
         const storedUri = await this.contract.uriOf(1);
@@ -91,14 +85,14 @@ module.exports = function() {
       });
     });
   });
-  describe("Failure cases", function() {
-    tests.failure.forEach(function(failureTest) {
-      it(failureTest.description, async function() {
+  describe('Failure cases', function () {
+    tests.failure.forEach(function (failureTest) {
+      it(failureTest.description, async function () {
         const {
           caller,
           uri,
           setup: { create, permissionFlag } = {},
-          revert
+          revert,
         } = failureTest.fn(this);
 
         // Setup by creating a project.
@@ -106,9 +100,9 @@ module.exports = function() {
           .connect(caller)
           .create(
             create.owner,
-            ethers.utils.formatBytes32String("some-handle"),
-            "",
-            this.constants.AddressZero
+            ethers.utils.formatBytes32String('some-handle'),
+            '',
+            this.constants.AddressZero,
           );
 
         if (permissionFlag !== undefined) {
@@ -121,9 +115,7 @@ module.exports = function() {
         }
 
         // Execute the transaction.
-        await expect(
-          this.contract.connect(caller).setUri(1, uri)
-        ).to.be.revertedWith(revert);
+        await expect(this.contract.connect(caller).setUri(1, uri)).to.be.revertedWith(revert);
       });
     });
   });

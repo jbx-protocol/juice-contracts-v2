@@ -7,14 +7,14 @@ const currency = 0;
 
 module.exports = [
   {
-    description: "Create a project",
+    description: 'Create a project',
     fn: async ({
       executeFn,
       randomStringFn,
       contracts,
       randomBytesFn,
       randomSignerFn,
-      incrementProjectIdFn
+      incrementProjectIdFn,
     }) => {
       const expectedProjectId = incrementProjectIdFn();
 
@@ -24,39 +24,34 @@ module.exports = [
       await executeFn({
         caller: randomSignerFn(),
         contract: contracts.projects,
-        fn: "create",
+        fn: 'create',
         args: [
           owner.address,
           randomBytesFn({
             // Make sure its unique by prepending the id.
-            prepend: expectedProjectId.toString()
+            prepend: expectedProjectId.toString(),
           }),
           randomStringFn(),
-          contracts.terminalV1.address
-        ]
+          contracts.terminalV1.address,
+        ],
       });
 
       return { owner, expectedProjectId };
-    }
+    },
   },
   {
-    description: "The project should still be able to print premined tickets",
-    fn: ({
-      randomSignerFn,
-      checkFn,
-      contracts,
-      local: { expectedProjectId }
-    }) =>
+    description: 'The project should still be able to print premined tickets',
+    fn: ({ randomSignerFn, checkFn, contracts, local: { expectedProjectId } }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
-        fn: "canPrintPreminedTickets",
+        fn: 'canPrintPreminedTickets',
         args: [expectedProjectId],
-        expect: true
-      })
+        expect: true,
+      }),
   },
   {
-    description: "Print some premined tickets",
+    description: 'Print some premined tickets',
     fn: async ({
       randomSignerFn,
       randomBoolFn,
@@ -65,7 +60,7 @@ module.exports = [
       executeFn,
       contracts,
       randomStringFn,
-      local: { owner, expectedProjectId }
+      local: { owner, expectedProjectId },
     }) => {
       // The address that will receive the first batch of preconfigure tickets.
       const preconfigureTicketBeneficiary1 = randomSignerFn();
@@ -74,60 +69,55 @@ module.exports = [
       const preminePrintAmount1 = randomBigNumberFn({
         min: BigNumber.from(1),
         // Use an arbitrary large big number that can be added to other large big numbers without risk of running into uint256 boundaries.
-        max: BigNumber.from(10).pow(30)
+        max: BigNumber.from(10).pow(30),
       });
 
       await executeFn({
         caller: owner,
         contract: contracts.terminalV1,
-        fn: "printPreminedTickets",
+        fn: 'printPreminedTickets',
         args: [
           expectedProjectId,
           preminePrintAmount1,
           currency,
           preconfigureTicketBeneficiary1.address,
           randomStringFn(),
-          randomBoolFn()
-        ]
+          randomBoolFn(),
+        ],
       });
 
       return {
         preconfigureTicketBeneficiary1,
-        preminePrintAmount1
+        preminePrintAmount1,
       };
-    }
+    },
   },
   {
-    description:
-      "The beneficiary should have gotten the correct amount of tickets",
+    description: 'The beneficiary should have gotten the correct amount of tickets',
     fn: async ({
       randomSignerFn,
       constants,
       checkFn,
       contracts,
-      local: {
-        preconfigureTicketBeneficiary1,
-        preminePrintAmount1,
-        expectedProjectId
-      }
+      local: { preconfigureTicketBeneficiary1, preminePrintAmount1, expectedProjectId },
     }) => {
       // The ticket amount is based on the initial funding cycle's weight.
       const expectedPreminedPrintedTicketAmount1 = preminePrintAmount1.mul(
-        constants.InitialWeightMultiplier
+        constants.InitialWeightMultiplier,
       );
       await checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "balanceOf",
+        fn: 'balanceOf',
         args: [preconfigureTicketBeneficiary1.address, expectedProjectId],
-        expect: expectedPreminedPrintedTicketAmount1
+        expect: expectedPreminedPrintedTicketAmount1,
       });
 
       return { expectedPreminedPrintedTicketAmount1 };
-    }
+    },
   },
   {
-    description: "All the tickets should be staked",
+    description: 'All the tickets should be staked',
     fn: ({
       randomSignerFn,
       checkFn,
@@ -135,36 +125,30 @@ module.exports = [
       local: {
         expectedProjectId,
         preconfigureTicketBeneficiary1,
-        expectedPreminedPrintedTicketAmount1
-      }
+        expectedPreminedPrintedTicketAmount1,
+      },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "stakedBalanceOf",
+        fn: 'stakedBalanceOf',
         args: [preconfigureTicketBeneficiary1.address, expectedProjectId],
-        expect: expectedPreminedPrintedTicketAmount1
-      })
+        expect: expectedPreminedPrintedTicketAmount1,
+      }),
   },
   {
-    description:
-      "The project should still be allowed to print more premined tickets",
-    fn: ({
-      randomSignerFn,
-      checkFn,
-      contracts,
-      local: { expectedProjectId }
-    }) =>
+    description: 'The project should still be allowed to print more premined tickets',
+    fn: ({ randomSignerFn, checkFn, contracts, local: { expectedProjectId } }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
-        fn: "canPrintPreminedTickets",
+        fn: 'canPrintPreminedTickets',
         args: [expectedProjectId],
-        expect: true
-      })
+        expect: true,
+      }),
   },
   {
-    description: "Make a payment before configuring a funding cycle",
+    description: 'Make a payment before configuring a funding cycle',
     fn: async ({
       randomSignerFn,
       randomBigNumberFn,
@@ -174,7 +158,7 @@ module.exports = [
       contracts,
       randomStringFn,
       randomBoolFn,
-      local: { expectedProjectId }
+      local: { expectedProjectId },
     }) => {
       // An account that will be used to make payments.
       const payer = randomSignerFn();
@@ -183,7 +167,7 @@ module.exports = [
       // So, arbitrarily divide the balance so that all payments can be made successfully.
       const paymentValue1 = randomBigNumberFn({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(100)
+        max: (await getBalanceFn(payer.address)).div(100),
       });
 
       // The address that will receive the second batch of preconfigure tickets.
@@ -192,26 +176,25 @@ module.exports = [
       await executeFn({
         caller: payer,
         contract: contracts.terminalV1,
-        fn: "pay",
+        fn: 'pay',
         args: [
           expectedProjectId,
           preconfigureTicketBeneficiary2.address,
           randomStringFn(),
-          randomBoolFn()
+          randomBoolFn(),
         ],
-        value: paymentValue1
+        value: paymentValue1,
       });
 
       return {
         payer,
         paymentValue1,
-        preconfigureTicketBeneficiary2
+        preconfigureTicketBeneficiary2,
       };
-    }
+    },
   },
   {
-    description:
-      "The payment beneficiary should have gotten the correct amount of tickets",
+    description: 'The payment beneficiary should have gotten the correct amount of tickets',
     fn: async ({
       randomSignerFn,
       checkFn,
@@ -222,31 +205,30 @@ module.exports = [
         preconfigureTicketBeneficiary2,
         expectedPreminedPrintedTicketAmount1,
         expectedProjectId,
-        paymentValue1
-      }
+        paymentValue1,
+      },
     }) => {
       // The ticket amount is based on the initial funding cycle's weight.
       const expectedPaymentPrintedTicketAmount1 = paymentValue1.mul(
-        constants.InitialWeightMultiplier
+        constants.InitialWeightMultiplier,
       );
       await checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "balanceOf",
+        fn: 'balanceOf',
         args: [preconfigureTicketBeneficiary2.address, expectedProjectId],
         // If the beneficiaries receiving the first premine tickets and the first payment tickets are the same, add them up.
         expect: expectedPaymentPrintedTicketAmount1.add(
-          preconfigureTicketBeneficiary2.address ===
-            preconfigureTicketBeneficiary1.address
+          preconfigureTicketBeneficiary2.address === preconfigureTicketBeneficiary1.address
             ? expectedPreminedPrintedTicketAmount1
-            : 0
-        )
+            : 0,
+        ),
       });
       return { expectedPaymentPrintedTicketAmount1 };
-    }
+    },
   },
   {
-    description: "All the tickets should still be staked",
+    description: 'All the tickets should still be staked',
     fn: ({
       randomSignerFn,
       checkFn,
@@ -256,58 +238,45 @@ module.exports = [
         preconfigureTicketBeneficiary1,
         preconfigureTicketBeneficiary2,
         expectedPaymentPrintedTicketAmount1,
-        expectedPreminedPrintedTicketAmount1
-      }
+        expectedPreminedPrintedTicketAmount1,
+      },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "stakedBalanceOf",
+        fn: 'stakedBalanceOf',
         args: [preconfigureTicketBeneficiary2.address, expectedProjectId],
         expect: expectedPaymentPrintedTicketAmount1.add(
-          preconfigureTicketBeneficiary2.address ===
-            preconfigureTicketBeneficiary1.address
+          preconfigureTicketBeneficiary2.address === preconfigureTicketBeneficiary1.address
             ? expectedPreminedPrintedTicketAmount1
-            : 0
-        )
-      })
+            : 0,
+        ),
+      }),
   },
   {
-    description:
-      "The project should still be able to print more premined tickets",
-    fn: ({
-      randomSignerFn,
-      checkFn,
-      contracts,
-      local: { expectedProjectId }
-    }) =>
+    description: 'The project should still be able to print more premined tickets',
+    fn: ({ randomSignerFn, checkFn, contracts, local: { expectedProjectId } }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
-        fn: "canPrintPreminedTickets",
+        fn: 'canPrintPreminedTickets',
         args: [expectedProjectId],
-        expect: true
-      })
+        expect: true,
+      }),
   },
   {
-    description:
-      "Issue the project's tickets so that the unstaked preference can be checked",
-    fn: ({
-      executeFn,
-      contracts,
-      randomStringFn,
-      local: { expectedProjectId, owner }
-    }) =>
+    description: "Issue the project's tickets so that the unstaked preference can be checked",
+    fn: ({ executeFn, contracts, randomStringFn, local: { expectedProjectId, owner } }) =>
       executeFn({
         caller: owner,
         contract: contracts.ticketBooth,
-        fn: "issue",
+        fn: 'issue',
         args: [
           expectedProjectId,
           randomStringFn({ canBeEmpty: false }),
-          randomStringFn({ canBeEmpty: false })
-        ]
-      })
+          randomStringFn({ canBeEmpty: false }),
+        ],
+      }),
   },
   {
     description:
@@ -319,7 +288,7 @@ module.exports = [
       constants,
       BigNumber,
       incrementFundingCycleIdFn,
-      local: { expectedProjectId, owner }
+      local: { expectedProjectId, owner },
     }) => {
       // Burn the unused funding cycle ID id.
       incrementFundingCycleIdFn();
@@ -327,7 +296,7 @@ module.exports = [
       await executeFn({
         caller: owner,
         contract: contracts.terminalV1,
-        fn: "configure",
+        fn: 'configure',
         args: [
           expectedProjectId,
           {
@@ -335,31 +304,31 @@ module.exports = [
             currency: randomBigNumberFn({ max: constants.MaxUint8 }),
             duration: randomBigNumberFn({
               min: BigNumber.from(1),
-              max: constants.MaxUint16
+              max: constants.MaxUint16,
             }),
             cycleLimit: randomBigNumberFn({
-              max: constants.MaxCycleLimit
+              max: constants.MaxCycleLimit,
             }),
             discountRate: randomBigNumberFn({ max: constants.MaxPercent }),
-            ballot: constants.AddressZero
+            ballot: constants.AddressZero,
           },
           {
             reservedRate: randomBigNumberFn({ max: constants.MaxPercent }),
             bondingCurveRate: randomBigNumberFn({
-              max: constants.MaxPercent
+              max: constants.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumberFn({
-              max: constants.MaxPercent
-            })
+              max: constants.MaxPercent,
+            }),
           },
           [],
-          []
-        ]
+          [],
+        ],
       });
-    }
+    },
   },
   {
-    description: "Print some more premined tickets to another beneficiary",
+    description: 'Print some more premined tickets to another beneficiary',
     fn: async ({
       randomBigNumberFn,
       executeFn,
@@ -368,7 +337,7 @@ module.exports = [
       randomSignerFn,
       randomStringFn,
       contracts,
-      local: { expectedProjectId, owner }
+      local: { expectedProjectId, owner },
     }) => {
       // The address that will receive the second batch of premined tickets.
       const preconfigureTicketBeneficiary3 = randomSignerFn();
@@ -376,7 +345,7 @@ module.exports = [
       const preminePrintAmount2 = randomBigNumberFn({
         min: BigNumber.from(1),
         // Use an arbitrary large big number that can be added to other large big numbers without risk of running into uint256 boundaries.
-        max: BigNumber.from(10).pow(30)
+        max: BigNumber.from(10).pow(30),
       });
 
       // The unsrtaked preference to use.
@@ -385,27 +354,26 @@ module.exports = [
       await executeFn({
         caller: owner,
         contract: contracts.terminalV1,
-        fn: "printPreminedTickets",
+        fn: 'printPreminedTickets',
         args: [
           expectedProjectId,
           preminePrintAmount2,
           currency,
           preconfigureTicketBeneficiary3.address,
           randomStringFn(),
-          preferUnstakedTickets
-        ]
+          preferUnstakedTickets,
+        ],
       });
 
       return {
         preconfigureTicketBeneficiary3,
         preminePrintAmount2,
-        preferUnstakedTickets
+        preferUnstakedTickets,
       };
-    }
+    },
   },
   {
-    description:
-      "The third beneficiary should have gotten the correct amount of tickets",
+    description: 'The third beneficiary should have gotten the correct amount of tickets',
     fn: async ({
       randomSignerFn,
       constants,
@@ -418,42 +386,36 @@ module.exports = [
         preconfigureTicketBeneficiary3,
         expectedPaymentPrintedTicketAmount1,
         expectedPreminedPrintedTicketAmount1,
-        preminePrintAmount2
-      }
+        preminePrintAmount2,
+      },
     }) => {
       const expectedPreminedPrintedTicketAmount2 = preminePrintAmount2.mul(
-        constants.InitialWeightMultiplier
+        constants.InitialWeightMultiplier,
       );
 
       let expect = expectedPreminedPrintedTicketAmount2;
 
       // If the beneficiary is the same as the one which received tickets from the first premine, add the amounts.
-      if (
-        preconfigureTicketBeneficiary3.address ===
-        preconfigureTicketBeneficiary1.address
-      )
+      if (preconfigureTicketBeneficiary3.address === preconfigureTicketBeneficiary1.address)
         expect = expect.add(expectedPreminedPrintedTicketAmount1);
 
       // If the beneficiary is the same as the one which received tickets from the first payment, add the amounts.
-      if (
-        preconfigureTicketBeneficiary3.address ===
-        preconfigureTicketBeneficiary2.address
-      )
+      if (preconfigureTicketBeneficiary3.address === preconfigureTicketBeneficiary2.address)
         expect = expect.add(expectedPaymentPrintedTicketAmount1);
 
       await checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "balanceOf",
+        fn: 'balanceOf',
         args: [preconfigureTicketBeneficiary3.address, expectedProjectId],
-        expect
+        expect,
       });
 
       return { expectedPreminedPrintedTicketAmount2 };
-    }
+    },
   },
   {
-    description: "Check for the correct number of staked tickets",
+    description: 'Check for the correct number of staked tickets',
     fn: async ({
       randomSignerFn,
       checkFn,
@@ -467,43 +429,33 @@ module.exports = [
         expectedPreminedPrintedTicketAmount1,
         expectedPreminedPrintedTicketAmount2,
         expectedPaymentPrintedTicketAmount1,
-        preferUnstakedTickets
-      }
+        preferUnstakedTickets,
+      },
     }) => {
       let expectedStaked = preferUnstakedTickets
         ? BigNumber.from(0)
         : expectedPreminedPrintedTicketAmount2;
 
       // If the beneficiary is the same as the one which received tickets from the first premine, add the amounts.
-      if (
-        preconfigureTicketBeneficiary3.address ===
-        preconfigureTicketBeneficiary1.address
-      )
-        expectedStaked = expectedStaked.add(
-          expectedPreminedPrintedTicketAmount1
-        );
+      if (preconfigureTicketBeneficiary3.address === preconfigureTicketBeneficiary1.address)
+        expectedStaked = expectedStaked.add(expectedPreminedPrintedTicketAmount1);
 
       // If the beneficiary is the same as the one which received tickets from the first payment, add the amounts.
-      if (
-        preconfigureTicketBeneficiary3.address ===
-        preconfigureTicketBeneficiary2.address
-      )
-        expectedStaked = expectedStaked.add(
-          expectedPaymentPrintedTicketAmount1
-        );
+      if (preconfigureTicketBeneficiary3.address === preconfigureTicketBeneficiary2.address)
+        expectedStaked = expectedStaked.add(expectedPaymentPrintedTicketAmount1);
 
       await checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "stakedBalanceOf",
+        fn: 'stakedBalanceOf',
         args: [preconfigureTicketBeneficiary3.address, expectedProjectId],
-        expect: expectedStaked
+        expect: expectedStaked,
       });
-    }
+    },
   },
   {
     description:
-      "The total supply of tickets for the project should equal the total of the premined printed amounts",
+      'The total supply of tickets for the project should equal the total of the premined printed amounts',
     fn: ({
       randomSignerFn,
       checkFn,
@@ -512,18 +464,18 @@ module.exports = [
         expectedProjectId,
         expectedPreminedPrintedTicketAmount1,
         expectedPreminedPrintedTicketAmount2,
-        expectedPaymentPrintedTicketAmount1
-      }
+        expectedPaymentPrintedTicketAmount1,
+      },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "totalSupplyOf",
+        fn: 'totalSupplyOf',
         args: [expectedProjectId],
         expect: expectedPreminedPrintedTicketAmount1
           .add(expectedPreminedPrintedTicketAmount2)
-          .add(expectedPaymentPrintedTicketAmount1)
-      })
+          .add(expectedPaymentPrintedTicketAmount1),
+      }),
   },
   {
     description:
@@ -537,47 +489,37 @@ module.exports = [
       randomAddressFn,
       randomStringFn,
       randomBoolFn,
-      local: { expectedProjectId, payer }
+      local: { expectedProjectId, payer },
     }) => {
       // One payment will be made. Cant pay entire balance because some is needed for gas.
       // So, arbitrarily divide the balance so that all payments can be made successfully.
       const paymentValue2 = randomBigNumberFn({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(100)
+        max: (await getBalanceFn(payer.address)).div(100),
       });
 
       await executeFn({
         caller: payer,
         contract: contracts.terminalV1,
-        fn: "pay",
-        args: [
-          expectedProjectId,
-          randomAddressFn(),
-          randomStringFn(),
-          randomBoolFn()
-        ],
-        value: paymentValue2
+        fn: 'pay',
+        args: [expectedProjectId, randomAddressFn(), randomStringFn(), randomBoolFn()],
+        value: paymentValue2,
       });
-    }
+    },
   },
   {
-    description: "Printing tickets should no longer allowed",
-    fn: ({
-      randomSignerFn,
-      checkFn,
-      contracts,
-      local: { expectedProjectId }
-    }) =>
+    description: 'Printing tickets should no longer allowed',
+    fn: ({ randomSignerFn, checkFn, contracts, local: { expectedProjectId } }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
-        fn: "canPrintPreminedTickets",
+        fn: 'canPrintPreminedTickets',
         args: [expectedProjectId],
-        expect: false
-      })
+        expect: false,
+      }),
   },
   {
-    description: "Confirm that printing tickets is no longer allowed",
+    description: 'Confirm that printing tickets is no longer allowed',
     fn: async ({
       executeFn,
       contracts,
@@ -586,25 +528,25 @@ module.exports = [
       randomAddressFn,
       randomBoolFn,
       BigNumber,
-      local: { owner, expectedProjectId }
+      local: { owner, expectedProjectId },
     }) =>
       executeFn({
         caller: owner,
         contract: contracts.terminalV1,
-        fn: "printPreminedTickets",
+        fn: 'printPreminedTickets',
         args: [
           expectedProjectId,
           randomBigNumberFn({
             min: BigNumber.from(1),
             // Use an arbitrary large big number that can be added to other large big numbers without risk of running into uint256 boundaries.
-            max: BigNumber.from(10).pow(30)
+            max: BigNumber.from(10).pow(30),
           }),
           currency,
           randomAddressFn(),
           randomStringFn(),
-          randomBoolFn()
+          randomBoolFn(),
         ],
-        revert: "TerminalV1::printTickets: ALREADY_ACTIVE"
-      })
-  }
+        revert: 'TerminalV1::printTickets: ALREADY_ACTIVE',
+      }),
+  },
 ];

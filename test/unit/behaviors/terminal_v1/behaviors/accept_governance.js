@@ -1,45 +1,41 @@
-const { expect } = require("chai");
+const { expect } = require('chai');
 
 const tests = {
   success: [
     {
-      description: "appoint",
+      description: 'appoint',
       fn: ({ addrs, governance }) => ({
         caller: governance,
-        governance: addrs[0]
-      })
-    }
+        governance: addrs[0],
+      }),
+    },
   ],
   failure: [
     {
-      description: "unauthorized",
+      description: 'unauthorized',
       fn: ({ governance }) => ({
         caller: governance,
-        revert: "TerminalV1::acceptGovernance: UNAUTHORIZED"
-      })
-    }
-  ]
+        revert: 'TerminalV1::acceptGovernance: UNAUTHORIZED',
+      }),
+    },
+  ],
 };
 
-module.exports = function() {
-  describe("Success cases", function() {
-    tests.success.forEach(function(successTest) {
-      it(successTest.description, async function() {
+module.exports = function () {
+  describe('Success cases', function () {
+    tests.success.forEach(function (successTest) {
+      it(successTest.description, async function () {
         const { caller, governance } = successTest.fn(this);
 
         // Appoint the governance that will accept.
-        await this.targetContract
-          .connect(caller)
-          .appointGovernance(governance.address);
+        await this.targetContract.connect(caller).appointGovernance(governance.address);
 
         // Execute the transaction.
-        const tx = await this.targetContract
-          .connect(governance)
-          .acceptGovernance();
+        const tx = await this.targetContract.connect(governance).acceptGovernance();
 
         // Expect an event to have been emitted.
         await expect(tx)
-          .to.emit(this.targetContract, "AcceptGovernance")
+          .to.emit(this.targetContract, 'AcceptGovernance')
           .withArgs(governance.address);
 
         // Get the stored pending governance value.
@@ -50,14 +46,14 @@ module.exports = function() {
       });
     });
   });
-  describe("Failure cases", function() {
-    tests.failure.forEach(function(failureTest) {
-      it(failureTest.description, async function() {
+  describe('Failure cases', function () {
+    tests.failure.forEach(function (failureTest) {
+      it(failureTest.description, async function () {
         const { caller, revert } = failureTest.fn(this);
 
-        await expect(
-          this.targetContract.connect(caller).acceptGovernance()
-        ).to.be.revertedWith(revert);
+        await expect(this.targetContract.connect(caller).acceptGovernance()).to.be.revertedWith(
+          revert,
+        );
       });
     });
   });

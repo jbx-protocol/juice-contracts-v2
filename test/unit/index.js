@@ -1,4 +1,4 @@
-const shouldBehaveLike = require("./behaviors");
+const shouldBehaveLike = require('./behaviors');
 
 let snapshotId;
 module.exports = function () {
@@ -8,28 +8,25 @@ module.exports = function () {
     await this.setTimeMarkFn();
   });
   // Test each contract.
-  describe("OperatorStore", shouldBehaveLike.operatorStore);
-  describe("Prices", shouldBehaveLike.prices);
-  describe("Projects", shouldBehaveLike.projects);
-  describe("TerminalDirectory", shouldBehaveLike.terminalDirectory);
-  describe("Governance", shouldBehaveLike.governance);
-  describe("JuiceboxProject", shouldBehaveLike.JuiceboxProject);
+  describe('OperatorStore', shouldBehaveLike.operatorStore);
+  describe('Prices', shouldBehaveLike.prices);
+  describe('Projects', shouldBehaveLike.projects);
+  describe('TerminalDirectory', shouldBehaveLike.terminalDirectory);
+  describe('Governance', shouldBehaveLike.governance);
+  describe('JuiceboxProject', shouldBehaveLike.JuiceboxProject);
   // Depends on TerminalDirectory.
-  describe("FundingCycles", shouldBehaveLike.fundingCycles);
+  describe('FundingCycles', shouldBehaveLike.fundingCycles);
   // Depends on TerminalDirectory.
-  describe("DirectPaymentAddress", shouldBehaveLike.directPaymentAddress);
+  describe('DirectPaymentAddress', shouldBehaveLike.directPaymentAddress);
   // Depends on OperatorStore and Projects.
-  describe("ModStore", shouldBehaveLike.modStore);
+  describe('ModStore', shouldBehaveLike.modStore);
   // Depends on OperatorStore and Projects.
-  describe("TicketBooth", shouldBehaveLike.ticketBooth);
+  describe('TicketBooth', shouldBehaveLike.ticketBooth);
   // TODO: dependency
-  describe("ProxyPaymentAddress", shouldBehaveLike.proxyPaymentAddress);
-  describe(
-    "ProxyPaymentAddressManager",
-    shouldBehaveLike.proxyPaymentAddressManager
-  );
+  describe('ProxyPaymentAddress', shouldBehaveLike.proxyPaymentAddress);
+  describe('ProxyPaymentAddressManager', shouldBehaveLike.proxyPaymentAddressManager);
   // Depends on everything.
-  describe("TerminalV1", shouldBehaveLike.terminalV1);
+  describe('TerminalV1', shouldBehaveLike.terminalV1);
 
   // After each test, restore the contract state.
   afterEach(async function () {

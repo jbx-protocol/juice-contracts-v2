@@ -1,32 +1,29 @@
-const shouldBehaveLike = require("./behaviors");
+const shouldBehaveLike = require('./behaviors');
 
-const contractName = "TerminalV1";
+const contractName = 'TerminalV1';
 
-module.exports = function() {
+module.exports = function () {
   // Before the tests, deploy mocked dependencies and the contract.
-  before(async function() {
+  before(async function () {
     // Deploy mock dependency contracts.
-    const operatorStore = await this.deployMockLocalContractFn("OperatorStore");
-    const projects = await this.deployMockLocalContractFn("Projects", [
-      operatorStore.address
-    ]);
-    const prices = await this.deployMockLocalContractFn("Prices");
-    const terminalDirectory = await this.deployMockLocalContractFn(
-      "TerminalDirectory",
-      [projects.address, operatorStore.address]
-    );
-    const fundingCycles = await this.deployMockLocalContractFn(
-      "FundingCycles",
-      [terminalDirectory.address]
-    );
-    const ticketBooth = await this.deployMockLocalContractFn("TicketBooth", [
+    const operatorStore = await this.deployMockLocalContractFn('OperatorStore');
+    const projects = await this.deployMockLocalContractFn('Projects', [operatorStore.address]);
+    const prices = await this.deployMockLocalContractFn('Prices');
+    const terminalDirectory = await this.deployMockLocalContractFn('TerminalDirectory', [
       projects.address,
       operatorStore.address,
-      terminalDirectory.address
     ]);
-    const modStore = await this.deployMockLocalContractFn("ModStore", [
+    const fundingCycles = await this.deployMockLocalContractFn('FundingCycles', [
+      terminalDirectory.address,
+    ]);
+    const ticketBooth = await this.deployMockLocalContractFn('TicketBooth', [
       projects.address,
-      operatorStore.address
+      operatorStore.address,
+      terminalDirectory.address,
+    ]);
+    const modStore = await this.deployMockLocalContractFn('ModStore', [
+      projects.address,
+      operatorStore.address,
     ]);
 
     const governance = this.addrs[9];
@@ -40,7 +37,7 @@ module.exports = function() {
       terminalDirectory,
       fundingCycles,
       ticketBooth,
-      modStore
+      modStore,
     };
 
     this.targetContract = await this.deployContractFn(contractName, [
@@ -51,24 +48,24 @@ module.exports = function() {
       modStore.address,
       prices.address,
       terminalDirectory.address,
-      governance.address
+      governance.address,
     ]);
 
     this.contractName = contractName;
   });
 
   // Test each function.
-  describe("appointGovernance(...)", shouldBehaveLike.appointGovernance);
-  describe("acceptGovernance(...)", shouldBehaveLike.acceptGovernance);
-  describe("setFee(...)", shouldBehaveLike.setFee);
-  describe("allowMigration(...)", shouldBehaveLike.allowMigration);
-  describe("addToBalance(...)", shouldBehaveLike.addToBalance);
-  describe("migrate(...)", shouldBehaveLike.migrate);
-  describe("deploy(...)", shouldBehaveLike.deploy);
-  describe("configure(...)", shouldBehaveLike.configure);
-  describe("pay(...)", shouldBehaveLike.pay);
-  describe("printPremineTickets(...)", shouldBehaveLike.printPreminedTickets);
-  describe("redeem(...)", shouldBehaveLike.redeem);
-  describe("tap(...)", shouldBehaveLike.tap);
-  describe("printReservedTickets(...)", shouldBehaveLike.printReservedTickets);
+  describe('appointGovernance(...)', shouldBehaveLike.appointGovernance);
+  describe('acceptGovernance(...)', shouldBehaveLike.acceptGovernance);
+  describe('setFee(...)', shouldBehaveLike.setFee);
+  describe('allowMigration(...)', shouldBehaveLike.allowMigration);
+  describe('addToBalance(...)', shouldBehaveLike.addToBalance);
+  describe('migrate(...)', shouldBehaveLike.migrate);
+  describe('deploy(...)', shouldBehaveLike.deploy);
+  describe('configure(...)', shouldBehaveLike.configure);
+  describe('pay(...)', shouldBehaveLike.pay);
+  describe('printPremineTickets(...)', shouldBehaveLike.printPreminedTickets);
+  describe('redeem(...)', shouldBehaveLike.redeem);
+  describe('tap(...)', shouldBehaveLike.tap);
+  describe('printReservedTickets(...)', shouldBehaveLike.printReservedTickets);
 };

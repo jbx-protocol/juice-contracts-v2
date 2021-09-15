@@ -1,7 +1,7 @@
 const {
-  ethers: { BigNumber, constants }
-} = require("hardhat");
-const { expect } = require("chai");
+  ethers: { BigNumber, constants },
+} = require('hardhat');
+const { expect } = require('chai');
 
 /** 
   These tests rely on time manipulation quite a bit, which as far as i understand is hard to do precisely. 
@@ -13,104 +13,98 @@ const { expect } = require("chai");
   If anyone has ideas on how to mitigate this, please let me know.
 */
 
-const testTemplate = ({
-  op = {},
-  setup = {},
-  preconfigure = {},
-  fastforward,
-  ops = [],
-  expectation = {},
-  revert
-}) => ({ deployer }) => ({
-  caller: deployer,
-  controller: deployer.address,
-  projectId: 1,
-  amount: BigNumber.from(20),
-  setup: {
-    preconfigure: {
-      target: BigNumber.from(240),
-      currency: BigNumber.from(0),
-      duration: BigNumber.from(1),
-      cycleLimit: BigNumber.from(0),
-      discountRate: BigNumber.from(120),
-      fee: BigNumber.from(40),
-      metadata: BigNumber.from(3),
-      configureActiveFundingCycle: false,
-      ...preconfigure
+const testTemplate =
+  ({ op = {}, setup = {}, preconfigure = {}, fastforward, ops = [], expectation = {}, revert }) =>
+  ({ deployer }) => ({
+    caller: deployer,
+    controller: deployer.address,
+    projectId: 1,
+    amount: BigNumber.from(20),
+    setup: {
+      preconfigure: {
+        target: BigNumber.from(240),
+        currency: BigNumber.from(0),
+        duration: BigNumber.from(1),
+        cycleLimit: BigNumber.from(0),
+        discountRate: BigNumber.from(120),
+        fee: BigNumber.from(40),
+        metadata: BigNumber.from(3),
+        configureActiveFundingCycle: false,
+        ...preconfigure,
+      },
+      ops: [
+        ...ops,
+        ...(fastforward
+          ? [
+              {
+                type: 'fastforward',
+                seconds: fastforward,
+              },
+            ]
+          : []),
+      ],
+      ...setup,
     },
-    ops: [
-      ...ops,
-      ...(fastforward
-        ? [
-            {
-              type: "fastforward",
-              seconds: fastforward
-            }
-          ]
-        : [])
-    ],
-    ...setup
-  },
-  expectation,
-  ...op,
-  revert
-});
+    expectation,
+    ...op,
+    revert,
+  });
 const tests = {
   success: [
     {
-      description: "first configuration, partial amount",
+      description: 'first configuration, partial amount',
       fn: testTemplate({
         op: {
           // Amount is a part of the target.
-          amount: BigNumber.from(20)
+          amount: BigNumber.from(20),
         },
         preconfigure: {
           // Greater than the amount.
-          target: BigNumber.from(120)
+          target: BigNumber.from(120),
         },
         expectation: {
           tappedId: 1,
           tappedNumber: 1,
           initNumber: 1,
           basedOn: 0,
-          newTappedAmount: BigNumber.from(20)
-        }
-      })
+          newTappedAmount: BigNumber.from(20),
+        },
+      }),
     },
     {
-      description: "first configuration, full amount",
+      description: 'first configuration, full amount',
       fn: testTemplate({
         op: {
           // Amount is equal to the target.
-          amount: BigNumber.from(120)
+          amount: BigNumber.from(120),
         },
         preconfigure: {
           // Equal to the amount.
-          target: BigNumber.from(120)
+          target: BigNumber.from(120),
         },
         expectation: {
           tappedId: 1,
           tappedNumber: 1,
           initNumber: 1,
           basedOn: 0,
-          newTappedAmount: BigNumber.from(120)
-        }
-      })
+          newTappedAmount: BigNumber.from(120),
+        },
+      }),
     },
     {
-      description: "second overriding configuration",
+      description: 'second overriding configuration',
       fn: testTemplate({
         op: {
           // Bigger than the preconfiguration, less than the second configuration.
-          amount: BigNumber.from(140)
+          amount: BigNumber.from(140),
         },
         preconfigure: {
           // Less than the amount being tapped. Should be overwritten.
-          target: BigNumber.from(120)
+          target: BigNumber.from(120),
         },
         ops: [
           {
-            type: "configure",
+            type: 'configure',
             projectId: 1,
             configureActiveFundingCycle: true,
             // Greater than the amount being tapped.
@@ -121,32 +115,32 @@ const tests = {
             cycleLimit: BigNumber.from(0),
             discountRate: BigNumber.from(180),
             fee: BigNumber.from(42),
-            metadata: BigNumber.from(92)
-          }
+            metadata: BigNumber.from(92),
+          },
         ],
         expectation: {
           tappedId: 1,
           tappedNumber: 1,
           initNumber: 1,
           basedOn: 0,
-          newTappedAmount: BigNumber.from(140)
-        }
-      })
+          newTappedAmount: BigNumber.from(140),
+        },
+      }),
     },
     {
-      description: "first configuration, with a standby cycle",
+      description: 'first configuration, with a standby cycle',
       fn: testTemplate({
         op: {
           // Less than the preconfiguration, greater than the standby.
-          amount: BigNumber.from(120)
+          amount: BigNumber.from(120),
         },
         preconfigure: {
           // Greater than the amount being tapped.
-          target: BigNumber.from(120)
+          target: BigNumber.from(120),
         },
         ops: [
           {
-            type: "configure",
+            type: 'configure',
             projectId: 1,
             configureActiveFundingCycle: false,
             // Less than the amount being tapped since this configuration shouldnt be tapped.
@@ -157,33 +151,33 @@ const tests = {
             cycleLimit: BigNumber.from(0),
             discountRate: BigNumber.from(180),
             fee: BigNumber.from(42),
-            metadata: BigNumber.from(92)
-          }
+            metadata: BigNumber.from(92),
+          },
         ],
         expectation: {
           tappedId: 1,
           tappedNumber: 1,
           initNumber: 1,
           basedOn: 0,
-          newTappedAmount: BigNumber.from(120)
-        }
-      })
+          newTappedAmount: BigNumber.from(120),
+        },
+      }),
     },
     {
-      description: "second configuration, with approved ballot",
+      description: 'second configuration, with approved ballot',
       fn: testTemplate({
         op: {
           // Less than the preconfiguration, greater than the standby.
-          amount: BigNumber.from(120)
+          amount: BigNumber.from(120),
         },
         preconfigure: {
           // Less than the amount being tapped. Should be ignored.
           target: BigNumber.from(100),
-          duration: BigNumber.from(1)
+          duration: BigNumber.from(1),
         },
         ops: [
           {
-            type: "configure",
+            type: 'configure',
             projectId: 1,
             configureActiveFundingCycle: false,
             // Greater than the amount being tapped.
@@ -192,40 +186,40 @@ const tests = {
             ballot: {
               // This funding cycle (2) is approved.
               fundingCycleId: 2,
-              state: BigNumber.from(0)
+              state: BigNumber.from(0),
             },
             // The below values dont matter.
             currency: BigNumber.from(1),
             duration: BigNumber.from(2),
             discountRate: BigNumber.from(180),
             fee: BigNumber.from(42),
-            metadata: BigNumber.from(92)
-          }
+            metadata: BigNumber.from(92),
+          },
         ],
         // Fast forward the full duration.
         fastforward: BigNumber.from(86400),
         expectation: {
           tappedId: 2,
           tappedNumber: 2,
-          newTappedAmount: BigNumber.from(120)
-        }
-      })
+          newTappedAmount: BigNumber.from(120),
+        },
+      }),
     },
     {
-      description: "first configuration, with an active ballot",
+      description: 'first configuration, with an active ballot',
       fn: testTemplate({
         op: {
           // Less than the preconfiguration, greater than the standby.
-          amount: BigNumber.from(120)
+          amount: BigNumber.from(120),
         },
         preconfigure: {
           // Greater than the amount being tapped.
           target: BigNumber.from(140),
-          duration: BigNumber.from(1)
+          duration: BigNumber.from(1),
         },
         ops: [
           {
-            type: "configure",
+            type: 'configure',
             projectId: 1,
             configureActiveFundingCycle: false,
             // Less than the amount being tapped. Should be ignored
@@ -233,7 +227,7 @@ const tests = {
             ballot: {
               // This funding cycle (2) is not yet approved.
               fundingCycleId: 2,
-              state: BigNumber.from(1)
+              state: BigNumber.from(1),
             },
             // The below values dont matter.
             currency: BigNumber.from(1),
@@ -241,8 +235,8 @@ const tests = {
             cycleLimit: BigNumber.from(0),
             discountRate: BigNumber.from(180),
             fee: BigNumber.from(42),
-            metadata: BigNumber.from(92)
-          }
+            metadata: BigNumber.from(92),
+          },
         ],
         // Fast forward past the full duration.
         fastforward: BigNumber.from(86401),
@@ -251,25 +245,25 @@ const tests = {
           tappedNumber: 2,
           initNumber: 2,
           basedOn: 1,
-          newTappedAmount: BigNumber.from(120)
-        }
-      })
+          newTappedAmount: BigNumber.from(120),
+        },
+      }),
     },
     {
-      description: "first configuration, with a failed ballot",
+      description: 'first configuration, with a failed ballot',
       fn: testTemplate({
         op: {
           // Less than the preconfiguration, greater than the standby.
-          amount: BigNumber.from(120)
+          amount: BigNumber.from(120),
         },
         preconfigure: {
           // Greater than the amount being tapped.
           target: BigNumber.from(140),
-          duration: BigNumber.from(1)
+          duration: BigNumber.from(1),
         },
         ops: [
           {
-            type: "configure",
+            type: 'configure',
             projectId: 1,
             configureActiveFundingCycle: false,
             // Less than the amount being tapped. Should be ignored
@@ -277,7 +271,7 @@ const tests = {
             ballot: {
               // This funding cycle (2) is not yet approved.
               fundingCycleId: 2,
-              state: BigNumber.from(2)
+              state: BigNumber.from(2),
             },
             // The below values dont matter.
             currency: BigNumber.from(1),
@@ -285,8 +279,8 @@ const tests = {
             cycleLimit: BigNumber.from(0),
             discountRate: BigNumber.from(180),
             fee: BigNumber.from(42),
-            metadata: BigNumber.from(92)
-          }
+            metadata: BigNumber.from(92),
+          },
         ],
         // Fast forward past the full duration.
         fastforward: BigNumber.from(86401),
@@ -295,25 +289,25 @@ const tests = {
           tappedNumber: 2,
           initNumber: 2,
           basedOn: 1,
-          newTappedAmount: BigNumber.from(120)
-        }
-      })
+          newTappedAmount: BigNumber.from(120),
+        },
+      }),
     },
     {
-      description: "first configuration, with a standby ballot",
+      description: 'first configuration, with a standby ballot',
       fn: testTemplate({
         op: {
           // Less than the preconfiguration, greater than the standby.
-          amount: BigNumber.from(120)
+          amount: BigNumber.from(120),
         },
         preconfigure: {
           // Greater than the amount being tapped.
           target: BigNumber.from(140),
-          duration: BigNumber.from(1)
+          duration: BigNumber.from(1),
         },
         ops: [
           {
-            type: "configure",
+            type: 'configure',
             projectId: 1,
             configureActiveFundingCycle: false,
             // Less than the amount being tapped. Should be ignored
@@ -321,7 +315,7 @@ const tests = {
             ballot: {
               // This funding cycle (2) is not yet approved.
               fundingCycleId: 2,
-              state: BigNumber.from(3)
+              state: BigNumber.from(3),
             },
             // The below values dont matter.
             currency: BigNumber.from(1),
@@ -329,8 +323,8 @@ const tests = {
             cycleLimit: BigNumber.from(0),
             discountRate: BigNumber.from(180),
             fee: BigNumber.from(42),
-            metadata: BigNumber.from(92)
-          }
+            metadata: BigNumber.from(92),
+          },
         ],
         // Fast forward past the full duration.
         fastforward: BigNumber.from(86401),
@@ -339,21 +333,21 @@ const tests = {
           tappedNumber: 2,
           initNumber: 2,
           basedOn: 1,
-          newTappedAmount: BigNumber.from(120)
-        }
-      })
+          newTappedAmount: BigNumber.from(120),
+        },
+      }),
     },
     {
-      description: "first configuration, a while later",
+      description: 'first configuration, a while later',
       fn: testTemplate({
         op: {
           // Less than the preconfiguration, greater than the standby.
-          amount: BigNumber.from(120)
+          amount: BigNumber.from(120),
         },
         preconfigure: {
           // Greater than the amount being tapped.
           target: BigNumber.from(140),
-          duration: BigNumber.from(1)
+          duration: BigNumber.from(1),
         },
         // Fast forward multiples of the duration.
         fastforward: BigNumber.from(86400 * 3 + 1),
@@ -362,92 +356,92 @@ const tests = {
           tappedNumber: 4,
           initNumber: 4,
           basedOn: 1,
-          newTappedAmount: BigNumber.from(120)
-        }
-      })
+          newTappedAmount: BigNumber.from(120),
+        },
+      }),
     },
     {
-      description: "first configuration, twice",
+      description: 'first configuration, twice',
       fn: testTemplate({
         op: {
           // Less than the preconfiguration, greater than the standby.
-          amount: BigNumber.from(120)
+          amount: BigNumber.from(120),
         },
         preconfigure: {
           // Greater than the amount being tapped.
-          target: BigNumber.from(140)
+          target: BigNumber.from(140),
         },
         ops: [
           {
             projectId: 1,
-            type: "tap",
+            type: 'tap',
             // A partial amount.
-            amount: BigNumber.from(20)
-          }
+            amount: BigNumber.from(20),
+          },
         ],
         expectation: {
           tappedId: 1,
           tappedNumber: 1,
           initNumber: 1,
           basedOn: 0,
-          newTappedAmount: BigNumber.from(140)
-        }
-      })
+          newTappedAmount: BigNumber.from(140),
+        },
+      }),
     },
     {
-      description: "first configuration, non recurring",
+      description: 'first configuration, non recurring',
       fn: testTemplate({
         op: {
           // Less than the preconfiguration, greater than the standby.
           amount: BigNumber.from(20),
-          discountRate: BigNumber.from(201)
-        },
-        preconfigure: {
-          // Greater than the amount being tapped.
-          target: BigNumber.from(140)
-        },
-        expectation: {
-          tappedId: 1,
-          tappedNumber: 1,
-          initNumber: 1,
-          basedOn: 0,
-          newTappedAmount: BigNumber.from(20)
-        }
-      })
-    },
-    {
-      description: "taps, first configuration, max uints",
-      fn: testTemplate({
-        op: {
-          amount: constants.MaxUint256
-        },
-        preconfigure: {
-          target: constants.MaxUint256
-        },
-        expectation: {
-          tappedId: 1,
-          tappedNumber: 1,
-          initNumber: 1,
-          basedOn: 0,
-          newTappedAmount: constants.MaxUint256
-        }
-      })
-    },
-    {
-      description: "during cycle limit",
-      fn: testTemplate({
-        op: {
-          // Less than the preconfiguration, greater than the cycle limit.
-          amount: BigNumber.from(100)
+          discountRate: BigNumber.from(201),
         },
         preconfigure: {
           // Greater than the amount being tapped.
           target: BigNumber.from(140),
-          duration: BigNumber.from(10)
+        },
+        expectation: {
+          tappedId: 1,
+          tappedNumber: 1,
+          initNumber: 1,
+          basedOn: 0,
+          newTappedAmount: BigNumber.from(20),
+        },
+      }),
+    },
+    {
+      description: 'taps, first configuration, max uints',
+      fn: testTemplate({
+        op: {
+          amount: constants.MaxUint256,
+        },
+        preconfigure: {
+          target: constants.MaxUint256,
+        },
+        expectation: {
+          tappedId: 1,
+          tappedNumber: 1,
+          initNumber: 1,
+          basedOn: 0,
+          newTappedAmount: constants.MaxUint256,
+        },
+      }),
+    },
+    {
+      description: 'during cycle limit',
+      fn: testTemplate({
+        op: {
+          // Less than the preconfiguration, greater than the cycle limit.
+          amount: BigNumber.from(100),
+        },
+        preconfigure: {
+          // Greater than the amount being tapped.
+          target: BigNumber.from(140),
+          duration: BigNumber.from(10),
         },
         ops: [
           {
-            type: "configure",
+            type: 'configure',
             projectId: 1,
             configureActiveFundingCycle: false,
             // Less than the amount being tapped. Should be ignored
@@ -455,7 +449,7 @@ const tests = {
             ballot: {
               // This funding cycle (2) is approved.
               fundingCycleId: 2,
-              state: BigNumber.from(0)
+              state: BigNumber.from(0),
             },
             // The below values dont matter.
             currency: BigNumber.from(1),
@@ -464,8 +458,8 @@ const tests = {
             discountRate: BigNumber.from(180),
             fee: BigNumber.from(42),
             metadata: BigNumber.from(92),
-            expectedCyclesUsed: 1
-          }
+            expectedCyclesUsed: 1,
+          },
         ],
         // Fast forward past the cycle limits.
         fastforward: BigNumber.from(86400 * 11 + 1),
@@ -474,25 +468,25 @@ const tests = {
           tappedNumber: 3,
           initNumber: 3,
           basedOn: 2,
-          newTappedAmount: BigNumber.from(100)
-        }
-      })
+          newTappedAmount: BigNumber.from(100),
+        },
+      }),
     },
     {
-      description: "during last cycle of cycle limit",
+      description: 'during last cycle of cycle limit',
       fn: testTemplate({
         op: {
           // Less than the preconfiguration, greater than the cycle limit.
-          amount: BigNumber.from(100)
+          amount: BigNumber.from(100),
         },
         preconfigure: {
           // Greater than the amount being tapped.
           target: BigNumber.from(140),
-          duration: BigNumber.from(10)
+          duration: BigNumber.from(10),
         },
         ops: [
           {
-            type: "configure",
+            type: 'configure',
             projectId: 1,
             configureActiveFundingCycle: false,
             // Less than the amount being tapped. Should be ignored
@@ -500,7 +494,7 @@ const tests = {
             ballot: {
               // This funding cycle (2) is approved.
               fundingCycleId: 2,
-              state: BigNumber.from(0)
+              state: BigNumber.from(0),
             },
             // The below values dont matter.
             currency: BigNumber.from(1),
@@ -509,8 +503,8 @@ const tests = {
             discountRate: BigNumber.from(180),
             fee: BigNumber.from(42),
             metadata: BigNumber.from(92),
-            expectedCyclesUsed: 4
-          }
+            expectedCyclesUsed: 4,
+          },
         ],
         // Fast forward past the cycle limits.
         fastforward: BigNumber.from(86400 * 14 + 1),
@@ -519,25 +513,25 @@ const tests = {
           tappedNumber: 6,
           initNumber: 6,
           basedOn: 2,
-          newTappedAmount: BigNumber.from(100)
-        }
-      })
+          newTappedAmount: BigNumber.from(100),
+        },
+      }),
     },
     {
-      description: "after cycle limit",
+      description: 'after cycle limit',
       fn: testTemplate({
         op: {
           // Less than the preconfiguration, greater than the cycle limit.
-          amount: BigNumber.from(120)
+          amount: BigNumber.from(120),
         },
         preconfigure: {
           // Greater than the amount being tapped.
           target: BigNumber.from(140),
-          duration: BigNumber.from(10)
+          duration: BigNumber.from(10),
         },
         ops: [
           {
-            type: "configure",
+            type: 'configure',
             projectId: 1,
             configureActiveFundingCycle: false,
             // Less than the amount being tapped. Should be ignored
@@ -545,7 +539,7 @@ const tests = {
             ballot: {
               // This funding cycle (2) is approved.
               fundingCycleId: 2,
-              state: BigNumber.from(0)
+              state: BigNumber.from(0),
             },
             // The below values dont matter.
             currency: BigNumber.from(1),
@@ -554,8 +548,8 @@ const tests = {
             discountRate: BigNumber.from(180),
             fee: BigNumber.from(42),
             metadata: BigNumber.from(92),
-            expectedCyclesUsed: 5
-          }
+            expectedCyclesUsed: 5,
+          },
         ],
         // Fast forward past the cycle limits.
         fastforward: BigNumber.from(86400 * 15 + 1),
@@ -564,25 +558,25 @@ const tests = {
           tappedNumber: 7,
           initNumber: 7,
           basedOn: 2,
-          newTappedAmount: BigNumber.from(120)
-        }
-      })
+          newTappedAmount: BigNumber.from(120),
+        },
+      }),
     },
     {
-      description: "a while after cycle limit",
+      description: 'a while after cycle limit',
       fn: testTemplate({
         op: {
           // Less than the preconfiguration, greater than the cycle limit.
-          amount: BigNumber.from(120)
+          amount: BigNumber.from(120),
         },
         preconfigure: {
           // Greater than the amount being tapped.
           target: BigNumber.from(140),
-          duration: BigNumber.from(10)
+          duration: BigNumber.from(10),
         },
         ops: [
           {
-            type: "configure",
+            type: 'configure',
             projectId: 1,
             configureActiveFundingCycle: false,
             // Less than the amount being tapped. Should be ignored
@@ -590,7 +584,7 @@ const tests = {
             ballot: {
               // This funding cycle (2) is approved.
               fundingCycleId: 2,
-              state: BigNumber.from(0)
+              state: BigNumber.from(0),
             },
             // The below values dont matter.
             currency: BigNumber.from(1),
@@ -599,8 +593,8 @@ const tests = {
             discountRate: BigNumber.from(180),
             fee: BigNumber.from(42),
             metadata: BigNumber.from(92),
-            expectedCyclesUsed: 5
-          }
+            expectedCyclesUsed: 5,
+          },
         ],
         // Fast forward past the cycle limits.
         fastforward: BigNumber.from(86400 * 35 + 1),
@@ -609,25 +603,25 @@ const tests = {
           tappedNumber: 9,
           initNumber: 9,
           basedOn: 2,
-          newTappedAmount: BigNumber.from(120)
-        }
-      })
+          newTappedAmount: BigNumber.from(120),
+        },
+      }),
     },
     {
-      description: "with second cycle limit during first",
+      description: 'with second cycle limit during first',
       fn: testTemplate({
         op: {
           // Less than the preconfiguration, greater than the cycle limit.
-          amount: BigNumber.from(200)
+          amount: BigNumber.from(200),
         },
         preconfigure: {
           // Greater than the amount being tapped.
           target: BigNumber.from(140),
-          duration: BigNumber.from(10)
+          duration: BigNumber.from(10),
         },
         ops: [
           {
-            type: "configure",
+            type: 'configure',
             projectId: 1,
             configureActiveFundingCycle: false,
             // Less than the amount being tapped. Should be ignored
@@ -635,7 +629,7 @@ const tests = {
             ballot: {
               // This funding cycle (2) is approved.
               fundingCycleId: 2,
-              state: BigNumber.from(0)
+              state: BigNumber.from(0),
             },
             // The below values dont matter.
             currency: BigNumber.from(1),
@@ -644,14 +638,14 @@ const tests = {
             discountRate: BigNumber.from(180),
             fee: BigNumber.from(42),
             metadata: BigNumber.from(92),
-            expectedCyclesUsed: 1
+            expectedCyclesUsed: 1,
           },
           {
-            type: "fastforward",
-            seconds: BigNumber.from(86400 * 11 + 1)
+            type: 'fastforward',
+            seconds: BigNumber.from(86400 * 11 + 1),
           },
           {
-            type: "configure",
+            type: 'configure',
             projectId: 1,
             configureActiveFundingCycle: false,
             // Less than the amount being tapped. Should be ignored
@@ -659,7 +653,7 @@ const tests = {
             ballot: {
               // This funding cycle (3) is approved.
               fundingCycleId: 3,
-              state: BigNumber.from(0)
+              state: BigNumber.from(0),
             },
             // The below values dont matter.
             currency: BigNumber.from(1),
@@ -668,147 +662,145 @@ const tests = {
             discountRate: BigNumber.from(180),
             fee: BigNumber.from(42),
             metadata: BigNumber.from(92),
-            expectedCyclesUsed: 0
-          }
+            expectedCyclesUsed: 0,
+          },
         ],
         // Fast forward past the cycle limits.
         fastforward: BigNumber.from(86401),
         expectation: {
           tappedId: 3,
           tappedNumber: 4,
-          newTappedAmount: BigNumber.from(200)
-        }
-      })
+          newTappedAmount: BigNumber.from(200),
+        },
+      }),
     },
     {
-      description: "with duration of zero, right away",
+      description: 'with duration of zero, right away',
       fn: testTemplate({
         op: {
           // Less than the preconfiguration, greater than the standby.
-          amount: BigNumber.from(120)
+          amount: BigNumber.from(120),
         },
         preconfigure: {
           // At least the amount being tapped. Should be ignored.
           target: BigNumber.from(120),
-          duration: BigNumber.from(0)
+          duration: BigNumber.from(0),
         },
         expectation: {
           tappedId: 1,
           tappedNumber: 1,
-          newTappedAmount: BigNumber.from(120)
-        }
-      })
+          newTappedAmount: BigNumber.from(120),
+        },
+      }),
     },
     {
-      description: "with duration of zero, a while later",
+      description: 'with duration of zero, a while later',
       fn: testTemplate({
         op: {
           // Less than the preconfiguration, greater than the standby.
-          amount: BigNumber.from(120)
+          amount: BigNumber.from(120),
         },
         preconfigure: {
           // At least the amount being tapped. Should be ignored.
           target: BigNumber.from(120),
-          duration: BigNumber.from(0)
+          duration: BigNumber.from(0),
         },
         // Fast forward the full duration.
         fastforward: BigNumber.from(12345678),
         expectation: {
           tappedId: 1,
           tappedNumber: 1,
-          newTappedAmount: BigNumber.from(120)
-        }
-      })
-    }
+          newTappedAmount: BigNumber.from(120),
+        },
+      }),
+    },
   ],
   failure: [
     {
-      description: "unauthorized",
+      description: 'unauthorized',
       fn: ({ deployer, addrs }) => ({
         caller: deployer,
         controller: addrs[0].address,
         setup: { preconfigure: null },
-        revert: "TerminalUtility: UNAUTHORIZED",
+        revert: 'TerminalUtility: UNAUTHORIZED',
         // below values copied from template
         projectId: 1,
-        amount: BigNumber.from(20)
-      })
+        amount: BigNumber.from(20),
+      }),
     },
     {
-      description: "project not found",
+      description: 'project not found',
       fn: testTemplate({
         setup: {
           // No preconfigure
-          preconfigure: null
+          preconfigure: null,
         },
-        revert: "FundingCycles::_tappable: NOT_FOUND"
-      })
+        revert: 'FundingCycles::_tappable: NOT_FOUND',
+      }),
     },
     {
-      description: "non recurring",
+      description: 'non recurring',
       fn: testTemplate({
         preconfigure: {
           discountRate: BigNumber.from(201),
-          duration: BigNumber.from(1)
+          duration: BigNumber.from(1),
         },
         fastforward: BigNumber.from(86401),
-        revert: "FundingCycles::_tappable: NON_RECURRING"
-      })
+        revert: 'FundingCycles::_tappable: NON_RECURRING',
+      }),
     },
     {
-      description: "insufficient funds, first tap",
+      description: 'insufficient funds, first tap',
       fn: testTemplate({
         op: {
           // More than the target.
-          amount: BigNumber.from(120)
+          amount: BigNumber.from(120),
         },
         preconfigure: {
-          target: BigNumber.from(100)
+          target: BigNumber.from(100),
         },
-        revert: "FundingCycles::tap: INSUFFICIENT_FUNDS"
-      })
+        revert: 'FundingCycles::tap: INSUFFICIENT_FUNDS',
+      }),
     },
     {
-      description: "insufficient funds, subsequent tap",
+      description: 'insufficient funds, subsequent tap',
       fn: testTemplate({
         op: {
           // More than the target when added to what's already tapped.
           amount: BigNumber.from(101),
-          projectId: 1
+          projectId: 1,
         },
         preconfigure: {
           projectId: 1,
-          target: BigNumber.from(100)
+          target: BigNumber.from(100),
         },
         ops: [
           {
-            type: "tap",
+            type: 'tap',
             projectId: 1,
-            amount: BigNumber.from(20)
-          }
+            amount: BigNumber.from(20),
+          },
         ],
-        revert: "FundingCycles::tap: INSUFFICIENT_FUNDS"
-      })
-    }
-  ]
+        revert: 'FundingCycles::tap: INSUFFICIENT_FUNDS',
+      }),
+    },
+  ],
 };
 
-module.exports = function() {
-  describe("Success cases", function() {
-    tests.success.forEach(function(successTest) {
-      it(successTest.description, async function() {
+module.exports = function () {
+  describe('Success cases', function () {
+    tests.success.forEach(function (successTest) {
+      it(successTest.description, async function () {
         const {
           caller,
           projectId,
           amount,
           setup: { preconfigure, ops = [] },
-          expectation
+          expectation,
         } = successTest.fn(this);
 
         // Mock the caller to be the project's controller.
-        await this.terminalDirectory.mock.terminalOf
-          .withArgs(projectId)
-          .returns(caller.address);
+        await this.terminalDirectory.mock.terminalOf.withArgs(projectId).returns(caller.address);
 
         let preconfigureBlockNumber;
 
@@ -821,20 +813,18 @@ module.exports = function() {
               duration: preconfigure.duration,
               cycleLimit: preconfigure.cycleLimit,
               discountRate: preconfigure.discountRate,
-              ballot: this.ballot.address
+              ballot: this.ballot.address,
             },
             preconfigure.metadata,
             preconfigure.fee,
-            preconfigure.configureActiveFundingCycle
+            preconfigure.configureActiveFundingCycle,
           );
           preconfigureBlockNumber = tx.blockNumber;
           await this.setTimeMarkFn(tx.blockNumber);
         }
 
         // Get a reference to the timestamp right after the preconfiguration occurs.
-        const expectedPreconfigureStart = await this.getTimestampFn(
-          preconfigureBlockNumber
-        );
+        const expectedPreconfigureStart = await this.getTimestampFn(preconfigureBlockNumber);
 
         // Mock the duration as 0.
         await this.ballot.mock.duration.returns(BigNumber.from(0));
@@ -845,7 +835,7 @@ module.exports = function() {
         for (let i = 0; i < ops.length; i += 1) {
           const op = ops[i];
           switch (op.type) {
-            case "configure": {
+            case 'configure': {
               // eslint-disable-next-line no-await-in-loop
               const tx = await this.contract.connect(caller).configure(
                 projectId,
@@ -855,11 +845,11 @@ module.exports = function() {
                   duration: op.duration,
                   cycleLimit: op.cycleLimit,
                   discountRate: op.discountRate,
-                  ballot: this.ballot.address
+                  ballot: this.ballot.address,
                 },
                 op.metadata,
                 op.fee,
-                op.configureActiveFundingCycle
+                op.configureActiveFundingCycle,
               );
 
               // Mock the ballot state for this reconfiguration if needed.
@@ -869,7 +859,7 @@ module.exports = function() {
                   .withArgs(
                     op.ballot.fundingCycleId,
                     // eslint-disable-next-line no-await-in-loop
-                    await this.getTimestampFn(tx.blockNumber)
+                    await this.getTimestampFn(tx.blockNumber),
                   )
                   .returns(op.ballot.state);
               }
@@ -883,11 +873,11 @@ module.exports = function() {
 
               break;
             }
-            case "tap":
+            case 'tap':
               // eslint-disable-next-line no-await-in-loop
               await this.contract.connect(caller).tap(op.projectId, op.amount);
               break;
-            case "fastforward":
+            case 'fastforward':
               // Subtract 1 so that the next operations mined block is likely to fall on the intended timestamp.
               // eslint-disable-next-line no-await-in-loop
               await this.fastforwardFn(op.seconds.sub(1));
@@ -904,13 +894,13 @@ module.exports = function() {
 
         // Expect an event to have been emitted.
         await expect(tx)
-          .to.emit(this.contract, "Tap")
+          .to.emit(this.contract, 'Tap')
           .withArgs(
             expectation.tappedId,
             projectId,
             amount,
             expectation.newTappedAmount,
-            caller.address
+            caller.address,
           );
 
         // Expect an Init event if not configuring the same funding cycle again.
@@ -921,11 +911,7 @@ module.exports = function() {
           let expectedWeight = baseWeight;
 
           // Multiply the discount the amount of times specified.
-          for (
-            let i = 0;
-            i < expectation.initNumber - 1 - discountRatesToApply.length;
-            i += 1
-          ) {
+          for (let i = 0; i < expectation.initNumber - 1 - discountRatesToApply.length; i += 1) {
             expectedWeight = expectedWeight
               .mul(BigNumber.from(1000).sub(preconfigure.discountRate))
               .div(1000);
@@ -942,7 +928,7 @@ module.exports = function() {
             expectedStart = expectedPreconfigureStart.add(
               preconfigure.duration
                 .mul(86400)
-                .mul(expectation.initNumber - 1 - durationsToApply.length)
+                .mul(expectation.initNumber - 1 - durationsToApply.length),
             );
             for (let i = 0; i < durationsToApply.length; i += 1) {
               expectedStart = expectedStart.add(durationsToApply[i].mul(86400));
@@ -951,48 +937,42 @@ module.exports = function() {
             expectedStart = now;
           }
           await expect(tx)
-            .to.emit(this.contract, "Init")
+            .to.emit(this.contract, 'Init')
             .withArgs(
               expectation.tappedId,
               projectId,
               expectation.initNumber,
               expectation.basedOn,
               expectedWeight,
-              expectedStart
+              expectedStart,
             );
         }
 
         // Get a reference to the funding cycle that was tapped.
-        const tappedFundingCycle = await this.contract.get(
-          expectation.tappedId
-        );
+        const tappedFundingCycle = await this.contract.get(expectation.tappedId);
 
         // Expect the stored values to match what's expected.
         expect(tappedFundingCycle.id).to.equal(expectation.tappedId);
         expect(tappedFundingCycle.projectId).to.equal(projectId);
-        expect(tappedFundingCycle.number).to.equal(
-          expectation.tappedNumber || 1
-        );
+        expect(tappedFundingCycle.number).to.equal(expectation.tappedNumber || 1);
         expect(tappedFundingCycle.tapped).to.equal(expectation.newTappedAmount);
       });
     });
   });
-  describe("Failure cases", function() {
-    tests.failure.forEach(function(failureTest) {
-      it(failureTest.description, async function() {
+  describe('Failure cases', function () {
+    tests.failure.forEach(function (failureTest) {
+      it(failureTest.description, async function () {
         const {
           caller,
           controller,
           projectId,
           amount,
           setup: { preconfigure, ops = [] },
-          revert
+          revert,
         } = failureTest.fn(this);
 
         // Mock the caller to be the project's controller for setup.
-        await this.terminalDirectory.mock.terminalOf
-          .withArgs(projectId)
-          .returns(caller.address);
+        await this.terminalDirectory.mock.terminalOf.withArgs(projectId).returns(caller.address);
 
         if (preconfigure) {
           const tx = await this.contract.connect(caller).configure(
@@ -1003,11 +983,11 @@ module.exports = function() {
               duration: preconfigure.duration,
               cycleLimit: preconfigure.cycleLimit,
               discountRate: preconfigure.discountRate,
-              ballot: this.ballot.address
+              ballot: this.ballot.address,
             },
             preconfigure.metadata,
             preconfigure.fee,
-            preconfigure.configureActiveFundingCycle
+            preconfigure.configureActiveFundingCycle,
           );
           await this.setTimeMarkFn(tx.blockNumber);
         }
@@ -1015,11 +995,11 @@ module.exports = function() {
         for (let i = 0; i < ops.length; i += 1) {
           const op = ops[i];
           switch (op.type) {
-            case "tap":
+            case 'tap':
               // eslint-disable-next-line no-await-in-loop
               await this.contract.connect(caller).tap(op.projectId, op.amount);
               break;
-            case "fastforward":
+            case 'fastforward':
               // Subtract 1 so that the next operations mined block is likely to fall on the intended timestamp.
               // eslint-disable-next-line no-await-in-loop
               await this.fastforwardFn(op.seconds.sub(1));
@@ -1030,13 +1010,11 @@ module.exports = function() {
         }
 
         // Mock the caller to be the project's controller.
-        await this.terminalDirectory.mock.terminalOf
-          .withArgs(projectId)
-          .returns(controller);
+        await this.terminalDirectory.mock.terminalOf.withArgs(projectId).returns(controller);
 
-        await expect(
-          this.contract.connect(caller).tap(projectId, amount)
-        ).to.be.revertedWith(revert);
+        await expect(this.contract.connect(caller).tap(projectId, amount)).to.be.revertedWith(
+          revert,
+        );
       });
     });
   });

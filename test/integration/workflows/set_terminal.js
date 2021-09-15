@@ -8,7 +8,7 @@ const currency = 0;
 
 module.exports = [
   {
-    description: "Create a project with no payment terminal",
+    description: 'Create a project with no payment terminal',
     fn: async ({
       constants,
       contracts,
@@ -16,7 +16,7 @@ module.exports = [
       randomStringFn,
       randomSignerFn,
       incrementProjectIdFn,
-      randomBytesFn
+      randomBytesFn,
     }) => {
       const expectedProjectId = incrementProjectIdFn();
 
@@ -26,36 +26,30 @@ module.exports = [
       executeFn({
         caller: randomSignerFn(),
         contract: contracts.projects,
-        fn: "create",
+        fn: 'create',
         args: [
           owner.address,
           randomBytesFn({
             // Make sure its unique by prepending the id.
-            prepend: expectedProjectId.toString()
+            prepend: expectedProjectId.toString(),
           }),
           randomStringFn(),
-          constants.AddressZero
-        ]
+          constants.AddressZero,
+        ],
       });
       return { owner, expectedProjectId };
-    }
+    },
   },
   {
-    description: "Make sure the terminal was not set in the directory",
-    fn: ({
-      checkFn,
-      randomSignerFn,
-      contracts,
-      constants,
-      local: { expectedProjectId }
-    }) =>
+    description: 'Make sure the terminal was not set in the directory',
+    fn: ({ checkFn, randomSignerFn, contracts, constants, local: { expectedProjectId } }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.terminalDirectory,
-        fn: "terminalOf",
+        fn: 'terminalOf',
         args: [expectedProjectId],
-        expect: constants.AddressZero
-      })
+        expect: constants.AddressZero,
+      }),
   },
   {
     description: "Shouldn't be able to print premined tickets",
@@ -67,26 +61,26 @@ module.exports = [
       randomStringFn,
       randomAddressFn,
       randomBoolFn,
-      local: { expectedProjectId, owner }
+      local: { expectedProjectId, owner },
     }) =>
       executeFn({
         caller: owner,
         contract: contracts.terminalV1,
-        fn: "printPreminedTickets",
+        fn: 'printPreminedTickets',
         args: [
           expectedProjectId,
           // Use an arbitrary large big number that can be added to other large big numbers without risk of running into uint256 boundaries.
           randomBigNumberFn({
             min: BigNumber.from(0),
-            max: BigNumber.from(10).pow(30)
+            max: BigNumber.from(10).pow(30),
           }),
           currency,
           randomAddressFn(),
           randomStringFn(),
-          randomBoolFn()
+          randomBoolFn(),
         ],
-        revert: "TerminalUtility: UNAUTHORIZED"
-      })
+        revert: 'TerminalUtility: UNAUTHORIZED',
+      }),
   },
   {
     description: "Shouldn't be able to configure",
@@ -96,12 +90,12 @@ module.exports = [
       executeFn,
       randomBigNumberFn,
       BigNumber,
-      local: { expectedProjectId, owner }
+      local: { expectedProjectId, owner },
     }) =>
       executeFn({
         caller: owner,
         contract: contracts.terminalV1,
-        fn: "configure",
+        fn: 'configure',
         args: [
           expectedProjectId,
           {
@@ -109,28 +103,28 @@ module.exports = [
             currency: randomBigNumberFn({ max: constants.MaxUint8 }),
             duration: randomBigNumberFn({
               min: BigNumber.from(1),
-              max: constants.MaxUint16
+              max: constants.MaxUint16,
             }),
             cycleLimit: randomBigNumberFn({
-              max: constants.MaxCycleLimit
+              max: constants.MaxCycleLimit,
             }),
             discountRate: randomBigNumberFn({ max: constants.MaxPercent }),
-            ballot: constants.AddressZero
+            ballot: constants.AddressZero,
           },
           {
             reservedRate: randomBigNumberFn({ max: constants.MaxPercent }),
             bondingCurveRate: randomBigNumberFn({
-              max: constants.MaxPercent
+              max: constants.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumberFn({
-              max: constants.MaxPercent
-            })
+              max: constants.MaxPercent,
+            }),
           },
           [],
-          []
+          [],
         ],
-        revert: "TerminalUtility: UNAUTHORIZED"
-      })
+        revert: 'TerminalUtility: UNAUTHORIZED',
+      }),
   },
   {
     description: "Shouldn't be able to pay",
@@ -144,7 +138,7 @@ module.exports = [
       randomAddressFn,
       randomSignerFn,
       BigNumber,
-      local: { expectedProjectId }
+      local: { expectedProjectId },
     }) => {
       // An account that will be used to make payments.
       const payer = randomSignerFn();
@@ -152,36 +146,31 @@ module.exports = [
       // So, arbitrarily divide the balance so that all payments can be made successfully.
       const paymentValue = randomBigNumberFn({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(100)
+        max: (await getBalanceFn(payer.address)).div(100),
       });
       await executeFn({
         caller: payer,
         contract: contracts.terminalV1,
-        fn: "pay",
-        args: [
-          expectedProjectId,
-          randomAddressFn(),
-          randomStringFn(),
-          randomBoolFn()
-        ],
+        fn: 'pay',
+        args: [expectedProjectId, randomAddressFn(), randomStringFn(), randomBoolFn()],
         value: paymentValue,
-        revert: "TerminalUtility: UNAUTHORIZED"
+        revert: 'TerminalUtility: UNAUTHORIZED',
       });
       return { payer, paymentValue };
-    }
+    },
   },
   {
-    description: "Set a payment terminal",
+    description: 'Set a payment terminal',
     fn: ({ executeFn, contracts, local: { expectedProjectId, owner } }) =>
       executeFn({
         caller: owner,
         contract: contracts.terminalDirectory,
-        fn: "setTerminal",
-        args: [expectedProjectId, contracts.terminalV1.address]
-      })
+        fn: 'setTerminal',
+        args: [expectedProjectId, contracts.terminalV1.address],
+      }),
   },
   {
-    description: "Should now be able to print premined tickets",
+    description: 'Should now be able to print premined tickets',
     fn: ({
       contracts,
       executeFn,
@@ -191,28 +180,28 @@ module.exports = [
       randomAddressFn,
       randomBoolFn,
 
-      local: { expectedProjectId, owner }
+      local: { expectedProjectId, owner },
     }) =>
       executeFn({
         caller: owner,
         contract: contracts.terminalV1,
-        fn: "printPreminedTickets",
+        fn: 'printPreminedTickets',
         args: [
           expectedProjectId,
           // Use an arbitrary large big number that can be added to other large big numbers without risk of running into uint256 boundaries.
           randomBigNumberFn({
             min: BigNumber.from(1),
-            max: BigNumber.from(10).pow(30)
+            max: BigNumber.from(10).pow(30),
           }),
           currency,
           randomAddressFn(),
           randomStringFn(),
-          randomBoolFn()
-        ]
-      })
+          randomBoolFn(),
+        ],
+      }),
   },
   {
-    description: "Should now be able to configure",
+    description: 'Should now be able to configure',
     fn: async ({
       constants,
       contracts,
@@ -220,14 +209,14 @@ module.exports = [
       randomBigNumberFn,
       BigNumber,
       incrementFundingCycleIdFn,
-      local: { expectedProjectId, owner }
+      local: { expectedProjectId, owner },
     }) => {
       // Burn the unused funding cycle ID id.
       incrementFundingCycleIdFn();
       await executeFn({
         caller: owner,
         contract: contracts.terminalV1,
-        fn: "configure",
+        fn: 'configure',
         args: [
           expectedProjectId,
           {
@@ -235,63 +224,53 @@ module.exports = [
             currency,
             duration: randomBigNumberFn({
               min: BigNumber.from(1),
-              max: constants.MaxUint16
+              max: constants.MaxUint16,
             }),
             cycleLimit: randomBigNumberFn({
-              max: constants.MaxCycleLimit
+              max: constants.MaxCycleLimit,
             }),
             discountRate: randomBigNumberFn({ max: constants.MaxPercent }),
-            ballot: constants.AddressZero
+            ballot: constants.AddressZero,
           },
           {
             reservedRate: randomBigNumberFn({ max: constants.MaxPercent }),
             bondingCurveRate: randomBigNumberFn({
-              max: constants.MaxPercent
+              max: constants.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumberFn({
-              max: constants.MaxPercent
-            })
+              max: constants.MaxPercent,
+            }),
           },
           [],
-          []
-        ]
+          [],
+        ],
       });
-    }
+    },
   },
   {
-    description: "Should now be able to pay",
+    description: 'Should now be able to pay',
     fn: ({
       executeFn,
       contracts,
       randomAddressFn,
       randomStringFn,
       randomBoolFn,
-      local: { expectedProjectId, payer, paymentValue }
+      local: { expectedProjectId, payer, paymentValue },
     }) =>
       executeFn({
         caller: payer,
         contract: contracts.terminalV1,
-        fn: "pay",
-        args: [
-          expectedProjectId,
-          randomAddressFn(),
-          randomStringFn(),
-          randomBoolFn()
-        ],
-        value: paymentValue
-      })
+        fn: 'pay',
+        args: [expectedProjectId, randomAddressFn(), randomStringFn(), randomBoolFn()],
+        value: paymentValue,
+      }),
   },
   {
     description:
-      "Setting a new terminal before migration to it has been allowed shouldnt be allowed",
-    fn: async ({
-      executeFn,
-      contracts,
-      deployContractFn,
-      local: { expectedProjectId, owner }
-    }) => {
+      'Setting a new terminal before migration to it has been allowed shouldnt be allowed',
+    fn: async ({ executeFn, contracts, deployContractFn, local: { expectedProjectId, owner } }) => {
       // The terminalV1 that will be migrated to.
-      const secondTerminalV1 = await deployContractFn("TerminalV1", [
+      const secondTerminalV1 = await deployContractFn('TerminalV1', [
         contracts.projects.address,
         contracts.fundingCycles.address,
         contracts.ticketBooth.address,
@@ -299,59 +278,50 @@ module.exports = [
         contracts.modStore.address,
         contracts.prices.address,
         contracts.terminalDirectory.address,
-        contracts.governance.address
+        contracts.governance.address,
       ]);
       await executeFn({
         caller: owner,
         contract: contracts.terminalDirectory,
-        fn: "setTerminal",
+        fn: 'setTerminal',
         args: [expectedProjectId, secondTerminalV1.address],
-        revert: "TerminalDirectory::setTerminal: UNAUTHORIZED"
+        revert: 'TerminalDirectory::setTerminal: UNAUTHORIZED',
       });
 
       return { secondTerminalV1 };
-    }
+    },
   },
   // Allow migration to a new terminal.
   {
-    description: "Allow a migration to a new terminalV1",
+    description: 'Allow a migration to a new terminalV1',
     fn: ({ deployer, contracts, executeFn, local: { secondTerminalV1 } }) =>
       executeFn({
         caller: deployer,
         contract: contracts.governance,
-        fn: "allowMigration",
-        args: [contracts.terminalV1.address, secondTerminalV1.address]
-      })
+        fn: 'allowMigration',
+        args: [contracts.terminalV1.address, secondTerminalV1.address],
+      }),
   },
   {
     description:
-      "Set a terminal that can be migrated to from the current terminal should be allowed",
-    fn: ({
-      executeFn,
-      contracts,
-      local: { expectedProjectId, owner, secondTerminalV1 }
-    }) =>
+      'Set a terminal that can be migrated to from the current terminal should be allowed',
+    fn: ({ executeFn, contracts, local: { expectedProjectId, owner, secondTerminalV1 } }) =>
       executeFn({
         caller: owner,
         contract: contracts.terminalDirectory,
-        fn: "setTerminal",
-        args: [expectedProjectId, secondTerminalV1.address]
-      })
+        fn: 'setTerminal',
+        args: [expectedProjectId, secondTerminalV1.address],
+      }),
   },
   {
-    description: "The new terminal should be set",
-    fn: ({
-      checkFn,
-      randomSignerFn,
-      contracts,
-      local: { expectedProjectId, secondTerminalV1 }
-    }) =>
+    description: 'The new terminal should be set',
+    fn: ({ checkFn, randomSignerFn, contracts, local: { expectedProjectId, secondTerminalV1 } }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.terminalDirectory,
-        fn: "terminalOf",
+        fn: 'terminalOf',
         args: [expectedProjectId],
-        expect: secondTerminalV1.address
-      })
-  }
+        expect: secondTerminalV1.address,
+      }),
+  },
 ];

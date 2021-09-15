@@ -1,12 +1,12 @@
 const {
   ethers: { constants },
-} = require("hardhat");
-const { expect } = require("chai");
+} = require('hardhat');
+const { expect } = require('chai');
 
 const tests = {
   success: [
     {
-      description: "tap",
+      description: 'tap',
       fn: ({ deployer, addrs }) => ({
         caller: deployer,
         ops: [
@@ -30,7 +30,7 @@ const tests = {
 };
 
 module.exports = function () {
-  describe("Success cases", function () {
+  describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {
         const { caller, ops } = successTest.fn(this);
@@ -45,16 +45,14 @@ module.exports = function () {
 
             // Expect an event to have been emitted.
             await expect(tx)
-              .to.emit(this.contract, "Receive")
+              .to.emit(this.contract, 'Receive')
               .withArgs(op.sender.address, op.value);
-          })
+          }),
         );
 
         const expectedBalance = ops.reduce((value, op) => value + op.value, 0);
 
-        const storedBalance = await caller.provider.getBalance(
-          this.contract.address
-        );
+        const storedBalance = await caller.provider.getBalance(this.contract.address);
 
         expect(storedBalance).to.equal(expectedBalance);
 
@@ -69,9 +67,7 @@ module.exports = function () {
         const tapTx = await this.contract.connect(caller).tap();
 
         // Expect an event to have been emitted.
-        await expect(tapTx)
-          .to.emit(this.contract, "Tap")
-          .withArgs(caller.address, expectedBalance);
+        await expect(tapTx).to.emit(this.contract, 'Tap').withArgs(caller.address, expectedBalance);
       });
     });
   });

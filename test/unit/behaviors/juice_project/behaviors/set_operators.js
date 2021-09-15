@@ -1,45 +1,38 @@
-const { expect } = require("chai");
+const { expect } = require('chai');
 
 const tests = {
   success: [
     {
-      description: "set operators",
+      description: 'set operators',
       fn: ({ deployer, addrs }) => ({
         caller: deployer,
         projectIds: [1, 2, 3],
         operators: [addrs[0].address, addrs[1].address, addrs[2].address],
-        permissionIndexes: [[1], [2], [3]]
-      })
-    }
+        permissionIndexes: [[1], [2], [3]],
+      }),
+    },
   ],
   failure: [
     {
-      description: "unauthorized",
+      description: 'unauthorized',
       fn: ({ addrs }) => ({
         caller: addrs[0].address,
         projectIds: [1, 2, 3],
         operators: [addrs[0].address, addrs[1].address, addrs[2].address],
         permissionIndexes: [[1], [2], [3]],
-        revert: "Ownable: caller is not the owner"
-      })
-    }
-  ]
+        revert: 'Ownable: caller is not the owner',
+      }),
+    },
+  ],
 };
 
-module.exports = function() {
-  describe("Success cases", function() {
-    tests.success.forEach(function(successTest) {
-      it(successTest.description, async function() {
-        const {
-          caller,
-          projectIds,
-          operators,
-          permissionIndexes
-        } = successTest.fn(this);
+module.exports = function () {
+  describe('Success cases', function () {
+    tests.success.forEach(function (successTest) {
+      it(successTest.description, async function () {
+        const { caller, projectIds, operators, permissionIndexes } = successTest.fn(this);
 
-        const operatorStore = await this.deployMockLocalContractFn(
-          "OperatorStore"
-        );
+        const operatorStore = await this.deployMockLocalContractFn('OperatorStore');
 
         await operatorStore.mock.setOperators
           .withArgs(operators, projectIds, permissionIndexes)
@@ -48,29 +41,16 @@ module.exports = function() {
         // Execute the transaction.
         await this.contract
           .connect(caller)
-          .setOperators(
-            operatorStore.address,
-            operators,
-            projectIds,
-            permissionIndexes
-          );
+          .setOperators(operatorStore.address, operators, projectIds, permissionIndexes);
       });
     });
   });
-  describe("Failure cases", function() {
-    tests.failure.forEach(function(failureTest) {
-      it(failureTest.description, async function() {
-        const {
-          caller,
-          projectIds,
-          operators,
-          permissionIndexes,
-          revert
-        } = failureTest.fn(this);
+  describe('Failure cases', function () {
+    tests.failure.forEach(function (failureTest) {
+      it(failureTest.description, async function () {
+        const { caller, projectIds, operators, permissionIndexes, revert } = failureTest.fn(this);
 
-        const operatorStore = await this.deployMockLocalContractFn(
-          "OperatorStore"
-        );
+        const operatorStore = await this.deployMockLocalContractFn('OperatorStore');
 
         await operatorStore.mock.setOperators
           .withArgs(operators, projectIds, permissionIndexes)
@@ -80,12 +60,7 @@ module.exports = function() {
         await expect(
           this.contract
             .connect(caller)
-            .setOperators(
-              operatorStore.address,
-              operators,
-              projectIds,
-              permissionIndexes
-            )
+            .setOperators(operatorStore.address, operators, projectIds, permissionIndexes),
         ).to.be.revertedWith(revert);
       });
     });

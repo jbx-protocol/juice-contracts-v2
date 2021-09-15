@@ -1,12 +1,12 @@
 const {
-  ethers: { BigNumber, constants }
-} = require("hardhat");
-const { expect } = require("chai");
+  ethers: { BigNumber, constants },
+} = require('hardhat');
+const { expect } = require('chai');
 
 const tests = {
   success: [
     {
-      description: "unlock all",
+      description: 'unlock all',
       fn: ({ deployer }) => ({
         caller: deployer,
         holder: deployer.address,
@@ -14,12 +14,12 @@ const tests = {
         amount: BigNumber.from(50),
         setup: {
           stakedBalance: BigNumber.from(50),
-          lockedAmount: BigNumber.from(50)
-        }
-      })
+          lockedAmount: BigNumber.from(50),
+        },
+      }),
     },
     {
-      description: "unlock some",
+      description: 'unlock some',
       fn: ({ deployer }) => ({
         caller: deployer,
         holder: deployer.address,
@@ -27,12 +27,12 @@ const tests = {
         amount: BigNumber.from(40),
         setup: {
           stakedBalance: BigNumber.from(50),
-          lockedAmount: BigNumber.from(50)
-        }
-      })
+          lockedAmount: BigNumber.from(50),
+        },
+      }),
     },
     {
-      description: "unlock with max uints",
+      description: 'unlock with max uints',
       fn: ({ deployer }) => ({
         caller: deployer,
         holder: deployer.address,
@@ -40,14 +40,14 @@ const tests = {
         amount: constants.MaxUint256,
         setup: {
           stakedBalance: constants.MaxUint256,
-          lockedAmount: constants.MaxUint256
-        }
-      })
-    }
+          lockedAmount: constants.MaxUint256,
+        },
+      }),
+    },
   ],
   failure: [
     {
-      description: "insufficient funds, none locked",
+      description: 'insufficient funds, none locked',
       fn: ({ deployer }) => ({
         caller: deployer,
         holder: deployer.address,
@@ -56,13 +56,13 @@ const tests = {
         setup: {
           setOwner: true,
           stakedBalance: BigNumber.from(50),
-          lockedAmount: BigNumber.from(0)
+          lockedAmount: BigNumber.from(0),
         },
-        revert: "TicketBooth::unlock: INSUFFICIENT_FUNDS"
-      })
+        revert: 'TicketBooth::unlock: INSUFFICIENT_FUNDS',
+      }),
     },
     {
-      description: "insufficient funds, some locked",
+      description: 'insufficient funds, some locked',
       fn: ({ deployer }) => ({
         caller: deployer,
         holder: deployer.address,
@@ -72,13 +72,13 @@ const tests = {
           setOwner: true,
           stakedBalance: BigNumber.from(50),
           lockedAmount: BigNumber.from(40),
-          lockedBy: deployer
+          lockedBy: deployer,
         },
-        revert: "TicketBooth::unlock: INSUFFICIENT_FUNDS"
-      })
+        revert: 'TicketBooth::unlock: INSUFFICIENT_FUNDS',
+      }),
     },
     {
-      description: "insufficient funds, max uints",
+      description: 'insufficient funds, max uints',
       fn: ({ deployer }) => ({
         caller: deployer,
         holder: deployer.address,
@@ -88,13 +88,13 @@ const tests = {
           setOwner: true,
           stakedBalance: constants.MaxUint256,
           lockedAmount: constants.MaxUint256.sub(BigNumber.from(1)),
-          lockedBy: deployer
+          lockedBy: deployer,
         },
-        revert: "TicketBooth::unlock: INSUFFICIENT_FUNDS"
-      })
+        revert: 'TicketBooth::unlock: INSUFFICIENT_FUNDS',
+      }),
     },
     {
-      description: "amount is 0",
+      description: 'amount is 0',
       fn: ({ deployer }) => ({
         caller: deployer,
         holder: deployer.address,
@@ -103,13 +103,13 @@ const tests = {
         setup: {
           setOwner: true,
           stakedBalance: BigNumber.from(50),
-          lockedAmount: BigNumber.from(0)
+          lockedAmount: BigNumber.from(0),
         },
-        revert: "TicketBooth::unlock: NO_OP"
-      })
+        revert: 'TicketBooth::unlock: NO_OP',
+      }),
     },
     {
-      description: "unlocked by wrong operator",
+      description: 'unlocked by wrong operator',
       fn: ({ deployer, addrs }) => ({
         caller: deployer,
         unlocker: addrs[0],
@@ -119,58 +119,48 @@ const tests = {
         setup: {
           setOwner: true,
           stakedBalance: BigNumber.from(50),
-          lockedAmount: BigNumber.from(40)
+          lockedAmount: BigNumber.from(40),
         },
-        revert: "TicketBooth::unlock: INSUFFICIENT_FUNDS"
-      })
-    }
-  ]
+        revert: 'TicketBooth::unlock: INSUFFICIENT_FUNDS',
+      }),
+    },
+  ],
 };
 
-module.exports = function() {
-  describe("Success cases", function() {
-    tests.success.forEach(function(successTest) {
-      it(successTest.description, async function() {
+module.exports = function () {
+  describe('Success cases', function () {
+    tests.success.forEach(function (successTest) {
+      it(successTest.description, async function () {
         const {
           caller,
           holder,
           projectId,
           amount,
-          setup: { stakedBalance, lockedAmount }
+          setup: { stakedBalance, lockedAmount },
         } = successTest.fn(this);
 
         // Mock the caller to be the project's controller.
-        await this.terminalDirectory.mock.terminalOf
-          .withArgs(projectId)
-          .returns(caller.address);
+        await this.terminalDirectory.mock.terminalOf.withArgs(projectId).returns(caller.address);
 
         if (stakedBalance > 0) {
           // Add to the ticket balance so that they can be locked.
-          await this.contract
-            .connect(caller)
-            .print(holder, projectId, stakedBalance, false);
+          await this.contract.connect(caller).print(holder, projectId, stakedBalance, false);
         }
         if (lockedAmount > 0) {
           // Lock the specified amount of tickets.
-          await this.contract
-            .connect(caller)
-            .lock(holder, projectId, lockedAmount);
+          await this.contract.connect(caller).lock(holder, projectId, lockedAmount);
         }
 
         // Execute the transaction.
-        const tx = await this.contract
-          .connect(caller)
-          .unlock(holder, projectId, amount);
+        const tx = await this.contract.connect(caller).unlock(holder, projectId, amount);
 
         // Expect an event to have been emitted.
         await expect(tx)
-          .to.emit(this.contract, "Unlock")
+          .to.emit(this.contract, 'Unlock')
           .withArgs(holder, projectId, amount, caller.address);
 
         // Get a reference to the stored amount locked.
-        const storedLocked = await this.contract
-          .connect(caller)
-          .lockedBalanceOf(holder, projectId);
+        const storedLocked = await this.contract.connect(caller).lockedBalanceOf(holder, projectId);
 
         // The expected locked is the previous locked plus the amount just locked.
         const expectedLocked = lockedAmount.sub(amount);
@@ -180,9 +170,9 @@ module.exports = function() {
       });
     });
   });
-  describe("Failure cases", function() {
-    tests.failure.forEach(function(failureTest) {
-      it(failureTest.description, async function() {
+  describe('Failure cases', function () {
+    tests.failure.forEach(function (failureTest) {
+      it(failureTest.description, async function () {
         const {
           caller,
           unlocker,
@@ -190,31 +180,23 @@ module.exports = function() {
           amount,
           projectId,
           setup: { stakedBalance, lockedAmount },
-          revert
+          revert,
         } = failureTest.fn(this);
 
         // Mock the caller to be the project's controller.
-        await this.terminalDirectory.mock.terminalOf
-          .withArgs(projectId)
-          .returns(caller.address);
+        await this.terminalDirectory.mock.terminalOf.withArgs(projectId).returns(caller.address);
 
         if (stakedBalance > 0) {
-          await this.contract
-            .connect(caller)
-            .print(holder, projectId, stakedBalance, false);
+          await this.contract.connect(caller).print(holder, projectId, stakedBalance, false);
         }
         if (lockedAmount > 0) {
           // Lock the specified amount of tickets.
-          await this.contract
-            .connect(caller)
-            .lock(holder, projectId, lockedAmount);
+          await this.contract.connect(caller).lock(holder, projectId, lockedAmount);
         }
 
         // Execute the transaction.
         await expect(
-          this.contract
-            .connect(unlocker || caller)
-            .unlock(holder, projectId, amount)
+          this.contract.connect(unlocker || caller).unlock(holder, projectId, amount),
         ).to.be.revertedWith(revert);
       });
     });

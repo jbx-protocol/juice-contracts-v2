@@ -10,7 +10,7 @@ const expectedInitialBasedOn = 0;
 
 module.exports = [
   {
-    description: "Deploy a project with 0 duration",
+    description: 'Deploy a project with 0 duration',
     fn: async ({
       constants,
       contracts,
@@ -21,7 +21,7 @@ module.exports = [
       randomStringFn,
       randomSignerFn,
       incrementFundingCycleIdFn,
-      incrementProjectIdFn
+      incrementProjectIdFn,
     }) => {
       const expectedFundingCycleId1 = incrementFundingCycleIdFn();
       const expectedProjectId = incrementProjectIdFn();
@@ -42,31 +42,31 @@ module.exports = [
 
       const cycleLimit1 = randomBigNumberFn({
         min: BigNumber.from(1),
-        max: constants.MaxCycleLimit
+        max: constants.MaxCycleLimit,
       });
 
       // dont allow non recurring.
       const discountRate1 = randomBigNumberFn({
-        max: constants.MaxPercent
+        max: constants.MaxPercent,
       });
       const ballot1 = constants.AddressZero;
 
       const reservedRate1 = randomBigNumberFn({ max: constants.MaxPercent });
       const bondingCurveRate1 = randomBigNumberFn({
-        max: constants.MaxPercent
+        max: constants.MaxPercent,
       });
       const reconfigurationBondingCurveRate1 = randomBigNumberFn({
-        max: constants.MaxPercent
+        max: constants.MaxPercent,
       });
       await executeFn({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
-        fn: "deploy",
+        fn: 'deploy',
         args: [
           owner.address,
           randomBytesFn({
             // Make sure its unique by prepending the id.
-            prepend: expectedProjectId.toString()
+            prepend: expectedProjectId.toString(),
           }),
           randomStringFn(),
           {
@@ -75,16 +75,16 @@ module.exports = [
             duration: duration1,
             cycleLimit: cycleLimit1,
             discountRate: discountRate1,
-            ballot: ballot1
+            ballot: ballot1,
           },
           {
             reservedRate: reservedRate1,
             bondingCurveRate: bondingCurveRate1,
-            reconfigurationBondingCurveRate: reconfigurationBondingCurveRate1
+            reconfigurationBondingCurveRate: reconfigurationBondingCurveRate1,
           },
           [],
-          []
-        ]
+          [],
+        ],
       });
 
       return {
@@ -100,12 +100,12 @@ module.exports = [
         reconfigurationBondingCurveRate1,
         bondingCurveRate1,
         reservedRate1,
-        amountToTap
+        amountToTap,
       };
-    }
+    },
   },
   {
-    description: "Make sure the funding cycle got saved correctly",
+    description: 'Make sure the funding cycle got saved correctly',
     fn: async ({
       contracts,
       checkFn,
@@ -123,14 +123,12 @@ module.exports = [
         discountRate1,
         reconfigurationBondingCurveRate1,
         bondingCurveRate1,
-        reservedRate1
-      }
+        reservedRate1,
+      },
     }) => {
       // Pack the metadata as expected.
       let expectedPackedMetadata1 = BigNumber.from(0);
-      expectedPackedMetadata1 = expectedPackedMetadata1.add(
-        reconfigurationBondingCurveRate1
-      );
+      expectedPackedMetadata1 = expectedPackedMetadata1.add(reconfigurationBondingCurveRate1);
       expectedPackedMetadata1 = expectedPackedMetadata1.shl(8);
       expectedPackedMetadata1 = expectedPackedMetadata1.add(bondingCurveRate1);
       expectedPackedMetadata1 = expectedPackedMetadata1.shl(8);
@@ -149,7 +147,7 @@ module.exports = [
       await checkFn({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
-        fn: "get",
+        fn: 'get',
         args: [expectedFundingCycleId1],
         expect: [
           expectedFundingCycleId1,
@@ -168,20 +166,20 @@ module.exports = [
           expectedFee,
           discountRate1,
           expectedInitialTapped,
-          expectedPackedMetadata1
-        ]
+          expectedPackedMetadata1,
+        ],
       });
       return {
         originalTimeMark: timeMark,
         expectedPackedMetadata1,
         expectedInitialWeight,
         expectedFee,
-        expectedInitialTapped
+        expectedInitialTapped,
       };
-    }
+    },
   },
   {
-    description: "The funding cycle should be current",
+    description: 'The funding cycle should be current',
     fn: async ({
       contracts,
       checkFn,
@@ -200,13 +198,13 @@ module.exports = [
         expectedPackedMetadata1,
         expectedInitialWeight,
         expectedFee,
-        expectedInitialTapped
-      }
+        expectedInitialTapped,
+      },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
-        fn: "currentOf",
+        fn: 'currentOf',
         args: [expectedProjectId],
         expect: [
           expectedFundingCycleId1,
@@ -225,24 +223,24 @@ module.exports = [
           expectedFee,
           discountRate1,
           expectedInitialTapped,
-          expectedPackedMetadata1
-        ]
-      })
+          expectedPackedMetadata1,
+        ],
+      }),
   },
   {
-    description: "There should be no queued cycle",
+    description: 'There should be no queued cycle',
     fn: ({
       contracts,
       checkFn,
       randomSignerFn,
       BigNumber,
       constants,
-      local: { expectedProjectId }
+      local: { expectedProjectId },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
-        fn: "queuedOf",
+        fn: 'queuedOf',
         args: [expectedProjectId],
         expect: [
           BigNumber.from(0),
@@ -260,12 +258,12 @@ module.exports = [
           BigNumber.from(0),
           BigNumber.from(0),
           BigNumber.from(0),
-          BigNumber.from(0)
-        ]
-      })
+          BigNumber.from(0),
+        ],
+      }),
   },
   {
-    description: "Make a payment to the project to lock it in",
+    description: 'Make a payment to the project to lock it in',
     fn: async ({
       contracts,
       executeFn,
@@ -276,7 +274,7 @@ module.exports = [
       randomAddressFn,
       randomBoolFn,
       randomSignerFn,
-      local: { expectedProjectId }
+      local: { expectedProjectId },
     }) => {
       // An account that will be used to make payments.
       const payer = randomSignerFn();
@@ -285,35 +283,30 @@ module.exports = [
       // So, arbitrarily divide the balance so that all payments can be made successfully.
       const paymentValue = randomBigNumberFn({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(100)
+        max: (await getBalanceFn(payer.address)).div(100),
       });
 
       await executeFn({
         caller: payer,
         contract: contracts.terminalV1,
-        fn: "pay",
-        args: [
-          expectedProjectId,
-          randomAddressFn(),
-          randomStringFn(),
-          randomBoolFn()
-        ],
-        value: paymentValue
+        fn: 'pay',
+        args: [expectedProjectId, randomAddressFn(), randomStringFn(), randomBoolFn()],
+        value: paymentValue,
       });
-    }
+    },
   },
   {
-    description: "Fastforward an arbitrary amount",
+    description: 'Fastforward an arbitrary amount',
     fn: async ({ fastforwardFn, randomBigNumberFn, BigNumber }) =>
       fastforwardFn(
         randomBigNumberFn({
           min: BigNumber.from(1),
-          max: BigNumber.from(9999999999)
-        })
-      )
+          max: BigNumber.from(9999999999),
+        }),
+      ),
   },
   {
-    description: "The funding cycle should be still current",
+    description: 'The funding cycle should be still current',
     fn: async ({
       contracts,
       checkFn,
@@ -332,13 +325,13 @@ module.exports = [
         expectedInitialWeight,
         expectedFee,
         expectedInitialTapped,
-        originalTimeMark
-      }
+        originalTimeMark,
+      },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
-        fn: "currentOf",
+        fn: 'currentOf',
         args: [expectedProjectId],
         expect: [
           expectedFundingCycleId1,
@@ -357,24 +350,24 @@ module.exports = [
           expectedFee,
           discountRate1,
           expectedInitialTapped,
-          expectedPackedMetadata1
-        ]
-      })
+          expectedPackedMetadata1,
+        ],
+      }),
   },
   {
-    description: "There should still be no queued cycle",
+    description: 'There should still be no queued cycle',
     fn: ({
       contracts,
       checkFn,
       randomSignerFn,
       BigNumber,
       constants,
-      local: { expectedProjectId }
+      local: { expectedProjectId },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
-        fn: "queuedOf",
+        fn: 'queuedOf',
         args: [expectedProjectId],
         expect: [
           BigNumber.from(0),
@@ -392,12 +385,12 @@ module.exports = [
           BigNumber.from(0),
           BigNumber.from(0),
           BigNumber.from(0),
-          BigNumber.from(0)
-        ]
-      })
+          BigNumber.from(0),
+        ],
+      }),
   },
   {
-    description: "Reconfigure the project",
+    description: 'Reconfigure the project',
     fn: async ({
       constants,
       contracts,
@@ -405,7 +398,7 @@ module.exports = [
       randomBigNumberFn,
       BigNumber,
       incrementFundingCycleIdFn,
-      local: { owner, expectedProjectId }
+      local: { owner, expectedProjectId },
     }) => {
       const expectedFundingCycleId2 = incrementFundingCycleIdFn();
 
@@ -414,31 +407,31 @@ module.exports = [
       const currency2 = randomBigNumberFn({ max: constants.MaxUint8 });
       const duration2 = randomBigNumberFn({
         min: BigNumber.from(1),
-        max: constants.MaxUint16
+        max: constants.MaxUint16,
       });
       const cycleLimit2 = randomBigNumberFn({
         min: BigNumber.from(0),
-        max: constants.MaxCycleLimit
+        max: constants.MaxCycleLimit,
       });
 
       // Non recurring.
       const discountRate2 = randomBigNumberFn({
-        max: constants.MaxPercent
+        max: constants.MaxPercent,
       });
       const ballot2 = constants.AddressZero;
 
       const reservedRate2 = randomBigNumberFn({ max: constants.MaxPercent });
       const bondingCurveRate2 = randomBigNumberFn({
-        max: constants.MaxPercent
+        max: constants.MaxPercent,
       });
       const reconfigurationBondingCurveRate2 = randomBigNumberFn({
-        max: constants.MaxPercent
+        max: constants.MaxPercent,
       });
 
       await executeFn({
         caller: owner,
         contract: contracts.terminalV1,
-        fn: "configure",
+        fn: 'configure',
         args: [
           expectedProjectId,
           {
@@ -447,16 +440,16 @@ module.exports = [
             duration: duration2,
             cycleLimit: cycleLimit2,
             discountRate: discountRate2,
-            ballot: ballot2
+            ballot: ballot2,
           },
           {
             reservedRate: reservedRate2,
             bondingCurveRate: bondingCurveRate2,
-            reconfigurationBondingCurveRate: reconfigurationBondingCurveRate2
+            reconfigurationBondingCurveRate: reconfigurationBondingCurveRate2,
           },
           [],
-          []
-        ]
+          [],
+        ],
       });
       return {
         expectedFundingCycleId2,
@@ -468,12 +461,12 @@ module.exports = [
         discountRate2,
         reconfigurationBondingCurveRate2,
         bondingCurveRate2,
-        reservedRate2
+        reservedRate2,
       };
-    }
+    },
   },
   {
-    description: "Make sure the current configuration changed",
+    description: 'Make sure the current configuration changed',
     fn: async ({
       constants,
       contracts,
@@ -498,13 +491,11 @@ module.exports = [
         reservedRate2,
         expectedInitialWeight,
         expectedFee,
-        expectedInitialTapped
-      }
+        expectedInitialTapped,
+      },
     }) => {
       let expectedPackedMetadata2 = BigNumber.from(0);
-      expectedPackedMetadata2 = expectedPackedMetadata2.add(
-        reconfigurationBondingCurveRate2
-      );
+      expectedPackedMetadata2 = expectedPackedMetadata2.add(reconfigurationBondingCurveRate2);
       expectedPackedMetadata2 = expectedPackedMetadata2.shl(8);
       expectedPackedMetadata2 = expectedPackedMetadata2.add(bondingCurveRate2);
       expectedPackedMetadata2 = expectedPackedMetadata2.shl(8);
@@ -514,7 +505,7 @@ module.exports = [
       await checkFn({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
-        fn: "currentOf",
+        fn: 'currentOf',
         args: [expectedProjectId],
         expect: [
           expectedFundingCycleId2,
@@ -534,15 +525,15 @@ module.exports = [
           expectedFee,
           discountRate2,
           expectedInitialTapped,
-          expectedPackedMetadata2
-        ]
+          expectedPackedMetadata2,
+        ],
       });
 
       return { expectedPackedMetadata2, expectedFundingCycleId2 };
-    }
+    },
   },
   {
-    description: "Make sure the queued configuration changed",
+    description: 'Make sure the queued configuration changed',
     fn: ({
       constants,
       contracts,
@@ -570,13 +561,13 @@ module.exports = [
         ballot1,
         duration1,
         target1,
-        expectedPackedMetadata1
-      }
+        expectedPackedMetadata1,
+      },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
-        fn: "queuedOf",
+        fn: 'queuedOf',
         args: [expectedProjectId],
         expect: !cycleLimit2.eq(1)
           ? [
@@ -587,13 +578,9 @@ module.exports = [
               timeMark,
               cycleLimit2.eq(0) ? BigNumber.from(0) : cycleLimit2.sub(1),
               expectedInitialWeight
-                .mul(
-                  constants.DiscountRatePercentDenominator.sub(discountRate1)
-                )
+                .mul(constants.DiscountRatePercentDenominator.sub(discountRate1))
                 .div(constants.DiscountRatePercentDenominator)
-                .mul(
-                  constants.DiscountRatePercentDenominator.sub(discountRate2)
-                )
+                .mul(constants.DiscountRatePercentDenominator.sub(discountRate2))
                 .div(constants.DiscountRatePercentDenominator),
               ballot2,
               timeMark.add(duration2.mul(86400)),
@@ -603,7 +590,7 @@ module.exports = [
               expectedFee,
               discountRate2,
               expectedInitialTapped,
-              expectedPackedMetadata2
+              expectedPackedMetadata2,
             ]
           : [
               BigNumber.from(0),
@@ -613,13 +600,9 @@ module.exports = [
               originalTimeMark,
               BigNumber.from(0),
               expectedInitialWeight
-                .mul(
-                  constants.DiscountRatePercentDenominator.sub(discountRate1)
-                )
+                .mul(constants.DiscountRatePercentDenominator.sub(discountRate1))
                 .div(constants.DiscountRatePercentDenominator)
-                .mul(
-                  constants.DiscountRatePercentDenominator.sub(discountRate2)
-                )
+                .mul(constants.DiscountRatePercentDenominator.sub(discountRate2))
                 .div(constants.DiscountRatePercentDenominator),
               ballot1,
               timeMark.add(duration2.mul(86400)),
@@ -629,8 +612,8 @@ module.exports = [
               expectedFee,
               discountRate1,
               expectedInitialTapped,
-              expectedPackedMetadata1
-            ]
-      })
-  }
+              expectedPackedMetadata1,
+            ],
+      }),
+  },
 ];

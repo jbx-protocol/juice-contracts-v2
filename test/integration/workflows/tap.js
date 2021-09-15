@@ -12,7 +12,7 @@ const currency = 0;
 
 module.exports = [
   {
-    description: "Deploy first project with a payout mod",
+    description: 'Deploy first project with a payout mod',
     fn: async ({
       constants,
       contracts,
@@ -27,7 +27,7 @@ module.exports = [
       incrementProjectIdFn,
       incrementFundingCycleIdFn,
       randomSignerFn,
-      randomBytesFn
+      randomBytesFn,
     }) => {
       const expectedIdOfBaseProject = incrementProjectIdFn();
       const expectedIdOfModProject = incrementProjectIdFn();
@@ -46,32 +46,32 @@ module.exports = [
       // So, arbitrarily divide the balance so that all payments can be made successfully.
       const paymentValue1 = randomBigNumberFn({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(100)
+        max: (await getBalanceFn(payer.address)).div(100),
       });
 
       // The target must at most be the payment value.
       const target = randomBigNumberFn({
         min: BigNumber.from(1),
-        max: paymentValue1
+        max: paymentValue1,
       });
 
       const duration = randomBigNumberFn({
         min: BigNumber.from(1),
-        max: constants.MaxUint16
+        max: constants.MaxUint16,
       });
 
       // The mod percents should add up to <= constants.MaxPercent.
       const percent1 = randomBigNumberFn({
         min: BigNumber.from(1),
-        max: constants.MaxModPercent.sub(2)
+        max: constants.MaxModPercent.sub(2),
       });
       const percent2 = randomBigNumberFn({
         min: BigNumber.from(1),
-        max: constants.MaxModPercent.sub(percent1).sub(1)
+        max: constants.MaxModPercent.sub(percent1).sub(1),
       });
       const percent3 = randomBigNumberFn({
         min: BigNumber.from(1),
-        max: constants.MaxModPercent.sub(percent1).sub(percent2)
+        max: constants.MaxModPercent.sub(percent1).sub(percent2),
       });
 
       // There are three types of mods.
@@ -82,10 +82,10 @@ module.exports = [
         lockedUntil: 0,
         // Make sure the beneficiary isnt the owner.
         beneficiary: randomAddressFn({
-          exclude: [owner.address]
+          exclude: [owner.address],
         }),
         allocator: constants.AddressZero,
-        projectId: BigNumber.from(0)
+        projectId: BigNumber.from(0),
       };
       // Project mods route payout directly to another project on TerminalV1.
       const projectMod = {
@@ -94,7 +94,7 @@ module.exports = [
         lockedUntil: 0,
         beneficiary: randomAddressFn(),
         allocator: constants.AddressZero,
-        projectId: expectedIdOfModProject
+        projectId: expectedIdOfModProject,
       };
       // Allocator mods route payments directly to the specified contract that inherits from IModAllocator.
       const allocatorMod = {
@@ -102,19 +102,19 @@ module.exports = [
         percent: percent3.toNumber(),
         lockedUntil: 0,
         beneficiary: randomAddressFn(),
-        allocator: (await deployContractFn("ExampleModAllocator")).address,
-        projectId: BigNumber.from(0)
+        allocator: (await deployContractFn('ExampleModAllocator')).address,
+        projectId: BigNumber.from(0),
       };
 
       await executeFn({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
-        fn: "deploy",
+        fn: 'deploy',
         args: [
           owner.address,
           randomBytesFn({
             // Make sure its unique by prepending the id.
-            prepend: expectedIdOfBaseProject.toString()
+            prepend: expectedIdOfBaseProject.toString(),
           }),
           randomStringFn(),
           {
@@ -122,27 +122,27 @@ module.exports = [
             currency,
             duration,
             cycleLimit: randomBigNumberFn({
-              max: constants.MaxCycleLimit
+              max: constants.MaxCycleLimit,
             }),
             // Recurring.
             discountRate: randomBigNumberFn({
-              max: constants.MaxPercent.sub(1)
+              max: constants.MaxPercent.sub(1),
             }),
-            ballot: constants.AddressZero
+            ballot: constants.AddressZero,
           },
           {
             // Don't use a reserved rate to make the calculations a little simpler.
             reservedRate: BigNumber.from(0),
             bondingCurveRate: randomBigNumberFn({
-              max: constants.MaxPercent
+              max: constants.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumberFn({
-              max: constants.MaxPercent
-            })
+              max: constants.MaxPercent,
+            }),
           },
           [addressMod, projectMod, allocatorMod],
-          []
-        ]
+          [],
+        ],
       });
       return {
         owner,
@@ -154,23 +154,23 @@ module.exports = [
         target,
         addressMod,
         projectMod,
-        allocatorMod
+        allocatorMod,
       };
-    }
+    },
   },
   {
-    description: "Check that the payout mods got set",
+    description: 'Check that the payout mods got set',
     fn: ({
       contracts,
       checkFn,
       timeMark,
       randomSignerFn,
-      local: { expectedIdOfBaseProject, addressMod, projectMod, allocatorMod }
+      local: { expectedIdOfBaseProject, addressMod, projectMod, allocatorMod },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.modStore,
-        fn: "payoutModsOf",
+        fn: 'payoutModsOf',
         args: [expectedIdOfBaseProject, timeMark],
         expect: [
           [
@@ -179,7 +179,7 @@ module.exports = [
             addressMod.lockedUntil,
             addressMod.beneficiary,
             addressMod.allocator,
-            addressMod.projectId
+            addressMod.projectId,
           ],
           [
             projectMod.preferUnstaked,
@@ -187,7 +187,7 @@ module.exports = [
             projectMod.lockedUntil,
             projectMod.beneficiary,
             projectMod.allocator,
-            projectMod.projectId
+            projectMod.projectId,
           ],
           [
             allocatorMod.preferUnstaked,
@@ -195,14 +195,13 @@ module.exports = [
             allocatorMod.lockedUntil,
             allocatorMod.beneficiary,
             allocatorMod.allocator,
-            allocatorMod.projectId
-          ]
-        ]
-      })
+            allocatorMod.projectId,
+          ],
+        ],
+      }),
   },
   {
-    description:
-      "Deploy second project that'll be sent funds by the configured project payout mod",
+    description: "Deploy second project that'll be sent funds by the configured project payout mod",
     fn: async ({
       constants,
       contracts,
@@ -213,7 +212,7 @@ module.exports = [
       randomStringFn,
       randomSignerFn,
       incrementFundingCycleIdFn,
-      local: { duration, expectedIdOfModProject, owner }
+      local: { duration, expectedIdOfModProject, owner },
     }) => {
       // Burn the unused funding cycle ID id.
       incrementFundingCycleIdFn();
@@ -221,7 +220,7 @@ module.exports = [
       // The owner of the mod project.
       // exlcude the owner address and the governance owner to make the test calculations cleaner.
       const modProjectOwner = randomSignerFn({
-        exclude: [owner.address, constants.GovenanceOwner]
+        exclude: [owner.address, constants.GovenanceOwner],
       });
 
       // If this funding cycle duration is too much smaller than
@@ -230,18 +229,18 @@ module.exports = [
       // This worse case only happens when the smaller cycle isnt tapped or configured for a long while.
       const duration2 = randomBigNumberFn({
         min: duration < 500 ? BigNumber.from(1) : duration.div(500),
-        max: constants.MaxUint16
+        max: constants.MaxUint16,
       });
 
       await executeFn({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
-        fn: "deploy",
+        fn: 'deploy',
         args: [
           modProjectOwner.address,
           randomBytesFn({
             // Make sure its unique by prepending the id.
-            prepend: expectedIdOfModProject.toString()
+            prepend: expectedIdOfModProject.toString(),
           }),
           randomStringFn(),
           {
@@ -249,107 +248,89 @@ module.exports = [
             currency: randomBigNumberFn({ max: constants.MaxUint8 }),
             duration: duration2,
             cycleLimit: randomBigNumberFn({
-              max: constants.MaxCycleLimit
+              max: constants.MaxCycleLimit,
             }),
             // Make it recurring.
             discountRate: randomBigNumberFn({
-              max: constants.MaxPercent.sub(1)
+              max: constants.MaxPercent.sub(1),
             }),
-            ballot: constants.AddressZero
+            ballot: constants.AddressZero,
           },
           {
             // Don't use a reserved rate to make the calculations a little simpler.
             reservedRate: BigNumber.from(0),
             bondingCurveRate: randomBigNumberFn({
-              max: constants.MaxPercent
+              max: constants.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumberFn({
-              max: constants.MaxPercent
-            })
+              max: constants.MaxPercent,
+            }),
           },
           [],
-          []
-        ]
+          [],
+        ],
       });
 
       return { modProjectOwner };
-    }
+    },
   },
   {
-    description:
-      "Issue the project's tickets so that the unstaked preference can be checked",
+    description: "Issue the project's tickets so that the unstaked preference can be checked",
     fn: ({
       contracts,
       executeFn,
       randomStringFn,
-      local: { modProjectOwner, expectedIdOfModProject }
+      local: { modProjectOwner, expectedIdOfModProject },
     }) =>
       executeFn({
         caller: modProjectOwner,
         contract: contracts.ticketBooth,
-        fn: "issue",
+        fn: 'issue',
         args: [
           expectedIdOfModProject,
           randomStringFn({ canBeEmpty: false }),
-          randomStringFn({ canBeEmpty: false })
-        ]
-      })
+          randomStringFn({ canBeEmpty: false }),
+        ],
+      }),
   },
   {
-    description: "Make a payment to the project",
+    description: 'Make a payment to the project',
     fn: ({
       contracts,
       executeFn,
       randomBoolFn,
       randomStringFn,
       randomAddressFn,
-      local: { payer, paymentValue1, expectedIdOfBaseProject }
+      local: { payer, paymentValue1, expectedIdOfBaseProject },
     }) =>
       executeFn({
         caller: payer,
         contract: contracts.terminalV1,
-        fn: "pay",
-        args: [
-          expectedIdOfBaseProject,
-          randomAddressFn(),
-          randomStringFn(),
-          randomBoolFn()
-        ],
-        value: paymentValue1
-      })
+        fn: 'pay',
+        args: [expectedIdOfBaseProject, randomAddressFn(), randomStringFn(), randomBoolFn()],
+        value: paymentValue1,
+      }),
   },
   {
-    description: "The second project should have no balance",
-    fn: ({
-      contracts,
-      checkFn,
-      BigNumber,
-      randomSignerFn,
-      local: { expectedIdOfModProject }
-    }) =>
+    description: 'The second project should have no balance',
+    fn: ({ contracts, checkFn, BigNumber, randomSignerFn, local: { expectedIdOfModProject } }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
-        fn: "balanceOf",
+        fn: 'balanceOf',
         args: [expectedIdOfModProject],
-        expect: BigNumber.from(0)
-      })
+        expect: BigNumber.from(0),
+      }),
   },
   {
-    description: "Tap funds for the project with payout mods",
+    description: 'Tap funds for the project with payout mods',
     fn: async ({
       contracts,
       executeFn,
       randomSignerFn,
       getBalanceFn,
       constants,
-      local: {
-        target,
-        owner,
-        expectedIdOfBaseProject,
-        addressMod,
-        allocatorMod
-      }
+      local: { target, owner, expectedIdOfBaseProject, addressMod, allocatorMod },
     }) => {
       // An amount up to the target can be tapped.
       const amountToTap = target;
@@ -357,27 +338,23 @@ module.exports = [
       // Save the initial balances of the owner, address mod beneficiary, and the allocator mod contract.
       const ownerInitialBalance = await getBalanceFn(owner.address);
 
-      const addressModBeneficiaryInitialBalance = await getBalanceFn(
-        addressMod.beneficiary
-      );
-      const allocatorModContractInitialBalance = await getBalanceFn(
-        allocatorMod.allocator
-      );
+      const addressModBeneficiaryInitialBalance = await getBalanceFn(addressMod.beneficiary);
+      const allocatorModContractInitialBalance = await getBalanceFn(allocatorMod.allocator);
 
       // Save the amount of governance project tickets the owner has owner initially has.
       const initialOwnerTicketBalanceOfGovernanceProject = await contracts.ticketBooth.balanceOf(
         owner.address,
-        constants.GovernanceProjectId
+        constants.GovernanceProjectId,
       );
 
       await executeFn({
         // Dont use the owner or address mod beneficiary or else the gas spent will mess up the calculation.
         caller: randomSignerFn({
-          exclude: [addressMod.beneficiary, owner.address]
+          exclude: [addressMod.beneficiary, owner.address],
         }),
         contract: contracts.terminalV1,
-        fn: "tap",
-        args: [expectedIdOfBaseProject, amountToTap, currency, amountToTap]
+        fn: 'tap',
+        args: [expectedIdOfBaseProject, amountToTap, currency, amountToTap],
       });
 
       return {
@@ -385,17 +362,17 @@ module.exports = [
         addressModBeneficiaryInitialBalance,
         allocatorModContractInitialBalance,
         ownerInitialBalance,
-        initialOwnerTicketBalanceOfGovernanceProject
+        initialOwnerTicketBalanceOfGovernanceProject,
       };
-    }
+    },
   },
   {
-    description: "Check that payout mod beneficiary has expected funds",
+    description: 'Check that payout mod beneficiary has expected funds',
     fn: async ({
       constants,
       contracts,
       verifyBalanceFn,
-      local: { addressMod, amountToTap, addressModBeneficiaryInitialBalance }
+      local: { addressMod, amountToTap, addressModBeneficiaryInitialBalance },
     }) => {
       // The amount tapped takes into account any fees paid.
       const expectedAmountTapped = amountToTap
@@ -405,99 +382,89 @@ module.exports = [
       await verifyBalanceFn({
         address: addressMod.beneficiary,
         expect: addressModBeneficiaryInitialBalance.add(
-          expectedAmountTapped
-            .mul(addressMod.percent)
-            .div(constants.MaxModPercent)
-        )
+          expectedAmountTapped.mul(addressMod.percent).div(constants.MaxModPercent),
+        ),
       });
 
       return { expectedAmountTapped };
-    }
+    },
   },
   {
-    description: "Check that the second project now has a balance",
+    description: 'Check that the second project now has a balance',
     fn: ({
       constants,
       contracts,
       checkFn,
       randomSignerFn,
-      local: { projectMod, expectedAmountTapped, expectedIdOfModProject }
+      local: { projectMod, expectedAmountTapped, expectedIdOfModProject },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
-        fn: "balanceOf",
+        fn: 'balanceOf',
         args: [expectedIdOfModProject],
-        expect: expectedAmountTapped
-          .mul(projectMod.percent)
-          .div(constants.MaxModPercent)
-      })
+        expect: expectedAmountTapped.mul(projectMod.percent).div(constants.MaxModPercent),
+      }),
   },
   {
-    description: "Check that the beneficiary of the project mod got tickets",
+    description: 'Check that the beneficiary of the project mod got tickets',
     fn: ({
       constants,
       contracts,
       checkFn,
       randomSignerFn,
-      local: { expectedIdOfModProject, projectMod, expectedAmountTapped }
+      local: { expectedIdOfModProject, projectMod, expectedAmountTapped },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "balanceOf",
+        fn: 'balanceOf',
         args: [projectMod.beneficiary, expectedIdOfModProject],
         expect: expectedAmountTapped
           .mul(projectMod.percent)
           .div(constants.MaxModPercent)
-          .mul(constants.InitialWeightMultiplier)
-      })
+          .mul(constants.InitialWeightMultiplier),
+      }),
   },
   {
-    description: "Check for the correct number of staked tickets",
+    description: 'Check for the correct number of staked tickets',
     fn: ({
       constants,
       contracts,
       checkFn,
       BigNumber,
       randomSignerFn,
-      local: { expectedIdOfModProject, projectMod, expectedAmountTapped }
+      local: { expectedIdOfModProject, projectMod, expectedAmountTapped },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "stakedBalanceOf",
+        fn: 'stakedBalanceOf',
         args: [projectMod.beneficiary, expectedIdOfModProject],
         expect: projectMod.preferUnstaked
           ? BigNumber.from(0)
           : expectedAmountTapped
               .mul(projectMod.percent)
               .div(constants.MaxModPercent)
-              .mul(constants.InitialWeightMultiplier)
-      })
+              .mul(constants.InitialWeightMultiplier),
+      }),
   },
   {
     description: "Check that mod's allocator got paid",
     fn: ({
       constants,
       verifyBalanceFn,
-      local: {
-        allocatorMod,
-        expectedAmountTapped,
-        allocatorModContractInitialBalance
-      }
+      local: { allocatorMod, expectedAmountTapped, allocatorModContractInitialBalance },
     }) =>
       verifyBalanceFn({
         address: allocatorMod.allocator,
         expect: allocatorModContractInitialBalance.add(
-          expectedAmountTapped
-            .mul(allocatorMod.percent)
-            .div(constants.MaxModPercent)
-        )
-      })
+          expectedAmountTapped.mul(allocatorMod.percent).div(constants.MaxModPercent),
+        ),
+      }),
   },
   {
-    description: "Check that the project owner got any leftovers",
+    description: 'Check that the project owner got any leftovers',
     fn: ({
       verifyBalanceFn,
       constants,
@@ -507,30 +474,18 @@ module.exports = [
         projectMod,
         allocatorMod,
         expectedAmountTapped,
-        ownerInitialBalance
-      }
+        ownerInitialBalance,
+      },
     }) =>
       verifyBalanceFn({
         address: owner.address,
         expect: ownerInitialBalance.add(
           expectedAmountTapped
-            .sub(
-              expectedAmountTapped
-                .mul(addressMod.percent)
-                .div(constants.MaxModPercent)
-            )
-            .sub(
-              expectedAmountTapped
-                .mul(projectMod.percent)
-                .div(constants.MaxModPercent)
-            )
-            .sub(
-              expectedAmountTapped
-                .mul(allocatorMod.percent)
-                .div(constants.MaxModPercent)
-            )
-        )
-      })
+            .sub(expectedAmountTapped.mul(addressMod.percent).div(constants.MaxModPercent))
+            .sub(expectedAmountTapped.mul(projectMod.percent).div(constants.MaxModPercent))
+            .sub(expectedAmountTapped.mul(allocatorMod.percent).div(constants.MaxModPercent)),
+        ),
+      }),
   },
   {
     description: "Make sure the project owner got governance's project tickets",
@@ -543,24 +498,21 @@ module.exports = [
         owner,
         amountToTap,
         expectedAmountTapped,
-        initialOwnerTicketBalanceOfGovernanceProject
-      }
+        initialOwnerTicketBalanceOfGovernanceProject,
+      },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "balanceOf",
+        fn: 'balanceOf',
         args: [owner.address, constants.GovernanceProjectId],
         expect: initialOwnerTicketBalanceOfGovernanceProject.add(
-          amountToTap
-            .sub(expectedAmountTapped)
-            .mul(constants.InitialWeightMultiplier)
-        )
-      })
+          amountToTap.sub(expectedAmountTapped).mul(constants.InitialWeightMultiplier),
+        ),
+      }),
   },
   {
-    description:
-      "Make another payment to the project to make sure it's got overflow",
+    description: "Make another payment to the project to make sure it's got overflow",
     fn: async ({
       contracts,
       executeFn,
@@ -569,59 +521,52 @@ module.exports = [
       randomBoolFn,
       randomStringFn,
       randomAddressFn,
-      local: { payer, expectedIdOfBaseProject, target }
+      local: { payer, expectedIdOfBaseProject, target },
     }) => {
       // The second amount should cause overflow.
       const paymentValue2 = randomBigNumberFn({
         min: BigNumber.from(1),
-        max: target
+        max: target,
       });
       await executeFn({
         caller: payer,
         contract: contracts.terminalV1,
-        fn: "pay",
-        args: [
-          expectedIdOfBaseProject,
-          randomAddressFn(),
-          randomStringFn(),
-          randomBoolFn()
-        ],
-        value: paymentValue2
+        fn: 'pay',
+        args: [expectedIdOfBaseProject, randomAddressFn(), randomStringFn(), randomBoolFn()],
+        value: paymentValue2,
       });
 
       return { paymentValue2 };
-    }
+    },
   },
   {
-    description:
-      "Shouldn't be able to tap excessive funds during the current funding cycle",
+    description: "Shouldn't be able to tap excessive funds during the current funding cycle",
     fn: ({
       contracts,
       executeFn,
       randomSignerFn,
-      local: { expectedIdOfBaseProject, paymentValue2 }
+      local: { expectedIdOfBaseProject, paymentValue2 },
     }) =>
       executeFn({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
-        fn: "tap",
+        fn: 'tap',
         args: [expectedIdOfBaseProject, paymentValue2, currency, paymentValue2],
-        revert: "FundingCycles::tap: INSUFFICIENT_FUNDS"
-      })
+        revert: 'FundingCycles::tap: INSUFFICIENT_FUNDS',
+      }),
   },
   {
-    description: "Fast forward to the next funding cycle",
-    fn: ({ fastforwardFn, local: { duration } }) =>
-      fastforwardFn(duration.mul(86400).add(1))
+    description: 'Fast forward to the next funding cycle',
+    fn: ({ fastforwardFn, local: { duration } }) => fastforwardFn(duration.mul(86400).add(1)),
   },
   {
-    description: "Tap the full target",
+    description: 'Tap the full target',
     fn: async ({
       contracts,
       executeFn,
       randomSignerFn,
       incrementFundingCycleIdFn,
-      local: { expectedIdOfBaseProject, paymentValue2 }
+      local: { expectedIdOfBaseProject, paymentValue2 },
     }) => {
       // A new funding cycle will be created. Burn the unused funding cycle ID id.
       incrementFundingCycleIdFn();
@@ -629,9 +574,9 @@ module.exports = [
       await executeFn({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
-        fn: "tap",
-        args: [expectedIdOfBaseProject, paymentValue2, currency, paymentValue2]
+        fn: 'tap',
+        args: [expectedIdOfBaseProject, paymentValue2, currency, paymentValue2],
       });
-    }
-  }
+    },
+  },
 ];

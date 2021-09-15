@@ -1,61 +1,57 @@
 const {
-  ethers: { constants }
-} = require("hardhat");
-const { expect } = require("chai");
+  ethers: { constants },
+} = require('hardhat');
+const { expect } = require('chai');
 
 const tests = {
   success: [
     {
-      description: "appoint",
+      description: 'appoint',
       fn: ({ addrs, governance }) => ({
         caller: governance,
-        governance: addrs[0].address
-      })
-    }
+        governance: addrs[0].address,
+      }),
+    },
   ],
   failure: [
     {
-      description: "unauthorized",
+      description: 'unauthorized',
       fn: ({ deployer }) => ({
         caller: deployer,
         governance: constants.AddressZero,
-        revert: "TerminalV1: UNAUTHORIZED"
-      })
+        revert: 'TerminalV1: UNAUTHORIZED',
+      }),
     },
     {
-      description: "zero address",
+      description: 'zero address',
       fn: ({ governance }) => ({
         caller: governance,
         governance: constants.AddressZero,
-        revert: "TerminalV1::appointGovernance: ZERO_ADDRESS"
-      })
+        revert: 'TerminalV1::appointGovernance: ZERO_ADDRESS',
+      }),
     },
     {
-      description: "same as current",
+      description: 'same as current',
       fn: ({ governance }) => ({
         caller: governance,
         governance: governance.address,
-        revert: "TerminalV1::appointGovernance: NO_OP"
-      })
-    }
-  ]
+        revert: 'TerminalV1::appointGovernance: NO_OP',
+      }),
+    },
+  ],
 };
 
-module.exports = function() {
-  describe("Success cases", function() {
-    tests.success.forEach(function(successTest) {
-      it(successTest.description, async function() {
+module.exports = function () {
+  describe('Success cases', function () {
+    tests.success.forEach(function (successTest) {
+      it(successTest.description, async function () {
         const { caller, governance } = successTest.fn(this);
 
         // Execute the transaction.
-        const tx = await this.targetContract
-          .connect(caller)
-          .appointGovernance(governance);
+        const tx = await this.targetContract.connect(caller).appointGovernance(governance);
 
         // Expect an event to have been emitted.
-        await expect(tx)
-          .to.emit(this.targetContract, "AppointGovernance")
-          .withArgs(governance);
+        await expect(tx).to.emit(this.targetContract, 'AppointGovernance').withArgs(governance);
 
         // Get the stored pending governance value.
         const storedPendingGovernance = await this.targetContract.pendingGovernance();
@@ -65,13 +61,13 @@ module.exports = function() {
       });
     });
   });
-  describe("Failure cases", function() {
-    tests.failure.forEach(function(failureTest) {
-      it(failureTest.description, async function() {
+  describe('Failure cases', function () {
+    tests.failure.forEach(function (failureTest) {
+      it(failureTest.description, async function () {
         const { caller, governance, revert } = failureTest.fn(this);
 
         await expect(
-          this.targetContract.connect(caller).appointGovernance(governance)
+          this.targetContract.connect(caller).appointGovernance(governance),
         ).to.be.revertedWith(revert);
       });
     });

@@ -14,31 +14,25 @@
 */
 process.env.INCLUDE_TIME_EDGE_CASE_TEST = false;
 
-const shouldBehaveLike = require("./behaviors");
+const shouldBehaveLike = require('./behaviors');
 
-const contractName = "FundingCycles";
+const contractName = 'FundingCycles';
 
-module.exports = function() {
+module.exports = function () {
   // Before the tests, deploy mocked dependencies and the contract.
-  before(async function() {
+  before(async function () {
     // Deploy mock dependency contracts.
-    this.ballot = await this.deployMockLocalContractFn(
-      "Active14DaysFundingCycleBallot"
-    );
-    this.terminalDirectory = await this.deployMockLocalContractFn(
-      "TerminalDirectory"
-    );
+    this.ballot = await this.deployMockLocalContractFn('Active14DaysFundingCycleBallot');
+    this.terminalDirectory = await this.deployMockLocalContractFn('TerminalDirectory');
 
     // Deploy the contract.
-    this.contract = await this.deployContractFn(contractName, [
-      this.terminalDirectory.address
-    ]);
+    this.contract = await this.deployContractFn(contractName, [this.terminalDirectory.address]);
   });
 
   // Test each function.
-  describe("configure(...)", shouldBehaveLike.configure);
-  describe("tap(...)", shouldBehaveLike.tap);
-  describe("currentOf(...)", shouldBehaveLike.currentOf);
-  describe("queuedOf(...)", shouldBehaveLike.queuedOf);
-  describe("currentBallotStateOf(...)", shouldBehaveLike.currentBallotStateOf);
+  describe('configure(...)', shouldBehaveLike.configure);
+  describe('tap(...)', shouldBehaveLike.tap);
+  describe('currentOf(...)', shouldBehaveLike.currentOf);
+  describe('queuedOf(...)', shouldBehaveLike.queuedOf);
+  describe('currentBallotStateOf(...)', shouldBehaveLike.currentBallotStateOf);
 };

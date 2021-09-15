@@ -2,14 +2,14 @@
   Projects can deploy addresses that will forward funds received to the project's funding cycle.
 */
 
-const { BigNumber } = require("ethers");
+const { BigNumber } = require('ethers');
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
 
 module.exports = [
   {
-    description: "Deploy a project",
+    description: 'Deploy a project',
     fn: async ({
       constants,
       contracts,
@@ -35,7 +35,7 @@ module.exports = [
       await executeFn({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
-        fn: "deploy",
+        fn: 'deploy',
         args: [
           owner.address,
           randomBytesFn({
@@ -73,50 +73,32 @@ module.exports = [
     },
   },
   {
-    description:
-      "Make sure the terminalV1 got set as the project's current terminal",
-    fn: ({
-      checkFn,
-      contracts,
-      randomSignerFn,
-      local: { expectedProjectId },
-    }) =>
+    description: "Make sure the terminalV1 got set as the project's current terminal",
+    fn: ({ checkFn, contracts, randomSignerFn, local: { expectedProjectId } }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.terminalDirectory,
-        fn: "terminalOf",
+        fn: 'terminalOf',
         args: [expectedProjectId],
         expect: contracts.terminalV1.address,
       }),
   },
   {
-    description: "Deploy a proxy payment address",
-    fn: ({
-      executeFn,
-      deployer,
-      contracts,
-      randomStringFn,
-      local: { expectedProjectId },
-    }) =>
+    description: 'Deploy a proxy payment address',
+    fn: ({ executeFn, deployer, contracts, randomStringFn, local: { expectedProjectId } }) =>
       executeFn({
         caller: deployer,
         contract: contracts.proxyPaymentAddressManager,
-        fn: "deploy",
+        fn: 'deploy',
         args: [expectedProjectId, randomStringFn()],
       }),
   },
   {
-    description: "Make a payment to the proxy payment address",
-    fn: async ({
-      contracts,
-      BigNumber,
-      randomSignerFn,
-      local: { expectedProjectId },
-    }) => {
-      const [proxyPaymentAddress] =
-        await contracts.proxyPaymentAddressManager.addressesOf(
-          expectedProjectId
-        );
+    description: 'Make a payment to the proxy payment address',
+    fn: async ({ contracts, BigNumber, randomSignerFn, local: { expectedProjectId } }) => {
+      const [proxyPaymentAddress] = await contracts.proxyPaymentAddressManager.addressesOf(
+        expectedProjectId,
+      );
       // An account that will be used to make payments.
       const payer = randomSignerFn();
 
@@ -133,7 +115,7 @@ module.exports = [
     },
   },
   {
-    description: "There should now be a balance in the proxy payment address",
+    description: 'There should now be a balance in the proxy payment address',
     fn: ({ verifyBalanceFn, local: { paymentValue, proxyPaymentAddress } }) =>
       verifyBalanceFn({
         address: proxyPaymentAddress,
@@ -141,18 +123,18 @@ module.exports = [
       }),
   },
   {
-    description: "Tap the proxy payment address",
+    description: 'Tap the proxy payment address',
     fn: async ({ executeFn, local: { proxyPaymentAddress, payer } }) => {
       await executeFn({
         caller: payer,
-        contractName: "ProxyPaymentAddress",
+        contractName: 'ProxyPaymentAddress',
         contractAddress: proxyPaymentAddress,
-        fn: "tap",
+        fn: 'tap',
       });
     },
   },
   {
-    description: "The balance should be empty in the proxy payment address",
+    description: 'The balance should be empty in the proxy payment address',
     fn: ({ verifyBalanceFn, local: { proxyPaymentAddress } }) =>
       verifyBalanceFn({
         address: proxyPaymentAddress,
@@ -161,7 +143,7 @@ module.exports = [
   },
   {
     description:
-      "Make sure the correct number of tickets were printed for the proxy payment address",
+      'Make sure the correct number of tickets were printed for the proxy payment address',
     fn: ({
       checkFn,
       contracts,
@@ -169,13 +151,11 @@ module.exports = [
       randomSignerFn,
       local: { proxyPaymentAddress, expectedProjectId, paymentValue },
     }) => {
-      const expectedNumTickets = paymentValue.mul(
-        constants.InitialWeightMultiplier
-      );
+      const expectedNumTickets = paymentValue.mul(constants.InitialWeightMultiplier);
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "balanceOf",
+        fn: 'balanceOf',
         args: [proxyPaymentAddress, expectedProjectId],
         expect: expectedNumTickets,
       });
@@ -183,7 +163,7 @@ module.exports = [
     },
   },
   {
-    description: "Transfer tickets from non-owner should fail.",
+    description: 'Transfer tickets from non-owner should fail.',
     fn: async ({
       randomSignerFn,
       executeFn,
@@ -193,18 +173,18 @@ module.exports = [
 
       await executeFn({
         caller: randomSignerFn(),
-        contractName: "ProxyPaymentAddress",
+        contractName: 'ProxyPaymentAddress',
         contractAddress: proxyPaymentAddress,
-        fn: "transferTickets",
+        fn: 'transferTickets',
         args: [beneficiary.address, expectedNumTickets],
-        revert: "Ownable: caller is not the owner",
+        revert: 'Ownable: caller is not the owner',
       });
 
       return { beneficiary };
     },
   },
   {
-    description: "Transfer tickets from the proxy payment address",
+    description: 'Transfer tickets from the proxy payment address',
     fn: async ({
       randomSignerFn,
       deployer,
@@ -215,9 +195,9 @@ module.exports = [
 
       await executeFn({
         caller: deployer,
-        contractName: "ProxyPaymentAddress",
+        contractName: 'ProxyPaymentAddress',
         contractAddress: proxyPaymentAddress,
-        fn: "transferTickets",
+        fn: 'transferTickets',
         args: [beneficiary.address, expectedNumTickets],
       });
 
@@ -225,8 +205,7 @@ module.exports = [
     },
   },
   {
-    description:
-      "Make sure the correct number of tickets are transferred to the beneficiary",
+    description: 'Make sure the correct number of tickets are transferred to the beneficiary',
     fn: ({
       checkFn,
       contracts,
@@ -236,7 +215,7 @@ module.exports = [
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "balanceOf",
+        fn: 'balanceOf',
         args: [beneficiary.address, expectedProjectId],
         expect: expectedNumTickets,
       });

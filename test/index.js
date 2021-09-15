@@ -1,14 +1,14 @@
-const { ethers, config } = require("hardhat");
-const chai = require("chai");
-const fs = require("fs");
+const { ethers, config } = require('hardhat');
+const chai = require('chai');
+const fs = require('fs');
 
-const { deployMockContract } = require("@ethereum-waffle/mock-contract");
+const { deployMockContract } = require('@ethereum-waffle/mock-contract');
 
-const { BigNumber, Contract } = require("ethers");
-const unit = require("./unit");
-const integration = require("./integration");
+const { BigNumber, Contract } = require('ethers');
+const unit = require('./unit');
+const integration = require('./integration');
 
-describe("Juicebox", async function () {
+describe('Juicebox', async function () {
   before(async function () {
     // Bind a reference to the deployer address and an array of other addresses to `this`.
     [this.deployer, ...this.addrs] = await ethers.getSigners();
@@ -16,9 +16,7 @@ describe("Juicebox", async function () {
     // Bind the ability to manipulate time to `this`.
     // Bind a function that gets the current block's timestamp.
     this.getTimestampFn = async (block) => {
-      return ethers.BigNumber.from(
-        (await ethers.provider.getBlock(block || "latest")).timestamp
-      );
+      return ethers.BigNumber.from((await ethers.provider.getBlock(block || 'latest')).timestamp);
     };
 
     // Binds a function that sets a time mark that is taken into account while fastforward.
@@ -35,9 +33,9 @@ describe("Juicebox", async function () {
 
       // Subtract away any time that has already passed between the start of the test,
       // or from the last fastforward, from the provided value.
-      await ethers.provider.send("evm_increaseTime", [fastforwardAmount]);
+      await ethers.provider.send('evm_increaseTime', [fastforwardAmount]);
       // Mine a block.
-      await ethers.provider.send("evm_mine");
+      await ethers.provider.send('evm_mine');
     };
 
     // Bind a reference to a function that can deploy mock contracts from an abi.
@@ -48,7 +46,7 @@ describe("Juicebox", async function () {
       // Deploy mock contracts.
       const mockArtifacts = fs
         .readFileSync(
-          `${config.paths.artifacts}/contracts/${mockContractName}.sol/${mockContractName}.json`
+          `${config.paths.artifacts}/contracts/${mockContractName}.sol/${mockContractName}.json`,
         )
         .toString();
 
@@ -64,12 +62,10 @@ describe("Juicebox", async function () {
     // Bind a function that mocks a contract function's execution with the provided args to return the provided values.
     this.mockFn = async ({ mockContract, fn, args, returns = [] }) => {
       // The `args` can be a function or an array.
-      const normalizedArgs =
-        args && typeof args === "function" ? await args() : args;
+      const normalizedArgs = args && typeof args === 'function' ? await args() : args;
 
       // The `returns` value can be a function or an array.
-      const normalizedReturns =
-        typeof returns === "function" ? await returns() : returns;
+      const normalizedReturns = typeof returns === 'function' ? await returns() : returns;
 
       // Get a reference to the mock.
       const mock = mockContract.mock[fn];
@@ -94,35 +90,29 @@ describe("Juicebox", async function () {
       revert,
     }) => {
       // Args can be either a function or an array.
-      const normalizedArgs = typeof args === "function" ? await args() : args;
+      const normalizedArgs = typeof args === 'function' ? await args() : args;
 
       let contractInternal;
       if (contractName) {
         if (contract) {
-          throw "You can only provide a contract name or contract object.";
+          throw 'You can only provide a contract name or contract object.';
         }
         if (!contractAddress) {
-          throw "You must provide a contract address with a contract name.";
+          throw 'You must provide a contract address with a contract name.';
         }
         const artifacts = fs
           .readFileSync(
-            `${config.paths.artifacts}/contracts/${contractName}.sol/${contractName}.json`
+            `${config.paths.artifacts}/contracts/${contractName}.sol/${contractName}.json`,
           )
           .toString();
 
-        contractInternal = new Contract(
-          contractAddress,
-          JSON.parse(artifacts).abi,
-          caller
-        );
+        contractInternal = new Contract(contractAddress, JSON.parse(artifacts).abi, caller);
       } else {
         contractInternal = contract;
       }
 
       // Save the promise that is returned.
-      const promise = contractInternal
-        .connect(caller)
-        [fn](...normalizedArgs, { value });
+      const promise = contractInternal.connect(caller)[fn](...normalizedArgs, { value });
 
       // If a revert message is passed in, check to see if it was thrown.
       if (revert) {
@@ -147,18 +137,14 @@ describe("Juicebox", async function () {
         chai
           .expect(tx)
           .to.emit(contract, event.name)
-          .withArgs(...event.args)
+          .withArgs(...event.args),
       );
     };
 
-    this.bindContractFn = async ({
-      address,
-      contractName,
-      signerOrProvider,
-    }) => {
+    this.bindContractFn = async ({ address, contractName, signerOrProvider }) => {
       const artifacts = fs
         .readFileSync(
-          `${config.paths.artifacts}/contracts/${contractName}.sol/${contractName}.json`
+          `${config.paths.artifacts}/contracts/${contractName}.sol/${contractName}.json`,
         )
         .toString();
 
@@ -196,19 +182,12 @@ describe("Juicebox", async function () {
         chai
           .expect(tx)
           .to.emit(event.contract, event.name)
-          .withArgs(...event.args)
+          .withArgs(...event.args),
       );
     };
 
     // Bind a function that checks if a contract getter equals an expected value.
-    this.checkFn = async ({
-      caller,
-      contract,
-      fn,
-      args,
-      expect,
-      plusMinus,
-    }) => {
+    this.checkFn = async ({ caller, contract, fn, args, expect, plusMinus }) => {
       const storedVal = await contract.connect(caller)[fn](...args);
       if (plusMinus) {
         console.log({
@@ -275,12 +254,8 @@ describe("Juicebox", async function () {
 
       const base = max.sub(min);
       const randomInRange = base.gt(precision)
-        ? base
-            .div(precision)
-            .mul(ethers.BigNumber.from(Math.floor(Math.random() * precision)))
-        : base
-            .mul(ethers.BigNumber.from(Math.floor(Math.random() * precision)))
-            .div(precision);
+        ? base.div(precision).mul(ethers.BigNumber.from(Math.floor(Math.random() * precision)))
+        : base.mul(ethers.BigNumber.from(Math.floor(Math.random() * precision))).div(precision);
 
       return randomInRange.add(min);
     };
@@ -303,11 +278,8 @@ describe("Juicebox", async function () {
       // To test an edge condition, pick the same address more likely than not.
       // return address0 50% of the time.
       const candidate =
-        Math.random() < 0.5
-          ? this.addrs[0]
-          : this.addrs[Math.floor(Math.random() * 9)];
-      if (exclude.includes(candidate.address))
-        return this.randomSignerFn({ exclude });
+        Math.random() < 0.5 ? this.addrs[0] : this.addrs[Math.floor(Math.random() * 9)];
+      if (exclude.includes(candidate.address)) return this.randomSignerFn({ exclude });
       return candidate;
     };
 
@@ -317,7 +289,7 @@ describe("Juicebox", async function () {
     // Bind a function that generates a random string.
     this.randomStringFn = ({
       exclude = [],
-      prepend = "",
+      prepend = '',
       canBeEmpty = true,
       favorEdges = true,
     } = {}) => {
@@ -325,11 +297,8 @@ describe("Juicebox", async function () {
         min: canBeEmpty ? BigNumber.from(0) : BigNumber.from(1),
         favorEdges,
       });
-      const candidate = prepend.concat(
-        Math.random().toString(36).substr(2, seed)
-      );
-      if (exclude.includes(candidate))
-        return this.randomStringFn({ exclude, prepend, canBeEmpty });
+      const candidate = prepend.concat(Math.random().toString(36).substr(2, seed));
+      if (exclude.includes(candidate)) return this.randomStringFn({ exclude, prepend, canBeEmpty });
       return candidate;
     };
 
@@ -340,7 +309,7 @@ describe("Juicebox", async function () {
     this.randomBytesFn = ({
       min = BigNumber.from(10),
       max = BigNumber.from(32),
-      prepend = "",
+      prepend = '',
       exclude = [],
     } = {}) => {
       const candidate = ethers.utils.formatBytes32String(
@@ -351,18 +320,17 @@ describe("Juicebox", async function () {
             max,
           }),
           favorEdges: false,
-        })
+        }),
       );
-      if (exclude.includes(candidate))
-        return this.randomBytesFn({ exclude, min, max, prepend });
+      if (exclude.includes(candidate)) return this.randomBytesFn({ exclude, min, max, prepend });
       return candidate;
     };
 
     this.stringToBytes = ethers.utils.formatBytes32String;
 
     // Bind functions for cleaning state.
-    this.snapshotFn = () => ethers.provider.send("evm_snapshot", []);
-    this.restoreFn = (id) => ethers.provider.send("evm_revert", [id]);
+    this.snapshotFn = () => ethers.provider.send('evm_snapshot', []);
+    this.restoreFn = (id) => ethers.provider.send('evm_revert', [id]);
   });
 
   // Before each test, take a snapshot of the contract state.
@@ -372,6 +340,6 @@ describe("Juicebox", async function () {
   });
 
   // Run the tests.
-  describe("Unit", unit);
-  describe("Integration", integration);
+  describe('Unit', unit);
+  describe('Integration', integration);
 });

@@ -8,7 +8,7 @@ const currency = 0;
 
 module.exports = [
   {
-    description: "Deploy a project for the owner",
+    description: 'Deploy a project for the owner',
     fn: async ({
       executeFn,
       randomBigNumberFn,
@@ -20,7 +20,7 @@ module.exports = [
       incrementProjectIdFn,
       incrementFundingCycleIdFn,
       constants,
-      contracts
+      contracts,
     }) => {
       const expectedProjectId = incrementProjectIdFn();
 
@@ -37,16 +37,16 @@ module.exports = [
       // So, arbitrarily find a number less than a third so that all payments can be made successfully.
       const paymentValue1 = randomBigNumberFn({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(100)
+        max: (await getBalanceFn(payer.address)).div(100),
       });
       const paymentValue2 = randomBigNumberFn({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(100)
+        max: (await getBalanceFn(payer.address)).div(100),
       });
 
       // The project's funding cycle target will at most be a fourth of the payment value. Leaving plenty of overflow.
       const target = randomBigNumberFn({
-        max: paymentValue1.add(paymentValue2).div(4)
+        max: paymentValue1.add(paymentValue2).div(4),
       });
 
       // Set a random percentage of tickets to reserve for the project owner.
@@ -55,12 +55,12 @@ module.exports = [
       await executeFn({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
-        fn: "deploy",
+        fn: 'deploy',
         args: [
           owner.address,
           randomBytesFn({
             // Make sure its unique by prepending the id.
-            prepend: expectedProjectId.toString()
+            prepend: expectedProjectId.toString(),
           }),
           randomStringFn(),
           {
@@ -68,26 +68,26 @@ module.exports = [
             currency,
             duration: randomBigNumberFn({
               min: BigNumber.from(1),
-              max: constants.MaxUint16
+              max: constants.MaxUint16,
             }),
             cycleLimit: randomBigNumberFn({
-              max: constants.MaxCycleLimit
+              max: constants.MaxCycleLimit,
             }),
             discountRate: randomBigNumberFn({ max: constants.MaxPercent }),
-            ballot: constants.AddressZero
+            ballot: constants.AddressZero,
           },
           {
             reservedRate,
             bondingCurveRate: randomBigNumberFn({
-              max: constants.MaxPercent
+              max: constants.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumberFn({
-              max: constants.MaxPercent
-            })
+              max: constants.MaxPercent,
+            }),
           },
           [],
-          []
-        ]
+          [],
+        ],
       });
       return {
         expectedProjectId,
@@ -95,37 +95,31 @@ module.exports = [
         payer,
         paymentValue1,
         paymentValue2,
-        reservedRate
+        reservedRate,
       };
-    }
+    },
   },
   {
-    description: "The owner should not have issued tickets initially",
-    fn: ({
-      checkFn,
-      randomSignerFn,
-      contracts,
-      constants,
-      local: { expectedProjectId }
-    }) =>
+    description: 'The owner should not have issued tickets initially',
+    fn: ({ checkFn, randomSignerFn, contracts, constants, local: { expectedProjectId } }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "ticketsOf",
+        fn: 'ticketsOf',
         args: [expectedProjectId],
-        expect: constants.AddressZero
-      })
+        expect: constants.AddressZero,
+      }),
   },
   {
     description:
-      "Make a payment to the project without first issueing tickets should print staked tickets",
+      'Make a payment to the project without first issueing tickets should print staked tickets',
     fn: async ({
       randomSignerFn,
       executeFn,
       contracts,
       randomStringFn,
       randomBoolFn,
-      local: { expectedProjectId, payer, paymentValue1 }
+      local: { expectedProjectId, payer, paymentValue1 },
     }) => {
       // An account that will be distributed tickets in the first payment.
       const ticketBeneficiary = randomSignerFn();
@@ -133,32 +127,22 @@ module.exports = [
       await executeFn({
         caller: payer,
         contract: contracts.terminalV1,
-        fn: "pay",
-        args: [
-          expectedProjectId,
-          ticketBeneficiary.address,
-          randomStringFn(),
-          randomBoolFn()
-        ],
-        value: paymentValue1
+        fn: 'pay',
+        args: [expectedProjectId, ticketBeneficiary.address, randomStringFn(), randomBoolFn()],
+        value: paymentValue1,
       });
 
       return { ticketBeneficiary };
-    }
+    },
   },
   {
-    description: "The ticket beneficiary should have tickets",
+    description: 'The ticket beneficiary should have tickets',
     fn: async ({
       checkFn,
       constants,
       randomSignerFn,
       contracts,
-      local: {
-        paymentValue1,
-        reservedRate,
-        ticketBeneficiary,
-        expectedProjectId
-      }
+      local: { paymentValue1, reservedRate, ticketBeneficiary, expectedProjectId },
     }) => {
       // The amount of tickets that will be expected to be staked after the first payment.
       const expectedStakedBalance = paymentValue1
@@ -169,17 +153,17 @@ module.exports = [
       await checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "balanceOf",
+        fn: 'balanceOf',
         args: [ticketBeneficiary.address, expectedProjectId],
         expect: expectedStakedBalance,
         // Allow some wiggle room due to possible division precision errors.
         plusMinus: {
-          amount: 10
-        }
+          amount: 10,
+        },
       });
 
       return { expectedStakedBalance };
-    }
+    },
   },
   {
     description: "The ticket beneficiary's tickets should all be staked",
@@ -187,76 +171,64 @@ module.exports = [
       checkFn,
       randomSignerFn,
       contracts,
-      local: { ticketBeneficiary, expectedProjectId, expectedStakedBalance }
+      local: { ticketBeneficiary, expectedProjectId, expectedStakedBalance },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "stakedBalanceOf",
+        fn: 'stakedBalanceOf',
         args: [ticketBeneficiary.address, expectedProjectId],
         expect: expectedStakedBalance,
         // Allow some wiggle room due to possible division precision errors.
         plusMinus: {
-          amount: 10
-        }
-      })
+          amount: 10,
+        },
+      }),
   },
   {
-    description: "Issue tickets",
-    fn: ({
-      executeFn,
-      contracts,
-      randomStringFn,
-      local: { owner, expectedProjectId }
-    }) =>
+    description: 'Issue tickets',
+    fn: ({ executeFn, contracts, randomStringFn, local: { owner, expectedProjectId } }) =>
       executeFn({
         caller: owner,
         contract: contracts.ticketBooth,
-        fn: "issue",
+        fn: 'issue',
         args: [
           expectedProjectId,
           randomStringFn({ canBeEmpty: false }),
-          randomStringFn({ canBeEmpty: false })
-        ]
-      })
+          randomStringFn({ canBeEmpty: false }),
+        ],
+      }),
   },
   {
     description:
-      "Make another payment to the project now that tickets have been issued. Prefer unstaked tickets from the payment.",
+      'Make another payment to the project now that tickets have been issued. Prefer unstaked tickets from the payment.',
     fn: ({
       executeFn,
       contracts,
       randomStringFn,
-      local: { payer, expectedProjectId, ticketBeneficiary, paymentValue2 }
+      local: { payer, expectedProjectId, ticketBeneficiary, paymentValue2 },
     }) =>
       executeFn({
         caller: payer,
         contract: contracts.terminalV1,
-        fn: "pay",
+        fn: 'pay',
         args: [
           expectedProjectId,
           ticketBeneficiary.address,
           randomStringFn(),
-          true // prefer unstaked
+          true, // prefer unstaked
         ],
-        value: paymentValue2
-      })
+        value: paymentValue2,
+      }),
   },
   {
-    description:
-      "The ticket beneficiary should have both unstaked and staked tickets",
+    description: 'The ticket beneficiary should have both unstaked and staked tickets',
     fn: async ({
       randomSignerFn,
       checkFn,
       constants,
       contracts,
-      local: {
-        paymentValue1,
-        paymentValue2,
-        reservedRate,
-        expectedProjectId,
-        ticketBeneficiary
-      }
+      local: { paymentValue1, paymentValue2, reservedRate, expectedProjectId, ticketBeneficiary },
     }) => {
       // Total amount of tickets that will be expected to be both staked and unstaked after the second payment.
       const expectedTotalTicketBalance = paymentValue1
@@ -268,48 +240,47 @@ module.exports = [
       await checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "balanceOf",
+        fn: 'balanceOf',
         args: [ticketBeneficiary.address, expectedProjectId],
         expect: expectedTotalTicketBalance,
         // Allow some wiggle room due to possible division precision errors.
         plusMinus: {
-          amount: 10
-        }
+          amount: 10,
+        },
       });
 
       return { expectedTotalTicketBalance };
-    }
+    },
   },
   {
-    description:
-      "The ticket beneficiary's tickets staked tickets should still be staked",
+    description: "The ticket beneficiary's tickets staked tickets should still be staked",
     fn: ({
       checkFn,
       randomSignerFn,
       contracts,
-      local: { ticketBeneficiary, expectedProjectId, expectedStakedBalance }
+      local: { ticketBeneficiary, expectedProjectId, expectedStakedBalance },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "stakedBalanceOf",
+        fn: 'stakedBalanceOf',
         args: [ticketBeneficiary.address, expectedProjectId],
         expect: expectedStakedBalance,
         // Allow some wiggle room due to possible division precision errors.
         plusMinus: {
-          amount: 10
-        }
-      })
+          amount: 10,
+        },
+      }),
   },
   {
-    description: "Redeem some of the staked tickets",
+    description: 'Redeem some of the staked tickets',
     fn: async ({
       randomBigNumberFn,
       executeFn,
       BigNumber,
       contracts,
       randomAddressFn,
-      local: { expectedStakedBalance, ticketBeneficiary, expectedProjectId }
+      local: { expectedStakedBalance, ticketBeneficiary, expectedProjectId },
     }) => {
       // Get a subset of the staked tickets.
       const redeemedPortionOfStakedBalance = expectedStakedBalance.eq(0)
@@ -317,44 +288,43 @@ module.exports = [
         : expectedStakedBalance.sub(
             randomBigNumberFn({
               min: BigNumber.from(1),
-              max: expectedStakedBalance.sub(1)
-            })
+              max: expectedStakedBalance.sub(1),
+            }),
           );
 
       // Find how much the subset is redeemable for.
       const claimableAmount = await contracts.terminalV1.claimableOverflowOf(
         ticketBeneficiary.address,
         expectedProjectId,
-        redeemedPortionOfStakedBalance
+        redeemedPortionOfStakedBalance,
       );
 
-      const expectNoOp =
-        redeemedPortionOfStakedBalance.eq(0) || claimableAmount.eq(0);
+      const expectNoOp = redeemedPortionOfStakedBalance.eq(0) || claimableAmount.eq(0);
 
       await executeFn({
         caller: ticketBeneficiary,
         contract: contracts.terminalV1,
-        fn: "redeem",
+        fn: 'redeem',
         args: [
           ticketBeneficiary.address,
           expectedProjectId,
           redeemedPortionOfStakedBalance,
           claimableAmount,
           randomAddressFn(),
-          false // prefer staked
+          false, // prefer staked
         ],
-        revert: expectNoOp && "TerminalV1::redeem: NO_OP"
+        revert: expectNoOp && 'TerminalV1::redeem: NO_OP',
       });
 
       return {
         redeemedPortionOfStakedBalance: expectNoOp
           ? BigNumber.from(0)
-          : redeemedPortionOfStakedBalance
+          : redeemedPortionOfStakedBalance,
       };
-    }
+    },
   },
   {
-    description: "The staked balance should have the redeemed portion removed",
+    description: 'The staked balance should have the redeemed portion removed',
     fn: ({
       checkFn,
       randomSignerFn,
@@ -363,23 +333,23 @@ module.exports = [
         ticketBeneficiary,
         expectedProjectId,
         expectedStakedBalance,
-        redeemedPortionOfStakedBalance
-      }
+        redeemedPortionOfStakedBalance,
+      },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "stakedBalanceOf",
+        fn: 'stakedBalanceOf',
         args: [ticketBeneficiary.address, expectedProjectId],
         expect: expectedStakedBalance.sub(redeemedPortionOfStakedBalance),
         // Allow some wiggle room due to possible division precision errors.
         plusMinus: {
-          amount: 10
-        }
-      })
+          amount: 10,
+        },
+      }),
   },
   {
-    description: "The total balance should have the redeemed portion removed",
+    description: 'The total balance should have the redeemed portion removed',
     fn: ({
       checkFn,
       randomSignerFn,
@@ -388,23 +358,23 @@ module.exports = [
         redeemedPortionOfStakedBalance,
         ticketBeneficiary,
         expectedProjectId,
-        expectedTotalTicketBalance
-      }
+        expectedTotalTicketBalance,
+      },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "balanceOf",
+        fn: 'balanceOf',
         args: [ticketBeneficiary.address, expectedProjectId],
         expect: expectedTotalTicketBalance.sub(redeemedPortionOfStakedBalance),
         // Allow some wiggle room due to possible division precision errors.
         plusMinus: {
-          amount: 10
-        }
-      })
+          amount: 10,
+        },
+      }),
   },
   {
-    description: "Redeem some of the unstaked tickets",
+    description: 'Redeem some of the unstaked tickets',
     fn: async ({
       executeFn,
       randomBigNumberFn,
@@ -415,55 +385,52 @@ module.exports = [
         expectedTotalTicketBalance,
         expectedStakedBalance,
         ticketBeneficiary,
-        expectedProjectId
-      }
+        expectedProjectId,
+      },
     }) => {
-      const expectedUnstakedBalance = expectedTotalTicketBalance.sub(
-        expectedStakedBalance
-      );
+      const expectedUnstakedBalance = expectedTotalTicketBalance.sub(expectedStakedBalance);
       const redeemedPortionOfUnstakedBalance = expectedUnstakedBalance.eq(0)
         ? BigNumber.from(0)
         : expectedUnstakedBalance.sub(
             randomBigNumberFn({
               min: BigNumber.from(1),
-              max: expectedUnstakedBalance.sub(1)
-            })
+              max: expectedUnstakedBalance.sub(1),
+            }),
           );
 
       // Find how much the subset is redeemable for.
       const claimableAmount = await contracts.terminalV1.claimableOverflowOf(
         ticketBeneficiary.address,
         expectedProjectId,
-        redeemedPortionOfUnstakedBalance
+        redeemedPortionOfUnstakedBalance,
       );
 
-      const expectNoOp =
-        redeemedPortionOfUnstakedBalance.eq(0) || claimableAmount.eq(0);
+      const expectNoOp = redeemedPortionOfUnstakedBalance.eq(0) || claimableAmount.eq(0);
 
       await executeFn({
         caller: ticketBeneficiary,
         contract: contracts.terminalV1,
-        fn: "redeem",
+        fn: 'redeem',
         args: [
           ticketBeneficiary.address,
           expectedProjectId,
           redeemedPortionOfUnstakedBalance,
           0,
           randomAddressFn(),
-          true // prefer unstaked
+          true, // prefer unstaked
         ],
-        revert: expectNoOp && "TerminalV1::redeem: NO_OP"
+        revert: expectNoOp && 'TerminalV1::redeem: NO_OP',
       });
 
       return {
         redeemedPortionOfUnstakedBalance: expectNoOp
           ? BigNumber.from(0)
-          : redeemedPortionOfUnstakedBalance
+          : redeemedPortionOfUnstakedBalance,
       };
-    }
+    },
   },
   {
-    description: "The staked balance should be the same as it was",
+    description: 'The staked balance should be the same as it was',
     fn: ({
       checkFn,
       randomSignerFn,
@@ -472,23 +439,23 @@ module.exports = [
         redeemedPortionOfStakedBalance,
         ticketBeneficiary,
         expectedProjectId,
-        expectedStakedBalance
-      }
+        expectedStakedBalance,
+      },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "stakedBalanceOf",
+        fn: 'stakedBalanceOf',
         args: [ticketBeneficiary.address, expectedProjectId],
         expect: expectedStakedBalance.sub(redeemedPortionOfStakedBalance),
         // Allow some wiggle room due to possible division precision errors.
         plusMinus: {
-          amount: 10
-        }
-      })
+          amount: 10,
+        },
+      }),
   },
   {
-    description: "The total balance should have both redeemed portions removed",
+    description: 'The total balance should have both redeemed portions removed',
     fn: ({
       checkFn,
       randomSignerFn,
@@ -498,48 +465,48 @@ module.exports = [
         redeemedPortionOfUnstakedBalance,
         expectedProjectId,
         ticketBeneficiary,
-        expectedTotalTicketBalance
-      }
+        expectedTotalTicketBalance,
+      },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "balanceOf",
+        fn: 'balanceOf',
         args: [ticketBeneficiary.address, expectedProjectId],
         expect: expectedTotalTicketBalance
           .sub(redeemedPortionOfStakedBalance)
           .sub(redeemedPortionOfUnstakedBalance),
         // Allow some wiggle room due to possible division precision errors.
         plusMinus: {
-          amount: 10
-        }
-      })
+          amount: 10,
+        },
+      }),
   },
   {
-    description: "Redeem the rest of the tickets",
+    description: 'Redeem the rest of the tickets',
     fn: async ({
       executeFn,
       randomAddressFn,
       randomBoolFn,
       contracts,
       BigNumber,
-      local: { ticketBeneficiary, expectedProjectId }
+      local: { ticketBeneficiary, expectedProjectId },
     }) => {
       const balance = await contracts.ticketBooth.balanceOf(
         ticketBeneficiary.address,
-        expectedProjectId
+        expectedProjectId,
       );
 
       const stakedBalance = await contracts.ticketBooth.stakedBalanceOf(
         ticketBeneficiary.address,
-        expectedProjectId
+        expectedProjectId,
       );
 
       // Find how much the balance is redeemable for.
       const claimableAmount = await contracts.terminalV1.claimableOverflowOf(
         ticketBeneficiary.address,
         expectedProjectId,
-        balance
+        balance,
       );
 
       const expectNoOp = balance.eq(0) || claimableAmount.eq(0);
@@ -547,61 +514,56 @@ module.exports = [
       await executeFn({
         caller: ticketBeneficiary,
         contract: contracts.terminalV1,
-        fn: "redeem",
+        fn: 'redeem',
         args: [
           ticketBeneficiary.address,
           expectedProjectId,
           balance,
           claimableAmount,
           randomAddressFn(),
-          randomBoolFn()
+          randomBoolFn(),
         ],
-        revert: expectNoOp && "TerminalV1::redeem: NO_OP"
+        revert: expectNoOp && 'TerminalV1::redeem: NO_OP',
       });
 
       return {
         leftoverTickets: expectNoOp ? balance : BigNumber.from(0),
-        stakedBalance
+        stakedBalance,
       };
-    }
+    },
   },
   {
-    description: "The ticket balance of the project should now be zero",
+    description: 'The ticket balance of the project should now be zero',
     fn: ({
       checkFn,
       randomSignerFn,
       contracts,
-      local: { ticketBeneficiary, expectedProjectId, leftoverTickets }
+      local: { ticketBeneficiary, expectedProjectId, leftoverTickets },
     }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "balanceOf",
+        fn: 'balanceOf',
         args: [ticketBeneficiary.address, expectedProjectId],
-        expect: leftoverTickets
-      })
+        expect: leftoverTickets,
+      }),
   },
   {
-    description: "The staked ticket balance of the project should now be zero",
+    description: 'The staked ticket balance of the project should now be zero',
     fn: async ({
       checkFn,
       randomSignerFn,
       contracts,
-      local: {
-        ticketBeneficiary,
-        expectedProjectId,
-        leftoverTickets,
-        stakedBalance
-      }
+      local: { ticketBeneficiary, expectedProjectId, leftoverTickets, stakedBalance },
     }) => {
       await checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
-        fn: "stakedBalanceOf",
+        fn: 'stakedBalanceOf',
         args: [ticketBeneficiary.address, expectedProjectId],
         // eslint-disable-next-line
-        expect:  leftoverTickets.eq(0) ? 0 : stakedBalance
+        expect: leftoverTickets.eq(0) ? 0 : stakedBalance,
       });
-    }
-  }
+    },
+  },
 ];
