@@ -1,5 +1,13 @@
 {
-  "name": "hardhat-project",
+  "name": "juice-contracts",
+  "bugs": {
+    "url": "https://github.com/jbx-protocol/juice-contracts/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jbx-protocol/juice-contracts/"
+  },  
+  "license": "MIT",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
@@ -7,5 +15,15 @@
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.4.6",
     "hardhat": "^2.6.4"
+  },  
+  "scripts": {
+    "chain": "hardhat node",
+    "test": "hardhat test --network localhost",
+    "test:gas": "REPORT_GAS=true hardhat test --network localhost",
+    "test:unit": "mocha --grep \"Unit\" --bail",
+    "test:integration": "mocha --grep \"Integration\" --bail",
+    "clean": "rimraf ./cache && rimraf ./artifacts",
+    "compile-force": "yarn clean && __DANGEROUS_OVM_IGNORE_ERRORS__=true hardhat compile",
+    "compile": "yarn clean && hardhat compile"
   }
 }
