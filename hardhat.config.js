@@ -5,9 +5,12 @@ const dotenv = require('dotenv');
 
 require('@nomiclabs/hardhat-etherscan');
 require('@nomiclabs/hardhat-waffle');
+require("@nomiclabs/hardhat-ethers")
 require('hardhat-gas-reporter');
-// TODO(odd-amphora)
-// require('./tasks/deploy1');
+require('hardhat-deploy');
+
+// Deploy scripts
+require('./tasks/deploy');
 
 dotenv.config();
 

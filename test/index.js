@@ -46,7 +46,7 @@ describe('Juicebox', async function () {
       // Deploy mock contracts.
       const mockArtifacts = fs
         .readFileSync(
-          `${config.paths.artifacts}/contracts/${mockContractName}.sol/${mockContractName}.json`,
+          `${config.paths.artifacts}/contracts/v1/${mockContractName}.sol/${mockContractName}.json`,
         )
         .toString();
 
@@ -102,7 +102,7 @@ describe('Juicebox', async function () {
         }
         const artifacts = fs
           .readFileSync(
-            `${config.paths.artifacts}/contracts/${contractName}.sol/${contractName}.json`,
+            `${config.paths.artifacts}/contracts/**/t${contractName}.sol/${contractName}.json`,
           )
           .toString();
 
