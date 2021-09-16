@@ -4,7 +4,7 @@ pragma solidity 0.8.6;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
-import "./../interfaces/IJBDirectory.sol";
+import "./interfaces/IJBDirectory.sol";
 
 /** 
   @notice A contract that inherits from JuiceboxProject can use Juicebox as a business-model-as-a-service.

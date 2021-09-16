@@ -8,7 +8,7 @@ import "./IJBFundingCycleStore.sol";
 import "./IJBProjects.sol";
 import "./IJBSplitsStore.sol";
 import "./IJBTerminal.sol";
-import "./IOperatorStore.sol";
+import "./IJBOperatorStore.sol";
 import "./IJBFundingCycleDataSource.sol";
 import "./IJBPrices.sol";
 

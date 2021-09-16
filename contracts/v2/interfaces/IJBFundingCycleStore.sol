@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import "./IFundingCycleBallot.sol";
-
-// struct Targets {
-//   uint256 amount;
-// }
+import "./IJBFundingCycleBallot.sol";
 
 /// @notice The funding cycle structure represents a project stewarded by an address, and accounts for which addresses have helped sustain the project.
 struct FundingCycle {
@@ -24,7 +20,7 @@ struct FundingCycle {
     // A number determining the amount of redistribution shares this funding cycle will issue to each sustainer.
     uint256 weight;
     // The ballot contract to use to determine a subsequent funding cycle's reconfiguration status.
-    IFundingCycleBallot ballot;
+    IJBFundingCycleBallot ballot;
     // The time when this funding cycle will become active.
     uint256 start;
     // The number of seconds until this funding cycle's surplus is redistributed.
@@ -49,7 +45,7 @@ struct FundingCycleProperties {
     uint256 duration;
     uint256 cycleLimit;
     uint256 discountRate;
-    IFundingCycleBallot ballot;
+    IJBFundingCycleBallot ballot;
 }
 
 interface IJBFundingCycleStore {

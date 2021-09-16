@@ -952,7 +952,7 @@ contract JBFundingCycleStore is JBTerminalUtility, IJBFundingCycleStore {
         uint256 _fundingCycleId,
         uint256 _configured,
         uint256 _cycleLimit,
-        IFundingCycleBallot _ballot,
+        IJBFundingCycleBallot _ballot,
         uint256 _duration,
         uint256 _currency,
         uint256 _fee,
@@ -1014,7 +1014,7 @@ contract JBFundingCycleStore is JBTerminalUtility, IJBFundingCycleStore {
         uint256 _packedConfigurationProperties = _packedConfigurationPropertiesOf[
                 _id
             ];
-        _fundingCycle.ballot = IFundingCycleBallot(
+        _fundingCycle.ballot = IJBFundingCycleBallot(
             address(uint160(_packedConfigurationProperties))
         );
         _fundingCycle.configured = uint256(
@@ -1346,7 +1346,7 @@ contract JBFundingCycleStore is JBTerminalUtility, IJBFundingCycleStore {
         // If there is no ballot, the ID is auto approved.
         // Otherwise, return the ballot's state.
         return
-            _ballotFundingCycle.ballot == IFundingCycleBallot(address(0))
+            _ballotFundingCycle.ballot == IJBFundingCycleBallot(address(0))
                 ? BallotState.Approved
                 : _ballotFundingCycle.ballot.state(_id, _configuration);
     }
@@ -1392,7 +1392,7 @@ contract JBFundingCycleStore is JBTerminalUtility, IJBFundingCycleStore {
     ) private view returns (uint256) {
         // The ballot must have ended.
         uint256 _ballotExpiration = _fundingCycle.ballot !=
-            IFundingCycleBallot(address(0))
+            IJBFundingCycleBallot(address(0))
             ? _from + _fundingCycle.ballot.duration()
             : 0;
 

@@ -2,7 +2,6 @@
 pragma solidity 0.8.6;
 
 import "./IJBProjects.sol";
-import "./IOperatorStore.sol";
 import "./IJBToken.sol";
 
 interface IJBTokenStore {
