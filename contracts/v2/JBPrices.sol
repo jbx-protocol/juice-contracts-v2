@@ -10,16 +10,18 @@ import './interfaces/IJBPrices.sol';
 */
 contract JBPrices is IJBPrices, Ownable {
   //*********************************************************************//
-  // ---------------- public immutable stored properties --------------- //
+  // ---------------- public constant stored properties ---------------- //
   //*********************************************************************//
 
   /** 
     @notice 
     The normalized number of decimals each price feed has.
   */
-  uint256 public constant override targetDecimals = 18;
+  uint256 public constant override TARGET_DECIMALS = 18;
 
-  // --- public stored properties --- //
+  //*********************************************************************//
+  // --------------------- public stored properties -------------------- //
+  //*********************************************************************//
 
   /** 
     @notice 
@@ -52,13 +54,13 @@ contract JBPrices is IJBPrices, Ownable {
     */
   function priceFor(uint256 _currency, uint256 _base) external view override returns (uint256) {
     // If the currency is the base, return 1 since they are priced the same.
-    if (_currency == _base) return 10**targetDecimals;
+    if (_currency == _base) return 10**TARGET_DECIMALS;
 
     // Get a reference to the feed.
     AggregatorV3Interface _feed = feedFor[_currency][_base];
 
     // Feed must exist.
-    require(_feed != AggregatorV3Interface(address(0)), '0x05 NOT_FOUND');
+    require(_feed != AggregatorV3Interface(address(0)), '0x03: NOT_FOUND');
 
     // Get the latest round information. Only need the price is needed.
     (, int256 _price, , , ) = _feed.latestRoundData();
@@ -88,19 +90,19 @@ contract JBPrices is IJBPrices, Ownable {
     AggregatorV3Interface _feed
   ) external override onlyOwner {
     // There can't already be a feed for the specified currency.
-    require(feedFor[_currency][_base] == AggregatorV3Interface(address(0)), 'ALREADY_EXISTS');
+    require(feedFor[_currency][_base] == AggregatorV3Interface(address(0)), '0x04: ALREADY_EXISTS');
 
     // Get a reference to the number of decimals the feed uses.
     uint256 _decimals = _feed.decimals();
 
     // Decimals should be less than or equal to the target number of decimals.
-    require(_decimals <= targetDecimals, '0x06 BAD_DECIMALS');
+    require(_decimals <= TARGET_DECIMALS, '0x05: BAD_DECIMALS');
 
     // Set the feed.
     feedFor[_currency][_base] = _feed;
 
     // Set the decimal adjuster for the currency.
-    feedDecimalAdjusterFor[_currency][_base] = 10**(targetDecimals - _decimals);
+    feedDecimalAdjusterFor[_currency][_base] = 10**(TARGET_DECIMALS - _decimals);
 
     emit AddFeed(_currency, _base, _decimals, _feed);
   }

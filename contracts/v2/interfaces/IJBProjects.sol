@@ -54,8 +54,6 @@ interface IJBProjects is IERC721 {
 
   function challengeExpiryOf(bytes32 _handle) external returns (uint256);
 
-  function exists(uint256 _projectId) external view returns (bool);
-
   function createFor(
     address _owner,
     bytes32 _handle,

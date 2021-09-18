@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+struct OperatorData {
+  address operator;
+  uint256 domain;
+  uint256[] permissionIndexes;
+}
+
 interface IJBOperatorStore {
   event SetOperator(
     address indexed operator,
@@ -30,15 +36,7 @@ interface IJBOperatorStore {
     uint256[] calldata _permissionIndexes
   ) external view returns (bool);
 
-  function setOperator(
-    address _operator,
-    uint256 _domain,
-    uint256[] calldata _permissionIndexes
-  ) external;
+  function setOperator(OperatorData calldata _operatorData) external;
 
-  function setOperators(
-    address[] calldata _operators,
-    uint256[] calldata _domains,
-    uint256[][] calldata _permissionIndexes
-  ) external;
+  function setOperators(OperatorData[] calldata _operatorData) external;
 }

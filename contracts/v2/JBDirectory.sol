@@ -72,8 +72,8 @@ contract JBDirectory is IJBDirectory, JBOperatable {
       'UNAUTHORIZED'
     );
 
-    // The project must exist.
-    require(projects.exists(_projectId), 'NOT_FOUND');
+    // // The project must exist.
+    // require(projects.exists(_projectId), 'NOT_FOUND');
 
     // Can't set the zero address.
     require(_terminal != IJBTerminal(address(0)), 'ZERO_ADDRESS');

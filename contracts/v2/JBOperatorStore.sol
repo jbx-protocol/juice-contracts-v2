@@ -34,9 +34,9 @@ contract JBOperatorStore is IJBOperatorStore {
     Whether or not an operator has the permission to take a certain action pertaining to the specified domain.
 
     @param _operator The operator to check.
-    @param _account The account that has given out permission to the operator.
+    @param _account The account that has given out permissions to the operator.
     @param _domain The domain that the operator has been given permissions to operate.
-    @param _permissionIndex The permission to check for.
+    @param _permissionIndex The permission indexes to check for.
 
     @return Whether the operator has the specified permission.
   */
@@ -46,8 +46,8 @@ contract JBOperatorStore is IJBOperatorStore {
     uint256 _domain,
     uint256 _permissionIndex
   ) external view override returns (bool) {
-    require(_permissionIndex <= 255, '0x01 INDEX_OUT_OF_BOUNDS');
-    return ((permissionsOf[_operator][_account][_domain] >> _permissionIndex) & 1) == 1;
+    require(_permissionIndex <= 255, '0x00: INDEX_OUT_OF_BOUNDS');
+    return (((permissionsOf[_operator][_account][_domain] >> _permissionIndex) & 1) == 1);
   }
 
   /** 
@@ -70,7 +70,7 @@ contract JBOperatorStore is IJBOperatorStore {
     for (uint256 _i = 0; _i < _permissionIndexes.length; _i++) {
       uint256 _permissionIndex = _permissionIndexes[_i];
 
-      require(_permissionIndex <= 255, '0x02 INDEX_OUT_OF_BOUNDS');
+      require(_permissionIndex <= 255, '0x01: INDEX_OUT_OF_BOUNDS');
 
       if (((permissionsOf[_operator][_account][_domain] >> _permissionIndex) & 1) == 0)
         return false;
@@ -82,64 +82,61 @@ contract JBOperatorStore is IJBOperatorStore {
   // ---------------------- external transactions ---------------------- //
   //*********************************************************************//
 
-  /** 
-    @notice 
-    Sets permissions for an operator.
+  /**
+    @notice
+    Sets permissions for an operators.
 
     @dev
     Only an address can set its own operators.
 
-    @param _operator The operator to whom permissions will be given.
-    @param _domain The domain that the operator is being given permissions to operate. A value of 0 serves as a wildcard domain. Applications can specify their own domain system.
-    @param _permissionIndexes An array of permission indexes to set. Indexes must be between 0-255. Applications can specify the significance of each index.
+    @param _operatorData The data that specifies the params for the operator being set.
+      @dev _operatorData.operators The operators to whom permissions will be given.
+      @dev _operatorData.domains Lists the domain that each operator is being given permissions to operate. A value of 0 serves as a wildcard domain. Applications can specify their own domain system.
+      @dev _operatorData.permissionIndexes Lists the permission indexes to set for each operator. Indexes must be between 0-255. Applications can specify the significance of each index.
   */
-  function setOperator(
-    address _operator,
-    uint256 _domain,
-    uint256[] calldata _permissionIndexes
-  ) external override {
+  function setOperator(OperatorData calldata _operatorData) external override {
     // Pack the indexes into a uint256.
-    uint256 _packed = _packedPermissions(_permissionIndexes);
+    uint256 _packed = _packedPermissions(_operatorData.permissionIndexes);
 
     // Store the new value.
-    permissionsOf[_operator][msg.sender][_domain] = _packed;
+    permissionsOf[_operatorData.operator][msg.sender][_operatorData.domain] = _packed;
 
-    emit SetOperator(_operator, msg.sender, _domain, _permissionIndexes, _packed);
+    emit SetOperator(
+      _operatorData.operator,
+      msg.sender,
+      _operatorData.domain,
+      _operatorData.permissionIndexes,
+      _packed
+    );
   }
 
-  /** 
-    @notice 
+  /**
+    @notice
     Sets permissions for many operators.
 
     @dev
     Only an address can set its own operators.
 
-    @dev
-    Each element of each provided array should matches up, so each array must be of the same length. 
-
-    @param _operators The operators to whom permissions will be given.
-    @param _domains Lists the domain that each operator is being given permissions to operate. A value of 0 serves as a wildcard domain. Applications can specify their own domain system.
-    @param _permissionIndexes Lists the permission indexes to set for each operator. Indexes must be between 0-255. Applications can specify the significance of each index.
+    @param _operatorData The data that specifies the params for each operator being set.
+      @dev _operatorData.operators The operators to whom permissions will be given.
+      @dev _operatorData.domains Lists the domain that each operator is being given permissions to operate. A value of 0 serves as a wildcard domain. Applications can specify their own domain system.
+      @dev _operatorData.permissionIndexes Lists the permission indexes to set for each operator. Indexes must be between 0-255. Applications can specify the significance of each index.
   */
-  function setOperators(
-    address[] calldata _operators,
-    uint256[] calldata _domains,
-    uint256[][] calldata _permissionIndexes
-  ) external override {
-    // There should be a level for each operator provided.
-    require(
-      _operators.length == _permissionIndexes.length && _operators.length == _domains.length,
-      '0x03 BAD_ARGS'
-    );
-
-    for (uint256 _i = 0; _i < _operators.length; _i++) {
+  function setOperators(OperatorData[] calldata _operatorData) external override {
+    for (uint256 _i = 0; _i < _operatorData.length; _i++) {
       // Pack the indexes into a uint256.
-      uint256 _packed = _packedPermissions(_permissionIndexes[_i]);
+      uint256 _packed = _packedPermissions(_operatorData[_i].permissionIndexes);
 
       // Store the new value.
-      permissionsOf[_operators[_i]][msg.sender][_domains[_i]] = _packed;
+      permissionsOf[_operatorData[_i].operator][msg.sender][_operatorData[_i].domain] = _packed;
 
-      emit SetOperator(_operators[_i], msg.sender, _domains[_i], _permissionIndexes[_i], _packed);
+      emit SetOperator(
+        _operatorData[_i].operator,
+        msg.sender,
+        _operatorData[_i].domain,
+        _operatorData[_i].permissionIndexes,
+        _packed
+      );
     }
   }
 
@@ -158,7 +155,7 @@ contract JBOperatorStore is IJBOperatorStore {
   function _packedPermissions(uint256[] calldata _indexes) private pure returns (uint256 packed) {
     for (uint256 _i = 0; _i < _indexes.length; _i++) {
       uint256 _index = _indexes[_i];
-      require(_index <= 255, '0x04 INDEX_OUT_OF_BOUNDS');
+      require(_index <= 255, '0x02: INDEX_OUT_OF_BOUNDS');
       // Turn the bit at the index on.
       packed |= 1 << _index;
     }

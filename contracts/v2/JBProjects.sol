@@ -80,22 +80,6 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
   mapping(bytes32 => uint256) public override challengeExpiryOf;
 
   //*********************************************************************//
-  // ------------------------- external views -------------------------- //
-  //*********************************************************************//
-
-  /** 
-    @notice 
-    Whether the specified project exists.
-
-    @param _projectId The project to check the existence of.
-
-    @return A flag indicating if the project exists.
-  */
-  function exists(uint256 _projectId) external view override returns (bool) {
-    return _exists(_projectId);
-  }
-
-  //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
 
@@ -130,10 +114,10 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     string calldata _uri
   ) external override returns (uint256) {
     // Handle must exist.
-    require(_handle != bytes32(0), '0x07 EMPTY_HANDLE');
+    require(_handle != bytes32(0), '0x06: EMPTY_HANDLE');
 
     // Handle must be unique.
-    require(idFor[_handle] == 0 && transferAddressFor[_handle] == address(0), 'HANDLE_TAKEN');
+    require(idFor[_handle] == 0 && transferAddressFor[_handle] == address(0), '0x07: HANDLE_TAKEN');
 
     // Increment the count, which will be used as the ID.
     count++;
@@ -171,10 +155,10 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     requirePermission(ownerOf(_projectId), _projectId, JBOperations.SET_HANDLE)
   {
     // Handle must exist.
-    require(_handle != bytes32(0), '0x08 EMPTY_HANDLE');
+    require(_handle != bytes32(0), '0x08: EMPTY_HANDLE');
 
     // Handle must be unique.
-    require(idFor[_handle] == 0 && transferAddressFor[_handle] == address(0), 'HANDLE_TAKEN');
+    require(idFor[_handle] == 0 && transferAddressFor[_handle] == address(0), '0x09: HANDLE_TAKEN');
 
     // Register the change in the resolver.
     idFor[handleOf[_projectId]] = 0;
@@ -234,10 +218,13 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     returns (bytes32 handle)
   {
     // A new handle must have been provided.
-    require(_newHandle != bytes32(0), '0x09 EMPTY_HANDLE');
+    require(_newHandle != bytes32(0), '0x0a: EMPTY_HANDLE');
 
     // The new handle must be available.
-    require(idFor[_newHandle] == 0 && transferAddressFor[_newHandle] == address(0), 'HANDLE_TAKEN');
+    require(
+      idFor[_newHandle] == 0 && transferAddressFor[_newHandle] == address(0),
+      '0x0b: HANDLE_TAKEN'
+    );
 
     // Get a reference to the project's current handle.
     handle = handleOf[_projectId];
@@ -284,7 +271,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     require(
       transferAddressFor[_handle] == _transferAddress ||
         (challengeExpiryOf[_handle] > 0 && block.timestamp > challengeExpiryOf[_handle]),
-      '0x0a UNAUTHORIZED'
+      '0x0c: UNAUTHORIZED'
     );
 
     // Remove the project ID for the current handle of the specified project.
@@ -317,10 +304,10 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     uint256 _projectId = idFor[_handle];
 
     // No need to challenge a handle that's not taken.
-    require(_projectId > 0, '0x0b HANDLE_NOT_TAKEN');
+    require(_projectId > 0, '0x0d: HANDLE_NOT_TAKEN');
 
     // No need to challenge again if a handle is already being challenged.
-    require(challengeExpiryOf[_handle] == 0, '0x0c HANDLE_ALREADY_BEING_CHALLENGED');
+    require(challengeExpiryOf[_handle] == 0, '0x0e: CHALLENGE_OPEN');
 
     // The challenge will expire in a year, at which point the handle can be claimed if it has yet to be renewed.
     uint256 _challengeExpiry = block.timestamp + _SECONDS_IN_YEAR;
