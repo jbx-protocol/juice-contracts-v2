@@ -111,6 +111,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable, JBTerminalUtility {
 
     // Check to see if all locked splits are included.
     for (uint256 _i = 0; _i < _currentSplits.length; _i++) {
+      // If not locked, continue.
       if (block.timestamp >= _currentSplits[_i].lockedUntil) continue;
 
       // Keep a reference to whether or not the locked split being iterated on is included.
