@@ -8,55 +8,59 @@ import './interfaces/IJBOperatorStore.sol';
   Stores operator permissions for all addresses. Addresses can give permissions to any other address to take specific actions throughout the Juicebox ecosystem on their behalf.
 */
 contract JBOperatorStore is IJBOperatorStore {
-  // --- public stored properties --- //
+  //*********************************************************************//
+  // --------------------- public stored properties -------------------- //
+  //*********************************************************************//
 
   /** 
-      @notice
-      The permissions that an operator has to operate on a specific domain.
-      
-      @dev
-      An account can give an operator permissions that only pertain to a specific domain.
-      There is no domain with a value of 0 -- accounts can use the 0 domain to give an operator
-      permissions to all domains on their behalf.
+    @notice
+    The permissions that an operator has to operate on a specific domain.
+    
+    @dev
+    An account can give an operator permissions that only pertain to a specific domain.
+    There is no domain with a value of 0 -- accounts can use the 0 domain to give an operator
+    permissions to all domains on their behalf.
 
-      [_operator][_account][_domain]
-    */
+    [_operator][_account][_domain]
+  */
   mapping(address => mapping(address => mapping(uint256 => uint256))) public override permissionsOf;
 
-  // --- public views --- //
+  //*********************************************************************//
+  // ------------------------- external views -------------------------- //
+  //*********************************************************************//
 
   /** 
-      @notice 
-      Whether or not an operator has the permission to take a certain action pertaining to the specified domain.
+    @notice 
+    Whether or not an operator has the permission to take a certain action pertaining to the specified domain.
 
-      @param _operator The operator to check.
-      @param _account The account that has given out permission to the operator.
-      @param _domain The domain that the operator has been given permissions to operate.
-      @param _permissionIndex The permission to check for.
+    @param _operator The operator to check.
+    @param _account The account that has given out permission to the operator.
+    @param _domain The domain that the operator has been given permissions to operate.
+    @param _permissionIndex The permission to check for.
 
-      @return Whether the operator has the specified permission.
-    */
+    @return Whether the operator has the specified permission.
+  */
   function hasPermission(
     address _operator,
     address _account,
     uint256 _domain,
     uint256 _permissionIndex
   ) external view override returns (bool) {
-    require(_permissionIndex <= 255, 'INDEX_OUT_OF_BOUNDS');
+    require(_permissionIndex <= 255, '0x01 INDEX_OUT_OF_BOUNDS');
     return ((permissionsOf[_operator][_account][_domain] >> _permissionIndex) & 1) == 1;
   }
 
   /** 
-      @notice 
-      Whether or not an operator has the permission to take certain actions pertaining to the specified domain.
+    @notice 
+    Whether or not an operator has the permission to take certain actions pertaining to the specified domain.
 
-      @param _operator The operator to check.
-      @param _account The account that has given out permissions to the operator.
-      @param _domain The domain that the operator has been given permissions to operate.
-      @param _permissionIndexes An array of permission indexes to check for.
+    @param _operator The operator to check.
+    @param _account The account that has given out permissions to the operator.
+    @param _domain The domain that the operator has been given permissions to operate.
+    @param _permissionIndexes An array of permission indexes to check for.
 
-      @return Whether the operator has all specified permissions.
-    */
+    @return Whether the operator has all specified permissions.
+  */
   function hasPermissions(
     address _operator,
     address _account,
@@ -66,7 +70,7 @@ contract JBOperatorStore is IJBOperatorStore {
     for (uint256 _i = 0; _i < _permissionIndexes.length; _i++) {
       uint256 _permissionIndex = _permissionIndexes[_i];
 
-      require(_permissionIndex <= 255, 'INDEX_OUT_OF_BOUNDS');
+      require(_permissionIndex <= 255, '0x02 INDEX_OUT_OF_BOUNDS');
 
       if (((permissionsOf[_operator][_account][_domain] >> _permissionIndex) & 1) == 0)
         return false;
@@ -74,19 +78,21 @@ contract JBOperatorStore is IJBOperatorStore {
     return true;
   }
 
-  // --- external transactions --- //
+  //*********************************************************************//
+  // ---------------------- external transactions ---------------------- //
+  //*********************************************************************//
 
   /** 
-      @notice 
-      Sets permissions for an operator.
+    @notice 
+    Sets permissions for an operator.
 
-      @dev
-      Only an address can set its own operators.
+    @dev
+    Only an address can set its own operators.
 
-      @param _operator The operator to whom permissions will be given.
-      @param _domain The domain that the operator is being given permissions to operate. A value of 0 serves as a wildcard domain. Applications can specify their own domain system.
-      @param _permissionIndexes An array of permission indexes to set. Indexes must be between 0-255. Applications can specify the significance of each index.
-    */
+    @param _operator The operator to whom permissions will be given.
+    @param _domain The domain that the operator is being given permissions to operate. A value of 0 serves as a wildcard domain. Applications can specify their own domain system.
+    @param _permissionIndexes An array of permission indexes to set. Indexes must be between 0-255. Applications can specify the significance of each index.
+  */
   function setOperator(
     address _operator,
     uint256 _domain,
@@ -102,19 +108,19 @@ contract JBOperatorStore is IJBOperatorStore {
   }
 
   /** 
-      @notice 
-      Sets permissions for many operators.
+    @notice 
+    Sets permissions for many operators.
 
-      @dev
-      Only an address can set its own operators.
+    @dev
+    Only an address can set its own operators.
 
-      @dev
-      Each element of each provided array should matches up, so each array must be of the same length. 
+    @dev
+    Each element of each provided array should matches up, so each array must be of the same length. 
 
-      @param _operators The operators to whom permissions will be given.
-      @param _domains Lists the domain that each operator is being given permissions to operate. A value of 0 serves as a wildcard domain. Applications can specify their own domain system.
-      @param _permissionIndexes Lists the permission indexes to set for each operator. Indexes must be between 0-255. Applications can specify the significance of each index.
-    */
+    @param _operators The operators to whom permissions will be given.
+    @param _domains Lists the domain that each operator is being given permissions to operate. A value of 0 serves as a wildcard domain. Applications can specify their own domain system.
+    @param _permissionIndexes Lists the permission indexes to set for each operator. Indexes must be between 0-255. Applications can specify the significance of each index.
+  */
   function setOperators(
     address[] calldata _operators,
     uint256[] calldata _domains,
@@ -123,7 +129,7 @@ contract JBOperatorStore is IJBOperatorStore {
     // There should be a level for each operator provided.
     require(
       _operators.length == _permissionIndexes.length && _operators.length == _domains.length,
-      'BAD_ARGS'
+      '0x03 BAD_ARGS'
     );
 
     for (uint256 _i = 0; _i < _operators.length; _i++) {
@@ -137,20 +143,22 @@ contract JBOperatorStore is IJBOperatorStore {
     }
   }
 
-  // --- private helper functions --- //
+  //*********************************************************************//
+  // --------------------- private helper functions -------------------- //
+  //*********************************************************************//
 
   /** 
-      @notice 
-      Converts an array of permission indexes to a packed uint256.
+    @notice 
+    Converts an array of permission indexes to a packed uint256.
 
-      @param _indexes The indexes of the permissions to pack.
+    @param _indexes The indexes of the permissions to pack.
 
-      @return packed The packed result.
-    */
+    @return packed The packed result.
+  */
   function _packedPermissions(uint256[] calldata _indexes) private pure returns (uint256 packed) {
     for (uint256 _i = 0; _i < _indexes.length; _i++) {
       uint256 _index = _indexes[_i];
-      require(_index <= 255, 'INDEX_OUT_OF_BOUNDS');
+      require(_index <= 255, '0x04 INDEX_OUT_OF_BOUNDS');
       // Turn the bit at the index on.
       packed |= 1 << _index;
     }

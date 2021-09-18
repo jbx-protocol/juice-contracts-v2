@@ -9,33 +9,37 @@ import './interfaces/IJBPrices.sol';
   @notice Manages and normalizes price feeds.
 */
 contract JBPrices is IJBPrices, Ownable {
-  // --- public constant stored properties --- //
+  //*********************************************************************//
+  // ---------------- public immutable stored properties --------------- //
+  //*********************************************************************//
 
   /** 
     @notice 
     The normalized number of decimals each price feed has.
   */
-  uint256 public immutable override targetDecimals = 18;
+  uint256 public constant override targetDecimals = 18;
 
   // --- public stored properties --- //
 
   /** 
-      @notice 
-      The number to multiply each price feed by to get to the target decimals.
+    @notice 
+    The number to multiply each price feed by to get to the target decimals.
 
-      [_currency][_base]
-    */
+    [_currency][_base]
+  */
   mapping(uint256 => mapping(uint256 => uint256)) public override feedDecimalAdjusterFor;
 
   /** 
-      @notice 
-      The available price feeds.
+    @notice 
+    The available price feeds.
 
-      [_currency][_base]
-    */
+    [_currency][_base]
+  */
   mapping(uint256 => mapping(uint256 => AggregatorV3Interface)) public override feedFor;
 
-  // --- external views --- //
+  //*********************************************************************//
+  // ------------------------- external views -------------------------- //
+  //*********************************************************************//
 
   /** 
       @notice 
@@ -54,7 +58,7 @@ contract JBPrices is IJBPrices, Ownable {
     AggregatorV3Interface _feed = feedFor[_currency][_base];
 
     // Feed must exist.
-    require(_feed != AggregatorV3Interface(address(0)), 'NOT_FOUND');
+    require(_feed != AggregatorV3Interface(address(0)), '0x05 NOT_FOUND');
 
     // Get the latest round information. Only need the price is needed.
     (, int256 _price, , , ) = _feed.latestRoundData();
@@ -63,19 +67,21 @@ contract JBPrices is IJBPrices, Ownable {
     return uint256(_price) * feedDecimalAdjusterFor[_currency][_base];
   }
 
-  // --- external transactions --- //
+  //*********************************************************************//
+  // ---------------------- external transactions ---------------------- //
+  //*********************************************************************//
 
   /** 
-      @notice 
-      Add a price feed for a currency in terms of the provided base currency.
+    @notice 
+    Add a price feed for a currency in terms of the provided base currency.
 
-      @dev
-      Current feeds can't be modified.
+    @dev
+    Current feeds can't be modified.
 
-      @param _currency The currency that the price feed is for.
-      @param _base The currency that the price feed is based on.
-      @param _feed The price feed being added.
-    */
+    @param _currency The currency that the price feed is for.
+    @param _base The currency that the price feed is based on.
+    @param _feed The price feed being added.
+  */
   function addFeedFor(
     uint256 _currency,
     uint256 _base,
@@ -88,7 +94,7 @@ contract JBPrices is IJBPrices, Ownable {
     uint256 _decimals = _feed.decimals();
 
     // Decimals should be less than or equal to the target number of decimals.
-    require(_decimals <= targetDecimals, 'BAD_DECIMALS');
+    require(_decimals <= targetDecimals, '0x06 BAD_DECIMALS');
 
     // Set the feed.
     feedFor[_currency][_base] = _feed;

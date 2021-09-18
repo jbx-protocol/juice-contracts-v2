@@ -16,106 +16,117 @@ import './libraries/JBOperations.sol';
   Projects are represented as ERC-721's.
 */
 contract JBProjects is ERC721, IJBProjects, JBOperatable {
-  // --- private stored properties --- //
-
-  // The number of seconds in 365 days.
-  uint256 private constant _SECONDS_IN_YEAR = 31536000;
-
-  // --- public stored properties --- //
+  //*********************************************************************//
+  // --------------------- private stored properties ------------------- //
+  //*********************************************************************//
 
   /** 
-      @notice 
-      The number of projects that have been created using this contract.
+    @notice
+    The number of seconds in 365 days.
+  */
+  uint256 private constant _SECONDS_IN_YEAR = 31536000;
 
-      @dev
-      The count is incremented with each new project created. 
-      The resulting ERC-721 token ID for each project is the newly incremented count value.
-    */
+  //*********************************************************************//
+  // --------------------- public stored properties -------------------- //
+  //*********************************************************************//
+
+  /** 
+    @notice 
+    The number of projects that have been created using this contract.
+
+    @dev
+    The count is incremented with each new project created. 
+    The resulting ERC-721 token ID for each project is the newly incremented count value.
+  */
   uint256 public override count = 0;
 
   /** 
-      @notice 
-      The IPFS CID for each project, which can be used to reference the project's metadata.
+    @notice 
+    The IPFS CID for each project, which can be used to reference the project's metadata.
 
-      @dev
-      This is optional for each project.
-    */
+    @dev
+    This is optional for each project.
+  */
   mapping(uint256 => string) public override uriOf;
 
   /** 
-      @notice 
-      The unique handle for each project.
+    @notice 
+    The unique handle for each project.
 
-      @dev
-      Each project must have a handle.
-    */
+    @dev
+    Each project must have a handle.
+  */
   mapping(uint256 => bytes32) public override handleOf;
 
   /** 
-      @notice 
-      The ID of the project that each unique handle is currently referencing.
-    */
+    @notice 
+    The ID of the project that each unique handle is currently referencing.
+  */
   mapping(bytes32 => uint256) public override idFor;
 
   /** 
-      @notice 
-      The address that can reallocate a handle that have been transferred to it.
-    */
+    @notice 
+    The address that can reallocate a handle that have been transferred to it.
+  */
   mapping(bytes32 => address) public override transferAddressFor;
 
   /** 
-      @notice 
-      The timestamps after which each handle can be openly claimed. 
+    @notice 
+    The timestamps after which each handle can be openly claimed. 
 
-      @dev
-      A value of 0 means a handle isn't yet being challenged.
-    */
+    @dev
+    A value of 0 means a handle isn't yet being challenged.
+  */
   mapping(bytes32 => uint256) public override challengeExpiryOf;
 
-  // --- external views --- //
+  //*********************************************************************//
+  // ------------------------- external views -------------------------- //
+  //*********************************************************************//
 
   /** 
-      @notice 
-      Whether the specified project exists.
+    @notice 
+    Whether the specified project exists.
 
-      @param _projectId The project to check the existence of.
+    @param _projectId The project to check the existence of.
 
-      @return A flag indicating if the project exists.
-    */
+    @return A flag indicating if the project exists.
+  */
   function exists(uint256 _projectId) external view override returns (bool) {
     return _exists(_projectId);
   }
 
-  // --- external transactions --- //
+  //*********************************************************************//
+  // ---------------------- external transactions ---------------------- //
+  //*********************************************************************//
 
   /** 
-      @param _operatorStore A contract storing operator assignments.
-    */
+    @param _operatorStore A contract storing operator assignments.
+  */
   constructor(IJBOperatorStore _operatorStore)
     ERC721('Juicebox project', 'JUICEBOX')
     JBOperatable(_operatorStore)
   {}
 
   /**
-        @notice 
-        Create a new project for the specified owner, which mints an NFT (ERC-721) into their wallet.
+    @notice 
+    Create a new project for the specified owner, which mints an NFT (ERC-721) into their wallet.
 
-        @dev 
-        Anyone can create a project on an owner's behalf.
+    @dev 
+    Anyone can create a project on an owner's behalf.
 
-        @param _owner The address that will be the owner of the project.
-        @param _handle A unique string to associate with the project that will resolve to its token ID.
-        @param _uri An IPFS CID hash where metadata about the project has been uploaded. An empty string is acceptable if no metadata is being provided.
+    @param _owner The address that will be the owner of the project.
+    @param _handle A unique string to associate with the project that will resolve to its token ID.
+    @param _uri An IPFS CID hash where metadata about the project has been uploaded. An empty string is acceptable if no metadata is being provided.
 
-        @return The token ID of the newly created project
-    */
+    @return The token ID of the newly created project
+  */
   function createFor(
     address _owner,
     bytes32 _handle,
     string calldata _uri
   ) external override returns (uint256) {
     // Handle must exist.
-    require(_handle != bytes32(0), 'EMPTY_HANDLE');
+    require(_handle != bytes32(0), '0x07 EMPTY_HANDLE');
 
     // Handle must be unique.
     require(idFor[_handle] == 0 && transferAddressFor[_handle] == address(0), 'HANDLE_TAKEN');
@@ -141,22 +152,22 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
   }
 
   /**
-      @notice 
-      Allows a project owner to set the project's handle.
+    @notice 
+    Allows a project owner to set the project's handle.
 
-      @dev 
-      Only a project's owner or operator can set its handle.
+    @dev 
+    Only a project's owner or operator can set its handle.
 
-      @param _projectId The ID of the project who's handle is being changed.
-      @param _handle The new unique handle for the project.
-    */
+    @param _projectId The ID of the project who's handle is being changed.
+    @param _handle The new unique handle for the project.
+  */
   function setHandleOf(uint256 _projectId, bytes32 _handle)
     external
     override
     requirePermission(ownerOf(_projectId), _projectId, JBOperations.SET_HANDLE)
   {
     // Handle must exist.
-    require(_handle != bytes32(0), 'EMPTY_HANDLE');
+    require(_handle != bytes32(0), '0x08 EMPTY_HANDLE');
 
     // Handle must be unique.
     require(idFor[_handle] == 0 && transferAddressFor[_handle] == address(0), 'HANDLE_TAKEN');
@@ -174,16 +185,16 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
   }
 
   /**
-      @notice 
-      Allows a project owner to set the project's IPFS CID hash where metadata about the project has been uploaded.
+    @notice 
+    Allows a project owner to set the project's IPFS CID hash where metadata about the project has been uploaded.
 
-      @dev 
-      Only a project's owner or operator can set its URI.
+    @dev 
+    Only a project's owner or operator can set its URI.
 
-      @param _projectId The ID of the project who's URI is being changed.
-      @param _uri The new IPFS CID hash where metadata about the project has been uploaded.
+    @param _projectId The ID of the project who's URI is being changed.
+    @param _uri The new IPFS CID hash where metadata about the project has been uploaded.
 
-    */
+  */
   function setUriOf(uint256 _projectId, string calldata _uri)
     external
     override
@@ -196,18 +207,18 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
   }
 
   /**
-      @notice 
-      Allows a project owner to transfer its handle to another address.
+    @notice 
+    Allows a project owner to transfer its handle to another address.
 
-      @dev 
-      Only a project's owner or operator can transfer its handle.
+    @dev 
+    Only a project's owner or operator can transfer its handle.
 
-      @param _projectId The ID of the project to transfer the handle from.
-      @param _transferAddress The address that should be able to reallocate the transferred handle.
-      @param _newHandle The new unique handle for the project that will replace the transferred one.
+    @param _projectId The ID of the project to transfer the handle from.
+    @param _transferAddress The address that should be able to reallocate the transferred handle.
+    @param _newHandle The new unique handle for the project that will replace the transferred one.
 
-      @return handle The handle that has been transferred.
-    */
+    @return handle The handle that has been transferred.
+  */
   function transferHandleOf(
     uint256 _projectId,
     address _transferAddress,
@@ -219,7 +230,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     returns (bytes32 handle)
   {
     // A new handle must have been provided.
-    require(_newHandle != bytes32(0), 'EMPTY_HANDLE');
+    require(_newHandle != bytes32(0), '0x09 EMPTY_HANDLE');
 
     // The new handle must be available.
     require(idFor[_newHandle] == 0 && transferAddressFor[_newHandle] == address(0), 'HANDLE_TAKEN');
@@ -243,17 +254,17 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
   }
 
   /**
-      @notice 
-      Allows an address to claim an handle that has been transferred to it, and apply it to a project of theirs.
-      A handle can also be claimed if it has been challenged and the challenge has succeeded.
+    @notice 
+    Allows an address to claim an handle that has been transferred to it, and apply it to a project of theirs.
+    A handle can also be claimed if it has been challenged and the challenge has succeeded.
 
-      @dev 
-      Only a project's owner or operator can claim a handle for it.
+    @dev 
+    Only a project's owner or operator can claim a handle for it.
 
-      @param _handle The handle being claimed.
-      @param _transferAddress The address to which the handle has been transferred, which can now assign the handle to a project.
-      @param _projectId The ID of the project to assign to the claimed handle.
-    */
+    @param _handle The handle being claimed.
+    @param _transferAddress The address to which the handle has been transferred, which can now assign the handle to a project.
+    @param _projectId The ID of the project to assign to the claimed handle.
+  */
   function claimHandle(
     bytes32 _handle,
     address _transferAddress,
@@ -269,7 +280,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     require(
       transferAddressFor[_handle] == _transferAddress ||
         (challengeExpiryOf[_handle] > 0 && block.timestamp > challengeExpiryOf[_handle]),
-      'UNAUTHORIZED'
+      '0x0a UNAUTHORIZED'
     );
 
     // Remove the project ID for the current handle of the specified project.
@@ -291,21 +302,21 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
   }
 
   /** 
-      @notice
-      Allows anyone to challenge a project's handle. After one year, the handle can be claimed by the public if the challenge isn't answered by the handle's project.
-      This can be used to make sure a handle belonging to an unattended to project isn't lost forever.
+    @notice
+    Allows anyone to challenge a project's handle. After one year, the handle can be claimed by the public if the challenge isn't answered by the handle's project.
+    This can be used to make sure a handle belonging to an unattended to project isn't lost forever.
 
-      @param _handle The handle to challenge.
-    */
+    @param _handle The handle to challenge.
+  */
   function challengeHandle(bytes32 _handle) external override {
     // Get a reference to the ID of the project to which the handle belongs.
     uint256 _projectId = idFor[_handle];
 
     // No need to challenge a handle that's not taken.
-    require(_projectId > 0, 'HANDLE_NOT_TAKEN');
+    require(_projectId > 0, '0x0b HANDLE_NOT_TAKEN');
 
     // No need to challenge again if a handle is already being challenged.
-    require(challengeExpiryOf[_handle] == 0, 'HANDLE_ALREADY_BEING_CHALLENGED');
+    require(challengeExpiryOf[_handle] == 0, '0x0c HANDLE_ALREADY_BEING_CHALLENGED');
 
     // The challenge will expire in a year, at which point the handle can be claimed if it has yet to be renewed.
     uint256 _challengeExpiry = block.timestamp + _SECONDS_IN_YEAR;
@@ -317,14 +328,14 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
   }
 
   /** 
-      @notice
-      Allows a project to renew its handle, which cancels any pending challenges.
+    @notice
+    Allows a project to renew its handle, which cancels any pending challenges.
 
-      @dev 
-      Only a project's owner or operator can renew its handle.
+    @dev 
+    Only a project's owner or operator can renew its handle.
 
-      @param _projectId The ID of the project to which the handle being renewed belongs. 
-    */
+    @param _projectId The ID of the project to which the handle being renewed belongs. 
+  */
   function renewHandleOf(uint256 _projectId)
     external
     override

@@ -6,6 +6,7 @@
     "quotes": ["error", "single"],
     "func-name-mixedcase": "off",
     "not-rely-on-time": "off",
-    "no-empty-blocks": "off"
+    "no-empty-blocks": "off",
+    "const-name-snakecase": "off"
   }
 }
