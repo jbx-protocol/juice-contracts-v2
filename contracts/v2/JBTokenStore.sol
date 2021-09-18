@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import "./interfaces/IJBTokenStore.sol";
-import "./abstract/JBOperatable.sol";
-import "./abstract/JBTerminalUtility.sol";
+import './interfaces/IJBTokenStore.sol';
+import './abstract/JBOperatable.sol';
+import './abstract/JBTerminalUtility.sol';
 
-import "./libraries/JBOperations.sol";
+import './libraries/JBOperations.sol';
 
-import "./JBToken.sol";
+import './JBToken.sol';
 
 /** 
   @notice 
@@ -21,37 +21,33 @@ import "./JBToken.sol";
   The total supply of a project's tokens and the balance of each account are calculated in this contract.
 */
 contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
-    // --- public immutable stored properties --- //
+  // --- public immutable stored properties --- //
 
-    /// @notice The Projects contract which mints ERC-721's that represent project ownership and transfers.
-    IJBProjects public immutable override projects;
+  /// @notice The Projects contract which mints ERC-721's that represent project ownership and transfers.
+  IJBProjects public immutable override projects;
 
-    // --- public stored properties --- //
+  // --- public stored properties --- //
 
-    // Each project's ERC20 Token tokens.
-    mapping(uint256 => IJBToken) public override tokenOf;
+  // Each project's ERC20 Token tokens.
+  mapping(uint256 => IJBToken) public override tokenOf;
 
-    // Each holder's balance of staked Tokens for each project.
-    mapping(address => mapping(uint256 => uint256))
-        public
-        override stakedBalanceOf;
+  // Each holder's balance of staked Tokens for each project.
+  mapping(address => mapping(uint256 => uint256)) public override stakedBalanceOf;
 
-    // The total supply of staked tokens for each project.
-    mapping(uint256 => uint256) public override stakedTotalSupplyOf;
+  // The total supply of staked tokens for each project.
+  mapping(uint256 => uint256) public override stakedTotalSupplyOf;
 
-    // The amount of each holders tokens that are locked.
-    mapping(address => mapping(uint256 => uint256))
-        public
-        override lockedBalanceOf;
+  // The amount of each holders tokens that are locked.
+  mapping(address => mapping(uint256 => uint256)) public override lockedBalanceOf;
 
-    // The amount of each holders tokens that are locked by each address.
-    mapping(address => mapping(address => mapping(uint256 => uint256)))
-        public
-        override lockedBalanceBy;
+  // The amount of each holders tokens that are locked by each address.
+  mapping(address => mapping(address => mapping(uint256 => uint256)))
+    public
+    override lockedBalanceBy;
 
-    // --- external views --- //
+  // --- external views --- //
 
-    /** 
+  /** 
       @notice 
       The total supply of tokens for each project, including staked and unstaked tokens.
 
@@ -59,19 +55,13 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
 
       @return supply The total supply.
     */
-    function totalSupplyOf(uint256 _projectId)
-        external
-        view
-        override
-        returns (uint256 supply)
-    {
-        supply = stakedTotalSupplyOf[_projectId];
-        IJBToken _token = tokenOf[_projectId];
-        if (_token != IJBToken(address(0)))
-            supply = supply + _token.totalSupply();
-    }
+  function totalSupplyOf(uint256 _projectId) external view override returns (uint256 supply) {
+    supply = stakedTotalSupplyOf[_projectId];
+    IJBToken _token = tokenOf[_projectId];
+    if (_token != IJBToken(address(0))) supply = supply + _token.totalSupply();
+  }
 
-    /** 
+  /** 
       @notice 
       The total balance of tokens a holder has for a specified project, including staked and unstaked tokens.
 
@@ -80,34 +70,33 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
 
       @return balance The balance.
     */
-    function balanceOf(address _holder, uint256 _projectId)
-        external
-        view
-        override
-        returns (uint256 balance)
-    {
-        balance = stakedBalanceOf[_holder][_projectId];
-        IJBToken _token = tokenOf[_projectId];
-        if (_token != IJBToken(address(0)))
-            balance = balance + _token.balanceOf(_holder);
-    }
+  function balanceOf(address _holder, uint256 _projectId)
+    external
+    view
+    override
+    returns (uint256 balance)
+  {
+    balance = stakedBalanceOf[_holder][_projectId];
+    IJBToken _token = tokenOf[_projectId];
+    if (_token != IJBToken(address(0))) balance = balance + _token.balanceOf(_holder);
+  }
 
-    // --- external transactions --- //
+  // --- external transactions --- //
 
-    /** 
+  /** 
       @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
       @param _operatorStore A contract storing operator assignments.
       @param _directory A directory of a project's current Juicebox terminal to receive payments in.
     */
-    constructor(
-        IJBProjects _projects,
-        IJBOperatorStore _operatorStore,
-        IJBDirectory _directory
-    ) JBOperatable(_operatorStore) JBTerminalUtility(_directory) {
-        projects = _projects;
-    }
+  constructor(
+    IJBProjects _projects,
+    IJBOperatorStore _operatorStore,
+    IJBDirectory _directory
+  ) JBOperatable(_operatorStore) JBTerminalUtility(_directory) {
+    projects = _projects;
+  }
 
-    /**
+  /**
         @notice 
         Issues an owner's ERC-20 Tokens that'll be used when unstaking tokens.
 
@@ -118,45 +107,35 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
         @param _name The ERC-20's name.
         @param _symbol The ERC-20's symbol.
     */
-    function issueFor(
-        uint256 _projectId,
-        string calldata _name,
-        string calldata _symbol
-    )
-        external
-        override
-        requirePermission(
-            projects.ownerOf(_projectId),
-            _projectId,
-            JBOperations.Issue
-        )
-        returns (IJBToken token)
-    {
-        // There must be a name.
-        require((bytes(_name).length > 0), "JBTokenStore::issue: EMPTY_NAME");
+  function issueFor(
+    uint256 _projectId,
+    string calldata _name,
+    string calldata _symbol
+  )
+    external
+    override
+    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.ISSUE)
+    returns (IJBToken token)
+  {
+    // There must be a name.
+    require((bytes(_name).length > 0), 'EMPTY_NAME');
 
-        // There must be a symbol.
-        require(
-            (bytes(_symbol).length > 0),
-            "JBTokenStore::issue: EMPTY_SYMBOL"
-        );
+    // There must be a symbol.
+    require((bytes(_symbol).length > 0), 'EMPTY_SYMBOL');
 
-        // Only one ERC20 token can be issued.
-        require(
-            tokenOf[_projectId] == IJBToken(address(0)),
-            "JBTokenStore::issue: ALREADY_ISSUED"
-        );
+    // Only one ERC20 token can be issued.
+    require(tokenOf[_projectId] == IJBToken(address(0)), 'ALREADY_ISSUED');
 
-        // Deploy the token contract.
-        token = new JBToken(_name, _symbol);
+    // Deploy the token contract.
+    token = new JBToken(_name, _symbol);
 
-        // Store the token contract.
-        tokenOf[_projectId] = token;
+    // Store the token contract.
+    tokenOf[_projectId] = token;
 
-        emit Issue(_projectId, token, _name, _symbol, msg.sender);
-    }
+    emit Issue(_projectId, token, _name, _symbol, msg.sender);
+  }
 
-    /** 
+  /** 
       @notice 
       Mint new tokens.
 
@@ -168,46 +147,41 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
       @param _amount The amount to mint.
       @param _preferUnstakedTokens Whether ERC20's should be converted automatically if they have been issued.
     */
-    function mintFor(
-        address _holder,
-        uint256 _projectId,
-        uint256 _amount,
-        bool _preferUnstakedTokens
-    ) external override onlyTerminal(_projectId) {
-        // An amount must be specified.
-        require(_amount > 0, "JBTokenStore::mint: NO_OP");
+  function mintFor(
+    address _holder,
+    uint256 _projectId,
+    uint256 _amount,
+    bool _preferUnstakedTokens
+  ) external override onlyTerminal(_projectId) {
+    // An amount must be specified.
+    require(_amount > 0, 'JBTokenStore::mint: NO_OP');
 
-        // Get a reference to the project's ERC20 tokens.
-        IJBToken _token = tokenOf[_projectId];
+    // Get a reference to the project's ERC20 tokens.
+    IJBToken _token = tokenOf[_projectId];
 
-        // If there exists ERC-20 tokens and the caller prefers these unstaked tokens.
-        bool _shouldUnstakeTokens = _preferUnstakedTokens &&
-            _token != IJBToken(address(0));
+    // If there exists ERC-20 tokens and the caller prefers these unstaked tokens.
+    bool _shouldUnstakeTokens = _preferUnstakedTokens && _token != IJBToken(address(0));
 
-        if (_shouldUnstakeTokens) {
-            // Mint the equivalent amount of ERC20s.
-            _token.mint(_holder, _amount);
-        } else {
-            // Add to the staked balance and total supply.
-            stakedBalanceOf[_holder][_projectId] =
-                stakedBalanceOf[_holder][_projectId] +
-                _amount;
-            stakedTotalSupplyOf[_projectId] =
-                stakedTotalSupplyOf[_projectId] +
-                _amount;
-        }
-
-        emit Mint(
-            _holder,
-            _projectId,
-            _amount,
-            _shouldUnstakeTokens,
-            _preferUnstakedTokens,
-            msg.sender
-        );
+    if (_shouldUnstakeTokens) {
+      // Mint the equivalent amount of ERC20s.
+      _token.mint(_holder, _amount);
+    } else {
+      // Add to the staked balance and total supply.
+      stakedBalanceOf[_holder][_projectId] = stakedBalanceOf[_holder][_projectId] + _amount;
+      stakedTotalSupplyOf[_projectId] = stakedTotalSupplyOf[_projectId] + _amount;
     }
 
-    /** 
+    emit Mint(
+      _holder,
+      _projectId,
+      _amount,
+      _shouldUnstakeTokens,
+      _preferUnstakedTokens,
+      msg.sender
+    );
+  }
+
+  /** 
       @notice 
       Burns tokens.
 
@@ -219,81 +193,72 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
       @param _amount The amount of tokens being burned.
       @param _preferUnstakedTokens If the preference is to burn tokens that have been converted to ERC-20s.
     */
-    function burnFrom(
-        address _holder,
-        uint256 _projectId,
-        uint256 _amount,
-        bool _preferUnstakedTokens
-    ) external override onlyTerminal(_projectId) {
-        // Get a reference to the project's ERC20 tokens.
-        IJBToken _token = tokenOf[_projectId];
+  function burnFrom(
+    address _holder,
+    uint256 _projectId,
+    uint256 _amount,
+    bool _preferUnstakedTokens
+  ) external override onlyTerminal(_projectId) {
+    // Get a reference to the project's ERC20 tokens.
+    IJBToken _token = tokenOf[_projectId];
 
-        // Get a reference to the staked amount.
-        uint256 _unlockedStakedBalance = stakedBalanceOf[_holder][_projectId] -
-            lockedBalanceOf[_holder][_projectId];
+    // Get a reference to the staked amount.
+    uint256 _unlockedStakedBalance = stakedBalanceOf[_holder][_projectId] -
+      lockedBalanceOf[_holder][_projectId];
 
-        // Get a reference to the number of tokens there are.
-        uint256 _unstakedBalanceOf = _token == IJBToken(address(0))
-            ? 0
-            : _token.balanceOf(_holder);
+    // Get a reference to the number of tokens there are.
+    uint256 _unstakedBalanceOf = _token == IJBToken(address(0)) ? 0 : _token.balanceOf(_holder);
 
-        // There must be enough tokens.
-        // Prevent potential overflow by not relying on addition.
-        require(
-            (_amount < _unstakedBalanceOf &&
-                _amount < _unlockedStakedBalance) ||
-                (_amount >= _unstakedBalanceOf &&
-                    _unlockedStakedBalance >= _amount - _unstakedBalanceOf) ||
-                (_amount >= _unlockedStakedBalance &&
-                    _unstakedBalanceOf >= _amount - _unlockedStakedBalance),
-            "JBTokenStore::redeem: INSUFFICIENT_FUNDS"
-        );
+    // There must be enough tokens.
+    // Prevent potential overflow by not relying on addition.
+    require(
+      (_amount < _unstakedBalanceOf && _amount < _unlockedStakedBalance) ||
+        (_amount >= _unstakedBalanceOf && _unlockedStakedBalance >= _amount - _unstakedBalanceOf) ||
+        (_amount >= _unlockedStakedBalance &&
+          _unstakedBalanceOf >= _amount - _unlockedStakedBalance),
+      'INSUFFICIENT_FUNDS'
+    );
 
-        // The amount of tokens to burn.
-        uint256 _unstakedTokensToBurn;
+    // The amount of tokens to burn.
+    uint256 _unstakedTokensToBurn;
 
-        // If there's no balance, redeem no tokens.
-        if (_unstakedBalanceOf == 0) {
-            _unstakedTokensToBurn = 0;
-            // If prefer converted, redeem tokens before redeeming staked tokens.
-        } else if (_preferUnstakedTokens) {
-            _unstakedTokensToBurn = _unstakedBalanceOf >= _amount
-                ? _amount
-                : _unstakedBalanceOf;
-            // Otherwise, redeem staked tokens before unstaked tokens.
-        } else {
-            _unstakedTokensToBurn = _unlockedStakedBalance >= _amount
-                ? 0
-                : _amount - _unlockedStakedBalance;
-        }
-
-        // The amount of staked tokens to redeem.
-        uint256 _stakedTokensToBurn = _amount - _unstakedTokensToBurn;
-
-        // burn the tokens.
-        if (_unstakedTokensToBurn > 0)
-            _token.burn(_holder, _unstakedTokensToBurn);
-        if (_stakedTokensToBurn > 0) {
-            // Reduce the holders balance and the total supply.
-            stakedBalanceOf[_holder][_projectId] =
-                stakedBalanceOf[_holder][_projectId] -
-                _stakedTokensToBurn;
-            stakedTotalSupplyOf[_projectId] =
-                stakedTotalSupplyOf[_projectId] -
-                _stakedTokensToBurn;
-        }
-
-        emit Burn(
-            _holder,
-            _projectId,
-            _amount,
-            _unlockedStakedBalance,
-            _preferUnstakedTokens,
-            msg.sender
-        );
+    // If there's no balance, redeem no tokens.
+    if (_unstakedBalanceOf == 0) {
+      _unstakedTokensToBurn = 0;
+      // If prefer converted, redeem tokens before redeeming staked tokens.
+    } else if (_preferUnstakedTokens) {
+      _unstakedTokensToBurn = _unstakedBalanceOf >= _amount ? _amount : _unstakedBalanceOf;
+      // Otherwise, redeem staked tokens before unstaked tokens.
+    } else {
+      _unstakedTokensToBurn = _unlockedStakedBalance >= _amount
+        ? 0
+        : _amount - _unlockedStakedBalance;
     }
 
-    /**
+    // The amount of staked tokens to redeem.
+    uint256 _stakedTokensToBurn = _amount - _unstakedTokensToBurn;
+
+    // burn the tokens.
+    if (_unstakedTokensToBurn > 0) _token.burn(_holder, _unstakedTokensToBurn);
+    if (_stakedTokensToBurn > 0) {
+      // Reduce the holders balance and the total supply.
+      stakedBalanceOf[_holder][_projectId] =
+        stakedBalanceOf[_holder][_projectId] -
+        _stakedTokensToBurn;
+      stakedTotalSupplyOf[_projectId] = stakedTotalSupplyOf[_projectId] - _stakedTokensToBurn;
+    }
+
+    emit Burn(
+      _holder,
+      _projectId,
+      _amount,
+      _unlockedStakedBalance,
+      _preferUnstakedTokens,
+      msg.sender
+    );
+  }
+
+  /**
       @notice 
       Stakes ERC20 tokens by burning their supply and creating an internal staked version.
 
@@ -304,54 +269,40 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
       @param _projectId The ID of the project whos tokens are being staked.
       @param _amount The amount of tokens to stake.
      */
-    function stakeFor(
-        address _holder,
-        uint256 _projectId,
-        uint256 _amount
-    )
-        external
-        override
-        requirePermissionAllowingWildcardDomain(
-            _holder,
-            _projectId,
-            JBOperations.Stake
-        )
-    {
-        // Get a reference to the project's ERC20 tokens.
-        IJBToken _token = tokenOf[_projectId];
+  function stakeFor(
+    address _holder,
+    uint256 _projectId,
+    uint256 _amount
+  )
+    external
+    override
+    requirePermissionAllowingWildcardDomain(_holder, _projectId, JBOperations.STAKE)
+  {
+    // Get a reference to the project's ERC20 tokens.
+    IJBToken _token = tokenOf[_projectId];
 
-        // Tokens must have been issued.
-        require(
-            _token != IJBToken(address(0)),
-            "JBTokenStore::stake: NOT_FOUND"
-        );
+    // Tokens must have been issued.
+    require(_token != IJBToken(address(0)), 'NOT_FOUND');
 
-        // Get a reference to the holder's current balance.
-        uint256 _unstakedBalanceOf = _token.balanceOf(_holder);
+    // Get a reference to the holder's current balance.
+    uint256 _unstakedBalanceOf = _token.balanceOf(_holder);
 
-        // There must be enough balance to stake.
-        require(
-            _unstakedBalanceOf >= _amount,
-            "JBTokenStore::stake: INSUFFICIENT_FUNDS"
-        );
+    // There must be enough balance to stake.
+    require(_unstakedBalanceOf >= _amount, 'INSUFFICIENT_FUNDS');
 
-        // Burn the equivalent amount of ERC20s.
-        _token.burn(_holder, _amount);
+    // Burn the equivalent amount of ERC20s.
+    _token.burn(_holder, _amount);
 
-        // Add the staked amount from the holder's balance.
-        stakedBalanceOf[_holder][_projectId] =
-            stakedBalanceOf[_holder][_projectId] +
-            _amount;
+    // Add the staked amount from the holder's balance.
+    stakedBalanceOf[_holder][_projectId] = stakedBalanceOf[_holder][_projectId] + _amount;
 
-        // Add the staked amount from the project's total supply.
-        stakedTotalSupplyOf[_projectId] =
-            stakedTotalSupplyOf[_projectId] +
-            _amount;
+    // Add the staked amount from the project's total supply.
+    stakedTotalSupplyOf[_projectId] = stakedTotalSupplyOf[_projectId] + _amount;
 
-        emit Stake(_holder, _projectId, _amount, msg.sender);
-    }
+    emit Stake(_holder, _projectId, _amount, msg.sender);
+  }
 
-    /**
+  /**
       @notice 
       Unstakes internal tokens by creating and distributing ERC20 tokens.
 
@@ -362,55 +313,41 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
       @param _projectId The ID of the project whos tokens are being unstaked.
       @param _amount The amount of tokens to unstake.
      */
-    function unstakeFor(
-        address _holder,
-        uint256 _projectId,
-        uint256 _amount
-    )
-        external
-        override
-        requirePermissionAllowingWildcardDomain(
-            _holder,
-            _projectId,
-            JBOperations.Unstake
-        )
-    {
-        // Get a reference to the project's ERC20 tokens.
-        IJBToken _token = tokenOf[_projectId];
+  function unstakeFor(
+    address _holder,
+    uint256 _projectId,
+    uint256 _amount
+  )
+    external
+    override
+    requirePermissionAllowingWildcardDomain(_holder, _projectId, JBOperations.UNSTAKE)
+  {
+    // Get a reference to the project's ERC20 tokens.
+    IJBToken _token = tokenOf[_projectId];
 
-        // Tokens must have been issued.
-        require(
-            _token != IJBToken(address(0)),
-            "JBTokenStore::unstake: NOT_FOUND"
-        );
+    // Tokens must have been issued.
+    require(_token != IJBToken(address(0)), 'NOT_FOUND');
 
-        // Get a reference to the amount of unstaked tokens.
-        uint256 _unlockedStakedTokens = stakedBalanceOf[_holder][_projectId] -
-            lockedBalanceOf[_holder][_projectId];
+    // Get a reference to the amount of unstaked tokens.
+    uint256 _unlockedStakedTokens = stakedBalanceOf[_holder][_projectId] -
+      lockedBalanceOf[_holder][_projectId];
 
-        // There must be enough unlocked staked tokens to unstake.
-        require(
-            _unlockedStakedTokens >= _amount,
-            "JBTokenStore::unstake: INSUFFICIENT_FUNDS"
-        );
+    // There must be enough unlocked staked tokens to unstake.
+    require(_unlockedStakedTokens >= _amount, 'INSUFFICIENT_FUNDS');
 
-        // Subtract the unstaked amount from the holder's balance.
-        stakedBalanceOf[_holder][_projectId] =
-            stakedBalanceOf[_holder][_projectId] -
-            _amount;
+    // Subtract the unstaked amount from the holder's balance.
+    stakedBalanceOf[_holder][_projectId] = stakedBalanceOf[_holder][_projectId] - _amount;
 
-        // Subtract the unstaked amount from the project's total supply.
-        stakedTotalSupplyOf[_projectId] =
-            stakedTotalSupplyOf[_projectId] -
-            _amount;
+    // Subtract the unstaked amount from the project's total supply.
+    stakedTotalSupplyOf[_projectId] = stakedTotalSupplyOf[_projectId] - _amount;
 
-        // Mint the equivalent amount of ERC20s.
-        _token.mint(_holder, _amount);
+    // Mint the equivalent amount of ERC20s.
+    _token.mint(_holder, _amount);
 
-        emit Unstake(_holder, _projectId, _amount, msg.sender);
-    }
+    emit Unstake(_holder, _projectId, _amount, msg.sender);
+  }
 
-    /** 
+  /** 
       @notice 
       Lock a project's tokens, preventing them from being redeemed and from converting to ERC20s.
 
@@ -421,42 +358,34 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
       @param _projectId The ID of the project whos tokens are being locked.
       @param _amount The amount of tokens to lock.
     */
-    function lockFor(
-        address _holder,
-        uint256 _projectId,
-        uint256 _amount
-    )
-        external
-        override
-        requirePermissionAllowingWildcardDomain(
-            _holder,
-            _projectId,
-            JBOperations.Lock
-        )
-    {
-        // Amount must be greater than 0.
-        require(_amount > 0, "JBTokenStore::lock: NO_OP");
+  function lockFor(
+    address _holder,
+    uint256 _projectId,
+    uint256 _amount
+  )
+    external
+    override
+    requirePermissionAllowingWildcardDomain(_holder, _projectId, JBOperations.LOCK)
+  {
+    // Amount must be greater than 0.
+    require(_amount > 0, 'NO_OP');
 
-        // The holder must have enough tokens to lock.
-        require(
-            stakedBalanceOf[_holder][_projectId] -
-                lockedBalanceOf[_holder][_projectId] >=
-                _amount,
-            "JBTokenStore::lock: INSUFFICIENT_FUNDS"
-        );
+    // The holder must have enough tokens to lock.
+    require(
+      stakedBalanceOf[_holder][_projectId] - lockedBalanceOf[_holder][_projectId] >= _amount,
+      'INSUFFICIENT_FUNDS'
+    );
 
-        // Update the lock.
-        lockedBalanceOf[_holder][_projectId] =
-            lockedBalanceOf[_holder][_projectId] +
-            _amount;
-        lockedBalanceBy[msg.sender][_holder][_projectId] =
-            lockedBalanceBy[msg.sender][_holder][_projectId] +
-            _amount;
+    // Update the lock.
+    lockedBalanceOf[_holder][_projectId] = lockedBalanceOf[_holder][_projectId] + _amount;
+    lockedBalanceBy[msg.sender][_holder][_projectId] =
+      lockedBalanceBy[msg.sender][_holder][_projectId] +
+      _amount;
 
-        emit Lock(_holder, _projectId, _amount, msg.sender);
-    }
+    emit Lock(_holder, _projectId, _amount, msg.sender);
+  }
 
-    /** 
+  /** 
       @notice 
       Unlock a project's tokens.
 
@@ -467,32 +396,27 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
       @param _projectId The ID of the project whos tokens are being unlocked.
       @param _amount The amount of tokens to unlock.
     */
-    function unlockFor(
-        address _holder,
-        uint256 _projectId,
-        uint256 _amount
-    ) external override {
-        // Amount must be greater than 0.
-        require(_amount > 0, "JBTokenStore::unlock: NO_OP");
+  function unlockFor(
+    address _holder,
+    uint256 _projectId,
+    uint256 _amount
+  ) external override {
+    // Amount must be greater than 0.
+    require(_amount > 0, 'NO_OP');
 
-        // There must be enough locked tokens to unlock.
-        require(
-            lockedBalanceBy[msg.sender][_holder][_projectId] >= _amount,
-            "JBTokenStore::unlock: INSUFFICIENT_FUNDS"
-        );
+    // There must be enough locked tokens to unlock.
+    require(lockedBalanceBy[msg.sender][_holder][_projectId] >= _amount, 'INSUFFICIENT_FUNDS');
 
-        // Update the lock.
-        lockedBalanceOf[_holder][_projectId] =
-            lockedBalanceOf[_holder][_projectId] -
-            _amount;
-        lockedBalanceBy[msg.sender][_holder][_projectId] =
-            lockedBalanceBy[msg.sender][_holder][_projectId] -
-            _amount;
+    // Update the lock.
+    lockedBalanceOf[_holder][_projectId] = lockedBalanceOf[_holder][_projectId] - _amount;
+    lockedBalanceBy[msg.sender][_holder][_projectId] =
+      lockedBalanceBy[msg.sender][_holder][_projectId] -
+      _amount;
 
-        emit Unlock(_holder, _projectId, _amount, msg.sender);
-    }
+    emit Unlock(_holder, _projectId, _amount, msg.sender);
+  }
 
-    /** 
+  /** 
       @notice 
       Allows a ticket holder to transfer its tokens to another account, without unstaking to ERC-20s.
 
@@ -504,52 +428,38 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
       @param _projectId The ID of the project whos tokens are being transfered.
       @param _amount The amount of tokens to transfer.
     */
-    function transferTo(
-        address _recipient,
-        address _holder,
-        uint256 _projectId,
-        uint256 _amount
-    )
-        external
-        override
-        requirePermissionAllowingWildcardDomain(
-            _holder,
-            _projectId,
-            JBOperations.Transfer
-        )
-    {
-        // Can't transfer to the zero address.
-        require(
-            _recipient != address(0),
-            "JBTokenStore::transfer: ZERO_ADDRESS"
-        );
+  function transferTo(
+    address _recipient,
+    address _holder,
+    uint256 _projectId,
+    uint256 _amount
+  )
+    external
+    override
+    requirePermissionAllowingWildcardDomain(_holder, _projectId, JBOperations.TRANSFER)
+  {
+    // Can't transfer to the zero address.
+    require(_recipient != address(0), 'ZERO_ADDRESS');
 
-        // An address can't transfer to itself.
-        require(_holder != _recipient, "JBTokenStore::transfer: IDENTITY");
+    // An address can't transfer to itself.
+    require(_holder != _recipient, 'IDENTITY');
 
-        // There must be an amount to transfer.
-        require(_amount > 0, "JBTokenStore::transfer: NO_OP");
+    // There must be an amount to transfer.
+    require(_amount > 0, 'NO_OP');
 
-        // Get a reference to the amount of unlocked staked tokens.
-        uint256 _unlockedStakedTokens = stakedBalanceOf[_holder][_projectId] -
-            lockedBalanceOf[_holder][_projectId];
+    // Get a reference to the amount of unlocked staked tokens.
+    uint256 _unlockedStakedTokens = stakedBalanceOf[_holder][_projectId] -
+      lockedBalanceOf[_holder][_projectId];
 
-        // There must be enough unlocked staked tokens to transfer.
-        require(
-            _amount <= _unlockedStakedTokens,
-            "JBTokenStore::transfer: INSUFFICIENT_FUNDS"
-        );
+    // There must be enough unlocked staked tokens to transfer.
+    require(_amount <= _unlockedStakedTokens, 'INSUFFICIENT_FUNDS');
 
-        // Subtract from the holder.
-        stakedBalanceOf[_holder][_projectId] =
-            stakedBalanceOf[_holder][_projectId] -
-            _amount;
+    // Subtract from the holder.
+    stakedBalanceOf[_holder][_projectId] = stakedBalanceOf[_holder][_projectId] - _amount;
 
-        // Add the tokens to the recipient.
-        stakedBalanceOf[_recipient][_projectId] =
-            stakedBalanceOf[_recipient][_projectId] +
-            _amount;
+    // Add the tokens to the recipient.
+    stakedBalanceOf[_recipient][_projectId] = stakedBalanceOf[_recipient][_projectId] + _amount;
 
-        emit Transfer(_holder, _projectId, _recipient, _amount, msg.sender);
-    }
+    emit Transfer(_holder, _projectId, _recipient, _amount, msg.sender);
+  }
 }

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 
-import "./abstract/JBOperatable.sol";
-import "./interfaces/IJBProjects.sol";
+import './abstract/JBOperatable.sol';
+import './interfaces/IJBProjects.sol';
 
-import "./libraries/JBOperations.sol";
+import './libraries/JBOperations.sol';
 
 /** 
   @notice 
@@ -16,14 +16,14 @@ import "./libraries/JBOperations.sol";
   Projects are represented as ERC-721's.
 */
 contract JBProjects is ERC721, IJBProjects, JBOperatable {
-    // --- private stored properties --- //
+  // --- private stored properties --- //
 
-    // The number of seconds in 365 days.
-    uint256 private constant _SECONDS_IN_YEAR = 31536000;
+  // The number of seconds in 365 days.
+  uint256 private constant _SECONDS_IN_YEAR = 31536000;
 
-    // --- public stored properties --- //
+  // --- public stored properties --- //
 
-    /** 
+  /** 
       @notice 
       The number of projects that have been created using this contract.
 
@@ -31,50 +31,50 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
       The count is incremented with each new project created. 
       The resulting ERC-721 token ID for each project is the newly incremented count value.
     */
-    uint256 public override count = 0;
+  uint256 public override count = 0;
 
-    /** 
+  /** 
       @notice 
       The IPFS CID for each project, which can be used to reference the project's metadata.
 
       @dev
       This is optional for each project.
     */
-    mapping(uint256 => string) public override uriOf;
+  mapping(uint256 => string) public override uriOf;
 
-    /** 
+  /** 
       @notice 
       The unique handle for each project.
 
       @dev
       Each project must have a handle.
     */
-    mapping(uint256 => bytes32) public override handleOf;
+  mapping(uint256 => bytes32) public override handleOf;
 
-    /** 
+  /** 
       @notice 
       The ID of the project that each unique handle is currently referencing.
     */
-    mapping(bytes32 => uint256) public override idFor;
+  mapping(bytes32 => uint256) public override idFor;
 
-    /** 
+  /** 
       @notice 
       The address that can reallocate a handle that have been transferred to it.
     */
-    mapping(bytes32 => address) public override transferAddressFor;
+  mapping(bytes32 => address) public override transferAddressFor;
 
-    /** 
+  /** 
       @notice 
       The timestamps after which each handle can be openly claimed. 
 
       @dev
       A value of 0 means a handle isn't yet being challenged.
     */
-    mapping(bytes32 => uint256) public override challengeExpiryOf;
+  mapping(bytes32 => uint256) public override challengeExpiryOf;
 
-    // --- external views --- //
+  // --- external views --- //
 
-    /** 
+  /** 
       @notice 
       Whether the specified project exists.
 
@@ -82,21 +82,21 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
 
       @return A flag indicating if the project exists.
     */
-    function exists(uint256 _projectId) external view override returns (bool) {
-        return _exists(_projectId);
-    }
+  function exists(uint256 _projectId) external view override returns (bool) {
+    return _exists(_projectId);
+  }
 
-    // --- external transactions --- //
+  // --- external transactions --- //
 
-    /** 
+  /** 
       @param _operatorStore A contract storing operator assignments.
     */
-    constructor(IJBOperatorStore _operatorStore)
-        ERC721("Juicebox project", "JUICEBOX")
-        JBOperatable(_operatorStore)
-    {}
+  constructor(IJBOperatorStore _operatorStore)
+    ERC721('Juicebox project', 'JUICEBOX')
+    JBOperatable(_operatorStore)
+  {}
 
-    /**
+  /**
         @notice 
         Create a new project for the specified owner, which mints an NFT (ERC-721) into their wallet.
 
@@ -109,41 +109,38 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
 
         @return The token ID of the newly created project
     */
-    function createFor(
-        address _owner,
-        bytes32 _handle,
-        string calldata _uri
-    ) external override returns (uint256) {
-        // Handle must exist.
-        require(_handle != bytes32(0), "JBProjects::createFor: EMPTY_HANDLE");
+  function createFor(
+    address _owner,
+    bytes32 _handle,
+    string calldata _uri
+  ) external override returns (uint256) {
+    // Handle must exist.
+    require(_handle != bytes32(0), 'EMPTY_HANDLE');
 
-        // Handle must be unique.
-        require(
-            idFor[_handle] == 0 && transferAddressFor[_handle] == address(0),
-            "JBProjects::createFor: HANDLE_TAKEN"
-        );
+    // Handle must be unique.
+    require(idFor[_handle] == 0 && transferAddressFor[_handle] == address(0), 'HANDLE_TAKEN');
 
-        // Increment the count, which will be used as the ID.
-        count++;
+    // Increment the count, which will be used as the ID.
+    count++;
 
-        // Mint the project.
-        _safeMint(_owner, count);
+    // Mint the project.
+    _safeMint(_owner, count);
 
-        // Store the handle for the project ID.
-        handleOf[count] = _handle;
+    // Store the handle for the project ID.
+    handleOf[count] = _handle;
 
-        // Store the project ID for the handle.
-        idFor[_handle] = count;
+    // Store the project ID for the handle.
+    idFor[_handle] = count;
 
-        // Set the URI if one was provided.
-        if (bytes(_uri).length > 0) uriOf[count] = _uri;
+    // Set the URI if one was provided.
+    if (bytes(_uri).length > 0) uriOf[count] = _uri;
 
-        emit Create(count, _owner, _handle, _uri, msg.sender);
+    emit Create(count, _owner, _handle, _uri, msg.sender);
 
-        return count;
-    }
+    return count;
+  }
 
-    /**
+  /**
       @notice 
       Allows a project owner to set the project's handle.
 
@@ -153,37 +150,30 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
       @param _projectId The ID of the project who's handle is being changed.
       @param _handle The new unique handle for the project.
     */
-    function setHandleOf(uint256 _projectId, bytes32 _handle)
-        external
-        override
-        requirePermission(
-            ownerOf(_projectId),
-            _projectId,
-            JBOperations.SetHandle
-        )
-    {
-        // Handle must exist.
-        require(_handle != bytes32(0), "JBProjects::setHandleOf: EMPTY_HANDLE");
+  function setHandleOf(uint256 _projectId, bytes32 _handle)
+    external
+    override
+    requirePermission(ownerOf(_projectId), _projectId, JBOperations.SET_HANDLE)
+  {
+    // Handle must exist.
+    require(_handle != bytes32(0), 'EMPTY_HANDLE');
 
-        // Handle must be unique.
-        require(
-            idFor[_handle] == 0 && transferAddressFor[_handle] == address(0),
-            "JBProjects::setHandleOf: HANDLE_TAKEN"
-        );
+    // Handle must be unique.
+    require(idFor[_handle] == 0 && transferAddressFor[_handle] == address(0), 'HANDLE_TAKEN');
 
-        // Register the change in the resolver.
-        idFor[handleOf[_projectId]] = 0;
+    // Register the change in the resolver.
+    idFor[handleOf[_projectId]] = 0;
 
-        // Store the handle for the project ID.
-        handleOf[_projectId] = _handle;
+    // Store the handle for the project ID.
+    handleOf[_projectId] = _handle;
 
-        // Store the project ID for the handle.
-        idFor[_handle] = _projectId;
+    // Store the project ID for the handle.
+    idFor[_handle] = _projectId;
 
-        emit SetHandle(_projectId, _handle, msg.sender);
-    }
+    emit SetHandle(_projectId, _handle, msg.sender);
+  }
 
-    /**
+  /**
       @notice 
       Allows a project owner to set the project's IPFS CID hash where metadata about the project has been uploaded.
 
@@ -194,18 +184,18 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
       @param _uri The new IPFS CID hash where metadata about the project has been uploaded.
 
     */
-    function setUriOf(uint256 _projectId, string calldata _uri)
-        external
-        override
-        requirePermission(ownerOf(_projectId), _projectId, JBOperations.SetUri)
-    {
-        // Set the new uri.
-        uriOf[_projectId] = _uri;
+  function setUriOf(uint256 _projectId, string calldata _uri)
+    external
+    override
+    requirePermission(ownerOf(_projectId), _projectId, JBOperations.SET_URI)
+  {
+    // Set the new uri.
+    uriOf[_projectId] = _uri;
 
-        emit SetUri(_projectId, _uri, msg.sender);
-    }
+    emit SetUri(_projectId, _uri, msg.sender);
+  }
 
-    /**
+  /**
       @notice 
       Allows a project owner to transfer its handle to another address.
 
@@ -218,58 +208,41 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
 
       @return handle The handle that has been transferred.
     */
-    function transferHandleOf(
-        uint256 _projectId,
-        address _transferAddress,
-        bytes32 _newHandle
-    )
-        external
-        override
-        requirePermission(
-            ownerOf(_projectId),
-            _projectId,
-            JBOperations.SetHandle
-        )
-        returns (bytes32 handle)
-    {
-        // A new handle must have been provided.
-        require(
-            _newHandle != bytes32(0),
-            "JBProjects::transferHandleOf: EMPTY_HANDLE"
-        );
+  function transferHandleOf(
+    uint256 _projectId,
+    address _transferAddress,
+    bytes32 _newHandle
+  )
+    external
+    override
+    requirePermission(ownerOf(_projectId), _projectId, JBOperations.SET_HANDLE)
+    returns (bytes32 handle)
+  {
+    // A new handle must have been provided.
+    require(_newHandle != bytes32(0), 'EMPTY_HANDLE');
 
-        // The new handle must be available.
-        require(
-            idFor[_newHandle] == 0 &&
-                transferAddressFor[_newHandle] == address(0),
-            "JBProjects::transferHandleOf: HANDLE_TAKEN"
-        );
+    // The new handle must be available.
+    require(idFor[_newHandle] == 0 && transferAddressFor[_newHandle] == address(0), 'HANDLE_TAKEN');
 
-        // Get a reference to the project's current handle.
-        handle = handleOf[_projectId];
+    // Get a reference to the project's current handle.
+    handle = handleOf[_projectId];
 
-        // Remove the project ID for the transfered handle.
-        idFor[handle] = 0;
+    // Remove the project ID for the transfered handle.
+    idFor[handle] = 0;
 
-        // Store the new handle for the project ID.
-        idFor[_newHandle] = _projectId;
+    // Store the new handle for the project ID.
+    idFor[_newHandle] = _projectId;
 
-        // Store the project ID for the new handle.
-        handleOf[_projectId] = _newHandle;
+    // Store the project ID for the new handle.
+    handleOf[_projectId] = _newHandle;
 
-        // Give the address the power to transfer the current handle.
-        transferAddressFor[handle] = _transferAddress;
+    // Give the address the power to transfer the current handle.
+    transferAddressFor[handle] = _transferAddress;
 
-        emit TransferHandle(
-            _projectId,
-            _transferAddress,
-            handle,
-            _newHandle,
-            msg.sender
-        );
-    }
+    emit TransferHandle(_projectId, _transferAddress, handle, _newHandle, msg.sender);
+  }
 
-    /**
+  /**
       @notice 
       Allows an address to claim an handle that has been transferred to it, and apply it to a project of theirs.
       A handle can also be claimed if it has been challenged and the challenge has succeeded.
@@ -281,84 +254,69 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
       @param _transferAddress The address to which the handle has been transferred, which can now assign the handle to a project.
       @param _projectId The ID of the project to assign to the claimed handle.
     */
-    function claimHandle(
-        bytes32 _handle,
-        address _transferAddress,
-        uint256 _projectId
-    )
-        external
-        override
-        requirePermissionAllowingWildcardDomain(
-            _transferAddress,
-            _projectId,
-            JBOperations.ClaimHandle
-        )
-        requirePermission(
-            ownerOf(_projectId),
-            _projectId,
-            JBOperations.ClaimHandle
-        )
-    {
-        // The handle must have been transfered to the specified address,
-        // or the handle challange must have expired before being renewed.
-        require(
-            transferAddressFor[_handle] == _transferAddress ||
-                (challengeExpiryOf[_handle] > 0 &&
-                    block.timestamp > challengeExpiryOf[_handle]),
-            "JBProjects::claimHandle: UNAUTHORIZED"
-        );
+  function claimHandle(
+    bytes32 _handle,
+    address _transferAddress,
+    uint256 _projectId
+  )
+    external
+    override
+    requirePermissionAllowingWildcardDomain(_transferAddress, _projectId, JBOperations.CLAIM_HANDLE)
+    requirePermission(ownerOf(_projectId), _projectId, JBOperations.CLAIM_HANDLE)
+  {
+    // The handle must have been transfered to the specified address,
+    // or the handle challange must have expired before being renewed.
+    require(
+      transferAddressFor[_handle] == _transferAddress ||
+        (challengeExpiryOf[_handle] > 0 && block.timestamp > challengeExpiryOf[_handle]),
+      'UNAUTHORIZED'
+    );
 
-        // Remove the project ID for the current handle of the specified project.
-        idFor[handleOf[_projectId]] = 0;
+    // Remove the project ID for the current handle of the specified project.
+    idFor[handleOf[_projectId]] = 0;
 
-        // Set the project ID for the provided handle to be the specified project.
-        idFor[_handle] = _projectId;
+    // Set the project ID for the provided handle to be the specified project.
+    idFor[_handle] = _projectId;
 
-        // Set the new handle.
-        handleOf[_projectId] = _handle;
+    // Set the new handle.
+    handleOf[_projectId] = _handle;
 
-        // Set the handle as not being transferred.
-        transferAddressFor[_handle] = address(0);
+    // Set the handle as not being transferred.
+    transferAddressFor[_handle] = address(0);
 
-        // Reset the challenge to 0.
-        challengeExpiryOf[_handle] = 0;
+    // Reset the challenge to 0.
+    challengeExpiryOf[_handle] = 0;
 
-        emit ClaimHandle(_projectId, _transferAddress, _handle, msg.sender);
-    }
+    emit ClaimHandle(_projectId, _transferAddress, _handle, msg.sender);
+  }
 
-    /** 
+  /** 
       @notice
       Allows anyone to challenge a project's handle. After one year, the handle can be claimed by the public if the challenge isn't answered by the handle's project.
       This can be used to make sure a handle belonging to an unattended to project isn't lost forever.
 
       @param _handle The handle to challenge.
     */
-    function challengeHandle(bytes32 _handle) external override {
-        // Get a reference to the ID of the project to which the handle belongs.
-        uint256 _projectId = idFor[_handle];
+  function challengeHandle(bytes32 _handle) external override {
+    // Get a reference to the ID of the project to which the handle belongs.
+    uint256 _projectId = idFor[_handle];
 
-        // No need to challenge a handle that's not taken.
-        require(
-            _projectId > 0,
-            "JBProjects::challengeHandle: HANDLE_NOT_TAKEN"
-        );
+    // No need to challenge a handle that's not taken.
+    require(_projectId > 0, 'HANDLE_NOT_TAKEN');
 
-        // No need to challenge again if a handle is already being challenged.
-        require(
-            challengeExpiryOf[_handle] == 0,
-            "JBProjects::challengeHandle: HANDLE_ALREADY_BEING_CHALLENGED"
-        );
+    // No need to challenge again if a handle is already being challenged.
+    require(challengeExpiryOf[_handle] == 0, 'HANDLE_ALREADY_BEING_CHALLENGED');
 
-        // The challenge will expire in a year, at which point the handle can be claimed if it has yet to be renewed.
-        uint256 _challengeExpiry = block.timestamp + _SECONDS_IN_YEAR;
+    // The challenge will expire in a year, at which point the handle can be claimed if it has yet to be renewed.
+    uint256 _challengeExpiry = block.timestamp + _SECONDS_IN_YEAR;
 
-        // Store the challenge expiry for the handle.
-        challengeExpiryOf[_handle] = _challengeExpiry;
+    // Store the challenge expiry for the handle.
+    challengeExpiryOf[_handle] = _challengeExpiry;
 
-        emit ChallengeHandle(_handle, _projectId, _challengeExpiry, msg.sender);
-    }
+    emit ChallengeHandle(_handle, _projectId, _challengeExpiry, msg.sender);
+  }
 
-    /** 
+  /** 
       @notice
       Allows a project to renew its handle, which cancels any pending challenges.
 
@@ -367,21 +325,17 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
 
       @param _projectId The ID of the project to which the handle being renewed belongs. 
     */
-    function renewHandleOf(uint256 _projectId)
-        external
-        override
-        requirePermission(
-            ownerOf(_projectId),
-            _projectId,
-            JBOperations.RenewHandle
-        )
-    {
-        // Get the handle of the project.
-        bytes32 _handle = handleOf[_projectId];
+  function renewHandleOf(uint256 _projectId)
+    external
+    override
+    requirePermission(ownerOf(_projectId), _projectId, JBOperations.RENEW_HANDLE)
+  {
+    // Get the handle of the project.
+    bytes32 _handle = handleOf[_projectId];
 
-        // Reset the challenge to 0.
-        challengeExpiryOf[_handle] = 0;
+    // Reset the challenge to 0.
+    challengeExpiryOf[_handle] = 0;
 
-        emit RenewHandle(_handle, _projectId, msg.sender);
-    }
+    emit RenewHandle(_handle, _projectId, msg.sender);
+  }
 }

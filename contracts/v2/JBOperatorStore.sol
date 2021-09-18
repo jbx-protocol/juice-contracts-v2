@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import "./interfaces/IJBOperatorStore.sol";
+import './interfaces/IJBOperatorStore.sol';
 
 /** 
   @notice
   Stores operator permissions for all addresses. Addresses can give permissions to any other address to take specific actions throughout the Juicebox ecosystem on their behalf.
 */
 contract JBOperatorStore is IJBOperatorStore {
-    // --- public stored properties --- //
+  // --- public stored properties --- //
 
-    /** 
+  /** 
       @notice
       The permissions that an operator has to operate on a specific domain.
       
@@ -21,13 +21,11 @@ contract JBOperatorStore is IJBOperatorStore {
 
       [_operator][_account][_domain]
     */
-    mapping(address => mapping(address => mapping(uint256 => uint256)))
-        public
-        override permissionsOf;
+  mapping(address => mapping(address => mapping(uint256 => uint256))) public override permissionsOf;
 
-    // --- public views --- //
+  // --- public views --- //
 
-    /** 
+  /** 
       @notice 
       Whether or not an operator has the permission to take a certain action pertaining to the specified domain.
 
@@ -38,22 +36,17 @@ contract JBOperatorStore is IJBOperatorStore {
 
       @return Whether the operator has the specified permission.
     */
-    function hasPermission(
-        address _operator,
-        address _account,
-        uint256 _domain,
-        uint256 _permissionIndex
-    ) external view override returns (bool) {
-        require(
-            _permissionIndex <= 255,
-            "JBOperatorStore::hasPermission: INDEX_OUT_OF_BOUNDS"
-        );
-        return
-            ((permissionsOf[_operator][_account][_domain] >> _permissionIndex) &
-                1) == 1;
-    }
+  function hasPermission(
+    address _operator,
+    address _account,
+    uint256 _domain,
+    uint256 _permissionIndex
+  ) external view override returns (bool) {
+    require(_permissionIndex <= 255, 'INDEX_OUT_OF_BOUNDS');
+    return ((permissionsOf[_operator][_account][_domain] >> _permissionIndex) & 1) == 1;
+  }
 
-    /** 
+  /** 
       @notice 
       Whether or not an operator has the permission to take certain actions pertaining to the specified domain.
 
@@ -64,31 +57,26 @@ contract JBOperatorStore is IJBOperatorStore {
 
       @return Whether the operator has all specified permissions.
     */
-    function hasPermissions(
-        address _operator,
-        address _account,
-        uint256 _domain,
-        uint256[] calldata _permissionIndexes
-    ) external view override returns (bool) {
-        for (uint256 _i = 0; _i < _permissionIndexes.length; _i++) {
-            uint256 _permissionIndex = _permissionIndexes[_i];
+  function hasPermissions(
+    address _operator,
+    address _account,
+    uint256 _domain,
+    uint256[] calldata _permissionIndexes
+  ) external view override returns (bool) {
+    for (uint256 _i = 0; _i < _permissionIndexes.length; _i++) {
+      uint256 _permissionIndex = _permissionIndexes[_i];
 
-            require(
-                _permissionIndex <= 255,
-                "JBOperatorStore::hasPermissions: INDEX_OUT_OF_BOUNDS"
-            );
+      require(_permissionIndex <= 255, 'INDEX_OUT_OF_BOUNDS');
 
-            if (
-                ((permissionsOf[_operator][_account][_domain] >>
-                    _permissionIndex) & 1) == 0
-            ) return false;
-        }
-        return true;
+      if (((permissionsOf[_operator][_account][_domain] >> _permissionIndex) & 1) == 0)
+        return false;
     }
+    return true;
+  }
 
-    // --- external transactions --- //
+  // --- external transactions --- //
 
-    /** 
+  /** 
       @notice 
       Sets permissions for an operator.
 
@@ -99,27 +87,21 @@ contract JBOperatorStore is IJBOperatorStore {
       @param _domain The domain that the operator is being given permissions to operate. A value of 0 serves as a wildcard domain. Applications can specify their own domain system.
       @param _permissionIndexes An array of permission indexes to set. Indexes must be between 0-255. Applications can specify the significance of each index.
     */
-    function setOperator(
-        address _operator,
-        uint256 _domain,
-        uint256[] calldata _permissionIndexes
-    ) external override {
-        // Pack the indexes into a uint256.
-        uint256 _packed = _packedPermissions(_permissionIndexes);
+  function setOperator(
+    address _operator,
+    uint256 _domain,
+    uint256[] calldata _permissionIndexes
+  ) external override {
+    // Pack the indexes into a uint256.
+    uint256 _packed = _packedPermissions(_permissionIndexes);
 
-        // Store the new value.
-        permissionsOf[_operator][msg.sender][_domain] = _packed;
+    // Store the new value.
+    permissionsOf[_operator][msg.sender][_domain] = _packed;
 
-        emit SetOperator(
-            _operator,
-            msg.sender,
-            _domain,
-            _permissionIndexes,
-            _packed
-        );
-    }
+    emit SetOperator(_operator, msg.sender, _domain, _permissionIndexes, _packed);
+  }
 
-    /** 
+  /** 
       @notice 
       Sets permissions for many operators.
 
@@ -133,38 +115,31 @@ contract JBOperatorStore is IJBOperatorStore {
       @param _domains Lists the domain that each operator is being given permissions to operate. A value of 0 serves as a wildcard domain. Applications can specify their own domain system.
       @param _permissionIndexes Lists the permission indexes to set for each operator. Indexes must be between 0-255. Applications can specify the significance of each index.
     */
-    function setOperators(
-        address[] calldata _operators,
-        uint256[] calldata _domains,
-        uint256[][] calldata _permissionIndexes
-    ) external override {
-        // There should be a level for each operator provided.
-        require(
-            _operators.length == _permissionIndexes.length &&
-                _operators.length == _domains.length,
-            "OperatorStore::setOperators: BAD_ARGS"
-        );
+  function setOperators(
+    address[] calldata _operators,
+    uint256[] calldata _domains,
+    uint256[][] calldata _permissionIndexes
+  ) external override {
+    // There should be a level for each operator provided.
+    require(
+      _operators.length == _permissionIndexes.length && _operators.length == _domains.length,
+      'BAD_ARGS'
+    );
 
-        for (uint256 _i = 0; _i < _operators.length; _i++) {
-            // Pack the indexes into a uint256.
-            uint256 _packed = _packedPermissions(_permissionIndexes[_i]);
+    for (uint256 _i = 0; _i < _operators.length; _i++) {
+      // Pack the indexes into a uint256.
+      uint256 _packed = _packedPermissions(_permissionIndexes[_i]);
 
-            // Store the new value.
-            permissionsOf[_operators[_i]][msg.sender][_domains[_i]] = _packed;
+      // Store the new value.
+      permissionsOf[_operators[_i]][msg.sender][_domains[_i]] = _packed;
 
-            emit SetOperator(
-                _operators[_i],
-                msg.sender,
-                _domains[_i],
-                _permissionIndexes[_i],
-                _packed
-            );
-        }
+      emit SetOperator(_operators[_i], msg.sender, _domains[_i], _permissionIndexes[_i], _packed);
     }
+  }
 
-    // --- private helper functions --- //
+  // --- private helper functions --- //
 
-    /** 
+  /** 
       @notice 
       Converts an array of permission indexes to a packed uint256.
 
@@ -172,19 +147,12 @@ contract JBOperatorStore is IJBOperatorStore {
 
       @return packed The packed result.
     */
-    function _packedPermissions(uint256[] calldata _indexes)
-        private
-        pure
-        returns (uint256 packed)
-    {
-        for (uint256 _i = 0; _i < _indexes.length; _i++) {
-            uint256 _index = _indexes[_i];
-            require(
-                _index <= 255,
-                "JBOperatorStore::_packedPermissions: INDEX_OUT_OF_BOUNDS"
-            );
-            // Turn the bit at the index on.
-            packed |= 1 << _index;
-        }
+  function _packedPermissions(uint256[] calldata _indexes) private pure returns (uint256 packed) {
+    for (uint256 _i = 0; _i < _indexes.length; _i++) {
+      uint256 _index = _indexes[_i];
+      require(_index <= 255, 'INDEX_OUT_OF_BOUNDS');
+      // Turn the bit at the index on.
+      packed |= 1 << _index;
     }
+  }
 }

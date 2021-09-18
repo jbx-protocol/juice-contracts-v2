@@ -24,8 +24,6 @@
     "@openzeppelin/contracts": "^4.1.0",
     "@paulrberg/contracts": "^3.4.0",
     "dotenv": "^10.0.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-prettier": "^4.0.0",
     "prettier": "^2.4.0"
   },
   "homepage": "https://github.com/jbx-protocol/juicehouse",

@@ -2,24 +2,22 @@
 pragma solidity 0.8.6;
 
 library JBOperations {
-    uint256 public constant Configure = 1;
-    uint256 public constant PrintPreminedTickets = 2;
-    uint256 public constant Redeem = 3;
-    uint256 public constant Migrate = 4;
-    uint256 public constant SetHandle = 5;
-    uint256 public constant SetUri = 6;
-    uint256 public constant ClaimHandle = 7;
-    uint256 public constant RenewHandle = 8;
-    uint256 public constant Issue = 9;
-    uint256 public constant Stake = 10;
-    uint256 public constant Unstake = 11;
-    uint256 public constant Transfer = 12;
-    uint256 public constant Lock = 13;
-    uint256 public constant SetPayoutMods = 14;
-    uint256 public constant SetTicketMods = 15;
-    uint256 public constant SetTerminal = 16;
-    uint256 public constant UseAllowance = 17;
-    uint256 public constant Burn = 18;
-    uint256 public constant Mint = 19;
-    uint256 public constant SetSplits = 20;
+  uint256 public constant CONFIGURE = 1;
+  uint256 public constant PRINT_PREMINED_TOKENS = 2;
+  uint256 public constant REDEEM = 3;
+  uint256 public constant MIGRATE = 4;
+  uint256 public constant SET_HANDLE = 5;
+  uint256 public constant SET_URI = 6;
+  uint256 public constant CLAIM_HANDLE = 7;
+  uint256 public constant RENEW_HANDLE = 8;
+  uint256 public constant ISSUE = 9;
+  uint256 public constant STAKE = 10;
+  uint256 public constant UNSTAKE = 11;
+  uint256 public constant TRANSFER = 12;
+  uint256 public constant LOCK = 13;
+  uint256 public constant SET_TERMINAL = 14;
+  uint256 public constant USE_ALLOWANCE = 15;
+  uint256 public constant BURN = 16;
+  uint256 public constant MINT = 17;
+  uint256 public constant SET_SPLITS = 18;
 }
