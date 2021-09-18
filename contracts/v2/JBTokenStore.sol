@@ -21,12 +21,16 @@ import './JBToken.sol';
   The total supply of a project's tokens and the balance of each account are calculated in this contract.
 */
 contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
-  // --- public immutable stored properties --- //
+  //*********************************************************************//
+  // ---------------- public immutable stored properties --------------- //
+  //*********************************************************************//
 
   /// @notice The Projects contract which mints ERC-721's that represent project ownership and transfers.
   IJBProjects public immutable override projects;
 
-  // --- public stored properties --- //
+  //*********************************************************************//
+  // --------------------- public stored properties -------------------- //
+  //*********************************************************************//
 
   // Each project's ERC20 Token tokens.
   mapping(uint256 => IJBToken) public override tokenOf;
@@ -45,7 +49,9 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
     public
     override lockedBalanceBy;
 
-  // --- external views --- //
+  //*********************************************************************//
+  // ------------------------- external views -------------------------- //
+  //*********************************************************************//
 
   /** 
       @notice 
@@ -81,7 +87,9 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
     if (_token != IJBToken(address(0))) balance = balance + _token.balanceOf(_holder);
   }
 
-  // --- external transactions --- //
+  //*********************************************************************//
+  // -------------------------- constructor ---------------------------- //
+  //*********************************************************************//
 
   /** 
       @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
@@ -95,6 +103,10 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
   ) JBOperatable(_operatorStore) JBTerminalUtility(_directory) {
     projects = _projects;
   }
+
+  //*********************************************************************//
+  // ---------------------- external transactions ---------------------- //
+  //*********************************************************************//
 
   /**
         @notice 
