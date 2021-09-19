@@ -1,0 +1,1132 @@
+{
+  "address": "0x7Bf5Aa19778644B314fFC6f781c6f89CD873E71c",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "contract IJBDirectory",
+          "name": "_directory",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "prod1",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "denominator",
+          "type": "uint256"
+        }
+      ],
+      "name": "PRBMath__MulDivOverflow",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "fundingCycleId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "projectId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "reconfigured",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "target",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "currency",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "duration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "cycleLimit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "discountRate",
+              "type": "uint256"
+            },
+            {
+              "internalType": "contract IJBFundingCycleBallot",
+              "name": "ballot",
+              "type": "address"
+            }
+          ],
+          "indexed": false,
+          "internalType": "struct FundingCycleProperties",
+          "name": "properties",
+          "type": "tuple"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "metadata",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "caller",
+          "type": "address"
+        }
+      ],
+      "name": "Configure",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "fundingCycleId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "projectId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "number",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "basedOn",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "weight",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "start",
+          "type": "uint256"
+        }
+      ],
+      "name": "Init",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "fundingCycleId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "projectId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newTappedAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "caller",
+          "type": "address"
+        }
+      ],
+      "name": "Tap",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "BASE_WEIGHT",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MAX_CYCLE_LIMIT",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_projectId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_number",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "projectId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "number",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "basedOn",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "configured",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "cycleLimit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "weight",
+              "type": "uint256"
+            },
+            {
+              "internalType": "contract IJBFundingCycleBallot",
+              "name": "ballot",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "start",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "duration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "target",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "currency",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "discountRate",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tapped",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "metadata",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct FundingCycle",
+          "name": "_fundingCycle",
+          "type": "tuple"
+        }
+      ],
+      "name": "bootload",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_projectId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "target",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "currency",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "duration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "cycleLimit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "discountRate",
+              "type": "uint256"
+            },
+            {
+              "internalType": "contract IJBFundingCycleBallot",
+              "name": "ballot",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct FundingCycleProperties",
+          "name": "_properties",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_metadata",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_fee",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "_configureActiveFundingCycle",
+          "type": "bool"
+        }
+      ],
+      "name": "configureFor",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "projectId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "number",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "basedOn",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "configured",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "cycleLimit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "weight",
+              "type": "uint256"
+            },
+            {
+              "internalType": "contract IJBFundingCycleBallot",
+              "name": "ballot",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "start",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "duration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "target",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "currency",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "discountRate",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tapped",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "metadata",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct FundingCycle",
+          "name": "fundingCycle",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_projectId",
+          "type": "uint256"
+        }
+      ],
+      "name": "currentBallotStateOf",
+      "outputs": [
+        {
+          "internalType": "enum BallotState",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_projectId",
+          "type": "uint256"
+        }
+      ],
+      "name": "currentOf",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "projectId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "number",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "basedOn",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "configured",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "cycleLimit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "weight",
+              "type": "uint256"
+            },
+            {
+              "internalType": "contract IJBFundingCycleBallot",
+              "name": "ballot",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "start",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "duration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "target",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "currency",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "discountRate",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tapped",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "metadata",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct FundingCycle",
+          "name": "fundingCycle",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "directory",
+      "outputs": [
+        {
+          "internalType": "contract IJBDirectory",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_fundingCycleId",
+          "type": "uint256"
+        }
+      ],
+      "name": "get",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "projectId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "number",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "basedOn",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "configured",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "cycleLimit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "weight",
+              "type": "uint256"
+            },
+            {
+              "internalType": "contract IJBFundingCycleBallot",
+              "name": "ballot",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "start",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "duration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "target",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "currency",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "discountRate",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tapped",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "metadata",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct FundingCycle",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "latestIdOf",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_projectId",
+          "type": "uint256"
+        }
+      ],
+      "name": "queuedOf",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "projectId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "number",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "basedOn",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "configured",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "cycleLimit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "weight",
+              "type": "uint256"
+            },
+            {
+              "internalType": "contract IJBFundingCycleBallot",
+              "name": "ballot",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "start",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "duration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "target",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "currency",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "discountRate",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tapped",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "metadata",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct FundingCycle",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_projectId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "tapFrom",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "projectId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "number",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "basedOn",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "configured",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "cycleLimit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "weight",
+              "type": "uint256"
+            },
+            {
+              "internalType": "contract IJBFundingCycleBallot",
+              "name": "ballot",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "start",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "duration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "target",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "currency",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "discountRate",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tapped",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "metadata",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct FundingCycle",
+          "name": "fundingCycle",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xd57cc1f0f1f4b0b76e229716eebaa9d900d411a374003ec0dafb428b6db61c65",
+  "receipt": {
+    "to": null,
+    "from": "0x754F37225CE0E30639093Af47C16ef057B544b4f",
+    "contractAddress": "0x7Bf5Aa19778644B314fFC6f781c6f89CD873E71c",
+    "transactionIndex": 30,
+    "gasUsed": "2407365",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0xda5ac55e3097bf9cdd84a57a748347e927633a92b14087136efc3a33f4cb3b5e",
+    "transactionHash": "0xd57cc1f0f1f4b0b76e229716eebaa9d900d411a374003ec0dafb428b6db61c65",
+    "logs": [],
+    "blockNumber": 9320504,
+    "cumulativeGasUsed": "8654091",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0xf835913B60B870A3a14b6C7179fEDF0fEba49D93"
+  ],
+  "solcInputHash": "096d8193c9ef3fa94853075f8aa2d2db",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"contract IJBDirectory\",\"name\":\"_directory\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"prod1\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"denominator\",\"type\":\"uint256\"}],\"name\":\"PRBMath__MulDivOverflow\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"fundingCycleId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"projectId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"reconfigured\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"target\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"currency\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"cycleLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"discountRate\",\"type\":\"uint256\"},{\"internalType\":\"contract IJBFundingCycleBallot\",\"name\":\"ballot\",\"type\":\"address\"}],\"indexed\":false,\"internalType\":\"struct FundingCycleProperties\",\"name\":\"properties\",\"type\":\"tuple\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"metadata\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"caller\",\"type\":\"address\"}],\"name\":\"Configure\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"fundingCycleId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"projectId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"number\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"basedOn\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"start\",\"type\":\"uint256\"}],\"name\":\"Init\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"fundingCycleId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"projectId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newTappedAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"caller\",\"type\":\"address\"}],\"name\":\"Tap\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"BASE_WEIGHT\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MAX_CYCLE_LIMIT\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_projectId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_number\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"projectId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"number\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"basedOn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"configured\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"cycleLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"internalType\":\"contract IJBFundingCycleBallot\",\"name\":\"ballot\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"start\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"target\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"currency\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"discountRate\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tapped\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"metadata\",\"type\":\"uint256\"}],\"internalType\":\"struct FundingCycle\",\"name\":\"_fundingCycle\",\"type\":\"tuple\"}],\"name\":\"bootload\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_projectId\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"target\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"currency\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"cycleLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"discountRate\",\"type\":\"uint256\"},{\"internalType\":\"contract IJBFundingCycleBallot\",\"name\":\"ballot\",\"type\":\"address\"}],\"internalType\":\"struct FundingCycleProperties\",\"name\":\"_properties\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"_metadata\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_fee\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"_configureActiveFundingCycle\",\"type\":\"bool\"}],\"name\":\"configureFor\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"projectId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"number\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"basedOn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"configured\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"cycleLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"internalType\":\"contract IJBFundingCycleBallot\",\"name\":\"ballot\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"start\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"target\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"currency\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"discountRate\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tapped\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"metadata\",\"type\":\"uint256\"}],\"internalType\":\"struct FundingCycle\",\"name\":\"fundingCycle\",\"type\":\"tuple\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_projectId\",\"type\":\"uint256\"}],\"name\":\"currentBallotStateOf\",\"outputs\":[{\"internalType\":\"enum BallotState\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_projectId\",\"type\":\"uint256\"}],\"name\":\"currentOf\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"projectId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"number\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"basedOn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"configured\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"cycleLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"internalType\":\"contract IJBFundingCycleBallot\",\"name\":\"ballot\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"start\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"target\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"currency\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"discountRate\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tapped\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"metadata\",\"type\":\"uint256\"}],\"internalType\":\"struct FundingCycle\",\"name\":\"fundingCycle\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"directory\",\"outputs\":[{\"internalType\":\"contract IJBDirectory\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_fundingCycleId\",\"type\":\"uint256\"}],\"name\":\"get\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"projectId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"number\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"basedOn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"configured\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"cycleLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"internalType\":\"contract IJBFundingCycleBallot\",\"name\":\"ballot\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"start\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"target\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"currency\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"discountRate\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tapped\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"metadata\",\"type\":\"uint256\"}],\"internalType\":\"struct FundingCycle\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"latestIdOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_projectId\",\"type\":\"uint256\"}],\"name\":\"queuedOf\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"projectId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"number\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"basedOn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"configured\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"cycleLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"internalType\":\"contract IJBFundingCycleBallot\",\"name\":\"ballot\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"start\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"target\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"currency\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"discountRate\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tapped\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"metadata\",\"type\":\"uint256\"}],\"internalType\":\"struct FundingCycle\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_projectId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"tapFrom\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"projectId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"number\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"basedOn\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"configured\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"cycleLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"internalType\":\"contract IJBFundingCycleBallot\",\"name\":\"ballot\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"start\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"target\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"currency\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"discountRate\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tapped\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"metadata\",\"type\":\"uint256\"}],\"internalType\":\"struct FundingCycle\",\"name\":\"fundingCycle\",\"type\":\"tuple\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"configureFor(uint256,(uint256,uint256,uint256,uint256,uint256,address),uint256,uint256,bool)\":{\"details\":\"Only a project's current terminal can configure its funding cycles._properties.target The amount that the project wants to receive in each funding cycle. 18 decimals._properties.currency The currency of the `_target`. Send 0 for ETH or 1 for USD._properties.duration The duration of the funding cycle for which the `_target` amount is needed. Measured in days.  Set to 0 for no expiry and to be able to reconfigure anytime._cycleLimit The number of cycles that this configuration should last for before going back to the last permanent. This does nothing for a project's first funding cycle._properties.discountRate A number from 0-200 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles. If it's 0, each funding cycle will have equal weight. If the number is 100, a contribution to the next funding cycle will only give you 90% of tickets given to a contribution of the same amount during the current funding cycle. If the number is 200, a contribution to the next funding cycle will only give you 80% of tickets given to a contribution of the same amoutn during the current funding cycle. If the number is 201, an non-recurring funding cycle will get made._ballot The new ballot that will be used to approve subsequent reconfigurations.\",\"params\":{\"_configureActiveFundingCycle\":\"If a funding cycle that has already started should be configurable.\",\"_fee\":\"The fee that this configuration will incure when tapping.\",\"_metadata\":\"Data to associate with this funding cycle configuration.\",\"_projectId\":\"The ID of the project being reconfigured.\",\"_properties\":\"The funding cycle configuration.\"},\"returns\":{\"fundingCycle\":\"The funding cycle that the configuration will take effect during.\"}},\"constructor\":{\"params\":{\"_directory\":\"A directory of a project's current Juicebox terminal to receive payments in.\"}},\"currentBallotStateOf(uint256)\":{\"params\":{\"_projectId\":\"The ID of the project to check for a pending reconfiguration.\"},\"returns\":{\"_0\":\"The current ballot's state.\"}},\"currentOf(uint256)\":{\"details\":\" This runs very similar logic to `_tappable`.\",\"params\":{\"_projectId\":\"The ID of the project being looked through.\"},\"returns\":{\"fundingCycle\":\"The current funding cycle.\"}},\"get(uint256)\":{\"params\":{\"_fundingCycleId\":\"The ID of the funding cycle to get.\"},\"returns\":{\"_0\":\"_fundingCycle The funding cycle.\"}},\"queuedOf(uint256)\":{\"details\":\" This runs roughly similar logic to `_configurable`.\",\"params\":{\"_projectId\":\"The ID of the project being looked through.\"},\"returns\":{\"_0\":\"_fundingCycle The queued funding cycle.\"}},\"tapFrom(uint256,uint256)\":{\"details\":\"Only a project's current terminal can tap funds for its funding cycles.\",\"params\":{\"_amount\":\"The amount being tapped.\",\"_projectId\":\"The ID of the project being tapped.\"},\"returns\":{\"fundingCycle\":\"The tapped funding cycle.\"}}},\"version\":1},\"userdoc\":{\"errors\":{\"PRBMath__MulDivOverflow(uint256,uint256)\":[{\"notice\":\"Emitted when the result overflows uint256.\"}]},\"kind\":\"user\",\"methods\":{\"BASE_WEIGHT()\":{\"notice\":\"The weight used for each project's first funding cycle.\"},\"MAX_CYCLE_LIMIT()\":{\"notice\":\"The maximum value that a cycle limit can be set to.\"},\"configureFor(uint256,(uint256,uint256,uint256,uint256,uint256,address),uint256,uint256,bool)\":{\"notice\":\" Configures the next eligible funding cycle for the specified project.\"},\"currentBallotStateOf(uint256)\":{\"notice\":\" The currency ballot state of the project.\"},\"currentOf(uint256)\":{\"notice\":\" The funding cycle that is currently active for the specified project.\"},\"directory()\":{\"notice\":\"The direct deposit terminals.\"},\"get(uint256)\":{\"notice\":\" Get the funding cycle with the given ID.\"},\"latestIdOf(uint256)\":{\"notice\":\"The ID of the latest funding cycle for each project.\"},\"queuedOf(uint256)\":{\"notice\":\" The funding cycle that's next up for a project, and therefor not currently accepting payments.\"},\"tapFrom(uint256,uint256)\":{\"notice\":\" Tap funds from a project's currently tappable funding cycle.\"}},\"notice\":\"Manage funding cycle configurations, accounting, and scheduling.\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/v2/JBFundingCycleStore.sol\":\"JBFundingCycleStore\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":10000},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/token/ERC721/IERC721.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"../../utils/introspection/IERC165.sol\\\";\\n\\n/**\\n * @dev Required interface of an ERC721 compliant contract.\\n */\\ninterface IERC721 is IERC165 {\\n    /**\\n     * @dev Emitted when `tokenId` token is transferred from `from` to `to`.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);\\n\\n    /**\\n     * @dev Emitted when `owner` enables `approved` to manage the `tokenId` token.\\n     */\\n    event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);\\n\\n    /**\\n     * @dev Emitted when `owner` enables or disables (`approved`) `operator` to manage all of its assets.\\n     */\\n    event ApprovalForAll(address indexed owner, address indexed operator, bool approved);\\n\\n    /**\\n     * @dev Returns the number of tokens in ``owner``'s account.\\n     */\\n    function balanceOf(address owner) external view returns (uint256 balance);\\n\\n    /**\\n     * @dev Returns the owner of the `tokenId` token.\\n     *\\n     * Requirements:\\n     *\\n     * - `tokenId` must exist.\\n     */\\n    function ownerOf(uint256 tokenId) external view returns (address owner);\\n\\n    /**\\n     * @dev Safely transfers `tokenId` token from `from` to `to`, checking first that contract recipients\\n     * are aware of the ERC721 protocol to prevent tokens from being forever locked.\\n     *\\n     * Requirements:\\n     *\\n     * - `from` cannot be the zero address.\\n     * - `to` cannot be the zero address.\\n     * - `tokenId` token must exist and be owned by `from`.\\n     * - If the caller is not `from`, it must be have been allowed to move this token by either {approve} or {setApprovalForAll}.\\n     * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function safeTransferFrom(\\n        address from,\\n        address to,\\n        uint256 tokenId\\n    ) external;\\n\\n    /**\\n     * @dev Transfers `tokenId` token from `from` to `to`.\\n     *\\n     * WARNING: Usage of this method is discouraged, use {safeTransferFrom} whenever possible.\\n     *\\n     * Requirements:\\n     *\\n     * - `from` cannot be the zero address.\\n     * - `to` cannot be the zero address.\\n     * - `tokenId` token must be owned by `from`.\\n     * - If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(\\n        address from,\\n        address to,\\n        uint256 tokenId\\n    ) external;\\n\\n    /**\\n     * @dev Gives permission to `to` to transfer `tokenId` token to another account.\\n     * The approval is cleared when the token is transferred.\\n     *\\n     * Only a single account can be approved at a time, so approving the zero address clears previous approvals.\\n     *\\n     * Requirements:\\n     *\\n     * - The caller must own the token or be an approved operator.\\n     * - `tokenId` must exist.\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address to, uint256 tokenId) external;\\n\\n    /**\\n     * @dev Returns the account approved for `tokenId` token.\\n     *\\n     * Requirements:\\n     *\\n     * - `tokenId` must exist.\\n     */\\n    function getApproved(uint256 tokenId) external view returns (address operator);\\n\\n    /**\\n     * @dev Approve or remove `operator` as an operator for the caller.\\n     * Operators can call {transferFrom} or {safeTransferFrom} for any token owned by the caller.\\n     *\\n     * Requirements:\\n     *\\n     * - The `operator` cannot be the caller.\\n     *\\n     * Emits an {ApprovalForAll} event.\\n     */\\n    function setApprovalForAll(address operator, bool _approved) external;\\n\\n    /**\\n     * @dev Returns if the `operator` is allowed to manage all of the assets of `owner`.\\n     *\\n     * See {setApprovalForAll}\\n     */\\n    function isApprovedForAll(address owner, address operator) external view returns (bool);\\n\\n    /**\\n     * @dev Safely transfers `tokenId` token from `from` to `to`.\\n     *\\n     * Requirements:\\n     *\\n     * - `from` cannot be the zero address.\\n     * - `to` cannot be the zero address.\\n     * - `tokenId` token must exist and be owned by `from`.\\n     * - If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.\\n     * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function safeTransferFrom(\\n        address from,\\n        address to,\\n        uint256 tokenId,\\n        bytes calldata data\\n    ) external;\\n}\\n\",\"keccak256\":\"0xf101e8720213560fab41104d53b3cc7ba0456ef3a98455aa7f022391783144a0\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/introspection/IERC165.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev Interface of the ERC165 standard, as defined in the\\n * https://eips.ethereum.org/EIPS/eip-165[EIP].\\n *\\n * Implementers can declare support of contract interfaces, which can then be\\n * queried by others ({ERC165Checker}).\\n *\\n * For an implementation, see {ERC165}.\\n */\\ninterface IERC165 {\\n    /**\\n     * @dev Returns true if this contract implements the interface defined by\\n     * `interfaceId`. See the corresponding\\n     * https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[EIP section]\\n     * to learn more about how these ids are created.\\n     *\\n     * This function call must use less than 30 000 gas.\\n     */\\n    function supportsInterface(bytes4 interfaceId) external view returns (bool);\\n}\\n\",\"keccak256\":\"0xa28007762d9da9db878dd421960c8cb9a10471f47ab5c1b3309bfe48e9e79ff4\",\"license\":\"MIT\"},\"@paulrberg/contracts/math/PRBMath.sol\":{\"content\":\"// SPDX-License-Identifier: UNLICENSED\\npragma solidity >=0.8.4;\\n\\nimport \\\"prb-math/contracts/PRBMath.sol\\\";\\n\",\"keccak256\":\"0xfcba81e4d8281c31627d1f157ee06efed0cd8875ed6bcc216773701ba5e21d1d\",\"license\":\"UNLICENSED\"},\"contracts/v2/JBFundingCycleStore.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.6;\\n\\nimport '@paulrberg/contracts/math/PRBMath.sol';\\n\\nimport './interfaces/IJBFundingCycleStore.sol';\\nimport './abstract/JBTerminalUtility.sol';\\n\\n/** \\n  @notice Manage funding cycle configurations, accounting, and scheduling.\\n*/\\ncontract JBFundingCycleStore is JBTerminalUtility, IJBFundingCycleStore {\\n  // --- private stored contants --- //\\n\\n  // The number of seconds in a day.\\n  uint256 private constant SECONDS_IN_DAY = 86400;\\n\\n  // --- private stored properties --- //\\n\\n  // Stores the reconfiguration properties of each funding cycle, packed into one storage slot.\\n  mapping(uint256 => uint256) private _packedConfigurationPropertiesOf;\\n\\n  // Stores the properties added by the mechanism to manage and schedule each funding cycle, packed into one storage slot.\\n  mapping(uint256 => uint256) private _packedIntrinsicPropertiesOf;\\n\\n  // Stores the metadata for each funding cycle, packed into one storage slot.\\n  mapping(uint256 => uint256) private _metadataOf;\\n\\n  // Stores the amount that each funding cycle can tap funding cycle.\\n  mapping(uint256 => uint256) private _targetOf;\\n\\n  // Stores the amount that has been tapped within each funding cycle.\\n  mapping(uint256 => uint256) private _tappedOf;\\n\\n  // --- public stored constants --- //\\n\\n  /// @notice The weight used for each project's first funding cycle.\\n  uint256 public constant override BASE_WEIGHT = 1E24;\\n\\n  /// @notice The maximum value that a cycle limit can be set to.\\n  uint256 public constant override MAX_CYCLE_LIMIT = 32;\\n\\n  // --- public stored properties --- //\\n\\n  /// @notice The ID of the latest funding cycle for each project.\\n  mapping(uint256 => uint256) public override latestIdOf;\\n\\n  // --- external views --- //\\n\\n  /**\\n        @notice \\n        Get the funding cycle with the given ID.\\n\\n        @param _fundingCycleId The ID of the funding cycle to get.\\n\\n        @return _fundingCycle The funding cycle.\\n    */\\n  function get(uint256 _fundingCycleId) external view override returns (FundingCycle memory) {\\n    // The funding cycle should exist.\\n    require(_fundingCycleId > 0, 'NOT_FOUND');\\n\\n    return _getStruct(_fundingCycleId);\\n  }\\n\\n  /**\\n        @notice \\n        The funding cycle that's next up for a project, and therefor not currently accepting payments.\\n\\n        @dev \\n        This runs roughly similar logic to `_configurable`.\\n\\n        @param _projectId The ID of the project being looked through.\\n\\n        @return _fundingCycle The queued funding cycle.\\n    */\\n  function queuedOf(uint256 _projectId) external view override returns (FundingCycle memory) {\\n    // The project must have funding cycles.\\n    if (latestIdOf[_projectId] == 0) return _getStruct(0);\\n\\n    // Get a reference to the standby funding cycle.\\n    uint256 _fundingCycleId = _standby(_projectId);\\n\\n    // If it exists, return it.\\n    if (_fundingCycleId > 0) return _getStruct(_fundingCycleId);\\n\\n    // Get a reference to the eligible funding cycle.\\n    _fundingCycleId = _eligible(_projectId);\\n\\n    // If an eligible funding cycle exists...\\n    if (_fundingCycleId > 0) {\\n      // Get the necessary properties for the standby funding cycle.\\n      FundingCycle memory _fundingCycle = _getStruct(_fundingCycleId);\\n\\n      // There's no queued if the current has a duration of 0.\\n      if (_fundingCycle.duration == 0) return _getStruct(0);\\n\\n      // Check to see if the correct ballot is approved for this funding cycle.\\n      // If so, return a funding cycle based on it.\\n      if (_isApproved(_fundingCycle)) return _mockFundingCycleBasedOn(_fundingCycle, false);\\n\\n      // If it hasn't been approved, set the ID to be its base funding cycle, which carries the last approved configuration.\\n      _fundingCycleId = _fundingCycle.basedOn;\\n    } else {\\n      // No upcoming funding cycle found that is eligible to become active,\\n      // so use the ID of the latest active funding cycle, which carries the last approved configuration.\\n      _fundingCycleId = latestIdOf[_projectId];\\n    }\\n\\n    // A funding cycle must exist.\\n    if (_fundingCycleId == 0) return _getStruct(0);\\n\\n    // Return a mock of what its second next up funding cycle would be.\\n    // Use second next because the next would be a mock of the current funding cycle.\\n    return _mockFundingCycleBasedOn(_getStruct(_fundingCycleId), false);\\n  }\\n\\n  /**\\n        @notice \\n        The funding cycle that is currently active for the specified project.\\n\\n        @dev \\n        This runs very similar logic to `_tappable`.\\n\\n        @param _projectId The ID of the project being looked through.\\n\\n        @return fundingCycle The current funding cycle.\\n    */\\n  function currentOf(uint256 _projectId)\\n    external\\n    view\\n    override\\n    returns (FundingCycle memory fundingCycle)\\n  {\\n    // The project must have funding cycles.\\n    if (latestIdOf[_projectId] == 0) return _getStruct(0);\\n\\n    // Check for an active funding cycle.\\n    uint256 _fundingCycleId = _eligible(_projectId);\\n\\n    // If no active funding cycle is found, check if there is a standby funding cycle.\\n    // If one exists, it will become active one it has been tapped.\\n    if (_fundingCycleId == 0) _fundingCycleId = _standby(_projectId);\\n\\n    // Keep a reference to the eligible funding cycle.\\n    FundingCycle memory _fundingCycle;\\n\\n    // If a standy funding cycle exists...\\n    if (_fundingCycleId > 0) {\\n      // Get the necessary properties for the standby funding cycle.\\n      _fundingCycle = _getStruct(_fundingCycleId);\\n\\n      // Check to see if the correct ballot is approved for this funding cycle, and that it has started.\\n      if (_fundingCycle.start <= block.timestamp && _isApproved(_fundingCycle))\\n        return _fundingCycle;\\n\\n      // If it hasn't been approved, set the ID to be the based funding cycle,\\n      // which carries the last approved configuration.\\n      _fundingCycleId = _fundingCycle.basedOn;\\n    } else {\\n      // No upcoming funding cycle found that is eligible to become active,\\n      // so us the ID of the latest active funding cycle, which carries the last approved configuration.\\n      _fundingCycleId = latestIdOf[_projectId];\\n    }\\n\\n    // The funding cycle cant be 0.\\n    if (_fundingCycleId == 0) return _getStruct(0);\\n\\n    // The funding cycle to base a current one on.\\n    _fundingCycle = _getStruct(_fundingCycleId);\\n\\n    // Return a mock of what the next funding cycle would be like,\\n    // which would become active one it has been tapped.\\n    return _mockFundingCycleBasedOn(_fundingCycle, true);\\n  }\\n\\n  /** \\n      @notice \\n      The currency ballot state of the project.\\n\\n      @param _projectId The ID of the project to check for a pending reconfiguration.\\n\\n      @return The current ballot's state.\\n    */\\n  function currentBallotStateOf(uint256 _projectId) external view override returns (BallotState) {\\n    // The project must have funding cycles.\\n    require(latestIdOf[_projectId] > 0, 'NOT_FOUND');\\n\\n    // Get a reference to the latest funding cycle ID.\\n    uint256 _fundingCycleId = latestIdOf[_projectId];\\n\\n    // Get the necessary properties for the latest funding cycle.\\n    FundingCycle memory _fundingCycle = _getStruct(_fundingCycleId);\\n\\n    // If the latest funding cycle is the first, or if it has already started, it must be approved.\\n    if (_fundingCycle.basedOn == 0) return BallotState.Standby;\\n\\n    return _ballotState(_fundingCycleId, _fundingCycle.configured, _fundingCycle.basedOn);\\n  }\\n\\n  // --- external transactions --- //\\n\\n  /** \\n      @param _directory A directory of a project's current Juicebox terminal to receive payments in.\\n    */\\n  constructor(IJBDirectory _directory) JBTerminalUtility(_directory) {}\\n\\n  /**\\n        @notice \\n        Configures the next eligible funding cycle for the specified project.\\n\\n        @dev\\n        Only a project's current terminal can configure its funding cycles.\\n\\n        @param _projectId The ID of the project being reconfigured.\\n        @param _properties The funding cycle configuration.\\n          @dev _properties.target The amount that the project wants to receive in each funding cycle. 18 decimals.\\n          @dev _properties.currency The currency of the `_target`. Send 0 for ETH or 1 for USD.\\n          @dev _properties.duration The duration of the funding cycle for which the `_target` amount is needed. Measured in days. \\n            Set to 0 for no expiry and to be able to reconfigure anytime.\\n          @dev _cycleLimit The number of cycles that this configuration should last for before going back to the last permanent. This does nothing for a project's first funding cycle.\\n          @dev _properties.discountRate A number from 0-200 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.\\n            If it's 0, each funding cycle will have equal weight.\\n            If the number is 100, a contribution to the next funding cycle will only give you 90% of tickets given to a contribution of the same amount during the current funding cycle.\\n            If the number is 200, a contribution to the next funding cycle will only give you 80% of tickets given to a contribution of the same amoutn during the current funding cycle.\\n            If the number is 201, an non-recurring funding cycle will get made.\\n          @dev _ballot The new ballot that will be used to approve subsequent reconfigurations.\\n        @param _metadata Data to associate with this funding cycle configuration.\\n        @param _fee The fee that this configuration will incure when tapping.\\n        @param _configureActiveFundingCycle If a funding cycle that has already started should be configurable.\\n\\n        @return fundingCycle The funding cycle that the configuration will take effect during.\\n    */\\n  function configureFor(\\n    uint256 _projectId,\\n    FundingCycleProperties calldata _properties,\\n    uint256 _metadata,\\n    uint256 _fee,\\n    bool _configureActiveFundingCycle\\n  ) external override onlyTerminal(_projectId) returns (FundingCycle memory fundingCycle) {\\n    // Duration must fit in a uint16.\\n    require(_properties.duration <= type(uint16).max, 'BAD_DURATION');\\n\\n    // Currency must be less than the limit.\\n    require(_properties.cycleLimit <= MAX_CYCLE_LIMIT, 'BAD_CYCLE_LIMIT');\\n\\n    // Discount rate token must be less than or equal to 100%.\\n    require(_properties.discountRate <= 201, 'BAD_DISCOUNT_RATE');\\n\\n    // Currency must fit into a uint8.\\n    require(_properties.currency <= type(uint8).max, 'BAD_CURRENCY');\\n\\n    // Fee must be less than or equal to 100%.\\n    require(_fee <= 200, 'BAD_FEE');\\n\\n    // Set the configuration timestamp is now.\\n    uint256 _configured = block.timestamp;\\n\\n    // Gets the ID of the funding cycle to reconfigure.\\n    uint256 _fundingCycleId = _configurable(_projectId, _configured, _configureActiveFundingCycle);\\n\\n    // Store the configuration.\\n    _packAndStoreConfigurationProperties(\\n      _fundingCycleId,\\n      _configured,\\n      _properties.cycleLimit,\\n      _properties.ballot,\\n      _properties.duration,\\n      _properties.currency,\\n      _fee,\\n      _properties.discountRate\\n    );\\n\\n    // Set the target amount.\\n    _targetOf[_fundingCycleId] = _properties.target;\\n\\n    // Set the metadata.\\n    _metadataOf[_fundingCycleId] = _metadata;\\n\\n    emit Configure(_fundingCycleId, _projectId, _configured, _properties, _metadata, msg.sender);\\n\\n    return _getStruct(_fundingCycleId);\\n  }\\n\\n  /** \\n      @notice \\n      Tap funds from a project's currently tappable funding cycle.\\n\\n      @dev\\n      Only a project's current terminal can tap funds for its funding cycles.\\n\\n      @param _projectId The ID of the project being tapped.\\n      @param _amount The amount being tapped.\\n\\n      @return fundingCycle The tapped funding cycle.\\n    */\\n  function tapFrom(uint256 _projectId, uint256 _amount)\\n    external\\n    override\\n    onlyTerminal(_projectId)\\n    returns (FundingCycle memory fundingCycle)\\n  {\\n    // Get a reference to the funding cycle being tapped.\\n    uint256 fundingCycleId = _tappable(_projectId);\\n\\n    // Get a reference to how much has already been tapped from this funding cycle.\\n    uint256 _tapped = _tappedOf[fundingCycleId];\\n\\n    // Amount must be within what is still tappable.\\n    require(_amount <= _targetOf[fundingCycleId] - _tapped, 'INSUFFICIENT_FUNDS');\\n\\n    // The new amount that has been tapped.\\n    uint256 _newTappedAmount = _tapped + _amount;\\n\\n    // Store the new amount.\\n    _tappedOf[fundingCycleId] = _newTappedAmount;\\n\\n    emit Tap(fundingCycleId, _projectId, _amount, _newTappedAmount, msg.sender);\\n\\n    return _getStruct(fundingCycleId);\\n  }\\n\\n  function bootload(\\n    uint256 _projectId,\\n    uint256 _number,\\n    FundingCycle memory _fundingCycle\\n  ) external onlyTerminal(_projectId) {\\n    // Gets the ID of the funding cycle to reconfigure.\\n    uint256 _fundingCycleId = _idFor(_projectId, _number);\\n\\n    // Store the configuration.\\n    _packAndStoreConfigurationProperties(\\n      _fundingCycleId,\\n      _fundingCycle.configured,\\n      _fundingCycle.cycleLimit,\\n      _fundingCycle.ballot,\\n      _fundingCycle.duration,\\n      _fundingCycle.currency,\\n      _fundingCycle.fee,\\n      _fundingCycle.discountRate\\n    );\\n\\n    // Set the target amount.\\n    _targetOf[_fundingCycleId] = _fundingCycle.target;\\n\\n    // Set the metadata.\\n    _metadataOf[_fundingCycleId] = _fundingCycle.metadata;\\n\\n    latestIdOf[_projectId] = _fundingCycleId;\\n  }\\n\\n  // --- private helper functions --- //\\n\\n  /**\\n        @notice \\n        Returns the configurable funding cycle for this project if it exists, otherwise creates one.\\n\\n        @param _projectId The ID of the project to find a configurable funding cycle for.\\n        @param _configured The time at which the configuration is occuring.\\n        @param _configureActiveFundingCycle If the active funding cycle should be configurable. Otherwise the next funding cycle will be used.\\n\\n        @return fundingCycleId The ID of the configurable funding cycle.\\n    */\\n  function _configurable(\\n    uint256 _projectId,\\n    uint256 _configured,\\n    bool _configureActiveFundingCycle\\n  ) private returns (uint256 fundingCycleId) {\\n    // If there's not yet a funding cycle for the project, return the ID of a newly created one.\\n    if (latestIdOf[_projectId] == 0)\\n      return _init(_projectId, _getStruct(0), block.timestamp, false);\\n\\n    // Get the standby funding cycle's ID.\\n    fundingCycleId = _standby(_projectId);\\n\\n    // If it exists, make sure its updated, then return it.\\n    if (fundingCycleId > 0) {\\n      // Get the funding cycle that the specified one is based on.\\n      FundingCycle memory _baseFundingCycle = _getStruct(_getStruct(fundingCycleId).basedOn);\\n\\n      // The base's ballot must have ended.\\n      _updateFundingCycle(\\n        _baseFundingCycle,\\n        _getTimeAfterBallot(_baseFundingCycle, _configured),\\n        false\\n      );\\n      return fundingCycleId;\\n    }\\n\\n    // Get the active funding cycle's ID.\\n    fundingCycleId = _eligible(_projectId);\\n\\n    // If the ID of an eligible funding cycle exists, it's approved, and active funding cycles are configurable, return it.\\n    if (fundingCycleId > 0) {\\n      if (!_isIdApproved(fundingCycleId)) {\\n        // If it hasn't been approved, set the ID to be the based funding cycle,\\n        // which carries the last approved configuration.\\n        fundingCycleId = _getStruct(fundingCycleId).basedOn;\\n      } else if (_configureActiveFundingCycle) {\\n        return fundingCycleId;\\n      }\\n    } else {\\n      // Get the ID of the latest funding cycle which has the latest reconfiguration.\\n      fundingCycleId = latestIdOf[_projectId];\\n    }\\n\\n    // Determine if the configurable funding cycle can only take effect on or after a certain date.\\n    uint256 _mustStartOnOrAfter;\\n\\n    // Base off of the active funding cycle if it exists.\\n    FundingCycle memory _fundingCycle = _getStruct(fundingCycleId);\\n\\n    // Make sure the funding cycle is recurring.\\n    require(_fundingCycle.discountRate < 201, 'NON_RECURRING');\\n\\n    if (_configureActiveFundingCycle) {\\n      // If the duration is zero, always go back to the original start.\\n      if (_fundingCycle.duration == 0) {\\n        _mustStartOnOrAfter = _fundingCycle.start;\\n      } else {\\n        // Set to the start time of the current active start time.\\n        uint256 _timeFromStartMultiple = (block.timestamp - _fundingCycle.start) %\\n          (_fundingCycle.duration * SECONDS_IN_DAY);\\n        _mustStartOnOrAfter = block.timestamp - _timeFromStartMultiple;\\n      }\\n    } else {\\n      // The ballot must have ended.\\n      _mustStartOnOrAfter = _getTimeAfterBallot(_fundingCycle, _configured);\\n    }\\n\\n    // Return the newly initialized configurable funding cycle.\\n    fundingCycleId = _init(_projectId, _fundingCycle, _mustStartOnOrAfter, false);\\n  }\\n\\n  /**\\n        @notice \\n        Returns the funding cycle that can be tapped at the time of the call.\\n\\n        @param _projectId The ID of the project to find a configurable funding cycle for.\\n\\n        @return fundingCycleId The ID of the tappable funding cycle.\\n    */\\n  function _tappable(uint256 _projectId) private returns (uint256 fundingCycleId) {\\n    // Check for the ID of an eligible funding cycle.\\n    fundingCycleId = _eligible(_projectId);\\n\\n    // No eligible funding cycle found, check for the ID of a standby funding cycle.\\n    // If this one exists, it will become eligible one it has started.\\n    if (fundingCycleId == 0) fundingCycleId = _standby(_projectId);\\n\\n    // Keep a reference to the funding cycle eligible for being tappable.\\n    FundingCycle memory _fundingCycle;\\n\\n    // If the ID of an eligible funding cycle exists,\\n    // check to see if it has been approved by the based funding cycle's ballot.\\n    if (fundingCycleId > 0) {\\n      // Get the necessary properties for the funding cycle.\\n      _fundingCycle = _getStruct(fundingCycleId);\\n\\n      // Check to see if the cycle is approved. If so, return it.\\n      if (_fundingCycle.start <= block.timestamp && _isApproved(_fundingCycle))\\n        return fundingCycleId;\\n\\n      // If it hasn't been approved, set the ID to be the base funding cycle,\\n      // which carries the last approved configuration.\\n      fundingCycleId = _fundingCycle.basedOn;\\n    } else {\\n      // No upcoming funding cycle found that is eligible to become active, clone the latest active funding cycle.\\n      // which carries the last approved configuration.\\n      fundingCycleId = latestIdOf[_projectId];\\n    }\\n\\n    // The funding cycle cant be 0.\\n    require(fundingCycleId > 0, 'NOT_FOUND');\\n\\n    // Set the eligible funding cycle.\\n    _fundingCycle = _getStruct(fundingCycleId);\\n\\n    // Funding cycles with a discount rate of 100% are non-recurring.\\n    require(_fundingCycle.discountRate < 201, 'NON_RECURRING');\\n\\n    // The time when the funding cycle immediately after the eligible funding cycle starts.\\n    uint256 _nextImmediateStart = _fundingCycle.start + (_fundingCycle.duration * SECONDS_IN_DAY);\\n\\n    // The distance from now until the nearest past multiple of the cycle duration from its start.\\n    // A duration of zero means the reconfiguration can start right away.\\n    uint256 _timeFromImmediateStartMultiple = _fundingCycle.duration == 0\\n      ? 0\\n      : (block.timestamp - _nextImmediateStart) % (_fundingCycle.duration * SECONDS_IN_DAY);\\n\\n    // Return the tappable funding cycle.\\n    fundingCycleId = _init(\\n      _projectId,\\n      _fundingCycle,\\n      block.timestamp - _timeFromImmediateStartMultiple,\\n      true\\n    );\\n  }\\n\\n  /**\\n        @notice \\n        Initializes a funding cycle with the appropriate properties.\\n\\n        @param _projectId The ID of the project to which the funding cycle being initialized belongs.\\n        @param _baseFundingCycle The funding cycle to base the initialized one on.\\n        @param _mustStartOnOrAfter The time before which the initialized funding cycle can't start.\\n        @param _copy If non-intrinsic properties should be copied from the base funding cycle.\\n\\n        @return newFundingCycleId The ID of the initialized funding cycle.\\n    */\\n  function _init(\\n    uint256 _projectId,\\n    FundingCycle memory _baseFundingCycle,\\n    uint256 _mustStartOnOrAfter,\\n    bool _copy\\n  ) private returns (uint256 newFundingCycleId) {\\n    uint256 _id;\\n\\n    // If there is no base, initialize a first cycle.\\n    if (_baseFundingCycle.id == 0) {\\n      // The first number is 1.\\n      uint256 _number = 1;\\n\\n      _id = _idFor(_projectId, _number);\\n\\n      // Set fresh intrinsic properties.\\n      _packAndStoreIntrinsicProperties(\\n        _projectId,\\n        _number,\\n        BASE_WEIGHT,\\n        _baseFundingCycle.id,\\n        block.timestamp\\n      );\\n    } else {\\n      // Update the intrinsic properties of the funding cycle being initialized.\\n      _id = _updateFundingCycle(_baseFundingCycle, _mustStartOnOrAfter, _copy);\\n    }\\n\\n    // Set the project's latest funding cycle ID to the new count.\\n    latestIdOf[_projectId] = _id;\\n\\n    // Get a reference to the funding cycle with updated intrinsic properties.\\n    FundingCycle memory _fundingCycle = _getStruct(_id);\\n\\n    emit Init(\\n      _id,\\n      _fundingCycle.projectId,\\n      _fundingCycle.number,\\n      _fundingCycle.basedOn,\\n      _fundingCycle.weight,\\n      _fundingCycle.start\\n    );\\n\\n    return _fundingCycle.id;\\n  }\\n\\n  /**\\n        @notice \\n        The project's funding cycle that hasn't yet started, if one exists.\\n\\n        @param _projectId The ID of project to look through.\\n\\n        @return fundingCycleId The ID of the standby funding cycle.\\n    */\\n  function _standby(uint256 _projectId) private view returns (uint256 fundingCycleId) {\\n    // Get a reference to the project's latest funding cycle.\\n    fundingCycleId = latestIdOf[_projectId];\\n\\n    // If there isn't one, theres also no standy funding cycle.\\n    if (fundingCycleId == 0) return 0;\\n\\n    // Get the necessary properties for the latest funding cycle.\\n    FundingCycle memory _fundingCycle = _getStruct(fundingCycleId);\\n\\n    // There is no upcoming funding cycle if the latest funding cycle has already started.\\n    if (block.timestamp >= _fundingCycle.start) return 0;\\n  }\\n\\n  /**\\n        @notice \\n        The project's funding cycle that has started and hasn't yet expired.\\n\\n        @param _projectId The ID of the project to look through.\\n\\n        @return fundingCycleId The ID of the active funding cycle.\\n    */\\n  function _eligible(uint256 _projectId) private view returns (uint256 fundingCycleId) {\\n    // Get a reference to the project's latest funding cycle.\\n    fundingCycleId = latestIdOf[_projectId];\\n\\n    // If the latest funding cycle doesn't exist, return an undefined funding cycle.\\n    if (fundingCycleId == 0) return 0;\\n\\n    // Get the necessary properties for the latest funding cycle.\\n    FundingCycle memory _fundingCycle = _getStruct(fundingCycleId);\\n\\n    // If the latest is expired, return an undefined funding cycle.\\n    // A duration of 0 can not be expired.\\n    if (\\n      _fundingCycle.duration > 0 &&\\n      block.timestamp >= _fundingCycle.start + (_fundingCycle.duration * SECONDS_IN_DAY)\\n    ) return 0;\\n\\n    // The first funding cycle when running on local can be in the future for some reason.\\n    // This will have no effect in production.\\n    if (_fundingCycle.basedOn == 0 || block.timestamp >= _fundingCycle.start) return fundingCycleId;\\n\\n    // The base cant be expired.\\n    FundingCycle memory _baseFundingCycle = _getStruct(_fundingCycle.basedOn);\\n\\n    // If the current time is past the end of the base, return 0.\\n    // A duration of 0 is always eligible.\\n    if (\\n      _baseFundingCycle.duration > 0 &&\\n      block.timestamp >= _baseFundingCycle.start + (_baseFundingCycle.duration * SECONDS_IN_DAY)\\n    ) return 0;\\n\\n    // Return the funding cycle immediately before the latest.\\n    fundingCycleId = _fundingCycle.basedOn;\\n  }\\n\\n  /** \\n        @notice \\n        A view of the funding cycle that would be created based on the provided one if the project doesn't make a reconfiguration.\\n\\n        @param _baseFundingCycle The funding cycle to make the calculation for.\\n        @param _allowMidCycle Allow the mocked funding cycle to already be mid cycle.\\n\\n        @return The next funding cycle, with an ID set to 0.\\n    */\\n  function _mockFundingCycleBasedOn(FundingCycle memory _baseFundingCycle, bool _allowMidCycle)\\n    internal\\n    view\\n    returns (FundingCycle memory)\\n  {\\n    // Can't mock a non recurring funding cycle.\\n    if (_baseFundingCycle.discountRate == 201) return _getStruct(0);\\n\\n    // If the base has a limit, find the last permanent funding cycle, which is needed to make subsequent calculations.\\n    // Otherwise, the base is already the latest permanent funding cycle.\\n    FundingCycle memory _latestPermanentFundingCycle = _baseFundingCycle.cycleLimit > 0\\n      ? _latestPermanentCycleBefore(_baseFundingCycle)\\n      : _baseFundingCycle;\\n\\n    // The distance of the current time to the start of the next possible funding cycle.\\n    uint256 _timeFromImmediateStartMultiple;\\n\\n    if (_allowMidCycle && _baseFundingCycle.duration > 0) {\\n      // Get the end time of the last cycle.\\n      uint256 _cycleEnd = _baseFundingCycle.start +\\n        (_baseFundingCycle.cycleLimit * _baseFundingCycle.duration * SECONDS_IN_DAY);\\n\\n      // If the cycle end time is in the past, the mock should start at a multiple of the last permanent cycle since the cycle ended.\\n      if (_baseFundingCycle.cycleLimit > 0 && _cycleEnd < block.timestamp) {\\n        _timeFromImmediateStartMultiple = _latestPermanentFundingCycle.duration == 0\\n          ? 0\\n          : ((block.timestamp - _cycleEnd) %\\n            (_latestPermanentFundingCycle.duration * SECONDS_IN_DAY));\\n      } else {\\n        _timeFromImmediateStartMultiple = _baseFundingCycle.duration * SECONDS_IN_DAY;\\n      }\\n    } else {\\n      _timeFromImmediateStartMultiple = 0;\\n    }\\n\\n    // Derive what the start time should be.\\n    uint256 _start = _deriveStart(\\n      _baseFundingCycle,\\n      _latestPermanentFundingCycle,\\n      block.timestamp - _timeFromImmediateStartMultiple\\n    );\\n\\n    // Derive what the cycle limit should be.\\n    uint256 _cycleLimit = _deriveCycleLimit(_baseFundingCycle, _start);\\n\\n    // Copy the last permanent funding cycle if the bases' limit is up.\\n    FundingCycle memory _fundingCycleToCopy = _cycleLimit == 0\\n      ? _latestPermanentFundingCycle\\n      : _baseFundingCycle;\\n\\n    return\\n      FundingCycle(\\n        0,\\n        _fundingCycleToCopy.projectId,\\n        _deriveNumber(_baseFundingCycle, _latestPermanentFundingCycle, _start),\\n        _fundingCycleToCopy.id,\\n        _fundingCycleToCopy.configured,\\n        _cycleLimit,\\n        _deriveWeight(_baseFundingCycle, _latestPermanentFundingCycle, _start),\\n        _fundingCycleToCopy.ballot,\\n        _start,\\n        _fundingCycleToCopy.duration,\\n        _fundingCycleToCopy.target,\\n        _fundingCycleToCopy.currency,\\n        _fundingCycleToCopy.fee,\\n        _fundingCycleToCopy.discountRate,\\n        0,\\n        _fundingCycleToCopy.metadata\\n      );\\n  }\\n\\n  /** \\n      @notice\\n      Updates intrinsic properties for a funding cycle given a base cycle.\\n\\n      @param _baseFundingCycle The cycle that the one being updated is based on.\\n      @param _mustStartOnOrAfter The time before which the initialized funding cycle can't start.\\n      @param _copy If non-intrinsic properties should be copied from the base funding cycle.\\n\\n      @return fundingCycleId The ID of the funding cycle that was updated.\\n    */\\n  function _updateFundingCycle(\\n    FundingCycle memory _baseFundingCycle,\\n    uint256 _mustStartOnOrAfter,\\n    bool _copy\\n  ) private returns (uint256 fundingCycleId) {\\n    // Get the latest permanent funding cycle.\\n    FundingCycle memory _latestPermanentFundingCycle = _baseFundingCycle.cycleLimit > 0\\n      ? _latestPermanentCycleBefore(_baseFundingCycle)\\n      : _baseFundingCycle;\\n\\n    // Derive the correct next start time from the base.\\n    uint256 _start = _deriveStart(\\n      _baseFundingCycle,\\n      _latestPermanentFundingCycle,\\n      _mustStartOnOrAfter\\n    );\\n\\n    // Derive the correct weight.\\n    uint256 _weight = _deriveWeight(_baseFundingCycle, _latestPermanentFundingCycle, _start);\\n\\n    // Derive the correct number.\\n    uint256 _number = _deriveNumber(_baseFundingCycle, _latestPermanentFundingCycle, _start);\\n\\n    // Update the intrinsic properties.\\n    fundingCycleId = _packAndStoreIntrinsicProperties(\\n      _baseFundingCycle.projectId,\\n      _number,\\n      _weight,\\n      _baseFundingCycle.id,\\n      _start\\n    );\\n\\n    // Copy if needed.\\n    if (_copy) {\\n      // Derive what the cycle limit should be.\\n      uint256 _cycleLimit = _deriveCycleLimit(_baseFundingCycle, _start);\\n\\n      // Copy the last permanent funding cycle if the bases' limit is up.\\n      FundingCycle memory _fundingCycleToCopy = _cycleLimit == 0\\n        ? _latestPermanentFundingCycle\\n        : _baseFundingCycle;\\n\\n      // Save the configuration efficiently.\\n      _packAndStoreConfigurationProperties(\\n        fundingCycleId,\\n        _fundingCycleToCopy.configured,\\n        _cycleLimit,\\n        _fundingCycleToCopy.ballot,\\n        _fundingCycleToCopy.duration,\\n        _fundingCycleToCopy.currency,\\n        _fundingCycleToCopy.fee,\\n        _fundingCycleToCopy.discountRate\\n      );\\n\\n      _metadataOf[fundingCycleId] = _metadataOf[_fundingCycleToCopy.id];\\n      _targetOf[fundingCycleId] = _targetOf[_fundingCycleToCopy.id];\\n    }\\n  }\\n\\n  /**\\n      @notice \\n      Efficiently stores a funding cycle's provided intrinsic properties.\\n\\n      @param _projectId The ID of the project to which the funding cycle belongs.\\n      @param _number The number of the funding cycle.\\n      @param _weight The weight of the funding cycle.\\n      @param _basedOn The ID of the based funding cycle.\\n      @param _start The start time of this funding cycle.\\n\\n      @return fundingCycleId The ID of the funding cycle that was updated.\\n     */\\n  function _packAndStoreIntrinsicProperties(\\n    uint256 _projectId,\\n    uint256 _number,\\n    uint256 _weight,\\n    uint256 _basedOn,\\n    uint256 _start\\n  ) private returns (uint256 fundingCycleId) {\\n    // weight in bytes 0-79 bytes.\\n    uint256 packed = _weight;\\n    // projectId in bytes 80-135 bytes.\\n    packed |= _projectId << 80;\\n    // basedOn in bytes 136-183 bytes.\\n    packed |= _basedOn << 136;\\n    // start in bytes 184-231 bytes.\\n    packed |= _start << 184;\\n    // number in bytes 232-255 bytes.\\n    packed |= _number << 232;\\n\\n    // Construct the ID.\\n    fundingCycleId = _idFor(_projectId, _number);\\n\\n    // Set in storage.\\n    _packedIntrinsicPropertiesOf[fundingCycleId] = packed;\\n  }\\n\\n  /**\\n      @notice \\n      Efficiently stores a funding cycles provided configuration properties.\\n\\n      @param _fundingCycleId The ID of the funding cycle to pack and store.\\n      @param _configured The timestamp of the configuration.\\n      @param _cycleLimit The number of cycles that this configuration should last for before going back to the last permanent.\\n      @param _ballot The ballot to use for future reconfiguration approvals. \\n      @param _duration The duration of the funding cycle.\\n      @param _currency The currency of the funding cycle.\\n      @param _fee The fee of the funding cycle.\\n      @param _discountRate The discount rate of the based funding cycle.\\n     */\\n  function _packAndStoreConfigurationProperties(\\n    uint256 _fundingCycleId,\\n    uint256 _configured,\\n    uint256 _cycleLimit,\\n    IJBFundingCycleBallot _ballot,\\n    uint256 _duration,\\n    uint256 _currency,\\n    uint256 _fee,\\n    uint256 _discountRate\\n  ) private {\\n    // ballot in bytes 0-159 bytes.\\n    uint256 packed = uint160(address(_ballot));\\n    // configured in bytes 160-207 bytes.\\n    packed |= _configured << 160;\\n    // duration in bytes 208-223 bytes.\\n    packed |= _duration << 208;\\n    // basedOn in bytes 224-231 bytes.\\n    packed |= _currency << 224;\\n    // fee in bytes 232-239 bytes.\\n    packed |= _fee << 232;\\n    // discountRate in bytes 240-247 bytes.\\n    packed |= _discountRate << 240;\\n    // cycleLimit in bytes 248-255 bytes.\\n    packed |= _cycleLimit << 248;\\n\\n    // Set in storage.\\n    _packedConfigurationPropertiesOf[_fundingCycleId] = packed;\\n  }\\n\\n  /**\\n        @notice \\n        Unpack a funding cycle's packed stored values into an easy-to-work-with funding cycle struct.\\n\\n        @param _id The ID of the funding cycle to get a struct of.\\n\\n        @return _fundingCycle The funding cycle struct.\\n    */\\n  function _getStruct(uint256 _id) private view returns (FundingCycle memory _fundingCycle) {\\n    // Return an empty funding cycle if the ID specified is 0.\\n    if (_id == 0) return _fundingCycle;\\n\\n    _fundingCycle.id = _id;\\n\\n    uint256 _packedIntrinsicProperties = _packedIntrinsicPropertiesOf[_id];\\n\\n    _fundingCycle.weight = uint256(uint80(_packedIntrinsicProperties));\\n    _fundingCycle.projectId = uint256(uint56(_packedIntrinsicProperties >> 80));\\n    _fundingCycle.basedOn = uint256(uint48(_packedIntrinsicProperties >> 136));\\n    _fundingCycle.start = uint256(uint48(_packedIntrinsicProperties >> 184));\\n    _fundingCycle.number = uint256(uint24(_packedIntrinsicProperties >> 232));\\n\\n    uint256 _packedConfigurationProperties = _packedConfigurationPropertiesOf[_id];\\n    _fundingCycle.ballot = IJBFundingCycleBallot(address(uint160(_packedConfigurationProperties)));\\n    _fundingCycle.configured = uint256(uint48(_packedConfigurationProperties >> 160));\\n    _fundingCycle.duration = uint256(uint16(_packedConfigurationProperties >> 208));\\n    _fundingCycle.currency = uint256(uint8(_packedConfigurationProperties >> 224));\\n    _fundingCycle.fee = uint256(uint8(_packedConfigurationProperties >> 232));\\n    _fundingCycle.discountRate = uint256(uint8(_packedConfigurationProperties >> 240));\\n    _fundingCycle.cycleLimit = uint256(uint8(_packedConfigurationProperties >> 248));\\n    _fundingCycle.target = _targetOf[_id];\\n    _fundingCycle.tapped = _tappedOf[_id];\\n    _fundingCycle.metadata = _metadataOf[_id];\\n  }\\n\\n  /** \\n        @notice \\n        The date that is the nearest multiple of the specified funding cycle's duration from its end.\\n\\n        @param _baseFundingCycle The funding cycle to make the calculation for.\\n        @param _latestPermanentFundingCycle The latest funding cycle in the same project as `_baseFundingCycle` to not have a limit.\\n        @param _mustStartOnOrAfter A date that the derived start must be on or come after.\\n\\n        @return start The next start time.\\n    */\\n  function _deriveStart(\\n    FundingCycle memory _baseFundingCycle,\\n    FundingCycle memory _latestPermanentFundingCycle,\\n    uint256 _mustStartOnOrAfter\\n  ) internal pure returns (uint256 start) {\\n    // A subsequent cycle to one with a duration of 0 should start as soon as possible.\\n    if (_baseFundingCycle.duration == 0) return _mustStartOnOrAfter;\\n\\n    // Save a reference to the duration measured in seconds.\\n    uint256 _durationInSeconds = _baseFundingCycle.duration * SECONDS_IN_DAY;\\n\\n    // The time when the funding cycle immediately after the specified funding cycle starts.\\n    uint256 _nextImmediateStart = _baseFundingCycle.start + _durationInSeconds;\\n\\n    // If the next immediate start is now or in the future, return it.\\n    if (_nextImmediateStart >= _mustStartOnOrAfter) return _nextImmediateStart;\\n\\n    uint256 _cycleLimit = _baseFundingCycle.cycleLimit;\\n\\n    uint256 _timeFromImmediateStartMultiple;\\n    // Only use base\\n    if (_mustStartOnOrAfter <= _baseFundingCycle.start + _durationInSeconds * _cycleLimit) {\\n      // Otherwise, use the closest multiple of the duration from the old end.\\n      _timeFromImmediateStartMultiple =\\n        (_mustStartOnOrAfter - _nextImmediateStart) %\\n        _durationInSeconds;\\n    } else {\\n      // If the cycle has ended, make the calculation with the latest permanent funding cycle.\\n      _timeFromImmediateStartMultiple = _latestPermanentFundingCycle.duration == 0\\n        ? 0\\n        : ((_mustStartOnOrAfter - (_baseFundingCycle.start + (_durationInSeconds * _cycleLimit))) %\\n          (_latestPermanentFundingCycle.duration * SECONDS_IN_DAY));\\n\\n      // Use the duration of the permanent funding cycle from here on out.\\n      _durationInSeconds = _latestPermanentFundingCycle.duration * SECONDS_IN_DAY;\\n    }\\n\\n    // Otherwise use an increment of the duration from the most recent start.\\n    start = _mustStartOnOrAfter - _timeFromImmediateStartMultiple;\\n\\n    // Add increments of duration as necessary to satisfy the threshold.\\n    while (_mustStartOnOrAfter > start) start = start + _durationInSeconds;\\n  }\\n\\n  /** \\n        @notice \\n        The accumulated weight change since the specified funding cycle.\\n\\n        @param _baseFundingCycle The funding cycle to make the calculation with.\\n        @param _latestPermanentFundingCycle The latest funding cycle in the same project as `_fundingCycle` to not have a limit.\\n        @param _start The start time to derive a weight for.\\n\\n        @return weight The next weight.\\n    */\\n  function _deriveWeight(\\n    FundingCycle memory _baseFundingCycle,\\n    FundingCycle memory _latestPermanentFundingCycle,\\n    uint256 _start\\n  ) internal pure returns (uint256 weight) {\\n    // A subsequent cycle to one with a duration of 0 should have the next possible weight.\\n    if (_baseFundingCycle.duration == 0)\\n      return PRBMath.mulDiv(_baseFundingCycle.weight, 400 - _baseFundingCycle.discountRate, 400);\\n\\n    // The difference between the start of the base funding cycle and the proposed start.\\n    uint256 _startDistance = _start - _baseFundingCycle.start;\\n\\n    // The number of seconds that the base funding cycle is limited to.\\n    uint256 _limitLength = _baseFundingCycle.cycleLimit == 0 || _baseFundingCycle.basedOn == 0\\n      ? 0\\n      : _baseFundingCycle.cycleLimit * (_baseFundingCycle.duration * SECONDS_IN_DAY);\\n\\n    // The weight should be based off the base funding cycle's weight.\\n    weight = _baseFundingCycle.weight;\\n\\n    // If there's no limit or if the limit is greater than the start distance,\\n    // apply the discount rate of the base.\\n    if (_limitLength == 0 || _limitLength > _startDistance) {\\n      // If the discount rate is 0, return the same weight.\\n      if (_baseFundingCycle.discountRate == 0) return weight;\\n\\n      uint256 _discountMultiple = _startDistance / (_baseFundingCycle.duration * SECONDS_IN_DAY);\\n\\n      for (uint256 i = 0; i < _discountMultiple; i++) {\\n        // The number of times to apply the discount rate.\\n        // Base the new weight on the specified funding cycle's weight.\\n        weight = PRBMath.mulDiv(weight, 400 - _baseFundingCycle.discountRate, 400);\\n      }\\n    } else {\\n      // If the time between the base start at the given start is longer than\\n      // the limit, the discount rate for the limited base has to be applied first,\\n      // and then the discount rate for the last permanent should be applied to\\n      // the remaining distance.\\n\\n      // Use up the limited discount rate up until the limit.\\n      if (_baseFundingCycle.discountRate > 0) {\\n        for (uint256 i = 0; i < _baseFundingCycle.cycleLimit; i++) {\\n          weight = PRBMath.mulDiv(weight, 400 - _baseFundingCycle.discountRate, 400);\\n        }\\n      }\\n\\n      if (_latestPermanentFundingCycle.discountRate > 0) {\\n        // The number of times to apply the latest permanent discount rate.\\n\\n        uint256 _permanentDiscountMultiple = _latestPermanentFundingCycle.duration == 0\\n          ? 0\\n          : (_startDistance - _limitLength) /\\n            (_latestPermanentFundingCycle.duration * SECONDS_IN_DAY);\\n\\n        for (uint256 i = 0; i < _permanentDiscountMultiple; i++) {\\n          // base the weight on the result of the previous calculation.\\n          weight = PRBMath.mulDiv(weight, 400 - _latestPermanentFundingCycle.discountRate, 400);\\n        }\\n      }\\n    }\\n  }\\n\\n  /** \\n        @notice \\n        The number of the next funding cycle given the specified funding cycle.\\n\\n        @param _baseFundingCycle The funding cycle to make the calculation with.\\n        @param _latestPermanentFundingCycle The latest funding cycle in the same project as `_fundingCycle` to not have a limit.\\n        @param _start The start time to derive a number for.\\n\\n        @return number The next number.\\n    */\\n  function _deriveNumber(\\n    FundingCycle memory _baseFundingCycle,\\n    FundingCycle memory _latestPermanentFundingCycle,\\n    uint256 _start\\n  ) internal pure returns (uint256 number) {\\n    // A subsequent cycle to one with a duration of 0 should be the next number.\\n    if (_baseFundingCycle.duration == 0) return _baseFundingCycle.number + 1;\\n\\n    // The difference between the start of the base funding cycle and the proposed start.\\n    uint256 _startDistance = _start - _baseFundingCycle.start;\\n\\n    // The number of seconds that the base funding cycle is limited to.\\n    uint256 _limitLength = _baseFundingCycle.cycleLimit == 0\\n      ? 0\\n      : _baseFundingCycle.cycleLimit * (_baseFundingCycle.duration * SECONDS_IN_DAY);\\n\\n    if (_limitLength == 0 || _limitLength > _startDistance) {\\n      // If there's no limit or if the limit is greater than the start distance,\\n      // get the result by finding the number of base cycles that fit in the start distance.\\n      number =\\n        _baseFundingCycle.number +\\n        (_startDistance / (_baseFundingCycle.duration * SECONDS_IN_DAY));\\n    } else {\\n      // If the time between the base start at the given start is longer than\\n      // the limit, first calculate the number of cycles that passed under the limit,\\n      // and add any cycles that have passed of the latest permanent funding cycle afterwards.\\n\\n      number =\\n        _baseFundingCycle.number +\\n        (_limitLength / (_baseFundingCycle.duration * SECONDS_IN_DAY));\\n\\n      number =\\n        number +\\n        (\\n          _latestPermanentFundingCycle.duration == 0\\n            ? 0\\n            : ((_startDistance - _limitLength) /\\n              (_latestPermanentFundingCycle.duration * SECONDS_IN_DAY))\\n        );\\n    }\\n  }\\n\\n  /** \\n        @notice \\n        The limited number of times a funding cycle configuration can be active given the specified funding cycle.\\n\\n        @param _fundingCycle The funding cycle to make the calculation with.\\n        @param _start The start time to derive cycles remaining for.\\n\\n        @return start The inclusive nunmber of cycles remaining.\\n    */\\n  function _deriveCycleLimit(FundingCycle memory _fundingCycle, uint256 _start)\\n    internal\\n    pure\\n    returns (uint256)\\n  {\\n    if (_fundingCycle.cycleLimit <= 1 || _fundingCycle.duration == 0) return 0;\\n    uint256 _cycles = ((_start - _fundingCycle.start) / (_fundingCycle.duration * SECONDS_IN_DAY));\\n\\n    if (_cycles >= _fundingCycle.cycleLimit) return 0;\\n    return _fundingCycle.cycleLimit - _cycles;\\n  }\\n\\n  /** \\n      @notice \\n      Checks to see if the funding cycle of the provided ID is approved according to the correct ballot.\\n\\n      @param _fundingCycleId The ID of the funding cycle to get an approval flag for.\\n\\n      @return The approval flag.\\n    */\\n  function _isIdApproved(uint256 _fundingCycleId) private view returns (bool) {\\n    FundingCycle memory _fundingCycle = _getStruct(_fundingCycleId);\\n    return _isApproved(_fundingCycle);\\n  }\\n\\n  /** \\n      @notice \\n      Checks to see if the provided funding cycle is approved according to the correct ballot.\\n\\n      @param _fundingCycle The ID of the funding cycle to get an approval flag for.\\n\\n      @return The approval flag.\\n    */\\n  function _isApproved(FundingCycle memory _fundingCycle) private view returns (bool) {\\n    return\\n      _ballotState(_fundingCycle.id, _fundingCycle.configured, _fundingCycle.basedOn) ==\\n      BallotState.Approved;\\n  }\\n\\n  /**\\n        @notice \\n        A funding cycle configuration's currency status.\\n\\n        @param _id The ID of the funding cycle configuration to check the status of.\\n        @param _configuration The timestamp of when the configuration took place.\\n        @param _ballotFundingCycleId The ID of the funding cycle which is configured with the ballot that should be used.\\n\\n        @return The funding cycle's configuration status.\\n    */\\n  function _ballotState(\\n    uint256 _id,\\n    uint256 _configuration,\\n    uint256 _ballotFundingCycleId\\n  ) private view returns (BallotState) {\\n    // If there is no ballot funding cycle, auto approve.\\n    if (_ballotFundingCycleId == 0) return BallotState.Approved;\\n\\n    // Get the ballot funding cycle.\\n    FundingCycle memory _ballotFundingCycle = _getStruct(_ballotFundingCycleId);\\n\\n    // If the configuration is the same as the ballot's funding cycle,\\n    // the ballot isn't applicable. Auto approve since the ballot funding cycle is approved.\\n    if (_ballotFundingCycle.configured == _configuration) return BallotState.Approved;\\n\\n    // If there is no ballot, the ID is auto approved.\\n    // Otherwise, return the ballot's state.\\n    return\\n      _ballotFundingCycle.ballot == IJBFundingCycleBallot(address(0))\\n        ? BallotState.Approved\\n        : _ballotFundingCycle.ballot.state(_id, _configuration);\\n  }\\n\\n  /** \\n      @notice \\n      Finds the last funding cycle that was permanent in relation to the specified funding cycle.\\n\\n      @dev\\n      Determined what the latest funding cycle with a `cycleLimit` of 0 is, or isn't based on any previous funding cycle.\\n\\n\\n      @param _fundingCycle The funding cycle to find the most recent permanent cycle compared to.\\n\\n      @return fundingCycle The most recent permanent funding cycle.\\n    */\\n  function _latestPermanentCycleBefore(FundingCycle memory _fundingCycle)\\n    private\\n    view\\n    returns (FundingCycle memory fundingCycle)\\n  {\\n    if (_fundingCycle.basedOn == 0) return _fundingCycle;\\n    fundingCycle = _getStruct(_fundingCycle.basedOn);\\n    if (fundingCycle.cycleLimit == 0) return fundingCycle;\\n    return _latestPermanentCycleBefore(fundingCycle);\\n  }\\n\\n  /** \\n      @notice\\n      The time after the ballot of the provided funding cycle has expired.\\n\\n      @dev\\n      If the ballot ends in the past, the current block timestamp will be returned.\\n\\n      @param _fundingCycle The ID funding cycle to make the caluclation the ballot of.\\n      @param _from The time from which the ballot duration should be calculated.\\n\\n      @return The time when the ballot duration ends.\\n    */\\n  function _getTimeAfterBallot(FundingCycle memory _fundingCycle, uint256 _from)\\n    private\\n    view\\n    returns (uint256)\\n  {\\n    // The ballot must have ended.\\n    uint256 _ballotExpiration = _fundingCycle.ballot != IJBFundingCycleBallot(address(0))\\n      ? _from + _fundingCycle.ballot.duration()\\n      : 0;\\n\\n    return block.timestamp > _ballotExpiration ? block.timestamp : _ballotExpiration;\\n  }\\n\\n  /** \\n      @notice \\n      Constructs a unique ID from a project ID and a number.\\n\\n      @param _projectId The ID of the project to use in the ID.\\n      @param _number The number to use in the ID\\n\\n      @return An ID.\\n\\n    */\\n  function _idFor(uint256 _projectId, uint256 _number) private pure returns (uint256) {\\n    return uint256(uint56(_projectId) | uint24(_number));\\n  }\\n}\\n\",\"keccak256\":\"0xc0bc3199257ad09ffc3aa72568a8a110d010bfa8af7028aa3679b26cfc451df1\",\"license\":\"MIT\"},\"contracts/v2/abstract/JBTerminalUtility.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.6;\\n\\nimport './../interfaces/IJBTerminalUtility.sol';\\n\\nabstract contract JBTerminalUtility is IJBTerminalUtility {\\n  modifier onlyTerminal(uint256 _projectId) {\\n    require(\\n      address(directory.terminalOf(_projectId, address(0))) == msg.sender,\\n      'TerminalUtility: UNAUTHORIZED'\\n    );\\n    _;\\n  }\\n\\n  // modifier onlyTerminalOrBootloader(uint256 _projectId) {\\n  //     require(\\n  //         msg.sender == address(directory.terminalOf(_projectId)) ||\\n  //             msg.sender == bootloader,\\n  //         \\\"TerminalUtility: UNAUTHORIZED\\\"\\n  //     );\\n  //     _;\\n  // }\\n\\n  /// @notice The direct deposit terminals.\\n  IJBDirectory public immutable override directory;\\n\\n  /// @notice The direct deposit terminals.\\n  // address public immutable override bootloader;\\n\\n  /** \\n      @param _directory A directory of a project's current Juicebox terminal to receive payments in.\\n    */\\n  constructor(IJBDirectory _directory) {\\n    directory = _directory;\\n    // bootloader = _bootloader;\\n  }\\n}\\n\",\"keccak256\":\"0x4e8e45e2eb66d29b359d682465a23eeaaab038af3771524bfb0e35ffc792d4b2\",\"license\":\"MIT\"},\"contracts/v2/interfaces/IJBDirectory.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.6;\\n\\nimport './IJBTerminal.sol';\\nimport './IJBProjects.sol';\\n\\ninterface IJBDirectory {\\n  event SetTerminal(uint256 indexed projectId, IJBTerminal indexed terminal, address caller);\\n\\n  function projects() external view returns (IJBProjects);\\n\\n  function terminalOf(uint256 _projectId, address _token) external view returns (IJBTerminal);\\n\\n  function terminalsOf(uint256 _projectId) external view returns (IJBTerminal[] memory);\\n\\n  function isTerminalOf(uint256 _projectId, address _terminal) external view returns (bool);\\n\\n  function addTerminalOf(uint256 _projectId, IJBTerminal _terminal) external;\\n\\n  // function setTerminalOf(uint256 _projectId, IJBTerminal _terminal) external;\\n\\n  function transferTerminalOf(uint256 _projectId, IJBTerminal _terminal) external;\\n}\\n\",\"keccak256\":\"0x424a085a82a0fd0d3c9ea67f639ee4dbf44d9187af5e632e98490286cf8b78ee\",\"license\":\"MIT\"},\"contracts/v2/interfaces/IJBFundingCycleBallot.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.6;\\n\\nenum BallotState {\\n  Approved,\\n  Active,\\n  Failed,\\n  Standby\\n}\\n\\ninterface IJBFundingCycleBallot {\\n  function duration() external view returns (uint256);\\n\\n  function state(uint256 _fundingCycleId, uint256 _configured) external view returns (BallotState);\\n}\\n\",\"keccak256\":\"0xd521aeeb37058a6ec07ad82f52f25eb6c3318e17b24584cd90d07a49521ec201\",\"license\":\"MIT\"},\"contracts/v2/interfaces/IJBFundingCycleStore.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.6;\\n\\nimport './IJBFundingCycleBallot.sol';\\n\\n/// @notice The funding cycle structure represents a project stewarded by an address, and accounts for which addresses have helped sustain the project.\\nstruct FundingCycle {\\n  // A unique number that's incremented for each new funding cycle, starting with 1.\\n  uint256 id;\\n  // The ID of the project contract that this funding cycle belongs to.\\n  uint256 projectId;\\n  // The number of this funding cycle for the project.\\n  uint256 number;\\n  // The ID of a previous funding cycle that this one is based on.\\n  uint256 basedOn;\\n  // The time when this funding cycle was last configured.\\n  uint256 configured;\\n  // The number of cycles that this configuration should last for before going back to the last permanent cycle. A value of 0 is a permanent cycle.\\n  uint256 cycleLimit;\\n  // A number determining the amount of redistribution shares this funding cycle will issue to each sustainer.\\n  uint256 weight;\\n  // The ballot contract to use to determine a subsequent funding cycle's reconfiguration status.\\n  IJBFundingCycleBallot ballot;\\n  // The time when this funding cycle will become active.\\n  uint256 start;\\n  // The number of seconds until this funding cycle's surplus is redistributed.\\n  uint256 duration;\\n  // The amount that this funding cycle is targeting in terms of the currency.\\n  uint256 target;\\n  // The currency that the target is measured in.\\n  uint256 currency;\\n  // The percentage of each payment to send as a fee to the Juicebox admin.\\n  uint256 fee;\\n  // A percentage indicating how much more weight to give a funding cycle compared to its predecessor.\\n  uint256 discountRate;\\n  // The amount of available funds that have been tapped by the project in terms of the currency.\\n  uint256 tapped;\\n  // A packed list of extra data. The first 8 bytes are reserved for versioning.\\n  uint256 metadata;\\n}\\n\\nstruct FundingCycleProperties {\\n  uint256 target;\\n  uint256 currency;\\n  uint256 duration;\\n  uint256 cycleLimit;\\n  uint256 discountRate;\\n  IJBFundingCycleBallot ballot;\\n}\\n\\ninterface IJBFundingCycleStore {\\n  event Configure(\\n    uint256 indexed fundingCycleId,\\n    uint256 indexed projectId,\\n    uint256 reconfigured,\\n    FundingCycleProperties properties,\\n    uint256 metadata,\\n    address caller\\n  );\\n\\n  event Tap(\\n    uint256 indexed fundingCycleId,\\n    uint256 indexed projectId,\\n    uint256 amount,\\n    uint256 newTappedAmount,\\n    address caller\\n  );\\n\\n  event Init(\\n    uint256 indexed fundingCycleId,\\n    uint256 indexed projectId,\\n    uint256 indexed number,\\n    uint256 basedOn,\\n    uint256 weight,\\n    uint256 start\\n  );\\n\\n  function latestIdOf(uint256 _projectId) external view returns (uint256);\\n\\n  function BASE_WEIGHT() external view returns (uint256);\\n\\n  function MAX_CYCLE_LIMIT() external view returns (uint256);\\n\\n  function get(uint256 _fundingCycleId) external view returns (FundingCycle memory);\\n\\n  function queuedOf(uint256 _projectId) external view returns (FundingCycle memory);\\n\\n  function currentOf(uint256 _projectId) external view returns (FundingCycle memory);\\n\\n  function currentBallotStateOf(uint256 _projectId) external view returns (BallotState);\\n\\n  function configureFor(\\n    uint256 _projectId,\\n    FundingCycleProperties calldata _properties,\\n    uint256 _metadata,\\n    uint256 _fee,\\n    bool _configureActiveFundingCycle\\n  ) external returns (FundingCycle memory fundingCycle);\\n\\n  function tapFrom(uint256 _projectId, uint256 _amount)\\n    external\\n    returns (FundingCycle memory fundingCycle);\\n}\\n\",\"keccak256\":\"0x9ce073b868628fa57d5c067a0f10d9a8649bea04cfa6b06aaafdf70acd453298\",\"license\":\"MIT\"},\"contracts/v2/interfaces/IJBProjects.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.6;\\n\\nimport '@openzeppelin/contracts/token/ERC721/IERC721.sol';\\n\\nimport './IJBTerminal.sol';\\n\\ninterface IJBProjects is IERC721 {\\n  event Create(\\n    uint256 indexed projectId,\\n    address indexed owner,\\n    bytes32 indexed handle,\\n    string uri,\\n    address caller\\n  );\\n\\n  event SetHandle(uint256 indexed projectId, bytes32 indexed handle, address caller);\\n\\n  event SetUri(uint256 indexed projectId, string uri, address caller);\\n\\n  event TransferHandle(\\n    uint256 indexed projectId,\\n    address indexed transferAddress,\\n    bytes32 indexed handle,\\n    bytes32 newHandle,\\n    address caller\\n  );\\n\\n  event ClaimHandle(\\n    uint256 indexed projectId,\\n    address indexed transferAddress,\\n    bytes32 indexed handle,\\n    address caller\\n  );\\n\\n  event ChallengeHandle(\\n    bytes32 indexed handle,\\n    uint256 indexed projectId,\\n    uint256 challengeExpiry,\\n    address caller\\n  );\\n\\n  event RenewHandle(bytes32 indexed handle, uint256 indexed projectId, address caller);\\n\\n  function count() external view returns (uint256);\\n\\n  function uriOf(uint256 _projectId) external view returns (string memory);\\n\\n  function handleOf(uint256 _projectId) external returns (bytes32 handle);\\n\\n  function idFor(bytes32 _handle) external returns (uint256 projectId);\\n\\n  function transferAddressFor(bytes32 _handle) external returns (address receiver);\\n\\n  function challengeExpiryOf(bytes32 _handle) external returns (uint256);\\n\\n  function createFor(\\n    address _owner,\\n    bytes32 _handle,\\n    string calldata _uri\\n  ) external returns (uint256 id);\\n\\n  function setHandleOf(uint256 _projectId, bytes32 _handle) external;\\n\\n  function setUriOf(uint256 _projectId, string calldata _uri) external;\\n\\n  function transferHandleOf(\\n    uint256 _projectId,\\n    address _transferAddress,\\n    bytes32 _newHandle\\n  ) external returns (bytes32 _handle);\\n\\n  function claimHandle(\\n    bytes32 _handle,\\n    address _for,\\n    uint256 _projectId\\n  ) external;\\n\\n  function challengeHandle(bytes32 _handle) external;\\n\\n  function renewHandleOf(uint256 _projectId) external;\\n}\\n\",\"keccak256\":\"0x71aa7f550e070d6a722da7174df285ee9d32119d71a39ba51fcc7ca0ddaddef4\",\"license\":\"MIT\"},\"contracts/v2/interfaces/IJBTerminal.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.6;\\n\\nimport './IJBDirectory.sol';\\n\\ninterface IJBTerminal {\\n  function pay(\\n    uint256 _projectId,\\n    address _beneficiary,\\n    uint256 _minReturnedTickets,\\n    bool _preferUnstakedTickets,\\n    string calldata _memo,\\n    bytes calldata _delegateMetadata\\n  ) external payable returns (uint256 fundingCycleId);\\n\\n  function addToBalanceOf(uint256 _projectId, string memory _memo) external payable;\\n}\\n\",\"keccak256\":\"0x9807eacb780b8a5a9c236913bd741a6386ff680d9513914900503d8754db2285\",\"license\":\"MIT\"},\"contracts/v2/interfaces/IJBTerminalUtility.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.6;\\n\\nimport './IJBDirectory.sol';\\n\\ninterface IJBTerminalUtility {\\n  function directory() external view returns (IJBDirectory);\\n\\n  // function bootloader() external view returns (address);\\n}\\n\",\"keccak256\":\"0xe4bcc464fdb54b0d18eaf7b1818fdde4cb58720a9e1586aea7511ecc7d61bb90\",\"license\":\"MIT\"},\"prb-math/contracts/PRBMath.sol\":{\"content\":\"// SPDX-License-Identifier: WTFPL\\npragma solidity >=0.8.4;\\n\\n/// @notice Emitted when the result overflows uint256.\\nerror PRBMath__MulDivFixedPointOverflow(uint256 prod1);\\n\\n/// @notice Emitted when the result overflows uint256.\\nerror PRBMath__MulDivOverflow(uint256 prod1, uint256 denominator);\\n\\n/// @notice Emitted when one of the inputs is type(int256).min.\\nerror PRBMath__MulDivSignedInputTooSmall();\\n\\n/// @notice Emitted when the intermediary absolute result overflows int256.\\nerror PRBMath__MulDivSignedOverflow(uint256 rAbs);\\n\\n/// @notice Emitted when the input is MIN_SD59x18.\\nerror PRBMathSD59x18__AbsInputTooSmall();\\n\\n/// @notice Emitted when ceiling a number overflows SD59x18.\\nerror PRBMathSD59x18__CeilOverflow(int256 x);\\n\\n/// @notice Emitted when one of the inputs is MIN_SD59x18.\\nerror PRBMathSD59x18__DivInputTooSmall();\\n\\n/// @notice Emitted when one of the intermediary unsigned results overflows SD59x18.\\nerror PRBMathSD59x18__DivOverflow(uint256 rAbs);\\n\\n/// @notice Emitted when the input is greater than 133.084258667509499441.\\nerror PRBMathSD59x18__ExpInputTooBig(int256 x);\\n\\n/// @notice Emitted when the input is greater than 192.\\nerror PRBMathSD59x18__Exp2InputTooBig(int256 x);\\n\\n/// @notice Emitted when flooring a number underflows SD59x18.\\nerror PRBMathSD59x18__FloorUnderflow(int256 x);\\n\\n/// @notice Emitted when converting a basic integer to the fixed-point format overflows SD59x18.\\nerror PRBMathSD59x18__FromIntOverflow(int256 x);\\n\\n/// @notice Emitted when converting a basic integer to the fixed-point format underflows SD59x18.\\nerror PRBMathSD59x18__FromIntUnderflow(int256 x);\\n\\n/// @notice Emitted when the product of the inputs is negative.\\nerror PRBMathSD59x18__GmNegativeProduct(int256 x, int256 y);\\n\\n/// @notice Emitted when multiplying the inputs overflows SD59x18.\\nerror PRBMathSD59x18__GmOverflow(int256 x, int256 y);\\n\\n/// @notice Emitted when the input is less than or equal to zero.\\nerror PRBMathSD59x18__LogInputTooSmall(int256 x);\\n\\n/// @notice Emitted when one of the inputs is MIN_SD59x18.\\nerror PRBMathSD59x18__MulInputTooSmall();\\n\\n/// @notice Emitted when the intermediary absolute result overflows SD59x18.\\nerror PRBMathSD59x18__MulOverflow(uint256 rAbs);\\n\\n/// @notice Emitted when the intermediary absolute result overflows SD59x18.\\nerror PRBMathSD59x18__PowuOverflow(uint256 rAbs);\\n\\n/// @notice Emitted when the input is negative.\\nerror PRBMathSD59x18__SqrtNegativeInput(int256 x);\\n\\n/// @notice Emitted when the calculting the square root overflows SD59x18.\\nerror PRBMathSD59x18__SqrtOverflow(int256 x);\\n\\n/// @notice Emitted when addition overflows UD60x18.\\nerror PRBMathUD60x18__AddOverflow(uint256 x, uint256 y);\\n\\n/// @notice Emitted when ceiling a number overflows UD60x18.\\nerror PRBMathUD60x18__CeilOverflow(uint256 x);\\n\\n/// @notice Emitted when the input is greater than 133.084258667509499441.\\nerror PRBMathUD60x18__ExpInputTooBig(uint256 x);\\n\\n/// @notice Emitted when the input is greater than 192.\\nerror PRBMathUD60x18__Exp2InputTooBig(uint256 x);\\n\\n/// @notice Emitted when converting a basic integer to the fixed-point format format overflows UD60x18.\\nerror PRBMathUD60x18__FromUintOverflow(uint256 x);\\n\\n/// @notice Emitted when multiplying the inputs overflows UD60x18.\\nerror PRBMathUD60x18__GmOverflow(uint256 x, uint256 y);\\n\\n/// @notice Emitted when the input is less than 1.\\nerror PRBMathUD60x18__LogInputTooSmall(uint256 x);\\n\\n/// @notice Emitted when the calculting the square root overflows UD60x18.\\nerror PRBMathUD60x18__SqrtOverflow(uint256 x);\\n\\n/// @notice Emitted when subtraction underflows UD60x18.\\nerror PRBMathUD60x18__SubUnderflow(uint256 x, uint256 y);\\n\\n/// @dev Common mathematical functions used in both PRBMathSD59x18 and PRBMathUD60x18. Note that this shared library\\n/// does not always assume the signed 59.18-decimal fixed-point or the unsigned 60.18-decimal fixed-point\\n/// representation. When it does not, it is explictly mentioned in the NatSpec documentation.\\nlibrary PRBMath {\\n    /// STRUCTS ///\\n\\n    struct SD59x18 {\\n        int256 value;\\n    }\\n\\n    struct UD60x18 {\\n        uint256 value;\\n    }\\n\\n    /// STORAGE ///\\n\\n    /// @dev How many trailing decimals can be represented.\\n    uint256 internal constant SCALE = 1e18;\\n\\n    /// @dev Largest power of two divisor of SCALE.\\n    uint256 internal constant SCALE_LPOTD = 262144;\\n\\n    /// @dev SCALE inverted mod 2^256.\\n    uint256 internal constant SCALE_INVERSE = 78156646155174841979727994598816262306175212592076161876661508869554232690281;\\n\\n    /// FUNCTIONS ///\\n\\n    /// @notice Calculates the binary exponent of x using the binary fraction method.\\n    /// @dev Has to use 192.64-bit fixed-point numbers.\\n    /// See https://ethereum.stackexchange.com/a/96594/24693.\\n    /// @param x The exponent as an unsigned 192.64-bit fixed-point number.\\n    /// @return result The result as an unsigned 60.18-decimal fixed-point number.\\n    function exp2(uint256 x) internal pure returns (uint256 result) {\\n        unchecked {\\n            // Start from 0.5 in the 192.64-bit fixed-point format.\\n            result = 0x800000000000000000000000000000000000000000000000;\\n\\n            // Multiply the result by root(2, 2^-i) when the bit at position i is 1. None of the intermediary results overflows\\n            // because the initial result is 2^191 and all magic factors are less than 2^65.\\n            if (x & 0x8000000000000000 > 0) {\\n                result = (result * 0x16A09E667F3BCC909) >> 64;\\n            }\\n            if (x & 0x4000000000000000 > 0) {\\n                result = (result * 0x1306FE0A31B7152DF) >> 64;\\n            }\\n            if (x & 0x2000000000000000 > 0) {\\n                result = (result * 0x1172B83C7D517ADCE) >> 64;\\n            }\\n            if (x & 0x1000000000000000 > 0) {\\n                result = (result * 0x10B5586CF9890F62A) >> 64;\\n            }\\n            if (x & 0x800000000000000 > 0) {\\n                result = (result * 0x1059B0D31585743AE) >> 64;\\n            }\\n            if (x & 0x400000000000000 > 0) {\\n                result = (result * 0x102C9A3E778060EE7) >> 64;\\n            }\\n            if (x & 0x200000000000000 > 0) {\\n                result = (result * 0x10163DA9FB33356D8) >> 64;\\n            }\\n            if (x & 0x100000000000000 > 0) {\\n                result = (result * 0x100B1AFA5ABCBED61) >> 64;\\n            }\\n            if (x & 0x80000000000000 > 0) {\\n                result = (result * 0x10058C86DA1C09EA2) >> 64;\\n            }\\n            if (x & 0x40000000000000 > 0) {\\n                result = (result * 0x1002C605E2E8CEC50) >> 64;\\n            }\\n            if (x & 0x20000000000000 > 0) {\\n                result = (result * 0x100162F3904051FA1) >> 64;\\n            }\\n            if (x & 0x10000000000000 > 0) {\\n                result = (result * 0x1000B175EFFDC76BA) >> 64;\\n            }\\n            if (x & 0x8000000000000 > 0) {\\n                result = (result * 0x100058BA01FB9F96D) >> 64;\\n            }\\n            if (x & 0x4000000000000 > 0) {\\n                result = (result * 0x10002C5CC37DA9492) >> 64;\\n            }\\n            if (x & 0x2000000000000 > 0) {\\n                result = (result * 0x1000162E525EE0547) >> 64;\\n            }\\n            if (x & 0x1000000000000 > 0) {\\n                result = (result * 0x10000B17255775C04) >> 64;\\n            }\\n            if (x & 0x800000000000 > 0) {\\n                result = (result * 0x1000058B91B5BC9AE) >> 64;\\n            }\\n            if (x & 0x400000000000 > 0) {\\n                result = (result * 0x100002C5C89D5EC6D) >> 64;\\n            }\\n            if (x & 0x200000000000 > 0) {\\n                result = (result * 0x10000162E43F4F831) >> 64;\\n            }\\n            if (x & 0x100000000000 > 0) {\\n                result = (result * 0x100000B1721BCFC9A) >> 64;\\n            }\\n            if (x & 0x80000000000 > 0) {\\n                result = (result * 0x10000058B90CF1E6E) >> 64;\\n            }\\n            if (x & 0x40000000000 > 0) {\\n                result = (result * 0x1000002C5C863B73F) >> 64;\\n            }\\n            if (x & 0x20000000000 > 0) {\\n                result = (result * 0x100000162E430E5A2) >> 64;\\n            }\\n            if (x & 0x10000000000 > 0) {\\n                result = (result * 0x1000000B172183551) >> 64;\\n            }\\n            if (x & 0x8000000000 > 0) {\\n                result = (result * 0x100000058B90C0B49) >> 64;\\n            }\\n            if (x & 0x4000000000 > 0) {\\n                result = (result * 0x10000002C5C8601CC) >> 64;\\n            }\\n            if (x & 0x2000000000 > 0) {\\n                result = (result * 0x1000000162E42FFF0) >> 64;\\n            }\\n            if (x & 0x1000000000 > 0) {\\n                result = (result * 0x10000000B17217FBB) >> 64;\\n            }\\n            if (x & 0x800000000 > 0) {\\n                result = (result * 0x1000000058B90BFCE) >> 64;\\n            }\\n            if (x & 0x400000000 > 0) {\\n                result = (result * 0x100000002C5C85FE3) >> 64;\\n            }\\n            if (x & 0x200000000 > 0) {\\n                result = (result * 0x10000000162E42FF1) >> 64;\\n            }\\n            if (x & 0x100000000 > 0) {\\n                result = (result * 0x100000000B17217F8) >> 64;\\n            }\\n            if (x & 0x80000000 > 0) {\\n                result = (result * 0x10000000058B90BFC) >> 64;\\n            }\\n            if (x & 0x40000000 > 0) {\\n                result = (result * 0x1000000002C5C85FE) >> 64;\\n            }\\n            if (x & 0x20000000 > 0) {\\n                result = (result * 0x100000000162E42FF) >> 64;\\n            }\\n            if (x & 0x10000000 > 0) {\\n                result = (result * 0x1000000000B17217F) >> 64;\\n            }\\n            if (x & 0x8000000 > 0) {\\n                result = (result * 0x100000000058B90C0) >> 64;\\n            }\\n            if (x & 0x4000000 > 0) {\\n                result = (result * 0x10000000002C5C860) >> 64;\\n            }\\n            if (x & 0x2000000 > 0) {\\n                result = (result * 0x1000000000162E430) >> 64;\\n            }\\n            if (x & 0x1000000 > 0) {\\n                result = (result * 0x10000000000B17218) >> 64;\\n            }\\n            if (x & 0x800000 > 0) {\\n                result = (result * 0x1000000000058B90C) >> 64;\\n            }\\n            if (x & 0x400000 > 0) {\\n                result = (result * 0x100000000002C5C86) >> 64;\\n            }\\n            if (x & 0x200000 > 0) {\\n                result = (result * 0x10000000000162E43) >> 64;\\n            }\\n            if (x & 0x100000 > 0) {\\n                result = (result * 0x100000000000B1721) >> 64;\\n            }\\n            if (x & 0x80000 > 0) {\\n                result = (result * 0x10000000000058B91) >> 64;\\n            }\\n            if (x & 0x40000 > 0) {\\n                result = (result * 0x1000000000002C5C8) >> 64;\\n            }\\n            if (x & 0x20000 > 0) {\\n                result = (result * 0x100000000000162E4) >> 64;\\n            }\\n            if (x & 0x10000 > 0) {\\n                result = (result * 0x1000000000000B172) >> 64;\\n            }\\n            if (x & 0x8000 > 0) {\\n                result = (result * 0x100000000000058B9) >> 64;\\n            }\\n            if (x & 0x4000 > 0) {\\n                result = (result * 0x10000000000002C5D) >> 64;\\n            }\\n            if (x & 0x2000 > 0) {\\n                result = (result * 0x1000000000000162E) >> 64;\\n            }\\n            if (x & 0x1000 > 0) {\\n                result = (result * 0x10000000000000B17) >> 64;\\n            }\\n            if (x & 0x800 > 0) {\\n                result = (result * 0x1000000000000058C) >> 64;\\n            }\\n            if (x & 0x400 > 0) {\\n                result = (result * 0x100000000000002C6) >> 64;\\n            }\\n            if (x & 0x200 > 0) {\\n                result = (result * 0x10000000000000163) >> 64;\\n            }\\n            if (x & 0x100 > 0) {\\n                result = (result * 0x100000000000000B1) >> 64;\\n            }\\n            if (x & 0x80 > 0) {\\n                result = (result * 0x10000000000000059) >> 64;\\n            }\\n            if (x & 0x40 > 0) {\\n                result = (result * 0x1000000000000002C) >> 64;\\n            }\\n            if (x & 0x20 > 0) {\\n                result = (result * 0x10000000000000016) >> 64;\\n            }\\n            if (x & 0x10 > 0) {\\n                result = (result * 0x1000000000000000B) >> 64;\\n            }\\n            if (x & 0x8 > 0) {\\n                result = (result * 0x10000000000000006) >> 64;\\n            }\\n            if (x & 0x4 > 0) {\\n                result = (result * 0x10000000000000003) >> 64;\\n            }\\n            if (x & 0x2 > 0) {\\n                result = (result * 0x10000000000000001) >> 64;\\n            }\\n            if (x & 0x1 > 0) {\\n                result = (result * 0x10000000000000001) >> 64;\\n            }\\n\\n            // We're doing two things at the same time:\\n            //\\n            //   1. Multiply the result by 2^n + 1, where \\\"2^n\\\" is the integer part and the one is added to account for\\n            //      the fact that we initially set the result to 0.5. This is accomplished by subtracting from 191\\n            //      rather than 192.\\n            //   2. Convert the result to the unsigned 60.18-decimal fixed-point format.\\n            //\\n            // This works because 2^(191-ip) = 2^ip / 2^191, where \\\"ip\\\" is the integer part \\\"2^n\\\".\\n            result *= SCALE;\\n            result >>= (191 - (x >> 64));\\n        }\\n    }\\n\\n    /// @notice Finds the zero-based index of the first one in the binary representation of x.\\n    /// @dev See the note on msb in the \\\"Find First Set\\\" Wikipedia article https://en.wikipedia.org/wiki/Find_first_set\\n    /// @param x The uint256 number for which to find the index of the most significant bit.\\n    /// @return msb The index of the most significant bit as an uint256.\\n    function mostSignificantBit(uint256 x) internal pure returns (uint256 msb) {\\n        if (x >= 2**128) {\\n            x >>= 128;\\n            msb += 128;\\n        }\\n        if (x >= 2**64) {\\n            x >>= 64;\\n            msb += 64;\\n        }\\n        if (x >= 2**32) {\\n            x >>= 32;\\n            msb += 32;\\n        }\\n        if (x >= 2**16) {\\n            x >>= 16;\\n            msb += 16;\\n        }\\n        if (x >= 2**8) {\\n            x >>= 8;\\n            msb += 8;\\n        }\\n        if (x >= 2**4) {\\n            x >>= 4;\\n            msb += 4;\\n        }\\n        if (x >= 2**2) {\\n            x >>= 2;\\n            msb += 2;\\n        }\\n        if (x >= 2**1) {\\n            // No need to shift x any more.\\n            msb += 1;\\n        }\\n    }\\n\\n    /// @notice Calculates floor(x*y\\u00f7denominator) with full precision.\\n    ///\\n    /// @dev Credit to Remco Bloemen under MIT license https://xn--2-umb.com/21/muldiv.\\n    ///\\n    /// Requirements:\\n    /// - The denominator cannot be zero.\\n    /// - The result must fit within uint256.\\n    ///\\n    /// Caveats:\\n    /// - This function does not work with fixed-point numbers.\\n    ///\\n    /// @param x The multiplicand as an uint256.\\n    /// @param y The multiplier as an uint256.\\n    /// @param denominator The divisor as an uint256.\\n    /// @return result The result as an uint256.\\n    function mulDiv(\\n        uint256 x,\\n        uint256 y,\\n        uint256 denominator\\n    ) internal pure returns (uint256 result) {\\n        // 512-bit multiply [prod1 prod0] = x * y. Compute the product mod 2^256 and mod 2^256 - 1, then use\\n        // use the Chinese Remainder Theorem to reconstruct the 512 bit result. The result is stored in two 256\\n        // variables such that product = prod1 * 2^256 + prod0.\\n        uint256 prod0; // Least significant 256 bits of the product\\n        uint256 prod1; // Most significant 256 bits of the product\\n        assembly {\\n            let mm := mulmod(x, y, not(0))\\n            prod0 := mul(x, y)\\n            prod1 := sub(sub(mm, prod0), lt(mm, prod0))\\n        }\\n\\n        // Handle non-overflow cases, 256 by 256 division.\\n        if (prod1 == 0) {\\n            unchecked {\\n                result = prod0 / denominator;\\n            }\\n            return result;\\n        }\\n\\n        // Make sure the result is less than 2^256. Also prevents denominator == 0.\\n        if (prod1 >= denominator) {\\n            revert PRBMath__MulDivOverflow(prod1, denominator);\\n        }\\n\\n        ///////////////////////////////////////////////\\n        // 512 by 256 division.\\n        ///////////////////////////////////////////////\\n\\n        // Make division exact by subtracting the remainder from [prod1 prod0].\\n        uint256 remainder;\\n        assembly {\\n            // Compute remainder using mulmod.\\n            remainder := mulmod(x, y, denominator)\\n\\n            // Subtract 256 bit number from 512 bit number.\\n            prod1 := sub(prod1, gt(remainder, prod0))\\n            prod0 := sub(prod0, remainder)\\n        }\\n\\n        // Factor powers of two out of denominator and compute largest power of two divisor of denominator. Always >= 1.\\n        // See https://cs.stackexchange.com/q/138556/92363.\\n        unchecked {\\n            // Does not overflow because the denominator cannot be zero at this stage in the function.\\n            uint256 lpotdod = denominator & (~denominator + 1);\\n            assembly {\\n                // Divide denominator by lpotdod.\\n                denominator := div(denominator, lpotdod)\\n\\n                // Divide [prod1 prod0] by lpotdod.\\n                prod0 := div(prod0, lpotdod)\\n\\n                // Flip lpotdod such that it is 2^256 / lpotdod. If lpotdod is zero, then it becomes one.\\n                lpotdod := add(div(sub(0, lpotdod), lpotdod), 1)\\n            }\\n\\n            // Shift in bits from prod1 into prod0.\\n            prod0 |= prod1 * lpotdod;\\n\\n            // Invert denominator mod 2^256. Now that denominator is an odd number, it has an inverse modulo 2^256 such\\n            // that denominator * inv = 1 mod 2^256. Compute the inverse by starting with a seed that is correct for\\n            // four bits. That is, denominator * inv = 1 mod 2^4.\\n            uint256 inverse = (3 * denominator) ^ 2;\\n\\n            // Now use Newton-Raphson iteration to improve the precision. Thanks to Hensel's lifting lemma, this also works\\n            // in modular arithmetic, doubling the correct bits in each step.\\n            inverse *= 2 - denominator * inverse; // inverse mod 2^8\\n            inverse *= 2 - denominator * inverse; // inverse mod 2^16\\n            inverse *= 2 - denominator * inverse; // inverse mod 2^32\\n            inverse *= 2 - denominator * inverse; // inverse mod 2^64\\n            inverse *= 2 - denominator * inverse; // inverse mod 2^128\\n            inverse *= 2 - denominator * inverse; // inverse mod 2^256\\n\\n            // Because the division is now exact we can divide by multiplying with the modular inverse of denominator.\\n            // This will give us the correct result modulo 2^256. Since the preconditions guarantee that the outcome is\\n            // less than 2^256, this is the final result. We don't need to compute the high bits of the result and prod1\\n            // is no longer required.\\n            result = prod0 * inverse;\\n            return result;\\n        }\\n    }\\n\\n    /// @notice Calculates floor(x*y\\u00f71e18) with full precision.\\n    ///\\n    /// @dev Variant of \\\"mulDiv\\\" with constant folding, i.e. in which the denominator is always 1e18. Before returning the\\n    /// final result, we add 1 if (x * y) % SCALE >= HALF_SCALE. Without this, 6.6e-19 would be truncated to 0 instead of\\n    /// being rounded to 1e-18.  See \\\"Listing 6\\\" and text above it at https://accu.org/index.php/journals/1717.\\n    ///\\n    /// Requirements:\\n    /// - The result must fit within uint256.\\n    ///\\n    /// Caveats:\\n    /// - The body is purposely left uncommented; see the NatSpec comments in \\\"PRBMath.mulDiv\\\" to understand how this works.\\n    /// - It is assumed that the result can never be type(uint256).max when x and y solve the following two equations:\\n    ///     1. x * y = type(uint256).max * SCALE\\n    ///     2. (x * y) % SCALE >= SCALE / 2\\n    ///\\n    /// @param x The multiplicand as an unsigned 60.18-decimal fixed-point number.\\n    /// @param y The multiplier as an unsigned 60.18-decimal fixed-point number.\\n    /// @return result The result as an unsigned 60.18-decimal fixed-point number.\\n    function mulDivFixedPoint(uint256 x, uint256 y) internal pure returns (uint256 result) {\\n        uint256 prod0;\\n        uint256 prod1;\\n        assembly {\\n            let mm := mulmod(x, y, not(0))\\n            prod0 := mul(x, y)\\n            prod1 := sub(sub(mm, prod0), lt(mm, prod0))\\n        }\\n\\n        if (prod1 >= SCALE) {\\n            revert PRBMath__MulDivFixedPointOverflow(prod1);\\n        }\\n\\n        uint256 remainder;\\n        uint256 roundUpUnit;\\n        assembly {\\n            remainder := mulmod(x, y, SCALE)\\n            roundUpUnit := gt(remainder, 499999999999999999)\\n        }\\n\\n        if (prod1 == 0) {\\n            unchecked {\\n                result = (prod0 / SCALE) + roundUpUnit;\\n                return result;\\n            }\\n        }\\n\\n        assembly {\\n            result := add(\\n                mul(\\n                    or(\\n                        div(sub(prod0, remainder), SCALE_LPOTD),\\n                        mul(sub(prod1, gt(remainder, prod0)), add(div(sub(0, SCALE_LPOTD), SCALE_LPOTD), 1))\\n                    ),\\n                    SCALE_INVERSE\\n                ),\\n                roundUpUnit\\n            )\\n        }\\n    }\\n\\n    /// @notice Calculates floor(x*y\\u00f7denominator) with full precision.\\n    ///\\n    /// @dev An extension of \\\"mulDiv\\\" for signed numbers. Works by computing the signs and the absolute values separately.\\n    ///\\n    /// Requirements:\\n    /// - None of the inputs can be type(int256).min.\\n    /// - The result must fit within int256.\\n    ///\\n    /// @param x The multiplicand as an int256.\\n    /// @param y The multiplier as an int256.\\n    /// @param denominator The divisor as an int256.\\n    /// @return result The result as an int256.\\n    function mulDivSigned(\\n        int256 x,\\n        int256 y,\\n        int256 denominator\\n    ) internal pure returns (int256 result) {\\n        if (x == type(int256).min || y == type(int256).min || denominator == type(int256).min) {\\n            revert PRBMath__MulDivSignedInputTooSmall();\\n        }\\n\\n        // Get hold of the absolute values of x, y and the denominator.\\n        uint256 ax;\\n        uint256 ay;\\n        uint256 ad;\\n        unchecked {\\n            ax = x < 0 ? uint256(-x) : uint256(x);\\n            ay = y < 0 ? uint256(-y) : uint256(y);\\n            ad = denominator < 0 ? uint256(-denominator) : uint256(denominator);\\n        }\\n\\n        // Compute the absolute value of (x*y)\\u00f7denominator. The result must fit within int256.\\n        uint256 rAbs = mulDiv(ax, ay, ad);\\n        if (rAbs > uint256(type(int256).max)) {\\n            revert PRBMath__MulDivSignedOverflow(rAbs);\\n        }\\n\\n        // Get the signs of x, y and the denominator.\\n        uint256 sx;\\n        uint256 sy;\\n        uint256 sd;\\n        assembly {\\n            sx := sgt(x, sub(0, 1))\\n            sy := sgt(y, sub(0, 1))\\n            sd := sgt(denominator, sub(0, 1))\\n        }\\n\\n        // XOR over sx, sy and sd. This is checking whether there are one or three negative signs in the inputs.\\n        // If yes, the result should be negative.\\n        result = sx ^ sy ^ sd == 0 ? -int256(rAbs) : int256(rAbs);\\n    }\\n\\n    /// @notice Calculates the square root of x, rounding down.\\n    /// @dev Uses the Babylonian method https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method.\\n    ///\\n    /// Caveats:\\n    /// - This function does not work with fixed-point numbers.\\n    ///\\n    /// @param x The uint256 number for which to calculate the square root.\\n    /// @return result The result as an uint256.\\n    function sqrt(uint256 x) internal pure returns (uint256 result) {\\n        if (x == 0) {\\n            return 0;\\n        }\\n\\n        // Set the initial guess to the closest power of two that is higher than x.\\n        uint256 xAux = uint256(x);\\n        result = 1;\\n        if (xAux >= 0x100000000000000000000000000000000) {\\n            xAux >>= 128;\\n            result <<= 64;\\n        }\\n        if (xAux >= 0x10000000000000000) {\\n            xAux >>= 64;\\n            result <<= 32;\\n        }\\n        if (xAux >= 0x100000000) {\\n            xAux >>= 32;\\n            result <<= 16;\\n        }\\n        if (xAux >= 0x10000) {\\n            xAux >>= 16;\\n            result <<= 8;\\n        }\\n        if (xAux >= 0x100) {\\n            xAux >>= 8;\\n            result <<= 4;\\n        }\\n        if (xAux >= 0x10) {\\n            xAux >>= 4;\\n            result <<= 2;\\n        }\\n        if (xAux >= 0x8) {\\n            result <<= 1;\\n        }\\n\\n        // The operations can never overflow because the result is max 2^127 when it enters this block.\\n        unchecked {\\n            result = (result + x / result) >> 1;\\n            result = (result + x / result) >> 1;\\n            result = (result + x / result) >> 1;\\n            result = (result + x / result) >> 1;\\n            result = (result + x / result) >> 1;\\n            result = (result + x / result) >> 1;\\n            result = (result + x / result) >> 1; // Seven iterations should be enough\\n            uint256 roundedDownResult = x / result;\\n            return result >= roundedDownResult ? roundedDownResult : result;\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x0cf85249f8e5a1bef6d0b5cb291bf25deec0feaa469b373ced3f25aa98da3075\",\"license\":\"WTFPL\"}},\"version\":1}",
+  "bytecode": "0x60a06040523480156200001157600080fd5b5060405162002b6638038062002b6683398101604081905262000034916200004a565b60601b6001600160601b0319166080526200007c565b6000602082840312156200005d57600080fd5b81516001600160a01b03811681146200007557600080fd5b9392505050565b60805160601c612ab6620000b06000396000818161014a015281816107350152818161095e0152610c860152612ab66000f3fe608060405234801561001057600080fd5b50600436106100c95760003560e01c8063c41c2f2411610081578063cdce9b2b1161005b578063cdce9b2b146101c4578063d614edc5146101f2578063e16fd0ec146101fa57600080fd5b8063c41c2f2414610145578063c55f571c14610191578063ca2148f0146101b157600080fd5b80639507d39a116100b25780639507d39a1461010a578063a7f166b51461011d578063c2e61f641461013057600080fd5b806343a266c2146100ce5780635c550078146100f7575b600080fd5b6100e16100dc366004612523565b61020b565b6040516100ee9190612760565b60405180910390f35b6100e1610105366004612523565b6103f9565b6100e1610118366004612523565b61055c565b6100e161012b3660046125db565b610650565b61014361013e3660046125fd565b61090f565b005b61016c7f000000000000000000000000000000000000000000000000000000000000000081565b60405173ffffffffffffffffffffffffffffffffffffffff90911681526020016100ee565b6101a461019f366004612523565b610b01565b6040516100ee919061271f565b6100e16101bf366004612555565b610ba1565b6101e46101d2366004612523565b60056020526000908152604090205481565b6040519081526020016100ee565b6101e4602081565b6101e469d3c21bcecceda100000081565b6102a160405180610200016040528060008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff16815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081525090565b6000828152600560205260409020546102c4576102be600061100d565b92915050565b60006102cf836111be565b9050806102e2576102df836112b1565b90505b61037860405180610200016040528060008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff16815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081525090565b81156103ba576103878261100d565b905042816101000151111580156103a257506103a2816112f5565b156103ae579392505050565b806060015191506103cc565b60008481526005602052604090205491505b816103e3576103db600061100d565b949350505050565b6103ec8261100d565b90506103db816001611327565b61048f60405180610200016040528060008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff16815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081525090565b6000828152600560205260409020546104ac576102be600061100d565b60006104b7836112b1565b905080156104cf576104c88161100d565b9392505050565b6104d8836111be565b905080156105295760006104eb8261100d565b905080610120015160001415610505576103db600061100d565b61050e816112f5565b1561051e576103db816000611327565b60600151905061053a565b506000828152600560205260409020545b80610549576104c8600061100d565b6104c86105558261100d565b6000611327565b6105f260405180610200016040528060008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff16815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081525090565b600082116106475760405162461bcd60e51b815260206004820152600960248201527f4e4f545f464f554e44000000000000000000000000000000000000000000000060448201526064015b60405180910390fd5b6102be8261100d565b6106e660405180610200016040528060008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff16815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081525090565b6040517f532fbaee00000000000000000000000000000000000000000000000000000000815260048101849052600060248201528390339073ffffffffffffffffffffffffffffffffffffffff7f0000000000000000000000000000000000000000000000000000000000000000169063532fbaee9060440160206040518083038186803b15801561077757600080fd5b505afa15801561078b573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906107af91906124e5565b73ffffffffffffffffffffffffffffffffffffffff16146108125760405162461bcd60e51b815260206004820152601d60248201527f5465726d696e616c5574696c6974793a20554e415554484f52495a4544000000604482015260640161063e565b600061081d856115cb565b6000818152600460209081526040808320546003909252909120549192509061084790829061296a565b8511156108965760405162461bcd60e51b815260206004820152601260248201527f494e53554646494349454e545f46554e44530000000000000000000000000000604482015260640161063e565b60006108a28683612901565b600084815260046020908152604091829020839055815189815290810183905233818301529051919250889185917fb16453f203e70875883e4ba9c674627ad465d6eb3102bbcad8aa467c0da75fd8919081900360600190a36109048361100d565b979650505050505050565b6040517f532fbaee00000000000000000000000000000000000000000000000000000000815260048101849052600060248201528390339073ffffffffffffffffffffffffffffffffffffffff7f0000000000000000000000000000000000000000000000000000000000000000169063532fbaee9060440160206040518083038186803b1580156109a057600080fd5b505afa1580156109b4573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906109d891906124e5565b73ffffffffffffffffffffffffffffffffffffffff1614610a3b5760405162461bcd60e51b815260206004820152601d60248201527f5465726d696e616c5574696c6974793a20554e415554484f52495a4544000000604482015260640161063e565b50608081015160a08083015160e0808501516101208601516101608701516101808801516101a089015162ffffff9a909a1666ffffffffffffff8c161760008181526020818152604080832073ffffffffffffffffffffffffffffffffffffffff9098169b909a1b9a909a1760d09590951b949094179290951b9190911760e89190911b1760f09890981b9790971760f89390931b9290921790915561014084015160038452828620556101e09093015160028352818520559383526005905291902055565b600081815260056020526040812054610b5c5760405162461bcd60e51b815260206004820152600960248201527f4e4f545f464f554e440000000000000000000000000000000000000000000000604482015260640161063e565b60008281526005602052604081205490610b758261100d565b9050806060015160001415610b8e575060039392505050565b6103db828260800151836060015161180a565b610c3760405180610200016040528060008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff16815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081525090565b6040517f532fbaee00000000000000000000000000000000000000000000000000000000815260048101879052600060248201528690339073ffffffffffffffffffffffffffffffffffffffff7f0000000000000000000000000000000000000000000000000000000000000000169063532fbaee9060440160206040518083038186803b158015610cc857600080fd5b505afa158015610cdc573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610d0091906124e5565b73ffffffffffffffffffffffffffffffffffffffff1614610d635760405162461bcd60e51b815260206004820152601d60248201527f5465726d696e616c5574696c6974793a20554e415554484f52495a4544000000604482015260640161063e565b61ffff60408701351115610db95760405162461bcd60e51b815260206004820152600c60248201527f4241445f4455524154494f4e0000000000000000000000000000000000000000604482015260640161063e565b602086606001351115610e0e5760405162461bcd60e51b815260206004820152600f60248201527f4241445f4359434c455f4c494d49540000000000000000000000000000000000604482015260640161063e565b60c986608001351115610e635760405162461bcd60e51b815260206004820152601160248201527f4241445f444953434f554e545f52415445000000000000000000000000000000604482015260640161063e565b60ff60208701351115610eb85760405162461bcd60e51b815260206004820152600c60248201527f4241445f43555252454e43590000000000000000000000000000000000000000604482015260640161063e565b60c8841115610f095760405162461bcd60e51b815260206004820152600760248201527f4241445f46454500000000000000000000000000000000000000000000000000604482015260640161063e565b426000610f17898387611917565b9050610f96818360608b0135610f3360c08d0160a08e016124c8565b6000938452602084815260409485902073ffffffffffffffffffffffffffffffffffffffff9290921660a09490941b93909317938d013560d01b93909317918c013560e01b9190911760e88a901b1760808c013560f01b1760f89190911b179055565b60008181526003602090815260408083208b35905560029091529081902088905551899082907f738f28809aeff63352b71b8dc894c5e51b2758e1ff1d6b00b50f8dc10916000890610fef9086908d908d903390612830565b60405180910390a36110008161100d565b9998505050505050505050565b6110a360405180610200016040528060008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff16815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081525090565b816110ad57919050565b81815260008281526001602090815260408083205469ffffffffffffffffffff811660c086015266ffffffffffffff605082901c168386015265ffffffffffff608882901c8116606087015260b882901c811661010087015260e891821c838701528685528484528285205473ffffffffffffffffffffffffffffffffffffffff811660e08089019190915260a082811c909316608089015261ffff60d083901c1661012089015260ff9082901c81166101608901529281901c831661018088015260f081901c9092166101a087015260f89190911c90850152848352600382528083205461014085015284835260048252808320546101c08501529382526002905291909120546101e082015290565b600081815260056020526040902054806111da57506000919050565b60006111e58261100d565b9050600081610120015111801561121f57506201518081610120015161120b919061292d565b81610100015161121b9190612901565b4210155b1561122d5750600092915050565b6060810151158061124357508061010001514210155b1561124e5750919050565b600061125d826060015161100d565b90506000816101200151118015611297575062015180816101200151611283919061292d565b8161010001516112939190612901565b4210155b156112a6575060009392505050565b506060015192915050565b600081815260056020526040902054806112cd57506000919050565b60006112d88261100d565b905080610100015142106112ef5750600092915050565b50919050565b60008061130f83600001518460800151856060015161180a565b600381111561132057611320612a2c565b1492915050565b6113bd60405180610200016040528060008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff16815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081525090565b826101a0015160c914156113dc576113d5600061100d565b90506102be565b6000808460a00151116113ef57836113f8565b6113f884611ac8565b9050600083801561140e57506000856101200151115b156114c1576000620151808661012001518760a0015161142e919061292d565b611438919061292d565b8661010001516114489190612901565b905060008660a0015111801561145d57504281105b156114a4576101208301511561149a5762015180836101200151611481919061292d565b61148b824261296a565b61149591906129ba565b61149d565b60005b91506114bb565b620151808661012001516114b8919061292d565b91505b506114c5565b5060005b60006114db86846114d6854261296a565b611b95565b905060006114e98783611ccb565b9050600081156114f957876114fb565b845b905060405180610200016040528060008152602001826020015181526020016115258a8887611d48565b8152825160208201526080808401516040830152606082018590520161154c8a8887611e7c565b81526020018260e0015173ffffffffffffffffffffffffffffffffffffffff1681526020018481526020018261012001518152602001826101400151815260200182610160015181526020018261018001518152602001826101a00151815260200160008152602001826101e001518152509550505050505092915050565b60006115d6826111be565b9050806115e9576115e6826112b1565b90505b61167f60405180610200016040528060008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff16815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081525090565b81156116c05761168e8261100d565b905042816101000151111580156116a957506116a9816112f5565b156116b45750919050565b806060015191506116d2565b60008381526005602052604090205491505b600082116117225760405162461bcd60e51b815260206004820152600960248201527f4e4f545f464f554e440000000000000000000000000000000000000000000000604482015260640161063e565b61172b8261100d565b905060c9816101a00151106117825760405162461bcd60e51b815260206004820152600d60248201527f4e4f4e5f524543555252494e4700000000000000000000000000000000000000604482015260640161063e565b600062015180826101200151611798919061292d565b8261010001516117a89190612901565b905060008261012001516000146117e657620151808361012001516117cd919061292d565b6117d7834261296a565b6117e191906129ba565b6117e9565b60005b905061180185846117fa844261296a565b600161205d565b95945050505050565b600081611819575060006104c8565b60006118248361100d565b9050838160800151141561183c5760009150506104c8565b60e081015173ffffffffffffffffffffffffffffffffffffffff161561190c5760e08101516040517f4d393dc9000000000000000000000000000000000000000000000000000000008152600481018790526024810186905273ffffffffffffffffffffffffffffffffffffffff90911690634d393dc99060440160206040518083038186803b1580156118cf57600080fd5b505afa1580156118e3573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906119079190612502565b611801565b600095945050505050565b6000838152600560205260408120546119475761194084611938600061100d565b42600061205d565b90506104c8565b611950846112b1565b9050801561198d57600061196f6119668361100d565b6060015161100d565b90506119868161197f838761215d565b600061222c565b50506104c8565b611996846111be565b905080156119cf576119a78161239c565b6119bf576119b48161100d565b6060015190506119e0565b81156119ca576104c8565b6119e0565b506000838152600560205260409020545b6000806119ec8361100d565b905060c9816101a0015110611a435760405162461bcd60e51b815260206004820152600d60248201527f4e4f4e5f524543555252494e4700000000000000000000000000000000000000604482015260640161063e565b8315611aa457610120810151611a60578061010001519150611ab1565b600062015180826101200151611a76919061292d565b610100830151611a86904261296a565b611a9091906129ba565b9050611a9c814261296a565b925050611ab1565b611aae818661215d565b91505b611abe868284600061205d565b9695505050505050565b611b5e60405180610200016040528060008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff16815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081525090565b6060820151611b6b575090565b611b78826060015161100d565b90508060a0015160001415611b8c57919050565b6102be81611ac8565b600083610120015160001415611bac5750806104c8565b600062015180856101200151611bc2919061292d565b9050600081866101000151611bd79190612901565b9050838110611be95791506104c89050565b60a08601516000611bfa828561292d565b886101000151611c0a9190612901565b8611611c2c5783611c1b848861296a565b611c2591906129ba565b9050611c9a565b61012087015115611c7e5762015180876101200151611c4b919061292d565b611c55838661292d565b896101000151611c659190612901565b611c6f908861296a565b611c7991906129ba565b611c81565b60005b905062015180876101200151611c97919061292d565b93505b611ca4818761296a565b94505b84861115611cc057611cb98486612901565b9450611ca7565b505050509392505050565b600060018360a00151111580611ce45750610120830151155b15611cf1575060006102be565b600062015180846101200151611d07919061292d565b610100850151611d17908561296a565b611d219190612919565b90508360a001518110611d385760009150506102be565b808460a001516103db919061296a565b600083610120015160001415611d68576040840151611940906001612901565b600084610100015183611d7b919061296a565b905060008560a00151600014611db35762015180866101200151611d9f919061292d565b8660a00151611dae919061292d565b611db6565b60005b9050801580611dc457508181115b15611dfd5762015180866101200151611ddd919061292d565b611de79083612919565b8660400151611df69190612901565b9250611e73565b62015180866101200151611e11919061292d565b611e1b9082612919565b8660400151611e2a9190612901565b9250846101200151600014611e665762015180856101200151611e4d919061292d565b611e57828461296a565b611e619190612919565b611e69565b60005b611abe9084612901565b50509392505050565b600083610120015160001415611eaf576119408460c00151856101a00151610190611ea7919061296a565b6101906123b3565b600084610100015183611ec2919061296a565b905060008560a0015160001480611edb57506060860151155b611f075762015180866101200151611ef3919061292d565b8660a00151611f02919061292d565b611f0a565b60005b60c087015193509050801580611f1f57508181115b15611f94576101a0860151611f355750506104c8565b600062015180876101200151611f4b919061292d565b611f559084612919565b905060005b81811015611f8d57611f7985896101a00151610190611ea7919061296a565b945080611f8581612981565b915050611f5a565b5050611e73565b6101a086015115611fdb5760005b8660a00151811015611fd957611fc584886101a00151610190611ea7919061296a565b935080611fd181612981565b915050611fa2565b505b6101a085015115611e735760008561012001516000146120225762015180866101200151612009919061292d565b612013838561296a565b61201d9190612919565b612025565b60005b905060005b81811015611cc05761204985886101a00151610190611ea7919061296a565b94508061205581612981565b91505061202a565b825160009081906120c457508351600166ffffffffffffff871681176000818152602083905260409020605089901b60889490941b939093174260b81b177d0100000000000000000000000000000000000000d3c21bcecceda100000017909255506120d2565b6120cf85858561222c565b90505b60008681526005602052604081208290556120ec8261100d565b905080604001518160200151837f3430b8834fcab595f0e68ee663700fdf7bc5e4eaf56d4eec6b0c2fb911b4afae84606001518560c0015186610100015160405161214a939291909283526020830191909152604082015260600190565b60405180910390a4519695505050505050565b60e0820151600090819073ffffffffffffffffffffffffffffffffffffffff16612188576000612214565b8360e0015173ffffffffffffffffffffffffffffffffffffffff16630fb5a6b46040518163ffffffff1660e01b815260040160206040518083038186803b1580156121d257600080fd5b505afa1580156121e6573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061220a919061253c565b6122149084612901565b905080421161222357806103db565b50429392505050565b60008060008560a0015111612241578461224a565b61224a85611ac8565b90506000612259868387611b95565b90506000612268878484611e7c565b90506000612277888585611d48565b6020898101518a5166ffffffffffffff821662ffffff85161760008181526001909452604090932060509290921b861760889190911b1760b887901b1760e884901b17905590915094508515611cc05760006122d38985611ccb565b9050600081156122e357896122e5565b855b608081015160e0808301516101208401516101608501516101808601516101a087015160008f81526020818152604080832060f89d909d1b60f09490941b60e89590951b9590981b60d09690961b60a09990991b73ffffffffffffffffffffffffffffffffffffffff9097169690961797909717939093179190911717179095558251825260028552808220548a835281832055915181526003909352808320548884529220919091555093979650505050505050565b6000806123a88361100d565b90506104c8816112f5565b600080807fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff858709858702925082811083820303915050806000141561240c57838281612402576124026129fd565b04925050506104c8565b83811061244f576040517f773cc18c000000000000000000000000000000000000000000000000000000008152600481018290526024810185905260440161063e565b60008486880960026001871981018816978890046003810283188082028403028082028403028082028403028082028403028082028403029081029092039091026000889003889004909101858311909403939093029303949094049190911702949350505050565b80356124c381612a5b565b919050565b6000602082840312156124da57600080fd5b81356104c881612a5b565b6000602082840312156124f757600080fd5b81516104c881612a5b565b60006020828403121561251457600080fd5b8151600481106104c857600080fd5b60006020828403121561253557600080fd5b5035919050565b60006020828403121561254e57600080fd5b5051919050565b600080600080600085870361014081121561256f57600080fd5b8635955060c07fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0820112156125a357600080fd5b5060208601935060e08601359250610100860135915061012086013580151581146125cd57600080fd5b809150509295509295909350565b600080604083850312156125ee57600080fd5b50508035926020909101359150565b600080600083850361024081121561261457600080fd5b8435935060208501359250610200807fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc08301121561265157600080fd5b6126596128b0565b915060408601358252606086013560208301526080860135604083015260a0860135606083015260c0860135608083015260e086013560a08301526101008087013560c08401526101206126ae8189016124b8565b60e085015261014080890135838601526101609250828901358286015261018091508189013581860152506101a080890135838601526101c0925082890135828601526101e09150818901358186015250828801358285015261022088013581850152505050809150509250925092565b602081016004831061275a577f4e487b7100000000000000000000000000000000000000000000000000000000600052602160045260246000fd5b91905290565b600061020082019050825182526020830151602083015260408301516040830152606083015160608301526080830151608083015260a083015160a083015260c083015160c083015260e08301516127d060e084018273ffffffffffffffffffffffffffffffffffffffff169052565b50610100838101519083015261012080840151908301526101408084015190830152610160808401519083015261018080840151908301526101a080840151908301526101c080840151908301526101e092830151929091019190915290565b60006101208201905085825284356020830152602085013560408301526040850135606083015260608501356080830152608085013560a083015260a085013561287981612a5b565b73ffffffffffffffffffffffffffffffffffffffff80821660c08501528560e0850152808516610100850152505095945050505050565b604051610200810167ffffffffffffffff811182821017156128fb577f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b60405290565b60008219821115612914576129146129ce565b500190565b600082612928576129286129fd565b500490565b6000817fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0483118215151615612965576129656129ce565b500290565b60008282101561297c5761297c6129ce565b500390565b60007fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8214156129b3576129b36129ce565b5060010190565b6000826129c9576129c96129fd565b500690565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601260045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052602160045260246000fd5b73ffffffffffffffffffffffffffffffffffffffff81168114612a7d57600080fd5b5056fea2646970667358221220197316631edc1b6742834d6e51f80d6fc43f7ab1f83096a90ac251c8799b5b8f64736f6c63430008060033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100c95760003560e01c8063c41c2f2411610081578063cdce9b2b1161005b578063cdce9b2b146101c4578063d614edc5146101f2578063e16fd0ec146101fa57600080fd5b8063c41c2f2414610145578063c55f571c14610191578063ca2148f0146101b157600080fd5b80639507d39a116100b25780639507d39a1461010a578063a7f166b51461011d578063c2e61f641461013057600080fd5b806343a266c2146100ce5780635c550078146100f7575b600080fd5b6100e16100dc366004612523565b61020b565b6040516100ee9190612760565b60405180910390f35b6100e1610105366004612523565b6103f9565b6100e1610118366004612523565b61055c565b6100e161012b3660046125db565b610650565b61014361013e3660046125fd565b61090f565b005b61016c7f000000000000000000000000000000000000000000000000000000000000000081565b60405173ffffffffffffffffffffffffffffffffffffffff90911681526020016100ee565b6101a461019f366004612523565b610b01565b6040516100ee919061271f565b6100e16101bf366004612555565b610ba1565b6101e46101d2366004612523565b60056020526000908152604090205481565b6040519081526020016100ee565b6101e4602081565b6101e469d3c21bcecceda100000081565b6102a160405180610200016040528060008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff16815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081525090565b6000828152600560205260409020546102c4576102be600061100d565b92915050565b60006102cf836111be565b9050806102e2576102df836112b1565b90505b61037860405180610200016040528060008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff16815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081525090565b81156103ba576103878261100d565b905042816101000151111580156103a257506103a2816112f5565b156103ae579392505050565b806060015191506103cc565b60008481526005602052604090205491505b816103e3576103db600061100d565b949350505050565b6103ec8261100d565b90506103db816001611327565b61048f60405180610200016040528060008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff16815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081525090565b6000828152600560205260409020546104ac576102be600061100d565b60006104b7836112b1565b905080156104cf576104c88161100d565b9392505050565b6104d8836111be565b905080156105295760006104eb8261100d565b905080610120015160001415610505576103db600061100d565b61050e816112f5565b1561051e576103db816000611327565b60600151905061053a565b506000828152600560205260409020545b80610549576104c8600061100d565b6104c86105558261100d565b6000611327565b6105f260405180610200016040528060008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff16815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081525090565b600082116106475760405162461bcd60e51b815260206004820152600960248201527f4e4f545f464f554e44000000000000000000000000000000000000000000000060448201526064015b60405180910390fd5b6102be8261100d565b6106e660405180610200016040528060008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff16815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081525090565b6040517f532fbaee00000000000000000000000000000000000000000000000000000000815260048101849052600060248201528390339073ffffffffffffffffffffffffffffffffffffffff7f0000000000000000000000000000000000000000000000000000000000000000169063532fbaee9060440160206040518083038186803b15801561077757600080fd5b505afa15801561078b573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906107af91906124e5565b73ffffffffffffffffffffffffffffffffffffffff16146108125760405162461bcd60e51b815260206004820152601d60248201527f5465726d696e616c5574696c6974793a20554e415554484f52495a4544000000604482015260640161063e565b600061081d856115cb565b6000818152600460209081526040808320546003909252909120549192509061084790829061296a565b8511156108965760405162461bcd60e51b815260206004820152601260248201527f494e53554646494349454e545f46554e44530000000000000000000000000000604482015260640161063e565b60006108a28683612901565b600084815260046020908152604091829020839055815189815290810183905233818301529051919250889185917fb16453f203e70875883e4ba9c674627ad465d6eb3102bbcad8aa467c0da75fd8919081900360600190a36109048361100d565b979650505050505050565b6040517f532fbaee00000000000000000000000000000000000000000000000000000000815260048101849052600060248201528390339073ffffffffffffffffffffffffffffffffffffffff7f0000000000000000000000000000000000000000000000000000000000000000169063532fbaee9060440160206040518083038186803b1580156109a057600080fd5b505afa1580156109b4573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906109d891906124e5565b73ffffffffffffffffffffffffffffffffffffffff1614610a3b5760405162461bcd60e51b815260206004820152601d60248201527f5465726d696e616c5574696c6974793a20554e415554484f52495a4544000000604482015260640161063e565b50608081015160a08083015160e0808501516101208601516101608701516101808801516101a089015162ffffff9a909a1666ffffffffffffff8c161760008181526020818152604080832073ffffffffffffffffffffffffffffffffffffffff9098169b909a1b9a909a1760d09590951b949094179290951b9190911760e89190911b1760f09890981b9790971760f89390931b9290921790915561014084015160038452828620556101e09093015160028352818520559383526005905291902055565b600081815260056020526040812054610b5c5760405162461bcd60e51b815260206004820152600960248201527f4e4f545f464f554e440000000000000000000000000000000000000000000000604482015260640161063e565b60008281526005602052604081205490610b758261100d565b9050806060015160001415610b8e575060039392505050565b6103db828260800151836060015161180a565b610c3760405180610200016040528060008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff16815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081525090565b6040517f532fbaee00000000000000000000000000000000000000000000000000000000815260048101879052600060248201528690339073ffffffffffffffffffffffffffffffffffffffff7f0000000000000000000000000000000000000000000000000000000000000000169063532fbaee9060440160206040518083038186803b158015610cc857600080fd5b505afa158015610cdc573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610d0091906124e5565b73ffffffffffffffffffffffffffffffffffffffff1614610d635760405162461bcd60e51b815260206004820152601d60248201527f5465726d696e616c5574696c6974793a20554e415554484f52495a4544000000604482015260640161063e565b61ffff60408701351115610db95760405162461bcd60e51b815260206004820152600c60248201527f4241445f4455524154494f4e0000000000000000000000000000000000000000604482015260640161063e565b602086606001351115610e0e5760405162461bcd60e51b815260206004820152600f60248201527f4241445f4359434c455f4c494d49540000000000000000000000000000000000604482015260640161063e565b60c986608001351115610e635760405162461bcd60e51b815260206004820152601160248201527f4241445f444953434f554e545f52415445000000000000000000000000000000604482015260640161063e565b60ff60208701351115610eb85760405162461bcd60e51b815260206004820152600c60248201527f4241445f43555252454e43590000000000000000000000000000000000000000604482015260640161063e565b60c8841115610f095760405162461bcd60e51b815260206004820152600760248201527f4241445f46454500000000000000000000000000000000000000000000000000604482015260640161063e565b426000610f17898387611917565b9050610f96818360608b0135610f3360c08d0160a08e016124c8565b6000938452602084815260409485902073ffffffffffffffffffffffffffffffffffffffff9290921660a09490941b93909317938d013560d01b93909317918c013560e01b9190911760e88a901b1760808c013560f01b1760f89190911b179055565b60008181526003602090815260408083208b35905560029091529081902088905551899082907f738f28809aeff63352b71b8dc894c5e51b2758e1ff1d6b00b50f8dc10916000890610fef9086908d908d903390612830565b60405180910390a36110008161100d565b9998505050505050505050565b6110a360405180610200016040528060008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff16815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081525090565b816110ad57919050565b81815260008281526001602090815260408083205469ffffffffffffffffffff811660c086015266ffffffffffffff605082901c168386015265ffffffffffff608882901c8116606087015260b882901c811661010087015260e891821c838701528685528484528285205473ffffffffffffffffffffffffffffffffffffffff811660e08089019190915260a082811c909316608089015261ffff60d083901c1661012089015260ff9082901c81166101608901529281901c831661018088015260f081901c9092166101a087015260f89190911c90850152848352600382528083205461014085015284835260048252808320546101c08501529382526002905291909120546101e082015290565b600081815260056020526040902054806111da57506000919050565b60006111e58261100d565b9050600081610120015111801561121f57506201518081610120015161120b919061292d565b81610100015161121b9190612901565b4210155b1561122d5750600092915050565b6060810151158061124357508061010001514210155b1561124e5750919050565b600061125d826060015161100d565b90506000816101200151118015611297575062015180816101200151611283919061292d565b8161010001516112939190612901565b4210155b156112a6575060009392505050565b506060015192915050565b600081815260056020526040902054806112cd57506000919050565b60006112d88261100d565b905080610100015142106112ef5750600092915050565b50919050565b60008061130f83600001518460800151856060015161180a565b600381111561132057611320612a2c565b1492915050565b6113bd60405180610200016040528060008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff16815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081525090565b826101a0015160c914156113dc576113d5600061100d565b90506102be565b6000808460a00151116113ef57836113f8565b6113f884611ac8565b9050600083801561140e57506000856101200151115b156114c1576000620151808661012001518760a0015161142e919061292d565b611438919061292d565b8661010001516114489190612901565b905060008660a0015111801561145d57504281105b156114a4576101208301511561149a5762015180836101200151611481919061292d565b61148b824261296a565b61149591906129ba565b61149d565b60005b91506114bb565b620151808661012001516114b8919061292d565b91505b506114c5565b5060005b60006114db86846114d6854261296a565b611b95565b905060006114e98783611ccb565b9050600081156114f957876114fb565b845b905060405180610200016040528060008152602001826020015181526020016115258a8887611d48565b8152825160208201526080808401516040830152606082018590520161154c8a8887611e7c565b81526020018260e0015173ffffffffffffffffffffffffffffffffffffffff1681526020018481526020018261012001518152602001826101400151815260200182610160015181526020018261018001518152602001826101a00151815260200160008152602001826101e001518152509550505050505092915050565b60006115d6826111be565b9050806115e9576115e6826112b1565b90505b61167f60405180610200016040528060008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff16815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081525090565b81156116c05761168e8261100d565b905042816101000151111580156116a957506116a9816112f5565b156116b45750919050565b806060015191506116d2565b60008381526005602052604090205491505b600082116117225760405162461bcd60e51b815260206004820152600960248201527f4e4f545f464f554e440000000000000000000000000000000000000000000000604482015260640161063e565b61172b8261100d565b905060c9816101a00151106117825760405162461bcd60e51b815260206004820152600d60248201527f4e4f4e5f524543555252494e4700000000000000000000000000000000000000604482015260640161063e565b600062015180826101200151611798919061292d565b8261010001516117a89190612901565b905060008261012001516000146117e657620151808361012001516117cd919061292d565b6117d7834261296a565b6117e191906129ba565b6117e9565b60005b905061180185846117fa844261296a565b600161205d565b95945050505050565b600081611819575060006104c8565b60006118248361100d565b9050838160800151141561183c5760009150506104c8565b60e081015173ffffffffffffffffffffffffffffffffffffffff161561190c5760e08101516040517f4d393dc9000000000000000000000000000000000000000000000000000000008152600481018790526024810186905273ffffffffffffffffffffffffffffffffffffffff90911690634d393dc99060440160206040518083038186803b1580156118cf57600080fd5b505afa1580156118e3573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906119079190612502565b611801565b600095945050505050565b6000838152600560205260408120546119475761194084611938600061100d565b42600061205d565b90506104c8565b611950846112b1565b9050801561198d57600061196f6119668361100d565b6060015161100d565b90506119868161197f838761215d565b600061222c565b50506104c8565b611996846111be565b905080156119cf576119a78161239c565b6119bf576119b48161100d565b6060015190506119e0565b81156119ca576104c8565b6119e0565b506000838152600560205260409020545b6000806119ec8361100d565b905060c9816101a0015110611a435760405162461bcd60e51b815260206004820152600d60248201527f4e4f4e5f524543555252494e4700000000000000000000000000000000000000604482015260640161063e565b8315611aa457610120810151611a60578061010001519150611ab1565b600062015180826101200151611a76919061292d565b610100830151611a86904261296a565b611a9091906129ba565b9050611a9c814261296a565b925050611ab1565b611aae818661215d565b91505b611abe868284600061205d565b9695505050505050565b611b5e60405180610200016040528060008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff16815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081525090565b6060820151611b6b575090565b611b78826060015161100d565b90508060a0015160001415611b8c57919050565b6102be81611ac8565b600083610120015160001415611bac5750806104c8565b600062015180856101200151611bc2919061292d565b9050600081866101000151611bd79190612901565b9050838110611be95791506104c89050565b60a08601516000611bfa828561292d565b886101000151611c0a9190612901565b8611611c2c5783611c1b848861296a565b611c2591906129ba565b9050611c9a565b61012087015115611c7e5762015180876101200151611c4b919061292d565b611c55838661292d565b896101000151611c659190612901565b611c6f908861296a565b611c7991906129ba565b611c81565b60005b905062015180876101200151611c97919061292d565b93505b611ca4818761296a565b94505b84861115611cc057611cb98486612901565b9450611ca7565b505050509392505050565b600060018360a00151111580611ce45750610120830151155b15611cf1575060006102be565b600062015180846101200151611d07919061292d565b610100850151611d17908561296a565b611d219190612919565b90508360a001518110611d385760009150506102be565b808460a001516103db919061296a565b600083610120015160001415611d68576040840151611940906001612901565b600084610100015183611d7b919061296a565b905060008560a00151600014611db35762015180866101200151611d9f919061292d565b8660a00151611dae919061292d565b611db6565b60005b9050801580611dc457508181115b15611dfd5762015180866101200151611ddd919061292d565b611de79083612919565b8660400151611df69190612901565b9250611e73565b62015180866101200151611e11919061292d565b611e1b9082612919565b8660400151611e2a9190612901565b9250846101200151600014611e665762015180856101200151611e4d919061292d565b611e57828461296a565b611e619190612919565b611e69565b60005b611abe9084612901565b50509392505050565b600083610120015160001415611eaf576119408460c00151856101a00151610190611ea7919061296a565b6101906123b3565b600084610100015183611ec2919061296a565b905060008560a0015160001480611edb57506060860151155b611f075762015180866101200151611ef3919061292d565b8660a00151611f02919061292d565b611f0a565b60005b60c087015193509050801580611f1f57508181115b15611f94576101a0860151611f355750506104c8565b600062015180876101200151611f4b919061292d565b611f559084612919565b905060005b81811015611f8d57611f7985896101a00151610190611ea7919061296a565b945080611f8581612981565b915050611f5a565b5050611e73565b6101a086015115611fdb5760005b8660a00151811015611fd957611fc584886101a00151610190611ea7919061296a565b935080611fd181612981565b915050611fa2565b505b6101a085015115611e735760008561012001516000146120225762015180866101200151612009919061292d565b612013838561296a565b61201d9190612919565b612025565b60005b905060005b81811015611cc05761204985886101a00151610190611ea7919061296a565b94508061205581612981565b91505061202a565b825160009081906120c457508351600166ffffffffffffff871681176000818152602083905260409020605089901b60889490941b939093174260b81b177d0100000000000000000000000000000000000000d3c21bcecceda100000017909255506120d2565b6120cf85858561222c565b90505b60008681526005602052604081208290556120ec8261100d565b905080604001518160200151837f3430b8834fcab595f0e68ee663700fdf7bc5e4eaf56d4eec6b0c2fb911b4afae84606001518560c0015186610100015160405161214a939291909283526020830191909152604082015260600190565b60405180910390a4519695505050505050565b60e0820151600090819073ffffffffffffffffffffffffffffffffffffffff16612188576000612214565b8360e0015173ffffffffffffffffffffffffffffffffffffffff16630fb5a6b46040518163ffffffff1660e01b815260040160206040518083038186803b1580156121d257600080fd5b505afa1580156121e6573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061220a919061253c565b6122149084612901565b905080421161222357806103db565b50429392505050565b60008060008560a0015111612241578461224a565b61224a85611ac8565b90506000612259868387611b95565b90506000612268878484611e7c565b90506000612277888585611d48565b6020898101518a5166ffffffffffffff821662ffffff85161760008181526001909452604090932060509290921b861760889190911b1760b887901b1760e884901b17905590915094508515611cc05760006122d38985611ccb565b9050600081156122e357896122e5565b855b608081015160e0808301516101208401516101608501516101808601516101a087015160008f81526020818152604080832060f89d909d1b60f09490941b60e89590951b9590981b60d09690961b60a09990991b73ffffffffffffffffffffffffffffffffffffffff9097169690961797909717939093179190911717179095558251825260028552808220548a835281832055915181526003909352808320548884529220919091555093979650505050505050565b6000806123a88361100d565b90506104c8816112f5565b600080807fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff858709858702925082811083820303915050806000141561240c57838281612402576124026129fd565b04925050506104c8565b83811061244f576040517f773cc18c000000000000000000000000000000000000000000000000000000008152600481018290526024810185905260440161063e565b60008486880960026001871981018816978890046003810283188082028403028082028403028082028403028082028403028082028403029081029092039091026000889003889004909101858311909403939093029303949094049190911702949350505050565b80356124c381612a5b565b919050565b6000602082840312156124da57600080fd5b81356104c881612a5b565b6000602082840312156124f757600080fd5b81516104c881612a5b565b60006020828403121561251457600080fd5b8151600481106104c857600080fd5b60006020828403121561253557600080fd5b5035919050565b60006020828403121561254e57600080fd5b5051919050565b600080600080600085870361014081121561256f57600080fd5b8635955060c07fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0820112156125a357600080fd5b5060208601935060e08601359250610100860135915061012086013580151581146125cd57600080fd5b809150509295509295909350565b600080604083850312156125ee57600080fd5b50508035926020909101359150565b600080600083850361024081121561261457600080fd5b8435935060208501359250610200807fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc08301121561265157600080fd5b6126596128b0565b915060408601358252606086013560208301526080860135604083015260a0860135606083015260c0860135608083015260e086013560a08301526101008087013560c08401526101206126ae8189016124b8565b60e085015261014080890135838601526101609250828901358286015261018091508189013581860152506101a080890135838601526101c0925082890135828601526101e09150818901358186015250828801358285015261022088013581850152505050809150509250925092565b602081016004831061275a577f4e487b7100000000000000000000000000000000000000000000000000000000600052602160045260246000fd5b91905290565b600061020082019050825182526020830151602083015260408301516040830152606083015160608301526080830151608083015260a083015160a083015260c083015160c083015260e08301516127d060e084018273ffffffffffffffffffffffffffffffffffffffff169052565b50610100838101519083015261012080840151908301526101408084015190830152610160808401519083015261018080840151908301526101a080840151908301526101c080840151908301526101e092830151929091019190915290565b60006101208201905085825284356020830152602085013560408301526040850135606083015260608501356080830152608085013560a083015260a085013561287981612a5b565b73ffffffffffffffffffffffffffffffffffffffff80821660c08501528560e0850152808516610100850152505095945050505050565b604051610200810167ffffffffffffffff811182821017156128fb577f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b60405290565b60008219821115612914576129146129ce565b500190565b600082612928576129286129fd565b500490565b6000817fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0483118215151615612965576129656129ce565b500290565b60008282101561297c5761297c6129ce565b500390565b60007fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8214156129b3576129b36129ce565b5060010190565b6000826129c9576129c96129fd565b500690565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601260045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052602160045260246000fd5b73ffffffffffffffffffffffffffffffffffffffff81168114612a7d57600080fd5b5056fea2646970667358221220197316631edc1b6742834d6e51f80d6fc43f7ab1f83096a90ac251c8799b5b8f64736f6c63430008060033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "configureFor(uint256,(uint256,uint256,uint256,uint256,uint256,address),uint256,uint256,bool)": {
+        "details": "Only a project's current terminal can configure its funding cycles._properties.target The amount that the project wants to receive in each funding cycle. 18 decimals._properties.currency The currency of the `_target`. Send 0 for ETH or 1 for USD._properties.duration The duration of the funding cycle for which the `_target` amount is needed. Measured in days.  Set to 0 for no expiry and to be able to reconfigure anytime._cycleLimit The number of cycles that this configuration should last for before going back to the last permanent. This does nothing for a project's first funding cycle._properties.discountRate A number from 0-200 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles. If it's 0, each funding cycle will have equal weight. If the number is 100, a contribution to the next funding cycle will only give you 90% of tickets given to a contribution of the same amount during the current funding cycle. If the number is 200, a contribution to the next funding cycle will only give you 80% of tickets given to a contribution of the same amoutn during the current funding cycle. If the number is 201, an non-recurring funding cycle will get made._ballot The new ballot that will be used to approve subsequent reconfigurations.",
+        "params": {
+          "_configureActiveFundingCycle": "If a funding cycle that has already started should be configurable.",
+          "_fee": "The fee that this configuration will incure when tapping.",
+          "_metadata": "Data to associate with this funding cycle configuration.",
+          "_projectId": "The ID of the project being reconfigured.",
+          "_properties": "The funding cycle configuration."
+        },
+        "returns": {
+          "fundingCycle": "The funding cycle that the configuration will take effect during."
+        }
+      },
+      "constructor": {
+        "params": {
+          "_directory": "A directory of a project's current Juicebox terminal to receive payments in."
+        }
+      },
+      "currentBallotStateOf(uint256)": {
+        "params": {
+          "_projectId": "The ID of the project to check for a pending reconfiguration."
+        },
+        "returns": {
+          "_0": "The current ballot's state."
+        }
+      },
+      "currentOf(uint256)": {
+        "details": " This runs very similar logic to `_tappable`.",
+        "params": {
+          "_projectId": "The ID of the project being looked through."
+        },
+        "returns": {
+          "fundingCycle": "The current funding cycle."
+        }
+      },
+      "get(uint256)": {
+        "params": {
+          "_fundingCycleId": "The ID of the funding cycle to get."
+        },
+        "returns": {
+          "_0": "_fundingCycle The funding cycle."
+        }
+      },
+      "queuedOf(uint256)": {
+        "details": " This runs roughly similar logic to `_configurable`.",
+        "params": {
+          "_projectId": "The ID of the project being looked through."
+        },
+        "returns": {
+          "_0": "_fundingCycle The queued funding cycle."
+        }
+      },
+      "tapFrom(uint256,uint256)": {
+        "details": "Only a project's current terminal can tap funds for its funding cycles.",
+        "params": {
+          "_amount": "The amount being tapped.",
+          "_projectId": "The ID of the project being tapped."
+        },
+        "returns": {
+          "fundingCycle": "The tapped funding cycle."
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "errors": {
+      "PRBMath__MulDivOverflow(uint256,uint256)": [
+        {
+          "notice": "Emitted when the result overflows uint256."
+        }
+      ]
+    },
+    "kind": "user",
+    "methods": {
+      "BASE_WEIGHT()": {
+        "notice": "The weight used for each project's first funding cycle."
+      },
+      "MAX_CYCLE_LIMIT()": {
+        "notice": "The maximum value that a cycle limit can be set to."
+      },
+      "configureFor(uint256,(uint256,uint256,uint256,uint256,uint256,address),uint256,uint256,bool)": {
+        "notice": " Configures the next eligible funding cycle for the specified project."
+      },
+      "currentBallotStateOf(uint256)": {
+        "notice": " The currency ballot state of the project."
+      },
+      "currentOf(uint256)": {
+        "notice": " The funding cycle that is currently active for the specified project."
+      },
+      "directory()": {
+        "notice": "The direct deposit terminals."
+      },
+      "get(uint256)": {
+        "notice": " Get the funding cycle with the given ID."
+      },
+      "latestIdOf(uint256)": {
+        "notice": "The ID of the latest funding cycle for each project."
+      },
+      "queuedOf(uint256)": {
+        "notice": " The funding cycle that's next up for a project, and therefor not currently accepting payments."
+      },
+      "tapFrom(uint256,uint256)": {
+        "notice": " Tap funds from a project's currently tappable funding cycle."
+      }
+    },
+    "notice": "Manage funding cycle configurations, accounting, and scheduling.",
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 18772,
+        "contract": "contracts/v2/JBFundingCycleStore.sol:JBFundingCycleStore",
+        "label": "_packedConfigurationPropertiesOf",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_mapping(t_uint256,t_uint256)"
+      },
+      {
+        "astId": 18776,
+        "contract": "contracts/v2/JBFundingCycleStore.sol:JBFundingCycleStore",
+        "label": "_packedIntrinsicPropertiesOf",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_mapping(t_uint256,t_uint256)"
+      },
+      {
+        "astId": 18780,
+        "contract": "contracts/v2/JBFundingCycleStore.sol:JBFundingCycleStore",
+        "label": "_metadataOf",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_mapping(t_uint256,t_uint256)"
+      },
+      {
+        "astId": 18784,
+        "contract": "contracts/v2/JBFundingCycleStore.sol:JBFundingCycleStore",
+        "label": "_targetOf",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_mapping(t_uint256,t_uint256)"
+      },
+      {
+        "astId": 18788,
+        "contract": "contracts/v2/JBFundingCycleStore.sol:JBFundingCycleStore",
+        "label": "_tappedOf",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_mapping(t_uint256,t_uint256)"
+      },
+      {
+        "astId": 18804,
+        "contract": "contracts/v2/JBFundingCycleStore.sol:JBFundingCycleStore",
+        "label": "latestIdOf",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_mapping(t_uint256,t_uint256)"
+      }
+    ],
+    "types": {
+      "t_mapping(t_uint256,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}

@@ -53,7 +53,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     skipIfAlreadyDeployed: true,
   });
 
-  const JBSplitStore = await deploy('JBSplitStore', {
+  const JBSplitStore = await deploy('JBSplitsStore', {
     from: deployer,
     args: [JBOperatorStore.address, JBDirectory.address, JBProjects.address],
     log: true,
