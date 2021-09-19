@@ -5,18 +5,12 @@ const dotenv = require('dotenv');
 
 require('@nomiclabs/hardhat-etherscan');
 require('@nomiclabs/hardhat-waffle');
-require("@nomiclabs/hardhat-ethers")
+require('@nomiclabs/hardhat-ethers');
 require('hardhat-gas-reporter');
 require('hardhat-deploy');
 
-// Deploy scripts
-require('./tasks/deploy');
-
 dotenv.config();
 
-//
-// Select the network you want to deploy to here:
-//
 const defaultNetwork = 'localhost';
 
 function mnemonic() {
@@ -32,7 +26,7 @@ function mnemonic() {
   return '';
 }
 
-const infuraId = process.env.INFURA_API_KEY;
+const infuraId = process.env.INFURA_ID;
 
 module.exports = {
   defaultNetwork,
@@ -77,6 +71,14 @@ module.exports = {
       accounts: {
         mnemonic: mnemonic(),
       },
+    },
+  },
+  namedAccounts: {
+    deployer: {
+      default: 0,
+    },
+    feeCollector: {
+      default: 0,
     },
   },
   solidity: {

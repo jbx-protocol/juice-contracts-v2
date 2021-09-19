@@ -8,3 +8,4 @@ artifacts
 # Mac OSX
 .DS_Store
 
+*.txt
