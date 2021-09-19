@@ -6,7 +6,9 @@ It was created at the time of the `V2` rewrite, which requires a full migration 
 
 ## Deploy
 
-Juicebox uses the [Hardhat Deploy] plugin to deploy contracts to a given network. To execute the `./deploy/deploy.js` script, run the following:
+Juicebox uses the [Hardhat Deploy](https://github.com/wighawag/hardhat-deploy) plugin to deploy contracts to a given network. But before using it, you must create a `./mnemonic.txt` file containing the mnemonic phrase of the wallet used to deploy.
+
+Then, to execute the `./deploy/deploy.js` script, run the following:
 
 ```
 npx hardhat deploy --network $network
