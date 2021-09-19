@@ -3,8 +3,7 @@
  *
  * Example usage:
  *
- * npx hardhat deploy \
- *   --network rinkeby \
+ * npx hardhat deploy --network rinkeby
  */
 module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy } = deployments;
