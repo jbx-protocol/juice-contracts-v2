@@ -2,7 +2,7 @@
 
 This repo contains the Juicebox Protocol smart contracts.
 
-It was created at the time of the `V2` rewrite, which requires a full migration from `V1`. `V1` contracts are included for migration tests and posterity, but in general the repo is geared towards `V2` and beyond (e.g., deployment mechanism).
+It was created at the time of the `V2` rewrite, which requires a full migration from `V1`. `V1` contracts are included for migration tests and posterity, but in general the repo is geared towards `V2` and beyond.
 
 ## Deploy
 
