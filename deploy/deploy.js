@@ -5,7 +5,6 @@
  *
  * npx hardhat deploy \
  *   --network rinkeby \
- *   --tags JuiceV2
  */
 module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy } = deployments;
@@ -90,4 +89,3 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     skipIfAlreadyDeployed: true,
   });
 };
-module.exports.tags = ['JuiceV2'];
