@@ -1,8 +1,22 @@
 # juice-contracts
 
-We're migrating our smart contracts to this dedicated repo! Stay tuned.
+This repo contains the Juicebox Protocol smart contracts.
 
-## Verify
+It was created at the time of the `V2` rewrite, which requires a full migration from `V1`. `V1` contracts are included for migration tests and posterity, but in general the repo is geared towards `V2` and beyond (e.g., deployment mechanism).
+
+## Deploy
+
+Juicebox uses the [Hardhat Deploy] plugin to deploy contracts to a given network. To execute the `./deploy/deploy.js` script, run the following:
+
+```
+npx hardhat deploy --network $network
+```
+
+Contract artifacts will be outputted to `./deployments/$network/**` and should be checked in to the repo.
+
+> **_NOTE:_**  Since we make heavy use of the `skipIfAlreadyDeployed` parameter, if new contract(s) are added, their deployment configuration(s) should be added to the `./deploy/deploy.js` script – not a one-off.
+
+## Verification
 
 To verify the contracts on [Etherscan](https://etherscan.io), make sure you have an `ETHERSCAN_API_KEY` set in your `./.env` file. Then run the following:
 
