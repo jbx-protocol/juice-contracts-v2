@@ -9,7 +9,7 @@ interface IJBDirectory {
 
   function projects() external view returns (IJBProjects);
 
-  function terminalOf(uint256 _projectId, address _token) external view returns (IJBTerminal);
+  function terminalOf(uint256 _projectId, uint256 _domain) external view returns (IJBTerminal);
 
   function terminalsOf(uint256 _projectId) external view returns (IJBTerminal[] memory);
 

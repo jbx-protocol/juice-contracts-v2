@@ -77,7 +77,7 @@ abstract contract JBProject is Ownable {
     require(_projectId != 0, 'JuiceboxProject::_fundTreasury: PROJECT_NOT_FOUND');
 
     // Find the terminal for this contract's project.
-    IJBTerminal _terminal = directory.terminalOf(_projectId, address(0));
+    IJBTerminal _terminal = directory.terminalOf(_projectId, 0);
 
     // There must be a terminal.
     require(
@@ -110,7 +110,7 @@ abstract contract JBProject is Ownable {
     require(projectId != 0, 'JuiceboxProject::_pay: PROJECT_NOT_FOUND');
 
     // Get the terminal for this contract's project.
-    IJBTerminal _terminal = directory.terminalOf(projectId, address(0));
+    IJBTerminal _terminal = directory.terminalOf(projectId, 0);
 
     // There must be a terminal.
     require(_terminal != IJBTerminal(address(0)), 'JuiceboxProject::_pay: TERMINAL_NOT_FOUND');

@@ -103,7 +103,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable, JBTerminalUtility {
       projects.ownerOf(_projectId),
       _projectId,
       JBOperations.SET_SPLITS,
-      address(directory.terminalOf(_projectId, address(0)))
+      address(directory.terminalOf(_projectId, _domain))
     )
   {
     // Get a reference to the project's current splits.

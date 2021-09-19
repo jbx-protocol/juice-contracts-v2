@@ -112,6 +112,8 @@ contract JBETHPaymentTerminal is
     */
   mapping(uint256 => mapping(uint256 => uint256)) public override usedOverflowAllowanceOf;
 
+  uint256 public immutable override domain = 0;
+
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
   //*********************************************************************//
@@ -152,6 +154,10 @@ contract JBETHPaymentTerminal is
     returns (uint256)
   {
     return _claimableOverflowOf(fundingCycleStore.currentOf(_projectId), _tokenCount);
+  }
+
+  function currentETHBalanceOf(uint256 _projectId) external view override returns (uint256) {
+    return balanceOf[_projectId];
   }
 
   //*********************************************************************//
@@ -543,7 +549,7 @@ contract JBETHPaymentTerminal is
           // Otherwise, if a project is specified, make a payment to it.
 
           // Get a reference to the Juicebox terminal being used.
-          IJBTerminal _terminal = directory.terminalOf(_split.projectId, address(0));
+          IJBTerminal _terminal = directory.terminalOf(_split.projectId, domain);
 
           // The project must have a terminal to send funds to.
           require(_terminal != IJBTerminal(address(0)), 'BAD_SPLIT');
@@ -612,7 +618,7 @@ contract JBETHPaymentTerminal is
     if (feeAmount == 0) return 0;
 
     // Get the terminal for the JuiceboxDAO project.
-    IJBTerminal _terminal = directory.terminalOf(1, address(0));
+    IJBTerminal _terminal = directory.terminalOf(1, domain);
 
     // When processing the admin fee, save gas if the admin is using this contract as its terminal.
     _terminal == this // Use the local pay call.

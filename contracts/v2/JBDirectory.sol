@@ -21,7 +21,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
   // --- public stored properties --- //
 
   /// @notice For each project ID, the juicebox terminal that the direct payment addresses are proxies for.
-  mapping(uint256 => mapping(address => IJBTerminal)) public override terminalOf;
+  mapping(uint256 => mapping(uint256 => IJBTerminal)) public override terminalOf;
 
   // --- external transactions --- //
   function terminalsOf(uint256 _projectId) external view override returns (IJBTerminal[] memory) {
