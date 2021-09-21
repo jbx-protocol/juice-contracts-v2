@@ -25,6 +25,8 @@ interface IJBSplitsStore {
 
   function projects() external view returns (IJBProjects);
 
+  function directory() external view returns (IJBDirectory);
+
   function splitsOf(
     uint256 _projectId,
     uint256 _domain,

@@ -69,7 +69,7 @@ contract JBETHPaymentTerminal is
 
   /** 
       @notice
-      The directory of terminals.
+      The directory of terminals and controllers for projects.
     */
   IJBDirectory public immutable override directory;
 
@@ -409,41 +409,39 @@ contract JBETHPaymentTerminal is
     external
     override
     nonReentrant
-    requirePermissionAllowingWildcardDomain(_holder, _projectId, JBOperations.REDEEM)
+    requirePermission(_holder, _projectId, JBOperations.REDEEM)
     returns (uint256 claimAmount)
   {
     // Can't send claimed funds to the zero address.
     require(_beneficiary != address(0), 'ZERO_ADDRESS');
-    {
-      // Keep a reference to the funding cycles during which the redemption is being made.
-      FundingCycle memory _fundingCycle;
+    // Keep a reference to the funding cycles during which the redemption is being made.
+    FundingCycle memory _fundingCycle;
 
-      // Record the redemption in the data layer.
-      (_fundingCycle, claimAmount, _memo) = _recordRedemptionFor(
-        _holder,
-        _projectId,
-        _tokenCount,
-        _minReturnedWei,
-        _beneficiary,
-        _memo,
-        _delegateMetadata
-      );
+    // Record the redemption in the data layer.
+    (_fundingCycle, claimAmount, _memo) = _recordRedemptionFor(
+      _holder,
+      _projectId,
+      _tokenCount,
+      _minReturnedWei,
+      _beneficiary,
+      _memo,
+      _delegateMetadata
+    );
 
-      // Send the claimed funds to the beneficiary.
-      if (claimAmount > 0) Address.sendValue(_beneficiary, claimAmount);
+    // Send the claimed funds to the beneficiary.
+    if (claimAmount > 0) Address.sendValue(_beneficiary, claimAmount);
 
-      emit Redeem(
-        _fundingCycle.id,
-        _projectId,
-        _holder,
-        _fundingCycle,
-        _beneficiary,
-        _tokenCount,
-        claimAmount,
-        _memo,
-        msg.sender
-      );
-    }
+    emit Redeem(
+      _fundingCycle.id,
+      _projectId,
+      _holder,
+      _fundingCycle,
+      _beneficiary,
+      _tokenCount,
+      claimAmount,
+      _memo,
+      msg.sender
+    );
   }
 
   /**

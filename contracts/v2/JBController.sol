@@ -17,6 +17,11 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for FundingCycle;
 
+  modifier onlyTerminal(uint256 _projectId) {
+    require(directory.isTerminalOf(_projectId, msg.sender), 'UNAUTHORIZED');
+    _;
+  }
+
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//
@@ -30,33 +35,33 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
   //*********************************************************************//
 
   /** 
-      @notice 
-      The Projects contract which mints ERC-721's that represent project ownership.
-    */
+    @notice 
+    The Projects contract which mints ERC-721's that represent project ownership.
+  */
   IJBProjects public immutable override projects;
 
   /** 
-      @notice 
-      The contract storing all funding cycle configurations.
-    */
+    @notice 
+    The contract storing all funding cycle configurations.
+  */
   IJBFundingCycleStore public immutable override fundingCycleStore;
 
   /** 
-      @notice 
-      The contract that manages token minting and burning.
-    */
+    @notice 
+    The contract that manages token minting and burning.
+  */
   IJBTokenStore public immutable override tokenStore;
 
   /** 
-      @notice 
-      The contract that stores splits for each project.
-    */
+    @notice 
+    The contract that stores splits for each project.
+  */
   IJBSplitsStore public immutable override splitsStore;
 
   /** 
-      @notice
-      The directory of terminals.
-    */
+    @notice
+    The directory of terminals.
+  */
   IJBDirectory public immutable override directory;
 
   //*********************************************************************//
@@ -64,29 +69,29 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
   //*********************************************************************//
 
   /**
-      @notice 
-      The amount of overflow that a project is allowed to tap into on-demand.
+    @notice 
+    The amount of overflow that a project is allowed to tap into on-demand.
 
-      @dev
-      [_projectId][_configuration][_terminal]
+    @dev
+    [_projectId][_configuration][_domain]
 
-      _projectId The ID of the project to get the current overflow allowance of.
-      _configuration The configuration of the during which the allowance applies.
-      _terminal The terminal managing the overflow.
+    _projectId The ID of the project to get the current overflow allowance of.
+    _configuration The configuration of the during which the allowance applies.
+    _domain The domain managing the overflow.
 
-      @return The current overflow allowance for the specified project configuration. Decreases as projects use of the allowance.
-    */
+    @return The current overflow allowance for the specified project configuration. Decreases as projects use of the allowance.
+  */
   mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
     public
     override overflowAllowanceOf;
 
   /** 
-      @notice 
-      The platform fee percent.
+    @notice 
+    The platform fee percent.
 
-      @dev 
-      Out of 200.
-    */
+    @dev 
+    Out of 200.
+  */
   uint256 public override fee = 10;
 
   //*********************************************************************//
@@ -94,14 +99,14 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
   //*********************************************************************//
 
   /**
-      @notice
-      Gets the amount of reserved tokens that a project has available to distribute.
+    @notice
+    Gets the amount of reserved tokens that a project has available to distribute.
 
-      @param _projectId The ID of the project to get a reserved token balance of.
-      @param _reservedRate The reserved rate to use when making the calculation.
+    @param _projectId The ID of the project to get a reserved token balance of.
+    @param _reservedRate The reserved rate to use when making the calculation.
 
-      @return The current amount of reserved tokens.
-    */
+    @return The current amount of reserved tokens.
+  */
   function reservedTokenBalanceOf(uint256 _projectId, uint256 _reservedRate)
     external
     view
@@ -121,13 +126,13 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
   //*********************************************************************//
 
   /**
-      @param _operatorStore A contract storing operator assignments.
-      @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
-      @param _fundingCycleStore The contract storing all funding cycle configurations.
-      @param _tokenStore The contract that manages token minting and burning.
-      @param _splitsStore The contract that stores splits for each project.
-      @param _directory The directory of terminals.
-    */
+    @param _operatorStore A contract storing operator assignments.
+    @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
+    @param _fundingCycleStore The contract storing all funding cycle configurations.
+    @param _tokenStore The contract that manages token minting and burning.
+    @param _splitsStore The contract that stores splits for each project.
+    @param _directory The directory of terminals.
+  */
   constructor(
     IJBOperatorStore _operatorStore,
     IJBProjects _projects,
@@ -148,49 +153,49 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
   //*********************************************************************//
 
   /**
-      @notice
-      Creates a project. This will mint an ERC-721 into the `_owner`'s account, configure a first funding cycle, and set up any splits.
+    @notice
+    Creates a project. This will mint an ERC-721 into the message sender's account, configure a first funding cycle, and set up any splits.
 
-      @dev
-      Each operation withing this transaction can be done in sequence separately.
+    @dev
+    Each operation withing this transaction can be done in sequence separately.
 
-      @dev
-      Anyone can deploy a project on an owner's behalf.
+    @dev
+    Anyone can deploy a project on an owner's behalf.
 
-      @dev 
-      A project owner will be able to reconfigure the funding cycle's properties as long as it has not yet received a payment.
+    @dev 
+    A project owner will be able to reconfigure the funding cycle's properties as long as it has not yet received a payment.
 
-      @param _handle The project's unique handle. This can be updated any time by the owner of the project.
-      @param _uri A link to associate with the project. This can be updated any time by the owner of the project.
-      @param _properties The funding cycle configuration properties. These properties will remain fixed for the duration of the funding cycle.
-        @dev _properties.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
-        @dev _properties.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
-        @dev _properties.duration The duration of the funding cycle for which the `target` amount is needed. Measured in days. Send 0 for cycles that are reconfigurable at any time.
-        @dev _properties.cycleLimit The number of cycles that this configuration should last for before going back to the last permanent cycle. This has no effect for a project's first funding cycle.
-        @dev _properties.discountRate A number from 0-200 (0-20%) indicating how many tokens will be minted as a result of a contribution made to this funding cycle compared to one made to the project's next funding cycle.
-          If it's 0 (0%), each funding cycle's will have equal weight.
-          If the number is 100 (10%), a contribution to the next funding cycle will only mint 90% of tokens that a contribution of the same amount made during the current funding cycle mints.
-          If the number is 200 (20%), the difference will be 20%. 
-          There's a special case: If the number is 201, the funding cycle will be non-recurring and one-time only.
-        @dev _properties.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
-      @param _metadata A struct specifying the TerminalV2 specific params that a funding cycle can have.
-        @dev _metadata.reservedRate A number from 0-200 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
-        @dev _metadata.redemptionRate The rate from 0-200 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
-          The bonding curve formula is https://www.desmos.com/calculator/sp9ru6zbpk
-          where x is _count, o is _currentOverflow, s is _totalSupply, and r is _redemptionRate.
-        @dev _metadata.ballotRedemptionRate The redemption rate to apply when there is an active ballot.
-        @dev _metadata.pausePay Whether or not the pay functionality should be paused during this cycle.
-        @dev _metadata.pauseWithdraw Whether or not the withdraw functionality should be paused during this cycle.
-        @dev _metadata.pauseRedeem Whether or not the redeem functionality should be paused during this cycle.
-        @dev _metadata.pauseMint Whether or not the mint functionality should be paused during this cycle.
-        @dev _metadata.pauseBurn Whether or not the burn functionality should be paused during this cycle.
-        @dev _metadata.useDataSourceForPay Whether or not the data source should be used when processing a payment.
-        @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
-        @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
-      @param _overflowAllowances The amount, in wei (18 decimals), of ETH that a project can use from its own overflow on-demand.
-      @param _payoutSplits Any payout splits to set.
-      @param _reservedTokenSplits Any reserved token splits to set.
-    */
+    @param _handle The project's unique handle. This can be updated any time by the owner of the project.
+    @param _uri A link to associate with the project. This can be updated any time by the owner of the project.
+    @param _properties The funding cycle configuration properties. These properties will remain fixed for the duration of the funding cycle.
+      @dev _properties.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
+      @dev _properties.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
+      @dev _properties.duration The duration of the funding cycle for which the `target` amount is needed. Measured in days. Send 0 for cycles that are reconfigurable at any time.
+      @dev _properties.cycleLimit The number of cycles that this configuration should last for before going back to the last permanent cycle. This has no effect for a project's first funding cycle.
+      @dev _properties.discountRate A number from 0-200 (0-20%) indicating how many tokens will be minted as a result of a contribution made to this funding cycle compared to one made to the project's next funding cycle.
+        If it's 0 (0%), each funding cycle's will have equal weight.
+        If the number is 100 (10%), a contribution to the next funding cycle will only mint 90% of tokens that a contribution of the same amount made during the current funding cycle mints.
+        If the number is 200 (20%), the difference will be 20%. 
+        There's a special case: If the number is 201, the funding cycle will be non-recurring and one-time only.
+      @dev _properties.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
+    @param _metadata A struct specifying the TerminalV2 specific params that a funding cycle can have.
+      @dev _metadata.reservedRate A number from 0-200 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
+      @dev _metadata.redemptionRate The rate from 0-200 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
+        The bonding curve formula is https://www.desmos.com/calculator/sp9ru6zbpk
+        where x is _count, o is _currentOverflow, s is _totalSupply, and r is _redemptionRate.
+      @dev _metadata.ballotRedemptionRate The redemption rate to apply when there is an active ballot.
+      @dev _metadata.pausePay Whether or not the pay functionality should be paused during this cycle.
+      @dev _metadata.pauseWithdraw Whether or not the withdraw functionality should be paused during this cycle.
+      @dev _metadata.pauseRedeem Whether or not the redeem functionality should be paused during this cycle.
+      @dev _metadata.pauseMint Whether or not the mint functionality should be paused during this cycle.
+      @dev _metadata.pauseBurn Whether or not the burn functionality should be paused during this cycle.
+      @dev _metadata.useDataSourceForPay Whether or not the data source should be used when processing a payment.
+      @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
+      @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
+    @param _overflowAllowances The amount, in wei (18 decimals), of ETH that a project can use from its own overflow on-demand.
+    @param _payoutSplits Any payout splits to set.
+    @param _reservedTokenSplits Any reserved token splits to set.
+  */
   function launchProjectFor(
     bytes32 _handle,
     string calldata _uri,
@@ -208,6 +213,9 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
     // which will give it exclusive access to manage the project's funding cycles and tokens.
     uint256 _projectId = projects.createFor(msg.sender, _handle, _uri);
 
+    // Add the provided terminal to the list of terminals.
+    directory.addTerminalOf(_projectId, _terminal);
+
     _configure(
       _projectId,
       _properties,
@@ -217,51 +225,49 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
       _reservedTokenSplits,
       true
     );
-
-    directory.addTerminalOf(_projectId, _terminal);
   }
 
   /**
-      @notice
-      Configures the properties of the current funding cycle if the project hasn't distributed tokens yet, or
-      sets the properties of the proposed funding cycle that will take effect once the current one expires
-      if it is approved by the current funding cycle's ballot.
+    @notice
+    Configures the properties of the current funding cycle if the project hasn't distributed tokens yet, or
+    sets the properties of the proposed funding cycle that will take effect once the current one expires
+    if it is approved by the current funding cycle's ballot.
 
-      @dev
-      Only a project's owner or a designated operator can configure its funding cycles.
+    @dev
+    Only a project's owner or a designated operator can configure its funding cycles.
 
-      @param _projectId The ID of the project whos funding cycles are being reconfigured.
-      @param _properties The funding cycle configuration properties. These properties will remain fixed for the duration of the funding cycle.
-        @dev _properties.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
-        @dev _properties.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
-        @dev _properties.duration The duration of the funding cycle for which the `target` amount is needed. Measured in days. Send 0 for cycles that are reconfigurable at any time.
-        @dev _properties.cycleLimit The number of cycles that this configuration should last for before going back to the last permanent cycle. This has no effect for a project's first funding cycle.
-        @dev _properties.discountRate A number from 0-200 (0-20%) indicating how many tokens will be minted as a result of a contribution made to this funding cycle compared to one made to the project's next funding cycle.
-          If it's 0 (0%), each funding cycle's will have equal weight.
-          If the number is 100 (10%), a contribution to the next funding cycle will only mint 90% of tokens that a contribution of the same amount made during the current funding cycle mints.
-          If the number is 200 (20%), the difference will be 20%. 
-          There's a special case: If the number is 201, the funding cycle will be non-recurring and one-time only.
-        @dev _properties.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
-      @param _metadata A struct specifying the TerminalV2 specific params that a funding cycle can have.
-        @dev _metadata.reservedRate A number from 0-200 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
-        @dev _metadata.redemptionRate The rate from 0-200 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
-          The bonding curve formula is https://www.desmos.com/calculator/sp9ru6zbpk
-          where x is _count, o is _currentOverflow, s is _totalSupply, and r is _redemptionRate.
-        @dev _metadata.ballotRedemptionRate The redemption rate to apply when there is an active ballot.
-        @dev _metadata.pausePay Whether or not the pay functionality should be paused during this cycle.
-        @dev _metadata.pauseWithdraw Whether or not the withdraw functionality should be paused during this cycle.
-        @dev _metadata.pauseRedeem Whether or not the redeem functionality should be paused during this cycle.
-        @dev _metadata.pauseMint Whether or not the mint functionality should be paused during this cycle.
-        @dev _metadata.pauseBurn Whether or not the burn functionality should be paused during this cycle.
-        @dev _metadata.useDataSourceForPay Whether or not the data source should be used when processing a payment.
-        @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
-        @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
-      @param _overflowAllowances The amount, in wei (18 decimals), of ETH that a project can use from its own overflow on-demand.
-      @param _payoutSplits Any payout splits to set.
-      @param _reservedTokenSplits Any reserved token splits to set.
+    @param _projectId The ID of the project whos funding cycles are being reconfigured.
+    @param _properties The funding cycle configuration properties. These properties will remain fixed for the duration of the funding cycle.
+      @dev _properties.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
+      @dev _properties.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
+      @dev _properties.duration The duration of the funding cycle for which the `target` amount is needed. Measured in days. Send 0 for cycles that are reconfigurable at any time.
+      @dev _properties.cycleLimit The number of cycles that this configuration should last for before going back to the last permanent cycle. This has no effect for a project's first funding cycle.
+      @dev _properties.discountRate A number from 0-200 (0-20%) indicating how many tokens will be minted as a result of a contribution made to this funding cycle compared to one made to the project's next funding cycle.
+        If it's 0 (0%), each funding cycle's will have equal weight.
+        If the number is 100 (10%), a contribution to the next funding cycle will only mint 90% of tokens that a contribution of the same amount made during the current funding cycle mints.
+        If the number is 200 (20%), the difference will be 20%. 
+        There's a special case: If the number is 201, the funding cycle will be non-recurring and one-time only.
+      @dev _properties.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
+    @param _metadata A struct specifying the TerminalV2 specific params that a funding cycle can have.
+      @dev _metadata.reservedRate A number from 0-200 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
+      @dev _metadata.redemptionRate The rate from 0-200 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
+        The bonding curve formula is https://www.desmos.com/calculator/sp9ru6zbpk
+        where x is _count, o is _currentOverflow, s is _totalSupply, and r is _redemptionRate.
+      @dev _metadata.ballotRedemptionRate The redemption rate to apply when there is an active ballot.
+      @dev _metadata.pausePay Whether or not the pay functionality should be paused during this cycle.
+      @dev _metadata.pauseWithdraw Whether or not the withdraw functionality should be paused during this cycle.
+      @dev _metadata.pauseRedeem Whether or not the redeem functionality should be paused during this cycle.
+      @dev _metadata.pauseMint Whether or not the mint functionality should be paused during this cycle.
+      @dev _metadata.pauseBurn Whether or not the burn functionality should be paused during this cycle.
+      @dev _metadata.useDataSourceForPay Whether or not the data source should be used when processing a payment.
+      @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
+      @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
+    @param _overflowAllowances The amount, in wei (18 decimals), of ETH that a project can use from its own overflow on-demand.
+    @param _payoutSplits Any payout splits to set.
+    @param _reservedTokenSplits Any reserved token splits to set.
 
-      @return The ID of the funding cycle that was successfully configured.
-    */
+    @return The ID of the funding cycle that was successfully configured.
+  */
   function reconfigureFundingCyclesOf(
     uint256 _projectId,
     FundingCycleProperties calldata _properties,
@@ -301,25 +307,26 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
   function withdrawFrom(uint256 _projectId, uint256 _amount)
     external
     override
+    onlyTerminal(_projectId)
     returns (FundingCycle memory)
   {
     return fundingCycleStore.tapFrom(_projectId, _amount);
   }
 
   /**
-      @notice
-      Mint new token supply into an account.
+    @notice
+    Mint new token supply into an account.
 
-      @dev
-      Only a project's owner or a designated operator can mint it.
+    @dev
+    Only a project's owner or a designated operator can mint it.
 
-      @param _projectId The ID of the project to which the tokens being burned belong.
-      @param _tokenCount The amount of tokens to mint.
-      @param _beneficiary The account that the tokens are being minted for.
-      @param _memo A memo to pass along to the emitted event.
-      @param _preferUnstakedTokens Whether ERC20's should be burned first if they have been issued.
+    @param _projectId The ID of the project to which the tokens being burned belong.
+    @param _tokenCount The amount of tokens to mint.
+    @param _beneficiary The account that the tokens are being minted for.
+    @param _memo A memo to pass along to the emitted event.
+    @param _preferUnstakedTokens Whether ERC20's should be burned first if they have been issued.
 
-    */
+  */
   function mintTokensOf(
     uint256 _projectId,
     uint256 _tokenCount,
@@ -331,7 +338,12 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
     external
     override
     nonReentrant
-    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MINT)
+    requirePermissionAllowingOverride(
+      projects.ownerOf(_projectId),
+      _projectId,
+      JBOperations.MINT,
+      directory.isTerminalOf(_projectId, msg.sender)
+    )
   {
     // Can't send to the zero address.
     require(_beneficiary != address(0), 'ZERO_ADDRESS');
@@ -365,19 +377,18 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
   }
 
   /**
-      @notice
-      Burns a token holder's supply.
+    @notice
+    Burns a token holder's supply.
 
-      @dev
-      Only a token's holder or a designated operator can burn it.
+    @dev
+    Only a token's holder or a designated operator can burn it.
 
-      @param _holder The account that is having its tokens burned.
-      @param _projectId The ID of the project to which the tokens being burned belong.
-      @param _tokenCount The number of tokens to burn.
-      @param _memo A memo to pass along to the emitted event.
-      @param _preferUnstakedTokens Whether ERC20's should be burned first if they have been issued.
-
-    */
+    @param _holder The account that is having its tokens burned.
+    @param _projectId The ID of the project to which the tokens being burned belong.
+    @param _tokenCount The number of tokens to burn.
+    @param _memo A memo to pass along to the emitted event.
+    @param _preferUnstakedTokens Whether ERC20's should be burned first if they have been issued.
+  */
   function burnTokensOf(
     address _holder,
     uint256 _projectId,
@@ -388,7 +399,12 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
     external
     override
     nonReentrant
-    requirePermissionAllowingWildcardDomain(_holder, _projectId, JBOperations.BURN)
+    requirePermissionAllowingOverride(
+      _holder,
+      _projectId,
+      JBOperations.BURN,
+      directory.isTerminalOf(_projectId, msg.sender)
+    )
   {
     // There should be tokens to burn
     require(_tokenCount > 0, 'NO_OP');
@@ -409,14 +425,14 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
   }
 
   /**
-      @notice
-      Mints and distributes all outstanding reserved tokens for a project.
+    @notice
+    Mints and distributes all outstanding reserved tokens for a project.
 
-      @param _projectId The ID of the project to which the reserved tokens belong.
-      @param _memo A memo to leave with the emitted event.
+    @param _projectId The ID of the project to which the reserved tokens belong.
+    @param _memo A memo to leave with the emitted event.
 
-      @return The amount of reserved tokens that were minted.
-    */
+    @return The amount of reserved tokens that were minted.
+  */
   function distributeReservedTokensOf(uint256 _projectId, string memory _memo)
     external
     override
@@ -436,13 +452,13 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
   //*********************************************************************//
 
   /**
-      @notice
-      Validate and pack the funding cycle metadata.
+    @notice
+    Validate and pack the funding cycle metadata.
 
-      @param _metadata The metadata to validate and pack.
+    @param _metadata The metadata to validate and pack.
 
-      @return packed The packed uint256 of all metadata params. The first 8 bytes specify the version.
-     */
+    @return packed The packed uint256 of all metadata params. The first 8 bytes specify the version.
+    */
   function _validateAndPackFundingCycleMetadata(FundingCycleMetadata memory _metadata)
     private
     pure
@@ -484,9 +500,9 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
   }
 
   /**
-      @notice 
-      See docs for `distributeReservedTokens`
-    */
+    @notice 
+    See docs for `distributeReservedTokens`
+  */
   function _distributeReservedTokensOf(uint256 _projectId, string memory _memo)
     private
     returns (uint256 count)
@@ -533,14 +549,14 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
   }
 
   /**
-      @notice
-      Distributed tokens to the splits according to the specified funding cycle configuration.
+    @notice
+    Distributed tokens to the splits according to the specified funding cycle configuration.
 
-      @param _fundingCycle The funding cycle to base the token distribution on.
-      @param _amount The total amount of tokens to mint.
+    @param _fundingCycle The funding cycle to base the token distribution on.
+    @param _amount The total amount of tokens to mint.
 
-      @return leftoverAmount If the splits percents dont add up to 100%, the leftover amount is returned.
-    */
+    @return leftoverAmount If the splits percents dont add up to 100%, the leftover amount is returned.
+  */
   function _distributeToReservedTokenSplitsOf(FundingCycle memory _fundingCycle, uint256 _amount)
     private
     returns (uint256 leftoverAmount)
@@ -600,16 +616,16 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
   }
 
   /** 
-      @notice
-      Subtracts the provided value from the processed token tracker.
+    @notice
+    Subtracts the provided value from the processed token tracker.
 
-      @dev
-      Necessary to account for both positive and negative values.
+    @dev
+    Necessary to account for both positive and negative values.
 
-      @param _projectId The ID of the project that is having its tracker subtracted from.
-      @param _amount The amount to subtract.
+    @param _projectId The ID of the project that is having its tracker subtracted from.
+    @param _amount The amount to subtract.
 
-    */
+  */
   function _subtractFromTokenTrackerOf(uint256 _projectId, uint256 _amount) private {
     // Get a reference to the processed token tracker for the project.
     int256 _processedTokenTracker = _processedTokenTrackerOf[_projectId];
@@ -625,15 +641,15 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
   }
 
   /**
-      @notice
-      Gets the amount of reserved tokens currently tracked for a project given a reserved rate.
+    @notice
+    Gets the amount of reserved tokens currently tracked for a project given a reserved rate.
 
-      @param _processedTokenTracker The tracker to make the calculation with.
-      @param _reservedRate The reserved rate to use to make the calculation.
-      @param _totalEligibleTokens The total amount to make the calculation with.
+    @param _processedTokenTracker The tracker to make the calculation with.
+    @param _reservedRate The reserved rate to use to make the calculation.
+    @param _totalEligibleTokens The total amount to make the calculation with.
 
-      @return amount reserved token amount.
-    */
+    @return amount reserved token amount.
+  */
   function _reservedTokenAmountFrom(
     int256 _processedTokenTracker,
     uint256 _reservedRate,
@@ -656,12 +672,12 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
   }
 
   /** 
-      @notice 
-      Configures a funding cycle and stores information pertinent to the configuration.
+    @notice 
+    Configures a funding cycle and stores information pertinent to the configuration.
 
-      @dev
-      See the docs for `launchProject` and `configureFundingCycles`.
-    */
+    @dev
+    See the docs for `launchProject` and `configureFundingCycles`.
+  */
   function _configure(
     uint256 _projectId,
     FundingCycleProperties calldata _properties,
@@ -702,10 +718,6 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
         emit SetOverflowAllowance(_projectId, _fundingCycle.configured, _allowance, msg.sender);
       }
     }
-
-    // // Set the project's terminal to be this terminal if it's not yet set.
-    // if (directory.terminalOf(_projectId) == IJBTerminal(address(0)))
-    //     directory.setTerminalOf(_projectId, paymentTerminal);
 
     return _fundingCycle.id;
   }

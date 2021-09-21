@@ -263,7 +263,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
   )
     external
     override
-    requirePermissionAllowingWildcardDomain(_transferAddress, _projectId, JBOperations.CLAIM_HANDLE)
+    requirePermission(_transferAddress, _projectId, JBOperations.CLAIM_HANDLE)
     requirePermission(ownerOf(_projectId), _projectId, JBOperations.CLAIM_HANDLE)
   {
     // The handle must have been transfered to the specified address,

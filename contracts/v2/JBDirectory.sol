@@ -4,76 +4,164 @@ pragma solidity 0.8.6;
 import './interfaces/IJBTerminal.sol';
 import './interfaces/IJBDirectory.sol';
 import './abstract/JBOperatable.sol';
+import './libraries/JBOperations.sol';
 
 /**
   @notice
   Allows project owners to deploy proxy contracts that can pay them when receiving funds directly.
 */
 contract JBDirectory is IJBDirectory, JBOperatable {
-  // --- public immutable stored properties --- //
+  //*********************************************************************//
+  // --------------------- private stored properties ------------------- //
+  //*********************************************************************//
 
-  /// @notice The Projects contract which mints ERC-721's that represent project ownership and transfers.
-  IJBProjects public immutable override projects;
-
-  /// @notice For each project ID, the juicebox terminal that the direct payment addresses are proxies for.
+  /** 
+    @notice 
+    For each project ID, the juicebox terminals that are currently managing its funds.
+  */
   mapping(uint256 => IJBTerminal[]) private _terminalsOf;
 
-  // --- public stored properties --- //
+  //*********************************************************************//
+  // ---------------- public immutable stored properties --------------- //
+  //*********************************************************************//
 
-  /// @notice For each project ID, the juicebox terminal that the direct payment addresses are proxies for.
+  /** 
+    @notice 
+    The Projects contract which mints ERC-721's that represent project ownership and transfers.
+  */
+  IJBProjects public immutable override projects;
+
+  //*********************************************************************//
+  // --------------------- public stored properties -------------------- //
+  //*********************************************************************//
+
+  /** 
+    @notice 
+    For each project ID, the juicebox terminal that is manaing funds for particular domain.
+
+    @dev
+    Domains can be application specific.
+  */
   mapping(uint256 => mapping(uint256 => IJBTerminal)) public override terminalOf;
 
-  // --- external transactions --- //
+  /** 
+    @notice 
+    For each project ID, the controller that manages how terminals interact with tokens and funding cycles.
+  */
+  mapping(uint256 => address) public override controllerOf;
+
+  //*********************************************************************//
+  // ------------------------- external views -------------------------- //
+  //*********************************************************************//
+
+  /** 
+    @notice
+    For each project ID, the juicebox terminals that are currently managing its funds.
+
+    @param _projectId The ID of the project to get terminals of.
+
+    @return An array of terminal addresses.
+  */
   function terminalsOf(uint256 _projectId) external view override returns (IJBTerminal[] memory) {
     return _terminalsOf[_projectId];
   }
 
+  /** 
+    @notice
+    Whether or not a specified terminal is a terminal of the specified project.
+
+    @param _projectId The ID of the project to check within.
+    @param _terminal The address of the terminal to check for.
+
+    @return A flag indicating whether or not the specified terminal is a terminal of the specified project.
+  */
   function isTerminalOf(uint256 _projectId, address _terminal) public view override returns (bool) {
     for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++)
       if (address(_terminalsOf[_projectId][_i]) == _terminal) return true;
-
     return false;
   }
 
+  //*********************************************************************//
+  // -------------------------- constructor ---------------------------- //
+  //*********************************************************************//
+
   /** 
-      @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
-      @param _operatorStore A contract storing operator assignments.
-    */
-  constructor(IJBProjects _projects, IJBOperatorStore _operatorStore) JBOperatable(_operatorStore) {
+    @param _operatorStore A contract storing operator assignments.
+    @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
+  */
+  constructor(IJBOperatorStore _operatorStore, IJBProjects _projects) JBOperatable(_operatorStore) {
     projects = _projects;
   }
 
-  // /**
-  //   @notice
-  //   Update the juicebox terminal that payments to direct payment addresses will be forwarded for the specified project ID.
+  //*********************************************************************//
+  // ---------------------- external transactions ---------------------- //
+  //*********************************************************************//
 
-  //   @param _projectId The ID of the project to set a new terminal for.
-  //   @param _terminal The new terminal to set.
-  // */
-  // function setTerminalOf(uint256 _projectId, IJBTerminal _terminal)
-  //     external
-  //     override
-  // {
-  // }
+  /**
+    @notice
+    Update the controller that manages how terminals interact with tokens and funding cycles.
 
-  function addTerminalOf(uint256 _projectId, IJBTerminal _terminal) external override {
-    // 1. make sure the terminal has been allowed.
-    // 2. make sure the msg.sender is either the project owner.
-    // 3. add the terminal to the list of terminals.
+    @param _projectId The ID of the project to set a new controller for.
+    @param _controller The new controller to set.
+  */
+  function setControllerOf(uint256 _projectId, address _controller) external override {
+    // Get a reference to the current controller being used.
+    address _currentController = controllerOf[_projectId];
+
+    // If the controller is already set, nothing to do.
+    if (_currentController == _controller) return;
+
+    // Get a reference to the project owner.
+    address _projectOwner = projects.ownerOf(_projectId);
+
+    // The project must exist.
+    require(projects.count() >= _projectId, 'NOT_FOUND');
+
+    // Can't set the zero address.
+    require(_controller != address(0), 'ZERO_ADDRESS');
 
     // Either:
-    // - case 1: the current terminal hasn't been set yet and the msg sender is the terminal being set's data authority.
-    // - case 2: the current terminal's data authority is setting a new terminal.
+    // - case 1: the controller hasn't been set yet and the msg sender is the controller being set.
+    // - case 2: the current controller is setting a new controller.
+    // - case 3: the project owner or an operator is changing the controller.
     require(
       // case 1.
-      ((_terminalsOf[_projectId].length == 0) && msg.sender == address(_terminal)) ||
+      (controllerOf[_projectId] == address(0) && msg.sender == _controller) ||
         // case 2.
-        isTerminalOf(_projectId, msg.sender),
+        controllerOf[_projectId] == msg.sender ||
+        // case 3.
+        (msg.sender == _projectOwner ||
+          operatorStore.hasPermission(
+            msg.sender,
+            _projectOwner,
+            _projectId,
+            JBOperations.SET_CONTROLLER
+          )),
       'UNAUTHORIZED'
     );
 
-    // // The project must exist.
-    // require(projects.exists(_projectId), 'NOT_FOUND');
+    // Set the new controller.
+    controllerOf[_projectId] = _controller;
+
+    emit SetController(_projectId, _controller, msg.sender);
+  }
+
+  function addTerminalOf(uint256 _projectId, IJBTerminal _terminal) external override {
+    // Get a reference to the project owner.
+    address _projectOwner = projects.ownerOf(_projectId);
+
+    // Only the controller of the project can add a terminal.
+    require(
+      msg.sender == controllerOf[_projectId] ||
+        (msg.sender == _projectOwner ||
+          operatorStore.hasPermission(
+            msg.sender,
+            _projectOwner,
+            _projectId,
+            JBOperations.ADD_TERMINAL
+          )),
+      'UNAUTHORIZED'
+    );
 
     // Can't set the zero address.
     require(_terminal != IJBTerminal(address(0)), 'ZERO_ADDRESS');

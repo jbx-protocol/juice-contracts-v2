@@ -5,14 +5,15 @@ import './libraries/JBOperations.sol';
 
 // Inheritance
 import './interfaces/IJBSplitsStore.sol';
+import './interfaces/IJBDirectory.sol';
 import './abstract/JBOperatable.sol';
-import './abstract/JBTerminalUtility.sol';
+import './abstract/JBUtility.sol';
 
 /**
   @notice
   Stores splits for each project.
 */
-contract JBSplitsStore is IJBSplitsStore, JBOperatable, JBTerminalUtility {
+contract JBSplitsStore is IJBSplitsStore, JBOperatable {
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//
@@ -32,6 +33,12 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable, JBTerminalUtility {
     The Projects contract which mints ERC-721's that represent project ownership and transfers.
   */
   IJBProjects public immutable override projects;
+
+  /** 
+    @notice 
+    The directory of terminals and controllers for projects.
+  */
+  IJBDirectory public immutable override directory;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -61,14 +68,15 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable, JBTerminalUtility {
 
   /** 
     @param _operatorStore A contract storing operator assignments.
-    @param _jbDirectory The directory of terminals.
+    @param _directory The directory of terminals.
     @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
   */
   constructor(
     IJBOperatorStore _operatorStore,
-    IJBDirectory _jbDirectory,
+    IJBDirectory _directory,
     IJBProjects _projects
-  ) JBOperatable(_operatorStore) JBTerminalUtility(_jbDirectory) {
+  ) JBOperatable(_operatorStore) {
+    directory = _directory;
     projects = _projects;
   }
 
@@ -81,7 +89,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable, JBTerminalUtility {
     Sets a project's splits.
 
     @dev
-    Only the owner or operator of a project, or the current terminal of the project, can set its splits.
+    Only the owner or operator of a project, or the current controller contract of the project, can set its splits.
 
     @dev
     The new splits must include any currently set splits that are locked.
@@ -99,11 +107,11 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable, JBTerminalUtility {
   )
     external
     override
-    requirePermissionAcceptingAlternateAddress(
+    requirePermissionAllowingOverride(
       projects.ownerOf(_projectId),
       _projectId,
       JBOperations.SET_SPLITS,
-      address(directory.terminalOf(_projectId, _domain))
+      directory.controllerOf(_projectId) == msg.sender
     )
   {
     // Get a reference to the project's current splits.

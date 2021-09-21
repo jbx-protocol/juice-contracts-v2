@@ -3,7 +3,7 @@ pragma solidity 0.8.6;
 
 import './interfaces/IJBTokenStore.sol';
 import './abstract/JBOperatable.sol';
-import './abstract/JBTerminalUtility.sol';
+import './abstract/JBUtility.sol';
 
 import './libraries/JBOperations.sol';
 
@@ -20,7 +20,7 @@ import './JBToken.sol';
   @dev
   The total supply of a project's tokens and the balance of each account are calculated in this contract.
 */
-contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
+contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
@@ -54,13 +54,13 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
   //*********************************************************************//
 
   /** 
-      @notice 
-      The total supply of tokens for each project, including staked and unstaked tokens.
+    @notice 
+    The total supply of tokens for each project, including staked and unstaked tokens.
 
-      @param _projectId The ID of the project to get the total supply of.
+    @param _projectId The ID of the project to get the total supply of.
 
-      @return supply The total supply.
-    */
+    @return supply The total supply.
+  */
   function totalSupplyOf(uint256 _projectId) external view override returns (uint256 supply) {
     supply = stakedTotalSupplyOf[_projectId];
     IJBToken _token = tokenOf[_projectId];
@@ -68,14 +68,14 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
   }
 
   /** 
-      @notice 
-      The total balance of tokens a holder has for a specified project, including staked and unstaked tokens.
+    @notice 
+    The total balance of tokens a holder has for a specified project, including staked and unstaked tokens.
 
-      @param _holder The token holder to get a balance for.
-      @param _projectId The project to get the `_hodler`s balance of.
+    @param _holder The token holder to get a balance for.
+    @param _projectId The project to get the `_hodler`s balance of.
 
-      @return balance The balance.
-    */
+    @return balance The balance.
+  */
   function balanceOf(address _holder, uint256 _projectId)
     external
     view
@@ -92,15 +92,15 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
   //*********************************************************************//
 
   /** 
-      @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
-      @param _operatorStore A contract storing operator assignments.
-      @param _directory A directory of a project's current Juicebox terminal to receive payments in.
-    */
+    @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
+    @param _operatorStore A contract storing operator assignments.
+    @param _directory A directory of a project's current Juicebox terminal to receive payments in.
+  */
   constructor(
     IJBProjects _projects,
     IJBOperatorStore _operatorStore,
     IJBDirectory _directory
-  ) JBOperatable(_operatorStore) JBTerminalUtility(_directory) {
+  ) JBOperatable(_operatorStore) JBUtility(_directory) {
     projects = _projects;
   }
 
@@ -109,16 +109,16 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
   //*********************************************************************//
 
   /**
-        @notice 
-        Issues an owner's ERC-20 Tokens that'll be used when unstaking tokens.
+      @notice 
+      Issues an owner's ERC-20 Tokens that'll be used when unstaking tokens.
 
-        @dev 
-        Deploys an owner's Token ERC-20 token contract.
+      @dev 
+      Deploys an owner's Token ERC-20 token contract.
 
-        @param _projectId The ID of the project being issued tokens.
-        @param _name The ERC-20's name.
-        @param _symbol The ERC-20's symbol.
-    */
+      @param _projectId The ID of the project being issued tokens.
+      @param _name The ERC-20's name.
+      @param _symbol The ERC-20's symbol.
+  */
   function issueFor(
     uint256 _projectId,
     string calldata _name,
@@ -148,23 +148,23 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
   }
 
   /** 
-      @notice 
-      Mint new tokens.
+    @notice 
+    Mint new tokens.
 
-      @dev
-      Only a project's current terminal can mint its tokens.
+    @dev
+    Only a project's current terminal can mint its tokens.
 
-      @param _holder The address receiving the new tokens.
-      @param _projectId The project to which the tokens belong.
-      @param _amount The amount to mint.
-      @param _preferUnstakedTokens Whether ERC20's should be converted automatically if they have been issued.
-    */
+    @param _holder The address receiving the new tokens.
+    @param _projectId The project to which the tokens belong.
+    @param _amount The amount to mint.
+    @param _preferUnstakedTokens Whether ERC20's should be converted automatically if they have been issued.
+  */
   function mintFor(
     address _holder,
     uint256 _projectId,
     uint256 _amount,
     bool _preferUnstakedTokens
-  ) external override onlyTerminal(_projectId) {
+  ) external override onlyController(_projectId) {
     // An amount must be specified.
     require(_amount > 0, 'JBTokenStore::mint: NO_OP');
 
@@ -194,23 +194,23 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
   }
 
   /** 
-      @notice 
-      Burns tokens.
+    @notice 
+    Burns tokens.
 
-      @dev
-      Only a project's current terminal can burn its tokens.
+    @dev
+    Only a project's current terminal can burn its tokens.
 
-      @param _holder The address that owns the tokens being burned.
-      @param _projectId The ID of the project of the tokens being burned.
-      @param _amount The amount of tokens being burned.
-      @param _preferUnstakedTokens If the preference is to burn tokens that have been converted to ERC-20s.
-    */
+    @param _holder The address that owns the tokens being burned.
+    @param _projectId The ID of the project of the tokens being burned.
+    @param _amount The amount of tokens being burned.
+    @param _preferUnstakedTokens If the preference is to burn tokens that have been converted to ERC-20s.
+  */
   function burnFrom(
     address _holder,
     uint256 _projectId,
     uint256 _amount,
     bool _preferUnstakedTokens
-  ) external override onlyTerminal(_projectId) {
+  ) external override onlyController(_projectId) {
     // Get a reference to the project's ERC20 tokens.
     IJBToken _token = tokenOf[_projectId];
 
@@ -271,25 +271,21 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
   }
 
   /**
-      @notice 
-      Stakes ERC20 tokens by burning their supply and creating an internal staked version.
+    @notice 
+    Stakes ERC20 tokens by burning their supply and creating an internal staked version.
 
-      @dev
-      Only a ticket holder or an operator can stake its tokens.
+    @dev
+    Only a ticket holder or an operator can stake its tokens.
 
-      @param _holder The owner of the tokens to stake.
-      @param _projectId The ID of the project whos tokens are being staked.
-      @param _amount The amount of tokens to stake.
-     */
+    @param _holder The owner of the tokens to stake.
+    @param _projectId The ID of the project whos tokens are being staked.
+    @param _amount The amount of tokens to stake.
+    */
   function stakeFor(
     address _holder,
     uint256 _projectId,
     uint256 _amount
-  )
-    external
-    override
-    requirePermissionAllowingWildcardDomain(_holder, _projectId, JBOperations.STAKE)
-  {
+  ) external override requirePermission(_holder, _projectId, JBOperations.STAKE) {
     // Get a reference to the project's ERC20 tokens.
     IJBToken _token = tokenOf[_projectId];
 
@@ -315,25 +311,21 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
   }
 
   /**
-      @notice 
-      Unstakes internal tokens by creating and distributing ERC20 tokens.
+    @notice 
+    Unstakes internal tokens by creating and distributing ERC20 tokens.
 
-      @dev
-      Only a token holder or an operator can unstake its tokens.
+    @dev
+    Only a token holder or an operator can unstake its tokens.
 
-      @param _holder The owner of the tokens to unstake.
-      @param _projectId The ID of the project whos tokens are being unstaked.
-      @param _amount The amount of tokens to unstake.
-     */
+    @param _holder The owner of the tokens to unstake.
+    @param _projectId The ID of the project whos tokens are being unstaked.
+    @param _amount The amount of tokens to unstake.
+    */
   function unstakeFor(
     address _holder,
     uint256 _projectId,
     uint256 _amount
-  )
-    external
-    override
-    requirePermissionAllowingWildcardDomain(_holder, _projectId, JBOperations.UNSTAKE)
-  {
+  ) external override requirePermission(_holder, _projectId, JBOperations.UNSTAKE) {
     // Get a reference to the project's ERC20 tokens.
     IJBToken _token = tokenOf[_projectId];
 
@@ -360,25 +352,21 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
   }
 
   /** 
-      @notice 
-      Lock a project's tokens, preventing them from being redeemed and from converting to ERC20s.
+    @notice 
+    Lock a project's tokens, preventing them from being redeemed and from converting to ERC20s.
 
-      @dev
-      Only a ticket holder or an operator can lock its tokens.
+    @dev
+    Only a ticket holder or an operator can lock its tokens.
 
-      @param _holder The holder to lock tokens from.
-      @param _projectId The ID of the project whos tokens are being locked.
-      @param _amount The amount of tokens to lock.
-    */
+    @param _holder The holder to lock tokens from.
+    @param _projectId The ID of the project whos tokens are being locked.
+    @param _amount The amount of tokens to lock.
+  */
   function lockFor(
     address _holder,
     uint256 _projectId,
     uint256 _amount
-  )
-    external
-    override
-    requirePermissionAllowingWildcardDomain(_holder, _projectId, JBOperations.LOCK)
-  {
+  ) external override requirePermission(_holder, _projectId, JBOperations.LOCK) {
     // Amount must be greater than 0.
     require(_amount > 0, 'NO_OP');
 
@@ -398,16 +386,16 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
   }
 
   /** 
-      @notice 
-      Unlock a project's tokens.
+    @notice 
+    Unlock a project's tokens.
 
-      @dev
-      The address that locked the tokens must be the address that unlocks the tokens.
+    @dev
+    The address that locked the tokens must be the address that unlocks the tokens.
 
-      @param _holder The holder to unlock tokens from.
-      @param _projectId The ID of the project whos tokens are being unlocked.
-      @param _amount The amount of tokens to unlock.
-    */
+    @param _holder The holder to unlock tokens from.
+    @param _projectId The ID of the project whos tokens are being unlocked.
+    @param _amount The amount of tokens to unlock.
+  */
   function unlockFor(
     address _holder,
     uint256 _projectId,
@@ -429,27 +417,23 @@ contract JBTokenStore is JBTerminalUtility, JBOperatable, IJBTokenStore {
   }
 
   /** 
-      @notice 
-      Allows a ticket holder to transfer its tokens to another account, without unstaking to ERC-20s.
+    @notice 
+    Allows a ticket holder to transfer its tokens to another account, without unstaking to ERC-20s.
 
-      @dev
-      Only a ticket holder or an operator can transfer its tokens.
+    @dev
+    Only a ticket holder or an operator can transfer its tokens.
 
-      @param _recipient The recipient of the tokens.
-      @param _holder The holder to transfer tokens from.
-      @param _projectId The ID of the project whos tokens are being transfered.
-      @param _amount The amount of tokens to transfer.
-    */
+    @param _recipient The recipient of the tokens.
+    @param _holder The holder to transfer tokens from.
+    @param _projectId The ID of the project whos tokens are being transfered.
+    @param _amount The amount of tokens to transfer.
+  */
   function transferTo(
     address _recipient,
     address _holder,
     uint256 _projectId,
     uint256 _amount
-  )
-    external
-    override
-    requirePermissionAllowingWildcardDomain(_holder, _projectId, JBOperations.TRANSFER)
-  {
+  ) external override requirePermission(_holder, _projectId, JBOperations.TRANSFER) {
     // Can't transfer to the zero address.
     require(_recipient != address(0), 'ZERO_ADDRESS');
 

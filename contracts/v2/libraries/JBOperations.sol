@@ -15,9 +15,10 @@ library JBOperations {
   uint256 public constant UNSTAKE = 11;
   uint256 public constant TRANSFER = 12;
   uint256 public constant LOCK = 13;
-  uint256 public constant SET_TERMINAL = 14;
-  uint256 public constant USE_ALLOWANCE = 15;
-  uint256 public constant BURN = 16;
-  uint256 public constant MINT = 17;
-  uint256 public constant SET_SPLITS = 18;
+  uint256 public constant SET_CONTROLLER = 14;
+  uint256 public constant ADD_TERMINAL = 15;
+  uint256 public constant USE_ALLOWANCE = 16;
+  uint256 public constant BURN = 17;
+  uint256 public constant MINT = 18;
+  uint256 public constant SET_SPLITS = 19;
 }
