@@ -7,7 +7,9 @@ import './IJBProjects.sol';
 interface IJBDirectory {
   event SetController(uint256 indexed projectId, address indexed controller, address caller);
 
-  event SetTerminal(uint256 indexed projectId, IJBTerminal indexed terminal, address caller);
+  event AddTerminal(uint256 indexed projectId, IJBTerminal indexed terminal, address caller);
+
+  event RemoveTerminal(uint256 indexed projectId, IJBTerminal indexed terminal, address caller);
 
   function projects() external view returns (IJBProjects);
 
@@ -21,7 +23,7 @@ interface IJBDirectory {
 
   function addTerminalOf(uint256 _projectId, IJBTerminal _terminal) external;
 
-  function setControllerOf(uint256 _projectId, address _controller) external;
+  function removeTerminalOf(uint256 _projectId, IJBTerminal _terminal) external;
 
-  function transferTerminalOf(uint256 _projectId, IJBTerminal _terminal) external;
+  function setControllerOf(uint256 _projectId, address _controller) external;
 }

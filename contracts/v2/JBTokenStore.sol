@@ -109,15 +109,15 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
   //*********************************************************************//
 
   /**
-      @notice 
-      Issues an owner's ERC-20 Tokens that'll be used when unstaking tokens.
+    @notice 
+    Issues an owner's ERC-20 Tokens that'll be used when unstaking tokens.
 
-      @dev 
-      Deploys an owner's Token ERC-20 token contract.
+    @dev 
+    Deploys an owner's Token ERC-20 token contract.
 
-      @param _projectId The ID of the project being issued tokens.
-      @param _name The ERC-20's name.
-      @param _symbol The ERC-20's symbol.
+    @param _projectId The ID of the project being issued tokens.
+    @param _name The ERC-20's name.
+    @param _symbol The ERC-20's symbol.
   */
   function issueFor(
     uint256 _projectId,

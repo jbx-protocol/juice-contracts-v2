@@ -73,11 +73,11 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
     The amount of overflow that a project is allowed to tap into on-demand.
 
     @dev
-    [_projectId][_configuration][_domain]
+    [_projectId][_configuration][_terminal]
 
     _projectId The ID of the project to get the current overflow allowance of.
     _configuration The configuration of the during which the allowance applies.
-    _domain The domain managing the overflow.
+    _terminal The terminal managing the overflow.
 
     @return The current overflow allowance for the specified project configuration. Decreases as projects use of the allowance.
   */
@@ -212,6 +212,9 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
     // Create the project for the owner. This this contract as the project's terminal,
     // which will give it exclusive access to manage the project's funding cycles and tokens.
     uint256 _projectId = projects.createFor(msg.sender, _handle, _uri);
+
+    // Add the provided terminal to the list of terminals.
+    directory.setControllerOf(_projectId, address(this));
 
     // Add the provided terminal to the list of terminals.
     directory.addTerminalOf(_projectId, _terminal);
@@ -442,9 +445,17 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
     return _distributeReservedTokensOf(_projectId, _memo);
   }
 
-  function swapTerminal(IJBTerminal _terminal) external override nonReentrant {
-    /// move overflow allowance from msg.sender to _terminal;
-    ///
+  function swapTerminal(uint256 _projectId, IJBTerminal _terminal)
+    external
+    override
+    onlyTerminal(_projectId)
+    nonReentrant
+  {
+    // Add the new terminal.
+    directory.addTerminalOf(_projectId, _terminal);
+
+    // Remove the current terminal.
+    directory.removeTerminalOf(_projectId, IJBTerminal(msg.sender));
   }
 
   //*********************************************************************//

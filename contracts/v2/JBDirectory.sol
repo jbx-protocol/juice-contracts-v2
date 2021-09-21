@@ -172,13 +172,32 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     // Set the new terminal.
     _terminalsOf[_projectId].push(_terminal);
 
-    emit SetTerminal(_projectId, _terminal, msg.sender);
+    emit AddTerminal(_projectId, _terminal, msg.sender);
   }
 
-  function transferTerminalOf(uint256 _projectId, IJBTerminal _terminal) external override {
-    // 1. make sure the terminal has been allowed.
-    // 2. make sure the msg.sender is a current terminal.
-    // 3. add the terminal to the list of terminals.
-    // 4. remove the calling terminal from the list of terminals.
+  function removeTerminalOf(uint256 _projectId, IJBTerminal _terminal) external override {
+    // Get a reference to the project owner.
+    address _projectOwner = projects.ownerOf(_projectId);
+
+    // Only the controller of the project can add a terminal.
+    require(
+      msg.sender == controllerOf[_projectId] ||
+        (msg.sender == _projectOwner ||
+          operatorStore.hasPermission(
+            msg.sender,
+            _projectOwner,
+            _projectId,
+            JBOperations.REMOVE_TERMINAL
+          )),
+      'UNAUTHORIZED'
+    );
+    IJBTerminal[] memory _terminals = _terminalsOf[_projectId];
+
+    delete _terminalsOf[_projectId];
+
+    for (uint256 _i; _i < _terminals.length; _i++)
+      if (_terminals[_i] != _terminal) _terminalsOf[_projectId].push(_terminals[_i]);
+
+    emit RemoveTerminal(_projectId, _terminal, msg.sender);
   }
 }

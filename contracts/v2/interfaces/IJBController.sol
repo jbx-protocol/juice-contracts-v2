@@ -139,5 +139,5 @@ interface IJBController {
     external
     returns (uint256 amount);
 
-  function swapTerminal(IJBTerminal _terminal) external;
+  function swapTerminal(uint256 _projectId, IJBTerminal _terminal) external;
 }

@@ -44,41 +44,45 @@ contract JBETHPaymentTerminal is
   //*********************************************************************//
 
   /** 
-      @notice
-      The Projects contract which mints ERC-721's that represent project ownership and transfers.
-    */
+    @notice
+    The Projects contract which mints ERC-721's that represent project ownership and transfers.
+  */
   IJBProjects public immutable override projects;
 
   /** 
-      @notice 
-      The contract storing all funding cycle configurations.
-    */
+    @notice 
+    The contract storing all funding cycle configurations.
+  */
   IJBFundingCycleStore public immutable override fundingCycleStore;
 
   /** 
-      @notice 
-      The contract that manages token minting and burning.
-    */
+    @notice 
+    The contract that manages token minting and burning.
+  */
   IJBTokenStore public immutable override tokenStore;
 
   /** 
-      @notice
-      The contract that stores splits for each project.
-    */
+    @notice
+    The contract that stores splits for each project.
+  */
   IJBSplitsStore public immutable override splitsStore;
 
   /** 
-      @notice
-      The directory of terminals and controllers for projects.
-    */
+    @notice
+    The directory of terminals and controllers for projects.
+  */
   IJBDirectory public immutable override directory;
 
   /** 
-      @notice 
-      The contract that exposes price feeds.
-    */
+    @notice 
+    The contract that exposes price feeds.
+  */
   IJBPrices public immutable override prices;
 
+  /** 
+    @notice 
+    The controller that manages how terminals interact with tokens and funding cycles.
+  */
   IJBController public immutable override jb;
 
   //*********************************************************************//
@@ -86,30 +90,30 @@ contract JBETHPaymentTerminal is
   //*********************************************************************//
 
   /** 
-      @notice 
-      The amount of ETH that each project has.
+    @notice 
+    The amount of ETH that each project has.
 
-      @dev
-      [_projectId] 
+    @dev
+    [_projectId] 
 
-      _projectId The ID of the project to get the balance of.
+    _projectId The ID of the project to get the balance of.
 
-      @return The ETH balance of the specified project.
-    */
+    @return The ETH balance of the specified project.
+  */
   mapping(uint256 => uint256) public override balanceOf;
 
   /**
-      @notice 
-      The amount of overflow that a project is allowed to tap into on-demand.
+    @notice 
+    The amount of overflow that a project is allowed to tap into on-demand.
 
-      @dev
-      [_projectId][_configuration]
+    @dev
+    [_projectId][_configuration]
 
-      _projectId The ID of the project to get the current overflow allowance of.
-      _configuration The configuration of the during which the allowance applies.
+    _projectId The ID of the project to get the current overflow allowance of.
+    _configuration The configuration of the during which the allowance applies.
 
-      @return The current overflow allowance for the specified project configuration. Decreases as projects use of the allowance.
-    */
+    @return The current overflow allowance for the specified project configuration. Decreases as projects use of the allowance.
+  */
   mapping(uint256 => mapping(uint256 => uint256)) public override usedOverflowAllowanceOf;
 
   uint256 public immutable override domain = 0;
@@ -119,13 +123,13 @@ contract JBETHPaymentTerminal is
   //*********************************************************************//
 
   /**
-      @notice
-      Gets the current overflowed amount for a specified project.
+    @notice
+    Gets the current overflowed amount for a specified project.
 
-      @param _projectId The ID of the project to get overflow for.
+    @param _projectId The ID of the project to get overflow for.
 
-      @return The current amount of overflow that project has.
-    */
+    @return The current amount of overflow that project has.
+  */
   function currentOverflowOf(uint256 _projectId) external view override returns (uint256) {
     // Get a reference to the project's current funding cycle.
     FundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
@@ -137,16 +141,16 @@ contract JBETHPaymentTerminal is
   }
 
   /**
-      @notice
-      The amount of overflowed ETH that can be claimed by the specified number of tokens.
+    @notice
+    The amount of overflowed ETH that can be claimed by the specified number of tokens.
 
-      @dev If the project has an active funding cycle reconfiguration ballot, the project's ballot redemption rate is used.
+    @dev If the project has an active funding cycle reconfiguration ballot, the project's ballot redemption rate is used.
 
-      @param _projectId The ID of the project to get a claimable amount for.
-      @param _tokenCount The number of tokens to make the calculation with. 
+    @param _projectId The ID of the project to get a claimable amount for.
+    @param _tokenCount The number of tokens to make the calculation with. 
 
-      @return The amount of overflowed ETH that can be claimed.
-    */
+    @return The amount of overflowed ETH that can be claimed.
+  */
   function claimableOverflowOf(uint256 _projectId, uint256 _tokenCount)
     external
     view
@@ -165,15 +169,15 @@ contract JBETHPaymentTerminal is
   //*********************************************************************//
 
   /** 
-      @param _jb TODO.
-      @param _fundingCycleStore The contract storing all funding cycle configurations.
-      @param _tokenStore The contract that manages token minting and burning.
-      @param _prices The contract that exposes price feeds.
-      @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
-      @param _splitsStore The contract that stores splits for each project.
-      @param _directory The directory of terminals.
-      @param _operatorStore A contract storing operator assignments.
-    */
+    @param _jb The controller that manages how terminals interact with tokens and funding cycles..
+    @param _fundingCycleStore The contract storing all funding cycle configurations.
+    @param _tokenStore The contract that manages token minting and burning.
+    @param _prices The contract that exposes price feeds.
+    @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
+    @param _splitsStore The contract that stores splits for each project.
+    @param _directory The directory of terminals.
+    @param _operatorStore A contract storing operator assignments.
+  */
   constructor(
     IJBController _jb,
     IJBFundingCycleStore _fundingCycleStore,
@@ -198,21 +202,21 @@ contract JBETHPaymentTerminal is
   //*********************************************************************//
 
   /**
-      @notice
-      Contribute ETH to a project.
+    @notice
+    Contribute ETH to a project.
 
-      @dev
-      The msg.value is the amount of the contribution in wei.
+    @dev
+    The msg.value is the amount of the contribution in wei.
 
-      @param _projectId The ID of the project being contribute to.
-      @param _beneficiary The address to mint tokens for and pass along to the funding cycle's data source and delegate.
-      @param _minReturnedTokens The minimum number of tokens expected in return.
-      @param _preferUnstakedTokens A flag indicating whether the request prefers to issue tokens unstaked rather than staked.
-      @param _memo A memo that will be included in the published event, and passed along the the funding cycle's data source and delegate.
-      @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
+    @param _projectId The ID of the project being contribute to.
+    @param _beneficiary The address to mint tokens for and pass along to the funding cycle's data source and delegate.
+    @param _minReturnedTokens The minimum number of tokens expected in return.
+    @param _preferUnstakedTokens A flag indicating whether the request prefers to issue tokens unstaked rather than staked.
+    @param _memo A memo that will be included in the published event, and passed along the the funding cycle's data source and delegate.
+    @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
 
-      @return The number of the funding cycle that the payment was made during.
-    */
+    @return The number of the funding cycle that the payment was made during.
+  */
   function pay(
     uint256 _projectId,
     address _beneficiary,
@@ -234,20 +238,20 @@ contract JBETHPaymentTerminal is
   }
 
   /**
-      @notice 
-      Distributes payouts for a project according to the constraints of its current funding cycle.
-      Payouts are sent to the preprogrammed splits. 
+    @notice 
+    Distributes payouts for a project according to the constraints of its current funding cycle.
+    Payouts are sent to the preprogrammed splits. 
 
-      @dev
-      Anyone can distribute payouts on a project's behalf.
+    @dev
+    Anyone can distribute payouts on a project's behalf.
 
-      @param _projectId The ID of the project having its payouts distributed.
-      @param _amount The amount being distributed.
-      @param _currency The expected currency of the amount being distributed. Must match the project's current funding cycle's currency.
-      @param _minReturnedWei The minimum number of wei that the amount should be valued at.
+    @param _projectId The ID of the project having its payouts distributed.
+    @param _amount The amount being distributed.
+    @param _currency The expected currency of the amount being distributed. Must match the project's current funding cycle's currency.
+    @param _minReturnedWei The minimum number of wei that the amount should be valued at.
 
-      @return The ID of the funding cycle during which the distribution was made.
-    */
+    @return The ID of the funding cycle during which the distribution was made.
+  */
   function distributePayoutsOf(
     uint256 _projectId,
     uint256 _amount,
@@ -309,15 +313,15 @@ contract JBETHPaymentTerminal is
   }
 
   /**
-      @notice 
-      Allows a project to send funds from its overflow up to the preconfigured allowance.
+    @notice 
+    Allows a project to send funds from its overflow up to the preconfigured allowance.
 
-      @param _projectId The ID of the project to use the allowance of.
-      @param _amount The amount of the allowance to use.
-      @param _beneficiary The address to send the funds to.
+    @param _projectId The ID of the project to use the allowance of.
+    @param _amount The amount of the allowance to use.
+    @param _beneficiary The address to send the funds to.
 
-      @return The ID of the funding cycle during which the allowance was use.
-    */
+    @return The ID of the funding cycle during which the allowance was use.
+  */
   function useAllowanceOf(
     uint256 _projectId,
     uint256 _amount,
@@ -381,22 +385,22 @@ contract JBETHPaymentTerminal is
   }
 
   /**
-      @notice
-      Addresses can redeem their tokens to claim the project's overflowed ETH, or to trigger rules determined by the project's current funding cycle's data source.
+    @notice
+    Addresses can redeem their tokens to claim the project's overflowed ETH, or to trigger rules determined by the project's current funding cycle's data source.
 
-      @dev
-      Only a token's holder or a designated operator can redeem it.
+    @dev
+    Only a token's holder or a designated operator can redeem it.
 
-      @param _holder The account to redeem tokens for.
-      @param _projectId The ID of the project to which the tokens being redeemed belong.
-      @param _tokenCount The number of tokens to redeem.
-      @param _minReturnedWei The minimum amount of Wei expected in return.
-      @param _beneficiary The address to send the ETH to. Send the address this contract to burn the count.
-      @param _memo A memo to attach to the emitted event.
-      @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
+    @param _holder The account to redeem tokens for.
+    @param _projectId The ID of the project to which the tokens being redeemed belong.
+    @param _tokenCount The number of tokens to redeem.
+    @param _minReturnedWei The minimum amount of Wei expected in return.
+    @param _beneficiary The address to send the ETH to. Send the address this contract to burn the count.
+    @param _memo A memo to attach to the emitted event.
+    @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
 
-      @return claimAmount The amount of ETH that the tokens were redeemed for, in wei.
-    */
+    @return claimAmount The amount of ETH that the tokens were redeemed for, in wei.
+  */
   function redeemTokensOf(
     address _holder,
     uint256 _projectId,
@@ -445,23 +449,22 @@ contract JBETHPaymentTerminal is
   }
 
   /**
-      @notice
-      Allows a project owner to migrate its funds and operations to a new terminal.
+    @notice
+    Allows a project owner to migrate its funds and operations to a new terminal.
 
-      @dev
-      Only a project's owner or a designated operator can migrate it.
+    @dev
+    Only a project's owner or a designated operator can migrate it.
 
-      @param _projectId The ID of the project being migrated.
-      @param _terminal The terminal contract that will gain the project's funds.
-    */
+    @param _projectId The ID of the project being migrated.
+    @param _terminal The terminal contract that will gain the project's funds.
+  */
   function migrate(uint256 _projectId, IJBTerminal _terminal)
     external
     override
     nonReentrant
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE)
   {
-    // // The data layer must be the project's current terminal.
-    // require(directory.terminalOf(_projectId) == this, 'UNAUTHORIZED');
+    require(directory.isTerminalOf(_projectId, address(this)), 'UNAUTHORIZED');
 
     // Record the balance transfer in the data layer.
     uint256 _balance = _recordMigrationFor(_projectId, _terminal);
@@ -470,16 +473,18 @@ contract JBETHPaymentTerminal is
     if (_balance > 0)
       _terminal.addToBalanceOf{value: _balance}(_projectId, 'Migration from JBPaymentTerminal');
 
+    // Transfer overflow allowance to new terminal.
+
     emit TransferBalance(_projectId, _terminal, _balance, msg.sender);
   }
 
   /**
-      @notice
-      Receives and allocated funds belonging to the specified project.
+    @notice
+    Receives and allocated funds belonging to the specified project.
 
-      @param _projectId The ID of the project to which the funds received belong.
-      @param _memo A memo to include in the emitted event.
-    */
+    @param _projectId The ID of the project to which the funds received belong.
+    @param _memo A memo to include in the emitted event.
+  */
   function addToBalanceOf(uint256 _projectId, string memory _memo) external payable override {
     // Amount must be greater than 0.
     require(msg.value > 0, 'NO_OP');
@@ -495,16 +500,15 @@ contract JBETHPaymentTerminal is
   //*********************************************************************//
 
   /** 
-      @notice
-      Pays out the splits.
+    @notice
+    Pays out the splits.
 
-      @param _fundingCycle The funding cycle during which the distribution is being made.
-      @param _amount The total amount being distributed.
-      @param _memo A memo to send along with emitted distribution events.
+    @param _fundingCycle The funding cycle during which the distribution is being made.
+    @param _amount The total amount being distributed.
+    @param _memo A memo to send along with emitted distribution events.
 
-      @return leftoverAmount If the split module percents dont add up to 100%, the leftover amount is returned.
-
-    */
+    @return leftoverAmount If the split module percents dont add up to 100%, the leftover amount is returned.
+  */
   function _distributeToPayoutSplitsOf(
     FundingCycle memory _fundingCycle,
     uint256 _amount,
@@ -593,16 +597,16 @@ contract JBETHPaymentTerminal is
   }
 
   /** 
-      @notice 
-      Takes a fee into the platform's project, which has an id of 1.
+    @notice 
+    Takes a fee into the platform's project, which has an id of 1.
 
-      @param _amount The amount to take a fee from.
-      @param _percent The percent fee to take. Out of 200.
-      @param _beneficiary The address to print the platforms tokens for.
-      @param _memo A memo to send with the fee.
+    @param _amount The amount to take a fee from.
+    @param _percent The percent fee to take. Out of 200.
+    @param _beneficiary The address to print the platforms tokens for.
+    @param _memo A memo to send with the fee.
 
-      @return feeAmount The amount of the fee taken.
-    */
+    @return feeAmount The amount of the fee taken.
+  */
   function _takeFeeFrom(
     uint256 _amount,
     uint256 _percent,
@@ -625,9 +629,9 @@ contract JBETHPaymentTerminal is
   }
 
   /**
-      @notice
-      See the documentation for 'pay'.
-    */
+    @notice
+    See the documentation for 'pay'.
+  */
   function _pay(
     uint256 _amount,
     uint256 _projectId,
@@ -674,32 +678,32 @@ contract JBETHPaymentTerminal is
   }
 
   /**
-      @notice
-      Records newly contributed ETH to a project made at the payment layer.
+    @notice
+    Records newly contributed ETH to a project made at the payment layer.
 
-      @dev
-      Mint's the project's tokens according to values provided by a configured data source. If no data source is configured, mints tokens proportional to the amount of the contribution.
+    @dev
+    Mint's the project's tokens according to values provided by a configured data source. If no data source is configured, mints tokens proportional to the amount of the contribution.
 
-      @dev
-      The msg.value is the amount of the contribution in wei.
+    @dev
+    The msg.value is the amount of the contribution in wei.
 
-      @param _payer The original address that sent the payment to the payment layer.
-      @param _amount The amount that is being paid.
-      @param _projectId The ID of the project being contribute to.
-      @param _preferUnstakedTokensAndBeneficiary Two properties are included in this packed uint256:
-        The first bit contains the flag indicating whether the request prefers to issue tokens unstaked rather than staked.
-        The remaining bits contains the address that should receive benefits from the payment.
+    @param _payer The original address that sent the payment to the payment layer.
+    @param _amount The amount that is being paid.
+    @param _projectId The ID of the project being contribute to.
+    @param _preferUnstakedTokensAndBeneficiary Two properties are included in this packed uint256:
+      The first bit contains the flag indicating whether the request prefers to issue tokens unstaked rather than staked.
+      The remaining bits contains the address that should receive benefits from the payment.
 
-        This design is necessary two prevent a "Stack too deep" compiler error that comes up if the variables are declared seperately.
-      @param _minReturnedTokens The minimum number of tokens expected in return.
-      @param _memo A memo that will be included in the published event.
-      @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
+      This design is necessary two prevent a "Stack too deep" compiler error that comes up if the variables are declared seperately.
+    @param _minReturnedTokens The minimum number of tokens expected in return.
+    @param _memo A memo that will be included in the published event.
+    @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
 
-      @return fundingCycle The funding cycle during which payment was made.
-      @return weight The weight according to which new token supply was minted.
-      @return tokenCount The number of tokens that were minted.
-      @return memo A memo that should be included in the published event.
-    */
+    @return fundingCycle The funding cycle during which payment was made.
+    @return weight The weight according to which new token supply was minted.
+    @return tokenCount The number of tokens that were minted.
+    @return memo A memo that should be included in the published event.
+  */
   function _recordPaymentFrom(
     address _payer,
     uint256 _amount,
@@ -788,17 +792,17 @@ contract JBETHPaymentTerminal is
   }
 
   /**
-      @notice
-      Records newly withdrawn funds for a project made at the payment layer.
+    @notice
+    Records newly withdrawn funds for a project made at the payment layer.
 
-      @param _projectId The ID of the project that is having funds withdrawn.
-      @param _amount The amount being withdrawn. Send as wei (18 decimals).
-      @param _currency The expected currency of the `_amount` being tapped. This must match the project's current funding cycle's currency.
-      @param _minReturnedWei The minimum number of wei that should be withdrawn.
+    @param _projectId The ID of the project that is having funds withdrawn.
+    @param _amount The amount being withdrawn. Send as wei (18 decimals).
+    @param _currency The expected currency of the `_amount` being tapped. This must match the project's current funding cycle's currency.
+    @param _minReturnedWei The minimum number of wei that should be withdrawn.
 
-      @return fundingCycle The funding cycle during which the withdrawal was made.
-      @return withdrawnAmount The amount withdrawn.
-    */
+    @return fundingCycle The funding cycle during which the withdrawal was made.
+    @return withdrawnAmount The amount withdrawn.
+  */
   function _recordWithdrawalFor(
     uint256 _projectId,
     uint256 _amount,
@@ -834,15 +838,15 @@ contract JBETHPaymentTerminal is
   }
 
   /** 
-      @notice 
-      Records newly used allowance funds of a project made at the payment layer.
+    @notice 
+    Records newly used allowance funds of a project made at the payment layer.
 
-      @param _projectId The ID of the project to use the allowance of.
-      @param _amount The amount of the allowance to use.
+    @param _projectId The ID of the project to use the allowance of.
+    @param _amount The amount of the allowance to use.
 
-      @return fundingCycle The funding cycle during which the withdrawal is being made.
-      @return withdrawnAmount The amount withdrawn.
-    */
+    @return fundingCycle The funding cycle during which the withdrawal is being made.
+    @return withdrawnAmount The amount withdrawn.
+  */
   function _recordUsedAllowanceOf(
     uint256 _projectId,
     uint256 _amount,
@@ -885,21 +889,21 @@ contract JBETHPaymentTerminal is
   }
 
   /**
-      @notice
-      Records newly redeemed tokens of a project made at the payment layer.
+    @notice
+    Records newly redeemed tokens of a project made at the payment layer.
 
-      @param _holder The account that is having its tokens redeemed.
-      @param _projectId The ID of the project to which the tokens being redeemed belong.
-      @param _tokenCount The number of tokens to redeem.
-      @param _minReturnedWei The minimum amount of wei expected in return.
-      @param _beneficiary The address that will benefit from the claimed amount.
-      @param _memo A memo to pass along to the emitted event.
-      @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
+    @param _holder The account that is having its tokens redeemed.
+    @param _projectId The ID of the project to which the tokens being redeemed belong.
+    @param _tokenCount The number of tokens to redeem.
+    @param _minReturnedWei The minimum amount of wei expected in return.
+    @param _beneficiary The address that will benefit from the claimed amount.
+    @param _memo A memo to pass along to the emitted event.
+    @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
 
-      @return fundingCycle The funding cycle during which the redemption was made.
-      @return claimAmount The amount claimed.
-      @return memo A memo that should be passed along to the emitted event.
-    */
+    @return fundingCycle The funding cycle during which the redemption was made.
+    @return claimAmount The amount claimed.
+    @return memo A memo that should be passed along to the emitted event.
+  */
   function _recordRedemptionFor(
     address _holder,
     uint256 _projectId,
@@ -975,12 +979,12 @@ contract JBETHPaymentTerminal is
   }
 
   /**
-      @notice
-      Allows a project owner to transfer its balance and treasury operations to a new contract.
+    @notice
+    Allows a project owner to transfer its balance and treasury operations to a new contract.
 
-      @param _projectId The ID of the project that is being migrated.
-      @param _terminal The terminal that the project is migrating to.
-    */
+    @param _projectId The ID of the project that is being migrated.
+    @param _terminal The terminal that the project is migrating to.
+  */
   function _recordMigrationFor(uint256 _projectId, IJBTerminal _terminal)
     private
     returns (uint256 balance)
@@ -991,31 +995,29 @@ contract JBETHPaymentTerminal is
     // Set the balance to 0.
     balanceOf[_projectId] = 0;
 
-    // // Switch the terminal that the directory will point to for this project.
-    // directory.setTerminalOf(_projectId, _terminal);
-
-    jb.swapTerminal(_terminal);
+    // Tell the controller to swap the terminals.
+    jb.swapTerminal(_projectId, _terminal);
   }
 
   /**
-      @notice
-      Records newly added funds for the project made at the payment layer.
+    @notice
+    Records newly added funds for the project made at the payment layer.
 
-      @dev
-      Only the payment layer can record added balance.
+    @dev
+    Only the payment layer can record added balance.
 
-      @param _projectId The ID of the project to which the funds being added belong.
-      @param _amount The amount added, in wei.
-    */
+    @param _projectId The ID of the project to which the funds being added belong.
+    @param _amount The amount added, in wei.
+  */
   function _recordAddedBalanceFor(uint256 _projectId, uint256 _amount) private {
     // Set the balance.
     balanceOf[_projectId] = balanceOf[_projectId] + _amount;
   }
 
   /**
-      @notice
-      See docs for `claimableOverflowOf`
-     */
+    @notice
+    See docs for `claimableOverflowOf`
+  */
   function _claimableOverflowOf(FundingCycle memory _fundingCycle, uint256 _tokenCount)
     private
     view
@@ -1063,16 +1065,16 @@ contract JBETHPaymentTerminal is
   }
 
   /**
-      @notice
-      Gets the amount that is overflowing if measured from the specified funding cycle.
+    @notice
+    Gets the amount that is overflowing if measured from the specified funding cycle.
 
-      @dev
-      This amount changes as the price of ETH changes in relation to the funding cycle's currency.
+    @dev
+    This amount changes as the price of ETH changes in relation to the funding cycle's currency.
 
-      @param _fundingCycle The ID of the funding cycle to base the overflow on.
+    @param _fundingCycle The ID of the funding cycle to base the overflow on.
 
-      @return overflow The overflow of funds.
-    */
+    @return overflow The overflow of funds.
+  */
   function _overflowFrom(FundingCycle memory _fundingCycle) private view returns (uint256) {
     // Get the current balance of the project.
     uint256 _balanceOf = balanceOf[_fundingCycle.projectId];

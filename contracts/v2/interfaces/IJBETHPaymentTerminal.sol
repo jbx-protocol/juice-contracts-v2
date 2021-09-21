@@ -94,11 +94,6 @@ interface IJBETHPaymentTerminal {
 
   function balanceOf(uint256 _projectId) external view returns (uint256);
 
-  function usedOverflowAllowanceOf(uint256 _projectId, uint256 _configuration)
-    external
-    view
-    returns (uint256);
-
   function currentOverflowOf(uint256 _projectId) external view returns (uint256);
 
   function claimableOverflowOf(uint256 _projectId, uint256 _tokenCount)

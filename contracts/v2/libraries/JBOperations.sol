@@ -17,8 +17,9 @@ library JBOperations {
   uint256 public constant LOCK = 13;
   uint256 public constant SET_CONTROLLER = 14;
   uint256 public constant ADD_TERMINAL = 15;
-  uint256 public constant USE_ALLOWANCE = 16;
-  uint256 public constant BURN = 17;
-  uint256 public constant MINT = 18;
-  uint256 public constant SET_SPLITS = 19;
+  uint256 public constant REMOVE_TERMINAL = 16;
+  uint256 public constant USE_ALLOWANCE = 17;
+  uint256 public constant BURN = 18;
+  uint256 public constant MINT = 19;
+  uint256 public constant SET_SPLITS = 20;
 }
