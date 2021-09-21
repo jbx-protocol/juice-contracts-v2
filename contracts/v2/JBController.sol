@@ -213,11 +213,11 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
     // which will give it exclusive access to manage the project's funding cycles and tokens.
     uint256 _projectId = projects.createFor(msg.sender, _handle, _uri);
 
-    // Add the provided terminal to the list of terminals.
+    // Set the this contract as the project's controller in the directory.
     directory.setControllerOf(_projectId, address(this));
 
     // Add the provided terminal to the list of terminals.
-    directory.addTerminalOf(_projectId, _terminal);
+    if (_terminal != IJBTerminal(address(0))) directory.addTerminalOf(_projectId, _terminal);
 
     _configure(
       _projectId,
@@ -291,6 +291,10 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
     // All reserved tokens must be minted before configuring.
     if (uint256(_processedTokenTrackerOf[_projectId]) != tokenStore.totalSupplyOf(_projectId))
       _distributeReservedTokensOf(_projectId, '');
+
+    // Set the this contract as the project's controller in the directory if its not already set.
+    if (directory.controllerOf(_projectId) == address(0))
+      directory.setControllerOf(_projectId, address(this));
 
     // Configure the active project if its tokens have yet to be minted.
     bool _shouldConfigureActive = tokenStore.totalSupplyOf(_projectId) == 0;
