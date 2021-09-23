@@ -463,7 +463,7 @@ contract JBETHPaymentTerminal is
     external
     override
     nonReentrant
-    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE)
+    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_TERMINAL)
   {
     require(directory.isTerminalOf(_projectId, address(this)), 'UNAUTHORIZED');
 

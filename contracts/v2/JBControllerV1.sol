@@ -471,6 +471,24 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     directory.addTerminalOf(_projectId, _terminal);
   }
 
+  function prepForMigration(uint256 _projectId) external view override {
+    // This TerminalV1 must be the project's current terminal.
+    require(directory.controllerOf(_projectId) != address(this), 'UNAUTHORIZED');
+  }
+
+  function migrate(uint256 _projectId, IJBController _to)
+    external
+    override
+    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_CONTROLLER)
+  {
+    // This TerminalV1 must be the project's current terminal.
+    require(directory.controllerOf(_projectId) == address(this), 'UNAUTHORIZED');
+    _to.prepForMigration(_projectId);
+    directory.setControllerOf(_projectId, address(_to));
+
+    emit Migrate(_projectId, _to, msg.sender);
+  }
+
   //*********************************************************************//
   // --------------------- private helper functions -------------------- //
   //*********************************************************************//
