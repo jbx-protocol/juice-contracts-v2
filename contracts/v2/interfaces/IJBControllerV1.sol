@@ -10,7 +10,6 @@ import './IJBTerminal.sol';
 import './IJBOperatorStore.sol';
 import './IJBFundingCycleDataSource.sol';
 import './IJBPrices.sol';
-import './IJBController.sol';
 
 struct FundingCycleMetadata {
   uint256 reservedRate;
@@ -73,8 +72,6 @@ interface IJBControllerV1 {
     address caller
   );
 
-  event Migrate(uint256 indexed projectId, IJBController to, address caller);
-
   function projects() external view returns (IJBProjects);
 
   function fundingCycleStore() external view returns (IJBFundingCycleStore);
@@ -110,6 +107,4 @@ interface IJBControllerV1 {
   function distributeReservedTokensOf(uint256 _projectId, string memory _memo)
     external
     returns (uint256 amount);
-
-  function migrate(uint256 _projectId, IJBController _to) external;
 }
