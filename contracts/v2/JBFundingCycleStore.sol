@@ -7,50 +7,72 @@ import './interfaces/IJBFundingCycleStore.sol';
 import './abstract/JBUtility.sol';
 
 /** 
-  @notice Manage funding cycle configurations, accounting, and scheduling.
+  @notice 
+  Manage funding cycle configurations, accounting, and scheduling.
 */
 contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
   //*********************************************************************//
   // --------------------- private stored constants -------------------- //
   //*********************************************************************//
 
-  // The number of seconds in a day.
+  /** 
+    @notice 
+    The number of seconds in a day.
+  */
   uint256 private constant SECONDS_IN_DAY = 86400;
 
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//
 
-  // Stores the reconfiguration properties of each funding cycle, packed into one storage slot.
+  /** 
+    @notice
+    Stores the reconfiguration properties of each funding cycle, packed into one storage slot.
+  */
   mapping(uint256 => uint256) private _packedConfigurationPropertiesOf;
 
-  // Stores the properties added by the mechanism to manage and schedule each funding cycle, packed into one storage slot.
+  /** 
+    @notice
+    Stores the properties added by the mechanism to manage and schedule each funding cycle, packed into one storage slot.
+  */
   mapping(uint256 => uint256) private _packedIntrinsicPropertiesOf;
 
-  // Stores the metadata for each funding cycle, packed into one storage slot.
+  /** 
+    @notice
+    Stores the metadata for each funding cycle, packed into one storage slot.
+  */
   mapping(uint256 => uint256) private _metadataOf;
 
-  // Stores the amount that each funding cycle can tap funding cycle.
+  /** 
+    @notice
+    Stores the amount that each funding cycle can tap funding cycle.
+  */
   mapping(uint256 => uint256) private _targetOf;
 
-  // Stores the amount that has been tapped within each funding cycle.
+  /** 
+    @notice
+    Stores the amount that has been tapped within each funding cycle.
+  */
   mapping(uint256 => uint256) private _tappedOf;
 
   //*********************************************************************//
   // ---------------------- public stored properties ------------------- //
   //*********************************************************************//
 
-  /// @notice The weight used for each project's first funding cycle.
-  uint256 public constant override BASE_WEIGHT = 1E24;
-
-  /// @notice The maximum value that a cycle limit can be set to.
+  /** 
+    @notice 
+    The maximum value that a cycle limit can be set to.
+  */
   uint256 public constant override MAX_CYCLE_LIMIT = 32;
 
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
 
-  /// @notice The ID of the latest funding cycle for each project.
+  /** 
+    @notice 
+    The ID of the latest funding cycle for each project.
+  */
   mapping(uint256 => uint256) public override latestIdOf;
 
   //*********************************************************************//
@@ -528,7 +550,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       _packAndStoreIntrinsicProperties(
         _projectId,
         _number,
-        BASE_WEIGHT,
+        _weight,
         _baseFundingCycle.id,
         block.timestamp
       );
@@ -1086,13 +1108,13 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
   }
 
   /** 
-      @notice 
-      Checks to see if the funding cycle of the provided ID is approved according to the correct ballot.
+    @notice 
+    Checks to see if the funding cycle of the provided ID is approved according to the correct ballot.
 
-      @param _fundingCycleId The ID of the funding cycle to get an approval flag for.
+    @param _fundingCycleId The ID of the funding cycle to get an approval flag for.
 
-      @return The approval flag.
-    */
+    @return The approval flag.
+  */
   function _isIdApproved(uint256 _fundingCycleId) private view returns (bool) {
     FundingCycle memory _fundingCycle = _getStruct(_fundingCycleId);
     return _isApproved(_fundingCycle);

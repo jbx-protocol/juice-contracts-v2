@@ -28,8 +28,11 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//
 
-  // The difference between the processed token tracker of a project and the project's token's total supply is the amount of tokens that
-  // still need to have reserves minted against them.
+  /** 
+    @notice
+    The difference between the processed token tracker of a project and the project's token's total supply is the amount of tokens that
+    still need to have reserves minted against them.
+  */
   mapping(uint256 => int256) private _processedTokenTrackerOf;
 
   //*********************************************************************//
@@ -334,7 +337,6 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     @param _beneficiary The account that the tokens are being minted for.
     @param _memo A memo to pass along to the emitted event.
     @param _preferUnstakedTokens Whether ERC20's should be burned first if they have been issued.
-
   */
   function mintTokensOf(
     uint256 _projectId,
