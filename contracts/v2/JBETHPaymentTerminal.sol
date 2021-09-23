@@ -471,10 +471,7 @@ contract JBETHPaymentTerminal is
     uint256 _balance = _recordMigrationFor(_projectId, _terminal);
 
     // Move the funds to the new contract if needed.
-    if (_balance > 0)
-      _terminal.addToBalanceOf{value: _balance}(_projectId, 'Migration from JBPaymentTerminal');
-
-    // Transfer overflow allowance to new terminal.
+    if (_balance > 0) _terminal.addToBalanceOf{value: _balance}(_projectId, 'Migration');
 
     emit TransferBalance(_projectId, _terminal, _balance, msg.sender);
   }

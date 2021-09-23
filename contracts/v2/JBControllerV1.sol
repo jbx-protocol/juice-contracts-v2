@@ -9,12 +9,13 @@ import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 
 // Inheritance
+import './interfaces/IJBControllerV1.sol';
 import './interfaces/IJBController.sol';
 import './abstract/JBOperatable.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
-contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
+contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable, ReentrancyGuard {
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for FundingCycle;
 
@@ -450,17 +451,24 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
     return _distributeReservedTokensOf(_projectId, _memo);
   }
 
+  /** 
+    @notice
+    Allows a terminal to signal to the controller that it is getting replaced by a new terminal.
+
+    @param _projectId The ID of the project that is swapping terminals.
+    @param _terminal The terminal that is being swapped to.
+  */
   function swapTerminal(uint256 _projectId, IJBTerminal _terminal)
     external
     override
     onlyTerminal(_projectId)
     nonReentrant
   {
-    // Add the new terminal.
-    directory.addTerminalOf(_projectId, _terminal);
-
     // Remove the current terminal.
     directory.removeTerminalOf(_projectId, IJBTerminal(msg.sender));
+
+    // Add the new terminal.
+    directory.addTerminalOf(_projectId, _terminal);
   }
 
   //*********************************************************************//
@@ -580,7 +588,6 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
     // Set the leftover amount to the initial amount.
     leftoverAmount = _amount;
 
-    // TODO: changing _splits to "_receipients" or ... ?
     // Get a reference to the project's reserved token splits.
     Split[] memory _splits = splitsStore.splitsOf(
       _fundingCycle.projectId,
