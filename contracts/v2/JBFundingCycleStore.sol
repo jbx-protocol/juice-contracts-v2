@@ -10,12 +10,16 @@ import './abstract/JBUtility.sol';
   @notice Manage funding cycle configurations, accounting, and scheduling.
 */
 contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
-  // --- private stored contants --- //
+  //*********************************************************************//
+  // --------------------- private stored constants -------------------- //
+  //*********************************************************************//
 
   // The number of seconds in a day.
   uint256 private constant SECONDS_IN_DAY = 86400;
 
-  // --- private stored properties --- //
+  //*********************************************************************//
+  // --------------------- private stored properties ------------------- //
+  //*********************************************************************//
 
   // Stores the reconfiguration properties of each funding cycle, packed into one storage slot.
   mapping(uint256 => uint256) private _packedConfigurationPropertiesOf;
@@ -32,7 +36,9 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
   // Stores the amount that has been tapped within each funding cycle.
   mapping(uint256 => uint256) private _tappedOf;
 
-  // --- public stored constants --- //
+  //*********************************************************************//
+  // ---------------------- public stored properties ------------------- //
+  //*********************************************************************//
 
   /// @notice The weight used for each project's first funding cycle.
   uint256 public constant override BASE_WEIGHT = 1E24;
@@ -40,12 +46,16 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
   /// @notice The maximum value that a cycle limit can be set to.
   uint256 public constant override MAX_CYCLE_LIMIT = 32;
 
-  // --- public stored properties --- //
+  //*********************************************************************//
+  // --------------------- public stored properties -------------------- //
+  //*********************************************************************//
 
   /// @notice The ID of the latest funding cycle for each project.
   mapping(uint256 => uint256) public override latestIdOf;
 
-  // --- external views --- //
+  //*********************************************************************//
+  // ------------------------- external views -------------------------- //
+  //*********************************************************************//
 
   /**
     @notice 
@@ -197,12 +207,18 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     return _ballotState(_fundingCycleId, _fundingCycle.configured, _fundingCycle.basedOn);
   }
 
-  // --- external transactions --- //
+  //*********************************************************************//
+  // -------------------------- constructor ---------------------------- //
+  //*********************************************************************//
 
   /** 
     @param _directory A directory of a project's current Juicebox terminal to receive payments in.
   */
   constructor(IJBDirectory _directory) JBUtility(_directory) {}
+
+  //*********************************************************************//
+  // ---------------------- external transactions ---------------------- //
+  //*********************************************************************//
 
   /**
     @notice 
@@ -327,7 +343,9 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     return _getStruct(fundingCycleId);
   }
 
-  // --- private helper functions --- //
+  //*********************************************************************//
+  // --------------------- private helper functions -------------------- //
+  //*********************************************************************//
 
   /**
     @notice 
@@ -503,6 +521,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       // The first number is 1.
       uint256 _number = 1;
 
+      // Get the formatted ID.
       _id = _idFor(_projectId, _number);
 
       // Set fresh intrinsic properties.

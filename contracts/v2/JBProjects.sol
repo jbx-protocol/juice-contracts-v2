@@ -17,7 +17,7 @@ import './libraries/JBOperations.sol';
 */
 contract JBProjects is ERC721, IJBProjects, JBOperatable {
   //*********************************************************************//
-  // --------------------- private stored properties ------------------- //
+  // --------------------- private stored constants -------------------- //
   //*********************************************************************//
 
   /** 

@@ -7,6 +7,7 @@ import '@paulrberg/contracts/math/PRBMath.sol';
 
 import './libraries/JBCurrencies.sol';
 import './libraries/JBOperations.sol';
+import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 
 // Inheritance
@@ -521,7 +522,7 @@ contract JBETHPaymentTerminal is
     Split[] memory _splits = splitsStore.splitsOf(
       _fundingCycle.projectId,
       _fundingCycle.configured,
-      1
+      JBSplitsGroups.ETH_PAYOUT
     );
 
     // If there are no splits, return the full leftover amount.

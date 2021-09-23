@@ -5,6 +5,7 @@ import '@paulrberg/contracts/math/PRBMath.sol';
 import '@paulrberg/contracts/math/PRBMathUD60x18.sol';
 
 import './libraries/JBOperations.sol';
+import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 
 // Inheritance
@@ -584,7 +585,7 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
     Split[] memory _splits = splitsStore.splitsOf(
       _fundingCycle.projectId,
       _fundingCycle.configured,
-      2
+      JBSplitsGroups.RESERVED_TOKENS
     );
 
     //Transfer between all splits.
@@ -713,11 +714,21 @@ contract JBController is IJBController, JBOperatable, Ownable, ReentrancyGuard {
 
     // Set payout splits if there are any.
     if (_payoutSplits.length > 0)
-      splitsStore.set(_projectId, _fundingCycle.configured, 1, _payoutSplits);
+      splitsStore.set(
+        _projectId,
+        _fundingCycle.configured,
+        JBSplitsGroups.ETH_PAYOUT,
+        _payoutSplits
+      );
 
     // Set token splits if there are any.
     if (_reservedTokenSplits.length > 0)
-      splitsStore.set(_projectId, _fundingCycle.configured, 2, _reservedTokenSplits);
+      splitsStore.set(
+        _projectId,
+        _fundingCycle.configured,
+        JBSplitsGroups.RESERVED_TOKENS,
+        _reservedTokenSplits
+      );
 
     for (uint256 _i; _i < _overflowAllowances.length; _i++) {
       OverflowAllowance memory _allowance = _overflowAllowances[_i];
