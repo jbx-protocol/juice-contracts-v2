@@ -102,7 +102,7 @@ describe('Juicebox', async function () {
         }
         const artifacts = fs
           .readFileSync(
-            `${config.paths.artifacts}/contracts/**/t${contractName}.sol/${contractName}.json`,
+            `${config.paths.artifacts}/contracts/**/${contractName}.sol/${contractName}.json`,
           )
           .toString();
 
