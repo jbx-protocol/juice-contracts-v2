@@ -628,7 +628,10 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @notice 
     The project's funding cycle that hasn't yet started, if one exists.
 
-    @param _projectId The ID of project to look through.
+    @dev
+    A value of 0 is returned if no funding cycle was found.
+    
+    @param _projectId The ID of a project to look through for a standby cycle.
 
     @return fundingCycleId The ID of the standby funding cycle.
   */
@@ -924,37 +927,37 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @notice 
     Unpack a funding cycle's packed stored values into an easy-to-work-with funding cycle struct.
 
-    @param _id The ID of the funding cycle to get a struct of.
+    @param _id The funding cycle ID to get the full struct for.
 
-    @return _fundingCycle The funding cycle struct.
+    @return fundingCycle The funding cycle struct.
   */
-  function _getStructFor(uint256 _id) private view returns (JBFundingCycle memory _fundingCycle) {
+  function _getStructFor(uint256 _id) private view returns (JBFundingCycle memory fundingCycle) {
     // Return an empty funding cycle if the ID specified is 0.
-    if (_id == 0) return _fundingCycle;
+    if (_id == 0) return fundingCycle;
 
-    _fundingCycle.id = _id;
+    fundingCycle.id = _id;
 
     uint256 _packedIntrinsicProperties = _packedIntrinsicPropertiesOf[_id];
 
-    _fundingCycle.weight = uint256(uint80(_packedIntrinsicProperties));
-    _fundingCycle.projectId = uint256(uint56(_packedIntrinsicProperties >> 80));
-    _fundingCycle.basedOn = uint256(uint48(_packedIntrinsicProperties >> 136));
-    _fundingCycle.start = uint256(uint48(_packedIntrinsicProperties >> 184));
-    _fundingCycle.number = uint256(uint24(_packedIntrinsicProperties >> 232));
+    fundingCycle.weight = uint256(uint80(_packedIntrinsicProperties));
+    fundingCycle.projectId = uint256(uint56(_packedIntrinsicProperties >> 80));
+    fundingCycle.basedOn = uint256(uint48(_packedIntrinsicProperties >> 136));
+    fundingCycle.start = uint256(uint48(_packedIntrinsicProperties >> 184));
+    fundingCycle.number = uint256(uint24(_packedIntrinsicProperties >> 232));
 
     uint256 _packedConfigurationProperties = _packedConfigurationPropertiesOf[_id];
 
-    _fundingCycle.ballot = IJBFundingCycleBallot(address(uint160(_packedConfigurationProperties)));
-    _fundingCycle.configured = uint256(uint48(_packedConfigurationProperties >> 160));
-    _fundingCycle.duration = uint256(uint16(_packedConfigurationProperties >> 208));
-    _fundingCycle.currency = uint256(uint8(_packedConfigurationProperties >> 224));
-    _fundingCycle.fee = uint256(uint8(_packedConfigurationProperties >> 232));
-    _fundingCycle.discountRate = uint256(uint8(_packedConfigurationProperties >> 240));
-    _fundingCycle.cycleLimit = uint256(uint8(_packedConfigurationProperties >> 248));
+    fundingCycle.ballot = IJBFundingCycleBallot(address(uint160(_packedConfigurationProperties)));
+    fundingCycle.configured = uint256(uint48(_packedConfigurationProperties >> 160));
+    fundingCycle.duration = uint256(uint16(_packedConfigurationProperties >> 208));
+    fundingCycle.currency = uint256(uint8(_packedConfigurationProperties >> 224));
+    fundingCycle.fee = uint256(uint8(_packedConfigurationProperties >> 232));
+    fundingCycle.discountRate = uint256(uint8(_packedConfigurationProperties >> 240));
+    fundingCycle.cycleLimit = uint256(uint8(_packedConfigurationProperties >> 248));
 
-    _fundingCycle.target = _targetOf[_id];
-    _fundingCycle.tapped = _tappedAmountOf[_id];
-    _fundingCycle.metadata = _metadataOf[_id];
+    fundingCycle.target = _targetOf[_id];
+    fundingCycle.tapped = _tappedAmountOf[_id];
+    fundingCycle.metadata = _metadataOf[_id];
   }
 
   /** 
