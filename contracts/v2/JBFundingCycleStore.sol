@@ -28,32 +28,42 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
   /** 
     @notice
     Stores the reconfiguration properties of each funding cycle, packed into one storage slot.
+
+    [_projectId]
   */
   mapping(uint256 => uint256) private _packedConfigurationPropertiesOf;
 
   /** 
     @notice
     Stores the properties added by the mechanism to manage and schedule each funding cycle, packed into one storage slot.
+    
+    [_projectId]
   */
   mapping(uint256 => uint256) private _packedIntrinsicPropertiesOf;
 
   /** 
     @notice
     Stores the metadata for each funding cycle, packed into one storage slot.
+
+    [_projectId]
   */
   mapping(uint256 => uint256) private _metadataOf;
 
   /** 
     @notice
     Stores the amount that each funding cycle can tap funding cycle.
+
+    [_projectId]
   */
   mapping(uint256 => uint256) private _targetOf;
 
   /** 
     @notice
     Stores the amount that has been tapped within each funding cycle.
+
+    [_projectId]
   */
-  mapping(uint256 => uint256) private _tappedOf;
+  mapping(uint256 => uint256) private _tappedAmountOf;
 
   //*********************************************************************//
   // ---------------------- public stored properties ------------------- //
@@ -349,7 +359,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     uint256 fundingCycleId = _tappable(_projectId);
 
     // Get a reference to how much has already been tapped from this funding cycle.
-    uint256 _tapped = _tappedOf[fundingCycleId];
+    uint256 _tapped = _tappedAmountOf[fundingCycleId];
 
     // Amount must be within what is still tappable.
     require(_amount <= _targetOf[fundingCycleId] - _tapped, 'INSUFFICIENT_FUNDS');
@@ -358,7 +368,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     uint256 _newTappedAmount = _tapped + _amount;
 
     // Store the new amount.
-    _tappedOf[fundingCycleId] = _newTappedAmount;
+    _tappedAmountOf[fundingCycleId] = _newTappedAmount;
 
     emit Tap(fundingCycleId, _projectId, _amount, _newTappedAmount, msg.sender);
 
@@ -904,7 +914,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     _fundingCycle.discountRate = uint256(uint8(_packedConfigurationProperties >> 240));
     _fundingCycle.cycleLimit = uint256(uint8(_packedConfigurationProperties >> 248));
     _fundingCycle.target = _targetOf[_id];
-    _fundingCycle.tapped = _tappedOf[_id];
+    _fundingCycle.tapped = _tappedAmountOf[_id];
     _fundingCycle.metadata = _metadataOf[_id];
   }
 
