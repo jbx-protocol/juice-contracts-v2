@@ -3,7 +3,7 @@ pragma solidity 0.8.6;
 
 import './../interfaces/IJBFundingCycleBallot.sol';
 
-struct FundingCycleData {
+struct JBFundingCycleData {
   uint256 target;
   uint256 currency;
   uint256 duration;

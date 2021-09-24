@@ -6,11 +6,11 @@ import './IJBFundingCycleStore.sol';
 import './IJBPayDelegate.sol';
 import './IJBRedemptionDelegate.sol';
 
-import './../structs/PayParamsData.sol';
-import './../structs/RedeemParamsData.sol';
+import './../structs/JBPayParamsData.sol';
+import './../structs/JBRedeemParamsData.sol';
 
 interface IJBFundingCycleDataSource {
-  function payParams(PayParamsData calldata _param)
+  function payParams(JBPayParamsData calldata _param)
     external
     returns (
       uint256 weight,
@@ -19,7 +19,7 @@ interface IJBFundingCycleDataSource {
       bytes memory delegateMetadata
     );
 
-  function redeemParams(RedeemParamsData calldata _param)
+  function redeemParams(JBRedeemParamsData calldata _param)
     external
     returns (
       uint256 amount,

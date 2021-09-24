@@ -5,14 +5,14 @@ import './IJBOperatorStore.sol';
 import './IJBProjects.sol';
 import './IJBSplitAllocator.sol';
 
-import './../structs/Split.sol';
+import './../structs/JBSplit.sol';
 
 interface IJBSplitsStore {
   event SetSplit(
     uint256 indexed projectId,
     uint256 indexed domain,
     uint256 indexed group,
-    Split split,
+    JBSplit split,
     address caller
   );
 
@@ -24,12 +24,12 @@ interface IJBSplitsStore {
     uint256 _projectId,
     uint256 _domain,
     uint256 _group
-  ) external view returns (Split[] memory);
+  ) external view returns (JBSplit[] memory);
 
   function set(
     uint256 _projectId,
     uint256 _domain,
     uint256 _group,
-    Split[] memory _splits
+    JBSplit[] memory _splits
   ) external;
 }

@@ -22,7 +22,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     @notice
     All splits for each project ID's configurations.
   */
-  mapping(uint256 => mapping(uint256 => mapping(uint256 => Split[]))) private _splitsOf;
+  mapping(uint256 => mapping(uint256 => mapping(uint256 => JBSplit[]))) private _splitsOf;
 
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
@@ -58,7 +58,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     uint256 _projectId,
     uint256 _domain,
     uint256 _group
-  ) external view override returns (Split[] memory) {
+  ) external view override returns (JBSplit[] memory) {
     return _splitsOf[_projectId][_domain][_group];
   }
 
@@ -103,7 +103,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     uint256 _projectId,
     uint256 _domain,
     uint256 _group,
-    Split[] memory _splits
+    JBSplit[] memory _splits
   )
     external
     override
@@ -115,7 +115,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     )
   {
     // Get a reference to the project's current splits.
-    Split[] memory _currentSplits = _splitsOf[_projectId][_domain][_group];
+    JBSplit[] memory _currentSplits = _splitsOf[_projectId][_domain][_group];
 
     // Check to see if all locked splits are included.
     for (uint256 _i = 0; _i < _currentSplits.length; _i++) {

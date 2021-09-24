@@ -94,7 +94,7 @@ contract JBOperatorStore is IJBOperatorStore {
       @dev _operatorData.domains Lists the domain that each operator is being given permissions to operate. A value of 0 serves as a wildcard domain. Applications can specify their own domain system.
       @dev _operatorData.permissionIndexes Lists the permission indexes to set for each operator. Indexes must be between 0-255. Applications can specify the significance of each index.
   */
-  function setOperator(OperatorData calldata _operatorData) external override {
+  function setOperator(JBOperatorData calldata _operatorData) external override {
     // Pack the indexes into a uint256.
     uint256 _packed = _packedPermissions(_operatorData.permissionIndexes);
 
@@ -122,7 +122,7 @@ contract JBOperatorStore is IJBOperatorStore {
       @dev _operatorData.domains Lists the domain that each operator is being given permissions to operate. A value of 0 serves as a wildcard domain. Applications can specify their own domain system.
       @dev _operatorData.permissionIndexes Lists the permission indexes to set for each operator. Indexes must be between 0-255. Applications can specify the significance of each index.
   */
-  function setOperators(OperatorData[] calldata _operatorData) external override {
+  function setOperators(JBOperatorData[] calldata _operatorData) external override {
     for (uint256 _i = 0; _i < _operatorData.length; _i++) {
       // Pack the indexes into a uint256.
       uint256 _packed = _packedPermissions(_operatorData[_i].permissionIndexes);

@@ -3,7 +3,7 @@ pragma solidity 0.8.6;
 
 import './../interfaces/IJBTerminal.sol';
 
-struct OverflowAllowance {
+struct JBOverflowAllowance {
   IJBTerminal terminal;
   uint256 amount;
 }

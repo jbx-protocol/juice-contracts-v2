@@ -31,7 +31,9 @@ interface IJBController {
     bool _preferUnstakedTokens
   ) external;
 
-  function withdrawFrom(uint256 _projectId, uint256 _amount) external returns (FundingCycle memory);
+  function withdrawFrom(uint256 _projectId, uint256 _amount)
+    external
+    returns (JBFundingCycle memory);
 
   function overflowAllowanceOf(
     uint256 _projectId,

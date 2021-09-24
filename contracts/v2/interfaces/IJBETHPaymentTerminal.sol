@@ -48,7 +48,7 @@ interface IJBETHPaymentTerminal {
     uint256 indexed fundingCycleId,
     uint256 indexed projectId,
     address indexed beneficiary,
-    FundingCycle fundingCycle,
+    JBFundingCycle fundingCycle,
     uint256 amount,
     uint256 weight,
     uint256 tokenCount,
@@ -59,7 +59,7 @@ interface IJBETHPaymentTerminal {
     uint256 indexed fundingCycleId,
     uint256 indexed projectId,
     address indexed holder,
-    FundingCycle fundingCycle,
+    JBFundingCycle fundingCycle,
     address beneficiary,
     uint256 tokenCount,
     uint256 claimedAmount,
@@ -69,14 +69,14 @@ interface IJBETHPaymentTerminal {
   event DistributeToPayoutSplit(
     uint256 indexed fundingCycleId,
     uint256 indexed projectId,
-    Split split,
+    JBSplit split,
     uint256 amount,
     address caller
   );
 
-  event DelegateDidPay(IJBPayDelegate indexed delegate, DidPayData data);
+  event DelegateDidPay(IJBPayDelegate indexed delegate, JBDidPayData data);
 
-  event DelegateDidRedeem(IJBRedemptionDelegate indexed delegate, DidRedeemData data);
+  event DelegateDidRedeem(IJBRedemptionDelegate indexed delegate, JBDidRedeemData data);
 
   function projects() external view returns (IJBProjects);
 

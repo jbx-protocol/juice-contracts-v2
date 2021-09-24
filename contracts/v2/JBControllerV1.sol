@@ -17,7 +17,7 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
 contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable, ReentrancyGuard {
   // A library that parses the packed funding cycle metadata into a more friendly format.
-  using JBFundingCycleMetadataResolver for FundingCycle;
+  using JBFundingCycleMetadataResolver for JBFundingCycle;
 
   modifier onlyTerminal(uint256 _projectId) {
     require(directory.isTerminalOf(_projectId, msg.sender), 'UNAUTHORIZED');
@@ -204,11 +204,11 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
   function launchProjectFor(
     bytes32 _handle,
     string calldata _uri,
-    FundingCycleData calldata _data,
-    FundingCycleMetadata calldata _metadata,
-    OverflowAllowance[] memory _overflowAllowances,
-    Split[] memory _payoutSplits,
-    Split[] memory _reservedTokenSplits,
+    JBFundingCycleData calldata _data,
+    JBFundingCycleMetadata calldata _metadata,
+    JBOverflowAllowance[] memory _overflowAllowances,
+    JBSplit[] memory _payoutSplits,
+    JBSplit[] memory _reservedTokenSplits,
     IJBTerminal _terminal
   ) external override {
     // Make sure the metadata is validated and packed into a uint256.
@@ -278,11 +278,11 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
   */
   function reconfigureFundingCyclesOf(
     uint256 _projectId,
-    FundingCycleData calldata _data,
-    FundingCycleMetadata calldata _metadata,
-    OverflowAllowance[] memory _overflowAllowances,
-    Split[] memory _payoutSplits,
-    Split[] memory _reservedTokenSplits
+    JBFundingCycleData calldata _data,
+    JBFundingCycleMetadata calldata _metadata,
+    JBOverflowAllowance[] memory _overflowAllowances,
+    JBSplit[] memory _payoutSplits,
+    JBSplit[] memory _reservedTokenSplits
   )
     external
     override
@@ -320,7 +320,7 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     external
     override
     onlyTerminal(_projectId)
-    returns (FundingCycle memory)
+    returns (JBFundingCycle memory)
   {
     return fundingCycleStore.tapFrom(_projectId, _amount);
   }
@@ -363,7 +363,7 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     require(_tokenCount > 0, 'NO_OP');
 
     // Get a reference to the project's current funding cycle.
-    FundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
+    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // The current funding cycle must not be paused.
     require(_fundingCycle.mintPaused(), 'PAUSED');
@@ -421,7 +421,7 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     require(_tokenCount > 0, 'NO_OP');
 
     // Get a reference to the project's current funding cycle.
-    FundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
+    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // The current funding cycle must not be paused.
     require(_fundingCycle.burnPaused(), 'PAUSED');
@@ -503,7 +503,7 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
 
     @return packed The packed uint256 of all metadata params. The first 8 bytes specify the version.
     */
-  function _validateAndPackFundingCycleMetadata(FundingCycleMetadata memory _metadata)
+  function _validateAndPackFundingCycleMetadata(JBFundingCycleMetadata memory _metadata)
     private
     pure
     returns (uint256 packed)
@@ -552,7 +552,7 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     returns (uint256 count)
   {
     // Get the current funding cycle to read the reserved rate from.
-    FundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
+    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // There aren't any reserved tokens to mint and distribute if there is no funding cycle.
     if (_fundingCycle.number == 0) return 0;
@@ -601,7 +601,7 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
 
     @return leftoverAmount If the splits percents dont add up to 100%, the leftover amount is returned.
   */
-  function _distributeToReservedTokenSplitsOf(FundingCycle memory _fundingCycle, uint256 _amount)
+  function _distributeToReservedTokenSplitsOf(JBFundingCycle memory _fundingCycle, uint256 _amount)
     private
     returns (uint256 leftoverAmount)
   {
@@ -609,7 +609,7 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     leftoverAmount = _amount;
 
     // Get a reference to the project's reserved token splits.
-    Split[] memory _splits = splitsStore.splitsOf(
+    JBSplit[] memory _splits = splitsStore.splitsOf(
       _fundingCycle.projectId,
       _fundingCycle.configured,
       JBSplitsGroups.RESERVED_TOKENS
@@ -618,9 +618,9 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     //Transfer between all splits.
     for (uint256 _i = 0; _i < _splits.length; _i++) {
       // Get a reference to the split being iterated on.
-      Split memory _split = _splits[_i];
+      JBSplit memory _split = _splits[_i];
 
-      // The amount to send towards the split. Split percents are out of 10000.
+      // The amount to send towards the split. JBSplit percents are out of 10000.
       uint256 _tokenCount = PRBMath.mulDiv(_amount, _split.percent, 10000);
 
       // Mints tokens for the split if needed.
@@ -723,15 +723,15 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
   */
   function _configure(
     uint256 _projectId,
-    FundingCycleData calldata _data,
+    JBFundingCycleData calldata _data,
     uint256 _packedMetadata,
-    OverflowAllowance[] memory _overflowAllowances,
-    Split[] memory _payoutSplits,
-    Split[] memory _reservedTokenSplits,
+    JBOverflowAllowance[] memory _overflowAllowances,
+    JBSplit[] memory _payoutSplits,
+    JBSplit[] memory _reservedTokenSplits,
     bool _shouldConfigureActive
   ) private returns (uint256) {
     // Configure the funding cycle's properties.
-    FundingCycle memory _fundingCycle = fundingCycleStore.configureFor(
+    JBFundingCycle memory _fundingCycle = fundingCycleStore.configureFor(
       _projectId,
       _data,
       _packedMetadata,
@@ -758,7 +758,7 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
       );
 
     for (uint256 _i; _i < _overflowAllowances.length; _i++) {
-      OverflowAllowance memory _allowance = _overflowAllowances[_i];
+      JBOverflowAllowance memory _allowance = _overflowAllowances[_i];
 
       // Set the overflow allowance if the value is different from the currently set value.
       if (

@@ -3,7 +3,7 @@ pragma solidity 0.8.6;
 
 import './../interfaces/IJBFundingCycleDataSource.sol';
 
-struct FundingCycleMetadata {
+struct JBFundingCycleMetadata {
   uint256 reservedRate;
   uint256 redemptionRate;
   uint256 ballotRedemptionRate;

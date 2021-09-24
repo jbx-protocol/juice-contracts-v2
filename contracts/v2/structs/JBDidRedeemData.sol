@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-struct DidRedeemData {
+struct JBDidRedeemData {
   address holder;
   uint256 projectId;
   uint256 tokenCount;

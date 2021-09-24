@@ -87,7 +87,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
     @return _fundingCycle The funding cycle.
   */
-  function get(uint256 _fundingCycleId) external view override returns (FundingCycle memory) {
+  function get(uint256 _fundingCycleId) external view override returns (JBFundingCycle memory) {
     // The funding cycle should exist.
     require(_fundingCycleId > 0, 'NOT_FOUND');
 
@@ -105,7 +105,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
     @return _fundingCycle The queued funding cycle.
   */
-  function queuedOf(uint256 _projectId) external view override returns (FundingCycle memory) {
+  function queuedOf(uint256 _projectId) external view override returns (JBFundingCycle memory) {
     // The project must have funding cycles.
     if (latestIdOf[_projectId] == 0) return _getStruct(0);
 
@@ -121,7 +121,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // If an eligible funding cycle exists...
     if (_fundingCycleId > 0) {
       // Get the necessary properties for the standby funding cycle.
-      FundingCycle memory _fundingCycle = _getStruct(_fundingCycleId);
+      JBFundingCycle memory _fundingCycle = _getStruct(_fundingCycleId);
 
       // There's no queued if the current has a duration of 0.
       if (_fundingCycle.duration == 0) return _getStruct(0);
@@ -161,7 +161,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     external
     view
     override
-    returns (FundingCycle memory fundingCycle)
+    returns (JBFundingCycle memory fundingCycle)
   {
     // The project must have funding cycles.
     if (latestIdOf[_projectId] == 0) return _getStruct(0);
@@ -174,7 +174,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     if (_fundingCycleId == 0) _fundingCycleId = _standby(_projectId);
 
     // Keep a reference to the eligible funding cycle.
-    FundingCycle memory _fundingCycle;
+    JBFundingCycle memory _fundingCycle;
 
     // If a standy funding cycle exists...
     if (_fundingCycleId > 0) {
@@ -221,7 +221,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     uint256 _fundingCycleId = latestIdOf[_projectId];
 
     // Get the necessary properties for the latest funding cycle.
-    FundingCycle memory _fundingCycle = _getStruct(_fundingCycleId);
+    JBFundingCycle memory _fundingCycle = _getStruct(_fundingCycleId);
 
     // If the latest funding cycle is the first, or if it has already started, it must be approved.
     if (_fundingCycle.basedOn == 0) return BallotState.Standby;
@@ -270,11 +270,11 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
   */
   function configureFor(
     uint256 _projectId,
-    FundingCycleData calldata _data,
+    JBFundingCycleData calldata _data,
     uint256 _metadata,
     uint256 _fee,
     bool _configureActiveFundingCycle
-  ) external override onlyController(_projectId) returns (FundingCycle memory fundingCycle) {
+  ) external override onlyController(_projectId) returns (JBFundingCycle memory fundingCycle) {
     // Duration must fit in a uint16.
     require(_data.duration <= type(uint16).max, 'BAD_DURATION');
 
@@ -343,7 +343,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     external
     override
     onlyController(_projectId)
-    returns (FundingCycle memory fundingCycle)
+    returns (JBFundingCycle memory fundingCycle)
   {
     // Get a reference to the funding cycle being tapped.
     uint256 fundingCycleId = _tappable(_projectId);
@@ -395,7 +395,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // If it exists, make sure its updated, then return it.
     if (fundingCycleId > 0) {
       // Get the funding cycle that the specified one is based on.
-      FundingCycle memory _baseFundingCycle = _getStruct(_getStruct(fundingCycleId).basedOn);
+      JBFundingCycle memory _baseFundingCycle = _getStruct(_getStruct(fundingCycleId).basedOn);
 
       // The base's ballot must have ended.
       _updateFundingCycle(
@@ -428,7 +428,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     uint256 _mustStartOnOrAfter;
 
     // Base off of the active funding cycle if it exists.
-    FundingCycle memory _fundingCycle = _getStruct(fundingCycleId);
+    JBFundingCycle memory _fundingCycle = _getStruct(fundingCycleId);
 
     // Make sure the funding cycle is recurring.
     require(_fundingCycle.discountRate < 201, 'NON_RECURRING');
@@ -469,7 +469,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     if (fundingCycleId == 0) fundingCycleId = _standby(_projectId);
 
     // Keep a reference to the funding cycle eligible for being tappable.
-    FundingCycle memory _fundingCycle;
+    JBFundingCycle memory _fundingCycle;
 
     // If the ID of an eligible funding cycle exists,
     // check to see if it has been approved by the based funding cycle's ballot.
@@ -531,7 +531,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
   */
   function _init(
     uint256 _projectId,
-    FundingCycle memory _baseFundingCycle,
+    JBFundingCycle memory _baseFundingCycle,
     uint256 _mustStartOnOrAfter,
     uint256 _weight,
     bool _copy
@@ -563,7 +563,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     latestIdOf[_projectId] = _id;
 
     // Get a reference to the funding cycle with updated intrinsic properties.
-    FundingCycle memory _fundingCycle = _getStruct(_id);
+    JBFundingCycle memory _fundingCycle = _getStruct(_id);
 
     emit Init(
       _id,
@@ -593,7 +593,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     if (fundingCycleId == 0) return 0;
 
     // Get the necessary properties for the latest funding cycle.
-    FundingCycle memory _fundingCycle = _getStruct(fundingCycleId);
+    JBFundingCycle memory _fundingCycle = _getStruct(fundingCycleId);
 
     // There is no upcoming funding cycle if the latest funding cycle has already started.
     if (block.timestamp >= _fundingCycle.start) return 0;
@@ -615,7 +615,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     if (fundingCycleId == 0) return 0;
 
     // Get the necessary properties for the latest funding cycle.
-    FundingCycle memory _fundingCycle = _getStruct(fundingCycleId);
+    JBFundingCycle memory _fundingCycle = _getStruct(fundingCycleId);
 
     // If the latest is expired, return an undefined funding cycle.
     // A duration of 0 can not be expired.
@@ -629,7 +629,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     if (_fundingCycle.basedOn == 0 || block.timestamp >= _fundingCycle.start) return fundingCycleId;
 
     // The base cant be expired.
-    FundingCycle memory _baseFundingCycle = _getStruct(_fundingCycle.basedOn);
+    JBFundingCycle memory _baseFundingCycle = _getStruct(_fundingCycle.basedOn);
 
     // If the current time is past the end of the base, return 0.
     // A duration of 0 is always eligible.
@@ -651,17 +651,17 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
     @return The next funding cycle, with an ID set to 0.
   */
-  function _mockFundingCycleBasedOn(FundingCycle memory _baseFundingCycle, bool _allowMidCycle)
+  function _mockFundingCycleBasedOn(JBFundingCycle memory _baseFundingCycle, bool _allowMidCycle)
     internal
     view
-    returns (FundingCycle memory)
+    returns (JBFundingCycle memory)
   {
     // Can't mock a non recurring funding cycle.
     if (_baseFundingCycle.discountRate == 201) return _getStruct(0);
 
     // If the base has a limit, find the last permanent funding cycle, which is needed to make subsequent calculations.
     // Otherwise, the base is already the latest permanent funding cycle.
-    FundingCycle memory _latestPermanentFundingCycle = _baseFundingCycle.cycleLimit > 0
+    JBFundingCycle memory _latestPermanentFundingCycle = _baseFundingCycle.cycleLimit > 0
       ? _latestPermanentCycleBefore(_baseFundingCycle)
       : _baseFundingCycle;
 
@@ -697,12 +697,12 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     uint256 _cycleLimit = _deriveCycleLimit(_baseFundingCycle, _start);
 
     // Copy the last permanent funding cycle if the bases' limit is up.
-    FundingCycle memory _fundingCycleToCopy = _cycleLimit == 0
+    JBFundingCycle memory _fundingCycleToCopy = _cycleLimit == 0
       ? _latestPermanentFundingCycle
       : _baseFundingCycle;
 
     return
-      FundingCycle(
+      JBFundingCycle(
         0,
         _fundingCycleToCopy.projectId,
         _deriveNumber(_baseFundingCycle, _latestPermanentFundingCycle, _start),
@@ -733,13 +733,13 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @return fundingCycleId The ID of the funding cycle that was updated.
   */
   function _updateFundingCycle(
-    FundingCycle memory _baseFundingCycle,
+    JBFundingCycle memory _baseFundingCycle,
     uint256 _mustStartOnOrAfter,
     uint256 _weight,
     bool _copy
   ) private returns (uint256 fundingCycleId) {
     // Get the latest permanent funding cycle.
-    FundingCycle memory _latestPermanentFundingCycle = _baseFundingCycle.cycleLimit > 0
+    JBFundingCycle memory _latestPermanentFundingCycle = _baseFundingCycle.cycleLimit > 0
       ? _latestPermanentCycleBefore(_baseFundingCycle)
       : _baseFundingCycle;
 
@@ -773,7 +773,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       uint256 _cycleLimit = _deriveCycleLimit(_baseFundingCycle, _start);
 
       // Copy the last permanent funding cycle if the bases' limit is up.
-      FundingCycle memory _fundingCycleToCopy = _cycleLimit == 0
+      JBFundingCycle memory _fundingCycleToCopy = _cycleLimit == 0
         ? _latestPermanentFundingCycle
         : _baseFundingCycle;
 
@@ -881,7 +881,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
     @return _fundingCycle The funding cycle struct.
   */
-  function _getStruct(uint256 _id) private view returns (FundingCycle memory _fundingCycle) {
+  function _getStruct(uint256 _id) private view returns (JBFundingCycle memory _fundingCycle) {
     // Return an empty funding cycle if the ID specified is 0.
     if (_id == 0) return _fundingCycle;
 
@@ -919,8 +919,8 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @return start The next start time.
   */
   function _deriveStart(
-    FundingCycle memory _baseFundingCycle,
-    FundingCycle memory _latestPermanentFundingCycle,
+    JBFundingCycle memory _baseFundingCycle,
+    JBFundingCycle memory _latestPermanentFundingCycle,
     uint256 _mustStartOnOrAfter
   ) internal pure returns (uint256 start) {
     // A subsequent cycle to one with a duration of 0 should start as soon as possible.
@@ -973,8 +973,8 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @return weight The next weight.
   */
   function _deriveWeight(
-    FundingCycle memory _baseFundingCycle,
-    FundingCycle memory _latestPermanentFundingCycle,
+    JBFundingCycle memory _baseFundingCycle,
+    JBFundingCycle memory _latestPermanentFundingCycle,
     uint256 _start
   ) internal pure returns (uint256 weight) {
     // A subsequent cycle to one with a duration of 0 should have the next possible weight.
@@ -1045,8 +1045,8 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @return number The next number.
   */
   function _deriveNumber(
-    FundingCycle memory _baseFundingCycle,
-    FundingCycle memory _latestPermanentFundingCycle,
+    JBFundingCycle memory _baseFundingCycle,
+    JBFundingCycle memory _latestPermanentFundingCycle,
     uint256 _start
   ) internal pure returns (uint256 number) {
     // A subsequent cycle to one with a duration of 0 should be the next number.
@@ -1095,7 +1095,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
     @return start The inclusive nunmber of cycles remaining.
   */
-  function _deriveCycleLimit(FundingCycle memory _fundingCycle, uint256 _start)
+  function _deriveCycleLimit(JBFundingCycle memory _fundingCycle, uint256 _start)
     internal
     pure
     returns (uint256)
@@ -1116,7 +1116,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @return The approval flag.
   */
   function _isIdApproved(uint256 _fundingCycleId) private view returns (bool) {
-    FundingCycle memory _fundingCycle = _getStruct(_fundingCycleId);
+    JBFundingCycle memory _fundingCycle = _getStruct(_fundingCycleId);
     return _isApproved(_fundingCycle);
   }
 
@@ -1128,7 +1128,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
     @return The approval flag.
   */
-  function _isApproved(FundingCycle memory _fundingCycle) private view returns (bool) {
+  function _isApproved(JBFundingCycle memory _fundingCycle) private view returns (bool) {
     return
       _ballotState(_fundingCycle.id, _fundingCycle.configured, _fundingCycle.basedOn) ==
       BallotState.Approved;
@@ -1153,7 +1153,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     if (_ballotFundingCycleId == 0) return BallotState.Approved;
 
     // Get the ballot funding cycle.
-    FundingCycle memory _ballotFundingCycle = _getStruct(_ballotFundingCycleId);
+    JBFundingCycle memory _ballotFundingCycle = _getStruct(_ballotFundingCycleId);
 
     // If the configuration is the same as the ballot's funding cycle,
     // the ballot isn't applicable. Auto approve since the ballot funding cycle is approved.
@@ -1179,10 +1179,10 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
     @return fundingCycle The most recent permanent funding cycle.
   */
-  function _latestPermanentCycleBefore(FundingCycle memory _fundingCycle)
+  function _latestPermanentCycleBefore(JBFundingCycle memory _fundingCycle)
     private
     view
-    returns (FundingCycle memory fundingCycle)
+    returns (JBFundingCycle memory fundingCycle)
   {
     if (_fundingCycle.basedOn == 0) return _fundingCycle;
     fundingCycle = _getStruct(_fundingCycle.basedOn);
@@ -1202,7 +1202,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
     @return The time when the ballot duration ends.
   */
-  function _getTimeAfterBallot(FundingCycle memory _fundingCycle, uint256 _from)
+  function _getTimeAfterBallot(JBFundingCycle memory _fundingCycle, uint256 _from)
     private
     view
     returns (uint256)

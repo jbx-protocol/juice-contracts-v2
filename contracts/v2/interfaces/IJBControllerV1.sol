@@ -12,15 +12,15 @@ import './IJBFundingCycleDataSource.sol';
 import './IJBPrices.sol';
 import './IJBController.sol';
 
-import './../structs/FundingCycleData.sol';
-import './../structs/FundingCycleMetadata.sol';
-import './../structs/OverflowAllowance.sol';
+import './../structs/JBFundingCycleData.sol';
+import './../structs/JBFundingCycleMetadata.sol';
+import './../structs/JBOverflowAllowance.sol';
 
 interface IJBControllerV1 {
   event SetOverflowAllowance(
     uint256 indexed projectId,
     uint256 indexed configuration,
-    OverflowAllowance allowance,
+    JBOverflowAllowance allowance,
     address caller
   );
   event DistributeReservedTokens(
@@ -36,7 +36,7 @@ interface IJBControllerV1 {
   event DistributeToReservedTokenSplit(
     uint256 indexed fundingCycleId,
     uint256 indexed projectId,
-    Split split,
+    JBSplit split,
     uint256 tokenCount,
     address caller
   );
@@ -75,21 +75,21 @@ interface IJBControllerV1 {
   function launchProjectFor(
     bytes32 _handle,
     string calldata _uri,
-    FundingCycleData calldata _data,
-    FundingCycleMetadata calldata _metadata,
-    OverflowAllowance[] memory _overflowAllowance,
-    Split[] memory _payoutSplits,
-    Split[] memory _reservedTokenSplits,
+    JBFundingCycleData calldata _data,
+    JBFundingCycleMetadata calldata _metadata,
+    JBOverflowAllowance[] memory _overflowAllowance,
+    JBSplit[] memory _payoutSplits,
+    JBSplit[] memory _reservedTokenSplits,
     IJBTerminal _terminal
   ) external;
 
   function reconfigureFundingCyclesOf(
     uint256 _projectId,
-    FundingCycleData calldata _data,
-    FundingCycleMetadata calldata _metadata,
-    OverflowAllowance[] memory _overflowAllowance,
-    Split[] memory _payoutSplits,
-    Split[] memory _reservedTokenSplits
+    JBFundingCycleData calldata _data,
+    JBFundingCycleMetadata calldata _metadata,
+    JBOverflowAllowance[] memory _overflowAllowance,
+    JBSplit[] memory _payoutSplits,
+    JBSplit[] memory _reservedTokenSplits
   ) external returns (uint256);
 
   function distributeReservedTokensOf(uint256 _projectId, string memory _memo)

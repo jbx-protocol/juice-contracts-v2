@@ -38,7 +38,7 @@ contract JBETHPaymentTerminal is
   ReentrancyGuard
 {
   // A library that parses the packed funding cycle metadata into a more friendly format.
-  using JBFundingCycleMetadataResolver for FundingCycle;
+  using JBFundingCycleMetadataResolver for JBFundingCycle;
 
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
@@ -133,7 +133,7 @@ contract JBETHPaymentTerminal is
   */
   function currentOverflowOf(uint256 _projectId) external view override returns (uint256) {
     // Get a reference to the project's current funding cycle.
-    FundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
+    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // There's no overflow if there's no funding cycle.
     if (_fundingCycle.number == 0) return 0;
@@ -261,7 +261,7 @@ contract JBETHPaymentTerminal is
     string memory _memo
   ) external override nonReentrant returns (uint256) {
     // Record the withdrawal in the data layer.
-    (FundingCycle memory _fundingCycle, uint256 _withdrawnAmount) = _recordWithdrawalFor(
+    (JBFundingCycle memory _fundingCycle, uint256 _withdrawnAmount) = _recordWithdrawalFor(
       _projectId,
       _amount,
       _currency,
@@ -337,7 +337,7 @@ contract JBETHPaymentTerminal is
     returns (uint256)
   {
     // Record the use of the allowance in the data layer.
-    (FundingCycle memory _fundingCycle, uint256 _withdrawnAmount) = _recordUsedAllowanceOf(
+    (JBFundingCycle memory _fundingCycle, uint256 _withdrawnAmount) = _recordUsedAllowanceOf(
       _projectId,
       _amount,
       _currency,
@@ -420,7 +420,7 @@ contract JBETHPaymentTerminal is
     // Can't send claimed funds to the zero address.
     require(_beneficiary != address(0), 'ZERO_ADDRESS');
     // Keep a reference to the funding cycles during which the redemption is being made.
-    FundingCycle memory _fundingCycle;
+    JBFundingCycle memory _fundingCycle;
 
     // Record the redemption in the data layer.
     (_fundingCycle, claimAmount, _memo) = _recordRedemptionFor(
@@ -508,7 +508,7 @@ contract JBETHPaymentTerminal is
     @return leftoverAmount If the split module percents dont add up to 100%, the leftover amount is returned.
   */
   function _distributeToPayoutSplitsOf(
-    FundingCycle memory _fundingCycle,
+    JBFundingCycle memory _fundingCycle,
     uint256 _amount,
     string memory _memo
   ) private returns (uint256 leftoverAmount) {
@@ -516,7 +516,7 @@ contract JBETHPaymentTerminal is
     leftoverAmount = _amount;
 
     // Get a reference to the project's payout splits.
-    Split[] memory _splits = splitsStore.splitsOf(
+    JBSplit[] memory _splits = splitsStore.splitsOf(
       _fundingCycle.projectId,
       _fundingCycle.configured,
       JBSplitsGroups.ETH_PAYOUT
@@ -528,7 +528,7 @@ contract JBETHPaymentTerminal is
     //Transfer between all splits.
     for (uint256 _i = 0; _i < _splits.length; _i++) {
       // Get a reference to the mod being iterated on.
-      Split memory _split = _splits[_i];
+      JBSplit memory _split = _splits[_i];
 
       // The amount to send towards mods. Mods percents are out of 10000.
       uint256 _payoutAmount = PRBMath.mulDiv(_amount, _split.percent, 10000);
@@ -645,7 +645,7 @@ contract JBETHPaymentTerminal is
     // Cant send tokens to the zero address.
     require(_beneficiary != address(0), 'ZERO_ADDRESS');
 
-    FundingCycle memory _fundingCycle;
+    JBFundingCycle memory _fundingCycle;
     uint256 _weight;
     uint256 _tokenCount;
 
@@ -713,7 +713,7 @@ contract JBETHPaymentTerminal is
   )
     private
     returns (
-      FundingCycle memory fundingCycle,
+      JBFundingCycle memory fundingCycle,
       uint256 weight,
       uint256 tokenCount,
       string memory memo
@@ -734,7 +734,7 @@ contract JBETHPaymentTerminal is
     // If the funding cycle has configured a data source, use it to derive a weight and memo.
     if (fundingCycle.useDataSourceForPay()) {
       (weight, memo, _delegate, _delegateMetadata) = fundingCycle.dataSource().payParams(
-        PayParamsData(
+        JBPayParamsData(
           _payer,
           _amount,
           fundingCycle.weight,
@@ -774,7 +774,7 @@ contract JBETHPaymentTerminal is
 
     // If a delegate was returned by the data source, issue a callback to it.
     if (_delegate != IJBPayDelegate(address(0))) {
-      DidPayData memory _data = DidPayData(
+      JBDidPayData memory _data = JBDidPayData(
         _payer,
         _projectId,
         _amount,
@@ -806,7 +806,7 @@ contract JBETHPaymentTerminal is
     uint256 _amount,
     uint256 _currency,
     uint256 _minReturnedWei
-  ) private returns (FundingCycle memory fundingCycle, uint256 withdrawnAmount) {
+  ) private returns (JBFundingCycle memory fundingCycle, uint256 withdrawnAmount) {
     // Registers the funds as withdrawn and gets the ID of the funding cycle during which this withdrawal is being made.
     fundingCycle = jb.withdrawFrom(_projectId, _amount);
 
@@ -850,7 +850,7 @@ contract JBETHPaymentTerminal is
     uint256 _amount,
     uint256 _currency,
     uint256 _minReturnedWei
-  ) private returns (FundingCycle memory fundingCycle, uint256 withdrawnAmount) {
+  ) private returns (JBFundingCycle memory fundingCycle, uint256 withdrawnAmount) {
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
@@ -913,7 +913,7 @@ contract JBETHPaymentTerminal is
   )
     private
     returns (
-      FundingCycle memory fundingCycle,
+      JBFundingCycle memory fundingCycle,
       uint256 claimAmount,
       string memory memo
     )
@@ -933,7 +933,7 @@ contract JBETHPaymentTerminal is
     // If the funding cycle has configured a data source, use it to derive a claim amount and memo.
     if (fundingCycle.useDataSourceForRedeem()) {
       (claimAmount, memo, _delegate, _delegateMetadata) = fundingCycle.dataSource().redeemParams(
-        RedeemParamsData(
+        JBRedeemParamsData(
           _holder,
           _tokenCount,
           fundingCycle.redemptionRate(),
@@ -962,7 +962,7 @@ contract JBETHPaymentTerminal is
 
     // If a delegate was returned by the data source, issue a callback to it.
     if (_delegate != IJBRedemptionDelegate(address(0))) {
-      DidRedeemData memory _data = DidRedeemData(
+      JBDidRedeemData memory _data = JBDidRedeemData(
         _holder,
         _projectId,
         _tokenCount,
@@ -1016,7 +1016,7 @@ contract JBETHPaymentTerminal is
     @notice
     See docs for `claimableOverflowOf`
   */
-  function _claimableOverflowOf(FundingCycle memory _fundingCycle, uint256 _tokenCount)
+  function _claimableOverflowOf(JBFundingCycle memory _fundingCycle, uint256 _tokenCount)
     private
     view
     returns (uint256)
@@ -1073,7 +1073,7 @@ contract JBETHPaymentTerminal is
 
     @return overflow The overflow of funds.
   */
-  function _overflowFrom(FundingCycle memory _fundingCycle) private view returns (uint256) {
+  function _overflowFrom(JBFundingCycle memory _fundingCycle) private view returns (uint256) {
     // Get the current balance of the project.
     uint256 _balanceOf = balanceOf[_fundingCycle.projectId];
 

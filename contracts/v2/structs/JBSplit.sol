@@ -3,7 +3,7 @@ pragma solidity 0.8.6;
 
 import './../interfaces/IJBSplitAllocator.sol';
 
-struct Split {
+struct JBSplit {
   bool preferUnstaked;
   uint16 percent;
   uint48 lockedUntil;

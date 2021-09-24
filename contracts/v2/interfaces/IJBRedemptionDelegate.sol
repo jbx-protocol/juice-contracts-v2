@@ -3,8 +3,8 @@ pragma solidity 0.8.6;
 
 import './IJBFundingCycleStore.sol';
 
-import './../structs/DidRedeemData.sol';
+import './../structs/JBDidRedeemData.sol';
 
 interface IJBRedemptionDelegate {
-  function didRedeem(DidRedeemData calldata _param) external;
+  function didRedeem(JBDidRedeemData calldata _param) external;
 }

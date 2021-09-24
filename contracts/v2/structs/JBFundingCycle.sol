@@ -4,7 +4,7 @@ pragma solidity 0.8.6;
 import './../interfaces/IJBFundingCycleBallot.sol';
 
 /// @notice The funding cycle structure represents a project stewarded by an address, and accounts for which addresses have helped sustain the project.
-struct FundingCycle {
+struct JBFundingCycle {
   // A unique number that's incremented for each new funding cycle, starting with 1.
   uint256 id;
   // The ID of the project contract that this funding cycle belongs to.
