@@ -74,9 +74,9 @@ interface IJBETHPaymentTerminal {
     address caller
   );
 
-  event DelegateDidPay(IJBPayDelegate indexed delegate, DidPayParam param);
+  event DelegateDidPay(IJBPayDelegate indexed delegate, DidPayData data);
 
-  event DelegateDidRedeem(IJBRedemptionDelegate indexed delegate, DidRedeemParam param);
+  event DelegateDidRedeem(IJBRedemptionDelegate indexed delegate, DidRedeemData data);
 
   function projects() external view returns (IJBProjects);
 

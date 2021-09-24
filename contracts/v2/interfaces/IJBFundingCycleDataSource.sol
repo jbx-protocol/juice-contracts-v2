@@ -6,28 +6,11 @@ import './IJBFundingCycleStore.sol';
 import './IJBPayDelegate.sol';
 import './IJBRedemptionDelegate.sol';
 
-struct PayDataParam {
-  address payer;
-  uint256 amount;
-  uint256 weight;
-  uint256 reservedRate;
-  address beneficiary;
-  string memo;
-  bytes _delegateMetadata;
-}
-
-struct RedeemDataParam {
-  address holder;
-  uint256 count;
-  uint256 redemptionRate;
-  uint256 ballotRedemptionRate;
-  address beneficiary;
-  string memo;
-  bytes delegateMetadata;
-}
+import './../structs/PayParamsData.sol';
+import './../structs/RedeemParamsData.sol';
 
 interface IJBFundingCycleDataSource {
-  function payData(PayDataParam calldata _param)
+  function payParams(PayParamsData calldata _param)
     external
     returns (
       uint256 weight,
@@ -36,7 +19,7 @@ interface IJBFundingCycleDataSource {
       bytes memory delegateMetadata
     );
 
-  function redeemData(RedeemDataParam calldata _param)
+  function redeemParams(RedeemParamsData calldata _param)
     external
     returns (
       uint256 amount,

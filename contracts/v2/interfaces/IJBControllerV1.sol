@@ -12,24 +12,9 @@ import './IJBFundingCycleDataSource.sol';
 import './IJBPrices.sol';
 import './IJBController.sol';
 
-struct FundingCycleMetadata {
-  uint256 reservedRate;
-  uint256 redemptionRate;
-  uint256 ballotRedemptionRate;
-  bool pausePay;
-  bool pauseWithdraw;
-  bool pauseRedeem;
-  bool pauseMint;
-  bool pauseBurn;
-  bool useDataSourceForPay;
-  bool useDataSourceForRedeem;
-  IJBFundingCycleDataSource dataSource;
-}
-
-struct OverflowAllowance {
-  IJBTerminal terminal;
-  uint256 amount;
-}
+import './../structs/FundingCycleData.sol';
+import './../structs/FundingCycleMetadata.sol';
+import './../structs/OverflowAllowance.sol';
 
 interface IJBControllerV1 {
   event SetOverflowAllowance(
@@ -90,7 +75,7 @@ interface IJBControllerV1 {
   function launchProjectFor(
     bytes32 _handle,
     string calldata _uri,
-    FundingCycleProperties calldata _properties,
+    FundingCycleData calldata _data,
     FundingCycleMetadata calldata _metadata,
     OverflowAllowance[] memory _overflowAllowance,
     Split[] memory _payoutSplits,
@@ -100,7 +85,7 @@ interface IJBControllerV1 {
 
   function reconfigureFundingCyclesOf(
     uint256 _projectId,
-    FundingCycleProperties calldata _properties,
+    FundingCycleData calldata _data,
     FundingCycleMetadata calldata _metadata,
     OverflowAllowance[] memory _overflowAllowance,
     Split[] memory _payoutSplits,

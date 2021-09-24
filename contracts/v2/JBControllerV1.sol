@@ -172,17 +172,17 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
 
     @param _handle The project's unique handle. This can be updated any time by the owner of the project.
     @param _uri A link to associate with the project. This can be updated any time by the owner of the project.
-    @param _properties The funding cycle configuration properties. These properties will remain fixed for the duration of the funding cycle.
-      @dev _properties.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
-      @dev _properties.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
-      @dev _properties.duration The duration of the funding cycle for which the `target` amount is needed. Measured in days. Send 0 for cycles that are reconfigurable at any time.
-      @dev _properties.cycleLimit The number of cycles that this configuration should last for before going back to the last permanent cycle. This has no effect for a project's first funding cycle.
-      @dev _properties.discountRate A number from 0-200 (0-20%) indicating how many tokens will be minted as a result of a contribution made to this funding cycle compared to one made to the project's next funding cycle.
+    @param _data The funding cycle configuration data. These properties will remain fixed for the duration of the funding cycle.
+      @dev _data.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
+      @dev _data.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
+      @dev _data.duration The duration of the funding cycle for which the `target` amount is needed. Measured in days. Send 0 for cycles that are reconfigurable at any time.
+      @dev _data.cycleLimit The number of cycles that this configuration should last for before going back to the last permanent cycle. This has no effect for a project's first funding cycle.
+      @dev _data.discountRate A number from 0-200 (0-20%) indicating how many tokens will be minted as a result of a contribution made to this funding cycle compared to one made to the project's next funding cycle.
         If it's 0 (0%), each funding cycle's will have equal weight.
         If the number is 100 (10%), a contribution to the next funding cycle will only mint 90% of tokens that a contribution of the same amount made during the current funding cycle mints.
         If the number is 200 (20%), the difference will be 20%. 
         There's a special case: If the number is 201, the funding cycle will be non-recurring and one-time only.
-      @dev _properties.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
+      @dev _data.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
     @param _metadata A struct specifying the TerminalV2 specific params that a funding cycle can have.
       @dev _metadata.reservedRate A number from 0-200 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
       @dev _metadata.redemptionRate The rate from 0-200 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
@@ -204,7 +204,7 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
   function launchProjectFor(
     bytes32 _handle,
     string calldata _uri,
-    FundingCycleProperties calldata _properties,
+    FundingCycleData calldata _data,
     FundingCycleMetadata calldata _metadata,
     OverflowAllowance[] memory _overflowAllowances,
     Split[] memory _payoutSplits,
@@ -226,7 +226,7 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
 
     _configure(
       _projectId,
-      _properties,
+      _data,
       _packedMetadata,
       _overflowAllowances,
       _payoutSplits,
@@ -245,17 +245,17 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     Only a project's owner or a designated operator can configure its funding cycles.
 
     @param _projectId The ID of the project whos funding cycles are being reconfigured.
-    @param _properties The funding cycle configuration properties. These properties will remain fixed for the duration of the funding cycle.
-      @dev _properties.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
-      @dev _properties.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
-      @dev _properties.duration The duration of the funding cycle for which the `target` amount is needed. Measured in days. Send 0 for cycles that are reconfigurable at any time.
-      @dev _properties.cycleLimit The number of cycles that this configuration should last for before going back to the last permanent cycle. This has no effect for a project's first funding cycle.
-      @dev _properties.discountRate A number from 0-200 (0-20%) indicating how many tokens will be minted as a result of a contribution made to this funding cycle compared to one made to the project's next funding cycle.
+    @param _data The funding cycle configuration data. These properties will remain fixed for the duration of the funding cycle.
+      @dev _data.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
+      @dev _data.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
+      @dev _data.duration The duration of the funding cycle for which the `target` amount is needed. Measured in days. Send 0 for cycles that are reconfigurable at any time.
+      @dev _data.cycleLimit The number of cycles that this configuration should last for before going back to the last permanent cycle. This has no effect for a project's first funding cycle.
+      @dev _data.discountRate A number from 0-200 (0-20%) indicating how many tokens will be minted as a result of a contribution made to this funding cycle compared to one made to the project's next funding cycle.
         If it's 0 (0%), each funding cycle's will have equal weight.
         If the number is 100 (10%), a contribution to the next funding cycle will only mint 90% of tokens that a contribution of the same amount made during the current funding cycle mints.
         If the number is 200 (20%), the difference will be 20%. 
         There's a special case: If the number is 201, the funding cycle will be non-recurring and one-time only.
-      @dev _properties.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
+      @dev _data.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
     @param _metadata A struct specifying the TerminalV2 specific params that a funding cycle can have.
       @dev _metadata.reservedRate A number from 0-200 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
       @dev _metadata.redemptionRate The rate from 0-200 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
@@ -278,7 +278,7 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
   */
   function reconfigureFundingCyclesOf(
     uint256 _projectId,
-    FundingCycleProperties calldata _properties,
+    FundingCycleData calldata _data,
     FundingCycleMetadata calldata _metadata,
     OverflowAllowance[] memory _overflowAllowances,
     Split[] memory _payoutSplits,
@@ -307,7 +307,7 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     return
       _configure(
         _projectId,
-        _properties,
+        _data,
         _packedMetadata,
         _overflowAllowances,
         _payoutSplits,
@@ -723,7 +723,7 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
   */
   function _configure(
     uint256 _projectId,
-    FundingCycleProperties calldata _properties,
+    FundingCycleData calldata _data,
     uint256 _packedMetadata,
     OverflowAllowance[] memory _overflowAllowances,
     Split[] memory _payoutSplits,
@@ -733,7 +733,7 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     // Configure the funding cycle's properties.
     FundingCycle memory _fundingCycle = fundingCycleStore.configureFor(
       _projectId,
-      _properties,
+      _data,
       _packedMetadata,
       fee,
       _shouldConfigureActive

@@ -733,8 +733,8 @@ contract JBETHPaymentTerminal is
 
     // If the funding cycle has configured a data source, use it to derive a weight and memo.
     if (fundingCycle.useDataSourceForPay()) {
-      (weight, memo, _delegate, _delegateMetadata) = fundingCycle.dataSource().payData(
-        PayDataParam(
+      (weight, memo, _delegate, _delegateMetadata) = fundingCycle.dataSource().payParams(
+        PayParamsData(
           _payer,
           _amount,
           fundingCycle.weight,
@@ -774,7 +774,7 @@ contract JBETHPaymentTerminal is
 
     // If a delegate was returned by the data source, issue a callback to it.
     if (_delegate != IJBPayDelegate(address(0))) {
-      DidPayParam memory _param = DidPayParam(
+      DidPayData memory _data = DidPayData(
         _payer,
         _projectId,
         _amount,
@@ -784,8 +784,8 @@ contract JBETHPaymentTerminal is
         memo,
         _delegateMetadata
       );
-      _delegate.didPay(_param);
-      emit DelegateDidPay(_delegate, _param);
+      _delegate.didPay(_data);
+      emit DelegateDidPay(_delegate, _data);
     }
   }
 
@@ -932,8 +932,8 @@ contract JBETHPaymentTerminal is
 
     // If the funding cycle has configured a data source, use it to derive a claim amount and memo.
     if (fundingCycle.useDataSourceForRedeem()) {
-      (claimAmount, memo, _delegate, _delegateMetadata) = fundingCycle.dataSource().redeemData(
-        RedeemDataParam(
+      (claimAmount, memo, _delegate, _delegateMetadata) = fundingCycle.dataSource().redeemParams(
+        RedeemParamsData(
           _holder,
           _tokenCount,
           fundingCycle.redemptionRate(),
@@ -962,7 +962,7 @@ contract JBETHPaymentTerminal is
 
     // If a delegate was returned by the data source, issue a callback to it.
     if (_delegate != IJBRedemptionDelegate(address(0))) {
-      DidRedeemParam memory _param = DidRedeemParam(
+      DidRedeemData memory _data = DidRedeemData(
         _holder,
         _projectId,
         _tokenCount,
@@ -971,8 +971,8 @@ contract JBETHPaymentTerminal is
         memo,
         _delegateMetadata
       );
-      _delegate.didRedeem(_param);
-      emit DelegateDidRedeem(_delegate, _param);
+      _delegate.didRedeem(_data);
+      emit DelegateDidRedeem(_delegate, _data);
     }
   }
 

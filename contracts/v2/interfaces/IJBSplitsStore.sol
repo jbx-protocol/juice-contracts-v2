@@ -5,14 +5,7 @@ import './IJBOperatorStore.sol';
 import './IJBProjects.sol';
 import './IJBSplitAllocator.sol';
 
-struct Split {
-  bool preferUnstaked;
-  uint16 percent;
-  uint48 lockedUntil;
-  address payable beneficiary;
-  IJBSplitAllocator allocator;
-  uint56 projectId;
-}
+import './../structs/Split.sol';
 
 interface IJBSplitsStore {
   event SetSplit(
