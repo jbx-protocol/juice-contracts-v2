@@ -152,15 +152,8 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // If it exists, return it.
     if (_fundingCycleId > 0) return _getStructFor(_fundingCycleId);
 
-    // Get a reference to the eligible funding cycle.
-    _fundingCycleId = _eligibleOf(_projectId);
-
-    // If an eligible funding cycle doesn't exists...
-    if (_fundingCycleId == 0) {
-      // No upcoming funding cycle found that is eligible to become active,
-      // so use the ID of the latest active funding cycle, which carries the last configured cycle.
-      _fundingCycleId = latestIdOf[_projectId];
-    }
+    // Get a reference to the latest stored funding cycle for the project.
+    _fundingCycleId = latestIdOf[_projectId];
 
     // Get the necessary properties for the standby funding cycle.
     JBFundingCycle memory _fundingCycle = _getStructFor(_fundingCycleId);
@@ -227,8 +220,14 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       _fundingCycleId = _fundingCycle.basedOn;
     } else {
       // No upcoming funding cycle found that is eligible to become active,
-      // so us the ID of the latest active funding cycle, which carries the last approved configuration.
+      // so us the ID of the latest active funding cycle, which carries the last configuration.
       _fundingCycleId = latestIdOf[_projectId];
+
+      // Get the funding cycle for the latest ID.
+      _fundingCycle = _getStructFor(_fundingCycleId);
+
+      // If it's not approved, get a reference to the funding cycle that the latest is based on, which has the latest approved configuration.
+      if (!_isApproved(_fundingCycle)) _fundingCycleId = _fundingCycle.basedOn;
     }
 
     // The funding cycle cant be 0.
@@ -525,8 +524,14 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       fundingCycleId = _fundingCycle.basedOn;
     } else {
       // No upcoming funding cycle found that is eligible to become active, clone the latest active funding cycle.
-      // which carries the last approved configuration.
+      // which carries the last configuration.
       fundingCycleId = latestIdOf[_projectId];
+
+      // Get the funding cycle for the latest ID.
+      _fundingCycle = _getStructFor(fundingCycleId);
+
+      // If it's not approved, get a reference to the funding cycle that the latest is based on, which has the latest approved configuration.
+      if (!_isApproved(_fundingCycle)) fundingCycleId = _fundingCycle.basedOn;
     }
 
     // The funding cycle cant be 0.
