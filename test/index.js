@@ -1,6 +1,7 @@
 const { ethers, config } = require('hardhat');
 const chai = require('chai');
 const fs = require('fs');
+const glob = require('glob');
 
 const { deployMockContract } = require('@ethereum-waffle/mock-contract');
 
@@ -44,13 +45,7 @@ describe('Juicebox', async function () {
     // Bind a reference to a function that can deploy mock local contracts from names.
     this.deployMockLocalContractFn = async (mockContractName) => {
       // Deploy mock contracts.
-      const mockArtifacts = fs
-        .readFileSync(
-          `${config.paths.artifacts}/contracts/v1/${mockContractName}.sol/${mockContractName}.json`,
-        )
-        .toString();
-
-      return this.deployMockContractFn(JSON.parse(mockArtifacts).abi);
+      return this.deployMockContractFn(this.readContractAbi(mockContractName));
     };
 
     // Bind a reference to a function that can deploy a contract on the local network.
@@ -77,6 +72,18 @@ describe('Juicebox', async function () {
       await mock.returns(...normalizedReturns);
     };
 
+    // Reads a contract.
+    this.readContractAbi = (contractName) => {
+      const files =  glob.sync(`${config.paths.artifacts}/contracts/**/${contractName}.sol/${contractName}.json`, {});
+      if (files.length == 0) {
+        throw "No files found!";
+      }
+      if (files.length > 1) {
+        throw "Multiple files found!";
+      }
+      return JSON.parse(fs.readFileSync(files[0]).toString()).abi;
+    }
+
     // Bind a function that executes a transaction on a contract.
     this.executeFn = async ({
       caller,
@@ -100,13 +107,8 @@ describe('Juicebox', async function () {
         if (!contractAddress) {
           throw 'You must provide a contract address with a contract name.';
         }
-        const artifacts = fs
-          .readFileSync(
-            `${config.paths.artifacts}/contracts/**/${contractName}.sol/${contractName}.json`,
-          )
-          .toString();
 
-        contractInternal = new Contract(contractAddress, JSON.parse(artifacts).abi, caller);
+        contractInternal = new Contract(contractAddress, this.readContractAbi(contractName), caller);
       } else {
         contractInternal = contract;
       }
@@ -142,13 +144,7 @@ describe('Juicebox', async function () {
     };
 
     this.bindContractFn = async ({ address, contractName, signerOrProvider }) => {
-      const artifacts = fs
-        .readFileSync(
-          `${config.paths.artifacts}/contracts/${contractName}.sol/${contractName}.json`,
-        )
-        .toString();
-
-      return new Contract(address, JSON.parse(artifacts).abi, signerOrProvider);
+      return new Contract(address, this.readContractAbi(contractName), signerOrProvider);
     };
 
     // Bind a function that sends funds from one address to another.

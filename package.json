@@ -25,6 +25,8 @@
     "@openzeppelin/contracts": "^4.1.0",
     "@paulrberg/contracts": "^3.4.0",
     "dotenv": "^10.0.0",
+    "glob": "^7.2.0",
+    "glob-fs": "^0.1.7",
     "hardhat-deploy-ethers": "^0.3.0-beta.10",
     "prettier": "^2.4.0"
   },
