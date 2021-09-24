@@ -4,13 +4,35 @@ This repo contains the Juicebox Protocol smart contracts.
 
 It was created at the time of the `V2` rewrite, which requires a full migration from `V1`. `V1` contracts are included for migration tests and posterity, but in general the repo is geared towards `V2` and beyond.
 
+## Develop
+
+To deploy the contracts to a local blockchain, run the following:
+
+```bash
+yarn chain --network hardhat
+```
+
+To run tests (all, unit, integration):
+
+```bash
+yarn test
+yarn test:unit
+yarn test:integration
+```
+
+You can also filter by version, test name, etc.:
+
+```bash
+yarn test:unit --V1
+```
+
 ## Deploy
 
 Juicebox uses the [Hardhat Deploy](https://github.com/wighawag/hardhat-deploy) plugin to deploy contracts to a given network. But before using it, you must create a `./mnemonic.txt` file containing the mnemonic phrase of the wallet used to deploy.
 
 Then, to execute the `./deploy/deploy.js` script, run the following:
 
-```
+```bash
 npx hardhat deploy --network $network
 ```
 
@@ -22,7 +44,7 @@ Contract artifacts will be outputted to `./deployments/$network/**` and should b
 
 To verify the contracts on [Etherscan](https://etherscan.io), make sure you have an `ETHERSCAN_API_KEY` set in your `./.env` file. Then run the following:
 
-```
+```bash
 npx hardhat --network $network etherscan-verify
 ```
 
