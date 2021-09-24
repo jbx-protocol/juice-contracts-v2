@@ -95,13 +95,37 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
     @param _fundingCycleId The ID of the funding cycle to get.
 
-    @return _fundingCycle The funding cycle.
+    @return fundingCycle The funding cycle.
   */
-  function get(uint256 _fundingCycleId) external view override returns (JBFundingCycle memory) {
+  function get(uint256 _fundingCycleId)
+    external
+    view
+    override
+    returns (JBFundingCycle memory fundingCycle)
+  {
     // The funding cycle should exist.
-    require(_fundingCycleId > 0, 'NOT_FOUND');
+    require(_fundingCycleId > 0, '0x13 NOT_FOUND');
 
-    return _getStruct(_fundingCycleId);
+    // See if there's stored info for the provided ID.
+    fundingCycle = _getStruct(_fundingCycleId);
+
+    // If so, return it.
+    if (fundingCycle.number > 0) return fundingCycle;
+
+    // Get the current funding cycle. It might exist but not yet have been stored.
+    fundingCycle = currentOf(_fundingCycleId);
+
+    // If the IDs match, return it.
+    if (fundingCycle.id == _fundingCycleId) return fundingCycle;
+
+    // Get the queued funding cycle. It might exist but not yet have been stored.
+    fundingCycle = queuedOf(_fundingCycleId);
+
+    // If the IDs match, return it.
+    if (fundingCycle.id == _fundingCycleId) return fundingCycle;
+
+    // Return an empty Funding Cycle.
+    return _getStruct(0);
   }
 
   /**
@@ -115,7 +139,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
     @return _fundingCycle The queued funding cycle.
   */
-  function queuedOf(uint256 _projectId) external view override returns (JBFundingCycle memory) {
+  function queuedOf(uint256 _projectId) public view override returns (JBFundingCycle memory) {
     // The project must have funding cycles.
     if (latestIdOf[_projectId] == 0) return _getStruct(0);
 
@@ -168,7 +192,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @return fundingCycle The current funding cycle.
   */
   function currentOf(uint256 _projectId)
-    external
+    public
     view
     override
     returns (JBFundingCycle memory fundingCycle)
