@@ -130,13 +130,13 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
   /**
     @notice 
-    The funding cycle that's next up for a project, and therefor not currently accepting payments.
-
-    @dev 
-    This runs roughly similar logic to `_configurableOf`.
+    The funding cycle that's next up for the specified project.
 
     @dev
     Returns an empty funding cycle with an ID of 0 if a queued funding cycle of the project is not found.
+
+    @dev 
+    This runs roughly similar logic to `_configurableOf`.
 
     @param _projectId The ID of the project to get the queued funding cycle of.
 
@@ -180,10 +180,13 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @notice 
     The funding cycle that is currently active for the specified project.
 
+    @dev
+    Returns an empty funding cycle with an ID of 0 if a current funding cycle of the project is not found.
+
     @dev 
     This runs very similar logic to `_tappableOf`.
 
-    @param _projectId The ID of the project being looked through.
+    @param _projectId The ID of the project to get the current funding cycle of.
 
     @return fundingCycle The current funding cycle.
   */
@@ -196,7 +199,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // The project must have funding cycles.
     if (latestIdOf[_projectId] == 0) return _getStructFor(0);
 
-    // Check for an active funding cycle.
+    // Check for an eligible funding cycle.
     uint256 _fundingCycleId = _eligibleOf(_projectId);
 
     // If no active funding cycle is found, check if there is a standby funding cycle.
@@ -206,7 +209,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // Keep a reference to the eligible funding cycle.
     JBFundingCycle memory _fundingCycle;
 
-    // If a standy funding cycle doesn't exists...
+    // If a standy funding cycle exists...
     if (_fundingCycleId > 0) {
       // Get the necessary properties for the standby funding cycle.
       _fundingCycle = _getStructFor(_fundingCycleId);
@@ -245,22 +248,22 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @notice 
     The currency ballot state of the project.
 
-    @param _projectId The ID of the project to check for a pending reconfiguration.
+    @param _projectId The ID of the project to check the ballot state of.
 
     @return The current ballot's state.
   */
-  function currentBallotStateOf(uint256 _projectId) external view override returns (BallotState) {
-    // The project must have funding cycles.
-    require(latestIdOf[_projectId] > 0, 'NOT_FOUND');
-
+  function currentBallotStateOf(uint256 _projectId) external view override returns (JBBallotState) {
     // Get a reference to the latest funding cycle ID.
     uint256 _fundingCycleId = latestIdOf[_projectId];
+
+    // The project must have funding cycles.
+    require(_fundingCycleId > 0, '0x14: NOT_FOUND');
 
     // Get the necessary properties for the latest funding cycle.
     JBFundingCycle memory _fundingCycle = _getStructFor(_fundingCycleId);
 
     // If the latest funding cycle is the first, or if it has already started, it must be approved.
-    if (_fundingCycle.basedOn == 0) return BallotState.Standby;
+    if (_fundingCycle.basedOn == 0) return JBBallotState.Approved;
 
     return _ballotStateOf(_fundingCycleId, _fundingCycle.configured, _fundingCycle.basedOn);
   }
@@ -940,6 +943,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     _fundingCycle.number = uint256(uint24(_packedIntrinsicProperties >> 232));
 
     uint256 _packedConfigurationProperties = _packedConfigurationPropertiesOf[_id];
+
     _fundingCycle.ballot = IJBFundingCycleBallot(address(uint160(_packedConfigurationProperties)));
     _fundingCycle.configured = uint256(uint48(_packedConfigurationProperties >> 160));
     _fundingCycle.duration = uint256(uint16(_packedConfigurationProperties >> 208));
@@ -947,6 +951,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     _fundingCycle.fee = uint256(uint8(_packedConfigurationProperties >> 232));
     _fundingCycle.discountRate = uint256(uint8(_packedConfigurationProperties >> 240));
     _fundingCycle.cycleLimit = uint256(uint8(_packedConfigurationProperties >> 248));
+
     _fundingCycle.target = _targetOf[_id];
     _fundingCycle.tapped = _tappedAmountOf[_id];
     _fundingCycle.metadata = _metadataOf[_id];
@@ -1175,7 +1180,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
   function _isApproved(JBFundingCycle memory _fundingCycle) private view returns (bool) {
     return
       _ballotStateOf(_fundingCycle.id, _fundingCycle.configured, _fundingCycle.basedOn) ==
-      BallotState.Approved;
+      JBBallotState.Approved;
   }
 
   /**
@@ -1192,22 +1197,22 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     uint256 _id,
     uint256 _configuration,
     uint256 _ballotFundingCycleId
-  ) private view returns (BallotState) {
+  ) private view returns (JBBallotState) {
     // If there is no ballot funding cycle, auto approve.
-    if (_ballotFundingCycleId == 0) return BallotState.Approved;
+    if (_ballotFundingCycleId == 0) return JBBallotState.Approved;
 
     // Get the ballot funding cycle.
     JBFundingCycle memory _ballotFundingCycle = _getStructFor(_ballotFundingCycleId);
 
     // If the configuration is the same as the ballot's funding cycle,
     // the ballot isn't applicable. Auto approve since the ballot funding cycle is approved.
-    if (_ballotFundingCycle.configured == _configuration) return BallotState.Approved;
+    if (_ballotFundingCycle.configured == _configuration) return JBBallotState.Approved;
 
     // If there is no ballot, the ID is auto approved.
     // Otherwise, return the ballot's state.
     return
       _ballotFundingCycle.ballot == IJBFundingCycleBallot(address(0))
-        ? BallotState.Approved
+        ? JBBallotState.Approved
         : _ballotFundingCycle.ballot.state(_id, _configuration);
   }
 

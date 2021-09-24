@@ -1047,7 +1047,7 @@ contract JBETHPaymentTerminal is
 
     // Use the ballot redemption rate if the queued cycle is pending approval according to the previous funding cycle's ballot.
     uint256 _redemptionRate = fundingCycleStore.currentBallotStateOf(_fundingCycle.projectId) ==
-      BallotState.Active
+      JBBallotState.Active
       ? _fundingCycle.ballotRedemptionRate()
       : _fundingCycle.redemptionRate();
 

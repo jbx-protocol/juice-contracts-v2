@@ -42,7 +42,7 @@ interface IJBFundingCycleStore {
 
   function currentOf(uint256 _projectId) external view returns (JBFundingCycle memory);
 
-  function currentBallotStateOf(uint256 _projectId) external view returns (BallotState);
+  function currentBallotStateOf(uint256 _projectId) external view returns (JBBallotState);
 
   function configureFor(
     uint256 _projectId,
