@@ -626,7 +626,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
   /**
     @notice 
-    The project's funding cycle that hasn't yet started, if one exists.
+    The project's stored funding cycle that hasn't yet started, if one exists.
 
     @dev
     A value of 0 is returned if no funding cycle was found.
@@ -651,7 +651,10 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
   /**
     @notice 
-    The project's funding cycle that has started and hasn't yet expired.
+    The project's stored funding cycle that has started and hasn't yet expired.
+    
+    @dev
+    A value of 0 is returned if no funding cycle was found.
 
     @param _projectId The ID of the project to look through.
 
@@ -661,13 +664,13 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // Get a reference to the project's latest funding cycle.
     fundingCycleId = latestIdOf[_projectId];
 
-    // If the latest funding cycle doesn't exist, return an undefined funding cycle.
+    // If there isn't one, theres also no eligible funding cycle.
     if (fundingCycleId == 0) return 0;
 
     // Get the necessary properties for the latest funding cycle.
     JBFundingCycle memory _fundingCycle = _getStructFor(fundingCycleId);
 
-    // If the latest is expired, return an undefined funding cycle.
+    // If the latest is expired, return an empty funding cycle.
     // A duration of 0 can not be expired.
     if (
       _fundingCycle.duration > 0 &&
