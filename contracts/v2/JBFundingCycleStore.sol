@@ -677,10 +677,6 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       block.timestamp >= _fundingCycle.start + (_fundingCycle.duration * SECONDS_IN_DAY)
     ) return 0;
 
-    // The first funding cycle when running on local can be in the future for some reason.
-    // This will have no effect in production.
-    if (_fundingCycle.basedOn == 0 || block.timestamp >= _fundingCycle.start) return fundingCycleId;
-
     // The base cant be expired.
     JBFundingCycle memory _baseFundingCycle = _getStructFor(_fundingCycle.basedOn);
 
@@ -740,7 +736,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     }
 
     // Derive what the start time should be.
-    uint256 _start = _deriveStart(
+    uint256 _start = _deriveStartFrom(
       _baseFundingCycle,
       _latestPermanentFundingCycle,
       block.timestamp - _timeFromImmediateStartMultiple
@@ -797,7 +793,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       : _baseFundingCycle;
 
     // Derive the correct next start time from the base.
-    uint256 _start = _deriveStart(
+    uint256 _start = _deriveStartFrom(
       _baseFundingCycle,
       _latestPermanentFundingCycle,
       _mustStartOnOrAfter
@@ -973,7 +969,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
     @return start The next start time.
   */
-  function _deriveStart(
+  function _deriveStartFrom(
     JBFundingCycle memory _baseFundingCycle,
     JBFundingCycle memory _latestPermanentFundingCycle,
     uint256 _mustStartOnOrAfter
@@ -1228,7 +1224,6 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
     @dev
     Determined what the latest funding cycle with a `cycleLimit` of 0 is, or isn't based on any previous funding cycle.
-
 
     @param _fundingCycle The funding cycle to find the most recent permanent cycle compared to.
 
