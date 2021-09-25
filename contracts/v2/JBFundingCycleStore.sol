@@ -286,9 +286,9 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     Configures the next eligible funding cycle for the specified project.
 
     @dev
-    Only a project's current terminal can configure its funding cycles.
+    Only a project's current controller can configure its funding cycles.
 
-    @param _projectId The ID of the project being reconfigured.
+    @param _projectId The ID of the project being configured.
     @param _data The funding cycle configuration.
       @dev _data.target The amount that the project wants to receive in each funding cycle. 18 decimals.
       @dev _data.currency The currency of the `_target`. Send 0 for ETH or 1 for USD.
@@ -302,10 +302,10 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
         If the number is 201, an non-recurring funding cycle will get made.
       @dev _data.ballot The new ballot that will be used to approve subsequent reconfigurations.
     @param _metadata Data to associate with this funding cycle configuration.
-    @param _fee The fee that this configuration will incure when tapping.
+    @param _fee The fee that this configuration incurs when tapping.
     @param _configureActiveFundingCycle If a funding cycle that has already started should be configurable.
 
-    @return fundingCycle The funding cycle that the configuration will take effect during.
+    @return The funding cycle that the configuration will take effect during.
   */
   function configureFor(
     uint256 _projectId,
@@ -313,24 +313,24 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     uint256 _metadata,
     uint256 _fee,
     bool _configureActiveFundingCycle
-  ) external override onlyController(_projectId) returns (JBFundingCycle memory fundingCycle) {
+  ) external override onlyController(_projectId) returns (JBFundingCycle memory) {
     // Duration must fit in a uint16.
-    require(_data.duration <= type(uint16).max, 'BAD_DURATION');
+    require(_data.duration <= type(uint16).max, '0x15: BAD_DURATION');
 
     // Currency must be less than the limit.
-    require(_data.cycleLimit <= MAX_CYCLE_LIMIT, 'BAD_CYCLE_LIMIT');
+    require(_data.cycleLimit <= MAX_CYCLE_LIMIT, '0x16: BAD_CYCLE_LIMIT');
 
-    // Discount rate token must be less than or equal to 100%.
-    require(_data.discountRate <= 201, 'BAD_DISCOUNT_RATE');
+    // Discount rate token must be less than or equal to 100%. A value of 201 means non-recurring.
+    require(_data.discountRate <= 201, '0x17: BAD_DISCOUNT_RATE');
 
     // Currency must fit into a uint8.
-    require(_data.currency <= type(uint8).max, 'BAD_CURRENCY');
+    require(_data.currency <= type(uint8).max, '0x18: BAD_CURRENCY');
 
     // Weight must fit into a uint8.
-    require(_data.weight <= type(uint80).max, 'BAD_WEIGHT');
+    require(_data.weight <= type(uint80).max, '0x19: BAD_WEIGHT');
 
     // Fee must be less than or equal to 100%.
-    require(_fee <= 200, 'BAD_FEE');
+    require(_fee <= 200, '0x1a: BAD_FEE');
 
     // Set the configuration timestamp is now.
     uint256 _configured = block.timestamp;
@@ -344,7 +344,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     );
 
     // Store the configuration.
-    _packAndStoreConfigurationProperties(
+    _packAndStoreConfigurationPropertiesOf(
       _fundingCycleId,
       _configured,
       _data.cycleLimit,
@@ -371,37 +371,37 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     Tap funds from a project's currently tappable funding cycle.
 
     @dev
-    Only a project's current terminal can tap funds for its funding cycles.
+    Only a project's current controller can tap funds for its funding cycles.
 
     @param _projectId The ID of the project being tapped.
     @param _amount The amount being tapped.
 
-    @return fundingCycle The tapped funding cycle.
+    @return The tapped funding cycle.
   */
   function tapFrom(uint256 _projectId, uint256 _amount)
     external
     override
     onlyController(_projectId)
-    returns (JBFundingCycle memory fundingCycle)
+    returns (JBFundingCycle memory)
   {
+    // Amount must be positive.
+    require(_amount > 0, '0x1b: INSUFFICIENT_FUNDS');
+
     // Get a reference to the funding cycle being tapped.
-    uint256 fundingCycleId = _tappableOf(_projectId);
-
-    // Get a reference to how much has already been tapped from this funding cycle.
-    uint256 _tapped = _tappedAmountOf[fundingCycleId];
-
-    // Amount must be within what is still tappable.
-    require(_amount <= _targetOf[fundingCycleId] - _tapped, 'INSUFFICIENT_FUNDS');
+    uint256 _fundingCycleId = _tappableOf(_projectId);
 
     // The new amount that has been tapped.
-    uint256 _newTappedAmount = _tapped + _amount;
+    uint256 _newTappedAmount = _tappedAmountOf[_fundingCycleId] + _amount;
+
+    // Amount must be within what is still tappable.
+    require(_newTappedAmount <= _targetOf[_fundingCycleId], '0x1c: INSUFFICIENT_FUNDS');
 
     // Store the new amount.
-    _tappedAmountOf[fundingCycleId] = _newTappedAmount;
+    _tappedAmountOf[_fundingCycleId] = _newTappedAmount;
 
-    emit Tap(fundingCycleId, _projectId, _amount, _newTappedAmount, msg.sender);
+    emit Tap(_fundingCycleId, _projectId, _amount, _newTappedAmount, msg.sender);
 
-    return _getStructFor(fundingCycleId);
+    return _getStructFor(_fundingCycleId);
   }
 
   //*********************************************************************//
@@ -827,7 +827,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
         : _baseFundingCycle;
 
       // Save the configuration efficiently.
-      _packAndStoreConfigurationProperties(
+      _packAndStoreConfigurationPropertiesOf(
         fundingCycleId,
         _fundingCycleToCopy.configured,
         _cycleLimit,
@@ -893,7 +893,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @param _fee The fee of the funding cycle.
     @param _discountRate The discount rate of the based funding cycle.
   */
-  function _packAndStoreConfigurationProperties(
+  function _packAndStoreConfigurationPropertiesOf(
     uint256 _fundingCycleId,
     uint256 _configured,
     uint256 _cycleLimit,
