@@ -23,7 +23,7 @@ yarn test:integration
 You can also filter by version, test name, etc.:
 
 ```bash
-yarn test:unit --V1
+yarn test:unit --grep "ProxyPaymentAddressManager"
 ```
 
 ## Deploy
