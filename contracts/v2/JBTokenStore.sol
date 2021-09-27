@@ -166,7 +166,7 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
     bool _preferUnstakedTokens
   ) external override onlyController(_projectId) {
     // An amount must be specified.
-    require(_amount > 0, 'JBTokenStore::mint: NO_OP');
+    require(_amount > 0, 'NO_OP');
 
     // Get a reference to the project's ERC20 tokens.
     IJBToken _token = tokenOf[_projectId];

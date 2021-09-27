@@ -240,7 +240,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     _fundingCycle = _getStructFor(_fundingCycleId);
 
     // Return a mock of what the next funding cycle would be like,
-    // which would become active one it has been tapped.
+    // which would become active once it has been tapped.
     return _mockFundingCycleBasedOn(_fundingCycle, true);
   }
 
@@ -695,10 +695,10 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @notice 
     A view of the funding cycle that would be created based on the provided one if the project doesn't make a reconfiguration.
 
-    @param _baseFundingCycle The funding cycle to make the calculation for.
-    @param _allowMidCycle Allow the mocked funding cycle to already be mid cycle.
+    @param _baseFundingCycle The funding cycle that the resulting funding cycle should follow.
+    @param _allowMidCycle A flag indicating if the mocked funding cycle is allowed to already be mid cycle.
 
-    @return The next funding cycle, with an ID set to 0.
+    @return A mock of what the next funding cycle will be.
   */
   function _mockFundingCycleBasedOn(JBFundingCycle memory _baseFundingCycle, bool _allowMidCycle)
     internal
@@ -718,16 +718,18 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     uint256 _timeFromImmediateStartMultiple;
 
     if (_allowMidCycle && _baseFundingCycle.duration > 0) {
-      // Get the end time of the last cycle.
-      uint256 _cycleEnd = _baseFundingCycle.start +
-        (_baseFundingCycle.cycleLimit * _baseFundingCycle.duration * SECONDS_IN_DAY);
-
       // If the cycle end time is in the past, the mock should start at a multiple of the last permanent cycle since the cycle ended.
-      if (_baseFundingCycle.cycleLimit > 0 && _cycleEnd < block.timestamp) {
-        _timeFromImmediateStartMultiple = _latestPermanentFundingCycle.duration == 0
-          ? 0
-          : ((block.timestamp - _cycleEnd) %
-            (_latestPermanentFundingCycle.duration * SECONDS_IN_DAY));
+      if (_baseFundingCycle.cycleLimit > 0) {
+        // Get the end time of the last cycle.
+        uint256 _cycleEnd = _baseFundingCycle.start +
+          (_baseFundingCycle.cycleLimit * _baseFundingCycle.duration * SECONDS_IN_DAY);
+
+        if (_cycleEnd < block.timestamp) {
+          _timeFromImmediateStartMultiple = _latestPermanentFundingCycle.duration == 0
+            ? 0
+            : ((block.timestamp - _cycleEnd) %
+              (_latestPermanentFundingCycle.duration * SECONDS_IN_DAY));
+        }
       } else {
         _timeFromImmediateStartMultiple = _baseFundingCycle.duration * SECONDS_IN_DAY;
       }
@@ -750,11 +752,14 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       ? _latestPermanentFundingCycle
       : _baseFundingCycle;
 
+    // Derive what the number should be.
+    uint256 _number = _deriveNumberFrom(_baseFundingCycle, _latestPermanentFundingCycle, _start);
+
     return
       JBFundingCycle(
-        0,
+        _idFor(_fundingCycleToCopy.projectId, _number),
         _fundingCycleToCopy.projectId,
-        _deriveNumberFrom(_baseFundingCycle, _latestPermanentFundingCycle, _start),
+        _number,
         _fundingCycleToCopy.id,
         _fundingCycleToCopy.configured,
         _cycleLimit,
