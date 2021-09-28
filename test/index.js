@@ -74,15 +74,18 @@ describe('Juicebox', async function () {
 
     // Reads a contract.
     this.readContractAbi = (contractName) => {
-      const files =  glob.sync(`${config.paths.artifacts}/contracts/**/${contractName}.sol/${contractName}.json`, {});
+      const files = glob.sync(
+        `${config.paths.artifacts}/contracts/**/${contractName}.sol/${contractName}.json`,
+        {},
+      );
       if (files.length == 0) {
-        throw "No files found!";
+        throw 'No files found!';
       }
       if (files.length > 1) {
-        throw "Multiple files found!";
+        throw 'Multiple files found!';
       }
       return JSON.parse(fs.readFileSync(files[0]).toString()).abi;
-    }
+    };
 
     // Bind a function that executes a transaction on a contract.
     this.executeFn = async ({
@@ -108,7 +111,11 @@ describe('Juicebox', async function () {
           throw 'You must provide a contract address with a contract name.';
         }
 
-        contractInternal = new Contract(contractAddress, this.readContractAbi(contractName), caller);
+        contractInternal = new Contract(
+          contractAddress,
+          this.readContractAbi(contractName),
+          caller,
+        );
       } else {
         contractInternal = contract;
       }
