@@ -19,7 +19,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @notice 
     The number of seconds in a day.
   */
-  uint256 private constant SECONDS_IN_DAY = 86400;
+  uint256 private constant _SECONDS_IN_DAY = 86400;
 
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
@@ -481,7 +481,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       } else {
         // Set to the start time of the current active start time.
         uint256 _timeFromStartMultiple = (block.timestamp - _fundingCycle.start) %
-          (_fundingCycle.duration * SECONDS_IN_DAY);
+          (_fundingCycle.duration * _SECONDS_IN_DAY);
         _mustStartOnOrAfter = block.timestamp - _timeFromStartMultiple;
       }
     } else {
@@ -547,13 +547,13 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     require(_fundingCycle.discountRate < 201, 'NON_RECURRING');
 
     // The time when the funding cycle immediately after the eligible funding cycle starts.
-    uint256 _nextImmediateStart = _fundingCycle.start + (_fundingCycle.duration * SECONDS_IN_DAY);
+    uint256 _nextImmediateStart = _fundingCycle.start + (_fundingCycle.duration * _SECONDS_IN_DAY);
 
     // The distance from now until the nearest past multiple of the cycle duration from its start.
     // A duration of zero means the reconfiguration can start right away.
     uint256 _timeFromImmediateStartMultiple = _fundingCycle.duration == 0
       ? 0
-      : (block.timestamp - _nextImmediateStart) % (_fundingCycle.duration * SECONDS_IN_DAY);
+      : (block.timestamp - _nextImmediateStart) % (_fundingCycle.duration * _SECONDS_IN_DAY);
 
     // Return the tappable funding cycle.
     fundingCycleId = _initFor(
@@ -674,7 +674,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // A duration of 0 can not be expired.
     if (
       _fundingCycle.duration > 0 &&
-      block.timestamp >= _fundingCycle.start + (_fundingCycle.duration * SECONDS_IN_DAY)
+      block.timestamp >= _fundingCycle.start + (_fundingCycle.duration * _SECONDS_IN_DAY)
     ) return 0;
 
     // The base cant be expired.
@@ -684,7 +684,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // A duration of 0 is always eligible.
     if (
       _baseFundingCycle.duration > 0 &&
-      block.timestamp >= _baseFundingCycle.start + (_baseFundingCycle.duration * SECONDS_IN_DAY)
+      block.timestamp >= _baseFundingCycle.start + (_baseFundingCycle.duration * _SECONDS_IN_DAY)
     ) return 0;
 
     // Return the funding cycle immediately before the latest.
@@ -710,9 +710,9 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
     // If the base has a limit, find the last permanent funding cycle, which is needed to make subsequent calculations.
     // Otherwise, the base is already the latest permanent funding cycle.
-    JBFundingCycle memory _latestPermanentFundingCycle = _baseFundingCycle.cycleLimit > 0
-      ? _latestPermanentCycleBefore(_baseFundingCycle)
-      : _baseFundingCycle;
+    JBFundingCycle memory _latestPermanentFundingCycle = _baseFundingCycle.cycleLimit == 0
+      ? _baseFundingCycle
+      : _latestPermanentCycleBefore(_baseFundingCycle);
 
     // The distance of the current time to the start of the next possible funding cycle.
     uint256 _timeFromImmediateStartMultiple;
@@ -722,16 +722,16 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     if (!_allowMidCycle || _baseFundingCycle.duration == 0) {
       _timeFromImmediateStartMultiple = 0;
     } else if (_baseFundingCycle.cycleLimit == 0) {
-      _timeFromImmediateStartMultiple = _baseFundingCycle.duration * SECONDS_IN_DAY;
+      _timeFromImmediateStartMultiple = _baseFundingCycle.duration * _SECONDS_IN_DAY;
     } else {
       // Get the end time of the last cycle.
       uint256 _cycleEnd = _baseFundingCycle.start +
-        (_baseFundingCycle.cycleLimit * _baseFundingCycle.duration * SECONDS_IN_DAY);
+        (_baseFundingCycle.cycleLimit * _baseFundingCycle.duration * _SECONDS_IN_DAY);
 
       // If the cycle end time is in the past, the mock should start at a multiple of the last permanent cycle since the cycle ended.
       _timeFromImmediateStartMultiple = _cycleEnd < block.timestamp
         ? block.timestamp - _cycleEnd
-        : _baseFundingCycle.duration * SECONDS_IN_DAY;
+        : _baseFundingCycle.duration * _SECONDS_IN_DAY;
     }
 
     // Derive what the start time should be.
@@ -980,7 +980,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     if (_baseFundingCycle.duration == 0) return _mustStartOnOrAfter;
 
     // Save a reference to the duration measured in seconds.
-    uint256 _durationInSeconds = _baseFundingCycle.duration * SECONDS_IN_DAY;
+    uint256 _durationInSeconds = _baseFundingCycle.duration * _SECONDS_IN_DAY;
 
     // The time when the funding cycle immediately after the specified funding cycle starts.
     uint256 _nextImmediateStart = _baseFundingCycle.start + _durationInSeconds;
@@ -1002,10 +1002,10 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       _timeFromImmediateStartMultiple = _latestPermanentFundingCycle.duration == 0
         ? 0
         : ((_mustStartOnOrAfter - (_baseFundingCycle.start + (_durationInSeconds * _cycleLimit))) %
-          (_latestPermanentFundingCycle.duration * SECONDS_IN_DAY));
+          (_latestPermanentFundingCycle.duration * _SECONDS_IN_DAY));
 
       // Use the duration of the permanent funding cycle from here on out.
-      _durationInSeconds = _latestPermanentFundingCycle.duration * SECONDS_IN_DAY;
+      _durationInSeconds = _latestPermanentFundingCycle.duration * _SECONDS_IN_DAY;
     }
 
     // Otherwise use an increment of the duration from the most recent start.
@@ -1040,7 +1040,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // The number of seconds that the base funding cycle is limited to.
     uint256 _limitLength = _baseFundingCycle.cycleLimit == 0 || _baseFundingCycle.basedOn == 0
       ? 0
-      : _baseFundingCycle.cycleLimit * (_baseFundingCycle.duration * SECONDS_IN_DAY);
+      : _baseFundingCycle.cycleLimit * (_baseFundingCycle.duration * _SECONDS_IN_DAY);
 
     // The weight should be based off the base funding cycle's weight.
     weight = _baseFundingCycle.weight;
@@ -1051,7 +1051,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       // If the discount rate is 0, return the same weight.
       if (_baseFundingCycle.discountRate == 0) return weight;
 
-      uint256 _discountMultiple = _startDistance / (_baseFundingCycle.duration * SECONDS_IN_DAY);
+      uint256 _discountMultiple = _startDistance / (_baseFundingCycle.duration * _SECONDS_IN_DAY);
 
       for (uint256 i = 0; i < _discountMultiple; i++) {
         // The number of times to apply the discount rate.
@@ -1077,7 +1077,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
         uint256 _permanentDiscountMultiple = _latestPermanentFundingCycle.duration == 0
           ? 0
           : (_startDistance - _limitLength) /
-            (_latestPermanentFundingCycle.duration * SECONDS_IN_DAY);
+            (_latestPermanentFundingCycle.duration * _SECONDS_IN_DAY);
 
         for (uint256 i = 0; i < _permanentDiscountMultiple; i++) {
           // base the weight on the result of the previous calculation.
@@ -1111,14 +1111,14 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // The number of seconds that the base funding cycle is limited to.
     uint256 _limitLength = _baseFundingCycle.cycleLimit == 0
       ? 0
-      : _baseFundingCycle.cycleLimit * (_baseFundingCycle.duration * SECONDS_IN_DAY);
+      : _baseFundingCycle.cycleLimit * (_baseFundingCycle.duration * _SECONDS_IN_DAY);
 
     if (_limitLength == 0 || _limitLength > _startDistance) {
       // If there's no limit or if the limit is greater than the start distance,
       // get the result by finding the number of base cycles that fit in the start distance.
       number =
         _baseFundingCycle.number +
-        (_startDistance / (_baseFundingCycle.duration * SECONDS_IN_DAY));
+        (_startDistance / (_baseFundingCycle.duration * _SECONDS_IN_DAY));
     } else {
       // If the time between the base start at the given start is longer than
       // the limit, first calculate the number of cycles that passed under the limit,
@@ -1126,7 +1126,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
       number =
         _baseFundingCycle.number +
-        (_limitLength / (_baseFundingCycle.duration * SECONDS_IN_DAY));
+        (_limitLength / (_baseFundingCycle.duration * _SECONDS_IN_DAY));
 
       number =
         number +
@@ -1134,7 +1134,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
           _latestPermanentFundingCycle.duration == 0
             ? 0
             : ((_startDistance - _limitLength) /
-              (_latestPermanentFundingCycle.duration * SECONDS_IN_DAY))
+              (_latestPermanentFundingCycle.duration * _SECONDS_IN_DAY))
         );
     }
   }
@@ -1154,7 +1154,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     returns (uint256)
   {
     if (_fundingCycle.cycleLimit <= 1 || _fundingCycle.duration == 0) return 0;
-    uint256 _cycles = ((_start - _fundingCycle.start) / (_fundingCycle.duration * SECONDS_IN_DAY));
+    uint256 _cycles = ((_start - _fundingCycle.start) / (_fundingCycle.duration * _SECONDS_IN_DAY));
 
     if (_cycles >= _fundingCycle.cycleLimit) return 0;
     return _fundingCycle.cycleLimit - _cycles;
