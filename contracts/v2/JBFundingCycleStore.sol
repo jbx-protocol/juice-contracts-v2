@@ -721,23 +721,22 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // If the base funding cycle doesn't have a duration, no adjustment is necessary because the next cycle can start immediately.
     if (!_allowMidCycle || _baseFundingCycle.duration == 0) {
       _timeFromImmediateStartMultiple = 0;
+    } else if (_baseFundingCycle.cycleLimit == 0) {
+      _timeFromImmediateStartMultiple = _baseFundingCycle.duration * SECONDS_IN_DAY;
     } else {
-      // If the cycle end time is in the past, the mock should start at a multiple of the last permanent cycle since the cycle ended.
-      if (_baseFundingCycle.cycleLimit > 0) {
-        // Get the end time of the last cycle.
-        uint256 _cycleEnd = _baseFundingCycle.start +
-          (_baseFundingCycle.cycleLimit * _baseFundingCycle.duration * SECONDS_IN_DAY);
+      // Get the end time of the last cycle.
+      uint256 _cycleEnd = _baseFundingCycle.start +
+        (_baseFundingCycle.cycleLimit * _baseFundingCycle.duration * SECONDS_IN_DAY);
 
-        if (_cycleEnd < block.timestamp) {
-          _timeFromImmediateStartMultiple = _latestPermanentFundingCycle.duration == 0
-            ? 0
-            : ((block.timestamp - _cycleEnd) %
-              (_latestPermanentFundingCycle.duration * SECONDS_IN_DAY));
-        } else {
-          _timeFromImmediateStartMultiple = _baseFundingCycle.duration * SECONDS_IN_DAY;
-        }
+      // If the cycle end time is in the past, the mock should start at a multiple of the last permanent cycle since the cycle ended.
+      if (_cycleEnd >= block.timestamp) {
+        _timeFromImmediateStartMultiple = ((block.timestamp - _baseFundingCycle.start) %
+          (_baseFundingCycle.duration * SECONDS_IN_DAY));
+      } else if (_latestPermanentFundingCycle.duration == 0) {
+        _timeFromImmediateStartMultiple = 0;
       } else {
-        _timeFromImmediateStartMultiple = _baseFundingCycle.duration * SECONDS_IN_DAY;
+        _timeFromImmediateStartMultiple = ((block.timestamp - _cycleEnd) %
+          (_latestPermanentFundingCycle.duration * SECONDS_IN_DAY));
       }
     }
 
