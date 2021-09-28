@@ -729,15 +729,9 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
         (_baseFundingCycle.cycleLimit * _baseFundingCycle.duration * SECONDS_IN_DAY);
 
       // If the cycle end time is in the past, the mock should start at a multiple of the last permanent cycle since the cycle ended.
-      if (_cycleEnd >= block.timestamp) {
-        _timeFromImmediateStartMultiple = ((block.timestamp - _baseFundingCycle.start) %
-          (_baseFundingCycle.duration * SECONDS_IN_DAY));
-      } else if (_latestPermanentFundingCycle.duration == 0) {
-        _timeFromImmediateStartMultiple = 0;
-      } else {
-        _timeFromImmediateStartMultiple = ((block.timestamp - _cycleEnd) %
-          (_latestPermanentFundingCycle.duration * SECONDS_IN_DAY));
-      }
+      _timeFromImmediateStartMultiple = _cycleEnd < block.timestamp
+        ? block.timestamp - _cycleEnd
+        : _baseFundingCycle.duration * SECONDS_IN_DAY;
     }
 
     // Derive what the start time should be.
@@ -750,13 +744,13 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // Derive what the cycle limit should be.
     uint256 _cycleLimit = _deriveCycleLimitFrom(_baseFundingCycle, _start);
 
+    // Derive what the number should be.
+    uint256 _number = _deriveNumberFrom(_baseFundingCycle, _latestPermanentFundingCycle, _start);
+
     // Copy the last permanent funding cycle if the bases' limit is up.
     JBFundingCycle memory _fundingCycleToCopy = _cycleLimit == 0
       ? _latestPermanentFundingCycle
       : _baseFundingCycle;
-
-    // Derive what the number should be.
-    uint256 _number = _deriveNumberFrom(_baseFundingCycle, _latestPermanentFundingCycle, _start);
 
     return
       JBFundingCycle(
