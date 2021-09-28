@@ -68,16 +68,16 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
 
   /** 
     @param _operatorStore A contract storing operator assignments.
-    @param _directory The directory of terminals.
     @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
+    @param _directory The directory of terminals.
   */
   constructor(
     IJBOperatorStore _operatorStore,
-    IJBDirectory _directory,
     IJBProjects _projects
+    IJBDirectory _directory,
   ) JBOperatable(_operatorStore) {
-    directory = _directory;
     projects = _projects;
+    directory = _directory;
   }
 
   //*********************************************************************//

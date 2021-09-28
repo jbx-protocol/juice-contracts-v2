@@ -46,6 +46,12 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
   IJBProjects public immutable override projects;
 
   /** 
+    @notice
+    The directory of terminals.
+  */
+  IJBDirectory public immutable override directory;  
+
+  /** 
     @notice 
     The contract storing all funding cycle configurations.
   */
@@ -62,12 +68,6 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     The contract that stores splits for each project.
   */
   IJBSplitsStore public immutable override splitsStore;
-
-  /** 
-    @notice
-    The directory of terminals.
-  */
-  IJBDirectory public immutable override directory;
 
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
@@ -133,24 +133,24 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
   /**
     @param _operatorStore A contract storing operator assignments.
     @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
+    @param _directory The directory of terminals.
     @param _fundingCycleStore The contract storing all funding cycle configurations.
     @param _tokenStore The contract that manages token minting and burning.
     @param _splitsStore The contract that stores splits for each project.
-    @param _directory The directory of terminals.
   */
   constructor(
     IJBOperatorStore _operatorStore,
     IJBProjects _projects,
+    IJBDirectory _directory
     IJBFundingCycleStore _fundingCycleStore,
     IJBTokenStore _tokenStore,
-    IJBSplitsStore _splitsStore,
-    IJBDirectory _directory
+    IJBSplitsStore _splitsStore
   ) JBOperatable(_operatorStore) {
     projects = _projects;
+    directory = _directory;
     fundingCycleStore = _fundingCycleStore;
     tokenStore = _tokenStore;
     splitsStore = _splitsStore;
-    directory = _directory;
   }
 
   //*********************************************************************//

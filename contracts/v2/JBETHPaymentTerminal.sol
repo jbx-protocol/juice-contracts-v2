@@ -45,10 +45,22 @@ contract JBETHPaymentTerminal is
   //*********************************************************************//
 
   /** 
+    @notice 
+    The contract that exposes price feeds.
+  */
+  IJBPrices public immutable override prices;
+
+  /** 
     @notice
     The Projects contract which mints ERC-721's that represent project ownership and transfers.
   */
   IJBProjects public immutable override projects;
+
+  /** 
+    @notice
+    The directory of terminals and controllers for projects.
+  */
+  IJBDirectory public immutable override directory;  
 
   /** 
     @notice 
@@ -67,18 +79,6 @@ contract JBETHPaymentTerminal is
     The contract that stores splits for each project.
   */
   IJBSplitsStore public immutable override splitsStore;
-
-  /** 
-    @notice
-    The directory of terminals and controllers for projects.
-  */
-  IJBDirectory public immutable override directory;
-
-  /** 
-    @notice 
-    The contract that exposes price feeds.
-  */
-  IJBPrices public immutable override prices;
 
   /** 
     @notice 
@@ -170,32 +170,32 @@ contract JBETHPaymentTerminal is
   //*********************************************************************//
 
   /** 
-    @param _jb The controller that manages how terminals interact with tokens and funding cycles..
-    @param _fundingCycleStore The contract storing all funding cycle configurations.
-    @param _tokenStore The contract that manages token minting and burning.
+    @param _operatorStore A contract storing operator assignments.
     @param _prices The contract that exposes price feeds.
     @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
-    @param _splitsStore The contract that stores splits for each project.
     @param _directory The directory of terminals.
-    @param _operatorStore A contract storing operator assignments.
+    @param _fundingCycleStore The contract storing all funding cycle configurations.
+    @param _tokenStore The contract that manages token minting and burning.
+    @param _splitsStore The contract that stores splits for each project.
+    @param _jb The controller that manages how terminals interact with tokens and funding cycles..
   */
   constructor(
-    IJBController _jb,
-    IJBFundingCycleStore _fundingCycleStore,
-    IJBTokenStore _tokenStore,
+    IJBOperatorStore _operatorStore,
     IJBPrices _prices,
     IJBProjects _projects,
-    IJBSplitsStore _splitsStore,
     IJBDirectory _directory,
-    IJBOperatorStore _operatorStore
+    IJBFundingCycleStore _fundingCycleStore,
+    IJBTokenStore _tokenStore,
+    IJBSplitsStore _splitsStore
+    IJBController _jb,
   ) JBOperatable(_operatorStore) {
-    jb = _jb;
-    fundingCycleStore = _fundingCycleStore;
-    tokenStore = _tokenStore;
     prices = _prices;
     projects = _projects;
-    splitsStore = _splitsStore;
     directory = _directory;
+    fundingCycleStore = _fundingCycleStore;
+    tokenStore = _tokenStore;
+    splitsStore = _splitsStore;
+    jb = _jb;
   }
 
   //*********************************************************************//

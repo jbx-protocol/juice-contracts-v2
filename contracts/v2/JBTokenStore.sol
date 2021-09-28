@@ -92,13 +92,13 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
   //*********************************************************************//
 
   /** 
-    @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
     @param _operatorStore A contract storing operator assignments.
+    @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
     @param _directory A directory of a project's current Juicebox terminal to receive payments in.
   */
   constructor(
-    IJBProjects _projects,
     IJBOperatorStore _operatorStore,
+    IJBProjects _projects,
     IJBDirectory _directory
   ) JBOperatable(_operatorStore) JBUtility(_directory) {
     projects = _projects;
