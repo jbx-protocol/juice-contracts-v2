@@ -695,6 +695,9 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @notice 
     A view of the funding cycle that would be created based on the provided one if the project doesn't make a reconfiguration.
 
+    @dev
+    Returns an empty funding cycle if there can't be a mock funding cycle based on the provided one.
+
     @param _baseFundingCycle The funding cycle that the resulting funding cycle should follow.
     @param _allowMidCycle A flag indicating if the mocked funding cycle is allowed to already be mid cycle.
 
