@@ -32,7 +32,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
   const JBDirectory = await deploy('JBDirectory', {
     from: deployer,
-    args: [JBProjects.address, JBOperatorStore.address],
+    args: [JBOperatorStore.address, JBProjects.address],
     log: true,
     skipIfAlreadyDeployed: true,
   });
@@ -46,14 +46,14 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
   const JBTokenStore = await deploy('JBTokenStore', {
     from: deployer,
-    args: [JBProjects.address, JBOperatorStore.address, JBDirectory.address],
+    args: [JBOperatorStore.address, JBProjects.address, JBDirectory.address],
     log: true,
     skipIfAlreadyDeployed: true,
   });
 
   const JBSplitStore = await deploy('JBSplitsStore', {
     from: deployer,
-    args: [JBOperatorStore.address, JBDirectory.address, JBProjects.address],
+    args: [JBOperatorStore.address, JBProjects.address, JBDirectory.address],
     log: true,
     skipIfAlreadyDeployed: true,
   });
@@ -63,10 +63,10 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     args: [
       JBOperatorStore.address,
       JBProjects.address,
+      JBDirectory.address,
       JBFundingCycleStore.address,
       JBTokenStore.address,
       JBSplitStore.address,
-      JBDirectory.address,
     ],
     log: true,
     skipIfAlreadyDeployed: true,
@@ -75,14 +75,14 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   const _ = await deploy('JBETHPaymentTerminal', {
     from: deployer,
     args: [
-      JBControllerV1.address,
-      JBFundingCycleStore.address,
-      JBTokenStore.address,
+      JBOperatorStore.address,
       JBPrices.address,
       JBProjects.address,
-      JBSplitStore.address,
       JBDirectory.address,
-      JBOperatorStore.address,
+      JBFundingCycleStore.address,
+      JBTokenStore.address,
+      JBSplitStore.address,
+      JBControllerV1.address,
     ],
     log: true,
     skipIfAlreadyDeployed: true,
