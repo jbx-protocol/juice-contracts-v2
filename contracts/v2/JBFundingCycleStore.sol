@@ -1008,12 +1008,12 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       ? _latestPermanentFundingCycle.duration * _SECONDS_IN_DAY
       : _cycleDurationInSeconds;
 
-    // The distance of the current time to the start of the next possible funding cycle.
+    // The amount of seconds since the `_mustStartOnOrAfter` time that results in a start time that might satisfy the specified constraints.
     uint256 _timeFromImmediateStartMultiple = (_mustStartOnOrAfter -
       (_shouldRevertToLatestPermanentCycle ? _baseFundingCycleLimitEnd : _nextImmediateStart)) %
       _cycleDurationInSeconds;
 
-    // Otherwise use an increment of the duration from the most recent start.
+    // A reference to the first possible start timestamp.
     start = _mustStartOnOrAfter - _timeFromImmediateStartMultiple;
 
     // Add increments of duration as necessary to satisfy the threshold.
