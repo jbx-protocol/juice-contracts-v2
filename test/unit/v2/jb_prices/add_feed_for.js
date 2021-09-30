@@ -3,28 +3,34 @@ const { expect } = require('chai');
 
 const tests = {
   success: [
-    // {
-    //   description: 'add feed, 18 decimals',
-    //   fn: ({ deployer }) => ({
-    //     caller: deployer,
-    //     currency: 1,
-    //     decimals: 18,
-    //   }),
-    // },
-    // {
-    //   description: 'add feed, 0 decimals',
-    //   fn: ({ deployer }) => ({
-    //     caller: deployer,
-    //     currency: 1,
-    //     decimals: 0,
-    //   }),
-    // },
+    {
+      description: 'add feed, 18 decimals',
+      fn: ({ deployer }) => ({
+        caller: deployer,
+        set: {
+          currency: 1,
+          base: 2,
+        },
+        decimals: 18,
+      }),
+    },
+    {
+      description: 'add feed, 0 decimals',
+      fn: ({ deployer }) => ({
+        caller: deployer,
+        set: {
+          currency: 1,
+          base: 2,
+        },
+        decimals: 0,
+      }),
+    },
   ],
   failure: [
     {
       description: 'not owner',
       fn: ({ addrs }) => ({
-        caller: addrs[0],       
+        caller: addrs[0],
         set: {
           currency: 1,
           base: 2,
@@ -56,8 +62,8 @@ const tests = {
         set: {
           currency: 1,
           base: 2,
-        },        
-        decimals: 19,        
+        },
+        decimals: 19,
         revert: '0x05: BAD_DECIMALS',
       }),
     },
@@ -81,13 +87,16 @@ module.exports = function () {
         // Expect an event to have been emitted.
         await expect(tx)
           .to.emit(this.contract, 'AddFeed')
-          .withArgs(currency, this.aggregatorV3Contract.address);
+          .withArgs(set.currency, set.base, decimals, this.aggregatorV3Contract.address);
 
         // Get a reference to the target number of decimals.
-        const targetDecimals = await this.contract.targetDecimals();
+        const targetDecimals = await this.contract.TARGET_DECIMALS();
 
         // Get the stored decimal adjuster value.
-        const storedFeedDecimalAdjuster = await this.contract.feedDecimalAdjuster(currency);
+        const storedFeedDecimalAdjuster = await this.contract.feedDecimalAdjusterFor(
+          set.currency,
+          set.base,
+        );
 
         // Get a reference to the expected adjuster value.
         const expectedFeedDecimalAdjuster = ethers.BigNumber.from(10).pow(
@@ -97,7 +106,7 @@ module.exports = function () {
         expect(storedFeedDecimalAdjuster).to.equal(expectedFeedDecimalAdjuster);
 
         // Get the stored feed.
-        const storedFeed = await this.contract.feedFor(currency);
+        const storedFeed = await this.contract.feedFor(set.currency, set.base);
 
         // Expect the stored feed values to match.
         expect(storedFeed).to.equal(this.aggregatorV3Contract.address);
@@ -107,13 +116,7 @@ module.exports = function () {
   describe('Failure cases', function () {
     tests.failure.forEach(function (failureTest) {
       it(failureTest.description, async function () {
-        const {
-          caller,
-          preset,
-          set,
-          decimals,
-          revert,
-        } = failureTest.fn(this);
+        const { caller, preset, set, decimals, revert } = failureTest.fn(this);
 
         await this.aggregatorV3Contract.mock.decimals.returns(decimals);
 
