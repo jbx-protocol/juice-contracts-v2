@@ -1,4 +1,4 @@
-const shouldBehaveLike = require('./behaviors');
+const jbOperatorStore = require('./jb_operator_store');
 
 let snapshotId;
 module.exports = function () {
@@ -7,8 +7,9 @@ module.exports = function () {
     // Mark the start time of each test.
     await this.setTimeMarkFn();
   });
+
   // Test each contract.
-  describe('JBOperatorStore', shouldBehaveLike.jbOperatorStore);
+  describe('JBOperatorStore', jbOperatorStore);
 
   // After each test, restore the contract state.
   afterEach(async function () {
