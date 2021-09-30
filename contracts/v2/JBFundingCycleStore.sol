@@ -969,7 +969,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     The date that is the nearest multiple of the specified funding cycle's duration from its end.
 
     @param _baseFundingCycle The funding cycle to make the calculation for.
-    @param _latestPermanentFundingCycle The latest funding cycle in the same project as `_baseFundingCycle` to not have a limit.
+    @param _latestPermanentFundingCycle The latest funding cycle in the same project as `_baseFundingCycle` to not have a cycle limit.
     @param _mustStartOnOrAfter A date that the derived start must be on or come after.
 
     @return start The next start time.
