@@ -9,7 +9,6 @@ module.exports = function () {
   });
   // Test each contract.
   describe('JBOperatorStore', shouldBehaveLike.jbOperatorStore);
-  // TODO(odd-amphora): Add remaining contracts.
 
   // After each test, restore the contract state.
   afterEach(async function () {
