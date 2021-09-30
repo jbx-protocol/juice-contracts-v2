@@ -3,5 +3,5 @@ const v2 = require('./v2');
 
 module.exports = function () {
   describe('V1', v1);
-  describe('V2', v2);
+  describe.only('V2', v2);
 };

@@ -993,7 +993,9 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
     uint256 _cycleLimit = _baseFundingCycle.cycleLimit;
 
+    // The distance of the current time to the start of the next possible funding cycle.
     uint256 _timeFromImmediateStartMultiple;
+
     // Only use base
     if (_mustStartOnOrAfter <= _baseFundingCycle.start + _durationInSeconds * _cycleLimit) {
       // Otherwise, use the closest multiple of the duration from the old end.
