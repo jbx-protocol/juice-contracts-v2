@@ -39,10 +39,10 @@ jobs:
         run: yarn install --frozen-lockfile --prefer-offline
       # A local blockchain is required in order for unit tests to run.
       - name: Start local blockchain
-        run: yarn chain --network hardhat --no-deploy &>/dev/null &
+        run: yarn chain --network hardhat &>/dev/null &
       # Give the local blockchain time to come up.
       - name: Sleep
-        run: sleep 30
+        run: sleep 60
       # Run V1 and V2 unit tests.
       - name: Run unit tests
         run: yarn test:unit
