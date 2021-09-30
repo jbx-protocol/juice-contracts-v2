@@ -1,6 +1,6 @@
 # Ignore everything
 *
 
-# Allow whitelistes deployment networks
+# Allow whitelisted deployment networks
 !/deployments/rinkeby/**
 !/deployments/mainnet/**
