@@ -983,41 +983,42 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     if (_baseFundingCycle.duration == 0) return _mustStartOnOrAfter;
 
     // Save a reference to the duration measured in seconds.
-    uint256 _durationInSeconds = _baseFundingCycle.duration * _SECONDS_IN_DAY;
+    uint256 _baseDurationInSeconds = _baseFundingCycle.duration * _SECONDS_IN_DAY;
 
     // The time when the funding cycle immediately after the specified funding cycle starts.
-    uint256 _nextImmediateStart = _baseFundingCycle.start + _durationInSeconds;
+    uint256 _nextImmediateStart = _baseFundingCycle.start + _baseDurationInSeconds;
 
     // If the next immediate start is now or in the future, return it.
     if (_nextImmediateStart >= _mustStartOnOrAfter) return _nextImmediateStart;
 
-    uint256 _cycleLimit = _baseFundingCycle.cycleLimit;
+    uint256 _baseCycleLimit = _baseFundingCycle.cycleLimit;
 
     // The distance of the current time to the start of the next possible funding cycle.
     uint256 _timeFromImmediateStartMultiple;
 
     // Only use base
-    if (_mustStartOnOrAfter <= _baseFundingCycle.start + _durationInSeconds * _cycleLimit) {
+    if (_mustStartOnOrAfter <= _baseFundingCycle.start + _baseDurationInSeconds * _baseCycleLimit) {
       // Otherwise, use the closest multiple of the duration from the old end.
       _timeFromImmediateStartMultiple =
         (_mustStartOnOrAfter - _nextImmediateStart) %
-        _durationInSeconds;
+        _baseDurationInSeconds;
     } else {
       // If the cycle has ended, make the calculation with the latest permanent funding cycle.
       _timeFromImmediateStartMultiple = _latestPermanentFundingCycle.duration == 0
         ? 0
-        : ((_mustStartOnOrAfter - (_baseFundingCycle.start + (_durationInSeconds * _cycleLimit))) %
+        : ((_mustStartOnOrAfter -
+          (_baseFundingCycle.start + (_baseDurationInSeconds * _baseCycleLimit))) %
           (_latestPermanentFundingCycle.duration * _SECONDS_IN_DAY));
 
       // Use the duration of the permanent funding cycle from here on out.
-      _durationInSeconds = _latestPermanentFundingCycle.duration * _SECONDS_IN_DAY;
+      _baseDurationInSeconds = _latestPermanentFundingCycle.duration * _SECONDS_IN_DAY;
     }
 
     // Otherwise use an increment of the duration from the most recent start.
     start = _mustStartOnOrAfter - _timeFromImmediateStartMultiple;
 
     // Add increments of duration as necessary to satisfy the threshold.
-    while (_mustStartOnOrAfter > start) start = start + _durationInSeconds;
+    while (_mustStartOnOrAfter > start) start = start + _baseDurationInSeconds;
   }
 
   /** 
