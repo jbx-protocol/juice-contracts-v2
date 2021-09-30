@@ -1,5 +1,6 @@
 const AggregatorV3Interface = require('@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json');
 
+const addFeedFor = require('./add_feed_for');
 const targetDecimals = require('./target_decimals');
 
 module.exports = function () {
@@ -12,6 +13,7 @@ module.exports = function () {
     this.contract = await this.deployContractFn('JBPrices');
   });
 
-  describe('targetDecimals', targetDecimals);
+  describe('addFeedFor(...)', addFeedFor);
+  describe('targetDecimals(...)', targetDecimals);
 
 };

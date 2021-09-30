@@ -3,59 +3,62 @@ const { expect } = require('chai');
 
 const tests = {
   success: [
-    {
-      description: 'add feed, 18 decimals',
-      fn: ({ deployer }) => ({
-        caller: deployer,
-        currency: 1,
-        decimals: 18,
-      }),
-    },
-    {
-      description: 'add feed, 0 decimals',
-      fn: ({ deployer }) => ({
-        caller: deployer,
-        currency: 1,
-        decimals: 0,
-      }),
-    },
+    // {
+    //   description: 'add feed, 18 decimals',
+    //   fn: ({ deployer }) => ({
+    //     caller: deployer,
+    //     currency: 1,
+    //     decimals: 18,
+    //   }),
+    // },
+    // {
+    //   description: 'add feed, 0 decimals',
+    //   fn: ({ deployer }) => ({
+    //     caller: deployer,
+    //     currency: 1,
+    //     decimals: 0,
+    //   }),
+    // },
   ],
   failure: [
     {
       description: 'not owner',
       fn: ({ addrs }) => ({
-        caller: addrs[0],
-        currency: 1,
+        caller: addrs[0],       
+        set: {
+          currency: 1,
+          base: 2,
+        },
         decimals: 18,
         revert: 'Ownable: caller is not the owner',
-      }),
-    },
-    {
-      description: 'reserved currency',
-      fn: ({ deployer }) => ({
-        caller: deployer,
-        currency: 0,
-        decimals: 18,
-        revert: 'Prices::addFeed: RESERVED',
       }),
     },
     {
       description: 'already exists',
       fn: ({ deployer }) => ({
         caller: deployer,
-        currency: 1,
+        preset: {
+          currency: 1,
+          base: 2,
+        },
+        set: {
+          currency: 1,
+          base: 2,
+        },
         decimals: 18,
-        setup: { preset: true },
-        revert: 'Prices::addFeed: ALREADY_EXISTS',
+        revert: '0x04: ALREADY_EXISTS',
       }),
     },
     {
       description: 'over 18 decimals',
       fn: ({ deployer }) => ({
         caller: deployer,
-        currency: 1,
-        decimals: 19,
-        revert: 'Prices::addFeed: BAD_DECIMALS',
+        set: {
+          currency: 1,
+          base: 2,
+        },        
+        decimals: 19,        
+        revert: '0x05: BAD_DECIMALS',
       }),
     },
   ],
@@ -65,7 +68,7 @@ module.exports = function () {
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {
-        const { caller, currency, decimals } = successTest.fn(this);
+        const { caller, set, decimals } = successTest.fn(this);
 
         // Set the mock to the return the specified number of decimals.
         await this.aggregatorV3Contract.mock.decimals.returns(decimals);
@@ -73,7 +76,7 @@ module.exports = function () {
         // Execute the transaction.
         const tx = await this.contract
           .connect(caller)
-          .addFeed(this.aggregatorV3Contract.address, currency);
+          .addFeedFor(set.currency, set.base, this.aggregatorV3Contract.address);
 
         // Expect an event to have been emitted.
         await expect(tx)
@@ -104,16 +107,26 @@ module.exports = function () {
   describe('Failure cases', function () {
     tests.failure.forEach(function (failureTest) {
       it(failureTest.description, async function () {
-        const { caller, currency, decimals, revert, setup: { preset } = {} } = failureTest.fn(this);
+        const {
+          caller,
+          preset,
+          set,
+          decimals,
+          revert,
+        } = failureTest.fn(this);
 
         await this.aggregatorV3Contract.mock.decimals.returns(decimals);
 
         if (preset) {
-          await this.contract.connect(caller).addFeed(this.aggregatorV3Contract.address, currency);
+          await this.contract
+            .connect(caller)
+            .addFeedFor(preset.currency, preset.base, this.aggregatorV3Contract.address);
         }
 
         await expect(
-          this.contract.connect(caller).addFeed(this.aggregatorV3Contract.address, currency),
+          this.contract
+            .connect(caller)
+            .addFeedFor(set.currency, set.base, this.aggregatorV3Contract.address),
         ).to.be.revertedWith(revert);
       });
     });
