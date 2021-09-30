@@ -186,8 +186,8 @@ contract JBETHPaymentTerminal is
     IJBDirectory _directory,
     IJBFundingCycleStore _fundingCycleStore,
     IJBTokenStore _tokenStore,
-    IJBSplitsStore _splitsStore
-    IJBController _jb,
+    IJBSplitsStore _splitsStore,
+    IJBController _jb
   ) JBOperatable(_operatorStore) {
     prices = _prices;
     projects = _projects;

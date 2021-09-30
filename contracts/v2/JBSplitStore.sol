@@ -73,8 +73,8 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
   */
   constructor(
     IJBOperatorStore _operatorStore,
-    IJBProjects _projects
-    IJBDirectory _directory,
+    IJBProjects _projects,
+    IJBDirectory _directory
   ) JBOperatable(_operatorStore) {
     projects = _projects;
     directory = _directory;

@@ -141,7 +141,7 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
   constructor(
     IJBOperatorStore _operatorStore,
     IJBProjects _projects,
-    IJBDirectory _directory
+    IJBDirectory _directory,
     IJBFundingCycleStore _fundingCycleStore,
     IJBTokenStore _tokenStore,
     IJBSplitsStore _splitsStore
