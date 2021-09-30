@@ -3,15 +3,17 @@ const { expect } = require('chai');
 
 const tests = {
   success: [
-    // {
-    //   description: 'check ETH price, non-zero currency, 18 decimals',
-    //   fn: ({ deployer }) => ({
-    //     caller: deployer,
-    //     currency: 1,
-    //     decimals: 18,
-    //     price: 400,
-    //   }),
-    // },
+    {
+      description: 'same currency and base should return 1',
+      fn: ({ deployer }) => ({
+        caller: deployer,
+        currency: 1,
+        base: 1,
+        decimals: 18,
+        setPrice: 400,
+        expectedPrice: 1,
+      }),
+    },
     // {
     //   description: 'check ETH price, non-zero currency, 0 decimals',
     //   fn: ({ deployer }) => ({
@@ -48,34 +50,31 @@ module.exports = function () {
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {
-        const { caller, currency, decimals, price } = successTest.fn(this);
+        const { caller, currency, base, decimals, setPrice, expectedPrice } = successTest.fn(this);
 
-        // If the currency is 0, mocks or a feed aren't needed.
-        if (currency > 0) {
-          // Set the mock to the return the specified number of decimals.
-          await this.aggregatorV3Contract.mock.decimals.returns(decimals);
-          // Set the mock to return the specified price.
-          await this.aggregatorV3Contract.mock.latestRoundData.returns(0, price, 0, 0, 0);
+        // Set the mock to the return the specified number of decimals.
+        await this.aggregatorV3Contract.mock.decimals.returns(decimals);
+        // Set the mock to return the specified price.
+        await this.aggregatorV3Contract.mock.latestRoundData.returns(0, setPrice, 0, 0, 0);
 
-          // Add price feed.
-          await this.contract.connect(caller).addFeed(this.aggregatorV3Contract.address, currency);
-        }
+        // Add price feed.
+        await this.contract
+          .connect(caller)
+          .addFeedFor(currency, base, this.aggregatorV3Contract.address);
 
         // Check for the price.
-        const resultingPrice = await this.contract.connect(caller).getETHPriceFor(currency);
+        const resultingPrice = await this.contract.connect(caller).priceFor(currency, base);
 
         // Get a reference to the target number of decimals.
-        const targetDecimals = await this.contract.targetDecimals();
+        const targetDecimals = await this.contract.TARGET_DECIMALS();
 
         // Get a reference to the expected price value.
-        const expectedPrice = ethers.BigNumber.from(price).mul(
-          ethers.BigNumber.from(10).pow(
-            currency === 0 ? targetDecimals : targetDecimals - decimals,
-          ),
+        const expectedPriceBigNum = ethers.BigNumber.from(expectedPrice).mul(
+          ethers.BigNumber.from(10).pow(targetDecimals)
         );
 
         // Expect the stored price value to match the expected value.
-        expect(resultingPrice).to.equal(expectedPrice);
+        expect(resultingPrice).to.equal(expectedPriceBigNum);
       });
     });
   });
