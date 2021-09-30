@@ -32,16 +32,16 @@ jobs:
           key: ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-nodemodules-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-nodemodules-
-      - name: Install dependencies
+      - name: Install JS dependencies
         if: |
           steps.cache-yarn-cache.outputs.cache-hit != 'true' ||
           steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile --prefer-offline
-      - name: Chain
+      - name: Start local blockchain
         run: yarn chain --network hardhat &>/dev/null &
-      - name: Unit Test
+      - name: Run unit tests
         run: yarn test:unit
-      - name: Publish
+      - name: Publish NPM package
         uses: JS-DevTools/npm-publish@v1
         with:
           token: ${{ secrets.NPM_TOKEN }}
