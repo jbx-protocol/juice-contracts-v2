@@ -37,10 +37,16 @@ jobs:
           steps.cache-yarn-cache.outputs.cache-hit != 'true' ||
           steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile --prefer-offline
+      # A local blockchain is required in order for unit tests to run.
       - name: Start local blockchain
-        run: yarn chain --network hardhat &>/dev/null &
+        run: yarn chain --network hardhat --no-deploy &>/dev/null &
+      # Give the local blockchain time to come up.
+      - name: Sleep
+        run: sleep 30
+      # Run V1 and V2 unit tests.
       - name: Run unit tests
         run: yarn test:unit
+      # Publish deploy artifacts NPM packages. This will only run if there are new deploys.
       - name: Publish NPM package
         uses: JS-DevTools/npm-publish@v1
         with:
