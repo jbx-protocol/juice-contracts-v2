@@ -4,7 +4,7 @@ const tests = {
   success: [
     {
       description: 'target decimals should be 18',
-      target: 18
+      target: 18,
     },
   ],
 };
