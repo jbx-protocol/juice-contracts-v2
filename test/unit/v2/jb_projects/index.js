@@ -10,7 +10,7 @@ module.exports = function () {
   });
 
   describe('challengeHandle(...)', challengeHandle);
-  // describe('claimHandle(...)', claimHandle);
+  describe('claimHandle(...)', claimHandle);
   describe('createFor(...)', createFor);
   describe('setUriOf(...', setUriOf);
 };
