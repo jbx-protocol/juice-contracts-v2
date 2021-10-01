@@ -1,10 +1,10 @@
-name: juice-contracts
+name: juice-contracts-publish
 on:
   push:
     branches:
       - main
 jobs:
-  ci:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
