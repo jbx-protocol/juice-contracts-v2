@@ -1,3 +1,4 @@
+const challengeHandle = require('./challenge_handle');
 const createFor = require('./create_for');
 
 module.exports = function () {
@@ -6,5 +7,6 @@ module.exports = function () {
     this.contract = await this.deployContractFn('JBProjects', [this.operatorStore.address]);
   });
 
+  describe('challengeHandle(...)', challengeHandle);
   describe('createFor(...)', createFor);
 };
