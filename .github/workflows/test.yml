@@ -43,6 +43,6 @@ jobs:
       # Give the local blockchain time to come up.
       - name: Sleep
         run: sleep 60
-      # Run V1 and V2 unit tests.
+      # Run V2 unit tests.
       - name: Run unit tests
-        run: yarn test:unit
+        run: yarn test:unit --grep "V2"
