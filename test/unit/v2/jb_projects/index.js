@@ -1,6 +1,7 @@
 const challengeHandle = require('./challenge_handle');
 const claimHandle = require('./claim_handle');
 const createFor = require('./create_for');
+const setUriOf = require('./set_uri_of');
 
 module.exports = function () {
   before(async function () {
@@ -9,6 +10,7 @@ module.exports = function () {
   });
 
   describe('challengeHandle(...)', challengeHandle);
-  describe('claimHandle(...)', claimHandle);
+  // describe('claimHandle(...)', claimHandle);
   describe('createFor(...)', createFor);
+  describe('setUriOf(...', setUriOf);
 };
