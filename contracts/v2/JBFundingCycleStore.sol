@@ -1050,40 +1050,38 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // The weight should be based off the base funding cycle's weight.
     weight = _baseFundingCycle.weight;
 
-    // If there's no limit or if the limit is greater than the start distance,
-    // apply the discount rate of the base.
-    if (_limitLength == 0 || _limitLength > _startDistance) {
-      // If the discount rate is 0, return the same weight.
-      if (_baseFundingCycle.discountRate == 0) return weight;
+    bool _shouldApplyLatestPerminentCycleDiscounts = _limitLength > 0 &&
+      _limitLength <= _startDistance;
 
-      uint256 _discountMultiple = _startDistance / (_baseFundingCycle.duration * _SECONDS_IN_DAY);
+    // If the discount rate is 0, return the same weight.
+    if (_baseFundingCycle.discountRate > 0) {
+      uint256 _discountMultiple = _shouldApplyLatestPerminentCycleDiscounts
+        ? _baseFundingCycle.cycleLimit
+        : _startDistance / (_baseFundingCycle.duration * _SECONDS_IN_DAY);
 
       for (uint256 i = 0; i < _discountMultiple; i++)
         // The number of times to apply the discount rate.
         // Base the new weight on the specified funding cycle's weight.
         weight = PRBMath.mulDiv(weight, 400 - _baseFundingCycle.discountRate, 400);
-    } else {
+    }
+
+    // If there's no limit or if the limit is greater than the start distance,
+    // apply the discount rate of the base.
+    if (
+      _shouldApplyLatestPerminentCycleDiscounts && _latestPermanentFundingCycle.discountRate > 0
+    ) {
       // If the time between the base start at the given start is longer than
       // the limit, the discount rate for the limited base has to be applied first,
       // and then the discount rate for the last permanent should be applied to
       // the remaining distance.
 
-      // Use up the limited discount rate up until the limit.
-      if (_baseFundingCycle.discountRate > 0)
-        for (uint256 i = 0; i < _baseFundingCycle.cycleLimit; i++)
-          weight = PRBMath.mulDiv(weight, 400 - _baseFundingCycle.discountRate, 400);
+      // The number of times to apply the latest permanent discount rate.
+      uint256 _permanentDiscountMultiple = (_startDistance - _limitLength) /
+        (_latestPermanentFundingCycle.duration * _SECONDS_IN_DAY);
 
-      if (_latestPermanentFundingCycle.discountRate > 0) {
-        // The number of times to apply the latest permanent discount rate.
-        uint256 _permanentDiscountMultiple = _latestPermanentFundingCycle.duration == 0
-          ? 0
-          : (_startDistance - _limitLength) /
-            (_latestPermanentFundingCycle.duration * _SECONDS_IN_DAY);
-
-        for (uint256 i = 0; i < _permanentDiscountMultiple; i++)
-          // base the weight on the result of the previous calculation.
-          weight = PRBMath.mulDiv(weight, 400 - _latestPermanentFundingCycle.discountRate, 400);
-      }
+      for (uint256 i = 0; i < _permanentDiscountMultiple; i++)
+        // base the weight on the result of the previous calculation.
+        weight = PRBMath.mulDiv(weight, 400 - _latestPermanentFundingCycle.discountRate, 400);
     }
   }
 
