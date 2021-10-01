@@ -14,23 +14,39 @@ const tests = {
         expectedPrice: 1,
       }),
     },
-    // {
-    //   description: 'check ETH price, non-zero currency, 0 decimals',
-    //   fn: ({ deployer }) => ({
-    //     caller: deployer,
-    //     currency: 1,
-    //     decimals: 0,
-    //     price: 400,
-    //   }),
-    // },
-    // {
-    //   description: 'check ETH price, zero currency',
-    //   fn: ({ deployer }) => ({
-    //     caller: deployer,
-    //     currency: 0,
-    //     price: 1,
-    //   }),
-    // },
+    {
+      description: 'check price no decimals',
+      fn: ({ deployer }) => ({
+        caller: deployer,
+        currency: 1,
+        base: 2,
+        decimals: 0,
+        setPrice: 400,
+        expectedPrice: 400,
+      }),
+    },
+    {
+      description: 'check price one decimal',
+      fn: ({ deployer }) => ({
+        caller: deployer,
+        currency: 1,
+        base: 2,
+        decimals: 1,
+        setPrice: 4000,
+        expectedPrice: 4000,
+      }),
+    },
+    {
+      description: 'check price 18 decimals',
+      fn: ({ deployer }) => ({
+        caller: deployer,
+        currency: 1,
+        base: 2,
+        decimals: 18,
+        setPrice: 123456789,
+        expectedPrice: 123456789,
+      }),
+    },
   ],
   failure: [
     {
@@ -70,7 +86,7 @@ module.exports = function () {
 
         // Get a reference to the expected price value.
         const expectedPriceBigNum = ethers.BigNumber.from(expectedPrice).mul(
-          ethers.BigNumber.from(10).pow(targetDecimals)
+          ethers.BigNumber.from(10).pow(targetDecimals - (currency !== base ? decimals : 0)),
         );
 
         // Expect the stored price value to match the expected value.
