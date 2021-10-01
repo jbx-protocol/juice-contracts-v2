@@ -1052,12 +1052,11 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
     // If the start time is past the limit length, the calculation must take both the limited cycle's discount into account
     // as well as the latest permanent cycle's.
-    bool _shouldApplyLatestPermanentCycleDiscounts = _limitLength > 0 &&
-      _limitLength <= _startDistance;
+    bool _crossesCycleLimit = _limitLength > 0 && _limitLength <= _startDistance;
 
     // Apply the base funding cycle's discount rate, if necessary.
     if (_baseFundingCycle.discountRate > 0) {
-      uint256 _discountMultiple = _shouldApplyLatestPermanentCycleDiscounts
+      uint256 _discountMultiple = _crossesCycleLimit
         ? _baseFundingCycle.cycleLimit
         : _startDistance / (_baseFundingCycle.duration * _SECONDS_IN_DAY);
 
@@ -1068,9 +1067,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     }
 
     // Apply the latest permanent funding cycle's discount rate, if necessary..
-    if (
-      _shouldApplyLatestPermanentCycleDiscounts && _latestPermanentFundingCycle.discountRate > 0
-    ) {
+    if (_crossesCycleLimit && _latestPermanentFundingCycle.discountRate > 0) {
       // The number of times to apply the latest permanent discount rate.
       uint256 _permanentDiscountMultiple = (_startDistance - _limitLength) /
         (_latestPermanentFundingCycle.duration * _SECONDS_IN_DAY);
@@ -1109,29 +1106,22 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
     // If the start time is past the limit length, the calculation must take both the limited cycle's discount into account
     // as well as the latest permanent cycle's.
-    bool _shouldApplyLatestPermanentCycleDiscounts = _limitLength > 0 &&
-      _limitLength <= _startDistance;
+    bool _crossesCycleLimit = _limitLength > 0 && _limitLength <= _startDistance;
 
-    uint256 _baseDistance = _shouldApplyLatestPermanentCycleDiscounts
-      ? _limitLength
-      : _startDistance;
+    // The time distance within which the base cycle duration should be assumed.
+    uint256 _baseDistance = _crossesCycleLimit ? _limitLength : _startDistance;
 
-    // If there's no limit or if the limit is greater than the start distance,
-    // get the result by finding the number of base cycles that fit in the start distance.
+    // Find the number of base cycles that fit in the base distance.
     number =
       _baseFundingCycle.number +
       (_baseDistance / (_baseFundingCycle.duration * _SECONDS_IN_DAY));
 
-    if (_shouldApplyLatestPermanentCycleDiscounts) {
+    // If needed, add the number of latest permanent cycles that fit in the time after the limit.
+    if (_crossesCycleLimit && _latestPermanentFundingCycle.duration > 0)
       number =
         number +
-        (
-          _latestPermanentFundingCycle.duration == 0
-            ? 0
-            : ((_startDistance - _limitLength) /
-              (_latestPermanentFundingCycle.duration * _SECONDS_IN_DAY))
-        );
-    }
+        ((_startDistance - _limitLength) /
+          (_latestPermanentFundingCycle.duration * _SECONDS_IN_DAY));
   }
 
   /** 
