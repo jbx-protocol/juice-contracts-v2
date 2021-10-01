@@ -1,5 +1,6 @@
 const jbOperatorStore = require('./jb_operator_store');
 const jbPrices = require('./jb_prices');
+const jbProjects = require('./jb_projects');
 
 let snapshotId;
 module.exports = function () {
@@ -12,6 +13,7 @@ module.exports = function () {
   // Test each contract.
   describe('JBOperatorStore', jbOperatorStore);
   describe('JBPrices', jbPrices);
+  describe('JBProjects', jbProjects);
 
   // After each test, restore the contract state.
   afterEach(async function () {
