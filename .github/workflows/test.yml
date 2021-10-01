@@ -46,9 +46,3 @@ jobs:
       # Run V1 and V2 unit tests.
       - name: Run unit tests
         run: yarn test:unit
-      # Publish deploy artifacts NPM packages. This will only run if there are new deploys.
-      - name: Publish NPM package
-        uses: JS-DevTools/npm-publish@v1
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-          access: "public"
