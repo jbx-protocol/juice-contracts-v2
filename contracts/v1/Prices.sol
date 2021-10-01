@@ -7,6 +7,7 @@ import "./interfaces/IPrices.sol";
 
 /** 
   @notice Manage and normalizes ETH price feeds.
+  TODO(odd-amphora): Should we store decimals forever?
 */
 contract Prices is IPrices, Ownable {
     // --- public constant stored properties --- //

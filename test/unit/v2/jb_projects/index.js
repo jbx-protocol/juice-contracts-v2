@@ -1,4 +1,5 @@
 const challengeHandle = require('./challenge_handle');
+const claimHandle = require('./claim_handle');
 const createFor = require('./create_for');
 
 module.exports = function () {
@@ -8,5 +9,6 @@ module.exports = function () {
   });
 
   describe('challengeHandle(...)', challengeHandle);
+  describe('claimHandle(...)', claimHandle);
   describe('createFor(...)', createFor);
 };
