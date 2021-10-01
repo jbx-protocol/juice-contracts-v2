@@ -1025,7 +1025,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     The accumulated weight change since the specified funding cycle.
 
     @param _baseFundingCycle The funding cycle to make the calculation with.
-    @param _latestPermanentFundingCycle The latest funding cycle in the same project as `_fundingCycle` to not have a limit.
+    @param _latestPermanentFundingCycle The latest funding cycle in the same project as `_baseFundingCycle` to not have a limit.
     @param _start The start time to derive a weight for.
 
     @return weight The next weight.
@@ -1043,19 +1043,21 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     uint256 _startDistance = _start - _baseFundingCycle.start;
 
     // The number of seconds that the base funding cycle is limited to.
-    uint256 _limitLength = _baseFundingCycle.cycleLimit == 0 || _baseFundingCycle.basedOn == 0
+    uint256 _limitLength = _baseFundingCycle.cycleLimit == 0
       ? 0
       : _baseFundingCycle.cycleLimit * (_baseFundingCycle.duration * _SECONDS_IN_DAY);
 
     // The weight should be based off the base funding cycle's weight.
     weight = _baseFundingCycle.weight;
 
-    bool _shouldApplyLatestPerminentCycleDiscounts = _limitLength > 0 &&
+    // If the start time is past the limit length, the calculation must take both the limited cycle's discount into account
+    // as well as the latest permanent cycle's.
+    bool _shouldApplyLatestPermanentCycleDiscounts = _limitLength > 0 &&
       _limitLength <= _startDistance;
 
-    // If the discount rate is 0, return the same weight.
+    // Apply the base funding cycle's discount rate, if necessary.
     if (_baseFundingCycle.discountRate > 0) {
-      uint256 _discountMultiple = _shouldApplyLatestPerminentCycleDiscounts
+      uint256 _discountMultiple = _shouldApplyLatestPermanentCycleDiscounts
         ? _baseFundingCycle.cycleLimit
         : _startDistance / (_baseFundingCycle.duration * _SECONDS_IN_DAY);
 
@@ -1065,16 +1067,10 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
         weight = PRBMath.mulDiv(weight, 400 - _baseFundingCycle.discountRate, 400);
     }
 
-    // If there's no limit or if the limit is greater than the start distance,
-    // apply the discount rate of the base.
+    // Apply the latest permanent funding cycle's discount rate, if necessary..
     if (
-      _shouldApplyLatestPerminentCycleDiscounts && _latestPermanentFundingCycle.discountRate > 0
+      _shouldApplyLatestPermanentCycleDiscounts && _latestPermanentFundingCycle.discountRate > 0
     ) {
-      // If the time between the base start at the given start is longer than
-      // the limit, the discount rate for the limited base has to be applied first,
-      // and then the discount rate for the last permanent should be applied to
-      // the remaining distance.
-
       // The number of times to apply the latest permanent discount rate.
       uint256 _permanentDiscountMultiple = (_startDistance - _limitLength) /
         (_latestPermanentFundingCycle.duration * _SECONDS_IN_DAY);
@@ -1090,7 +1086,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     The number of the next funding cycle given the specified funding cycle.
 
     @param _baseFundingCycle The funding cycle to make the calculation with.
-    @param _latestPermanentFundingCycle The latest funding cycle in the same project as `_fundingCycle` to not have a limit.
+    @param _latestPermanentFundingCycle The latest funding cycle in the same project as `_baseFundingCycle` to not have a limit.
     @param _start The start time to derive a number for.
 
     @return number The next number.
@@ -1111,21 +1107,22 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       ? 0
       : _baseFundingCycle.cycleLimit * (_baseFundingCycle.duration * _SECONDS_IN_DAY);
 
-    if (_limitLength == 0 || _limitLength > _startDistance) {
-      // If there's no limit or if the limit is greater than the start distance,
-      // get the result by finding the number of base cycles that fit in the start distance.
-      number =
-        _baseFundingCycle.number +
-        (_startDistance / (_baseFundingCycle.duration * _SECONDS_IN_DAY));
-    } else {
-      // If the time between the base start at the given start is longer than
-      // the limit, first calculate the number of cycles that passed under the limit,
-      // and add any cycles that have passed of the latest permanent funding cycle afterwards.
+    // If the start time is past the limit length, the calculation must take both the limited cycle's discount into account
+    // as well as the latest permanent cycle's.
+    bool _shouldApplyLatestPermanentCycleDiscounts = _limitLength > 0 &&
+      _limitLength <= _startDistance;
 
-      number =
-        _baseFundingCycle.number +
-        (_limitLength / (_baseFundingCycle.duration * _SECONDS_IN_DAY));
+    uint256 _baseDistance = _shouldApplyLatestPermanentCycleDiscounts
+      ? _limitLength
+      : _startDistance;
 
+    // If there's no limit or if the limit is greater than the start distance,
+    // get the result by finding the number of base cycles that fit in the start distance.
+    number =
+      _baseFundingCycle.number +
+      (_baseDistance / (_baseFundingCycle.duration * _SECONDS_IN_DAY));
+
+    if (_shouldApplyLatestPermanentCycleDiscounts) {
       number =
         number +
         (
