@@ -704,7 +704,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @return A mock of what the next funding cycle will be.
   */
   function _mockFundingCycleBasedOn(JBFundingCycle memory _baseFundingCycle, bool _allowMidCycle)
-    internal
+    private
     view
     returns (JBFundingCycle memory)
   {
@@ -978,7 +978,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     JBFundingCycle memory _baseFundingCycle,
     JBFundingCycle memory _latestPermanentFundingCycle,
     uint256 _mustStartOnOrAfter
-  ) internal pure returns (uint256 start) {
+  ) private pure returns (uint256 start) {
     // A subsequent cycle to one with a duration of 0 should start as soon as possible.
     if (_baseFundingCycle.duration == 0) return _mustStartOnOrAfter;
 
@@ -1034,7 +1034,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     JBFundingCycle memory _baseFundingCycle,
     JBFundingCycle memory _latestPermanentFundingCycle,
     uint256 _start
-  ) internal pure returns (uint256 weight) {
+  ) private pure returns (uint256 weight) {
     // A subsequent cycle to one with a duration of 0 should have the next possible weight.
     if (_baseFundingCycle.duration == 0)
       return PRBMath.mulDiv(_baseFundingCycle.weight, 400 - _baseFundingCycle.discountRate, 400);
@@ -1092,7 +1092,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     JBFundingCycle memory _baseFundingCycle,
     JBFundingCycle memory _latestPermanentFundingCycle,
     uint256 _start
-  ) internal pure returns (uint256 number) {
+  ) private pure returns (uint256 number) {
     // A subsequent cycle to one with a duration of 0 should be the next number.
     if (_baseFundingCycle.duration == 0) return _baseFundingCycle.number + 1;
 
@@ -1134,7 +1134,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @return start The inclusive nunmber of cycles remaining.
   */
   function _deriveCycleLimitFrom(JBFundingCycle memory _fundingCycle, uint256 _start)
-    internal
+    private
     pure
     returns (uint256)
   {
