@@ -1003,6 +1003,10 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       _latestPermanentFundingCycle.id &&
       _mustStartOnOrAfter > _baseFundingCycleLimitEnd;
 
+    // If the latest permament cycle should be used and it has a no duration, start as soon as possible.
+    if (_shouldRevertToLatestPermanentCycle && _latestPermanentFundingCycle.duration == 0)
+      return _mustStartOnOrAfter;
+
     // Use the duration of the permanent funding cycle as the base if needed.
     _cycleDurationInSeconds = _shouldRevertToLatestPermanentCycle
       ? _latestPermanentFundingCycle.duration * _SECONDS_IN_DAY
@@ -1066,8 +1070,12 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
         weight = PRBMath.mulDiv(weight, 400 - _baseFundingCycle.discountRate, 400);
     }
 
-    // Apply the latest permanent funding cycle's discount rate, if necessary..
-    if (_crossesCycleLimit && _latestPermanentFundingCycle.discountRate > 0) {
+    // Apply the latest permanent funding cycle's discount rate, if necessary.
+    if (
+      _crossesCycleLimit &&
+      _latestPermanentFundingCycle.discountRate > 0 &&
+      _latestPermanentFundingCycle.duration > 0
+    ) {
       // The number of times to apply the latest permanent discount rate.
       uint256 _permanentDiscountMultiple = (_startDistance - _limitLength) /
         (_latestPermanentFundingCycle.duration * _SECONDS_IN_DAY);
@@ -1126,7 +1134,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
   /** 
     @notice 
-    The limited number of times a funding cycle configuration can be active given the specified funding cycle.
+    The limited number of times the next funding cycle configuration can be active given the specified funding cycle.
 
     @param _fundingCycle The funding cycle to make the calculation with.
     @param _start The start time to derive cycles remaining for.
@@ -1138,10 +1146,16 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     pure
     returns (uint256)
   {
+    // There's no longer a cycle limit if the provided cycle limit is 1, or if it has no duration.
     if (_fundingCycle.cycleLimit <= 1 || _fundingCycle.duration == 0) return 0;
-    uint256 _cycles = ((_start - _fundingCycle.start) / (_fundingCycle.duration * _SECONDS_IN_DAY));
 
+    // Get a reference to the number of cycles that can fit between the funding cycle's start, and the provided start.
+    uint256 _cycles = (_start - _fundingCycle.start) / (_fundingCycle.duration * _SECONDS_IN_DAY);
+
+    // If all of the cycle limit has passed, return 0.
     if (_cycles >= _fundingCycle.cycleLimit) return 0;
+
+    // Subtract the number of cycles that have passed from the limit.
     return _fundingCycle.cycleLimit - _cycles;
   }
 
