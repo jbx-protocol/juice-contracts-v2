@@ -441,7 +441,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       // The base's ballot must have ended.
       _updateFundingCycleBasedOn(
         _baseFundingCycle,
-        _getTimeAfterBallotOf(_baseFundingCycle, _configured),
+        _getLatestTimeAfterBallotOf(_baseFundingCycle, _configured),
         _weight,
         false
       );
@@ -486,7 +486,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       }
     } else {
       // The ballot must have ended.
-      _mustStartOnOrAfter = _getTimeAfterBallotOf(_fundingCycle, _configured);
+      _mustStartOnOrAfter = _getLatestTimeAfterBallotOf(_fundingCycle, _configured);
     }
 
     // Return the newly initialized configurable funding cycle.
@@ -715,7 +715,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // Otherwise, the base is already the latest permanent funding cycle.
     JBFundingCycle memory _latestPermanentFundingCycle = _baseFundingCycle.cycleLimit == 0
       ? _baseFundingCycle
-      : _latestPermanentCycleBefore(_baseFundingCycle);
+      : _latestPermanentCycleFrom(_baseFundingCycle);
 
     // The distance of the current time to the start of the next possible funding cycle.
     uint256 _timeFromImmediateStartMultiple;
@@ -794,7 +794,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
   ) private returns (uint256 fundingCycleId) {
     // Get the latest permanent funding cycle.
     JBFundingCycle memory _latestPermanentFundingCycle = _baseFundingCycle.cycleLimit > 0
-      ? _latestPermanentCycleBefore(_baseFundingCycle)
+      ? _latestPermanentCycleFrom(_baseFundingCycle)
       : _baseFundingCycle;
 
     // Derive the correct next start time from the base.
@@ -1226,19 +1226,26 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @dev
     Determined what the latest funding cycle with a `cycleLimit` of 0 is, or isn't based on any previous funding cycle.
 
+    @dev
+    If the provided cycle is permanent, it will be returned. 
+
     @param _fundingCycle The funding cycle to find the most recent permanent cycle compared to.
 
     @return fundingCycle The most recent permanent funding cycle.
   */
-  function _latestPermanentCycleBefore(JBFundingCycle memory _fundingCycle)
+  function _latestPermanentCycleFrom(JBFundingCycle memory _fundingCycle)
     private
     view
     returns (JBFundingCycle memory fundingCycle)
   {
-    if (_fundingCycle.basedOn == 0) return _fundingCycle;
+    // A funding cycle with no cycle limit, or one not based on another funding cycle is, implicitly permanent.
+    if (_fundingCycle.basedOn == 0 || _fundingCycle.cycleLimit == 0) return _fundingCycle;
+
+    // Get the funding cycle of the base funding cycle.
     fundingCycle = _getStructFor(_fundingCycle.basedOn);
-    if (fundingCycle.cycleLimit == 0) return fundingCycle;
-    return _latestPermanentCycleBefore(fundingCycle);
+
+    // Recursively check if the previous cycle is permanent.
+    return _latestPermanentCycleFrom(fundingCycle);
   }
 
   /** 
@@ -1248,21 +1255,23 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @dev
     If the ballot ends in the past, the current block timestamp will be returned.
 
-    @param _fundingCycle The ID funding cycle to make the caluclation the ballot of.
+    @param _fundingCycle The ID funding cycle to make the caluclation from.
     @param _from The time from which the ballot duration should be calculated.
 
-    @return The time when the ballot duration ends.
+    @return The time when the ballot has officially ended.
   */
-  function _getTimeAfterBallotOf(JBFundingCycle memory _fundingCycle, uint256 _from)
+  function _getLatestTimeAfterBallotOf(JBFundingCycle memory _fundingCycle, uint256 _from)
     private
     view
     returns (uint256)
   {
-    // The ballot must have ended.
-    uint256 _ballotExpiration = _fundingCycle.ballot != IJBFundingCycleBallot(address(0))
-      ? _from + _fundingCycle.ballot.duration()
-      : 0;
+    // If the provided funding cycle has no ballot, return the current timestamp.
+    if (_fundingCycle.ballot == IJBFundingCycleBallot(address(0))) return block.timestamp;
 
+    // Get a reference to the time the ballot ends.
+    uint256 _ballotExpiration = _from + _fundingCycle.ballot.duration();
+
+    // If the ballot ends in past, return the current timestamp. Otherwise return the ballot's expiration.
     return block.timestamp > _ballotExpiration ? block.timestamp : _ballotExpiration;
   }
 
@@ -1273,7 +1282,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @param _projectId The ID of the project to use in the ID.
     @param _number The number to use in the ID
 
-    @return An ID.
+    @return The ID that is unique to the provided inputs.
   */
   function _idFor(uint256 _projectId, uint256 _number) private pure returns (uint256) {
     return uint256(uint56(_projectId) | uint24(_number));
