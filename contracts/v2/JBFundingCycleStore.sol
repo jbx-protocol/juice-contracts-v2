@@ -347,7 +347,6 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     _packAndStoreConfigurationPropertiesOf(
       _fundingCycleId,
       _configured,
-      _data.cycleLimit,
       _data.ballot,
       _data.duration,
       _data.currency,
@@ -648,25 +647,16 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     uint256 _weight,
     bool _copy
   ) private returns (uint256 fundingCycleId) {
-    // Get the latest permanent funding cycle.
-    JBFundingCycle memory _latestPermanentFundingCycle = _baseFundingCycle.cycleLimit > 0
-      ? _latestPermanentCycleFrom(_baseFundingCycle)
-      : _baseFundingCycle;
-
     // Derive the correct next start time from the base.
-    uint256 _start = _deriveStartFrom(
-      _baseFundingCycle,
-      _latestPermanentFundingCycle,
-      _mustStartOnOrAfter
-    );
+    uint256 _start = _deriveStartFrom(_baseFundingCycle, _mustStartOnOrAfter);
 
     // A weight of 1 is treated as a weight of 0.
     _weight = _weight > 0
       ? (_weight == 1 ? 0 : _weight)
-      : _deriveWeightFrom(_baseFundingCycle, _latestPermanentFundingCycle, _start);
+      : _deriveWeightFrom(_baseFundingCycle, _start);
 
     // Derive the correct number.
-    uint256 _number = _deriveNumberFrom(_baseFundingCycle, _latestPermanentFundingCycle, _start);
+    uint256 _number = _deriveNumberFrom(_baseFundingCycle, _start);
 
     // Update the intrinsic properties.
     fundingCycleId = _packAndStoreIntrinsicPropertiesOf(
@@ -679,28 +669,19 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
     // Copy if needed.
     if (_copy) {
-      // Derive what the cycle limit should be.
-      uint256 _cycleLimit = _deriveCycleLimitFrom(_baseFundingCycle, _start);
-
-      // Copy the last permanent funding cycle if the bases' limit is up.
-      JBFundingCycle memory _fundingCycleToCopy = _cycleLimit == 0
-        ? _latestPermanentFundingCycle
-        : _baseFundingCycle;
-
       // Save the configuration efficiently.
       _packAndStoreConfigurationPropertiesOf(
         fundingCycleId,
-        _fundingCycleToCopy.configured,
-        _cycleLimit,
-        _fundingCycleToCopy.ballot,
-        _fundingCycleToCopy.duration,
-        _fundingCycleToCopy.currency,
-        _fundingCycleToCopy.fee,
-        _fundingCycleToCopy.discountRate
+        _baseFundingCycle.configured,
+        _baseFundingCycle.ballot,
+        _baseFundingCycle.duration,
+        _baseFundingCycle.currency,
+        _baseFundingCycle.fee,
+        _baseFundingCycle.discountRate
       );
 
-      _metadataOf[fundingCycleId] = _metadataOf[_fundingCycleToCopy.id];
-      _targetOf[fundingCycleId] = _targetOf[_fundingCycleToCopy.id];
+      _metadataOf[fundingCycleId] = _metadataOf[_baseFundingCycle.id];
+      _targetOf[fundingCycleId] = _targetOf[_baseFundingCycle.id];
     }
   }
 
@@ -747,7 +728,6 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
     @param _fundingCycleId The ID of the funding cycle to pack and store.
     @param _configured The timestamp of the configuration.
-    @param _cycleLimit The number of cycles that this configuration should last for before going back to the last permanent.
     @param _ballot The ballot to use for future reconfiguration approvals. 
     @param _duration The duration of the funding cycle.
     @param _currency The currency of the funding cycle.
@@ -757,7 +737,6 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
   function _packAndStoreConfigurationPropertiesOf(
     uint256 _fundingCycleId,
     uint256 _configured,
-    uint256 _cycleLimit,
     IJBFundingCycleBallot _ballot,
     uint256 _duration,
     uint256 _currency,
@@ -776,8 +755,6 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     packed |= _fee << 232;
     // discountRate in bytes 240-247 bytes.
     packed |= _discountRate << 240;
-    // cycleLimit in bytes 248-255 bytes.
-    packed |= _cycleLimit << 248;
 
     // Set in storage.
     _packedConfigurationPropertiesOf[_fundingCycleId] = packed;
@@ -870,12 +847,6 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // Can't mock a non recurring funding cycle.
     if (_baseFundingCycle.discountRate == 201) return _getStructFor(0);
 
-    // If the base has a limit, find the last permanent funding cycle, which is needed to make subsequent calculations.
-    // Otherwise, the base is already the latest permanent funding cycle.
-    JBFundingCycle memory _latestPermanentFundingCycle = _baseFundingCycle.cycleLimit == 0
-      ? _baseFundingCycle
-      : _latestPermanentCycleFrom(_baseFundingCycle);
-
     // The distance of the current time to the start of the next possible funding cycle.
     uint256 _timeFromImmediateStartMultiple;
 
@@ -883,55 +854,36 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // If the base funding cycle doesn't have a duration, no adjustment is necessary because the next cycle can start immediately.
     if (!_allowMidCycle || _baseFundingCycle.duration == 0) {
       _timeFromImmediateStartMultiple = 0;
-    } else if (_baseFundingCycle.cycleLimit == 0) {
-      _timeFromImmediateStartMultiple = _baseFundingCycle.duration * _SECONDS_IN_DAY;
     } else {
-      // Get the end time of the last cycle.
-      uint256 _cycleEnd = _baseFundingCycle.start +
-        (_baseFundingCycle.cycleLimit * _baseFundingCycle.duration * _SECONDS_IN_DAY);
-
-      // If the cycle end time is in the past, the mock should start at a multiple of the last permanent cycle since the cycle ended.
-      _timeFromImmediateStartMultiple = _cycleEnd < block.timestamp
-        ? block.timestamp - _cycleEnd
-        : _baseFundingCycle.duration * _SECONDS_IN_DAY;
+      _timeFromImmediateStartMultiple = _baseFundingCycle.duration * _SECONDS_IN_DAY;
     }
 
     // Derive what the start time should be.
     uint256 _start = _deriveStartFrom(
       _baseFundingCycle,
-      _latestPermanentFundingCycle,
       block.timestamp - _timeFromImmediateStartMultiple
     );
 
-    // Derive what the cycle limit should be.
-    uint256 _cycleLimit = _deriveCycleLimitFrom(_baseFundingCycle, _start);
-
     // Derive what the number should be.
-    uint256 _number = _deriveNumberFrom(_baseFundingCycle, _latestPermanentFundingCycle, _start);
-
-    // Copy the last permanent funding cycle if the bases' limit is up.
-    JBFundingCycle memory _fundingCycleToCopy = _cycleLimit == 0
-      ? _latestPermanentFundingCycle
-      : _baseFundingCycle;
+    uint256 _number = _deriveNumberFrom(_baseFundingCycle, _start);
 
     return
       JBFundingCycle(
-        _idFor(_fundingCycleToCopy.projectId, _number),
-        _fundingCycleToCopy.projectId,
+        _idFor(_baseFundingCycle.projectId, _number),
+        _baseFundingCycle.projectId,
         _number,
-        _fundingCycleToCopy.id,
-        _fundingCycleToCopy.configured,
-        _cycleLimit,
-        _deriveWeightFrom(_baseFundingCycle, _latestPermanentFundingCycle, _start),
-        _fundingCycleToCopy.ballot,
+        _baseFundingCycle.id,
+        _baseFundingCycle.configured,
+        _deriveWeightFrom(_baseFundingCycle, _start),
+        _baseFundingCycle.ballot,
         _start,
-        _fundingCycleToCopy.duration,
-        _fundingCycleToCopy.target,
-        _fundingCycleToCopy.currency,
-        _fundingCycleToCopy.fee,
-        _fundingCycleToCopy.discountRate,
+        _baseFundingCycle.duration,
+        _baseFundingCycle.target,
+        _baseFundingCycle.currency,
+        _baseFundingCycle.fee,
+        _baseFundingCycle.discountRate,
         0,
-        _fundingCycleToCopy.metadata
+        _baseFundingCycle.metadata
       );
   }
 
@@ -965,7 +917,6 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     fundingCycle.currency = uint256(uint8(_packedConfigurationProperties >> 224));
     fundingCycle.fee = uint256(uint8(_packedConfigurationProperties >> 232));
     fundingCycle.discountRate = uint256(uint8(_packedConfigurationProperties >> 240));
-    fundingCycle.cycleLimit = uint256(uint8(_packedConfigurationProperties >> 248));
 
     fundingCycle.target = _targetOf[_id];
     fundingCycle.tapped = _tappedAmountOf[_id];
@@ -977,16 +928,15 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     The date that is the nearest multiple of the specified funding cycle's duration from its end.
 
     @param _baseFundingCycle The funding cycle to make the calculation for.
-    @param _latestPermanentFundingCycle The latest funding cycle in the same project as `_baseFundingCycle` to not have a cycle limit.
     @param _mustStartOnOrAfter A date that the derived start must be on or come after.
 
     @return start The next start time.
   */
-  function _deriveStartFrom(
-    JBFundingCycle memory _baseFundingCycle,
-    JBFundingCycle memory _latestPermanentFundingCycle,
-    uint256 _mustStartOnOrAfter
-  ) private pure returns (uint256 start) {
+  function _deriveStartFrom(JBFundingCycle memory _baseFundingCycle, uint256 _mustStartOnOrAfter)
+    private
+    pure
+    returns (uint256 start)
+  {
     // A subsequent cycle to one with a duration of 0 should start as soon as possible.
     if (_baseFundingCycle.duration == 0) return _mustStartOnOrAfter;
 
@@ -999,30 +949,8 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // If the next immediate start is now or in the future, return it.
     if (_nextImmediateStart >= _mustStartOnOrAfter) return _nextImmediateStart;
 
-    // Find when the base cycle's cycle limit ends. No cycle limit has the same behavior of a cycle limit of 1.
-    uint256 _baseFundingCycleLimitEnd = _baseFundingCycle.start +
-      (_cycleDurationInSeconds *
-        (_baseFundingCycle.cycleLimit == 0 ? 1 : _baseFundingCycle.cycleLimit));
-
-    // If the base funding cycle is different from the latest permanent funding cycle,
-    // and the funding cycle should start after the base cycle limit,
-    // the returned start time will be of an instance of the latest permanent funding cycle.
-    bool _shouldRevertToLatestPermanentCycle = _baseFundingCycle.id !=
-      _latestPermanentFundingCycle.id &&
-      _mustStartOnOrAfter > _baseFundingCycleLimitEnd;
-
-    // If the latest permament cycle should be used and it has a no duration, start as soon as possible.
-    if (_shouldRevertToLatestPermanentCycle && _latestPermanentFundingCycle.duration == 0)
-      return _mustStartOnOrAfter;
-
-    // Use the duration of the permanent funding cycle as the base if needed.
-    _cycleDurationInSeconds = _shouldRevertToLatestPermanentCycle
-      ? _latestPermanentFundingCycle.duration * _SECONDS_IN_DAY
-      : _cycleDurationInSeconds;
-
     // The amount of seconds since the `_mustStartOnOrAfter` time that results in a start time that might satisfy the specified constraints.
-    uint256 _timeFromImmediateStartMultiple = (_mustStartOnOrAfter -
-      (_shouldRevertToLatestPermanentCycle ? _baseFundingCycleLimitEnd : _nextImmediateStart)) %
+    uint256 _timeFromImmediateStartMultiple = (_mustStartOnOrAfter - _nextImmediateStart) %
       _cycleDurationInSeconds;
 
     // A reference to the first possible start timestamp.
@@ -1037,61 +965,35 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     The accumulated weight change since the specified funding cycle.
 
     @param _baseFundingCycle The funding cycle to make the calculation with.
-    @param _latestPermanentFundingCycle The latest funding cycle in the same project as `_baseFundingCycle` to not have a limit.
     @param _start The start time to derive a weight for.
 
     @return weight The next weight.
   */
-  function _deriveWeightFrom(
-    JBFundingCycle memory _baseFundingCycle,
-    JBFundingCycle memory _latestPermanentFundingCycle,
-    uint256 _start
-  ) private pure returns (uint256 weight) {
+  function _deriveWeightFrom(JBFundingCycle memory _baseFundingCycle, uint256 _start)
+    private
+    pure
+    returns (uint256 weight)
+  {
     // A subsequent cycle to one with a duration of 0 should have the next possible weight.
     if (_baseFundingCycle.duration == 0)
       return PRBMath.mulDiv(_baseFundingCycle.weight, 400 - _baseFundingCycle.discountRate, 400);
 
-    // The difference between the start of the base funding cycle and the proposed start.
-    uint256 _startDistance = _start - _baseFundingCycle.start;
-
-    // The number of seconds that the base funding cycle is limited to.
-    uint256 _limitLength = _baseFundingCycle.cycleLimit == 0
-      ? 0
-      : _baseFundingCycle.cycleLimit * (_baseFundingCycle.duration * _SECONDS_IN_DAY);
-
     // The weight should be based off the base funding cycle's weight.
     weight = _baseFundingCycle.weight;
 
-    // If the start time is past the limit length, the calculation must take both the limited cycle's discount into account
-    // as well as the latest permanent cycle's.
-    bool _crossesCycleLimit = _limitLength > 0 && _limitLength <= _startDistance;
+    // If the discount is 0, the weight doesn't change.
+    if (_baseFundingCycle.discountRate == 0) return weight;
 
-    // Apply the base funding cycle's discount rate, if necessary.
-    if (_baseFundingCycle.discountRate > 0) {
-      uint256 _discountMultiple = _crossesCycleLimit
-        ? _baseFundingCycle.cycleLimit
-        : _startDistance / (_baseFundingCycle.duration * _SECONDS_IN_DAY);
+    // The difference between the start of the base funding cycle and the proposed start.
+    uint256 _startDistance = _start - _baseFundingCycle.start;
 
-      for (uint256 i = 0; i < _discountMultiple; i++)
-        // The number of times to apply the discount rate.
-        // Base the new weight on the specified funding cycle's weight.
-        weight = PRBMath.mulDiv(weight, 400 - _baseFundingCycle.discountRate, 400);
-    }
+    // Apply the base funding cycle's discount rate.
+    uint256 _discountMultiple = _startDistance / (_baseFundingCycle.duration * _SECONDS_IN_DAY);
 
-    // Apply the latest permanent funding cycle's discount rate, if necessary.
-    if (
-      _crossesCycleLimit &&
-      _latestPermanentFundingCycle.discountRate > 0 &&
-      _latestPermanentFundingCycle.duration > 0
-    ) {
-      // The number of times to apply the latest permanent discount rate.
-      uint256 _permanentDiscountMultiple = (_startDistance - _limitLength) /
-        (_latestPermanentFundingCycle.duration * _SECONDS_IN_DAY);
-
-      for (uint256 i = 0; i < _permanentDiscountMultiple; i++)
-        // base the weight on the result of the previous calculation.
-        weight = PRBMath.mulDiv(weight, 400 - _latestPermanentFundingCycle.discountRate, 400);
-    }
+    for (uint256 i = 0; i < _discountMultiple; i++)
+      // The number of times to apply the discount rate.
+      // Base the new weight on the specified funding cycle's weight.
+      weight = PRBMath.mulDiv(weight, 400 - _baseFundingCycle.discountRate, 400);
   }
 
   /** 
@@ -1099,72 +1001,25 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     The number of the next funding cycle given the specified funding cycle.
 
     @param _baseFundingCycle The funding cycle to make the calculation with.
-    @param _latestPermanentFundingCycle The latest funding cycle in the same project as `_baseFundingCycle` to not have a limit.
     @param _start The start time to derive a number for.
 
     @return number The next number.
   */
-  function _deriveNumberFrom(
-    JBFundingCycle memory _baseFundingCycle,
-    JBFundingCycle memory _latestPermanentFundingCycle,
-    uint256 _start
-  ) private pure returns (uint256 number) {
+  function _deriveNumberFrom(JBFundingCycle memory _baseFundingCycle, uint256 _start)
+    private
+    pure
+    returns (uint256 number)
+  {
     // A subsequent cycle to one with a duration of 0 should be the next number.
     if (_baseFundingCycle.duration == 0) return _baseFundingCycle.number + 1;
 
     // The difference between the start of the base funding cycle and the proposed start.
     uint256 _startDistance = _start - _baseFundingCycle.start;
 
-    // The number of seconds that the base funding cycle is limited to.
-    uint256 _limitLength = _baseFundingCycle.cycleLimit == 0
-      ? 0
-      : _baseFundingCycle.cycleLimit * (_baseFundingCycle.duration * _SECONDS_IN_DAY);
-
-    // If the start time is past the limit length, the calculation must take both the limited cycle's discount into account
-    // as well as the latest permanent cycle's.
-    bool _crossesCycleLimit = _limitLength > 0 && _limitLength <= _startDistance;
-
-    // The time distance within which the base cycle duration should be assumed.
-    uint256 _baseDistance = _crossesCycleLimit ? _limitLength : _startDistance;
-
-    // Find the number of base cycles that fit in the base distance.
+    // Find the number of base cycles that fit in the start distance.
     number =
       _baseFundingCycle.number +
-      (_baseDistance / (_baseFundingCycle.duration * _SECONDS_IN_DAY));
-
-    // If needed, add the number of latest permanent cycles that fit in the time after the limit.
-    if (_crossesCycleLimit && _latestPermanentFundingCycle.duration > 0)
-      number =
-        number +
-        ((_startDistance - _limitLength) /
-          (_latestPermanentFundingCycle.duration * _SECONDS_IN_DAY));
-  }
-
-  /** 
-    @notice 
-    The limited number of times the next funding cycle configuration can be active given the specified funding cycle.
-
-    @param _fundingCycle The funding cycle to make the calculation with.
-    @param _start The start time to derive cycles remaining for.
-
-    @return start The inclusive nunmber of cycles remaining.
-  */
-  function _deriveCycleLimitFrom(JBFundingCycle memory _fundingCycle, uint256 _start)
-    private
-    pure
-    returns (uint256)
-  {
-    // There's no longer a cycle limit if the provided cycle limit is 1, or if it has no duration.
-    if (_fundingCycle.cycleLimit <= 1 || _fundingCycle.duration == 0) return 0;
-
-    // Get a reference to the number of cycles that can fit between the funding cycle's start, and the provided start.
-    uint256 _cycles = (_start - _fundingCycle.start) / (_fundingCycle.duration * _SECONDS_IN_DAY);
-
-    // If all of the cycle limit has passed, return 0.
-    if (_cycles >= _fundingCycle.cycleLimit) return 0;
-
-    // Subtract the number of cycles that have passed from the limit.
-    return _fundingCycle.cycleLimit - _cycles;
+      (_startDistance / (_baseFundingCycle.duration * _SECONDS_IN_DAY));
   }
 
   /** 
@@ -1225,35 +1080,6 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       _ballotFundingCycle.ballot == IJBFundingCycleBallot(address(0))
         ? JBBallotState.Approved
         : _ballotFundingCycle.ballot.state(_id, _configuration);
-  }
-
-  /** 
-    @notice 
-    Finds the last funding cycle that was permanent in relation to the specified funding cycle.
-
-    @dev
-    Determined what the latest funding cycle with a `cycleLimit` of 0 is, or isn't based on any previous funding cycle.
-
-    @dev
-    If the provided cycle is permanent, it will be returned. 
-
-    @param _fundingCycle The funding cycle to find the most recent permanent cycle compared to.
-
-    @return fundingCycle The most recent permanent funding cycle.
-  */
-  function _latestPermanentCycleFrom(JBFundingCycle memory _fundingCycle)
-    private
-    view
-    returns (JBFundingCycle memory fundingCycle)
-  {
-    // A funding cycle with no cycle limit, or one not based on another funding cycle is, implicitly permanent.
-    if (_fundingCycle.basedOn == 0 || _fundingCycle.cycleLimit == 0) return _fundingCycle;
-
-    // Get the funding cycle of the base funding cycle.
-    fundingCycle = _getStructFor(_fundingCycle.basedOn);
-
-    // Recursively check if the previous cycle is permanent.
-    return _latestPermanentCycleFrom(fundingCycle);
   }
 
   /** 
