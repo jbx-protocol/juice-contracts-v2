@@ -1209,7 +1209,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
     // If the configuration is the same as the ballot's funding cycle,
     // the ballot isn't applicable. Auto approve since the ballot funding cycle is approved.
-    if (_ballotFundingCycle.configured == _configuration) return JBBallotState.Approved;
+    if (_ballotFundingCycle.configured >= _configuration) return JBBallotState.Approved;
 
     // If there is no ballot, the ID is auto approved.
     // Otherwise, return the ballot's state.
