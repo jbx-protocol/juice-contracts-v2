@@ -1188,10 +1188,10 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
   /**
     @notice 
-    A funding cycle configuration's currency status.
+    A funding cycle configuration's current status.
 
     @param _id The ID of the funding cycle configuration to check the status of.
-    @param _configuration The timestamp of when the configuration took place.
+    @param _configuration This differentiates reconfigurations onto the same upcoming funding cycle, which all would have the same ID but different configuration times.
     @param _ballotFundingCycleId The ID of the funding cycle which is configured with the ballot that should be used.
 
     @return The funding cycle's configuration status.
@@ -1201,7 +1201,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     uint256 _configuration,
     uint256 _ballotFundingCycleId
   ) private view returns (JBBallotState) {
-    // If there is no ballot funding cycle, auto approve.
+    // If there is no ballot funding cycle, implicitly approve.
     if (_ballotFundingCycleId == 0) return JBBallotState.Approved;
 
     // Get the ballot funding cycle.
