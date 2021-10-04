@@ -413,7 +413,8 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     Returns the configurable funding cycle for this project if it exists, otherwise creates one.
 
     @param _projectId The ID of the project to find a configurable funding cycle for.
-    @param _configured The time at which the configuration is occuring.
+    @param _configured The time at which the configuration is occurring.
+    @param _weight The weight to store along with a newly created configurable funding cycle.
     @param _configureActiveFundingCycle If the active funding cycle should be configurable. Otherwise the next funding cycle will be used.
 
     @return fundingCycleId The ID of the configurable funding cycle.
@@ -472,7 +473,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     JBFundingCycle memory _fundingCycle = _getStructFor(fundingCycleId);
 
     // Make sure the funding cycle is recurring.
-    require(_fundingCycle.discountRate < 201, 'NON_RECURRING');
+    require(_fundingCycle.discountRate < 201, '0x1d: NON_RECURRING');
 
     if (_configureActiveFundingCycle) {
       // If the duration is zero, always go back to the original start.
@@ -497,7 +498,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @notice 
     Returns the funding cycle that can be tapped at the time of the call.
 
-    @param _projectId The ID of the project to find a configurable funding cycle for.
+    @param _projectId The ID of the project to find a tappable funding cycle for.
 
     @return fundingCycleId The ID of the tappable funding cycle.
   */
@@ -538,13 +539,13 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     }
 
     // The funding cycle cant be 0.
-    require(fundingCycleId > 0, 'NOT_FOUND');
+    require(fundingCycleId > 0, '0x1e: NOT_FOUND');
 
     // Set the eligible funding cycle.
     _fundingCycle = _getStructFor(fundingCycleId);
 
     // Funding cycles with a discount rate of 100% are non-recurring.
-    require(_fundingCycle.discountRate < 201, 'NON_RECURRING');
+    require(_fundingCycle.discountRate < 201, '0x1f: NON_RECURRING');
 
     // The time when the funding cycle immediately after the eligible funding cycle starts.
     uint256 _nextImmediateStart = _fundingCycle.start + (_fundingCycle.duration * _SECONDS_IN_DAY);
@@ -572,7 +573,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @param _projectId The ID of the project to which the funding cycle being initialized belongs.
     @param _baseFundingCycle The funding cycle to base the initialized one on.
     @param _mustStartOnOrAfter The time before which the initialized funding cycle can't start.
-    @param _copy If non-intrinsic properties should be copied from the base funding cycle.
+    @param _copy A flag indicating if non-intrinsic properties should be copied from the base funding cycle.
 
     @return newFundingCycleId The ID of the initialized funding cycle.
   */
@@ -583,15 +584,13 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     uint256 _weight,
     bool _copy
   ) private returns (uint256 newFundingCycleId) {
-    uint256 _id;
-
     // If there is no base, initialize a first cycle.
     if (_baseFundingCycle.id == 0) {
       // The first number is 1.
       uint256 _number = 1;
 
       // Get the formatted ID.
-      _id = _idFor(_projectId, _number);
+      newFundingCycleId = _idFor(_projectId, _number);
 
       // Set fresh intrinsic properties.
       _packAndStoreIntrinsicPropertiesOf(
@@ -603,25 +602,180 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       );
     } else {
       // Update the intrinsic properties of the funding cycle being initialized.
-      _id = _updateFundingCycleBasedOn(_baseFundingCycle, _mustStartOnOrAfter, _weight, _copy);
+      newFundingCycleId = _updateFundingCycleBasedOn(
+        _baseFundingCycle,
+        _mustStartOnOrAfter,
+        _weight,
+        _copy
+      );
     }
 
     // Set the project's latest funding cycle ID to the new count.
-    latestIdOf[_projectId] = _id;
+    latestIdOf[_projectId] = newFundingCycleId;
 
     // Get a reference to the funding cycle with updated intrinsic properties.
-    JBFundingCycle memory _fundingCycle = _getStructFor(_id);
+    JBFundingCycle memory _fundingCycle = _getStructFor(newFundingCycleId);
 
     emit Init(
-      _id,
+      newFundingCycleId,
       _fundingCycle.projectId,
       _fundingCycle.number,
       _fundingCycle.basedOn,
       _fundingCycle.weight,
       _fundingCycle.start
     );
+  }
 
-    return _fundingCycle.id;
+  /** 
+    @notice
+    Updates intrinsic properties for a funding cycle given a base cycle.
+
+    @param _baseFundingCycle The cycle that the one being updated is based on.
+    @param _mustStartOnOrAfter The time before which the initialized funding cycle can't start.
+    @param _weight The weight to store along with a newly updated configurable funding cycle.
+    @param _copy A flag indicating if non-intrinsic properties should be copied from the base funding cycle.
+
+    @return fundingCycleId The ID of the funding cycle that was updated.
+  */
+  function _updateFundingCycleBasedOn(
+    JBFundingCycle memory _baseFundingCycle,
+    uint256 _mustStartOnOrAfter,
+    uint256 _weight,
+    bool _copy
+  ) private returns (uint256 fundingCycleId) {
+    // Get the latest permanent funding cycle.
+    JBFundingCycle memory _latestPermanentFundingCycle = _baseFundingCycle.cycleLimit > 0
+      ? _latestPermanentCycleFrom(_baseFundingCycle)
+      : _baseFundingCycle;
+
+    // Derive the correct next start time from the base.
+    uint256 _start = _deriveStartFrom(
+      _baseFundingCycle,
+      _latestPermanentFundingCycle,
+      _mustStartOnOrAfter
+    );
+
+    // A weight of 1 is treated as a weight of 0.
+    _weight = _weight > 0
+      ? (_weight == 1 ? 0 : _weight)
+      : _deriveWeightFrom(_baseFundingCycle, _latestPermanentFundingCycle, _start);
+
+    // Derive the correct number.
+    uint256 _number = _deriveNumberFrom(_baseFundingCycle, _latestPermanentFundingCycle, _start);
+
+    // Update the intrinsic properties.
+    fundingCycleId = _packAndStoreIntrinsicPropertiesOf(
+      _baseFundingCycle.projectId,
+      _number,
+      _weight,
+      _baseFundingCycle.id,
+      _start
+    );
+
+    // Copy if needed.
+    if (_copy) {
+      // Derive what the cycle limit should be.
+      uint256 _cycleLimit = _deriveCycleLimitFrom(_baseFundingCycle, _start);
+
+      // Copy the last permanent funding cycle if the bases' limit is up.
+      JBFundingCycle memory _fundingCycleToCopy = _cycleLimit == 0
+        ? _latestPermanentFundingCycle
+        : _baseFundingCycle;
+
+      // Save the configuration efficiently.
+      _packAndStoreConfigurationPropertiesOf(
+        fundingCycleId,
+        _fundingCycleToCopy.configured,
+        _cycleLimit,
+        _fundingCycleToCopy.ballot,
+        _fundingCycleToCopy.duration,
+        _fundingCycleToCopy.currency,
+        _fundingCycleToCopy.fee,
+        _fundingCycleToCopy.discountRate
+      );
+
+      _metadataOf[fundingCycleId] = _metadataOf[_fundingCycleToCopy.id];
+      _targetOf[fundingCycleId] = _targetOf[_fundingCycleToCopy.id];
+    }
+  }
+
+  /**
+    @notice 
+    Efficiently stores a funding cycle's provided intrinsic properties.
+
+    @param _projectId The ID of the project to which the funding cycle belongs.
+    @param _number The number of the funding cycle.
+    @param _weight The weight of the funding cycle.
+    @param _basedOn The ID of the based funding cycle.
+    @param _start The start time of this funding cycle.
+
+    @return fundingCycleId The ID of the funding cycle that was updated.
+  */
+  function _packAndStoreIntrinsicPropertiesOf(
+    uint256 _projectId,
+    uint256 _number,
+    uint256 _weight,
+    uint256 _basedOn,
+    uint256 _start
+  ) private returns (uint256 fundingCycleId) {
+    // weight in bytes 0-79 bytes.
+    uint256 packed = _weight;
+    // projectId in bytes 80-135 bytes.
+    packed |= _projectId << 80;
+    // basedOn in bytes 136-183 bytes.
+    packed |= _basedOn << 136;
+    // start in bytes 184-231 bytes.
+    packed |= _start << 184;
+    // number in bytes 232-255 bytes.
+    packed |= _number << 232;
+
+    // Construct the ID.
+    fundingCycleId = _idFor(_projectId, _number);
+
+    // Set in storage.
+    _packedIntrinsicPropertiesOf[fundingCycleId] = packed;
+  }
+
+  /**
+    @notice 
+    Efficiently stores a funding cycles provided configuration properties.
+
+    @param _fundingCycleId The ID of the funding cycle to pack and store.
+    @param _configured The timestamp of the configuration.
+    @param _cycleLimit The number of cycles that this configuration should last for before going back to the last permanent.
+    @param _ballot The ballot to use for future reconfiguration approvals. 
+    @param _duration The duration of the funding cycle.
+    @param _currency The currency of the funding cycle.
+    @param _fee The fee of the funding cycle.
+    @param _discountRate The discount rate of the base funding cycle.
+  */
+  function _packAndStoreConfigurationPropertiesOf(
+    uint256 _fundingCycleId,
+    uint256 _configured,
+    uint256 _cycleLimit,
+    IJBFundingCycleBallot _ballot,
+    uint256 _duration,
+    uint256 _currency,
+    uint256 _fee,
+    uint256 _discountRate
+  ) private {
+    // ballot in bytes 0-159 bytes.
+    uint256 packed = uint160(address(_ballot));
+    // configured in bytes 160-207 bytes.
+    packed |= _configured << 160;
+    // duration in bytes 208-223 bytes.
+    packed |= _duration << 208;
+    // basedOn in bytes 224-231 bytes.
+    packed |= _currency << 224;
+    // fee in bytes 232-239 bytes.
+    packed |= _fee << 232;
+    // discountRate in bytes 240-247 bytes.
+    packed |= _discountRate << 240;
+    // cycleLimit in bytes 248-255 bytes.
+    packed |= _cycleLimit << 248;
+
+    // Set in storage.
+    _packedConfigurationPropertiesOf[_fundingCycleId] = packed;
   }
 
   /**
@@ -774,157 +928,6 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
         0,
         _fundingCycleToCopy.metadata
       );
-  }
-
-  /** 
-    @notice
-    Updates intrinsic properties for a funding cycle given a base cycle.
-
-    @param _baseFundingCycle The cycle that the one being updated is based on.
-    @param _mustStartOnOrAfter The time before which the initialized funding cycle can't start.
-    @param _copy If non-intrinsic properties should be copied from the base funding cycle.
-
-    @return fundingCycleId The ID of the funding cycle that was updated.
-  */
-  function _updateFundingCycleBasedOn(
-    JBFundingCycle memory _baseFundingCycle,
-    uint256 _mustStartOnOrAfter,
-    uint256 _weight,
-    bool _copy
-  ) private returns (uint256 fundingCycleId) {
-    // Get the latest permanent funding cycle.
-    JBFundingCycle memory _latestPermanentFundingCycle = _baseFundingCycle.cycleLimit > 0
-      ? _latestPermanentCycleFrom(_baseFundingCycle)
-      : _baseFundingCycle;
-
-    // Derive the correct next start time from the base.
-    uint256 _start = _deriveStartFrom(
-      _baseFundingCycle,
-      _latestPermanentFundingCycle,
-      _mustStartOnOrAfter
-    );
-
-    // A weight of 1 is treated as a weight of 0.
-    _weight = _weight > 0
-      ? (_weight == 1 ? 0 : _weight)
-      : _deriveWeightFrom(_baseFundingCycle, _latestPermanentFundingCycle, _start);
-
-    // Derive the correct number.
-    uint256 _number = _deriveNumberFrom(_baseFundingCycle, _latestPermanentFundingCycle, _start);
-
-    // Update the intrinsic properties.
-    fundingCycleId = _packAndStoreIntrinsicPropertiesOf(
-      _baseFundingCycle.projectId,
-      _number,
-      _weight,
-      _baseFundingCycle.id,
-      _start
-    );
-
-    // Copy if needed.
-    if (_copy) {
-      // Derive what the cycle limit should be.
-      uint256 _cycleLimit = _deriveCycleLimitFrom(_baseFundingCycle, _start);
-
-      // Copy the last permanent funding cycle if the bases' limit is up.
-      JBFundingCycle memory _fundingCycleToCopy = _cycleLimit == 0
-        ? _latestPermanentFundingCycle
-        : _baseFundingCycle;
-
-      // Save the configuration efficiently.
-      _packAndStoreConfigurationPropertiesOf(
-        fundingCycleId,
-        _fundingCycleToCopy.configured,
-        _cycleLimit,
-        _fundingCycleToCopy.ballot,
-        _fundingCycleToCopy.duration,
-        _fundingCycleToCopy.currency,
-        _fundingCycleToCopy.fee,
-        _fundingCycleToCopy.discountRate
-      );
-
-      _metadataOf[fundingCycleId] = _metadataOf[_fundingCycleToCopy.id];
-      _targetOf[fundingCycleId] = _targetOf[_fundingCycleToCopy.id];
-    }
-  }
-
-  /**
-    @notice 
-    Efficiently stores a funding cycle's provided intrinsic properties.
-
-    @param _projectId The ID of the project to which the funding cycle belongs.
-    @param _number The number of the funding cycle.
-    @param _weight The weight of the funding cycle.
-    @param _basedOn The ID of the based funding cycle.
-    @param _start The start time of this funding cycle.
-
-    @return fundingCycleId The ID of the funding cycle that was updated.
-  */
-  function _packAndStoreIntrinsicPropertiesOf(
-    uint256 _projectId,
-    uint256 _number,
-    uint256 _weight,
-    uint256 _basedOn,
-    uint256 _start
-  ) private returns (uint256 fundingCycleId) {
-    // weight in bytes 0-79 bytes.
-    uint256 packed = _weight;
-    // projectId in bytes 80-135 bytes.
-    packed |= _projectId << 80;
-    // basedOn in bytes 136-183 bytes.
-    packed |= _basedOn << 136;
-    // start in bytes 184-231 bytes.
-    packed |= _start << 184;
-    // number in bytes 232-255 bytes.
-    packed |= _number << 232;
-
-    // Construct the ID.
-    fundingCycleId = _idFor(_projectId, _number);
-
-    // Set in storage.
-    _packedIntrinsicPropertiesOf[fundingCycleId] = packed;
-  }
-
-  /**
-    @notice 
-    Efficiently stores a funding cycles provided configuration properties.
-
-    @param _fundingCycleId The ID of the funding cycle to pack and store.
-    @param _configured The timestamp of the configuration.
-    @param _cycleLimit The number of cycles that this configuration should last for before going back to the last permanent.
-    @param _ballot The ballot to use for future reconfiguration approvals. 
-    @param _duration The duration of the funding cycle.
-    @param _currency The currency of the funding cycle.
-    @param _fee The fee of the funding cycle.
-    @param _discountRate The discount rate of the based funding cycle.
-  */
-  function _packAndStoreConfigurationPropertiesOf(
-    uint256 _fundingCycleId,
-    uint256 _configured,
-    uint256 _cycleLimit,
-    IJBFundingCycleBallot _ballot,
-    uint256 _duration,
-    uint256 _currency,
-    uint256 _fee,
-    uint256 _discountRate
-  ) private {
-    // ballot in bytes 0-159 bytes.
-    uint256 packed = uint160(address(_ballot));
-    // configured in bytes 160-207 bytes.
-    packed |= _configured << 160;
-    // duration in bytes 208-223 bytes.
-    packed |= _duration << 208;
-    // basedOn in bytes 224-231 bytes.
-    packed |= _currency << 224;
-    // fee in bytes 232-239 bytes.
-    packed |= _fee << 232;
-    // discountRate in bytes 240-247 bytes.
-    packed |= _discountRate << 240;
-    // cycleLimit in bytes 248-255 bytes.
-    packed |= _cycleLimit << 248;
-
-    // Set in storage.
-    _packedConfigurationPropertiesOf[_fundingCycleId] = packed;
   }
 
   /**
