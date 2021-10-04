@@ -444,6 +444,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
         _baseFundingCycle,
         _getLatestTimeAfterBallotOf(_baseFundingCycle, _configured),
         _weight,
+        // No need to copy since a new configuration is going to be applied.
         false
       );
       return fundingCycleId;
