@@ -66,16 +66,6 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
   mapping(uint256 => uint256) private _tappedAmountOf;
 
   //*********************************************************************//
-  // ---------------------- public stored properties ------------------- //
-  //*********************************************************************//
-
-  /** 
-    @notice 
-    The maximum value that a cycle limit can be set to.
-  */
-  uint256 public constant override MAX_CYCLE_LIMIT = 32;
-
-  //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
 
@@ -317,20 +307,17 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // Duration must fit in a uint16.
     require(_data.duration <= type(uint16).max, '0x15: BAD_DURATION');
 
-    // Currency must be less than the limit.
-    require(_data.cycleLimit <= MAX_CYCLE_LIMIT, '0x16: BAD_CYCLE_LIMIT');
-
     // Discount rate token must be less than or equal to 100%. A value of 201 means non-recurring.
-    require(_data.discountRate <= 201, '0x17: BAD_DISCOUNT_RATE');
+    require(_data.discountRate <= 201, '0x16: BAD_DISCOUNT_RATE');
 
     // Currency must fit into a uint8.
-    require(_data.currency <= type(uint8).max, '0x18: BAD_CURRENCY');
+    require(_data.currency <= type(uint8).max, '0x17: BAD_CURRENCY');
 
     // Weight must fit into a uint8.
-    require(_data.weight <= type(uint80).max, '0x19: BAD_WEIGHT');
+    require(_data.weight <= type(uint80).max, '0x18: BAD_WEIGHT');
 
     // Fee must be less than or equal to 100%.
-    require(_fee <= 200, '0x1a: BAD_FEE');
+    require(_fee <= 200, '0x19: BAD_FEE');
 
     // Set the configuration timestamp is now.
     uint256 _configured = block.timestamp;
@@ -384,7 +371,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     returns (JBFundingCycle memory)
   {
     // Amount must be positive.
-    require(_amount > 0, '0x1b: INSUFFICIENT_FUNDS');
+    require(_amount > 0, '0x1a: INSUFFICIENT_FUNDS');
 
     // Get a reference to the funding cycle being tapped.
     uint256 _fundingCycleId = _tappableOf(_projectId);
@@ -393,7 +380,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     uint256 _newTappedAmount = _tappedAmountOf[_fundingCycleId] + _amount;
 
     // Amount must be within what is still tappable.
-    require(_newTappedAmount <= _targetOf[_fundingCycleId], '0x1c: INSUFFICIENT_FUNDS');
+    require(_newTappedAmount <= _targetOf[_fundingCycleId], '0x1b: INSUFFICIENT_FUNDS');
 
     // Store the new amount.
     _tappedAmountOf[_fundingCycleId] = _newTappedAmount;
@@ -426,7 +413,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
   ) private returns (uint256 fundingCycleId) {
     // If there's not yet a funding cycle for the project, return the ID of a newly created one.
     if (latestIdOf[_projectId] == 0)
-      return _initFor(_projectId, _getStructFor(0), block.timestamp, _weight, false);
+      return _initFor(_projectId, _getStructFor(0), block.timestamp, _weight);
 
     // Get the standby funding cycle's ID.
     fundingCycleId = _standbyOf(_projectId);
@@ -442,9 +429,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       _updateFundingCycleBasedOn(
         _baseFundingCycle,
         _getLatestTimeAfterBallotOf(_baseFundingCycle, _configured),
-        _weight,
-        // No need to copy since a new configuration is going to be applied.
-        false
+        _weight
       );
       return fundingCycleId;
     }
@@ -473,7 +458,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     JBFundingCycle memory _fundingCycle = _getStructFor(fundingCycleId);
 
     // Make sure the funding cycle is recurring.
-    require(_fundingCycle.discountRate < 201, '0x1d: NON_RECURRING');
+    require(_fundingCycle.discountRate < 201, '0x1c: NON_RECURRING');
 
     // Determine if the configurable funding cycle can only take effect on or after a certain date.
     uint256 _mustStartOnOrAfter;
@@ -495,7 +480,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
 
     // Return the newly initialized configurable funding cycle.
     // No need to copy since a new configuration is going to be applied.
-    fundingCycleId = _initFor(_projectId, _fundingCycle, _mustStartOnOrAfter, _weight, false);
+    fundingCycleId = _initFor(_projectId, _fundingCycle, _mustStartOnOrAfter, _weight);
   }
 
   /**
@@ -565,9 +550,22 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       _projectId,
       _fundingCycle,
       block.timestamp - _timeFromImmediateStartMultiple,
-      0,
-      true
+      0
     );
+
+    // Copy the properties of the base funding cycle onto the new configuration efficiently.
+    _packAndStoreConfigurationPropertiesOf(
+      fundingCycleId,
+      _fundingCycle.configured,
+      _fundingCycle.ballot,
+      _fundingCycle.duration,
+      _fundingCycle.currency,
+      _fundingCycle.fee,
+      _fundingCycle.discountRate
+    );
+
+    _metadataOf[fundingCycleId] = _metadataOf[_fundingCycle.id];
+    _targetOf[fundingCycleId] = _targetOf[_fundingCycle.id];
   }
 
   /**
@@ -577,7 +575,6 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @param _projectId The ID of the project to which the funding cycle being initialized belongs.
     @param _baseFundingCycle The funding cycle to base the initialized one on.
     @param _mustStartOnOrAfter The time before which the initialized funding cycle can't start.
-    @param _copy A flag indicating if non-intrinsic properties should be copied from the base funding cycle.
 
     @return newFundingCycleId The ID of the initialized funding cycle.
   */
@@ -585,8 +582,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     uint256 _projectId,
     JBFundingCycle memory _baseFundingCycle,
     uint256 _mustStartOnOrAfter,
-    uint256 _weight,
-    bool _copy
+    uint256 _weight
   ) private returns (uint256 newFundingCycleId) {
     // If there is no base, initialize a first cycle.
     if (_baseFundingCycle.id == 0) {
@@ -609,8 +605,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       newFundingCycleId = _updateFundingCycleBasedOn(
         _baseFundingCycle,
         _mustStartOnOrAfter,
-        _weight,
-        _copy
+        _weight
       );
     }
 
@@ -637,15 +632,13 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @param _baseFundingCycle The cycle that the one being updated is based on.
     @param _mustStartOnOrAfter The time before which the initialized funding cycle can't start.
     @param _weight The weight to store along with a newly updated configurable funding cycle.
-    @param _copy A flag indicating if non-intrinsic properties should be copied from the base funding cycle.
 
     @return fundingCycleId The ID of the funding cycle that was updated.
   */
   function _updateFundingCycleBasedOn(
     JBFundingCycle memory _baseFundingCycle,
     uint256 _mustStartOnOrAfter,
-    uint256 _weight,
-    bool _copy
+    uint256 _weight
   ) private returns (uint256 fundingCycleId) {
     // Derive the correct next start time from the base.
     uint256 _start = _deriveStartFrom(_baseFundingCycle, _mustStartOnOrAfter);
@@ -666,23 +659,6 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       _baseFundingCycle.id,
       _start
     );
-
-    // Copy if needed.
-    if (_copy) {
-      // Save the configuration efficiently.
-      _packAndStoreConfigurationPropertiesOf(
-        fundingCycleId,
-        _baseFundingCycle.configured,
-        _baseFundingCycle.ballot,
-        _baseFundingCycle.duration,
-        _baseFundingCycle.currency,
-        _baseFundingCycle.fee,
-        _baseFundingCycle.discountRate
-      );
-
-      _metadataOf[fundingCycleId] = _metadataOf[_baseFundingCycle.id];
-      _targetOf[fundingCycleId] = _targetOf[_baseFundingCycle.id];
-    }
   }
 
   /**
@@ -848,15 +824,11 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     if (_baseFundingCycle.discountRate == 201) return _getStructFor(0);
 
     // The distance of the current time to the start of the next possible funding cycle.
-    uint256 _timeFromImmediateStartMultiple;
-
     // If the returned mock cycle must not yet have started, the start time of the mock must be in the future so no need to adjust backwards.
     // If the base funding cycle doesn't have a duration, no adjustment is necessary because the next cycle can start immediately.
-    if (!_allowMidCycle || _baseFundingCycle.duration == 0) {
-      _timeFromImmediateStartMultiple = 0;
-    } else {
-      _timeFromImmediateStartMultiple = _baseFundingCycle.duration * _SECONDS_IN_DAY;
-    }
+    uint256 _timeFromImmediateStartMultiple = !_allowMidCycle || _baseFundingCycle.duration == 0
+      ? 0
+      : _baseFundingCycle.duration * _SECONDS_IN_DAY;
 
     // Derive what the start time should be.
     uint256 _start = _deriveStartFrom(
@@ -987,7 +959,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // The difference between the start of the base funding cycle and the proposed start.
     uint256 _startDistance = _start - _baseFundingCycle.start;
 
-    // Apply the base funding cycle's discount rate.
+    // Apply the base funding cycle's discount rate for each cycle that has passed.
     uint256 _discountMultiple = _startDistance / (_baseFundingCycle.duration * _SECONDS_IN_DAY);
 
     for (uint256 i = 0; i < _discountMultiple; i++)
@@ -1003,12 +975,12 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     @param _baseFundingCycle The funding cycle to make the calculation with.
     @param _start The start time to derive a number for.
 
-    @return number The next number.
+    @return The next number.
   */
   function _deriveNumberFrom(JBFundingCycle memory _baseFundingCycle, uint256 _start)
     private
     pure
-    returns (uint256 number)
+    returns (uint256)
   {
     // A subsequent cycle to one with a duration of 0 should be the next number.
     if (_baseFundingCycle.duration == 0) return _baseFundingCycle.number + 1;
@@ -1017,9 +989,8 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     uint256 _startDistance = _start - _baseFundingCycle.start;
 
     // Find the number of base cycles that fit in the start distance.
-    number =
-      _baseFundingCycle.number +
-      (_startDistance / (_baseFundingCycle.duration * _SECONDS_IN_DAY));
+    return
+      _baseFundingCycle.number + (_startDistance / (_baseFundingCycle.duration * _SECONDS_IN_DAY));
   }
 
   /** 

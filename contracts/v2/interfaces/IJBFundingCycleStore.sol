@@ -34,8 +34,6 @@ interface IJBFundingCycleStore {
 
   function latestIdOf(uint256 _projectId) external view returns (uint256);
 
-  function MAX_CYCLE_LIMIT() external view returns (uint256);
-
   function get(uint256 _fundingCycleId) external view returns (JBFundingCycle memory);
 
   function queuedOf(uint256 _projectId) external view returns (JBFundingCycle memory);
