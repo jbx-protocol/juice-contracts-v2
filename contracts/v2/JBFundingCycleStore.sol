@@ -285,11 +285,10 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       @dev _data.duration The duration of the funding cycle for which the `_target` amount is needed. Measured in days. 
         Set to 0 for no expiry and to be able to reconfigure anytime.
       @dev _data.cycleLimit The number of cycles that this configuration should last for before going back to the last permanent. This does nothing for a project's first funding cycle.
-      @dev _data.discountRate A number from 0-200 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
+      @dev _data.discountRate A number from 0-10000 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
         If it's 0, each funding cycle will have equal weight.
-        If the number is 100, a contribution to the next funding cycle will only give you 90% of tickets given to a contribution of the same amount during the current funding cycle.
-        If the number is 200, a contribution to the next funding cycle will only give you 80% of tickets given to a contribution of the same amoutn during the current funding cycle.
-        If the number is 201, an non-recurring funding cycle will get made.
+        If the number is 9000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
+        If the number is 10001, an non-recurring funding cycle will get made.
       @dev _data.ballot The new ballot that will be used to approve subsequent reconfigurations.
     @param _metadata Data to associate with this funding cycle configuration.
     @param _fee The fee that this configuration incurs when tapping.
@@ -307,8 +306,8 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // Duration must fit in a uint16.
     require(_data.duration <= type(uint16).max, '0x15: BAD_DURATION');
 
-    // Discount rate token must be less than or equal to 100%. A value of 201 means non-recurring.
-    require(_data.discountRate <= 201, '0x16: BAD_DISCOUNT_RATE');
+    // Discount rate token must be less than or equal to 100%. A value of 10001 means non-recurring.
+    require(_data.discountRate <= 10001, '0x16: BAD_DISCOUNT_RATE');
 
     // Currency must fit into a uint8.
     require(_data.currency <= type(uint8).max, '0x17: BAD_CURRENCY');
@@ -449,6 +448,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     } else {
       // Get the ID of the latest funding cycle which has the latest reconfiguration.
       fundingCycleId = latestIdOf[_projectId];
+
       // If it hasn't been approved, set the ID to be the based funding cycle,
       // which carries the last approved configuration.
       if (!_isIdApproved(fundingCycleId)) fundingCycleId = _getStructFor(fundingCycleId).basedOn;
@@ -458,7 +458,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     JBFundingCycle memory _fundingCycle = _getStructFor(fundingCycleId);
 
     // Make sure the funding cycle is recurring.
-    require(_fundingCycle.discountRate < 201, '0x1c: NON_RECURRING');
+    require(_fundingCycle.discountRate < 10001, '0x1c: NON_RECURRING');
 
     // Determine if the configurable funding cycle can only take effect on or after a certain date.
     uint256 _mustStartOnOrAfter;
@@ -528,13 +528,13 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     }
 
     // The funding cycle cant be 0.
-    require(fundingCycleId > 0, '0x1e: NOT_FOUND');
+    require(fundingCycleId > 0, '0x1d: NOT_FOUND');
 
     // Set the eligible funding cycle.
     _fundingCycle = _getStructFor(fundingCycleId);
 
     // Funding cycles with a discount rate of 100% are non-recurring.
-    require(_fundingCycle.discountRate < 201, '0x1f: NON_RECURRING');
+    require(_fundingCycle.discountRate < 10001, '0x1e: NON_RECURRING');
 
     // The time when the funding cycle immediately after the eligible funding cycle starts.
     uint256 _nextImmediateStart = _fundingCycle.start + (_fundingCycle.duration * _SECONDS_IN_DAY);
@@ -612,17 +612,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // Set the project's latest funding cycle ID to the new count.
     latestIdOf[_projectId] = newFundingCycleId;
 
-    // Get a reference to the funding cycle with updated intrinsic properties.
-    JBFundingCycle memory _fundingCycle = _getStructFor(newFundingCycleId);
-
-    emit Init(
-      newFundingCycleId,
-      _fundingCycle.projectId,
-      _fundingCycle.number,
-      _fundingCycle.basedOn,
-      _fundingCycle.weight,
-      _fundingCycle.start
-    );
+    emit Init(newFundingCycleId, _projectId, _baseFundingCycle.id);
   }
 
   /** 
@@ -821,7 +811,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     returns (JBFundingCycle memory)
   {
     // Can't mock a non recurring funding cycle.
-    if (_baseFundingCycle.discountRate == 201) return _getStructFor(0);
+    if (_baseFundingCycle.discountRate == 10001) return _getStructFor(0);
 
     // The distance of the current time to the start of the next possible funding cycle.
     // If the returned mock cycle must not yet have started, the start time of the mock must be in the future so no need to adjust backwards.
@@ -948,7 +938,8 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
   {
     // A subsequent cycle to one with a duration of 0 should have the next possible weight.
     if (_baseFundingCycle.duration == 0)
-      return PRBMath.mulDiv(_baseFundingCycle.weight, 400 - _baseFundingCycle.discountRate, 400);
+      return
+        PRBMath.mulDiv(_baseFundingCycle.weight, 10000 - _baseFundingCycle.discountRate, 10000);
 
     // The weight should be based off the base funding cycle's weight.
     weight = _baseFundingCycle.weight;
@@ -965,7 +956,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     for (uint256 i = 0; i < _discountMultiple; i++)
       // The number of times to apply the discount rate.
       // Base the new weight on the specified funding cycle's weight.
-      weight = PRBMath.mulDiv(weight, 400 - _baseFundingCycle.discountRate, 400);
+      weight = PRBMath.mulDiv(weight, 10000 - _baseFundingCycle.discountRate, 10000);
   }
 
   /** 

@@ -23,14 +23,7 @@ interface IJBFundingCycleStore {
     address caller
   );
 
-  event Init(
-    uint256 indexed fundingCycleId,
-    uint256 indexed projectId,
-    uint256 indexed number,
-    uint256 basedOn,
-    uint256 weight,
-    uint256 start
-  );
+  event Init(uint256 indexed fundingCycleId, uint256 indexed projectId, uint256 indexed basedOn);
 
   function latestIdOf(uint256 _projectId) external view returns (uint256);
 
