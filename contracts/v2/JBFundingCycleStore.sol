@@ -465,10 +465,10 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     } else {
       // Get the ID of the latest funding cycle which has the latest reconfiguration.
       fundingCycleId = latestIdOf[_projectId];
+      // If it hasn't been approved, set the ID to be the based funding cycle,
+      // which carries the last approved configuration.
+      if (!_isIdApproved(fundingCycleId)) fundingCycleId = _getStructFor(fundingCycleId).basedOn;
     }
-
-    // Determine if the configurable funding cycle can only take effect on or after a certain date.
-    uint256 _mustStartOnOrAfter;
 
     // Base off of the active funding cycle if it exists.
     JBFundingCycle memory _fundingCycle = _getStructFor(fundingCycleId);
@@ -476,12 +476,15 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // Make sure the funding cycle is recurring.
     require(_fundingCycle.discountRate < 201, '0x1d: NON_RECURRING');
 
+    // Determine if the configurable funding cycle can only take effect on or after a certain date.
+    uint256 _mustStartOnOrAfter;
+
     if (_configureActiveFundingCycle) {
       // If the duration is zero, always go back to the original start.
       if (_fundingCycle.duration == 0) {
         _mustStartOnOrAfter = _fundingCycle.start;
       } else {
-        // Set to the start time of the current active start time.
+        // Set to the start time of the current active funding cycle.
         uint256 _timeFromStartMultiple = (block.timestamp - _fundingCycle.start) %
           (_fundingCycle.duration * _SECONDS_IN_DAY);
         _mustStartOnOrAfter = block.timestamp - _timeFromStartMultiple;
@@ -492,6 +495,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     }
 
     // Return the newly initialized configurable funding cycle.
+    // No need to copy since a new configuration is going to be applied.
     fundingCycleId = _initFor(_projectId, _fundingCycle, _mustStartOnOrAfter, _weight, false);
   }
 
