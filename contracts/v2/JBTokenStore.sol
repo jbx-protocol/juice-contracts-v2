@@ -15,10 +15,13 @@ import './JBToken.sol';
 
   @dev
   Tokens can be either represented internally or claimed as ERC-20s.
-  This contract manages these two representations and the conversion between the two.
+  This contract manages these two representations and allows claiming.
 
   @dev
   The total supply of a project's tokens and the balance of each account are calculated in this contract.
+
+  @dev
+  Each project can bring their own token if they prefer, and swap between tokens at any time.
 */
 contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
   //*********************************************************************//
@@ -173,7 +176,7 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
     @param _token The new token.
     @param _newOwner An address to transfer the current token's ownership to. This is optional, but it cannot be done later.
   */
-  function changeTokenFor(
+  function changeTokenOf(
     uint256 _projectId,
     IJBToken _token,
     address _newOwner

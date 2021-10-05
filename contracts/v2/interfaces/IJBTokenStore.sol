@@ -17,8 +17,8 @@ interface IJBTokenStore {
     address indexed holder,
     uint256 indexed projectId,
     uint256 amount,
-    bool shouldUnstakeTokens,
-    bool preferUnstakedTokens,
+    bool tokensWereClaimed,
+    bool preferClaimedTokens,
     address caller
   );
 
@@ -26,7 +26,7 @@ interface IJBTokenStore {
     address indexed holder,
     uint256 indexed projectId,
     uint256 amount,
-    uint256 unlockedStakedBalance,
+    uint256 unclaimedTokenBalance,
     bool preferUnstakedTokens,
     address caller
   );
@@ -35,18 +35,18 @@ interface IJBTokenStore {
 
   event ShouldRequireClaimFor(uint256 indexed projectId, bool indexed flag, address caller);
 
+  event ChangeToken(
+    uint256 indexed projectId,
+    IJBToken indexed token,
+    address indexed owner,
+    address caller
+  );
+
   event Transfer(
     address indexed holder,
     uint256 indexed projectId,
     address indexed recipient,
     uint256 amount,
-    address caller
-  );
-
-  event UseNewToken(
-    uint256 indexed projectId,
-    IJBToken indexed token,
-    address indexed owner,
     address caller
   );
 
@@ -70,7 +70,7 @@ interface IJBTokenStore {
     string calldata _symbol
   ) external returns (IJBToken token);
 
-  function changeTokenFor(
+  function changeTokenOf(
     uint256 _projectId,
     IJBToken _token,
     address _newOwner
