@@ -719,7 +719,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     packed |= _currency << 224;
     // fee in bytes 232-239 bytes.
     packed |= _fee << 232;
-    // discountRate in bytes 240-247 bytes.
+    // discountRate in bytes 240-255 bytes.
     packed |= _discountRate << 240;
 
     // Set in storage.
@@ -878,7 +878,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     fundingCycle.duration = uint256(uint16(_packedConfigurationProperties >> 208));
     fundingCycle.currency = uint256(uint8(_packedConfigurationProperties >> 224));
     fundingCycle.fee = uint256(uint8(_packedConfigurationProperties >> 232));
-    fundingCycle.discountRate = uint256(uint8(_packedConfigurationProperties >> 240));
+    fundingCycle.discountRate = uint256(uint16(_packedConfigurationProperties >> 240));
 
     fundingCycle.target = _targetOf[_id];
     fundingCycle.tapped = _tappedAmountOf[_id];

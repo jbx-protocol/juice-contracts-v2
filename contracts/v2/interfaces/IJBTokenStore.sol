@@ -34,9 +34,7 @@ interface IJBTokenStore {
 
   event Unstake(address indexed holder, uint256 indexed projectId, uint256 amount, address caller);
 
-  event Lock(address indexed holder, uint256 indexed projectId, uint256 amount, address caller);
-
-  event Unlock(address indexed holder, uint256 indexed projectId, uint256 amount, address caller);
+  event Require(address indexed holder, uint256 indexed projectId, uint256 amount, address caller);
 
   event Transfer(
     address indexed holder,
