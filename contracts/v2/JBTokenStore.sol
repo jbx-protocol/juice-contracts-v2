@@ -14,7 +14,7 @@ import './JBToken.sol';
   Manage Token minting, burning, and account balances.
 
   @dev
-  Tokens can be either represented internally staked, or as unstaked ERC-20s.
+  Tokens can be either represented internally or claimed as ERC-20s.
   This contract manages these two representations and the conversion between the two.
 
   @dev
@@ -25,29 +25,47 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
 
-  /// @notice The Projects contract which mints ERC-721's that represent project ownership and transfers.
+  /** 
+    @notice 
+    The Projects contract which mints ERC-721's that represent project ownership and transfers.
+  */
   IJBProjects public immutable override projects;
 
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
 
-  // Each project's ERC20 Token tokens.
+  /** 
+    @notice
+    Each project's ERC20 Token tokens.
+
+    [_projectId]
+  */
   mapping(uint256 => IJBToken) public override tokenOf;
 
-  // Each holder's balance of staked Tokens for each project.
-  mapping(address => mapping(uint256 => uint256)) public override stakedBalanceOf;
+  /** 
+    @notice
+    Each holder's balance of unclaimed Tokens for each project.
 
-  // The total supply of staked tokens for each project.
-  mapping(uint256 => uint256) public override stakedTotalSupplyOf;
+    [_holder][_projectId]
+  */
+  mapping(address => mapping(uint256 => uint256)) public override unclaimedBalanceOf;
 
-  // The amount of each holders tokens that are locked.
-  mapping(address => mapping(uint256 => uint256)) public override lockedBalanceOf;
+  /** 
+    @notice
+    The total supply of unclaimed tokens for each project.
 
-  // The amount of each holders tokens that are locked by each address.
-  mapping(address => mapping(address => mapping(uint256 => uint256)))
-    public
-    override lockedBalanceBy;
+    [_projectId]
+  */
+  mapping(uint256 => uint256) public override unclaimedTotalSupplyOf;
+
+  /** 
+    @notice
+    A flag indicating if tokens are required to be issued as claimed for a particular project.
+
+    [_projectId]
+  */
+  mapping(uint256 => bool) public override requireClaimFor;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -55,21 +73,21 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
 
   /** 
     @notice 
-    The total supply of tokens for each project, including staked and unstaked tokens.
+    The total supply of tokens for each project, including claimed and unclaimed tokens.
 
     @param _projectId The ID of the project to get the total supply of.
 
     @return supply The total supply.
   */
   function totalSupplyOf(uint256 _projectId) external view override returns (uint256 supply) {
-    supply = stakedTotalSupplyOf[_projectId];
+    supply = unclaimedTotalSupplyOf[_projectId];
     IJBToken _token = tokenOf[_projectId];
     if (_token != IJBToken(address(0))) supply = supply + _token.totalSupply();
   }
 
   /** 
     @notice 
-    The total balance of tokens a holder has for a specified project, including staked and unstaked tokens.
+    The total balance of tokens a holder has for a specified project, including claimed and unclaimed tokens.
 
     @param _holder The token holder to get a balance for.
     @param _projectId The project to get the `_hodler`s balance of.
@@ -82,7 +100,7 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
     override
     returns (uint256 balance)
   {
-    balance = stakedBalanceOf[_holder][_projectId];
+    balance = unclaimedBalanceOf[_holder][_projectId];
     IJBToken _token = tokenOf[_projectId];
     if (_token != IJBToken(address(0))) balance = balance + _token.balanceOf(_holder);
   }
@@ -130,13 +148,13 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
     returns (IJBToken token)
   {
     // There must be a name.
-    require((bytes(_name).length > 0), 'EMPTY_NAME');
+    require((bytes(_name).length > 0), '0x1f: EMPTY_NAME');
 
     // There must be a symbol.
-    require((bytes(_symbol).length > 0), 'EMPTY_SYMBOL');
+    require((bytes(_symbol).length > 0), '0x20: EMPTY_SYMBOL');
 
     // Only one ERC20 token can be issued.
-    require(tokenOf[_projectId] == IJBToken(address(0)), 'ALREADY_ISSUED');
+    require(tokenOf[_projectId] == IJBToken(address(0)), '0x21: ALREADY_ISSUED');
 
     // Deploy the token contract.
     token = new JBToken(_name, _symbol);
@@ -145,6 +163,35 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
     tokenOf[_projectId] = token;
 
     emit Issue(_projectId, token, _name, _symbol, msg.sender);
+  }
+
+  /**
+    @notice 
+    Swap the current project's token that is minted and burned for another, and transfer ownership from the current to another address.
+
+    @param _projectId The ID of the project to transfer tokens for.
+    @param _token The new token.
+    @param _newOwner An address to transfer the current token's ownership to. This is optional, but it cannot be done later.
+  */
+  function changeTokenFor(
+    uint256 _projectId,
+    IJBToken _token,
+    address _newOwner
+  )
+    external
+    override
+    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.CHANGE_TOKEN)
+  {
+    // Get a reference to the current owner of the token.
+    IJBToken _currentToken = tokenOf[_projectId];
+
+    // Store the new token.
+    tokenOf[_projectId] = _token;
+
+    // If a new owner was provided, transfer ownership of the old token to the new owner.
+    if (_newOwner != address(0)) _currentToken.transferOwnership(_newOwner);
+
+    emit UseNewToken(_projectId, _token, _newOwner, msg.sender);
   }
 
   /** 
@@ -157,40 +204,34 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
     @param _holder The address receiving the new tokens.
     @param _projectId The project to which the tokens belong.
     @param _amount The amount to mint.
-    @param _preferUnstakedTokens Whether ERC20's should be converted automatically if they have been issued.
+    @param _preferClaimedTokens Whether ERC20's should be converted automatically if they have been issued.
   */
   function mintFor(
     address _holder,
     uint256 _projectId,
     uint256 _amount,
-    bool _preferUnstakedTokens
+    bool _preferClaimedTokens
   ) external override onlyController(_projectId) {
     // An amount must be specified.
-    require(_amount > 0, 'NO_OP');
+    require(_amount > 0, '0x22: NO_OP');
 
     // Get a reference to the project's ERC20 tokens.
     IJBToken _token = tokenOf[_projectId];
 
-    // If there exists ERC-20 tokens and the caller prefers these unstaked tokens.
-    bool _shouldUnstakeTokens = _preferUnstakedTokens && _token != IJBToken(address(0));
+    // If there exists ERC-20 tokens and the caller prefers these claimed tokens or the project requires it.
+    bool _shouldClaimTokens = (requireClaimFor[_projectId] || _preferClaimedTokens) &&
+      _token != IJBToken(address(0));
 
-    if (_shouldUnstakeTokens) {
+    if (_shouldClaimTokens) {
       // Mint the equivalent amount of ERC20s.
       _token.mint(_holder, _amount);
     } else {
-      // Add to the staked balance and total supply.
-      stakedBalanceOf[_holder][_projectId] = stakedBalanceOf[_holder][_projectId] + _amount;
-      stakedTotalSupplyOf[_projectId] = stakedTotalSupplyOf[_projectId] + _amount;
+      // Add to the unclaimed balance and total supply.
+      unclaimedBalanceOf[_holder][_projectId] = unclaimedBalanceOf[_holder][_projectId] + _amount;
+      unclaimedTotalSupplyOf[_projectId] = unclaimedTotalSupplyOf[_projectId] + _amount;
     }
 
-    emit Mint(
-      _holder,
-      _projectId,
-      _amount,
-      _shouldUnstakeTokens,
-      _preferUnstakedTokens,
-      msg.sender
-    );
+    emit Mint(_holder, _projectId, _amount, _shouldClaimTokens, _preferClaimedTokens, msg.sender);
   }
 
   /** 
@@ -203,217 +244,102 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
     @param _holder The address that owns the tokens being burned.
     @param _projectId The ID of the project of the tokens being burned.
     @param _amount The amount of tokens being burned.
-    @param _preferUnstakedTokens If the preference is to burn tokens that have been converted to ERC-20s.
+    @param _preferClaimedTokens If the preference is to burn tokens that have been converted to ERC-20s.
   */
   function burnFrom(
     address _holder,
     uint256 _projectId,
     uint256 _amount,
-    bool _preferUnstakedTokens
+    bool _preferClaimedTokens
   ) external override onlyController(_projectId) {
     // Get a reference to the project's ERC20 tokens.
     IJBToken _token = tokenOf[_projectId];
 
-    // Get a reference to the staked amount.
-    uint256 _unlockedStakedBalance = stakedBalanceOf[_holder][_projectId] -
-      lockedBalanceOf[_holder][_projectId];
+    // Get a reference to the number of unclaimed tokens internally accounted for.
+    uint256 _unclaimedBalance = unclaimedBalanceOf[_holder][_projectId];
 
     // Get a reference to the number of tokens there are.
-    uint256 _unstakedBalanceOf = _token == IJBToken(address(0)) ? 0 : _token.balanceOf(_holder);
+    uint256 _claimedBalance = _token == IJBToken(address(0)) ? 0 : _token.balanceOf(_holder);
 
     // There must be enough tokens.
     // Prevent potential overflow by not relying on addition.
     require(
-      (_amount < _unstakedBalanceOf && _amount < _unlockedStakedBalance) ||
-        (_amount >= _unstakedBalanceOf && _unlockedStakedBalance >= _amount - _unstakedBalanceOf) ||
-        (_amount >= _unlockedStakedBalance &&
-          _unstakedBalanceOf >= _amount - _unlockedStakedBalance),
-      'INSUFFICIENT_FUNDS'
+      (_amount < _claimedBalance && _amount < _unclaimedBalance) ||
+        (_amount >= _claimedBalance && _unclaimedBalance >= _amount - _claimedBalance) ||
+        (_amount >= _unclaimedBalance && _claimedBalance >= _amount - _unclaimedBalance),
+      '0x23: INSUFFICIENT_FUNDS'
     );
 
     // The amount of tokens to burn.
-    uint256 _unstakedTokensToBurn;
+    uint256 _claimedTokensToBurn;
 
     // If there's no balance, redeem no tokens.
-    if (_unstakedBalanceOf == 0) {
-      _unstakedTokensToBurn = 0;
-      // If prefer converted, redeem tokens before redeeming staked tokens.
-    } else if (_preferUnstakedTokens) {
-      _unstakedTokensToBurn = _unstakedBalanceOf >= _amount ? _amount : _unstakedBalanceOf;
-      // Otherwise, redeem staked tokens before unstaked tokens.
+    if (_claimedBalance == 0) {
+      _claimedTokensToBurn = 0;
+      // If prefer converted, redeem tokens before redeeming unclaimed tokens.
+    } else if (_preferClaimedTokens) {
+      _claimedTokensToBurn = _claimedBalance >= _amount ? _amount : _claimedBalance;
+      // Otherwise, redeem unclaimed tokens before claimed tokens.
     } else {
-      _unstakedTokensToBurn = _unlockedStakedBalance >= _amount
-        ? 0
-        : _amount - _unlockedStakedBalance;
+      _claimedTokensToBurn = _unclaimedBalance >= _amount ? 0 : _amount - _unclaimedBalance;
     }
 
-    // The amount of staked tokens to redeem.
-    uint256 _stakedTokensToBurn = _amount - _unstakedTokensToBurn;
+    // The amount of unclaimed tokens to redeem.
+    uint256 _unclaimedTokensToBurn = _amount - _claimedTokensToBurn;
 
     // burn the tokens.
-    if (_unstakedTokensToBurn > 0) _token.burn(_holder, _unstakedTokensToBurn);
-    if (_stakedTokensToBurn > 0) {
+    if (_claimedTokensToBurn > 0) _token.burn(_holder, _claimedTokensToBurn);
+    if (_unclaimedTokensToBurn > 0) {
       // Reduce the holders balance and the total supply.
-      stakedBalanceOf[_holder][_projectId] =
-        stakedBalanceOf[_holder][_projectId] -
-        _stakedTokensToBurn;
-      stakedTotalSupplyOf[_projectId] = stakedTotalSupplyOf[_projectId] - _stakedTokensToBurn;
+      unclaimedBalanceOf[_holder][_projectId] =
+        unclaimedBalanceOf[_holder][_projectId] -
+        _unclaimedTokensToBurn;
+      unclaimedTotalSupplyOf[_projectId] =
+        unclaimedTotalSupplyOf[_projectId] -
+        _unclaimedTokensToBurn;
     }
 
-    emit Burn(
-      _holder,
-      _projectId,
-      _amount,
-      _unlockedStakedBalance,
-      _preferUnstakedTokens,
-      msg.sender
-    );
+    emit Burn(_holder, _projectId, _amount, _unclaimedBalance, _preferClaimedTokens, msg.sender);
   }
 
   /**
     @notice 
-    Stakes ERC20 tokens by burning their supply and creating an internal staked version.
+    Claims internal tokens by minting and distributing ERC20 tokens.
 
     @dev
-    Only a ticket holder or an operator can stake its tokens.
+    Anyone can claim tokens on behalf of a token owner.
 
-    @param _holder The owner of the tokens to stake.
-    @param _projectId The ID of the project whos tokens are being staked.
-    @param _amount The amount of tokens to stake.
-    */
-  function stakeFor(
-    address _holder,
-    uint256 _projectId,
-    uint256 _amount
-  ) external override requirePermission(_holder, _projectId, JBOperations.STAKE) {
-    // Get a reference to the project's ERC20 tokens.
-    IJBToken _token = tokenOf[_projectId];
-
-    // Tokens must have been issued.
-    require(_token != IJBToken(address(0)), 'NOT_FOUND');
-
-    // Get a reference to the holder's current balance.
-    uint256 _unstakedBalanceOf = _token.balanceOf(_holder);
-
-    // There must be enough balance to stake.
-    require(_unstakedBalanceOf >= _amount, 'INSUFFICIENT_FUNDS');
-
-    // Burn the equivalent amount of ERC20s.
-    _token.burn(_holder, _amount);
-
-    // Add the staked amount from the holder's balance.
-    stakedBalanceOf[_holder][_projectId] = stakedBalanceOf[_holder][_projectId] + _amount;
-
-    // Add the staked amount from the project's total supply.
-    stakedTotalSupplyOf[_projectId] = stakedTotalSupplyOf[_projectId] + _amount;
-
-    emit Stake(_holder, _projectId, _amount, msg.sender);
-  }
-
-  /**
-    @notice 
-    Unstakes internal tokens by creating and distributing ERC20 tokens.
-
-    @dev
-    Only a token holder or an operator can unstake its tokens.
-
-    @param _holder The owner of the tokens to unstake.
-    @param _projectId The ID of the project whos tokens are being unstaked.
-    @param _amount The amount of tokens to unstake.
-    */
-  function unstakeFor(
-    address _holder,
-    uint256 _projectId,
-    uint256 _amount
-  ) external override requirePermission(_holder, _projectId, JBOperations.UNSTAKE) {
-    // Get a reference to the project's ERC20 tokens.
-    IJBToken _token = tokenOf[_projectId];
-
-    // Tokens must have been issued.
-    require(_token != IJBToken(address(0)), 'NOT_FOUND');
-
-    // Get a reference to the amount of unstaked tokens.
-    uint256 _unlockedStakedTokens = stakedBalanceOf[_holder][_projectId] -
-      lockedBalanceOf[_holder][_projectId];
-
-    // There must be enough unlocked staked tokens to unstake.
-    require(_unlockedStakedTokens >= _amount, 'INSUFFICIENT_FUNDS');
-
-    // Subtract the unstaked amount from the holder's balance.
-    stakedBalanceOf[_holder][_projectId] = stakedBalanceOf[_holder][_projectId] - _amount;
-
-    // Subtract the unstaked amount from the project's total supply.
-    stakedTotalSupplyOf[_projectId] = stakedTotalSupplyOf[_projectId] - _amount;
-
-    // Mint the equivalent amount of ERC20s.
-    _token.mint(_holder, _amount);
-
-    emit Unstake(_holder, _projectId, _amount, msg.sender);
-  }
-
-  /** 
-    @notice 
-    Lock a project's tokens, preventing them from being redeemed and from converting to ERC20s.
-
-    @dev
-    Only a ticket holder or an operator can lock its tokens.
-
-    @param _holder The holder to lock tokens from.
-    @param _projectId The ID of the project whos tokens are being locked.
-    @param _amount The amount of tokens to lock.
+    @param _holder The owner of the tokens to claim.
+    @param _projectId The ID of the project whos tokens are being claimed.
+    @param _amount The amount of tokens to claim.
   */
-  function lockFor(
-    address _holder,
-    uint256 _projectId,
-    uint256 _amount
-  ) external override requirePermission(_holder, _projectId, JBOperations.LOCK) {
-    // Amount must be greater than 0.
-    require(_amount > 0, 'NO_OP');
-
-    // The holder must have enough tokens to lock.
-    require(
-      stakedBalanceOf[_holder][_projectId] - lockedBalanceOf[_holder][_projectId] >= _amount,
-      'INSUFFICIENT_FUNDS'
-    );
-
-    // Update the lock.
-    lockedBalanceOf[_holder][_projectId] = lockedBalanceOf[_holder][_projectId] + _amount;
-    lockedBalanceBy[msg.sender][_holder][_projectId] =
-      lockedBalanceBy[msg.sender][_holder][_projectId] +
-      _amount;
-
-    emit Lock(_holder, _projectId, _amount, msg.sender);
-  }
-
-  /** 
-    @notice 
-    Unlock a project's tokens.
-
-    @dev
-    The address that locked the tokens must be the address that unlocks the tokens.
-
-    @param _holder The holder to unlock tokens from.
-    @param _projectId The ID of the project whos tokens are being unlocked.
-    @param _amount The amount of tokens to unlock.
-  */
-  function unlockFor(
+  function claimFor(
     address _holder,
     uint256 _projectId,
     uint256 _amount
   ) external override {
-    // Amount must be greater than 0.
-    require(_amount > 0, 'NO_OP');
+    // Get a reference to the project's ERC20 tokens.
+    IJBToken _token = tokenOf[_projectId];
 
-    // There must be enough locked tokens to unlock.
-    require(lockedBalanceBy[msg.sender][_holder][_projectId] >= _amount, 'INSUFFICIENT_FUNDS');
+    // Tokens must have been issued.
+    require(_token != IJBToken(address(0)), '0x24: NOT_FOUND');
 
-    // Update the lock.
-    lockedBalanceOf[_holder][_projectId] = lockedBalanceOf[_holder][_projectId] - _amount;
-    lockedBalanceBy[msg.sender][_holder][_projectId] =
-      lockedBalanceBy[msg.sender][_holder][_projectId] -
-      _amount;
+    // Get a reference to the amount of unclaimed tokens.
+    uint256 _unclaimedBalance = unclaimedBalanceOf[_holder][_projectId];
 
-    emit Unlock(_holder, _projectId, _amount, msg.sender);
+    // There must be enough unlocked unclaimed tokens to claim.
+    require(_unclaimedBalance >= _amount, '0x25: INSUFFICIENT_FUNDS');
+
+    // Subtract the claim amount from the holder's balance.
+    unclaimedBalanceOf[_holder][_projectId] = unclaimedBalanceOf[_holder][_projectId] - _amount;
+
+    // Subtract the claim amount from the project's total supply.
+    unclaimedTotalSupplyOf[_projectId] = unclaimedTotalSupplyOf[_projectId] - _amount;
+
+    // Mint the equivalent amount of ERC20s.
+    _token.mint(_holder, _amount);
+
+    emit Claim(_holder, _projectId, _amount, msg.sender);
   }
 
   /** 
@@ -435,27 +361,32 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
     uint256 _amount
   ) external override requirePermission(_holder, _projectId, JBOperations.TRANSFER) {
     // Can't transfer to the zero address.
-    require(_recipient != address(0), 'ZERO_ADDRESS');
+    require(_recipient != address(0), '0x26: ZERO_ADDRESS');
 
     // An address can't transfer to itself.
-    require(_holder != _recipient, 'IDENTITY');
+    require(_holder != _recipient, '0x27: IDENTITY');
 
     // There must be an amount to transfer.
-    require(_amount > 0, 'NO_OP');
+    require(_amount > 0, '0x28: NO_OP');
 
-    // Get a reference to the amount of unlocked staked tokens.
-    uint256 _unlockedStakedTokens = stakedBalanceOf[_holder][_projectId] -
-      lockedBalanceOf[_holder][_projectId];
+    // Get a reference to the amount of unclaimed tokens.
+    uint256 _unclaimedBalance = unclaimedBalanceOf[_holder][_projectId];
 
-    // There must be enough unlocked staked tokens to transfer.
-    require(_amount <= _unlockedStakedTokens, 'INSUFFICIENT_FUNDS');
+    // There must be enough unclaimed tokens to transfer.
+    require(_amount <= _unclaimedBalance, '0x29: INSUFFICIENT_FUNDS');
 
     // Subtract from the holder.
-    stakedBalanceOf[_holder][_projectId] = stakedBalanceOf[_holder][_projectId] - _amount;
+    unclaimedBalanceOf[_holder][_projectId] = unclaimedBalanceOf[_holder][_projectId] - _amount;
 
     // Add the tokens to the recipient.
-    stakedBalanceOf[_recipient][_projectId] = stakedBalanceOf[_recipient][_projectId] + _amount;
+    unclaimedBalanceOf[_recipient][_projectId] =
+      unclaimedBalanceOf[_recipient][_projectId] +
+      _amount;
 
     emit Transfer(_holder, _projectId, _recipient, _amount, msg.sender);
+  }
+
+  function shouldRequireClaimingFor(uint256 _projectId, bool _flag) external override {
+    emit ShouldRequireClaimFor(_projectId, _flag, msg.sender);
   }
 }

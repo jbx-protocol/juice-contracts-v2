@@ -12,6 +12,7 @@ interface IJBTokenStore {
     string symbol,
     address caller
   );
+
   event Mint(
     address indexed holder,
     uint256 indexed projectId,
@@ -30,11 +31,9 @@ interface IJBTokenStore {
     address caller
   );
 
-  event Stake(address indexed holder, uint256 indexed projectId, uint256 amount, address caller);
+  event Claim(address indexed holder, uint256 indexed projectId, uint256 amount, address caller);
 
-  event Unstake(address indexed holder, uint256 indexed projectId, uint256 amount, address caller);
-
-  event Require(address indexed holder, uint256 indexed projectId, uint256 amount, address caller);
+  event ShouldRequireClaimFor(uint256 indexed projectId, bool indexed flag, address caller);
 
   event Transfer(
     address indexed holder,
@@ -44,31 +43,38 @@ interface IJBTokenStore {
     address caller
   );
 
+  event UseNewToken(
+    uint256 indexed projectId,
+    IJBToken indexed token,
+    address indexed owner,
+    address caller
+  );
+
   function tokenOf(uint256 _projectId) external view returns (IJBToken);
 
   function projects() external view returns (IJBProjects);
 
-  function lockedBalanceOf(address _holder, uint256 _projectId) external view returns (uint256);
+  function unclaimedBalanceOf(address _holder, uint256 _projectId) external view returns (uint256);
 
-  function lockedBalanceBy(
-    address _operator,
-    address _holder,
-    uint256 _projectId
-  ) external view returns (uint256);
-
-  function stakedBalanceOf(address _holder, uint256 _projectId) external view returns (uint256);
-
-  function stakedTotalSupplyOf(uint256 _projectId) external view returns (uint256);
+  function unclaimedTotalSupplyOf(uint256 _projectId) external view returns (uint256);
 
   function totalSupplyOf(uint256 _projectId) external view returns (uint256);
 
   function balanceOf(address _holder, uint256 _projectId) external view returns (uint256 _result);
+
+  function requireClaimFor(uint256 _projectId) external view returns (bool);
 
   function issueFor(
     uint256 _projectId,
     string calldata _name,
     string calldata _symbol
   ) external returns (IJBToken token);
+
+  function changeTokenFor(
+    uint256 _projectId,
+    IJBToken _token,
+    address _newOwner
+  ) external;
 
   function burnFrom(
     address _holder,
@@ -84,25 +90,9 @@ interface IJBTokenStore {
     bool _preferUnstakedTokens
   ) external;
 
-  function stakeFor(
-    address _holder,
-    uint256 _projectId,
-    uint256 _amount
-  ) external;
+  function shouldRequireClaimingFor(uint256 _projectId, bool _flag) external;
 
-  function unstakeFor(
-    address _holder,
-    uint256 _projectId,
-    uint256 _amount
-  ) external;
-
-  function lockFor(
-    address _holder,
-    uint256 _projectId,
-    uint256 _amount
-  ) external;
-
-  function unlockFor(
+  function claimFor(
     address _holder,
     uint256 _projectId,
     uint256 _amount
