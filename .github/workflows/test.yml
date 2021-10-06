@@ -37,6 +37,9 @@ jobs:
           steps.cache-yarn-cache.outputs.cache-hit != 'true' ||
           steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile --prefer-offline
+      # Compile smart contracts
+      - name: Compile contracts
+        run: yarn compile
       # A local blockchain is required in order for unit tests to run.
       - name: Start local blockchain
         run: yarn chain --network hardhat &>/dev/null &
