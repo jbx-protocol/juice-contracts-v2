@@ -194,7 +194,7 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
     // If a new owner was provided, transfer ownership of the old token to the new owner.
     if (_newOwner != address(0)) _currentToken.transferOwnership(_newOwner);
 
-    emit UseNewToken(_projectId, _token, _newOwner, msg.sender);
+    emit ChangeToken(_projectId, _token, _newOwner, msg.sender);
   }
 
   /** 
