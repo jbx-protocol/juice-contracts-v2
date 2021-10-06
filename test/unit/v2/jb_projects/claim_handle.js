@@ -284,7 +284,7 @@ module.exports = function () {
         // Expect an event to have been emitted.
         expect(tx)
           .to.emit(this.contract, 'ClaimHandle')
-          .withArgs(claimFor, 2, handle, caller.address);
+          .withArgs(2, transfer.to, handle, caller.address);
 
         // Get the stored handle value.
         const storedHandle = await this.contract.handleOf(2);
