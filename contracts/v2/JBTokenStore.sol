@@ -83,14 +83,19 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
     @return supply The total supply.
   */
   function totalSupplyOf(uint256 _projectId) external view override returns (uint256 supply) {
+    // Get a reference to the unclaimed total supply of the project.
     supply = unclaimedTotalSupplyOf[_projectId];
+
+    // Get a reference to the project's token.
     IJBToken _token = tokenOf[_projectId];
+
+    // If the project has issued a token, add it's total supply to the total.
     if (_token != IJBToken(address(0))) supply = supply + _token.totalSupply();
   }
 
   /** 
     @notice 
-    The total balance of tokens a holder has for a specified project, including claimed and unclaimed tokens.
+    The total balance of token a holder has for a specified project, including claimed and unclaimed tokens.
 
     @param _holder The token holder to get a balance for.
     @param _projectId The project to get the `_hodler`s balance of.
@@ -103,8 +108,13 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
     override
     returns (uint256 balance)
   {
+    // Get a reference to the holder's unclaimed balance for the project.
     balance = unclaimedBalanceOf[_holder][_projectId];
+
+    // Get a reference to the project's token.
     IJBToken _token = tokenOf[_projectId];
+
+    // If the project has issued a token, add the holder's balance to the total.
     if (_token != IJBToken(address(0))) balance = balance + _token.balanceOf(_holder);
   }
 
@@ -131,10 +141,13 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
 
   /**
     @notice 
-    Issues an owner's ERC-20 Tokens that'll be used when unstaking tokens.
+    Issues an owner's ERC-20 Tokens that'll be used when claiming tokens.
 
     @dev 
     Deploys an owner's Token ERC-20 token contract.
+
+    @dev
+    Only a project owner or operator can issue its token.
 
     @param _projectId The ID of the project being issued tokens.
     @param _name The ERC-20's name.
@@ -172,7 +185,10 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
     @notice 
     Swap the current project's token that is minted and burned for another, and transfer ownership from the current to another address.
 
-    @param _projectId The ID of the project to transfer tokens for.
+    @dev
+    Only a project owner or operator can change its token.
+
+    @param _projectId The ID of the project to which the changed token belongs.
     @param _token The new token.
     @param _newOwner An address to transfer the current token's ownership to. This is optional, but it cannot be done later.
   */
@@ -194,7 +210,7 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
     // If a new owner was provided, transfer ownership of the old token to the new owner.
     if (_newOwner != address(0)) _currentToken.transferOwnership(_newOwner);
 
-    emit UseNewToken(_projectId, _token, _newOwner, msg.sender);
+    emit ChangeToken(_projectId, _token, _newOwner, msg.sender);
   }
 
   /** 
@@ -202,12 +218,12 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
     Mint new tokens.
 
     @dev
-    Only a project's current terminal can mint its tokens.
+    Only a project's current controller can mint its tokens.
 
     @param _holder The address receiving the new tokens.
-    @param _projectId The project to which the tokens belong.
-    @param _amount The amount to mint.
-    @param _preferClaimedTokens Whether ERC20's should be converted automatically if they have been issued.
+    @param _projectId The ID of the project to which the tokens belong.
+    @param _amount The amount of tokens to mint.
+    @param _preferClaimedTokens A flag indicating whether there's a preference for ERC20's to be claimed automatically if they have been issued.
   */
   function mintFor(
     address _holder,
@@ -242,12 +258,12 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
     Burns tokens.
 
     @dev
-    Only a project's current terminal can burn its tokens.
+    Only a project's current controller can burn its tokens.
 
     @param _holder The address that owns the tokens being burned.
-    @param _projectId The ID of the project of the tokens being burned.
-    @param _amount The amount of tokens being burned.
-    @param _preferClaimedTokens If the preference is to burn tokens that have been converted to ERC-20s.
+    @param _projectId The ID of the project to which the burned tokens belong
+    @param _amount The amount of tokens to burned.
+    @param _preferClaimedTokens A flag indicating if there's a preference to burn tokens that have been converted to ERC-20s.
   */
   function burnFrom(
     address _holder,
@@ -313,7 +329,7 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
     Anyone can claim tokens on behalf of a token owner.
 
     @param _holder The owner of the tokens to claim.
-    @param _projectId The ID of the project whos tokens are being claimed.
+    @param _projectId The ID of the project whose tokens are being claimed.
     @param _amount The amount of tokens to claim.
   */
   function claimFor(
