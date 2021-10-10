@@ -363,14 +363,14 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
 
   /** 
     @notice 
-    Allows a ticket holder to transfer its tokens to another account, without unstaking to ERC-20s.
+    Allows an unclaimed token holder to transfer them to another account, without claiming to ERC-20s.
 
     @dev
-    Only a ticket holder or an operator can transfer its tokens.
+    Only a token holder or an operator can transfer its unclaimed tokens.
 
     @param _recipient The recipient of the tokens.
-    @param _holder The holder to transfer tokens from.
-    @param _projectId The ID of the project whos tokens are being transfered.
+    @param _holder The address to transfer tokens from.
+    @param _projectId The ID of the project whose tokens are being transferred.
     @param _amount The amount of tokens to transfer.
   */
   function transferTo(
