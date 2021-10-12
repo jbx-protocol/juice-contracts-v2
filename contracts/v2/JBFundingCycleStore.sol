@@ -199,7 +199,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // Keep a reference to the eligible funding cycle.
     JBFundingCycle memory _fundingCycle;
 
-    // If a standy funding cycle exists...
+    // If a standby funding cycle exists...
     if (_fundingCycleId > 0) {
       // Get the necessary properties for the standby funding cycle.
       _fundingCycle = _getStructFor(_fundingCycleId);
@@ -741,7 +741,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
     // Get a reference to the project's latest funding cycle.
     fundingCycleId = latestIdOf[_projectId];
 
-    // If there isn't one, theres also no standy funding cycle.
+    // If there isn't one, theres also no standby funding cycle.
     if (fundingCycleId == 0) return 0;
 
     // Get the necessary properties for the latest funding cycle.

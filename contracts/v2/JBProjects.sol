@@ -229,7 +229,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     // Get a reference to the project's current handle.
     handle = handleOf[_projectId];
 
-    // Remove the project ID for the transfered handle.
+    // Remove the project ID for the transferred handle.
     idFor[handle] = 0;
 
     // Store the new handle for the project ID.
@@ -266,8 +266,8 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     requirePermission(_transferAddress, _projectId, JBOperations.CLAIM_HANDLE)
     requirePermission(ownerOf(_projectId), _projectId, JBOperations.CLAIM_HANDLE)
   {
-    // The handle must have been transfered to the specified address,
-    // or the handle challange must have expired before being renewed.
+    // The handle must have been transferred to the specified address,
+    // or the handle challenge must have expired before being renewed.
     require(
       transferAddressFor[_handle] == _transferAddress ||
         (challengeExpiryOf[_handle] > 0 && block.timestamp > challengeExpiryOf[_handle]),
@@ -294,8 +294,8 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
 
   /** 
     @notice
-    Allows anyone to challenge a project's handle. After one year, the handle can be claimed by the public if the challenge isn't answered by the handle's project.
-    This can be used to make sure a handle belonging to an unattended to project isn't lost forever.
+    Allows anyone to challenge a project's handle. After one year, the handle can be claimed by anyone if the challenge isn't answered by the handle's project.
+    This can be used to make sure a handle belonging to a stale project isn't lost forever.
 
     @param _handle The handle to challenge.
   */
