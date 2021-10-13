@@ -49,7 +49,7 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     @notice
     The directory of terminals.
   */
-  IJBDirectory public immutable override directory;  
+  IJBDirectory public immutable override directory;
 
   /** 
     @notice 
@@ -336,14 +336,14 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     @param _tokenCount The amount of tokens to mint.
     @param _beneficiary The account that the tokens are being minted for.
     @param _memo A memo to pass along to the emitted event.
-    @param _preferUnstakedTokens Whether ERC20's should be burned first if they have been issued.
+    @param _preferClaimedTokens Whether ERC20's should be burned first if they have been issued.
   */
   function mintTokensOf(
     uint256 _projectId,
     uint256 _tokenCount,
     address _beneficiary,
     string calldata _memo,
-    bool _preferUnstakedTokens,
+    bool _preferClaimedTokens,
     bool _shouldReserveTokens
   )
     external
@@ -381,7 +381,7 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
           int256(_tokenCount);
 
       // Redeem the tokens, which burns them.
-      tokenStore.mintFor(_beneficiary, _projectId, _tokenCount, _preferUnstakedTokens);
+      tokenStore.mintFor(_beneficiary, _projectId, _tokenCount, _preferClaimedTokens);
     }
 
     emit MintTokens(_beneficiary, _projectId, _tokenCount, _memo, _shouldReserveTokens, msg.sender);
@@ -398,14 +398,14 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     @param _projectId The ID of the project to which the tokens being burned belong.
     @param _tokenCount The number of tokens to burn.
     @param _memo A memo to pass along to the emitted event.
-    @param _preferUnstakedTokens Whether ERC20's should be burned first if they have been issued.
+    @param _preferClaimedTokens Whether ERC20's should be burned first if they have been issued.
   */
   function burnTokensOf(
     address _holder,
     uint256 _projectId,
     uint256 _tokenCount,
     string calldata _memo,
-    bool _preferUnstakedTokens
+    bool _preferClaimedTokens
   )
     external
     override
@@ -430,7 +430,7 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     _subtractFromTokenTrackerOf(_projectId, _tokenCount);
 
     // Burn the tokens.
-    tokenStore.burnFrom(_holder, _projectId, _tokenCount, _preferUnstakedTokens);
+    tokenStore.burnFrom(_holder, _projectId, _tokenCount, _preferClaimedTokens);
 
     emit BurnTokens(_holder, _projectId, _tokenCount, _memo, msg.sender);
   }

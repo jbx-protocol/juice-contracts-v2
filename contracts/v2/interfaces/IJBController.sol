@@ -19,7 +19,7 @@ interface IJBController {
     uint256 _tokenCount,
     address _beneficiary,
     string calldata _memo,
-    bool _preferUnstakedTokens,
+    bool _preferClaimedTokens,
     bool _shouldReserveTokens
   ) external;
 
@@ -28,7 +28,7 @@ interface IJBController {
     uint256 _projectId,
     uint256 _tokenCount,
     string calldata _memo,
-    bool _preferUnstakedTokens
+    bool _preferClaimedTokens
   ) external;
 
   function withdrawFrom(uint256 _projectId, uint256 _amount)

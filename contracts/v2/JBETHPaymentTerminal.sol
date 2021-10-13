@@ -60,7 +60,7 @@ contract JBETHPaymentTerminal is
     @notice
     The directory of terminals and controllers for projects.
   */
-  IJBDirectory public immutable override directory;  
+  IJBDirectory public immutable override directory;
 
   /** 
     @notice 
@@ -212,7 +212,7 @@ contract JBETHPaymentTerminal is
     @param _projectId The ID of the project being contribute to.
     @param _beneficiary The address to mint tokens for and pass along to the funding cycle's data source and delegate.
     @param _minReturnedTokens The minimum number of tokens expected in return.
-    @param _preferUnstakedTokens A flag indicating whether the request prefers to issue tokens unstaked rather than staked.
+    @param _preferClaimedTokens A flag indicating whether the request prefers to issue tokens unstaked rather than staked.
     @param _memo A memo that will be included in the published event, and passed along the the funding cycle's data source and delegate.
     @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
 
@@ -222,7 +222,7 @@ contract JBETHPaymentTerminal is
     uint256 _projectId,
     address _beneficiary,
     uint256 _minReturnedTokens,
-    bool _preferUnstakedTokens,
+    bool _preferClaimedTokens,
     string calldata _memo,
     bytes calldata _delegateMetadata
   ) external payable override returns (uint256) {
@@ -232,7 +232,7 @@ contract JBETHPaymentTerminal is
         _projectId,
         _beneficiary,
         _minReturnedTokens,
-        _preferUnstakedTokens,
+        _preferClaimedTokens,
         _memo,
         _delegateMetadata
       );
@@ -635,7 +635,7 @@ contract JBETHPaymentTerminal is
     uint256 _projectId,
     address _beneficiary,
     uint256 _minReturnedTokens,
-    bool _preferUnstakedTokens,
+    bool _preferClaimedTokens,
     string memory _memo,
     bytes memory _delegateMetadata
   ) private returns (uint256) {
@@ -654,7 +654,7 @@ contract JBETHPaymentTerminal is
       msg.sender,
       _amount,
       _projectId,
-      (_preferUnstakedTokens ? 1 : 0) | uint160(_beneficiary),
+      (_preferClaimedTokens ? 1 : 0) | uint160(_beneficiary),
       _minReturnedTokens,
       _memo,
       _delegateMetadata
@@ -688,7 +688,7 @@ contract JBETHPaymentTerminal is
     @param _payer The original address that sent the payment to the payment layer.
     @param _amount The amount that is being paid.
     @param _projectId The ID of the project being contribute to.
-    @param _preferUnstakedTokensAndBeneficiary Two properties are included in this packed uint256:
+    @param _preferClaimedTokensAndBeneficiary Two properties are included in this packed uint256:
       The first bit contains the flag indicating whether the request prefers to issue tokens unstaked rather than staked.
       The remaining bits contains the address that should receive benefits from the payment.
 
@@ -706,7 +706,7 @@ contract JBETHPaymentTerminal is
     address _payer,
     uint256 _amount,
     uint256 _projectId,
-    uint256 _preferUnstakedTokensAndBeneficiary,
+    uint256 _preferClaimedTokensAndBeneficiary,
     uint256 _minReturnedTokens,
     string memory _memo,
     bytes memory _delegateMetadata
@@ -739,7 +739,7 @@ contract JBETHPaymentTerminal is
           _amount,
           fundingCycle.weight,
           fundingCycle.reservedRate(),
-          address(uint160(_preferUnstakedTokensAndBeneficiary >> 1)),
+          address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
           _memo,
           _delegateMetadata
         )
@@ -766,9 +766,9 @@ contract JBETHPaymentTerminal is
       jb.mintTokensOf(
         _projectId,
         tokenCount,
-        address(uint160(_preferUnstakedTokensAndBeneficiary >> 1)),
+        address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
         'ETH received',
-        (_preferUnstakedTokensAndBeneficiary & 1) == 0,
+        (_preferClaimedTokensAndBeneficiary & 1) == 0,
         true
       );
 
@@ -780,7 +780,7 @@ contract JBETHPaymentTerminal is
         _amount,
         weight,
         tokenCount,
-        payable(address(uint160(_preferUnstakedTokensAndBeneficiary >> 1))),
+        payable(address(uint160(_preferClaimedTokensAndBeneficiary >> 1))),
         memo,
         _delegateMetadata
       );
