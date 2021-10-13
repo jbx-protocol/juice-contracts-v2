@@ -16,8 +16,8 @@ interface IJBTerminal {
   function pay(
     uint256 _projectId,
     address _beneficiary,
-    uint256 _minReturnedTickets,
-    bool _preferUnstakedTickets,
+    uint256 _minReturnedTokens,
+    bool _preferClaimedTokens,
     string calldata _memo,
     bytes calldata _delegateMetadata
   ) external payable returns (uint256 fundingCycleId);

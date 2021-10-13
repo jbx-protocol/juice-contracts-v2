@@ -27,7 +27,7 @@ interface IJBTokenStore {
     uint256 indexed projectId,
     uint256 amount,
     uint256 unclaimedTokenBalance,
-    bool preferUnstakedTokens,
+    bool preferClaimedTokens,
     address caller
   );
 
@@ -80,14 +80,14 @@ interface IJBTokenStore {
     address _holder,
     uint256 _projectId,
     uint256 _amount,
-    bool _preferUnstakedTokens
+    bool _preferClaimedTokens
   ) external;
 
   function mintFor(
     address _holder,
     uint256 _projectId,
     uint256 _amount,
-    bool _preferUnstakedTokens
+    bool _preferClaimedTokens
   ) external;
 
   function shouldRequireClaimingFor(uint256 _projectId, bool _flag) external;

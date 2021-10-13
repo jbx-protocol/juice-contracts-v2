@@ -47,14 +47,14 @@ abstract contract JBProject is Ownable {
       @notice Make a payment to this project.
       @param _beneficiary The address who will receive tickets from this fee.
       @param _memo A memo that will be included in the published event.
-      @param _preferUnstakedTickets Whether ERC20's should be claimed automatically if they have been issued.
+      @param _preferClaimedTokens Whether ERC20's should be claimed automatically if they have been issued.
     */
   function pay(
     address _beneficiary,
     string memory _memo,
-    bool _preferUnstakedTickets
+    bool _preferClaimedTokens
   ) external payable returns (uint256) {
-    return _pay(_beneficiary, _memo, _preferUnstakedTickets);
+    return _pay(_beneficiary, _memo, _preferClaimedTokens);
   }
 
   /** 
@@ -63,14 +63,14 @@ abstract contract JBProject is Ownable {
       @param _amount The payment amount.
       @param _beneficiary The address who will receive tickets from this fee.
       @param _memo A memo that will be included in the published event.
-      @param _preferUnstakedTickets Whether ERC20's should be claimed automatically if they have been issued.
+      @param _preferClaimedTokens Whether ERC20's should be claimed automatically if they have been issued.
     */
   function _fundTreasury(
     uint256 _projectId,
     uint256 _amount,
     address _beneficiary,
     string memory _memo,
-    bool _preferUnstakedTickets
+    bool _preferClaimedTokens
   ) internal {
     _projectId = _projectId > 0 ? _projectId : projectId;
 
@@ -93,7 +93,7 @@ abstract contract JBProject is Ownable {
       _projectId,
       _beneficiary,
       0,
-      _preferUnstakedTickets,
+      _preferClaimedTokens,
       _memo,
       bytes('')
     );
@@ -105,7 +105,7 @@ abstract contract JBProject is Ownable {
   function _pay(
     address _beneficiary,
     string memory _memo,
-    bool _preferUnstakedTickets
+    bool _preferClaimedTokens
   ) private returns (uint256) {
     require(projectId != 0, 'JuiceboxProject::_pay: PROJECT_NOT_FOUND');
 
@@ -120,7 +120,7 @@ abstract contract JBProject is Ownable {
         projectId,
         _beneficiary,
         0,
-        _preferUnstakedTickets,
+        _preferClaimedTokens,
         _memo,
         bytes('')
       );
