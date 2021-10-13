@@ -13,13 +13,13 @@ library JBOperations {
   uint256 public constant RENEW_HANDLE = 9;
   uint256 public constant ISSUE = 10;
   uint256 public constant CHANGE_TOKEN = 11;
-  uint256 public constant TRANSFER = 12;
-  uint256 public constant LOCK = 13;
-  uint256 public constant SET_CONTROLLER = 14;
-  uint256 public constant ADD_TERMINAL = 15;
-  uint256 public constant REMOVE_TERMINAL = 16;
-  uint256 public constant USE_ALLOWANCE = 17;
-  uint256 public constant BURN = 18;
-  uint256 public constant MINT = 19;
+  uint256 public constant MINT = 12;
+  uint256 public constant BURN = 13;
+  uint256 public constant TRANSFER = 14;
+  uint256 public constant REQUIRE_CLAIM = 15;
+  uint256 public constant SET_CONTROLLER = 16;
+  uint256 public constant ADD_TERMINAL = 17;
+  uint256 public constant REMOVE_TERMINAL = 18;
+  uint256 public constant USE_ALLOWANCE = 19;
   uint256 public constant SET_SPLITS = 20;
 }

@@ -18,7 +18,7 @@ contract JBOperatorStore is IJBOperatorStore {
     
     @dev
     An account can give an operator permissions that only pertain to a specific domain.
-    There is no domain with a value of 0 -- accounts can use the 0 domain to give an operator
+    There is no domain with a value of 0 – accounts can use the 0 domain to give an operator
     permissions to all domains on their behalf.
 
     [_operator][_account][_domain]
