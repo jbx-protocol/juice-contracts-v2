@@ -33,7 +33,7 @@ interface IJBTokenStore {
 
   event Claim(address indexed holder, uint256 indexed projectId, uint256 amount, address caller);
 
-  event ShouldRequireClaimFor(uint256 indexed projectId, bool indexed flag, address caller);
+  event ShouldRequireClaim(uint256 indexed projectId, bool indexed flag, address caller);
 
   event ChangeToken(
     uint256 indexed projectId,

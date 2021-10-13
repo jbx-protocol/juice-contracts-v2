@@ -207,8 +207,9 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
     // Store the new token.
     tokenOf[_projectId] = _token;
 
-    // If a new owner was provided, transfer ownership of the old token to the new owner.
-    if (_newOwner != address(0)) _currentToken.transferOwnership(_newOwner);
+    // If there's a current token and a new owner was provided, transfer ownership of the old token to the new owner.
+    if (_newOwner != address(0) && _currentToken != IJBToken(address(0)))
+      _currentToken.transferOwnership(_newOwner);
 
     emit ChangeToken(_projectId, _token, _newOwner, msg.sender);
   }
@@ -274,7 +275,7 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
     // Get a reference to the project's ERC20 tokens.
     IJBToken _token = tokenOf[_projectId];
 
-    // Get a reference to the number of unclaimed tokens internally accounted for.
+    // Get a reference to the amount of unclaimed tokens.
     uint256 _unclaimedBalance = unclaimedBalanceOf[_holder][_projectId];
 
     // Get a reference to the number of tokens there are.
@@ -405,7 +406,30 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
     emit Transfer(_holder, _projectId, _recipient, _amount, msg.sender);
   }
 
-  function shouldRequireClaimingFor(uint256 _projectId, bool _flag) external override {
-    emit ShouldRequireClaimFor(_projectId, _flag, msg.sender);
+  /** 
+    @notice 
+    Allows a project to force all future mints to be claimed into the holder's wallet, or revoke the flag if it's already set.
+
+    @dev
+    Only a token holder or an operator can transfer its unclaimed tokens.
+
+    @param _projectId The ID of the project being affected.
+    @param _flag A flag indicating whether or not claiming should be required.
+  */
+  function shouldRequireClaimingFor(uint256 _projectId, bool _flag)
+    external
+    override
+    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.REQUIRE_CLAIM)
+  {
+    // Get a reference to the project's ERC20 tokens.
+    IJBToken _token = tokenOf[_projectId];
+
+    // Tokens must have been issued.
+    require(_token != IJBToken(address(0)), '0x2a: NOT_FOUND');
+
+    // Store the flag.
+    requireClaimFor[_projectId] = _flag;
+
+    emit ShouldRequireClaim(_projectId, _flag, msg.sender);
   }
 }
