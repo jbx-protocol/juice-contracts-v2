@@ -5,7 +5,7 @@ import './../interfaces/IJBUtility.sol';
 
 abstract contract JBUtility is IJBUtility {
   modifier onlyController(uint256 _projectId) {
-    require(directory.controllerOf(_projectId) == msg.sender, 'UNAUTHORIZED');
+    require(address(directory.controllerOf(_projectId)) == msg.sender, 'UNAUTHORIZED');
     _;
   }
 

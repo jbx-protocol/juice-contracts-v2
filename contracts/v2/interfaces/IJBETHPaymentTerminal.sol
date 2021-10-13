@@ -90,8 +90,6 @@ interface IJBETHPaymentTerminal {
 
   function directory() external view returns (IJBDirectory);
 
-  function jb() external view returns (IJBController);
-
   function balanceOf(uint256 _projectId) external view returns (uint256);
 
   function currentOverflowOf(uint256 _projectId) external view returns (uint256);

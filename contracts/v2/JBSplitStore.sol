@@ -111,7 +111,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
       projects.ownerOf(_projectId),
       _projectId,
       JBOperations.SET_SPLITS,
-      directory.controllerOf(_projectId) == msg.sender
+      address(directory.controllerOf(_projectId)) == msg.sender
     )
   {
     // Get a reference to the project's current splits.

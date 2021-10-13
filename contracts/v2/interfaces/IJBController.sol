@@ -2,6 +2,7 @@
 pragma solidity 0.8.6;
 
 import './IJBDirectory.sol';
+import './IJBTerminal.sol';
 import './IJBFundingCycleStore.sol';
 
 interface IJBController {
@@ -10,7 +11,7 @@ interface IJBController {
     view
     returns (uint256);
 
-  function prepForMigration(uint256 _projectId) external;
+  function prepForMigration(uint256 _projectId, IJBController _from) external;
 
   function swapTerminal(uint256 _projectId, IJBTerminal _terminal) external;
 
@@ -31,7 +32,7 @@ interface IJBController {
     bool _preferClaimedTokens
   ) external;
 
-  function withdrawFrom(uint256 _projectId, uint256 _amount)
+  function signalWithdrawFrom(uint256 _projectId, uint256 _amount)
     external
     returns (JBFundingCycle memory);
 

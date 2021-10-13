@@ -284,7 +284,6 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
       @dev _data.currency The currency of the `_target`. Send 0 for ETH or 1 for USD.
       @dev _data.duration The duration of the funding cycle for which the `_target` amount is needed. Measured in days. 
         Set to 0 for no expiry and to be able to reconfigure anytime.
-      @dev _data.cycleLimit The number of cycles that this configuration should last for before going back to the last permanent. This does nothing for a project's first funding cycle.
       @dev _data.discountRate A number from 0-10000 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
         If it's 0, each funding cycle will have equal weight.
         If the number is 9000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.

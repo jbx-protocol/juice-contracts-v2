@@ -2,7 +2,7 @@
 pragma solidity 0.8.6;
 
 library JBOperations {
-  uint256 public constant CONFIGURE = 1;
+  uint256 public constant RECONFIGURE = 1;
   uint256 public constant PRINT_PREMINED_TOKENS = 2;
   uint256 public constant REDEEM = 3;
   uint256 public constant MIGRATE_CONTROLLER = 4;

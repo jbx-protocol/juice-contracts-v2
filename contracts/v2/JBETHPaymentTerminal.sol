@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import '@openzeppelin/contracts/utils/Address.sol';
 import '@paulrberg/contracts/math/PRBMathUD60x18.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 
@@ -13,6 +12,7 @@ import './libraries/JBFundingCycleMetadataResolver.sol';
 // Inheritance
 import './interfaces/IJBETHPaymentTerminal.sol';
 import './interfaces/IJBTerminal.sol';
+import './interfaces/IJBVault.sol';
 import './abstract/JBOperatable.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
@@ -80,12 +80,6 @@ contract JBETHPaymentTerminal is
   */
   IJBSplitsStore public immutable override splitsStore;
 
-  /** 
-    @notice 
-    The controller that manages how terminals interact with tokens and funding cycles.
-  */
-  IJBController public immutable override jb;
-
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
@@ -117,7 +111,7 @@ contract JBETHPaymentTerminal is
   */
   mapping(uint256 => mapping(uint256 => uint256)) public override usedOverflowAllowanceOf;
 
-  uint256 public immutable override domain = 0;
+  IJBVault public override vault;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -177,7 +171,7 @@ contract JBETHPaymentTerminal is
     @param _fundingCycleStore The contract storing all funding cycle configurations.
     @param _tokenStore The contract that manages token minting and burning.
     @param _splitsStore The contract that stores splits for each project.
-    @param _jb The controller that manages how terminals interact with tokens and funding cycles..
+    @param _vault The vault to store funds in.
   */
   constructor(
     IJBOperatorStore _operatorStore,
@@ -187,7 +181,7 @@ contract JBETHPaymentTerminal is
     IJBFundingCycleStore _fundingCycleStore,
     IJBTokenStore _tokenStore,
     IJBSplitsStore _splitsStore,
-    IJBController _jb
+    IJBVault _vault
   ) JBOperatable(_operatorStore) {
     prices = _prices;
     projects = _projects;
@@ -195,7 +189,7 @@ contract JBETHPaymentTerminal is
     fundingCycleStore = _fundingCycleStore;
     tokenStore = _tokenStore;
     splitsStore = _splitsStore;
-    jb = _jb;
+    vault = _vault;
   }
 
   //*********************************************************************//
@@ -216,7 +210,7 @@ contract JBETHPaymentTerminal is
     @param _memo A memo that will be included in the published event, and passed along the the funding cycle's data source and delegate.
     @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
 
-    @return The number of the funding cycle that the payment was made during.
+    @return fundingCycleId The number of the funding cycle that the payment was made during.
   */
   function pay(
     uint256 _projectId,
@@ -225,17 +219,18 @@ contract JBETHPaymentTerminal is
     bool _preferClaimedTokens,
     string calldata _memo,
     bytes calldata _delegateMetadata
-  ) external payable override returns (uint256) {
-    return
-      _pay(
-        msg.value,
-        _projectId,
-        _beneficiary,
-        _minReturnedTokens,
-        _preferClaimedTokens,
-        _memo,
-        _delegateMetadata
-      );
+  ) external payable override returns (uint256 fundingCycleId) {
+    fundingCycleId = _pay(
+      msg.value,
+      _projectId,
+      _beneficiary,
+      _minReturnedTokens,
+      _preferClaimedTokens,
+      _memo,
+      _delegateMetadata
+    );
+    // Deposit the funds in the vault.
+    vault.deposit{value: msg.value}(_projectId, 0);
   }
 
   /**
@@ -296,7 +291,8 @@ contract JBETHPaymentTerminal is
     );
 
     // Transfer any remaining balance to the project owner.
-    if (_leftoverTransferAmount > 0) Address.sendValue(_projectOwner, _leftoverTransferAmount);
+    if (_leftoverTransferAmount > 0)
+      vault.withdraw(_projectId, _leftoverTransferAmount, _projectOwner);
 
     emit DistributePayouts(
       _fundingCycle.id,
@@ -364,12 +360,10 @@ contract JBETHPaymentTerminal is
       );
 
     // The leftover amount once the fee has been taken.
-    uint256 _leftoverTransferAmount = _withdrawnAmount - _feeAmount;
-
     // Transfer any remaining balance to the project owner.
-    if (_leftoverTransferAmount > 0)
+    if (_withdrawnAmount - _feeAmount > 0)
       // Send the funds to the beneficiary.
-      Address.sendValue(_beneficiary, _leftoverTransferAmount);
+      vault.withdraw(_projectId, _withdrawnAmount - _feeAmount, _beneficiary);
 
     emit UseAllowance(
       _fundingCycle.id,
@@ -378,7 +372,7 @@ contract JBETHPaymentTerminal is
       _beneficiary,
       _withdrawnAmount,
       _feeAmount,
-      _leftoverTransferAmount,
+      _withdrawnAmount - _feeAmount,
       msg.sender
     );
 
@@ -434,7 +428,7 @@ contract JBETHPaymentTerminal is
     );
 
     // Send the claimed funds to the beneficiary.
-    if (claimAmount > 0) Address.sendValue(_beneficiary, claimAmount);
+    if (claimAmount > 0) vault.withdraw(_projectId, claimAmount, _beneficiary);
 
     emit Redeem(
       _fundingCycle.id,
@@ -467,13 +461,30 @@ contract JBETHPaymentTerminal is
   {
     require(directory.isTerminalOf(_projectId, address(this)), 'UNAUTHORIZED');
 
-    // Record the balance transfer in the data layer.
-    uint256 _balance = _recordMigrationFor(_projectId, _terminal);
+    require(vault.token() == _terminal.vault().token(), 'TODO');
+
+    // Get a reference to the project's currently recorded balance.
+    uint256 _balance = balanceOf[_projectId];
+
+    // Withdraw the balance to transfer to the new terminal;
+    // Must withdraw before recording the migration to have access to the vault.
+    vault.withdraw(_projectId, _balance, payable(this));
+
+    // Set the balance to 0.
+    balanceOf[_projectId] = 0;
+
+    // Tell the controller to swap the terminals.
+    directory.controllerOf(_projectId).swapTerminal(_projectId, _terminal);
 
     // Move the funds to the new contract if needed.
     if (_balance > 0) _terminal.addToBalanceOf{value: _balance}(_projectId, 'Migration');
 
     emit TransferBalance(_projectId, _terminal, _balance, msg.sender);
+  }
+
+  // Only the vault can transfer ETH into this contract.
+  receive() external payable {
+    require(msg.sender == address(vault), 'TODO');
   }
 
   /**
@@ -489,6 +500,9 @@ contract JBETHPaymentTerminal is
 
     // Record the added funds in the data later.
     _recordAddedBalanceFor(_projectId, msg.value);
+
+    // Deposit the funds in the vault.
+    vault.deposit{value: msg.value}(_projectId, 0);
 
     emit AddToBalance(_projectId, msg.value, _memo, msg.sender);
   }
@@ -545,11 +559,10 @@ contract JBETHPaymentTerminal is
             _split.beneficiary,
             _split.preferUnstaked
           );
-        } else if (_split.projectId != 0) {
           // Otherwise, if a project is specified, make a payment to it.
-
+        } else if (_split.projectId != 0) {
           // Get a reference to the Juicebox terminal being used.
-          IJBTerminal _terminal = directory.terminalOf(_split.projectId, domain);
+          IJBTerminal _terminal = directory.terminalOf(_split.projectId, vault.token());
 
           // The project must have a terminal to send funds to.
           require(_terminal != IJBTerminal(address(0)), 'BAD_SPLIT');
@@ -577,7 +590,7 @@ contract JBETHPaymentTerminal is
           }
         } else {
           // Otherwise, send the funds directly to the beneficiary.
-          Address.sendValue(_split.beneficiary, _payoutAmount);
+          vault.withdraw(_fundingCycle.projectId, _payoutAmount, _split.beneficiary);
         }
 
         // Subtract from the amount to be sent to the beneficiary.
@@ -618,7 +631,7 @@ contract JBETHPaymentTerminal is
     if (feeAmount == 0) return 0;
 
     // Get the terminal for the JuiceboxDAO project.
-    IJBTerminal _terminal = directory.terminalOf(1, domain);
+    IJBTerminal _terminal = directory.terminalOf(1, vault.token());
 
     // When processing the admin fee, save gas if the admin is using this contract as its terminal.
     _terminal == this // Use the local pay call.
@@ -763,7 +776,7 @@ contract JBETHPaymentTerminal is
     balanceOf[_projectId] = balanceOf[_projectId] + _amount;
 
     if (_weightedAmount > 0)
-      jb.mintTokensOf(
+      directory.controllerOf(_projectId).mintTokensOf(
         _projectId,
         tokenCount,
         address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
@@ -808,7 +821,7 @@ contract JBETHPaymentTerminal is
     uint256 _minReturnedWei
   ) private returns (JBFundingCycle memory fundingCycle, uint256 withdrawnAmount) {
     // Registers the funds as withdrawn and gets the ID of the funding cycle during which this withdrawal is being made.
-    fundingCycle = jb.withdrawFrom(_projectId, _amount);
+    fundingCycle = directory.controllerOf(_projectId).signalWithdrawFrom(_projectId, _amount);
 
     // Funds cannot be withdrawn if there's no funding cycle.
     require(fundingCycle.id > 0, 'NOT_FOUND');
@@ -866,7 +879,11 @@ contract JBETHPaymentTerminal is
     // There must be sufficient allowance available.
     require(
       withdrawnAmount <=
-        jb.overflowAllowanceOf(_projectId, fundingCycle.configured, this) -
+        directory.controllerOf(_projectId).overflowAllowanceOf(
+          _projectId,
+          fundingCycle.configured,
+          this
+        ) -
           usedOverflowAllowanceOf[_projectId][fundingCycle.configured],
       'NOT_ALLOWED'
     );
@@ -955,7 +972,14 @@ contract JBETHPaymentTerminal is
     require(claimAmount <= balanceOf[_projectId], 'INSUFFICIENT_FUNDS');
 
     // Redeem the tokens, which burns them.
-    if (_tokenCount > 0) jb.burnTokensOf(_holder, _projectId, _tokenCount, 'Redeem for ETH', true);
+    if (_tokenCount > 0)
+      directory.controllerOf(_projectId).burnTokensOf(
+        _holder,
+        _projectId,
+        _tokenCount,
+        'Redeem for ETH',
+        true
+      );
 
     // Remove the redeemed funds from the project's balance.
     if (claimAmount > 0) balanceOf[_projectId] = balanceOf[_projectId] - claimAmount;
@@ -974,27 +998,6 @@ contract JBETHPaymentTerminal is
       _delegate.didRedeem(_data);
       emit DelegateDidRedeem(_delegate, _data);
     }
-  }
-
-  /**
-    @notice
-    Allows a project owner to transfer its balance and treasury operations to a new contract.
-
-    @param _projectId The ID of the project that is being migrated.
-    @param _terminal The terminal that the project is migrating to.
-  */
-  function _recordMigrationFor(uint256 _projectId, IJBTerminal _terminal)
-    private
-    returns (uint256 balance)
-  {
-    // Get a reference to the project's currently recorded balance.
-    balance = balanceOf[_projectId];
-
-    // Set the balance to 0.
-    balanceOf[_projectId] = 0;
-
-    // Tell the controller to swap the terminals.
-    jb.swapTerminal(_projectId, _terminal);
   }
 
   /**
@@ -1031,10 +1034,9 @@ contract JBETHPaymentTerminal is
     uint256 _totalSupply = tokenStore.totalSupplyOf(_fundingCycle.projectId);
 
     // Get the number of reserved tokens the project has.
-    uint256 _reservedTokenAmount = jb.reservedTokenBalanceOf(
-      _fundingCycle.projectId,
-      _fundingCycle.reservedRate()
-    );
+    uint256 _reservedTokenAmount = directory
+      .controllerOf(_fundingCycle.projectId)
+      .reservedTokenBalanceOf(_fundingCycle.projectId, _fundingCycle.reservedRate());
 
     // If there are reserved tokens, add them to the total supply.
     if (_reservedTokenAmount > 0) _totalSupply = _totalSupply + _reservedTokenAmount;

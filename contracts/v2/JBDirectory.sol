@@ -37,18 +37,9 @@ contract JBDirectory is IJBDirectory, JBOperatable {
 
   /** 
     @notice 
-    For each project ID, the juicebox terminal that is manaing funds for particular domain.
-
-    @dev
-    Domains can be application specific.
-  */
-  mapping(uint256 => mapping(uint256 => IJBTerminal)) public override terminalOf;
-
-  /** 
-    @notice 
     For each project ID, the controller that manages how terminals interact with tokens and funding cycles.
   */
-  mapping(uint256 => address) public override controllerOf;
+  mapping(uint256 => IJBController) public override controllerOf;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -81,6 +72,28 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     return false;
   }
 
+  /** 
+    @notice
+    The terminal that is managing funds for a project within the specified domain.
+
+    @param _projectId The ID of the project to get a terminal for.
+    @param _token The token the terminal accepts.
+
+    @return The terminal for the project within the specified domain.
+  */
+  function terminalOf(uint256 _projectId, address _token)
+    public
+    view
+    override
+    returns (IJBTerminal)
+  {
+    for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++)
+      if (_terminalsOf[_projectId][_i].vault().token() == _token)
+        return _terminalsOf[_projectId][_i];
+
+    return IJBTerminal(address(0));
+  }
+
   //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
@@ -104,9 +117,9 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     @param _projectId The ID of the project to set a new controller for.
     @param _controller The new controller to set.
   */
-  function setControllerOf(uint256 _projectId, address _controller) external override {
+  function setControllerOf(uint256 _projectId, IJBController _controller) external override {
     // Get a reference to the current controller being used.
-    address _currentController = controllerOf[_projectId];
+    IJBController _currentController = controllerOf[_projectId];
 
     // If the controller is already set, nothing to do.
     if (_currentController == _controller) return;
@@ -118,7 +131,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     require(projects.count() >= _projectId, 'NOT_FOUND');
 
     // Can't set the zero address.
-    require(_controller != address(0), 'ZERO_ADDRESS');
+    require(_controller != IJBController(address(0)), 'ZERO_ADDRESS');
 
     // Either:
     // - case 1: the controller hasn't been set yet and the msg sender is the controller being set.
@@ -126,9 +139,9 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     // - case 3: the project owner or an operator is changing the controller.
     require(
       // case 1.
-      (controllerOf[_projectId] == address(0) && msg.sender == _controller) ||
+      (address(controllerOf[_projectId]) == address(0) && msg.sender == address(_controller)) ||
         // case 2.
-        controllerOf[_projectId] == msg.sender ||
+        address(controllerOf[_projectId]) == msg.sender ||
         // case 3.
         (msg.sender == _projectOwner ||
           operatorStore.hasPermission(
@@ -152,7 +165,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
 
     // Only the controller of the project can add a terminal.
     require(
-      msg.sender == controllerOf[_projectId] ||
+      msg.sender == address(controllerOf[_projectId]) ||
         (msg.sender == _projectOwner ||
           operatorStore.hasPermission(
             msg.sender,
@@ -181,7 +194,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
 
     // Only the controller of the project can add a terminal.
     require(
-      msg.sender == controllerOf[_projectId] ||
+      msg.sender == address(controllerOf[_projectId]) ||
         (msg.sender == _projectOwner ||
           operatorStore.hasPermission(
             msg.sender,
