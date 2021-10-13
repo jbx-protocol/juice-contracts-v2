@@ -12,17 +12,35 @@ import './libraries/JBFundingCycleMetadataResolver.sol';
 import './interfaces/IJBControllerV1.sol';
 import './interfaces/IJBController.sol';
 import './abstract/JBOperatable.sol';
+import './abstract/JBTerminalUtility.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
-contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable, ReentrancyGuard {
+/**
+  @notice
+  Stitches together funding cycles and treasury tokens, making sure all activity is accounted for and correct.
+
+  @dev 
+  A project can transfer control from this contract to another allowed controller contract at any time.
+
+  Inherits from:
+
+  IJBControllerV1 - general interface for the V1 specific methods in this contract that interacts with funding cycles and tokens according to the Juicebox protocol's rules.
+  IJBController - general interface for the generic controller methods in this contract that interacts with funding cycles and tokens according to the Juicebox protocol's rules.
+  JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
+  Ownable - includes convenience functionality for specifying an address that owns the contract, with modifiers that only allow access by the owner.
+  ReentrencyGuard - several function in this contract shouldn't be accessible recursively.
+*/
+contract JBControllerV1 is
+  IJBControllerV1,
+  IJBController,
+  JBTerminalUtility,
+  JBOperatable,
+  Ownable,
+  ReentrancyGuard
+{
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
-
-  modifier onlyTerminal(uint256 _projectId) {
-    require(directory.isTerminalOf(_projectId, msg.sender), 'UNAUTHORIZED');
-    _;
-  }
 
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
@@ -44,12 +62,6 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     The Projects contract which mints ERC-721's that represent project ownership.
   */
   IJBProjects public immutable override projects;
-
-  /** 
-    @notice
-    The directory of terminals.
-  */
-  IJBDirectory public immutable override directory;
 
   /** 
     @notice 
@@ -145,9 +157,8 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     IJBFundingCycleStore _fundingCycleStore,
     IJBTokenStore _tokenStore,
     IJBSplitsStore _splitsStore
-  ) JBOperatable(_operatorStore) {
+  ) JBTerminalUtility(_directory) JBOperatable(_operatorStore) {
     projects = _projects;
-    directory = _directory;
     fundingCycleStore = _fundingCycleStore;
     tokenStore = _tokenStore;
     splitsStore = _splitsStore;

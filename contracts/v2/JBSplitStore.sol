@@ -7,7 +7,6 @@ import './libraries/JBOperations.sol';
 import './interfaces/IJBSplitsStore.sol';
 import './interfaces/IJBDirectory.sol';
 import './abstract/JBOperatable.sol';
-import './abstract/JBUtility.sol';
 
 /**
   @notice

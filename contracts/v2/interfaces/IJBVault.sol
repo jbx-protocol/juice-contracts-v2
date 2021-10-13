@@ -14,8 +14,6 @@ import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import './IJBDirectory.sol';
 
 interface IJBVault {
-  function directory() external view returns (IJBDirectory);
-
   function token() external view returns (address);
 
   function deposit(uint256 _projectId, uint256 _amount) external payable;

@@ -68,8 +68,6 @@ interface IJBControllerV1 {
 
   function splitsStore() external view returns (IJBSplitsStore);
 
-  function directory() external view returns (IJBDirectory);
-
   function fee() external view returns (uint256);
 
   function launchProjectFor(

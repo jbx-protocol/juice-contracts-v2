@@ -3,7 +3,7 @@ pragma solidity 0.8.6;
 
 import './interfaces/IJBTokenStore.sol';
 import './abstract/JBOperatable.sol';
-import './abstract/JBUtility.sol';
+import './abstract/JBControllerUtility.sol';
 
 import './libraries/JBOperations.sol';
 
@@ -23,7 +23,7 @@ import './JBToken.sol';
   @dev
   Each project can bring their own token if they prefer, and swap between tokens at any time.
 */
-contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
+contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
@@ -131,7 +131,7 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
     IJBOperatorStore _operatorStore,
     IJBProjects _projects,
     IJBDirectory _directory
-  ) JBOperatable(_operatorStore) JBUtility(_directory) {
+  ) JBOperatable(_operatorStore) JBControllerUtility(_directory) {
     projects = _projects;
   }
 

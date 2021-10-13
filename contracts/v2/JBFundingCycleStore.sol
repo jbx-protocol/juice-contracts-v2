@@ -4,13 +4,13 @@ pragma solidity 0.8.6;
 import '@paulrberg/contracts/math/PRBMath.sol';
 
 import './interfaces/IJBFundingCycleStore.sol';
-import './abstract/JBUtility.sol';
+import './abstract/JBControllerUtility.sol';
 
 /** 
   @notice 
   Manage funding cycle configurations, accounting, and scheduling.
 */
-contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
+contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
   //*********************************************************************//
   // --------------------- private stored constants -------------------- //
   //*********************************************************************//
@@ -265,7 +265,7 @@ contract JBFundingCycleStore is JBUtility, IJBFundingCycleStore {
   /** 
     @param _directory A directory of a project's current Juicebox terminal to receive payments in.
   */
-  constructor(IJBDirectory _directory) JBUtility(_directory) {}
+  constructor(IJBDirectory _directory) JBControllerUtility(_directory) {}
 
   //*********************************************************************//
   // ---------------------- external transactions ---------------------- //

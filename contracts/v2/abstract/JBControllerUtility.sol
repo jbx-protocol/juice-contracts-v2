@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './../interfaces/IJBUtility.sol';
+import './../interfaces/IJBControllerUtility.sol';
 
-abstract contract JBUtility is IJBUtility {
+abstract contract JBControllerUtility is IJBControllerUtility {
   modifier onlyController(uint256 _projectId) {
     require(address(directory.controllerOf(_projectId)) == msg.sender, 'UNAUTHORIZED');
     _;
