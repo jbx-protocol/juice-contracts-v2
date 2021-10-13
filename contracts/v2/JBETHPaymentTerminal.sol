@@ -359,8 +359,8 @@ contract JBETHPaymentTerminal is
         string(bytes.concat('Fee from @', _handle))
       );
 
-    // The leftover amount once the fee has been taken.
     // Transfer any remaining balance to the project owner.
+    // The leftover amount once the fee has been taken.
     if (_withdrawnAmount - _feeAmount > 0)
       // Send the funds to the beneficiary.
       vault.withdraw(_projectId, _withdrawnAmount - _feeAmount, _beneficiary);
