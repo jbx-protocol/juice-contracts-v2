@@ -100,7 +100,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
 
   /** 
     @param _operatorStore A contract storing operator assignments.
-    @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
+    @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
   */
   constructor(IJBOperatorStore _operatorStore, IJBProjects _projects) JBOperatable(_operatorStore) {
     projects = _projects;

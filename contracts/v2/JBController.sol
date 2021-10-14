@@ -8,8 +8,20 @@ import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 
+import './interfaces/IJBTokenStore.sol';
+import './interfaces/IJBProjects.sol';
+import './interfaces/IJBSplitsStore.sol';
+import './interfaces/IJBTerminal.sol';
+import './interfaces/IJBOperatorStore.sol';
+import './interfaces/IJBFundingCycleDataSource.sol';
+import './interfaces/IJBPrices.sol';
+import './interfaces/IJBController.sol';
+
+import './structs/JBFundingCycleData.sol';
+import './structs/JBFundingCycleMetadata.sol';
+import './structs/JBOverflowAllowance.sol';
+
 // Inheritance
-import './interfaces/IJBControllerV1.sol';
 import './interfaces/IJBController.sol';
 import './abstract/JBOperatable.sol';
 import './abstract/JBTerminalUtility.sol';
@@ -25,22 +37,57 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
   Inherits from:
 
-  IJBControllerV1 - general interface for the V1 specific methods in this contract that interacts with funding cycles and tokens according to the Juicebox protocol's rules.
   IJBController - general interface for the generic controller methods in this contract that interacts with funding cycles and tokens according to the Juicebox protocol's rules.
   JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
   Ownable - includes convenience functionality for specifying an address that owns the contract, with modifiers that only allow access by the owner.
   ReentrencyGuard - several function in this contract shouldn't be accessible recursively.
 */
-contract JBControllerV1 is
-  IJBControllerV1,
-  IJBController,
-  JBTerminalUtility,
-  JBOperatable,
-  Ownable,
-  ReentrancyGuard
-{
+contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable, ReentrancyGuard {
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
+
+  event SetOverflowAllowance(
+    uint256 indexed projectId,
+    uint256 indexed configuration,
+    JBOverflowAllowance allowance,
+    address caller
+  );
+  event DistributeReservedTokens(
+    uint256 indexed fundingCycleId,
+    uint256 indexed projectId,
+    address indexed beneficiary,
+    uint256 count,
+    uint256 projectOwnerTokenCount,
+    string memo,
+    address caller
+  );
+
+  event DistributeToReservedTokenSplit(
+    uint256 indexed fundingCycleId,
+    uint256 indexed projectId,
+    JBSplit split,
+    uint256 tokenCount,
+    address caller
+  );
+
+  event MintTokens(
+    address indexed beneficiary,
+    uint256 indexed projectId,
+    uint256 indexed count,
+    string memo,
+    bool shouldReserveTokens,
+    address caller
+  );
+
+  event BurnTokens(
+    address indexed holder,
+    uint256 indexed projectId,
+    uint256 count,
+    string memo,
+    address caller
+  );
+
+  event Migrate(uint256 indexed projectId, IJBController to, address caller);
 
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
@@ -61,25 +108,25 @@ contract JBControllerV1 is
     @notice 
     The Projects contract which mints ERC-721's that represent project ownership.
   */
-  IJBProjects public immutable override projects;
+  IJBProjects public immutable projects;
 
   /** 
     @notice 
     The contract storing all funding cycle configurations.
   */
-  IJBFundingCycleStore public immutable override fundingCycleStore;
+  IJBFundingCycleStore public immutable fundingCycleStore;
 
   /** 
     @notice 
     The contract that manages token minting and burning.
   */
-  IJBTokenStore public immutable override tokenStore;
+  IJBTokenStore public immutable tokenStore;
 
   /** 
     @notice 
     The contract that stores splits for each project.
   */
-  IJBSplitsStore public immutable override splitsStore;
+  IJBSplitsStore public immutable splitsStore;
 
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
@@ -109,7 +156,7 @@ contract JBControllerV1 is
     @dev 
     Out of 200.
   */
-  uint256 public override fee = 10;
+  uint256 public fee = 10;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -144,11 +191,11 @@ contract JBControllerV1 is
 
   /**
     @param _operatorStore A contract storing operator assignments.
-    @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
-    @param _directory The directory of terminals.
-    @param _fundingCycleStore The contract storing all funding cycle configurations.
-    @param _tokenStore The contract that manages token minting and burning.
-    @param _splitsStore The contract that stores splits for each project.
+    @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
+    @param _directory A contract storing directories of terminals and controllers for each project.
+    @param _fundingCycleStore A contract storing all funding cycle configurations.
+    @param _tokenStore A contract that manages token minting and burning.
+    @param _splitsStore A contract that stores splits for each project.
   */
   constructor(
     IJBOperatorStore _operatorStore,
@@ -219,7 +266,7 @@ contract JBControllerV1 is
     JBSplit[] memory _payoutSplits,
     JBSplit[] memory _reservedTokenSplits,
     IJBTerminal _terminal
-  ) external override {
+  ) external {
     // Make sure the metadata is validated and packed into a uint256.
     uint256 _packedMetadata = _validateAndPackFundingCycleMetadata(_metadata);
 
@@ -291,7 +338,6 @@ contract JBControllerV1 is
     JBSplit[] memory _reservedTokenSplits
   )
     external
-    override
     nonReentrant
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
     returns (uint256)
@@ -332,7 +378,7 @@ contract JBControllerV1 is
     @param _projectId The ID of the project that is being withdrawn from.
     @param _amount The amount to withdraw.
   */
-  function signalWithdrawFrom(uint256 _projectId, uint256 _amount)
+  function signalWithdrawlFrom(uint256 _projectId, uint256 _amount)
     external
     override
     onlyTerminal(_projectId)
@@ -463,7 +509,6 @@ contract JBControllerV1 is
   */
   function distributeReservedTokensOf(uint256 _projectId, string memory _memo)
     external
-    override
     nonReentrant
     returns (uint256)
   {
@@ -481,7 +526,6 @@ contract JBControllerV1 is
     external
     override
     onlyTerminal(_projectId)
-    nonReentrant
   {
     // Remove the current terminal.
     directory.removeTerminalOf(_projectId, IJBTerminal(msg.sender));
@@ -495,11 +539,13 @@ contract JBControllerV1 is
     Allows other controllers to signal to this one that a migration is expected for the specified project.
 
     @param _projectId The ID of the project that will be migrated to this controller.
-    @param _from The controller from which the migration is happening.
   */
-  function prepForMigration(uint256 _projectId, IJBController _from) external view override {
+  function prepForMigration(uint256 _projectId, IJBController) external override {
     // This controller must not be the project's current controller.
     require(directory.controllerOf(_projectId) != this, 'UNAUTHORIZED');
+
+    // Set the tracker as the total supply.
+    _processedTokenTrackerOf[_projectId] = int256(tokenStore.totalSupplyOf(_projectId));
   }
 
   /** 
@@ -510,8 +556,8 @@ contract JBControllerV1 is
   */
   function migrate(uint256 _projectId, IJBController _to)
     external
-    override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_CONTROLLER)
+    nonReentrant
   {
     // This controller must be the project's current controller.
     require(directory.controllerOf(_projectId) == this, 'UNAUTHORIZED');

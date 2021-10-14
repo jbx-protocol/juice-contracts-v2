@@ -19,7 +19,7 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
 /**
   @notice
-  This contract manages all inflows and outflows of funds into the Juicebox ecosystem. It stores all treasury funds for all projects.
+  This contract manages all inflows and outflows of funds into the Juicebox ecosystem.
 
   @dev 
   A project can transfer its funds, along with the power to reconfigure and mint/burn their tokens, from this contract to another allowed terminal contract at any time.
@@ -165,13 +165,13 @@ contract JBETHPaymentTerminal is
 
   /** 
     @param _operatorStore A contract storing operator assignments.
-    @param _prices The contract that exposes price feeds.
-    @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
-    @param _directory The directory of terminals.
-    @param _fundingCycleStore The contract storing all funding cycle configurations.
-    @param _tokenStore The contract that manages token minting and burning.
-    @param _splitsStore The contract that stores splits for each project.
-    @param _vault The vault to store funds in.
+    @param _prices A contract that exposes price feeds.
+    @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
+    @param _directory A contract storing directories of terminals and controllers for each project.
+    @param _fundingCycleStore A contract storing all funding cycle configurations.
+    @param _tokenStore A contract that manages token minting and burning.
+    @param _splitsStore A contract that stores splits for each project.
+    @param _vault A contract to store funds in.
   */
   constructor(
     IJBOperatorStore _operatorStore,
@@ -821,7 +821,7 @@ contract JBETHPaymentTerminal is
     uint256 _minReturnedWei
   ) private returns (JBFundingCycle memory fundingCycle, uint256 withdrawnAmount) {
     // Registers the funds as withdrawn and gets the ID of the funding cycle during which this withdrawal is being made.
-    fundingCycle = directory.controllerOf(_projectId).signalWithdrawFrom(_projectId, _amount);
+    fundingCycle = directory.controllerOf(_projectId).signalWithdrawlFrom(_projectId, _amount);
 
     // Funds cannot be withdrawn if there's no funding cycle.
     require(fundingCycle.id > 0, 'NOT_FOUND');

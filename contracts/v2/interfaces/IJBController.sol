@@ -32,7 +32,7 @@ interface IJBController {
     bool _preferClaimedTokens
   ) external;
 
-  function signalWithdrawFrom(uint256 _projectId, uint256 _amount)
+  function signalWithdrawlFrom(uint256 _projectId, uint256 _amount)
     external
     returns (JBFundingCycle memory);
 

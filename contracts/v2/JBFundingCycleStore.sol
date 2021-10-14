@@ -263,7 +263,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
   //*********************************************************************//
 
   /** 
-    @param _directory A directory of a project's current Juicebox terminal to receive payments in.
+    @param _directory A contract storing directories of terminals and controllers for each project.
   */
   constructor(IJBDirectory _directory) JBControllerUtility(_directory) {}
 

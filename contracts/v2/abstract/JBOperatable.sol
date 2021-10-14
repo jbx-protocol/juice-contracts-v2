@@ -42,8 +42,8 @@ abstract contract JBOperatable is IJBOperatable {
   IJBOperatorStore public immutable override operatorStore;
 
   /** 
-      @param _operatorStore A contract storing operator assignments.
-    */
+    @param _operatorStore A contract storing operator assignments.
+  */
   constructor(IJBOperatorStore _operatorStore) {
     operatorStore = _operatorStore;
   }

@@ -124,8 +124,8 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
   /** 
     @param _operatorStore A contract storing operator assignments.
-    @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
-    @param _directory A directory of a project's current Juicebox terminal to receive payments in.
+    @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
+    @param _directory A contract storing directories of terminals and controllers for each project.
   */
   constructor(
     IJBOperatorStore _operatorStore,

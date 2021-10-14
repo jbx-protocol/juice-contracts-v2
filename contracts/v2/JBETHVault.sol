@@ -14,7 +14,7 @@ contract JBETHPaymentTerminal is IJBVault, JBTerminalUtility {
   }
 
   /** 
-    @param _directory The directory of terminals.
+    @param _directory A contract storing directories of terminals and controllers for each project.
   */
   constructor(IJBDirectory _directory) JBTerminalUtility(_directory) {}
 
