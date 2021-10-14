@@ -240,7 +240,7 @@ module.exports = function () {
             .transferHandleOf(transfer.projectId, transfer.to, transfer.newHandle);
         }
 
-        const permissionIndex = 7;
+        const claimHandlePermissionIndex = await this.jbOperations.CLAIM_HANDLE();
         if (transferToPermissionFlag !== undefined) {
           // Flip the opposit of what what specified in the personal permissions to false.
           await this.operatorStore.mock.hasPermission
@@ -248,7 +248,7 @@ module.exports = function () {
               caller.address,
               claimFor,
               transferToPersonalPermission ? 2 : 0,
-              permissionIndex,
+              claimHandlePermissionIndex              
             )
             .returns(false);
 
@@ -258,14 +258,14 @@ module.exports = function () {
               caller.address,
               claimFor,
               transferToPersonalPermission ? 0 : 2,
-              permissionIndex,
+              claimHandlePermissionIndex,
             )
             .returns(transferToPermissionFlag);
         }
         if (claimOntoPermissionFlag !== undefined) {
           // Mock the caller to be the project's controller.
           await this.operatorStore.mock.hasPermission
-            .withArgs(caller.address, destination.owner, 2, permissionIndex)
+            .withArgs(caller.address, destination.owner, 2, claimHandlePermissionIndex)
             .returns(claimOntoPermissionFlag);
         }
 
@@ -284,7 +284,7 @@ module.exports = function () {
         // Expect an event to have been emitted.
         expect(tx)
           .to.emit(this.contract, 'ClaimHandle')
-          .withArgs(2, transfer.to, handle, caller.address);
+          .withArgs(2, claimFor, handle, caller.address);
 
         // Get the stored handle value.
         const storedHandle = await this.contract.handleOf(2);
@@ -339,7 +339,7 @@ module.exports = function () {
             .transferHandle(transfer.projectId, transfer.to, transfer.newHandle);
         }
 
-        const permissionIndex = 7;
+        const claimHandlePermissionIndex = await this.jbOperations.CLAIM_HANDLE();
         if (transferToPermissionFlag !== undefined) {
           // Flip the opposit of what what specified in the personal permissions to false.
           await this.operatorStore.mock.hasPermission
@@ -347,7 +347,7 @@ module.exports = function () {
               caller.address,
               claimFor,
               transferToPersonalPermission ? 2 : 0,
-              permissionIndex,
+              claimHandlePermissionIndex,
             )
             .returns(false);
 
@@ -357,14 +357,14 @@ module.exports = function () {
               caller.address,
               claimFor,
               transferToPersonalPermission ? 0 : 2,
-              permissionIndex,
+              claimHandlePermissionIndex,
             )
             .returns(transferToPermissionFlag);
         }
         if (claimOntoPermissionFlag !== undefined) {
           // Mock the caller to be the project's controller.
           await this.operatorStore.mock.hasPermission
-            .withArgs(caller.address, destination.owner, 2, permissionIndex)
+            .withArgs(caller.address, destination.owner, 2, claimHandlePermissionIndex)
             .returns(claimOntoPermissionFlag);
         }
 
