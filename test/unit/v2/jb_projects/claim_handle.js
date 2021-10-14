@@ -336,7 +336,7 @@ module.exports = function () {
           // Execute the transaction.
           await this.contract
             .connect(caller)
-            .transferHandle(transfer.projectId, transfer.to, transfer.newHandle);
+            .transferHandleOf(transfer.projectId, transfer.to, transfer.newHandle);
         }
 
         const claimHandlePermissionIndex = await this.jbOperations.CLAIM_HANDLE();
