@@ -20,7 +20,9 @@ interface IJBDirectory {
 
   function terminalsOf(uint256 _projectId) external view returns (IJBTerminal[] memory);
 
-  function isTerminalOf(uint256 _projectId, address _terminal) external view returns (bool);
+  function isTerminalOf(uint256 _projectId, IJBTerminal _terminal) external view returns (bool);
+
+  function isTerminalDelegateOf(uint256 _projectId, address _delegate) external view returns (bool);
 
   function addTerminalOf(uint256 _projectId, IJBTerminal _terminal) external;
 

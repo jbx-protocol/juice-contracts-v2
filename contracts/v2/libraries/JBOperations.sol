@@ -22,4 +22,5 @@ library JBOperations {
   uint256 public constant REMOVE_TERMINAL = 18;
   uint256 public constant USE_ALLOWANCE = 19;
   uint256 public constant SET_SPLITS = 20;
+  uint256 public constant PROCESS_FEES = 21;
 }

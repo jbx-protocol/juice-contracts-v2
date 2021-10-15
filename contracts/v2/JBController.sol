@@ -250,6 +250,9 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
       @dev _metadata.pauseRedeem Whether or not the redeem functionality should be paused during this cycle.
       @dev _metadata.pauseMint Whether or not the mint functionality should be paused during this cycle.
       @dev _metadata.pauseBurn Whether or not the burn functionality should be paused during this cycle.
+      @dev _metadata.allowTerminalMigration Whether or not the terminal migration functionality should be paused during this cycle.
+      @dev _metadata.allowControllerMigration Whether or not the controller migration functionality should be paused during this cycle.
+      @dev _metadata.holdFees Whether or not fees should be held to be processed at a later time during this cycle.
       @dev _metadata.useDataSourceForPay Whether or not the data source should be used when processing a payment.
       @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
       @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
@@ -320,6 +323,9 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
       @dev _metadata.pauseRedeem Whether or not the redeem functionality should be paused during this cycle.
       @dev _metadata.pauseMint Whether or not the mint functionality should be paused during this cycle.
       @dev _metadata.pauseBurn Whether or not the burn functionality should be paused during this cycle.
+      @dev _metadata.allowTerminalMigration Whether or not the terminal migration functionality should be paused during this cycle.
+      @dev _metadata.allowControllerMigration Whether or not the controller migration functionality should be paused during this cycle.
+      @dev _metadata.holdFees Whether or not fees should be held to be processed at a later time during this cycle.
       @dev _metadata.useDataSourceForPay Whether or not the data source should be used when processing a payment.
       @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
       @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
@@ -416,7 +422,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
       projects.ownerOf(_projectId),
       _projectId,
       JBOperations.MINT,
-      directory.isTerminalOf(_projectId, msg.sender)
+      directory.isTerminalDelegateOf(_projectId, msg.sender)
     )
   {
     // Can't send to the zero address.
@@ -477,7 +483,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
       _holder,
       _projectId,
       JBOperations.BURN,
-      directory.isTerminalOf(_projectId, msg.sender)
+      directory.isTerminalDelegateOf(_projectId, msg.sender)
     )
   {
     // There should be tokens to burn
@@ -562,6 +568,12 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     // This controller must be the project's current controller.
     require(directory.controllerOf(_projectId) == this, 'UNAUTHORIZED');
 
+    // Get a reference to the project's current funding cycle.
+    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
+
+    // Migration must be allowed
+    require(_fundingCycle.controllerMigrationAllowed(), 'TODO');
+
     // All reserved tokens must be minted before migrating.
     if (uint256(_processedTokenTrackerOf[_projectId]) != tokenStore.totalSupplyOf(_projectId))
       _distributeReservedTokensOf(_projectId, '');
@@ -619,12 +631,18 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     packed |= (_metadata.pauseMint ? 1 : 0) << 35;
     // pause mint in bit 36.
     packed |= (_metadata.pauseBurn ? 1 : 0) << 36;
-    // use pay data source in bit 37.
-    packed |= (_metadata.useDataSourceForPay ? 1 : 0) << 37;
-    // use redeem data source in bit 38.
-    packed |= (_metadata.useDataSourceForRedeem ? 1 : 0) << 38;
-    // data source address in bits 39-198.
-    packed |= uint160(address(_metadata.dataSource)) << 39;
+    // allow terminal migration in bit 37.
+    packed |= (_metadata.allowTerminalMigration ? 1 : 0) << 37;
+    // allow controller migration in bit 38.
+    packed |= (_metadata.allowTerminalMigration ? 1 : 0) << 38;
+    // hold fees in bit 39.
+    packed |= (_metadata.holdFees ? 1 : 0) << 39;
+    // use pay data source in bit 40.
+    packed |= (_metadata.useDataSourceForPay ? 1 : 0) << 40;
+    // use redeem data source in bit 41.
+    packed |= (_metadata.useDataSourceForRedeem ? 1 : 0) << 41;
+    // data source address in bits 42-201.
+    packed |= uint160(address(_metadata.dataSource)) << 42;
   }
 
   /**

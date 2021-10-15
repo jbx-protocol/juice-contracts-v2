@@ -12,6 +12,9 @@ struct JBFundingCycleMetadata {
   bool pauseRedeem;
   bool pauseMint;
   bool pauseBurn;
+  bool allowTerminalMigration;
+  bool allowControllerMigration;
+  bool holdFees;
   bool useDataSourceForPay;
   bool useDataSourceForRedeem;
   IJBFundingCycleDataSource dataSource;

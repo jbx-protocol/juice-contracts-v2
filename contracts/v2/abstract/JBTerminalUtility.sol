@@ -5,7 +5,7 @@ import './../interfaces/IJBTerminalUtility.sol';
 
 abstract contract JBTerminalUtility is IJBTerminalUtility {
   modifier onlyTerminal(uint256 _projectId) {
-    require(directory.isTerminalOf(_projectId, msg.sender), 'UNAUTHORIZED');
+    require(directory.isTerminalDelegateOf(_projectId, msg.sender), 'UNAUTHORIZED');
     _;
   }
 

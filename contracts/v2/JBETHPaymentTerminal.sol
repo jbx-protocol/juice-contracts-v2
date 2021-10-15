@@ -9,6 +9,8 @@ import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 
+import './JBETHPaymentTerminalStore.sol';
+
 // Inheritance
 import './interfaces/IJBETHPaymentTerminal.sol';
 import './interfaces/IJBTerminal.sol';
@@ -41,6 +43,21 @@ contract JBETHPaymentTerminal is
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
   //*********************************************************************//
+  // --------------------- private stored constants -------------------- //
+  //*********************************************************************//
+
+  /**
+    @notice 
+    Fees that are being held to be processed later.
+
+    @dev
+    [_projectId]
+
+    _projectId The ID of the project whos fees are held.
+  */
+  mapping(uint256 => JBFee[]) private _heldFeesOf;
+
+  //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
 
@@ -57,18 +74,6 @@ contract JBETHPaymentTerminal is
   IJBDirectory public immutable override directory;
 
   /** 
-    @notice 
-    The contract storing all funding cycle configurations.
-  */
-  IJBFundingCycleStore public immutable override fundingCycleStore;
-
-  /** 
-    @notice 
-    The contract that manages token minting and burning.
-  */
-  IJBTokenStore public immutable override tokenStore;
-
-  /** 
     @notice
     The contract that stores splits for each project.
   */
@@ -76,91 +81,26 @@ contract JBETHPaymentTerminal is
 
   /** 
     @notice 
-    The contract that exposes price feeds.
-  */
-  IJBPrices public immutable override prices;
-
-  /** 
-    @notice 
     The contract that stores the ETH.
   */
   IJBVault public immutable override vault;
 
-  //*********************************************************************//
-  // --------------------- public stored properties -------------------- //
-  //*********************************************************************//
-
-  /** 
-    @notice 
-    The amount of ETH that each project has.
-
-    @dev
-    [_projectId] 
-
-    _projectId The ID of the project to get the balance of.
-
-    @return The ETH balance of the specified project.
-  */
-  mapping(uint256 => uint256) public override balanceOf;
-
   /**
     @notice 
-    The amount of overflow that a project is allowed to tap into on-demand.
-
-    @dev
-    [_projectId][_configuration]
-
-    _projectId The ID of the project to get the current overflow allowance of.
-    _configuration The configuration of the during which the allowance applies.
-
-    @return The current overflow allowance for the specified project configuration. Decreases as projects use of the allowance.
+    The contract that stores and manages the terminal's data.
   */
-  mapping(uint256 => mapping(uint256 => uint256)) public override usedOverflowAllowanceOf;
+  JBETHPaymentTerminalStore public immutable store;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
   //*********************************************************************//
 
-  /**
-    @notice
-    Gets the current overflowed amount for a specified project.
-
-    @param _projectId The ID of the project to get overflow for.
-
-    @return The current amount of overflow that project has.
-  */
-  function currentOverflowOf(uint256 _projectId) external view override returns (uint256) {
-    // Get a reference to the project's current funding cycle.
-    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
-
-    // There's no overflow if there's no funding cycle.
-    if (_fundingCycle.number == 0) return 0;
-
-    return _overflowFrom(_fundingCycle);
+  function heldFeesOf(uint256 _projectId) external view override returns (JBFee[] memory) {
+    return _heldFeesOf[_projectId];
   }
 
-  /**
-    @notice
-    The amount of overflowed ETH that can be claimed by the specified number of tokens.
-
-    @dev If the project has an active funding cycle reconfiguration ballot, the project's ballot redemption rate is used.
-
-    @param _projectId The ID of the project to get a claimable amount for.
-    @param _tokenCount The number of tokens to make the calculation with. 
-
-    @return The amount of overflowed ETH that can be claimed.
-  */
-  function claimableOverflowOf(uint256 _projectId, uint256 _tokenCount)
-    external
-    view
-    override
-    returns (uint256)
-  {
-    return _claimableOverflowOf(fundingCycleStore.currentOf(_projectId), _tokenCount);
-  }
-
-  function currentETHBalanceOf(uint256 _projectId) external view override returns (uint256) {
-    return balanceOf[_projectId];
+  function delegate() external view override returns (address) {
+    return address(store);
   }
 
   //*********************************************************************//
@@ -169,40 +109,25 @@ contract JBETHPaymentTerminal is
 
   /** 
     @param _operatorStore A contract storing operator assignments.
-    @param _prices A contract that exposes price feeds.
     @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
     @param _directory A contract storing directories of terminals and controllers for each project.
-    @param _fundingCycleStore A contract storing all funding cycle configurations.
-    @param _tokenStore A contract that manages token minting and burning.
     @param _splitsStore A contract that stores splits for each project.
     @param _vault A contract to store funds in.
+    @param _store A contract that stores the terminal's data.
   */
   constructor(
     IJBOperatorStore _operatorStore,
-    IJBPrices _prices,
     IJBProjects _projects,
     IJBDirectory _directory,
-    IJBFundingCycleStore _fundingCycleStore,
-    IJBTokenStore _tokenStore,
     IJBSplitsStore _splitsStore,
-    IJBVault _vault
+    IJBVault _vault,
+    JBETHPaymentTerminalStore _store
   ) JBOperatable(_operatorStore) {
-    prices = _prices;
     projects = _projects;
     directory = _directory;
-    fundingCycleStore = _fundingCycleStore;
-    tokenStore = _tokenStore;
     splitsStore = _splitsStore;
     vault = _vault;
-  }
-
-  //*********************************************************************//
-  // ---------------------------- receive ------------------------------ //
-  //*********************************************************************//
-
-  // Only the vault can transfer ETH into this contract.
-  receive() external payable {
-    require(msg.sender == address(vault), 'TODO');
+    store = _store;
   }
 
   //*********************************************************************//
@@ -269,7 +194,7 @@ contract JBETHPaymentTerminal is
     string memory _memo
   ) external override nonReentrant returns (uint256) {
     // Record the withdrawal in the data layer.
-    (JBFundingCycle memory _fundingCycle, uint256 _withdrawnAmount) = _recordWithdrawalFor(
+    (JBFundingCycle memory _fundingCycle, uint256 _withdrawnAmount) = store.recordWithdrawalFor(
       _projectId,
       _amount,
       _currency,
@@ -289,8 +214,8 @@ contract JBETHPaymentTerminal is
     uint256 _feeAmount = _fundingCycle.fee == 0 || _projectId == 1
       ? 0
       : _takeFeeFrom(
+        _fundingCycle,
         _withdrawnAmount,
-        _fundingCycle.fee,
         _projectOwner,
         string(bytes.concat('Fee from @', _handle))
       );
@@ -346,8 +271,9 @@ contract JBETHPaymentTerminal is
     returns (uint256)
   {
     // Record the use of the allowance in the data layer.
-    (JBFundingCycle memory _fundingCycle, uint256 _withdrawnAmount) = _recordUsedAllowanceOf(
+    (JBFundingCycle memory _fundingCycle, uint256 _withdrawnAmount) = store.recordUsedAllowanceOf(
       _projectId,
+      this,
       _amount,
       _currency,
       _minReturnedWei
@@ -366,8 +292,8 @@ contract JBETHPaymentTerminal is
     uint256 _feeAmount = _fundingCycle.fee == 0 || _projectId == 1
       ? 0
       : _takeFeeFrom(
+        _fundingCycle,
         _withdrawnAmount,
-        _fundingCycle.fee,
         _projectOwner,
         string(bytes.concat('Fee from @', _handle))
       );
@@ -430,7 +356,7 @@ contract JBETHPaymentTerminal is
     JBFundingCycle memory _fundingCycle;
 
     // Record the redemption in the data layer.
-    (_fundingCycle, claimAmount, _memo) = _recordRedemptionFor(
+    (_fundingCycle, claimAmount, _memo) = store.recordRedemptionFor(
       _holder,
       _projectId,
       _tokenCount,
@@ -472,25 +398,19 @@ contract JBETHPaymentTerminal is
     nonReentrant
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_TERMINAL)
   {
-    require(directory.isTerminalOf(_projectId, address(this)), 'UNAUTHORIZED');
+    require(directory.isTerminalOf(_projectId, this), 'UNAUTHORIZED');
 
     require(vault.token() == _to.vault().token(), 'TODO');
 
     // Get a reference to the project's currently recorded balance.
-    uint256 _balance = balanceOf[_projectId];
+    uint256 _balance = store.balanceOf(_projectId);
 
-    // Withdraw the balance to transfer to the new terminal;
-    // Must withdraw before recording the migration to have access to the vault.
-    vault.withdraw(_projectId, _balance, payable(this));
+    if (_balance > 0)
+      // Withdraw the balance to transfer to the new terminal;
+      // Must withdraw before recording the migration to have access to the vault.
+      vault.withdraw(_projectId, _balance, payable(address(_to.vault())));
 
-    // Set the balance to 0.
-    balanceOf[_projectId] = 0;
-
-    // Tell the controller to swap the terminals.
-    directory.controllerOf(_projectId).swapTerminalOf(_projectId, _to);
-
-    // Move the funds to the new contract if needed.
-    if (_balance > 0) _to.addToBalanceOf{value: _balance}(_projectId, 'Migration');
+    store.recordMigration(_projectId, _to);
 
     emit Migrate(_projectId, _to, _balance, msg.sender);
   }
@@ -507,12 +427,43 @@ contract JBETHPaymentTerminal is
     require(msg.value > 0, 'NO_OP');
 
     // Record the added funds in the data later.
-    _recordAddedBalanceFor(_projectId, msg.value);
+    store.recordAddedBalanceFor(_projectId, msg.value);
 
     // Deposit the funds in the vault.
     vault.deposit{value: msg.value}(_projectId, 0);
 
     emit AddToBalance(_projectId, msg.value, _memo, msg.sender);
+  }
+
+  /**
+    @notice
+    Process any fees that are being held for the project.
+
+    @dev
+    Only a project owner, an operator, or the contract's owner can process held fees.
+
+    @param _projectId The ID of the project whos held fees should be processed.
+  */
+  function processFees(uint256 _projectId)
+    external
+    requirePermissionAllowingOverride(
+      projects.ownerOf(_projectId),
+      _projectId,
+      JBOperations.PROCESS_FEES,
+      msg.sender == owner()
+    )
+  {
+    // Get a reference to the project's held fees.
+    JBFee[] memory _pendingFees = _heldFeesOf[_projectId];
+
+    // Process each fee.
+    for (uint256 _i = 0; _i < _pendingFees.length; _i++)
+      _takeFee(_pendingFees[_i].amount, _pendingFees[_i].beneficiary, _pendingFees[_i].memo);
+
+    // Delete the held fee's now that they've been processed.
+    delete _heldFeesOf[_projectId];
+
+    emit ProcessFees(_projectId, _pendingFees);
   }
 
   //*********************************************************************//
@@ -619,32 +570,42 @@ contract JBETHPaymentTerminal is
     @notice 
     Takes a fee into the platform's project, which has an id of 1.
 
+    @param _fundingCycle The funding cycle during which the fee is being taken. 
     @param _amount The amount to take a fee from.
-    @param _percent The percent fee to take. Out of 200.
     @param _beneficiary The address to print the platforms tokens for.
     @param _memo A memo to send with the fee.
 
     @return feeAmount The amount of the fee taken.
   */
   function _takeFeeFrom(
+    JBFundingCycle memory _fundingCycle,
     uint256 _amount,
-    uint256 _percent,
     address _beneficiary,
     string memory _memo
   ) private returns (uint256 feeAmount) {
     // The amount of ETH from the _tappedAmount to pay as a fee.
-    feeAmount = _amount - PRBMath.mulDiv(_amount, 200, _percent + 200);
+    feeAmount = _amount - PRBMath.mulDiv(_amount, 200, _fundingCycle.fee + 200);
 
     // Nothing to do if there's no fee to take.
     if (feeAmount == 0) return 0;
 
+    _fundingCycle.shouldHoldFees()
+      ? _heldFeesOf[_fundingCycle.projectId].push(JBFee(feeAmount, _beneficiary, _memo)) // Take the fee.
+      : _takeFee(feeAmount, _beneficiary, _memo);
+  }
+
+  function _takeFee(
+    uint256 _amount,
+    address _beneficiary,
+    string memory _memo
+  ) private {
     // Get the terminal for the JuiceboxDAO project.
     IJBTerminal _terminal = directory.terminalOf(1, vault.token());
 
     // When processing the admin fee, save gas if the admin is using this contract as its terminal.
     _terminal == this // Use the local pay call.
-      ? _pay(feeAmount, 1, _beneficiary, 0, false, _memo, bytes('')) // Use the external pay call of the correct terminal.
-      : _terminal.pay{value: feeAmount}(1, _beneficiary, 0, false, _memo, bytes(''));
+      ? _pay(_amount, 1, _beneficiary, 0, false, _memo, bytes('')) // Use the external pay call of the correct terminal.
+      : _terminal.pay{value: _amount}(1, _beneficiary, 0, false, _memo, bytes(''));
   }
 
   /**
@@ -671,7 +632,7 @@ contract JBETHPaymentTerminal is
     uint256 _tokenCount;
 
     // Record the payment in the data layer.
-    (_fundingCycle, _weight, _tokenCount, _memo) = _recordPaymentFrom(
+    (_fundingCycle, _weight, _tokenCount, _memo) = store.recordPaymentFrom(
       msg.sender,
       _amount,
       _projectId,
@@ -694,411 +655,5 @@ contract JBETHPaymentTerminal is
     );
 
     return _fundingCycle.id;
-  }
-
-  /**
-    @notice
-    Records newly contributed ETH to a project made at the payment layer.
-
-    @dev
-    Mint's the project's tokens according to values provided by a configured data source. If no data source is configured, mints tokens proportional to the amount of the contribution.
-
-    @dev
-    The msg.value is the amount of the contribution in wei.
-
-    @param _payer The original address that sent the payment to the payment layer.
-    @param _amount The amount that is being paid.
-    @param _projectId The ID of the project being contribute to.
-    @param _preferClaimedTokensAndBeneficiary Two properties are included in this packed uint256:
-      The first bit contains the flag indicating whether the request prefers to issue tokens unstaked rather than staked.
-      The remaining bits contains the address that should receive benefits from the payment.
-
-      This design is necessary two prevent a "Stack too deep" compiler error that comes up if the variables are declared seperately.
-    @param _minReturnedTokens The minimum number of tokens expected in return.
-    @param _memo A memo that will be included in the published event.
-    @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
-
-    @return fundingCycle The funding cycle during which payment was made.
-    @return weight The weight according to which new token supply was minted.
-    @return tokenCount The number of tokens that were minted.
-    @return memo A memo that should be included in the published event.
-  */
-  function _recordPaymentFrom(
-    address _payer,
-    uint256 _amount,
-    uint256 _projectId,
-    uint256 _preferClaimedTokensAndBeneficiary,
-    uint256 _minReturnedTokens,
-    string memory _memo,
-    bytes memory _delegateMetadata
-  )
-    private
-    returns (
-      JBFundingCycle memory fundingCycle,
-      uint256 weight,
-      uint256 tokenCount,
-      string memory memo
-    )
-  {
-    // Get a reference to the current funding cycle for the project.
-    fundingCycle = fundingCycleStore.currentOf(_projectId);
-
-    // The project must have a funding cycle configured.
-    require(fundingCycle.number > 0, 'NOT_FOUND');
-
-    // Must not be paused.
-    require(!fundingCycle.payPaused(), 'PAUSED');
-
-    // Save a reference to the delegate to use.
-    IJBPayDelegate _delegate;
-
-    // If the funding cycle has configured a data source, use it to derive a weight and memo.
-    if (fundingCycle.useDataSourceForPay()) {
-      (weight, memo, _delegate, _delegateMetadata) = fundingCycle.dataSource().payParams(
-        JBPayParamsData(
-          _payer,
-          _amount,
-          fundingCycle.weight,
-          fundingCycle.reservedRate(),
-          address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
-          _memo,
-          _delegateMetadata
-        )
-      );
-      // Otherwise use the funding cycle's weight
-    } else {
-      weight = fundingCycle.weight;
-      memo = _memo;
-    }
-
-    // Multiply the amount by the weight to determine the amount of tokens to mint.
-    uint256 _weightedAmount = PRBMathUD60x18.mul(_amount, weight);
-
-    // Only print the tokens that are unreserved.
-    tokenCount = PRBMath.mulDiv(_weightedAmount, 200 - fundingCycle.reservedRate(), 200);
-
-    // The token count must be greater than or equal to the minimum expected.
-    require(tokenCount >= _minReturnedTokens, 'INADEQUATE');
-
-    // Add the amount to the balance of the project.
-    balanceOf[_projectId] = balanceOf[_projectId] + _amount;
-
-    if (_weightedAmount > 0)
-      directory.controllerOf(_projectId).mintTokensOf(
-        _projectId,
-        tokenCount,
-        address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
-        'ETH received',
-        (_preferClaimedTokensAndBeneficiary & 1) == 0,
-        true
-      );
-
-    // If a delegate was returned by the data source, issue a callback to it.
-    if (_delegate != IJBPayDelegate(address(0))) {
-      JBDidPayData memory _data = JBDidPayData(
-        _payer,
-        _projectId,
-        _amount,
-        weight,
-        tokenCount,
-        payable(address(uint160(_preferClaimedTokensAndBeneficiary >> 1))),
-        memo,
-        _delegateMetadata
-      );
-      _delegate.didPay(_data);
-      emit DelegateDidPay(_delegate, _data);
-    }
-  }
-
-  /**
-    @notice
-    Records newly withdrawn funds for a project made at the payment layer.
-
-    @param _projectId The ID of the project that is having funds withdrawn.
-    @param _amount The amount being withdrawn. Send as wei (18 decimals).
-    @param _currency The expected currency of the `_amount` being tapped. This must match the project's current funding cycle's currency.
-    @param _minReturnedWei The minimum number of wei that should be withdrawn.
-
-    @return fundingCycle The funding cycle during which the withdrawal was made.
-    @return withdrawnAmount The amount withdrawn.
-  */
-  function _recordWithdrawalFor(
-    uint256 _projectId,
-    uint256 _amount,
-    uint256 _currency,
-    uint256 _minReturnedWei
-  ) private returns (JBFundingCycle memory fundingCycle, uint256 withdrawnAmount) {
-    // Registers the funds as withdrawn and gets the ID of the funding cycle during which this withdrawal is being made.
-    fundingCycle = directory.controllerOf(_projectId).signalWithdrawlFrom(_projectId, _amount);
-
-    // Funds cannot be withdrawn if there's no funding cycle.
-    require(fundingCycle.id > 0, 'NOT_FOUND');
-
-    // The funding cycle must not be paused.
-    require(!fundingCycle.tapPaused(), 'PAUSED');
-
-    // Make sure the currencies match.
-    require(_currency == fundingCycle.currency, 'UNEXPECTED_CURRENCY');
-
-    // Convert the amount to wei.
-    withdrawnAmount = PRBMathUD60x18.div(
-      _amount,
-      prices.priceFor(fundingCycle.currency, JBCurrencies.ETH)
-    );
-
-    // The amount being withdrawn must be at least as much as was expected.
-    require(_minReturnedWei <= withdrawnAmount, 'INADEQUATE');
-
-    // The amount being withdrawn must be available.
-    require(withdrawnAmount <= balanceOf[_projectId], 'INSUFFICIENT_FUNDS');
-
-    // Removed the withdrawn funds from the project's balance.
-    balanceOf[_projectId] = balanceOf[_projectId] - withdrawnAmount;
-  }
-
-  /** 
-    @notice 
-    Records newly used allowance funds of a project made at the payment layer.
-
-    @param _projectId The ID of the project to use the allowance of.
-    @param _amount The amount of the allowance to use.
-
-    @return fundingCycle The funding cycle during which the withdrawal is being made.
-    @return withdrawnAmount The amount withdrawn.
-  */
-  function _recordUsedAllowanceOf(
-    uint256 _projectId,
-    uint256 _amount,
-    uint256 _currency,
-    uint256 _minReturnedWei
-  ) private returns (JBFundingCycle memory fundingCycle, uint256 withdrawnAmount) {
-    // Get a reference to the project's current funding cycle.
-    fundingCycle = fundingCycleStore.currentOf(_projectId);
-
-    // Make sure the currencies match.
-    require(_currency == fundingCycle.currency, 'UNEXPECTED_CURRENCY');
-
-    // Convert the amount to wei.
-    withdrawnAmount = PRBMathUD60x18.div(
-      _amount,
-      prices.priceFor(fundingCycle.currency, JBCurrencies.ETH)
-    );
-
-    // There must be sufficient allowance available.
-    require(
-      withdrawnAmount <=
-        directory.controllerOf(_projectId).overflowAllowanceOf(
-          _projectId,
-          fundingCycle.configured,
-          this
-        ) -
-          usedOverflowAllowanceOf[_projectId][fundingCycle.configured],
-      'NOT_ALLOWED'
-    );
-
-    // The amount being withdrawn must be at least as much as was expected.
-    require(_minReturnedWei <= withdrawnAmount, 'INADEQUATE');
-
-    // The amount being withdrawn must be available.
-    require(withdrawnAmount <= balanceOf[_projectId], 'INSUFFICIENT_FUNDS');
-
-    // Store the decremented value.
-    usedOverflowAllowanceOf[_projectId][fundingCycle.configured] =
-      usedOverflowAllowanceOf[_projectId][fundingCycle.configured] +
-      withdrawnAmount;
-
-    // Update the project's balance.
-    balanceOf[_projectId] = balanceOf[_projectId] - withdrawnAmount;
-  }
-
-  /**
-    @notice
-    Records newly redeemed tokens of a project made at the payment layer.
-
-    @param _holder The account that is having its tokens redeemed.
-    @param _projectId The ID of the project to which the tokens being redeemed belong.
-    @param _tokenCount The number of tokens to redeem.
-    @param _minReturnedWei The minimum amount of wei expected in return.
-    @param _beneficiary The address that will benefit from the claimed amount.
-    @param _memo A memo to pass along to the emitted event.
-    @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
-
-    @return fundingCycle The funding cycle during which the redemption was made.
-    @return claimAmount The amount claimed.
-    @return memo A memo that should be passed along to the emitted event.
-  */
-  function _recordRedemptionFor(
-    address _holder,
-    uint256 _projectId,
-    uint256 _tokenCount,
-    uint256 _minReturnedWei,
-    address payable _beneficiary,
-    string memory _memo,
-    bytes memory _delegateMetadata
-  )
-    private
-    returns (
-      JBFundingCycle memory fundingCycle,
-      uint256 claimAmount,
-      string memory memo
-    )
-  {
-    // The holder must have the specified number of the project's tokens.
-    require(tokenStore.balanceOf(_holder, _projectId) >= _tokenCount, 'INSUFFICIENT_TOKENS');
-
-    // Get a reference to the project's current funding cycle.
-    fundingCycle = fundingCycleStore.currentOf(_projectId);
-
-    // The current funding cycle must not be paused.
-    require(!fundingCycle.redeemPaused(), 'PAUSED');
-
-    // Save a reference to the delegate to use.
-    IJBRedemptionDelegate _delegate;
-
-    // If the funding cycle has configured a data source, use it to derive a claim amount and memo.
-    if (fundingCycle.useDataSourceForRedeem()) {
-      (claimAmount, memo, _delegate, _delegateMetadata) = fundingCycle.dataSource().redeemParams(
-        JBRedeemParamsData(
-          _holder,
-          _tokenCount,
-          fundingCycle.redemptionRate(),
-          fundingCycle.ballotRedemptionRate(),
-          _beneficiary,
-          _memo,
-          _delegateMetadata
-        )
-      );
-    } else {
-      claimAmount = _claimableOverflowOf(fundingCycle, _tokenCount);
-      memo = _memo;
-    }
-
-    // The amount being claimed must be at least as much as was expected.
-    require(claimAmount >= _minReturnedWei, 'INADEQUATE');
-
-    // The amount being claimed must be within the project's balance.
-    require(claimAmount <= balanceOf[_projectId], 'INSUFFICIENT_FUNDS');
-
-    // Redeem the tokens, which burns them.
-    if (_tokenCount > 0)
-      directory.controllerOf(_projectId).burnTokensOf(
-        _holder,
-        _projectId,
-        _tokenCount,
-        'Redeem for ETH',
-        true
-      );
-
-    // Remove the redeemed funds from the project's balance.
-    if (claimAmount > 0) balanceOf[_projectId] = balanceOf[_projectId] - claimAmount;
-
-    // If a delegate was returned by the data source, issue a callback to it.
-    if (_delegate != IJBRedemptionDelegate(address(0))) {
-      JBDidRedeemData memory _data = JBDidRedeemData(
-        _holder,
-        _projectId,
-        _tokenCount,
-        claimAmount,
-        _beneficiary,
-        memo,
-        _delegateMetadata
-      );
-      _delegate.didRedeem(_data);
-      emit DelegateDidRedeem(_delegate, _data);
-    }
-  }
-
-  /**
-    @notice
-    Records newly added funds for the project made at the payment layer.
-
-    @dev
-    Only the payment layer can record added balance.
-
-    @param _projectId The ID of the project to which the funds being added belong.
-    @param _amount The amount added, in wei.
-  */
-  function _recordAddedBalanceFor(uint256 _projectId, uint256 _amount) private {
-    // Set the balance.
-    balanceOf[_projectId] = balanceOf[_projectId] + _amount;
-  }
-
-  /**
-    @notice
-    See docs for `claimableOverflowOf`
-  */
-  function _claimableOverflowOf(JBFundingCycle memory _fundingCycle, uint256 _tokenCount)
-    private
-    view
-    returns (uint256)
-  {
-    // Get the amount of current overflow.
-    uint256 _currentOverflow = _overflowFrom(_fundingCycle);
-
-    // If there is no overflow, nothing is claimable.
-    if (_currentOverflow == 0) return 0;
-
-    // Get the total number of tokens in circulation.
-    uint256 _totalSupply = tokenStore.totalSupplyOf(_fundingCycle.projectId);
-
-    // Get the number of reserved tokens the project has.
-    uint256 _reservedTokenAmount = directory
-      .controllerOf(_fundingCycle.projectId)
-      .reservedTokenBalanceOf(_fundingCycle.projectId, _fundingCycle.reservedRate());
-
-    // If there are reserved tokens, add them to the total supply.
-    if (_reservedTokenAmount > 0) _totalSupply = _totalSupply + _reservedTokenAmount;
-
-    // If the amount being redeemed is the the total supply, return the rest of the overflow.
-    if (_tokenCount == _totalSupply) return _currentOverflow;
-
-    // Get a reference to the linear proportion.
-    uint256 _base = PRBMath.mulDiv(_currentOverflow, _tokenCount, _totalSupply);
-
-    // Use the ballot redemption rate if the queued cycle is pending approval according to the previous funding cycle's ballot.
-    uint256 _redemptionRate = fundingCycleStore.currentBallotStateOf(_fundingCycle.projectId) ==
-      JBBallotState.Active
-      ? _fundingCycle.ballotRedemptionRate()
-      : _fundingCycle.redemptionRate();
-
-    // These conditions are all part of the same curve. Edge conditions are separated because fewer operation are necessary.
-    if (_redemptionRate == 200) return _base;
-    if (_redemptionRate == 0) return 0;
-    return
-      PRBMath.mulDiv(
-        _base,
-        _redemptionRate + PRBMath.mulDiv(_tokenCount, 200 - _redemptionRate, _totalSupply),
-        200
-      );
-  }
-
-  /**
-    @notice
-    Gets the amount that is overflowing if measured from the specified funding cycle.
-
-    @dev
-    This amount changes as the price of ETH changes in relation to the funding cycle's currency.
-
-    @param _fundingCycle The ID of the funding cycle to base the overflow on.
-
-    @return overflow The overflow of funds.
-  */
-  function _overflowFrom(JBFundingCycle memory _fundingCycle) private view returns (uint256) {
-    // Get the current balance of the project.
-    uint256 _balanceOf = balanceOf[_fundingCycle.projectId];
-
-    // If there's no balance, there's no overflow.
-    if (_balanceOf == 0) return 0;
-
-    // Get a reference to the amount still withdrawable during the funding cycle.
-    uint256 _limit = _fundingCycle.target - _fundingCycle.tapped;
-
-    // Convert the limit to ETH.
-    uint256 _ethLimit = _limit == 0
-      ? 0 // Get the current price of ETH.
-      : PRBMathUD60x18.div(_limit, prices.priceFor(_fundingCycle.currency, JBCurrencies.ETH));
-
-    // Overflow is the balance of this project minus the amount that can still be withdrawn.
-    return _balanceOf < _ethLimit ? 0 : _balanceOf - _ethLimit;
   }
 }

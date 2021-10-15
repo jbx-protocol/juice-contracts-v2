@@ -3,6 +3,7 @@ pragma solidity 0.8.6;
 
 import './IJBOperatorStore.sol';
 import './IJBProjects.sol';
+import './IJBDirectory.sol';
 import './IJBSplitAllocator.sol';
 
 import './../structs/JBSplit.sol';
