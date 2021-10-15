@@ -45,12 +45,6 @@ contract JBETHPaymentTerminal is
   //*********************************************************************//
 
   /** 
-    @notice 
-    The contract that exposes price feeds.
-  */
-  IJBPrices public immutable override prices;
-
-  /** 
     @notice
     The Projects contract which mints ERC-721's that represent project ownership and transfers.
   */
@@ -79,6 +73,18 @@ contract JBETHPaymentTerminal is
     The contract that stores splits for each project.
   */
   IJBSplitsStore public immutable override splitsStore;
+
+  /** 
+    @notice 
+    The contract that exposes price feeds.
+  */
+  IJBPrices public immutable override prices;
+
+  /** 
+    @notice 
+    The contract that stores the ETH.
+  */
+  IJBVault public immutable override vault;
 
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
@@ -110,8 +116,6 @@ contract JBETHPaymentTerminal is
     @return The current overflow allowance for the specified project configuration. Decreases as projects use of the allowance.
   */
   mapping(uint256 => mapping(uint256 => uint256)) public override usedOverflowAllowanceOf;
-
-  IJBVault public override vault;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -190,6 +194,15 @@ contract JBETHPaymentTerminal is
     tokenStore = _tokenStore;
     splitsStore = _splitsStore;
     vault = _vault;
+  }
+
+  //*********************************************************************//
+  // ---------------------------- receive ------------------------------ //
+  //*********************************************************************//
+
+  // Only the vault can transfer ETH into this contract.
+  receive() external payable {
+    require(msg.sender == address(vault), 'TODO');
   }
 
   //*********************************************************************//
@@ -451,9 +464,9 @@ contract JBETHPaymentTerminal is
     Only a project's owner or a designated operator can migrate it.
 
     @param _projectId The ID of the project being migrated.
-    @param _terminal The terminal contract that will gain the project's funds.
+    @param _to The terminal contract that will gain the project's funds.
   */
-  function migrate(uint256 _projectId, IJBTerminal _terminal)
+  function migrate(uint256 _projectId, IJBTerminal _to)
     external
     override
     nonReentrant
@@ -461,7 +474,7 @@ contract JBETHPaymentTerminal is
   {
     require(directory.isTerminalOf(_projectId, address(this)), 'UNAUTHORIZED');
 
-    require(vault.token() == _terminal.vault().token(), 'TODO');
+    require(vault.token() == _to.vault().token(), 'TODO');
 
     // Get a reference to the project's currently recorded balance.
     uint256 _balance = balanceOf[_projectId];
@@ -474,17 +487,12 @@ contract JBETHPaymentTerminal is
     balanceOf[_projectId] = 0;
 
     // Tell the controller to swap the terminals.
-    directory.controllerOf(_projectId).swapTerminal(_projectId, _terminal);
+    directory.controllerOf(_projectId).swapTerminalOf(_projectId, _to);
 
     // Move the funds to the new contract if needed.
-    if (_balance > 0) _terminal.addToBalanceOf{value: _balance}(_projectId, 'Migration');
+    if (_balance > 0) _to.addToBalanceOf{value: _balance}(_projectId, 'Migration');
 
-    emit TransferBalance(_projectId, _terminal, _balance, msg.sender);
-  }
-
-  // Only the vault can transfer ETH into this contract.
-  receive() external payable {
-    require(msg.sender == address(vault), 'TODO');
+    emit Migrate(_projectId, _to, _balance, msg.sender);
   }
 
   /**

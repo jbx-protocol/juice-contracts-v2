@@ -8,7 +8,7 @@ import './libraries/JBOperations.sol';
 
 /**
   @notice
-  Allows project owners to deploy proxy contracts that can pay them when receiving funds directly.
+  Keeps a reference of which terminal contracts each project is currently accepting funds through, and which controller contract is managing each project's tokens and funding cycles.
 */
 contract JBDirectory is IJBDirectory, JBOperatable {
   //*********************************************************************//
@@ -87,9 +87,10 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     override
     returns (IJBTerminal)
   {
-    for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++)
-      if (_terminalsOf[_projectId][_i].vault().token() == _token)
-        return _terminalsOf[_projectId][_i];
+    for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++) {
+      IJBTerminal _terminal = _terminalsOf[_projectId][_i];
+      if (_terminal.vault().token() == _token) return _terminal;
+    }
 
     return IJBTerminal(address(0));
   }

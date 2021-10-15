@@ -15,12 +15,7 @@ import './IJBController.sol';
 
 interface IJBETHPaymentTerminal {
   event AddToBalance(uint256 indexed projectId, uint256 value, string memo, address caller);
-  event TransferBalance(
-    uint256 indexed projectId,
-    IJBTerminal indexed to,
-    uint256 amount,
-    address caller
-  );
+  event Migrate(uint256 indexed projectId, IJBTerminal indexed to, uint256 amount, address caller);
   event DistributePayouts(
     uint256 indexed fundingCycleId,
     uint256 indexed projectId,

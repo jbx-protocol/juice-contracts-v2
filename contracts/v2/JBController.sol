@@ -522,7 +522,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     @param _projectId The ID of the project that is swapping terminals.
     @param _terminal The terminal that is being swapped to.
   */
-  function swapTerminal(uint256 _projectId, IJBTerminal _terminal)
+  function swapTerminalOf(uint256 _projectId, IJBTerminal _terminal)
     external
     override
     onlyTerminal(_projectId)
@@ -540,7 +540,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
 
     @param _projectId The ID of the project that will be migrated to this controller.
   */
-  function prepForMigration(uint256 _projectId, IJBController) external override {
+  function prepForMigrationOf(uint256 _projectId, IJBController) external override {
     // This controller must not be the project's current controller.
     require(directory.controllerOf(_projectId) != this, 'UNAUTHORIZED');
 
@@ -567,7 +567,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
       _distributeReservedTokensOf(_projectId, '');
 
     // Make sure the new controller is prepped for the migration.
-    _to.prepForMigration(_projectId, this);
+    _to.prepForMigrationOf(_projectId, this);
 
     // Set the new controller.
     directory.setControllerOf(_projectId, _to);

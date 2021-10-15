@@ -8,7 +8,20 @@ import './abstract/JBTerminalUtility.sol';
 import './interfaces/IJBDirectory.sol';
 import './interfaces/IJBVault.sol';
 
-contract JBETHPaymentTerminal is IJBVault, JBTerminalUtility {
+/**
+  @notice
+  Stores ETH.
+*/
+contract JBETHVault is IJBVault, JBTerminalUtility {
+  /** 
+    @notice 
+    The token that this vault is managing. 
+
+    @dev
+    ETH is represented as the zero address.
+
+    @return The address of the token.
+  */
   function token() external pure override returns (address) {
     return address(0);
   }
@@ -18,12 +31,9 @@ contract JBETHPaymentTerminal is IJBVault, JBTerminalUtility {
   */
   constructor(IJBDirectory _directory) JBTerminalUtility(_directory) {}
 
-  function deposit(uint256 _projectId, uint256 _amount)
-    external
-    payable
-    override
-    onlyTerminal(_projectId)
-  {}
+  function deposit(uint256 _projectId, uint256) external payable override onlyTerminal(_projectId) {
+    emit Deposit(_projectId, msg.value, msg.sender);
+  }
 
   function withdraw(
     uint256 _projectId,
@@ -31,5 +41,6 @@ contract JBETHPaymentTerminal is IJBVault, JBTerminalUtility {
     address payable _to
   ) external override onlyTerminal(_projectId) {
     Address.sendValue(_to, _amount);
+    emit Withdraw(_projectId, _amount, _to, msg.sender);
   }
 }
