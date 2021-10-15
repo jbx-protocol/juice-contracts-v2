@@ -32,7 +32,7 @@ abstract contract JBProject is Ownable {
       Received funds go streight to the project.
     */
   receive() external payable {
-    _pay(msg.sender, '', false);
+    _pay(msg.sender, '', false, address(0));
   }
 
   /** 
@@ -52,9 +52,10 @@ abstract contract JBProject is Ownable {
   function pay(
     address _beneficiary,
     string memory _memo,
-    bool _preferClaimedTokens
+    bool _preferClaimedTokens,
+    address _token
   ) external payable returns (uint256) {
-    return _pay(_beneficiary, _memo, _preferClaimedTokens);
+    return _pay(_beneficiary, _memo, _preferClaimedTokens, _token);
   }
 
   /** 
@@ -70,14 +71,15 @@ abstract contract JBProject is Ownable {
     uint256 _amount,
     address _beneficiary,
     string memory _memo,
-    bool _preferClaimedTokens
+    bool _preferClaimedTokens,
+    address _token
   ) internal {
     _projectId = _projectId > 0 ? _projectId : projectId;
 
     require(_projectId != 0, 'JuiceboxProject::_fundTreasury: PROJECT_NOT_FOUND');
 
     // Find the terminal for this contract's project.
-    IJBTerminal _terminal = directory.terminalOf(_projectId, 0);
+    IJBTerminal _terminal = directory.terminalOf(_projectId, _token);
 
     // There must be a terminal.
     require(
@@ -105,12 +107,13 @@ abstract contract JBProject is Ownable {
   function _pay(
     address _beneficiary,
     string memory _memo,
-    bool _preferClaimedTokens
+    bool _preferClaimedTokens,
+    address _token
   ) private returns (uint256) {
     require(projectId != 0, 'JuiceboxProject::_pay: PROJECT_NOT_FOUND');
 
     // Get the terminal for this contract's project.
-    IJBTerminal _terminal = directory.terminalOf(projectId, 0);
+    IJBTerminal _terminal = directory.terminalOf(projectId, _token);
 
     // There must be a terminal.
     require(_terminal != IJBTerminal(address(0)), 'JuiceboxProject::_pay: TERMINAL_NOT_FOUND');

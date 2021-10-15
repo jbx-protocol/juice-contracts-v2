@@ -2,9 +2,10 @@
 pragma solidity 0.8.6;
 
 import './IJBDirectory.sol';
+import './IJBVault.sol';
 
 interface IJBTerminal {
-  function domain() external view returns (uint256);
+  function vault() external view returns (IJBVault);
 
   function currentETHBalanceOf(uint256 _projectId) external view returns (uint256);
 

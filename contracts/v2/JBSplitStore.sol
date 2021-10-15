@@ -7,7 +7,6 @@ import './libraries/JBOperations.sol';
 import './interfaces/IJBSplitsStore.sol';
 import './interfaces/IJBDirectory.sol';
 import './abstract/JBOperatable.sol';
-import './abstract/JBUtility.sol';
 
 /**
   @notice
@@ -68,8 +67,8 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
 
   /** 
     @param _operatorStore A contract storing operator assignments.
-    @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
-    @param _directory The directory of terminals.
+    @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
+    @param _directory A contract storing directories of terminals and controllers for each project.
   */
   constructor(
     IJBOperatorStore _operatorStore,
@@ -111,7 +110,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
       projects.ownerOf(_projectId),
       _projectId,
       JBOperations.SET_SPLITS,
-      directory.controllerOf(_projectId) == msg.sender
+      address(directory.controllerOf(_projectId)) == msg.sender
     )
   {
     // Get a reference to the project's current splits.

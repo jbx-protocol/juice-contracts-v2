@@ -9,7 +9,7 @@ interface IJBFundingCycleStore {
   event Configure(
     uint256 indexed fundingCycleId,
     uint256 indexed projectId,
-    uint256 indexed reconfigured,
+    uint256 indexed configured,
     JBFundingCycleData data,
     uint256 metadata,
     address caller

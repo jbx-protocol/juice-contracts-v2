@@ -8,21 +8,86 @@ import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 
+import './interfaces/IJBTokenStore.sol';
+import './interfaces/IJBProjects.sol';
+import './interfaces/IJBSplitsStore.sol';
+import './interfaces/IJBTerminal.sol';
+import './interfaces/IJBOperatorStore.sol';
+import './interfaces/IJBFundingCycleDataSource.sol';
+import './interfaces/IJBPrices.sol';
+import './interfaces/IJBController.sol';
+
+import './structs/JBFundingCycleData.sol';
+import './structs/JBFundingCycleMetadata.sol';
+import './structs/JBOverflowAllowance.sol';
+
 // Inheritance
-import './interfaces/IJBControllerV1.sol';
 import './interfaces/IJBController.sol';
 import './abstract/JBOperatable.sol';
+import './abstract/JBTerminalUtility.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
-contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable, ReentrancyGuard {
+/**
+  @notice
+  Stitches together funding cycles and treasury tokens, making sure all activity is accounted for and correct.
+
+  @dev 
+  A project can transfer control from this contract to another allowed controller contract at any time.
+
+  Inherits from:
+
+  IJBController - general interface for the generic controller methods in this contract that interacts with funding cycles and tokens according to the Juicebox protocol's rules.
+  JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
+  Ownable - includes convenience functionality for specifying an address that owns the contract, with modifiers that only allow access by the owner.
+  ReentrencyGuard - several function in this contract shouldn't be accessible recursively.
+*/
+contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable, ReentrancyGuard {
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
-  modifier onlyTerminal(uint256 _projectId) {
-    require(directory.isTerminalOf(_projectId, msg.sender), 'UNAUTHORIZED');
-    _;
-  }
+  event SetOverflowAllowance(
+    uint256 indexed projectId,
+    uint256 indexed configuration,
+    JBOverflowAllowance allowance,
+    address caller
+  );
+  event DistributeReservedTokens(
+    uint256 indexed fundingCycleId,
+    uint256 indexed projectId,
+    address indexed beneficiary,
+    uint256 count,
+    uint256 projectOwnerTokenCount,
+    string memo,
+    address caller
+  );
+
+  event DistributeToReservedTokenSplit(
+    uint256 indexed fundingCycleId,
+    uint256 indexed projectId,
+    JBSplit split,
+    uint256 tokenCount,
+    address caller
+  );
+
+  event MintTokens(
+    address indexed beneficiary,
+    uint256 indexed projectId,
+    uint256 indexed count,
+    string memo,
+    bool shouldReserveTokens,
+    address caller
+  );
+
+  event BurnTokens(
+    address indexed holder,
+    uint256 indexed projectId,
+    uint256 count,
+    string memo,
+    address caller
+  );
+
+  event Migrate(uint256 indexed projectId, IJBController to, address caller);
 
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
@@ -43,31 +108,25 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     @notice 
     The Projects contract which mints ERC-721's that represent project ownership.
   */
-  IJBProjects public immutable override projects;
-
-  /** 
-    @notice
-    The directory of terminals.
-  */
-  IJBDirectory public immutable override directory;
+  IJBProjects public immutable projects;
 
   /** 
     @notice 
     The contract storing all funding cycle configurations.
   */
-  IJBFundingCycleStore public immutable override fundingCycleStore;
+  IJBFundingCycleStore public immutable fundingCycleStore;
 
   /** 
     @notice 
     The contract that manages token minting and burning.
   */
-  IJBTokenStore public immutable override tokenStore;
+  IJBTokenStore public immutable tokenStore;
 
   /** 
     @notice 
     The contract that stores splits for each project.
   */
-  IJBSplitsStore public immutable override splitsStore;
+  IJBSplitsStore public immutable splitsStore;
 
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
@@ -97,7 +156,7 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     @dev 
     Out of 200.
   */
-  uint256 public override fee = 10;
+  uint256 public fee = 10;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -132,11 +191,11 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
 
   /**
     @param _operatorStore A contract storing operator assignments.
-    @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
-    @param _directory The directory of terminals.
-    @param _fundingCycleStore The contract storing all funding cycle configurations.
-    @param _tokenStore The contract that manages token minting and burning.
-    @param _splitsStore The contract that stores splits for each project.
+    @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
+    @param _directory A contract storing directories of terminals and controllers for each project.
+    @param _fundingCycleStore A contract storing all funding cycle configurations.
+    @param _tokenStore A contract that manages token minting and burning.
+    @param _splitsStore A contract that stores splits for each project.
   */
   constructor(
     IJBOperatorStore _operatorStore,
@@ -145,9 +204,8 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     IJBFundingCycleStore _fundingCycleStore,
     IJBTokenStore _tokenStore,
     IJBSplitsStore _splitsStore
-  ) JBOperatable(_operatorStore) {
+  ) JBTerminalUtility(_directory) JBOperatable(_operatorStore) {
     projects = _projects;
-    directory = _directory;
     fundingCycleStore = _fundingCycleStore;
     tokenStore = _tokenStore;
     splitsStore = _splitsStore;
@@ -176,12 +234,10 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
       @dev _data.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
       @dev _data.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
       @dev _data.duration The duration of the funding cycle for which the `target` amount is needed. Measured in days. Send 0 for cycles that are reconfigurable at any time.
-      @dev _data.cycleLimit The number of cycles that this configuration should last for before going back to the last permanent cycle. This has no effect for a project's first funding cycle.
-      @dev _data.discountRate A number from 0-200 (0-20%) indicating how many tokens will be minted as a result of a contribution made to this funding cycle compared to one made to the project's next funding cycle.
-        If it's 0 (0%), each funding cycle's will have equal weight.
-        If the number is 100 (10%), a contribution to the next funding cycle will only mint 90% of tokens that a contribution of the same amount made during the current funding cycle mints.
-        If the number is 200 (20%), the difference will be 20%. 
-        There's a special case: If the number is 201, the funding cycle will be non-recurring and one-time only.
+      @dev _data.discountRate A number from 0-10000 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
+        If it's 0, each funding cycle will have equal weight.
+        If the number is 9000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
+        If the number is 10001, an non-recurring funding cycle will get made.
       @dev _data.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
     @param _metadata A struct specifying the TerminalV2 specific params that a funding cycle can have.
       @dev _metadata.reservedRate A number from 0-200 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
@@ -210,16 +266,15 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     JBSplit[] memory _payoutSplits,
     JBSplit[] memory _reservedTokenSplits,
     IJBTerminal _terminal
-  ) external override {
+  ) external {
     // Make sure the metadata is validated and packed into a uint256.
     uint256 _packedMetadata = _validateAndPackFundingCycleMetadata(_metadata);
 
-    // Create the project for the owner. This this contract as the project's terminal,
-    // which will give it exclusive access to manage the project's funding cycles and tokens.
+    // Create the project for into the wallet of the message sender.
     uint256 _projectId = projects.createFor(msg.sender, _handle, _uri);
 
     // Set the this contract as the project's controller in the directory.
-    directory.setControllerOf(_projectId, address(this));
+    directory.setControllerOf(_projectId, this);
 
     // Add the provided terminal to the list of terminals.
     if (_terminal != IJBTerminal(address(0))) directory.addTerminalOf(_projectId, _terminal);
@@ -249,12 +304,10 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
       @dev _data.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
       @dev _data.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
       @dev _data.duration The duration of the funding cycle for which the `target` amount is needed. Measured in days. Send 0 for cycles that are reconfigurable at any time.
-      @dev _data.cycleLimit The number of cycles that this configuration should last for before going back to the last permanent cycle. This has no effect for a project's first funding cycle.
-      @dev _data.discountRate A number from 0-200 (0-20%) indicating how many tokens will be minted as a result of a contribution made to this funding cycle compared to one made to the project's next funding cycle.
-        If it's 0 (0%), each funding cycle's will have equal weight.
-        If the number is 100 (10%), a contribution to the next funding cycle will only mint 90% of tokens that a contribution of the same amount made during the current funding cycle mints.
-        If the number is 200 (20%), the difference will be 20%. 
-        There's a special case: If the number is 201, the funding cycle will be non-recurring and one-time only.
+      @dev _data.discountRate A number from 0-10000 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
+        If it's 0, each funding cycle will have equal weight.
+        If the number is 9000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
+        If the number is 10001, an non-recurring funding cycle will get made.
       @dev _data.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
     @param _metadata A struct specifying the TerminalV2 specific params that a funding cycle can have.
       @dev _metadata.reservedRate A number from 0-200 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
@@ -285,9 +338,8 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     JBSplit[] memory _reservedTokenSplits
   )
     external
-    override
     nonReentrant
-    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.CONFIGURE)
+    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
     returns (uint256)
   {
     // Make sure the metadata is validated and packed into a uint256.
@@ -298,8 +350,8 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
       _distributeReservedTokensOf(_projectId, '');
 
     // Set the this contract as the project's controller in the directory if its not already set.
-    if (directory.controllerOf(_projectId) == address(0))
-      directory.setControllerOf(_projectId, address(this));
+    if (address(directory.controllerOf(_projectId)) == address(0))
+      directory.setControllerOf(_projectId, this);
 
     // Configure the active project if its tokens have yet to be minted.
     bool _shouldConfigureActive = tokenStore.totalSupplyOf(_projectId) == 0;
@@ -316,12 +368,23 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
       );
   }
 
-  function withdrawFrom(uint256 _projectId, uint256 _amount)
+  /**
+    @notice
+    Signals that a project's funds are being withdrawn.
+
+    @dev
+    Only a project's terminal can signal a withdrawal.
+
+    @param _projectId The ID of the project that is being withdrawn from.
+    @param _amount The amount to withdraw.
+  */
+  function signalWithdrawlFrom(uint256 _projectId, uint256 _amount)
     external
     override
     onlyTerminal(_projectId)
     returns (JBFundingCycle memory)
   {
+    // Tap from the project's funding cycle.
     return fundingCycleStore.tapFrom(_projectId, _amount);
   }
 
@@ -374,14 +437,14 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
         _processedTokenTrackerOf[_projectId] -
         int256(_tokenCount);
     } else {
+      // Redeem the tokens, which burns them.
+      tokenStore.mintFor(_beneficiary, _projectId, _tokenCount, _preferClaimedTokens);
+
       if (!_shouldReserveTokens)
         // Set the minted tokens as processed so that reserved tokens cant be minted against them.
         _processedTokenTrackerOf[_projectId] =
           _processedTokenTrackerOf[_projectId] +
           int256(_tokenCount);
-
-      // Redeem the tokens, which burns them.
-      tokenStore.mintFor(_beneficiary, _projectId, _tokenCount, _preferClaimedTokens);
     }
 
     emit MintTokens(_beneficiary, _projectId, _tokenCount, _memo, _shouldReserveTokens, msg.sender);
@@ -446,7 +509,6 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
   */
   function distributeReservedTokensOf(uint256 _projectId, string memory _memo)
     external
-    override
     nonReentrant
     returns (uint256)
   {
@@ -460,11 +522,10 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     @param _projectId The ID of the project that is swapping terminals.
     @param _terminal The terminal that is being swapped to.
   */
-  function swapTerminal(uint256 _projectId, IJBTerminal _terminal)
+  function swapTerminalOf(uint256 _projectId, IJBTerminal _terminal)
     external
     override
     onlyTerminal(_projectId)
-    nonReentrant
   {
     // Remove the current terminal.
     directory.removeTerminalOf(_projectId, IJBTerminal(msg.sender));
@@ -473,20 +534,43 @@ contract JBControllerV1 is IJBControllerV1, IJBController, JBOperatable, Ownable
     directory.addTerminalOf(_projectId, _terminal);
   }
 
-  function prepForMigration(uint256 _projectId) external view override {
-    // This TerminalV1 must be the project's current terminal.
-    require(directory.controllerOf(_projectId) != address(this), 'UNAUTHORIZED');
+  /** 
+    @notice
+    Allows other controllers to signal to this one that a migration is expected for the specified project.
+
+    @param _projectId The ID of the project that will be migrated to this controller.
+  */
+  function prepForMigrationOf(uint256 _projectId, IJBController) external override {
+    // This controller must not be the project's current controller.
+    require(directory.controllerOf(_projectId) != this, 'UNAUTHORIZED');
+
+    // Set the tracker as the total supply.
+    _processedTokenTrackerOf[_projectId] = int256(tokenStore.totalSupplyOf(_projectId));
   }
 
+  /** 
+    @notice
+    Allows a project to migrate from this controller to another.
+
+    @param _projectId The ID of the project that will be migrated to this controller.
+  */
   function migrate(uint256 _projectId, IJBController _to)
     external
-    override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_CONTROLLER)
+    nonReentrant
   {
-    // This TerminalV1 must be the project's current terminal.
-    require(directory.controllerOf(_projectId) == address(this), 'UNAUTHORIZED');
-    _to.prepForMigration(_projectId);
-    directory.setControllerOf(_projectId, address(_to));
+    // This controller must be the project's current controller.
+    require(directory.controllerOf(_projectId) == this, 'UNAUTHORIZED');
+
+    // All reserved tokens must be minted before migrating.
+    if (uint256(_processedTokenTrackerOf[_projectId]) != tokenStore.totalSupplyOf(_projectId))
+      _distributeReservedTokensOf(_projectId, '');
+
+    // Make sure the new controller is prepped for the migration.
+    _to.prepForMigrationOf(_projectId, this);
+
+    // Set the new controller.
+    directory.setControllerOf(_projectId, _to);
 
     emit Migrate(_projectId, _to, msg.sender);
   }

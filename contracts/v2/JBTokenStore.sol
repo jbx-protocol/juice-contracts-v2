@@ -3,7 +3,7 @@ pragma solidity 0.8.6;
 
 import './interfaces/IJBTokenStore.sol';
 import './abstract/JBOperatable.sol';
-import './abstract/JBUtility.sol';
+import './abstract/JBControllerUtility.sol';
 
 import './libraries/JBOperations.sol';
 
@@ -23,7 +23,7 @@ import './JBToken.sol';
   @dev
   Each project can bring their own token if they prefer, and swap between tokens at any time.
 */
-contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
+contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
@@ -124,14 +124,14 @@ contract JBTokenStore is JBUtility, JBOperatable, IJBTokenStore {
 
   /** 
     @param _operatorStore A contract storing operator assignments.
-    @param _projects A Projects contract which mints ERC-721's that represent project ownership and transfers.
-    @param _directory A directory of a project's current Juicebox terminal to receive payments in.
+    @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
+    @param _directory A contract storing directories of terminals and controllers for each project.
   */
   constructor(
     IJBOperatorStore _operatorStore,
     IJBProjects _projects,
     IJBDirectory _directory
-  ) JBOperatable(_operatorStore) JBUtility(_directory) {
+  ) JBOperatable(_operatorStore) JBControllerUtility(_directory) {
     projects = _projects;
   }
 
