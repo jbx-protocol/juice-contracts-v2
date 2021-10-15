@@ -95,11 +95,26 @@ contract JBETHPaymentTerminal is
   // ------------------------- external views -------------------------- //
   //*********************************************************************//
 
+  /** 
+    @notice 
+    The fees that are currently being held to be processed later.
+
+    @param _projectId The ID of the project for which the returned fees are being held.
+
+    @return An array of fees that are being held.
+  */
   function heldFeesOf(uint256 _projectId) external view override returns (JBFee[] memory) {
     return _heldFeesOf[_projectId];
   }
 
+  /** 
+    @notice
+    An address that serves as this terminal's delegate when making requests to juicebox ecosystem contracts.
+
+    @return The delegate address.
+  */
   function delegate() external view override returns (address) {
+    // The store is the delegate.
     return address(store);
   }
 
@@ -398,8 +413,10 @@ contract JBETHPaymentTerminal is
     nonReentrant
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_TERMINAL)
   {
+    // This contract must be the current terminal.
     require(directory.isTerminalOf(_projectId, this), 'UNAUTHORIZED');
 
+    // The terminal being migrated to must accept the same token as this terminal.
     require(vault.token() == _to.vault().token(), 'TODO');
 
     // Get a reference to the project's currently recorded balance.
@@ -410,6 +427,7 @@ contract JBETHPaymentTerminal is
       // Must withdraw before recording the migration to have access to the vault.
       vault.withdraw(_projectId, _balance, payable(address(_to.vault())));
 
+    // Record the migration in the store.
     store.recordMigration(_projectId, _to);
 
     emit Migrate(_projectId, _to, _balance, msg.sender);
@@ -427,10 +445,13 @@ contract JBETHPaymentTerminal is
     require(msg.value > 0, 'NO_OP');
 
     // Record the added funds in the data later.
-    store.recordAddedBalanceFor(_projectId, msg.value);
+    JBFundingCycle memory _fundingCycle = store.recordAddedBalanceFor(_projectId, msg.value);
 
     // Deposit the funds in the vault.
     vault.deposit{value: msg.value}(_projectId, 0);
+
+    // Refund any held fees to make sure the project doesn't pay double for funds going in and out of the protocol.
+    _refundHeldFees(_projectId, msg.value, _fundingCycle.fee);
 
     emit AddToBalance(_projectId, msg.value, _memo, msg.sender);
   }
@@ -454,16 +475,16 @@ contract JBETHPaymentTerminal is
     )
   {
     // Get a reference to the project's held fees.
-    JBFee[] memory _pendingFees = _heldFeesOf[_projectId];
+    JBFee[] memory _heldFees = _heldFeesOf[_projectId];
 
     // Process each fee.
-    for (uint256 _i = 0; _i < _pendingFees.length; _i++)
-      _takeFee(_pendingFees[_i].amount, _pendingFees[_i].beneficiary, _pendingFees[_i].memo);
+    for (uint256 _i = 0; _i < _heldFees.length; _i++)
+      _takeFee(_heldFees[_i].amount, _heldFees[_i].beneficiary, _heldFees[_i].memo);
 
     // Delete the held fee's now that they've been processed.
     delete _heldFeesOf[_projectId];
 
-    emit ProcessFees(_projectId, _pendingFees);
+    emit ProcessFees(_projectId, _heldFees);
   }
 
   //*********************************************************************//
@@ -521,7 +542,7 @@ contract JBETHPaymentTerminal is
           // Otherwise, if a project is specified, make a payment to it.
         } else if (_split.projectId != 0) {
           // Get a reference to the Juicebox terminal being used.
-          IJBTerminal _terminal = directory.terminalOf(_split.projectId, vault.token());
+          IJBTerminal _terminal = directory.primaryTerminalOf(_split.projectId, vault.token());
 
           // The project must have a terminal to send funds to.
           require(_terminal != IJBTerminal(address(0)), 'BAD_SPLIT');
@@ -583,7 +604,7 @@ contract JBETHPaymentTerminal is
     address _beneficiary,
     string memory _memo
   ) private returns (uint256 feeAmount) {
-    // The amount of ETH from the _tappedAmount to pay as a fee.
+    // The amount of ETH from the _amount to pay as a fee.
     feeAmount = _amount - PRBMath.mulDiv(_amount, 200, _fundingCycle.fee + 200);
 
     // Nothing to do if there's no fee to take.
@@ -594,13 +615,21 @@ contract JBETHPaymentTerminal is
       : _takeFee(feeAmount, _beneficiary, _memo);
   }
 
+  /** 
+    @notice 
+    Take a fee of the specified amount.
+
+    @param _amount The fee amount.
+    @param _beneficiary The address to print the platforms tokens for.
+    @param _memo A memo to send with the fee.
+  */
   function _takeFee(
     uint256 _amount,
     address _beneficiary,
     string memory _memo
   ) private {
     // Get the terminal for the JuiceboxDAO project.
-    IJBTerminal _terminal = directory.terminalOf(1, vault.token());
+    IJBTerminal _terminal = directory.primaryTerminalOf(1, vault.token());
 
     // When processing the admin fee, save gas if the admin is using this contract as its terminal.
     _terminal == this // Use the local pay call.
@@ -655,5 +684,42 @@ contract JBETHPaymentTerminal is
     );
 
     return _fundingCycle.id;
+  }
+
+  /** 
+    @notice
+    Refund fees based on the specified amount.
+
+    @param _projectId The project for which fees are being refunded.
+    @param _amount The amount to base the refund on.
+    @param _percent The current fee percent to issue a refund based on.
+  */
+  function _refundHeldFees(
+    uint256 _projectId,
+    uint256 _amount,
+    uint256 _percent
+  ) private {
+    // The amount of fees that were taken from an original payout to yield the provided amount.
+    uint256 _refundAmount = PRBMath.mulDiv(_amount, _percent + 200, 200) - _amount;
+
+    // Get a reference to the project's held fees.
+    JBFee[] memory _heldFees = _heldFeesOf[_projectId];
+
+    // Delete the current held fees.
+    delete _heldFeesOf[_projectId];
+
+    // Process each fee.
+    for (uint256 _i = 0; _i < _heldFees.length; _i++) {
+      if (_refundAmount == 0) {
+        _heldFeesOf[_projectId].push(_heldFees[_i]);
+      } else if (_refundAmount >= _heldFees[_i].amount) {
+        _refundAmount = _refundAmount - _heldFees[_i].amount;
+      } else {
+        _heldFeesOf[_projectId].push(
+          JBFee(_heldFees[_i].amount - _refundAmount, _heldFees[_i].beneficiary, _heldFees[_i].memo)
+        );
+        _refundAmount = 0;
+      }
+    }
   }
 }

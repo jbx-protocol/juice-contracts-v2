@@ -163,6 +163,10 @@ contract JBETHPaymentTerminalStore is Ownable {
     tokenStore = _tokenStore;
   }
 
+  //*********************************************************************//
+  // ---------------------- external transactions ---------------------- //
+  //*********************************************************************//
+
   /**
     @notice
     Records newly contributed ETH to a project made at the payment layer.
@@ -483,16 +487,32 @@ contract JBETHPaymentTerminalStore is Ownable {
     Records newly added funds for the project made at the payment layer.
 
     @dev
-    Only the payment layer can record added balance.
+    Only the owner can record added balance.
 
     @param _projectId The ID of the project to which the funds being added belong.
     @param _amount The amount added, in wei.
+
+    @return fundingCycle The current funding cycle for the project.
   */
-  function recordAddedBalanceFor(uint256 _projectId, uint256 _amount) external onlyOwner {
+  function recordAddedBalanceFor(uint256 _projectId, uint256 _amount)
+    external
+    onlyOwner
+    returns (JBFundingCycle memory fundingCycle)
+  {
+    // Get a reference to the project's current funding cycle.
+    fundingCycle = fundingCycleStore.currentOf(_projectId);
+
     // Set the balance.
     balanceOf[_projectId] = balanceOf[_projectId] + _amount;
   }
 
+  /** 
+    @notice
+    Records the migration of this terminal to another.
+
+    @param _projectId The ID of the project being migrated.
+    @param _to The terminal being migrated to.  
+  */
   function recordMigration(uint256 _projectId, IJBTerminal _to) external onlyOwner {
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
@@ -506,6 +526,10 @@ contract JBETHPaymentTerminalStore is Ownable {
     // Tell the controller to swap the terminals.
     directory.controllerOf(_projectId).swapTerminalOf(_projectId, _to);
   }
+
+  //*********************************************************************//
+  // --------------------- private helper functions -------------------- //
+  //*********************************************************************//
 
   /**
     @notice
