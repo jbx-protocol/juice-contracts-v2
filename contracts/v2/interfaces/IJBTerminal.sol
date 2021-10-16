@@ -5,7 +5,9 @@ import './IJBDirectory.sol';
 import './IJBVault.sol';
 
 interface IJBTerminal {
-  function vault() external view returns (IJBVault);
+  function token() external view returns (address);
+
+  function ethBalanceOf(uint256 _projectId) external view returns (uint256);
 
   function delegate() external view returns (address);
 

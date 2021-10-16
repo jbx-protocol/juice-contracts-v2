@@ -136,7 +136,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     // Return the first terminal which accepts the specified token.
     for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++) {
       IJBTerminal _terminal = _terminalsOf[_projectId][_i];
-      if (_terminal.vault().token() == _token) return _terminal;
+      if (_terminal.token() == _token) return _terminal;
     }
 
     // Not found.
@@ -260,8 +260,8 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
       if (_terminals[_i] != _terminal) _terminalsOf[_projectId].push(_terminals[_i]);
 
     // If the terminal that is being removed is the primary terminal for the token, delete it from being primary terminal.
-    if (_primaryTerminalOf[_projectId][_terminal.vault().token()] == _terminal)
-      delete _primaryTerminalOf[_projectId][_terminal.vault().token()];
+    if (_primaryTerminalOf[_projectId][_terminal.token()] == _terminal)
+      delete _primaryTerminalOf[_projectId][_terminal.token()];
 
     emit RemoveTerminal(_projectId, _terminal, msg.sender);
   }
@@ -286,7 +286,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     require(_terminal != IJBTerminal(address(0)), '0x2e: ZERO_ADDRESS');
 
     // Get a reference to the token that the terminal's vault accepts.
-    address _token = _terminal.vault().token();
+    address _token = _terminal.token();
 
     // Store the terminal as the primary for the particular token.
     _primaryTerminalOf[_projectId][_token] = _terminal;

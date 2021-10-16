@@ -434,8 +434,11 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-    // The current funding cycle must not be paused.
-    require(_fundingCycle.mintPaused(), 'PAUSED');
+    // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
+    require(
+      !_fundingCycle.mintPaused() || directory.isTerminalDelegateOf(_projectId, msg.sender),
+      'PAUSED'
+    );
 
     if (_shouldReserveTokens && _fundingCycle.reservedRate() == 200) {
       // Subtract the total weighted amount from the tracker so the full reserved token amount can be printed later.
@@ -492,8 +495,11 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-    // The current funding cycle must not be paused.
-    require(_fundingCycle.burnPaused(), 'PAUSED');
+    // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
+    require(
+      !_fundingCycle.burnPaused() || directory.isTerminalDelegateOf(_projectId, msg.sender),
+      'PAUSED'
+    );
 
     // Update the token tracker so that reserved tokens will still be correctly mintable.
     _subtractFromTokenTrackerOf(_projectId, _tokenCount);
@@ -519,25 +525,6 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     returns (uint256)
   {
     return _distributeReservedTokensOf(_projectId, _memo);
-  }
-
-  /** 
-    @notice
-    Allows a terminal to signal to the controller that it is getting replaced by a new terminal.
-
-    @param _projectId The ID of the project that is swapping terminals.
-    @param _terminal The terminal that is being swapped to.
-  */
-  function swapTerminalOf(uint256 _projectId, IJBTerminal _terminal)
-    external
-    override
-    onlyTerminal(_projectId)
-  {
-    // Remove the current terminal.
-    directory.removeTerminalOf(_projectId, IJBTerminal(msg.sender));
-
-    // Add the new terminal.
-    directory.addTerminalOf(_projectId, _terminal);
   }
 
   /** 

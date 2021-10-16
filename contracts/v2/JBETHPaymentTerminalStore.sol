@@ -511,20 +511,21 @@ contract JBETHPaymentTerminalStore is Ownable {
     Records the migration of this terminal to another.
 
     @param _projectId The ID of the project being migrated.
-    @param _to The terminal being migrated to.  
+
+    @return balance The current balance.
   */
-  function recordMigration(uint256 _projectId, IJBTerminal _to) external onlyOwner {
+  function recordMigration(uint256 _projectId) external onlyOwner returns (uint256 balance) {
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Migration must be allowed
     require(_fundingCycle.terminalMigrationAllowed(), 'TODO');
 
+    // Return the current balance.
+    balance = balanceOf[_projectId];
+
     // Set the balance to 0.
     balanceOf[_projectId] = 0;
-
-    // Tell the controller to swap the terminals.
-    directory.controllerOf(_projectId).swapTerminalOf(_projectId, _to);
   }
 
   //*********************************************************************//
