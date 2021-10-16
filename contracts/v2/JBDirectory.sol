@@ -19,7 +19,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
   /** 
     @notice 
-    For each project ID, the juicebox terminals that are currently managing its funds.
+    For each project ID, the terminals that are currently managing its funds.
 
     [_projectId]
   */
@@ -61,7 +61,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
   /** 
     @notice
-    For each project ID, the juicebox terminals that are currently managing its funds.
+    For each project ID, the terminals that are currently managing its funds.
 
     @param _projectId The ID of the project to get terminals of.
 
@@ -187,10 +187,10 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     if (_currentController == _controller) return;
 
     // The project must exist.
-    require(projects.count() >= _projectId, 'NOT_FOUND');
+    require(projects.count() >= _projectId, '0x2b: NOT_FOUND');
 
     // Can't set the zero address.
-    require(_controller != IJBController(address(0)), 'ZERO_ADDRESS');
+    require(_controller != IJBController(address(0)), '0x2c: ZERO_ADDRESS');
 
     // Set the new controller.
     controllerOf[_projectId] = _controller;
@@ -219,7 +219,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     )
   {
     // Can't set the zero address.
-    require(_terminal != IJBTerminal(address(0)), 'ZERO_ADDRESS');
+    require(_terminal != IJBTerminal(address(0)), '0x2d: ZERO_ADDRESS');
 
     // If the terminal is already set, nothing to do.
     if (isTerminalOf(_projectId, _terminal)) return;
@@ -279,6 +279,9 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.SET_PRIMARY_TERMINAL)
   {
+    // Can't set the zero address.
+    require(_terminal != IJBTerminal(address(0)), '0x2e: ZERO_ADDRESS');
+
     // Get a reference to the token that the terminal's vault accepts.
     address _token = _terminal.vault().token();
 
