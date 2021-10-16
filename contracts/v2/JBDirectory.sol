@@ -115,6 +115,9 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @notice
     The primary terminal that is managing funds for a project for a specified token.
 
+    @dev
+    The zero address is returned if a terminal isn't found for the specified token.
+
     @param _projectId The ID of the project to get a terminal for.
     @param _token The token the terminal accepts.
 
@@ -130,7 +133,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     if (_primaryTerminalOf[_projectId][_token] != IJBTerminal(address(0)))
       return _primaryTerminalOf[_projectId][_token];
 
-    // return the first terminal which accepts the specified token.
+    // Return the first terminal which accepts the specified token.
     for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++) {
       IJBTerminal _terminal = _terminalsOf[_projectId][_i];
       if (_terminal.vault().token() == _token) return _terminal;
@@ -158,13 +161,13 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
   /**
     @notice
-    Update the controller that manages how terminals interact with tokens and funding cycles.
+    Update the controller that manages how terminals interact with the ecosystem.
 
     @dev 
-    A controller cant be set if:
-    - case 1: the project owner or an operator is changing the controller.
-    - case 2: the controller hasn't been set yet and the message sender is the controller being set.
-    - case 3: the current controller is setting a new controller.
+    A controller can be set if:
+    - the project owner or an operator is changing the controller.
+    - or, the controller hasn't been set yet and the message sender is the controller being set.
+    - or, the current controller is setting a new controller.
 
     @param _projectId The ID of the project to set a new controller for.
     @param _controller The new controller to set.
@@ -203,7 +206,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     Add a terminal to project's list of terminals.
 
     @dev
-    Only a project owner, an operator, or its controller can add a terminal 
+    Only a project owner, an operator, or its controller can add a terminal.
 
     @param _projectId The ID of the project having a terminal added.
     @param _terminal The terminal to add.
@@ -221,7 +224,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     // Can't set the zero address.
     require(_terminal != IJBTerminal(address(0)), '0x2d: ZERO_ADDRESS');
 
-    // If the terminal is already set, nothing to do.
+    // If the terminal is already in the project's list of terminals, return.
     if (isTerminalOf(_projectId, _terminal)) return;
 
     // Set the new terminal.
@@ -232,7 +235,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
   /** 
     @notice 
-    Removed a terminal from a project's list of terminals.
+    Remove a terminal from a project's list of terminals.
 
     @dev
     Only a project owner or an operator can remove one of its terminals. 
@@ -269,7 +272,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     This is useful in case a project has several terminals connected for a particular token.
 
     @dev
-    The terminal will be set as the primary for the token that it's vault accepts. 
+    The terminal will be set as the primary for the token that its vault accepts. 
 
     @param _projectId The ID of the project for which a primary token is being set.
     @param _terminal The terminal to make primary.
