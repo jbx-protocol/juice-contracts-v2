@@ -261,7 +261,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     @param _payoutSplits Any payout splits to set.
     @param _reservedTokenSplits Any reserved token splits to set.
 
-    @return The ID of the project.
+    @return projectId The ID of the project.
   */
   function launchProjectFor(
     address _owner,
