@@ -1,5 +1,5 @@
-const { ethers } = require('hardhat');
-const { expect } = require('chai');
+import { expect } from 'chai';
+import { BigNumber, utils } from 'ethers';
 
 const tests = {
   success: [
@@ -7,21 +7,21 @@ const tests = {
       description: 'claim handle',
       fn: ({ deployer }) => ({
         caller: deployer,
-        handle: ethers.utils.formatBytes32String('some-handle'),
+        handle: utils.formatBytes32String('some-handle'),
         claimFor: deployer.address,
         setup: {
           source: {
             owner: deployer,
-            handle: ethers.utils.formatBytes32String('some-handle'),
+            handle: utils.formatBytes32String('some-handle'),
           },
           destination: {
             owner: deployer.address,
-            handle: ethers.utils.formatBytes32String('some-other-handle'),
+            handle: utils.formatBytes32String('some-other-handle'),
           },
           transfer: {
             projectId: 1,
             to: deployer.address,
-            newHandle: ethers.utils.formatBytes32String('some-new-handle'),
+            newHandle: utils.formatBytes32String('some-new-handle'),
           },
         },
       }),
@@ -30,21 +30,21 @@ const tests = {
       description: 'called by personal operator',
       fn: ({ deployer, addrs }) => ({
         caller: deployer,
-        handle: ethers.utils.formatBytes32String('some-handle'),
+        handle: utils.formatBytes32String('some-handle'),
         claimFor: addrs[2].address,
         setup: {
           source: {
             owner: deployer,
-            handle: ethers.utils.formatBytes32String('some-handle'),
+            handle: utils.formatBytes32String('some-handle'),
           },
           destination: {
             owner: addrs[0].address,
-            handle: ethers.utils.formatBytes32String('some-other-handle'),
+            handle: utils.formatBytes32String('some-other-handle'),
           },
           transfer: {
             projectId: 1,
             to: addrs[2].address,
-            newHandle: ethers.utils.formatBytes32String('some-new-handle'),
+            newHandle: utils.formatBytes32String('some-new-handle'),
           },
           transferToPermissionFlag: true,
           transferToPersonalPermission: true,
@@ -56,21 +56,21 @@ const tests = {
       description: 'called by project operator',
       fn: ({ deployer, addrs }) => ({
         caller: deployer,
-        handle: ethers.utils.formatBytes32String('some-handle'),
+        handle: utils.formatBytes32String('some-handle'),
         claimFor: addrs[2].address,
         setup: {
           source: {
             owner: deployer,
-            handle: ethers.utils.formatBytes32String('some-handle'),
+            handle: utils.formatBytes32String('some-handle'),
           },
           destination: {
             owner: addrs[0].address,
-            handle: ethers.utils.formatBytes32String('some-other-handle'),
+            handle: utils.formatBytes32String('some-other-handle'),
           },
           transfer: {
             projectId: 1,
             to: addrs[2].address,
-            newHandle: ethers.utils.formatBytes32String('some-new-handle'),
+            newHandle: utils.formatBytes32String('some-new-handle'),
           },
           transferToPermissionFlag: true,
           transferToPersonalPermission: false,
@@ -82,18 +82,18 @@ const tests = {
       description: 'claim handle to a random other address after challenge expired',
       fn: ({ deployer, addrs }) => ({
         caller: addrs[6],
-        handle: ethers.utils.formatBytes32String('some-handle'),
+        handle: utils.formatBytes32String('some-handle'),
         claimFor: addrs[6].address,
         setup: {
-          challengeHandle: ethers.utils.formatBytes32String('some-handle'),
-          fastforward: ethers.BigNumber.from(31536000),
+          challengeHandle: utils.formatBytes32String('some-handle'),
+          fastforward: BigNumber.from(31536000),
           source: {
             owner: deployer,
-            handle: ethers.utils.formatBytes32String('some-handle'),
+            handle: utils.formatBytes32String('some-handle'),
           },
           destination: {
             owner: addrs[6].address,
-            handle: ethers.utils.formatBytes32String('some-other-handle'),
+            handle: utils.formatBytes32String('some-other-handle'),
           },
         },
       }),
@@ -104,21 +104,21 @@ const tests = {
       description: 'unauthorized, transfered to inaccessible address',
       fn: ({ deployer, addrs }) => ({
         caller: deployer,
-        handle: ethers.utils.formatBytes32String('some-handle'),
+        handle: utils.formatBytes32String('some-handle'),
         claimFor: addrs[3].address,
         setup: {
           source: {
             owner: deployer.address,
-            handle: ethers.utils.formatBytes32String('some-handle'),
+            handle: utils.formatBytes32String('some-handle'),
           },
           destination: {
             owner: deployer.address,
-            handle: ethers.utils.formatBytes32String('some-other-handle'),
+            handle: utils.formatBytes32String('some-other-handle'),
           },
           transfer: {
             projectId: 1,
             to: addrs[3].address,
-            newHandle: ethers.utils.formatBytes32String('some-new-handle'),
+            newHandle: utils.formatBytes32String('some-new-handle'),
           },
           transferToPermissionFlag: false,
           transferToPersonalPermission: false,
@@ -130,21 +130,21 @@ const tests = {
       description: 'unauthorized, transfered to inaccessible address, cant operate project',
       fn: ({ deployer, addrs }) => ({
         caller: deployer,
-        handle: ethers.utils.formatBytes32String('some-handle'),
+        handle: utils.formatBytes32String('some-handle'),
         claimFor: deployer.address,
         setup: {
           source: {
             owner: deployer.address,
-            handle: ethers.utils.formatBytes32String('some-handle'),
+            handle: utils.formatBytes32String('some-handle'),
           },
           destination: {
             owner: addrs[3].address,
-            handle: ethers.utils.formatBytes32String('some-other-handle'),
+            handle: utils.formatBytes32String('some-other-handle'),
           },
           transfer: {
             projectId: 1,
             to: deployer.address,
-            newHandle: ethers.utils.formatBytes32String('some-new-handle'),
+            newHandle: utils.formatBytes32String('some-new-handle'),
           },
           transferToPermissionFlag: true,
           transferToPersonalPermission: false,
@@ -157,21 +157,21 @@ const tests = {
       description: 'unauthorized, wrong for and challenge not expired',
       fn: ({ deployer, addrs }) => ({
         caller: deployer,
-        handle: ethers.utils.formatBytes32String('some-handle'),
+        handle: utils.formatBytes32String('some-handle'),
         claimFor: addrs[1].address,
         setup: {
           source: {
             owner: deployer.address,
-            handle: ethers.utils.formatBytes32String('some-handle'),
+            handle: utils.formatBytes32String('some-handle'),
           },
           destination: {
             owner: deployer.address,
-            handle: ethers.utils.formatBytes32String('some-other-handle'),
+            handle: utils.formatBytes32String('some-other-handle'),
           },
           transfer: {
             projectId: 1,
             to: deployer.address,
-            newHandle: ethers.utils.formatBytes32String('some-new-handle'),
+            newHandle: utils.formatBytes32String('some-new-handle'),
           },
           transferToPermissionFlag: true,
           transferToPersonalPermission: true,
@@ -184,18 +184,18 @@ const tests = {
       description: 'claim handle to a random other address but challenge not yet expired',
       fn: ({ deployer, addrs }) => ({
         caller: addrs[6],
-        handle: ethers.utils.formatBytes32String('some-handle'),
+        handle: utils.formatBytes32String('some-handle'),
         claimFor: addrs[6].address,
         setup: {
-          challengeHandle: ethers.utils.formatBytes32String('some-handle'),
-          fastforward: ethers.BigNumber.from(31535998),
+          challengeHandle: utils.formatBytes32String('some-handle'),
+          fastforward: BigNumber.from(31535998),
           source: {
             owner: deployer.address,
-            handle: ethers.utils.formatBytes32String('some-handle'),
+            handle: utils.formatBytes32String('some-handle'),
           },
           destination: {
             owner: addrs[6].address,
-            handle: ethers.utils.formatBytes32String('some-other-handle'),
+            handle: utils.formatBytes32String('some-other-handle'),
           },
         },
         revert: 'Projects::claimHandle: UNAUTHORIZED',

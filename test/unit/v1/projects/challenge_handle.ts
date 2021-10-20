@@ -1,5 +1,5 @@
-const { ethers } = require('hardhat');
-const { expect } = require('chai');
+import { expect } from 'chai';
+import { utils } from 'ethers';
 
 const tests = {
   success: [
@@ -7,11 +7,11 @@ const tests = {
       description: 'challenge successfully',
       fn: ({ deployer }) => ({
         caller: deployer,
-        handle: ethers.utils.formatBytes32String('some-handle'),
+        handle: utils.formatBytes32String('some-handle'),
         setup: {
           create: {
             owner: deployer.address,
-            handle: ethers.utils.formatBytes32String('some-handle'),
+            handle: utils.formatBytes32String('some-handle'),
           },
         },
       }),
@@ -22,11 +22,11 @@ const tests = {
       description: 'handle not taken',
       fn: ({ deployer, addrs }) => ({
         caller: deployer,
-        handle: ethers.utils.formatBytes32String('some-handle'),
+        handle: utils.formatBytes32String('some-handle'),
         setup: {
           create: {
             owner: addrs[0].address,
-            handle: ethers.utils.formatBytes32String('some-other-handle'),
+            handle: utils.formatBytes32String('some-other-handle'),
           },
         },
         revert: 'Projects::challenge: HANDLE_NOT_TAKEN',
@@ -36,12 +36,12 @@ const tests = {
       description: 'already being challenged',
       fn: ({ deployer, addrs }) => ({
         caller: deployer,
-        handle: ethers.utils.formatBytes32String('some-handle'),
+        handle: utils.formatBytes32String('some-handle'),
         setup: {
           prechallenge: true,
           create: {
             owner: addrs[0].address,
-            handle: ethers.utils.formatBytes32String('some-handle'),
+            handle: utils.formatBytes32String('some-handle'),
           },
         },
         revert: 'Projects::challenge: HANDLE_ALREADY_BEING_CHALLENGED',

@@ -1,6 +1,5 @@
 // TODO(odd-amphora): Use better calldata pattern.
-
-const { expect } = require('chai');
+import { expect } from 'chai';
 
 const tests = {
   success: [

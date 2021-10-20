@@ -1,5 +1,5 @@
-const { ethers } = require('hardhat');
-const { expect } = require('chai');
+import { expect } from 'chai';
+import { utils } from 'ethers';
 
 const tests = {
   success: [
@@ -58,7 +58,7 @@ module.exports = function () {
           .connect(caller)
           .create(
             create.owner,
-            ethers.utils.formatBytes32String('some-handle'),
+            utils.formatBytes32String('some-handle'),
             '',
             this.constants.AddressZero,
           );
@@ -100,7 +100,7 @@ module.exports = function () {
           .connect(caller)
           .create(
             create.owner,
-            ethers.utils.formatBytes32String('some-handle'),
+            utils.formatBytes32String('some-handle'),
             '',
             this.constants.AddressZero,
           );

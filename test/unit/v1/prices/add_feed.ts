@@ -1,5 +1,5 @@
-const { ethers } = require('hardhat');
-const { expect } = require('chai');
+import { expect } from 'chai';
+import { BigNumber } from 'hardhat';
 
 const tests = {
   success: [
@@ -87,7 +87,7 @@ module.exports = function () {
         const storedFeedDecimalAdjuster = await this.contract.feedDecimalAdjuster(currency);
 
         // Get a reference to the expected adjuster value.
-        const expectedFeedDecimalAdjuster = ethers.BigNumber.from(10).pow(
+        const expectedFeedDecimalAdjuster = BigNumber.from(10).pow(
           targetDecimals - decimals,
         );
         // Expect the stored value to match the expected value.

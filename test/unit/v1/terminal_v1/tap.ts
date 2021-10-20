@@ -1,5 +1,4 @@
-const { expect } = require('chai');
-const { BigNumber, constants, utils } = require('ethers');
+import { expect } from 'chai';const { BigNumber, constants, utils } = require('ethers');
 
 const mockFn =
   ({ condition, mockContract, fn, args, returns = [] }) =>

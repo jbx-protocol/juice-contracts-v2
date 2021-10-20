@@ -1,5 +1,5 @@
-const { ethers } = require('hardhat');
-const { expect } = require('chai');
+import { expect } from 'chai';
+import { constants, utils } from 'ethers';
 
 const tests = {
   success: [
@@ -8,9 +8,9 @@ const tests = {
       fn: ({ deployer }) => ({
         caller: deployer,
         owner: deployer.address,
-        handle: ethers.utils.formatBytes32String('some-handle'),
+        handle: utils.formatBytes32String('some-handle'),
         uri: '',
-        terminal: ethers.constants.AddressZero,
+        terminal: constants.AddressZero,
         expectation: {
           projectId: 1,
         },
@@ -21,9 +21,9 @@ const tests = {
       fn: ({ deployer, addrs }) => ({
         caller: deployer,
         owner: addrs[0].address,
-        handle: ethers.utils.formatBytes32String('some-handle'),
+        handle: utils.formatBytes32String('some-handle'),
         uri: '',
-        terminal: ethers.constants.AddressZero,
+        terminal: constants.AddressZero,
         expectation: {
           projectId: 1,
         },
@@ -34,9 +34,9 @@ const tests = {
       fn: ({ deployer }) => ({
         caller: deployer,
         owner: deployer.address,
-        handle: ethers.utils.formatBytes32String('some-handle'),
+        handle: utils.formatBytes32String('some-handle'),
         uri: 'some-uri',
-        terminal: ethers.constants.AddressZero,
+        terminal: constants.AddressZero,
         expectation: {
           projectId: 1,
         },
@@ -47,18 +47,18 @@ const tests = {
       fn: ({ deployer }) => ({
         caller: deployer,
         owner: deployer.address,
-        handle: ethers.utils.formatBytes32String('some-handle'),
+        handle: utils.formatBytes32String('some-handle'),
         uri: 'some-uri',
-        terminal: ethers.constants.AddressZero,
+        terminal: constants.AddressZero,
         expectation: {
           projectId: 2,
         },
         setup: {
           create: {
             owner: deployer.address,
-            handle: ethers.utils.formatBytes32String('some-other-handle'),
+            handle: utils.formatBytes32String('some-other-handle'),
             uri: 'some-uri',
-            terminal: ethers.constants.AddressZero,
+            terminal: constants.AddressZero,
           },
         },
       }),
@@ -105,7 +105,7 @@ const tests = {
         return {
           caller: deployer,
           owner: deployer.address,
-          handle: ethers.utils.formatBytes32String('some-handle'),
+          handle: utils.formatBytes32String('some-handle'),
           uri: '',
           terminal: terminalV1.address,
           expectation: {
@@ -121,9 +121,9 @@ const tests = {
       fn: ({ deployer }) => ({
         caller: deployer,
         owner: deployer.address,
-        handle: ethers.utils.formatBytes32String(''),
+        handle: utils.formatBytes32String(''),
         uri: '',
-        terminal: ethers.constants.AddressZero,
+        terminal: constants.AddressZero,
         revert: 'Projects::create: EMPTY_HANDLE',
       }),
     },
@@ -132,13 +132,13 @@ const tests = {
       fn: ({ deployer }) => ({
         caller: deployer,
         owner: deployer.address,
-        handle: ethers.utils.formatBytes32String('some-handle'),
+        handle: utils.formatBytes32String('some-handle'),
         uri: 'some-uri',
-        terminal: ethers.constants.AddressZero,
+        terminal: constants.AddressZero,
         setup: {
           create: {
             owner: deployer.address,
-            handle: ethers.utils.formatBytes32String('some-handle'),
+            handle: utils.formatBytes32String('some-handle'),
             uri: 'some-uri',
           },
         },
@@ -150,19 +150,19 @@ const tests = {
       fn: ({ deployer, addrs }) => ({
         caller: deployer,
         owner: deployer.address,
-        handle: ethers.utils.formatBytes32String('some-handle'),
+        handle: utils.formatBytes32String('some-handle'),
         uri: 'some-uri',
-        terminal: ethers.constants.AddressZero,
+        terminal: constants.AddressZero,
         setup: {
           create: {
             owner: deployer.address,
-            handle: ethers.utils.formatBytes32String('some-handle'),
+            handle: utils.formatBytes32String('some-handle'),
             uri: 'some-uri',
           },
           transfer: {
             owner: deployer.address,
             to: addrs[0].address,
-            handle: ethers.utils.formatBytes32String('some-new-handle'),
+            handle: utils.formatBytes32String('some-new-handle'),
           },
         },
         revert: 'Projects::create: HANDLE_TAKEN',

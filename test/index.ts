@@ -1,23 +1,26 @@
-import { ethers, config } from 'hardhat';
+import { config } from 'hardhat';
 import chai from 'chai';
 import fs from 'fs';
 import glob from 'glob';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
-import { BigNumber, Contract } from 'ethers';
+import '@nomiclabs/hardhat-ethers'
+import { BigNumber, Contract, utils, constants } from 'ethers';
+import hre from 'hardhat'
+
 import unit from './unit';
 import integration from './integration';
 
 describe('Juicebox', async function () {
   before(async function () {
     // Bind a reference to the deployer address and an array of other addresses to `this`.
-    [this.deployer, ...this.addrs] = await ethers.getSigners();
+    [this.deployer, ...this.addrs] = await hre.ethers.getSigners();
 
     // Bind the ability to manipulate time to `this`.
     // Bind a function that gets the current block's timestamp.
     this.getTimestampFn = async (block) => {
-      return ethers.BigNumber.from((await ethers.provider.getBlock(block || 'latest')).timestamp);
+      return BigNumber.from((await hre.ethers.provider.getBlock(block || 'latest')).timestamp);
     };
 
     // Binds a function that sets a time mark that is taken into account while fastforward.
@@ -34,9 +37,9 @@ describe('Juicebox', async function () {
 
       // Subtract away any time that has already passed between the start of the test,
       // or from the last fastforward, from the provided value.
-      await ethers.provider.send('evm_increaseTime', [fastforwardAmount]);
+      await hre.ethers.provider.send('evm_increaseTime', [fastforwardAmount]);
       // Mine a block.
-      await ethers.provider.send('evm_mine');
+      await hre.ethers.provider.send('evm_mine');
     };
 
     // Bind a reference to a function that can deploy mock contracts from an abi.
@@ -207,7 +210,7 @@ describe('Juicebox', async function () {
 
     // Binds a function that makes sure the provided address has the balance
     this.verifyBalanceFn = async ({ address, expect, plusMinus }) => {
-      const storedVal = await ethers.provider.getBalance(address);
+      const storedVal = await hre.ethers.provider.getBalance(address);
       if (plusMinus) {
         console.log({
           storedVal,
@@ -222,7 +225,7 @@ describe('Juicebox', async function () {
     };
 
     // Binds a function that gets the balance of an address.
-    this.getBalanceFn = (address) => ethers.provider.getBalance(address);
+    this.getBalanceFn = (address) => hre.ethers.provider.getBalance(address);
 
     // Binds the standard expect function.
     this.expectFn = chai.expect;
@@ -230,17 +233,17 @@ describe('Juicebox', async function () {
     // Bind some constants.
 
     this.constants = {
-      AddressZero: ethers.constants.AddressZero,
-      MaxUint256: ethers.constants.MaxUint256,
-      MaxInt256: ethers.BigNumber.from(2).pow(255).sub(1),
-      MaxUint24: ethers.BigNumber.from(2).pow(24).sub(1),
-      MaxUint16: ethers.BigNumber.from(2).pow(16).sub(1),
-      MaxUint8: ethers.BigNumber.from(2).pow(8).sub(1),
+      AddressZero: constants.AddressZero,
+      MaxUint256: constants.MaxUint256,
+      MaxInt256: BigNumber.from(2).pow(255).sub(1),
+      MaxUint24: BigNumber.from(2).pow(24).sub(1),
+      MaxUint16: BigNumber.from(2).pow(16).sub(1),
+      MaxUint8: BigNumber.from(2).pow(8).sub(1),
     };
 
     // Bind function that gets a random big number.
     this.randomBigNumberFn = ({
-      min = ethers.BigNumber.from(0),
+      min = BigNumber.from(0),
       max = this.constants.MaxUint256,
       precision = 10000000,
       favorEdges = true,
@@ -257,8 +260,8 @@ describe('Juicebox', async function () {
 
       const base = max.sub(min);
       const randomInRange = base.gt(precision)
-        ? base.div(precision).mul(ethers.BigNumber.from(Math.floor(Math.random() * precision)))
-        : base.mul(ethers.BigNumber.from(Math.floor(Math.random() * precision))).div(precision);
+        ? base.div(precision).mul(BigNumber.from(Math.floor(Math.random() * precision)))
+        : base.mul(BigNumber.from(Math.floor(Math.random() * precision))).div(precision);
 
       return randomInRange.add(min);
     };
@@ -306,7 +309,7 @@ describe('Juicebox', async function () {
     };
 
     // Bind the big number utils.
-    this.BigNumber = ethers.BigNumber;
+    this.BigNumber = BigNumber;
 
     // Bind a function that returns a random set of bytes.
     this.randomBytesFn = ({
@@ -315,7 +318,7 @@ describe('Juicebox', async function () {
       prepend = '',
       exclude = [],
     } = {}) => {
-      const candidate = ethers.utils.formatBytes32String(
+      const candidate = utils.formatBytes32String(
         this.randomStringFn({
           prepend,
           seed: this.randomBigNumberFn({
@@ -329,11 +332,11 @@ describe('Juicebox', async function () {
       return candidate;
     };
 
-    this.stringToBytes = ethers.utils.formatBytes32String;
+    this.stringToBytes = utils.formatBytes32String;
 
     // Bind functions for cleaning state.
-    this.snapshotFn = () => ethers.provider.send('evm_snapshot', []);
-    this.restoreFn = (id) => ethers.provider.send('evm_revert', [id]);
+    this.snapshotFn = () => hre.ethers.provider.send('evm_snapshot', []);
+    this.restoreFn = (id: string) => hre.ethers.provider.send('evm_revert', [id]);
   });
 
   // Before each test, take a snapshot of the contract state.

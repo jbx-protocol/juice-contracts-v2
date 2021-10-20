@@ -1,7 +1,5 @@
-const {
-  ethers: { BigNumber, constants },
-} = require('hardhat');
-const { expect } = require('chai');
+import { expect } from 'chai';
+import { BigNumber, constants } from 'ethers'
 
 const testTemplate =
   ({ op = {}, setup = {}, preconfigure = {}, fastforward, ops = [], expectation = {}, revert }) =>

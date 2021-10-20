@@ -1,8 +1,7 @@
 const {
   ethers: { BigNumber, constants, getContractFactory },
 } = require('hardhat');
-const { expect } = require('chai');
-
+import { expect } from 'chai';
 const tests = {
   success: [
     {

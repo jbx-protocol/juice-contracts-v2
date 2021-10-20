@@ -7,7 +7,6 @@
     "type": "git",
     "url": "https://github.com/jbx-protocol/juice-contracts/"
   },
-  "type": "module",
   "version": "0.0.2",
   "license": "MIT",
   "devDependencies": {
@@ -48,6 +47,17 @@
     "smart-contracts",
     "solidity"
   ],
+  "mocha": {
+    "require": [
+      "ts-node/register"
+    ],
+    "recursive": true,
+    "extension": [
+      "ts",
+      "js",
+      "tsx"
+    ]
+  },
   "scripts": {
     "chain": "hardhat node",
     "test": "hardhat test --network localhost",

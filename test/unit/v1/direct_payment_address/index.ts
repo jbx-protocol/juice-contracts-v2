@@ -1,4 +1,4 @@
-const receive = require('./receive');
+import receive from './receive';
 
 const contractName = 'DirectPaymentAddress';
 

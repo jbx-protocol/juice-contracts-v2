@@ -1,7 +1,5 @@
-const {
-  ethers: { constants },
-} = require('hardhat');
-const { expect } = require('chai');
+import { expect } from 'chai';
+import { constants } from 'ethers'
 
 const tests = {
   success: [

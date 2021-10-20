@@ -2,7 +2,7 @@ const jbOperatorStore = require('./jb_operator_store');
 const jbPrices = require('./jb_prices');
 
 let snapshotId;
-module.exports = function () {
+export default function () {
   beforeEach(async function () {
     snapshotId = await this.snapshotFn();
     // Mark the start time of each test.

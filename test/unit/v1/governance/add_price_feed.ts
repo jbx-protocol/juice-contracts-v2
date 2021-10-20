@@ -1,4 +1,4 @@
-const { expect } = require('chai');
+import { expect } from 'chai';
 const AggregatorV3Interface = require('@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json');
 
 const tests = {

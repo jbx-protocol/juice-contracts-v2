@@ -1,5 +1,5 @@
-const { ethers } = require('hardhat');
-const { expect } = require('chai');
+import { expect } from 'chai';
+import { BigNumber } from 'ethers';
 
 const tests = {
   success: [
@@ -85,8 +85,8 @@ module.exports = function () {
         const targetDecimals = await this.contract.TARGET_DECIMALS();
 
         // Get a reference to the expected price value.
-        const expectedPriceBigNum = ethers.BigNumber.from(expectedPrice).mul(
-          ethers.BigNumber.from(10).pow(targetDecimals - (currency !== base ? decimals : 0)),
+        const expectedPriceBigNum = BigNumber.from(expectedPrice).mul(
+          BigNumber.from(10).pow(targetDecimals - (currency !== base ? decimals : 0)),
         );
 
         // Expect the stored price value to match the expected value.

@@ -2,8 +2,7 @@ const {
   ethers: { BigNumber },
 } = require('hardhat');
 
-const { expect } = require('chai');
-
+import { expect } from 'chai';
 const tests = {
   success: [
     {

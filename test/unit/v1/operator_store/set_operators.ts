@@ -1,5 +1,5 @@
-const { ethers } = require('hardhat');
-const { expect } = require('chai');
+import { expect } from 'chai';
+import { BigNumber } from 'ethers';
 
 const tests = {
   success: [
@@ -218,8 +218,8 @@ module.exports = function () {
           operators.map(async (operator, i) => {
             // Calculate the expected packed values once the permissions are set.
             const expectedPackedPermissions = permissionIndexes.expect[i].reduce(
-              (sum, index) => sum.add(ethers.BigNumber.from(2).pow(index)),
-              ethers.BigNumber.from(0),
+              (sum, index) => sum.add(BigNumber.from(2).pow(index)),
+              BigNumber.from(0),
             );
 
             // Expect an event to be emitted.

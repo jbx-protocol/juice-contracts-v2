@@ -1,5 +1,5 @@
-const { ethers } = require('hardhat');
-const { expect } = require('chai');
+import { expect } from 'chai';
+import { utils } from 'ethers';
 
 const tests = {
   success: [
@@ -10,7 +10,7 @@ const tests = {
         setup: {
           create: {
             owner: deployer.address,
-            handle: ethers.utils.formatBytes32String('some-handle'),
+            handle: utils.formatBytes32String('some-handle'),
           },
         },
       }),
@@ -22,7 +22,7 @@ const tests = {
         setup: {
           create: {
             owner: addrs[1].address,
-            handle: ethers.utils.formatBytes32String('some-handle'),
+            handle: utils.formatBytes32String('some-handle'),
           },
           permissionFlag: true,
         },
@@ -37,7 +37,7 @@ const tests = {
         setup: {
           create: {
             owner: addrs[0].address,
-            handle: ethers.utils.formatBytes32String('some-old-handle'),
+            handle: utils.formatBytes32String('some-old-handle'),
           },
           permissionFlag: false,
         },

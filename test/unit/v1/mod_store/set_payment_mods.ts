@@ -1,5 +1,5 @@
-const { ethers } = require('hardhat');
-const { expect } = require('chai');
+import { expect } from 'chai';
+import { BigNumber, constants } from 'ethers'
 
 const tests = {
   success: [
@@ -12,7 +12,7 @@ const tests = {
         configuration: 10,
         mods: [
           {
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 1,
             beneficiary: deployer.address,
             percent: 10000,
@@ -31,7 +31,7 @@ const tests = {
         configuration: 10,
         mods: [
           {
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 1,
             beneficiary: addrs[0].address,
             percent: 10000,
@@ -50,7 +50,7 @@ const tests = {
         configuration: 10,
         mods: [
           {
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 1,
             beneficiary: deployer.address,
             percent: 5000,
@@ -60,7 +60,7 @@ const tests = {
           {
             allocator: modAllocator.address,
             projectId: 2,
-            beneficiary: ethers.constants.AddressZero,
+            beneficiary: constants.AddressZero,
             percent: 2500,
             preferUnstaked: false,
             lockedUntil: 0,
@@ -78,7 +78,7 @@ const tests = {
         permissionFlag: true,
         mods: [
           {
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 1,
             beneficiary: deployer.address,
             percent: 5000,
@@ -100,7 +100,7 @@ const tests = {
           configuration: 10,
           mods: [
             {
-              allocator: ethers.constants.AddressZero,
+              allocator: constants.AddressZero,
               projectId: 4,
               beneficiary: deployer.address,
               percent: 100,
@@ -108,11 +108,11 @@ const tests = {
               lockedUntil: testStart.add(10),
             },
           ],
-          fastforward: ethers.BigNumber.from(10),
+          fastforward: BigNumber.from(10),
         },
         mods: [
           {
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 4,
             beneficiary: deployer.address,
             // different properties.
@@ -135,7 +135,7 @@ const tests = {
           configuration: 10,
           mods: [
             {
-              allocator: ethers.constants.AddressZero,
+              allocator: constants.AddressZero,
               projectId: 4,
               beneficiary: deployer.address,
               percent: 100,
@@ -143,11 +143,11 @@ const tests = {
               lockedUntil: testStart.add(10),
             },
           ],
-          fastforward: ethers.BigNumber.from(9),
+          fastforward: BigNumber.from(9),
         },
         mods: [
           {
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 4,
             beneficiary: deployer.address,
             percent: 100,
@@ -155,7 +155,7 @@ const tests = {
             lockedUntil: testStart.add(10),
           },
           {
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 2,
             beneficiary: deployer.address,
             percent: 100,
@@ -178,19 +178,19 @@ const tests = {
           mods: [
             {
               beneficiary: addrs[0].address,
-              allocator: ethers.constants.AddressZero,
+              allocator: constants.AddressZero,
               projectId: 2,
               percent: 50,
               preferUnstaked: false,
               lockedUntil: testStart.add(10),
             },
           ],
-          fastforward: ethers.BigNumber.from(8),
+          fastforward: BigNumber.from(8),
         },
         mods: [
           {
             beneficiary: deployer.address,
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 2,
             percent: 50,
             preferUnstaked: false,
@@ -212,19 +212,19 @@ const tests = {
           mods: [
             {
               beneficiary: addrs[0].address,
-              allocator: ethers.constants.AddressZero,
+              allocator: constants.AddressZero,
               projectId: 2,
               percent: 50,
               preferUnstaked: false,
               lockedUntil: testStart.add(10),
             },
           ],
-          fastforward: ethers.BigNumber.from(8),
+          fastforward: BigNumber.from(8),
         },
         mods: [
           {
             beneficiary: deployer.address,
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 2,
             percent: 50,
             preferUnstaked: false,
@@ -270,9 +270,9 @@ const tests = {
         configuration: 10,
         mods: [
           {
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 1,
-            beneficiary: ethers.constants.AddressZero,
+            beneficiary: constants.AddressZero,
             percent: 100,
             preferUnstaked: false,
             lockedUntil: 0,
@@ -291,7 +291,7 @@ const tests = {
         configuration: 10,
         mods: [
           {
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 1,
             beneficiary: deployer.address,
             percent: 10010,
@@ -299,7 +299,7 @@ const tests = {
             lockedUntil: 0,
           },
           {
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 2,
             beneficiary: deployer.address,
             percent: 50,
@@ -320,7 +320,7 @@ const tests = {
         configuration: 10,
         mods: [
           {
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 1,
             beneficiary: deployer.address,
             percent: 0,
@@ -328,7 +328,7 @@ const tests = {
             lockedUntil: 0,
           },
           {
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 2,
             beneficiary: deployer.address,
             percent: 50,
@@ -349,7 +349,7 @@ const tests = {
         configuration: 10,
         mods: [
           {
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 1,
             beneficiary: deployer.address,
             percent: 9000,
@@ -357,7 +357,7 @@ const tests = {
             lockedUntil: 0,
           },
           {
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 2,
             beneficiary: deployer.address,
             percent: 1010,
@@ -382,19 +382,19 @@ const tests = {
           mods: [
             {
               beneficiary: addrs[0].address,
-              allocator: ethers.constants.AddressZero,
+              allocator: constants.AddressZero,
               projectId: 2,
               percent: 50,
               preferUnstaked: false,
               lockedUntil: testStart.add(10),
             },
           ],
-          fastforward: ethers.BigNumber.from(8),
+          fastforward: BigNumber.from(8),
         },
         mods: [
           {
             beneficiary: deployer.address,
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 2,
             percent: 50,
             preferUnstaked: false,
@@ -419,19 +419,19 @@ const tests = {
             {
               percent: 200,
               beneficiary: deployer.address,
-              allocator: ethers.constants.AddressZero,
+              allocator: constants.AddressZero,
               projectId: 2,
               preferUnstaked: false,
               lockedUntil: testStart.add(10),
             },
           ],
-          fastforward: ethers.BigNumber.from(8),
+          fastforward: BigNumber.from(8),
         },
         mods: [
           {
             percent: 100,
             beneficiary: deployer.address,
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 2,
             preferUnstaked: false,
             lockedUntil: testStart.add(10),
@@ -461,13 +461,13 @@ const tests = {
               lockedUntil: testStart.add(10),
             },
           ],
-          fastforward: ethers.BigNumber.from(8),
+          fastforward: BigNumber.from(8),
         },
         mods: [
           {
             percent: 200,
             beneficiary: deployer.address,
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 2,
             preferUnstaked: false,
             lockedUntil: testStart.add(10),
@@ -491,19 +491,19 @@ const tests = {
             {
               percent: 200,
               beneficiary: deployer.address,
-              allocator: ethers.constants.AddressZero,
+              allocator: constants.AddressZero,
               projectId: 2,
               preferUnstaked: false,
               lockedUntil: testStart.add(10),
             },
           ],
-          fastforward: ethers.BigNumber.from(8),
+          fastforward: BigNumber.from(8),
         },
         mods: [
           {
             percent: 200,
             beneficiary: deployer.address,
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 3,
             preferUnstaked: false,
             lockedUntil: testStart.add(10),
@@ -527,19 +527,19 @@ const tests = {
             {
               percent: 100,
               beneficiary: deployer.address,
-              allocator: ethers.constants.AddressZero,
+              allocator: constants.AddressZero,
               projectId: 2,
               preferUnstaked: false,
               lockedUntil: testStart.add(10),
             },
           ],
-          fastforward: ethers.BigNumber.from(8),
+          fastforward: BigNumber.from(8),
         },
         mods: [
           {
             percent: 100,
             beneficiary: deployer.address,
-            allocator: ethers.constants.AddressZero,
+            allocator: constants.AddressZero,
             projectId: 2,
             preferUnstaked: false,
             lockedUntil: testStart.add(9),

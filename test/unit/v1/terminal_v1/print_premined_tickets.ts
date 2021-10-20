@@ -1,5 +1,4 @@
-const { expect } = require('chai');
-const { BigNumber, constants } = require('ethers');
+import { expect } from 'chai';const { BigNumber, constants } = require('ethers');
 
 const tests = {
   success: [

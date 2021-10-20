@@ -1,5 +1,5 @@
-const { ethers } = require('hardhat');
-const { expect } = require('chai');
+import { expect } from 'chai';
+import { BigNumber } from 'ethers'
 
 const tests = {
   success: [
@@ -96,7 +96,7 @@ const tests = {
               lockedUntil: testStart.add(10),
             },
           ],
-          fastforward: ethers.BigNumber.from(10),
+          fastforward: BigNumber.from(10),
         },
         mods: [
           {
@@ -127,7 +127,7 @@ const tests = {
               lockedUntil: testStart.add(10),
             },
           ],
-          fastforward: ethers.BigNumber.from(9),
+          fastforward: BigNumber.from(9),
         },
         mods: [
           {
@@ -163,7 +163,7 @@ const tests = {
               lockedUntil: testStart.add(10),
             },
           ],
-          fastforward: ethers.BigNumber.from(9),
+          fastforward: BigNumber.from(9),
         },
         mods: [
           {
@@ -199,7 +199,7 @@ const tests = {
               lockedUntil: testStart.add(10),
             },
           ],
-          fastforward: ethers.BigNumber.from(8),
+          fastforward: BigNumber.from(8),
         },
         mods: [
           {
@@ -230,7 +230,7 @@ const tests = {
               lockedUntil: testStart.add(10),
             },
           ],
-          fastforward: ethers.BigNumber.from(8),
+          fastforward: BigNumber.from(8),
         },
         mods: [
           {
@@ -289,7 +289,7 @@ const tests = {
               lockedUntil: testStart.add(10),
             },
           ],
-          fastforward: ethers.BigNumber.from(8),
+          fastforward: BigNumber.from(8),
         },
         mods: [
           {
@@ -321,7 +321,7 @@ const tests = {
               lockedUntil: testStart.add(10),
             },
           ],
-          fastforward: ethers.BigNumber.from(8),
+          fastforward: BigNumber.from(8),
         },
         mods: [
           {
@@ -353,7 +353,7 @@ const tests = {
               lockedUntil: testStart.add(10),
             },
           ],
-          fastforward: ethers.BigNumber.from(8),
+          fastforward: BigNumber.from(8),
         },
         mods: [
           {
@@ -429,7 +429,7 @@ const tests = {
               lockedUntil: testStart.add(10),
             },
           ],
-          fastforward: ethers.BigNumber.from(9),
+          fastforward: BigNumber.from(9),
         },
         mods: [
           {

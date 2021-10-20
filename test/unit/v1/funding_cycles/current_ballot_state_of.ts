@@ -1,7 +1,5 @@
-const {
-  ethers: { BigNumber, constants },
-} = require('hardhat');
-const { expect } = require('chai');
+import { expect } from 'chai';
+import { BigNumber, constants } from 'ethers'
 
 /** 
   These tests rely on time manipulation quite a bit, which as far as i understand is hard to do precisely. 

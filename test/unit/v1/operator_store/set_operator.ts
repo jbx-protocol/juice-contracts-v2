@@ -1,5 +1,5 @@
-const { ethers } = require('hardhat');
-const { expect } = require('chai');
+import { expect } from 'chai';
+import { BigNumber } from 'ethers'
 
 const tests = {
   success: [
@@ -68,8 +68,8 @@ module.exports = function () {
 
         // Calculate the expected packed value once the permissions are set.
         const expectedPackedPermissions = permissionIndexes.set.reduce(
-          (sum, i) => sum.add(ethers.BigNumber.from(2).pow(i)),
-          ethers.BigNumber.from(0),
+          (sum, i) => sum.add(BigNumber.from(2).pow(i)),
+          BigNumber.from(0),
         );
 
         // Execute the transaction.

@@ -1,19 +1,19 @@
-const directPaymentAddress = require('./direct_payment_address');
-const fundingCycles = require('./funding_cycles');
-const governance = require('./governance');
-const juiceboxProject = require('./juice_project');
-const modStore = require('./mod_store');
-const operatorStore = require('./operator_store');
-const prices = require('./prices');
-const projects = require('./projects');
-const proxyPaymentAddress = require('./proxy_payment_address');
-const proxyPaymentAddressManager = require('./proxy_payment_address_manager');
-const terminalDirectory = require('./terminal_directory');
-const terminalV1 = require('./terminal_v1');
-const ticketBooth = require('./ticket_booth');
+import directPaymentAddress from './direct_payment_address';
+import fundingCycles from './funding_cycles';
+import governance from './governance';
+import juiceboxProject from './juice_project';
+import modStore from './mod_store';
+import operatorStore from './operator_store';
+import prices from './prices';
+import projects from './projects';
+import proxyPaymentAddress from './proxy_payment_address';
+import proxyPaymentAddressManager from './proxy_payment_address_manager';
+import terminalDirectory from './terminal_directory';
+import terminalV1 from './terminal_v1';
+import ticketBooth from './ticket_booth';
 
 let snapshotId;
-module.exports = function () {
+export default function () {
   beforeEach(async function () {
     snapshotId = await this.snapshotFn();
     // Mark the start time of each test.
