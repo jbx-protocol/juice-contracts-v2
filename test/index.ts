@@ -1,13 +1,13 @@
-const { ethers, config } = require('hardhat');
-const chai = require('chai');
-const fs = require('fs');
-const glob = require('glob');
+import { ethers, config } from 'hardhat';
+import chai from 'chai';
+import fs from 'fs';
+import glob from 'glob';
 
-const { deployMockContract } = require('@ethereum-waffle/mock-contract');
+import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
-const { BigNumber, Contract } = require('ethers');
-const unit = require('./unit');
-const integration = require('./integration');
+import { BigNumber, Contract } from 'ethers';
+import unit from './unit';
+import integration from './integration';
 
 describe('Juicebox', async function () {
   before(async function () {

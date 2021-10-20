@@ -58,7 +58,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     skipIfAlreadyDeployed: true,
   });
 
-  const JBControllerV1 = await deploy('JBControllerV1', {
+  const JBController = await deploy('JBController', {
     from: deployer,
     args: [
       JBOperatorStore.address,
@@ -82,7 +82,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
       JBFundingCycleStore.address,
       JBTokenStore.address,
       JBSplitStore.address,
-      JBControllerV1.address,
+      JBController.address,
     ],
     log: true,
     skipIfAlreadyDeployed: true,
