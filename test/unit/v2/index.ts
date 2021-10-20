@@ -1,7 +1,7 @@
-const jbOperatorStore = require('./jb_operator_store');
-const jbPrices = require('./jb_prices');
+import jbOperatorStore from './jb_operator_store';
+import jbPrices from './jb_prices';
 
-let snapshotId;
+let snapshotId: any;
 export default function () {
   beforeEach(async function () {
     snapshotId = await this.snapshotFn();

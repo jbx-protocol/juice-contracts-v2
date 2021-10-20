@@ -203,7 +203,7 @@ const tests = {
   ],
 };
 
-module.exports = function () {
+export default function () {
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {
