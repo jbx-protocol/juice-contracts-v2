@@ -5,9 +5,9 @@ import glob from 'glob';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
-import '@nomiclabs/hardhat-ethers'
-import { BigNumber, Contract, utils, constants } from 'ethers';
-import hre from 'hardhat'
+import '@nomiclabs/hardhat-ethers';
+import { BigNumber, Contract, utils, constants, Signer } from 'ethers';
+import hre from 'hardhat';
 
 import unit from './unit';
 import integration from './integration';
@@ -225,7 +225,7 @@ describe('Juicebox', async function () {
     };
 
     // Binds a function that gets the balance of an address.
-    this.getBalanceFn = (address) => hre.ethers.provider.getBalance(address);
+    this.getBalanceFn = (address: string) => hre.ethers.provider.getBalance(address);
 
     // Binds the standard expect function.
     this.expectFn = chai.expect;
@@ -280,7 +280,8 @@ describe('Juicebox', async function () {
     };
 
     // Bind a function that gets a random signed.
-    this.randomSignerFn = ({ exclude = [] } = {}) => {
+    // TODO(odd-amphora): Address type any.
+    this.randomSignerFn = ({ exclude = [] }: {exclude?: any} = {}) => {
       // To test an edge condition, pick the same address more likely than not.
       // return address0 50% of the time.
       const candidate =
@@ -298,7 +299,7 @@ describe('Juicebox', async function () {
       prepend = '',
       canBeEmpty = true,
       favorEdges = true,
-    } = {}) => {
+    }: {exclude?: string[], prepend?: string, canBeEmpty?: boolean, favorEdges?: boolean } = {}) => {
       const seed = this.randomBigNumberFn({
         min: canBeEmpty ? BigNumber.from(0) : BigNumber.from(1),
         favorEdges,
@@ -317,7 +318,7 @@ describe('Juicebox', async function () {
       max = BigNumber.from(32),
       prepend = '',
       exclude = [],
-    } = {}) => {
+    }: { min?: BigNumber; max?: BigNumber; prepend?: string; exclude?: string[] } = {}) => {
       const candidate = utils.formatBytes32String(
         this.randomStringFn({
           prepend,
