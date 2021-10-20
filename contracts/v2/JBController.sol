@@ -228,6 +228,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     @dev 
     A project owner will be able to reconfigure the funding cycle's properties as long as it has not yet received a payment.
 
+    @param _owner The address to set as the owner of the project.
     @param _handle The project's unique handle. This can be updated any time by the owner of the project.
     @param _uri A link to associate with the project. This can be updated any time by the owner of the project.
     @param _data The funding cycle configuration data. These properties will remain fixed for the duration of the funding cycle.
@@ -259,8 +260,11 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     @param _overflowAllowances The amount, in wei (18 decimals), of ETH that a project can use from its own overflow on-demand.
     @param _payoutSplits Any payout splits to set.
     @param _reservedTokenSplits Any reserved token splits to set.
+
+    @return The ID of the project.
   */
   function launchProjectFor(
+    address _owner,
     bytes32 _handle,
     string calldata _uri,
     JBFundingCycleData calldata _data,
@@ -269,21 +273,21 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     JBSplit[] memory _payoutSplits,
     JBSplit[] memory _reservedTokenSplits,
     IJBTerminal _terminal
-  ) external {
+  ) external returns (uint256 projectId) {
     // Make sure the metadata is validated and packed into a uint256.
     uint256 _packedMetadata = _validateAndPackFundingCycleMetadata(_metadata);
 
     // Create the project for into the wallet of the message sender.
-    uint256 _projectId = projects.createFor(msg.sender, _handle, _uri);
+    projectId = projects.createFor(_owner, _handle, _uri);
 
     // Set the this contract as the project's controller in the directory.
-    directory.setControllerOf(_projectId, this);
+    directory.setControllerOf(projectId, this);
 
     // Add the provided terminal to the list of terminals.
-    if (_terminal != IJBTerminal(address(0))) directory.addTerminalOf(_projectId, _terminal);
+    if (_terminal != IJBTerminal(address(0))) directory.addTerminalOf(projectId, _terminal);
 
     _configure(
-      _projectId,
+      projectId,
       _data,
       _packedMetadata,
       _overflowAllowances,
@@ -572,6 +576,11 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     directory.setControllerOf(_projectId, _to);
 
     emit Migrate(_projectId, _to, msg.sender);
+  }
+
+  function setFee(uint256 _fee) external onlyOwner {
+    require(_fee <= 10, 'TODO');
+    fee = _fee;
   }
 
   //*********************************************************************//

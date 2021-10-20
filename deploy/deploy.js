@@ -87,4 +87,6 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     log: true,
     skipIfAlreadyDeployed: true,
   });
+
+  // transfer ownership of terminalStore to terminal.
 };

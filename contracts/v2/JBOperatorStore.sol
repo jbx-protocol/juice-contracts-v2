@@ -5,7 +5,7 @@ import './interfaces/IJBOperatorStore.sol';
 
 /** 
   @notice
-  Stores operator permissions for all addresses. Addresses can give permissions to any other address to take specific actions throughout the Juicebox ecosystem on their behalf.
+  Stores operator permissions for all addresses. Addresses can give permissions to any other address to take specific indexed actions on their behalf.
 */
 contract JBOperatorStore is IJBOperatorStore {
   //*********************************************************************//
