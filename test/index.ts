@@ -7,10 +7,13 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import '@nomiclabs/hardhat-ethers';
 import { BigNumber, Contract, utils, constants, Signer } from 'ethers';
+import { BlockTag, Block } from '@ethersproject/abstract-provider';
 import hre from 'hardhat';
 
 import unit from './unit';
 import integration from './integration';
+import { Provider } from '@ethersproject/providers';
+import { BigNumberish } from '@ethersproject/bignumber';
 
 describe('Juicebox', async function () {
   before(async function () {
@@ -19,12 +22,12 @@ describe('Juicebox', async function () {
 
     // Bind the ability to manipulate time to `this`.
     // Bind a function that gets the current block's timestamp.
-    this.getTimestampFn = async (block) => {
+    this.getTimestampFn = async (block: BlockTag | string | Promise<BlockTag | string>) => {
       return BigNumber.from((await hre.ethers.provider.getBlock(block || 'latest')).timestamp);
     };
 
     // Binds a function that sets a time mark that is taken into account while fastforward.
-    this.setTimeMarkFn = async (blockNumber) => {
+    this.setTimeMarkFn = async (blockNumber: string) => {
       this.timeMark = await this.getTimestampFn(blockNumber);
     };
 
@@ -52,8 +55,8 @@ describe('Juicebox', async function () {
     };
 
     // Bind a reference to a function that can deploy a contract on the local network.
-    this.deployContractFn = async (contractName, args = []) => {
-      const artifacts = await ethers.getContractFactory(contractName);
+    this.deployContractFn = async (contractName: string, args: any[] = []) => {
+      const artifacts = await hre.ethers.getContractFactory(contractName);
       return artifacts.deploy(...args);
     };
 
@@ -76,7 +79,7 @@ describe('Juicebox', async function () {
     };
 
     // Reads a contract.
-    this.readContractAbi = (contractName) => {
+    this.readContractAbi = (contractName: string) => {
       const files = glob.sync(
         `${config.paths.artifacts}/contracts/**/${contractName}.sol/${contractName}.json`,
         {},
@@ -101,6 +104,8 @@ describe('Juicebox', async function () {
       value = 0,
       events = [],
       revert,
+    }: {
+      caller?: Provider | Signer | undefined;
     }) => {
       // Args can be either a function or an array.
       const normalizedArgs = typeof args === 'function' ? await args() : args;
@@ -153,12 +158,29 @@ describe('Juicebox', async function () {
       );
     };
 
-    this.bindContractFn = async ({ address, contractName, signerOrProvider }) => {
+    this.bindContractFn = async ({
+      address,
+      contractName,
+      signerOrProvider,
+    }: {
+      address: string;
+      contractName: string;
+    }) => {
       return new Contract(address, this.readContractAbi(contractName), signerOrProvider);
     };
 
     // Bind a function that sends funds from one address to another.
-    this.sendTransactionFn = async ({ from, to, value, revert, events }) => {
+    this.sendTransactionFn = async ({
+      from,
+      to,
+      value,
+      revert,
+      events,
+    }: {
+      from: Signer;
+      to: string;
+      value: BigNumberish;
+    }) => {
       // Transfer the funds.
       const promise = from.sendTransaction({
         to,
@@ -209,7 +231,7 @@ describe('Juicebox', async function () {
     };
 
     // Binds a function that makes sure the provided address has the balance
-    this.verifyBalanceFn = async ({ address, expect, plusMinus }) => {
+    this.verifyBalanceFn = async ({ address, expect, plusMinus }: { address: string }) => {
       const storedVal = await hre.ethers.provider.getBalance(address);
       if (plusMinus) {
         console.log({
@@ -267,10 +289,10 @@ describe('Juicebox', async function () {
     };
 
     // Bind a function that gets a random address.
-    this.randomAddressFn = ({ exclude = [] } = {}) => {
+    this.randomAddressFn = ({ exclude = [] }: {exclude?: string[]} = {}) => {
       // To test an edge condition, pick the same address more likely than not.
       // return address0 50% of the time.
-      const candidate =
+      const candidate: string =
         Math.random() < 0.5
           ? this.addrs[0].address
           : this.addrs[Math.floor(Math.random() * 9)].address;
@@ -281,7 +303,7 @@ describe('Juicebox', async function () {
 
     // Bind a function that gets a random signed.
     // TODO(odd-amphora): Address type any.
-    this.randomSignerFn = ({ exclude = [] }: {exclude?: any} = {}) => {
+    this.randomSignerFn = ({ exclude = [] }: { exclude?: any } = {}) => {
       // To test an edge condition, pick the same address more likely than not.
       // return address0 50% of the time.
       const candidate =
@@ -299,7 +321,12 @@ describe('Juicebox', async function () {
       prepend = '',
       canBeEmpty = true,
       favorEdges = true,
-    }: {exclude?: string[], prepend?: string, canBeEmpty?: boolean, favorEdges?: boolean } = {}) => {
+    }: {
+      exclude?: string[];
+      prepend?: string;
+      canBeEmpty?: boolean;
+      favorEdges?: boolean;
+    } = {}) => {
       const seed = this.randomBigNumberFn({
         min: canBeEmpty ? BigNumber.from(0) : BigNumber.from(1),
         favorEdges,
