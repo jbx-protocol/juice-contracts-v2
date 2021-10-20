@@ -49,7 +49,7 @@ describe('Juicebox', async function () {
     this.deployMockContractFn = (abi) => deployMockContract(this.deployer, abi);
 
     // Bind a reference to a function that can deploy mock local contracts from names.
-    this.deployMockLocalContractFn = async (mockContractName) => {
+    this.deployMockLocalContractFn = async (mockContractName: string) => {
       // Deploy mock contracts.
       return this.deployMockContractFn(this.readContractAbi(mockContractName));
     };
@@ -106,6 +106,13 @@ describe('Juicebox', async function () {
       revert,
     }: {
       caller?: Provider | Signer | undefined;
+      contract?: Contract,
+      contractName?: string,
+      contractAddress?: string,
+      fn?: any, // TODO(odd-amphora)
+      args?: any[],
+      value?: BigNumberish,
+
     }) => {
       // Args can be either a function or an array.
       const normalizedArgs = typeof args === 'function' ? await args() : args;
@@ -119,7 +126,7 @@ describe('Juicebox', async function () {
           throw 'You must provide a contract address with a contract name.';
         }
 
-        contractInternal = new Contract(
+        contractInternal: Contract = new Contract(
           contractAddress,
           this.readContractAbi(contractName),
           caller,
@@ -129,7 +136,7 @@ describe('Juicebox', async function () {
       }
 
       // Save the promise that is returned.
-      const promise = contractInternal.connect(caller)[fn](...normalizedArgs, { value });
+      const promise = contractInternal?.connect(caller)[fn](...normalizedArgs, { value });
 
       // If a revert message is passed in, check to see if it was thrown.
       if (revert) {
@@ -163,8 +170,9 @@ describe('Juicebox', async function () {
       contractName,
       signerOrProvider,
     }: {
-      address: string;
-      contractName: string;
+      address: string,
+      contractName: string,
+      signerOrProvider: Provider | Signer | undefined,
     }) => {
       return new Contract(address, this.readContractAbi(contractName), signerOrProvider);
     };
