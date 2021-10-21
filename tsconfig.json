@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2018",
     "module": "commonjs",
-    "strict": false, // TODO(odd-amphora): temporary
+    "strict": true,
     "esModuleInterop": true,
     "outDir": "dist",
     "resolveJsonModule": true

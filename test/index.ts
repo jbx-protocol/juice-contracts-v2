@@ -7,13 +7,14 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import '@nomiclabs/hardhat-ethers';
 import { BigNumber, Contract, utils, constants, Signer } from 'ethers';
-import { BlockTag, Block } from '@ethersproject/abstract-provider';
+import { BlockTag } from '@ethersproject/abstract-provider';
 import hre from 'hardhat';
 
 import unit from './unit';
-import integration from './integration';
 import { Provider } from '@ethersproject/providers';
 import { BigNumberish } from '@ethersproject/bignumber';
+import { Fragment, JsonFragment } from '@ethersproject/abi';
+import { MockContract } from 'ethereum-waffle';
 
 describe('Juicebox', async function () {
   before(async function () {
@@ -32,7 +33,7 @@ describe('Juicebox', async function () {
     };
 
     // Binds a function that fastforward a certain amount from the beginning of the test, or from the latest time mark if one is set.
-    this.fastforwardFn = async (seconds) => {
+    this.fastforwardFn = async (seconds: BigNumber) => {
       const now = await this.getTimestampFn();
       const timeSinceTimemark = now.sub(this.timeMark);
       const fastforwardAmount = seconds.toNumber() - timeSinceTimemark;
@@ -42,11 +43,12 @@ describe('Juicebox', async function () {
       // or from the last fastforward, from the provided value.
       await hre.ethers.provider.send('evm_increaseTime', [fastforwardAmount]);
       // Mine a block.
-      await hre.ethers.provider.send('evm_mine');
+      await hre.ethers.provider.send('evm_mine', []);
     };
 
     // Bind a reference to a function that can deploy mock contracts from an abi.
-    this.deployMockContractFn = (abi) => deployMockContract(this.deployer, abi);
+    this.deployMockContractFn = (abi: string | Array<Fragment | JsonFragment | string>) =>
+      deployMockContract(this.deployer, abi);
 
     // Bind a reference to a function that can deploy mock local contracts from names.
     this.deployMockLocalContractFn = async (mockContractName: string) => {
@@ -61,7 +63,17 @@ describe('Juicebox', async function () {
     };
 
     // Bind a function that mocks a contract function's execution with the provided args to return the provided values.
-    this.mockFn = async ({ mockContract, fn, args, returns = [] }) => {
+    this.mockFn = async ({
+      mockContract,
+      fn,
+      args,
+      returns = [],
+    }: {
+      mockContract: MockContract,
+      fn: string,
+      args: any, // TODO(odd-amphora)
+      returns: any, // TODO(odd-amphora)
+    }) => {
       // The `args` can be a function or an array.
       const normalizedArgs = args && typeof args === 'function' ? await args() : args;
 
@@ -105,14 +117,15 @@ describe('Juicebox', async function () {
       events = [],
       revert,
     }: {
-      caller?: Provider | Signer | undefined;
+      caller?:any, // TODO(odd-amphora)
       contract?: Contract,
       contractName?: string,
       contractAddress?: string,
       fn?: any, // TODO(odd-amphora)
-      args?: any[],
+      args?: any, // TODO(odd-amphora)
       value?: BigNumberish,
-
+      events?: any, // TODO(odd-amphora),
+      revert?: any // TODO(odd-amphora)
     }) => {
       // Args can be either a function or an array.
       const normalizedArgs = typeof args === 'function' ? await args() : args;
@@ -126,7 +139,7 @@ describe('Juicebox', async function () {
           throw 'You must provide a contract address with a contract name.';
         }
 
-        contractInternal: Contract = new Contract(
+        contractInternal = new Contract(
           contractAddress,
           this.readContractAbi(contractName),
           caller,
@@ -157,7 +170,8 @@ describe('Juicebox', async function () {
       if (events.length === 0) return;
 
       // Check for events.
-      events.forEach((event) =>
+      // TODO(odd-amphora)
+      events.forEach((event: any) =>
         chai
           .expect(tx)
           .to.emit(contract, event.name)
@@ -170,9 +184,9 @@ describe('Juicebox', async function () {
       contractName,
       signerOrProvider,
     }: {
-      address: string,
-      contractName: string,
-      signerOrProvider: Provider | Signer | undefined,
+      address: string;
+      contractName: string;
+      signerOrProvider: Provider | Signer | undefined;
     }) => {
       return new Contract(address, this.readContractAbi(contractName), signerOrProvider);
     };
@@ -185,9 +199,11 @@ describe('Juicebox', async function () {
       revert,
       events,
     }: {
-      from: Signer;
-      to: string;
-      value: BigNumberish;
+      from: Signer,
+      to: string,
+      value: BigNumberish,
+      revert: any, // TODO(odd-amphora): Replace any type.
+      events: any, // TODO(odd-amphora): Replace any type.
     }) => {
       // Transfer the funds.
       const promise = from.sendTransaction({
@@ -214,7 +230,8 @@ describe('Juicebox', async function () {
       if (events.length === 0) return;
 
       // Check for events.
-      events.forEach((event) =>
+      // TODO(odd-amphora): Replace any type.      
+      events.forEach((event: any) =>
         chai
           .expect(tx)
           .to.emit(event.contract, event.name)
@@ -223,7 +240,22 @@ describe('Juicebox', async function () {
     };
 
     // Bind a function that checks if a contract getter equals an expected value.
-    this.checkFn = async ({ caller, contract, fn, args, expect, plusMinus }) => {
+    // TODO(odd-amphora): replace any types.
+    this.checkFn = async ({
+      caller,
+      contract,
+      fn,
+      args,
+      expect,
+      plusMinus,
+    }: {
+      caller: any;
+      contract: any;
+      fn: any;
+      args: any;
+      expect: any;
+      plusMinus: any;
+    }) => {
       const storedVal = await contract.connect(caller)[fn](...args);
       if (plusMinus) {
         console.log({
@@ -239,7 +271,16 @@ describe('Juicebox', async function () {
     };
 
     // Binds a function that makes sure the provided address has the balance
-    this.verifyBalanceFn = async ({ address, expect, plusMinus }: { address: string }) => {
+    // TODO(odd-amphora): plusMinus should be extracted into a type.
+    this.verifyBalanceFn = async ({
+      address,
+      expect,
+      plusMinus,
+    }: {
+      address: string;
+      expect: BigNumber;
+      plusMinus: any;
+    }) => {
       const storedVal = await hre.ethers.provider.getBalance(address);
       if (plusMinus) {
         console.log({
@@ -274,7 +315,7 @@ describe('Juicebox', async function () {
     // Bind function that gets a random big number.
     this.randomBigNumberFn = ({
       min = BigNumber.from(0),
-      max = this.constants.MaxUint256,
+      max = constants.MaxUint256,
       precision = 10000000,
       favorEdges = true,
     } = {}) => {
@@ -297,7 +338,7 @@ describe('Juicebox', async function () {
     };
 
     // Bind a function that gets a random address.
-    this.randomAddressFn = ({ exclude = [] }: {exclude?: string[]} = {}) => {
+    this.randomAddressFn = ({ exclude = [] }: { exclude?: string[] } = {}) => {
       // To test an edge condition, pick the same address more likely than not.
       // return address0 50% of the time.
       const candidate: string =
@@ -383,5 +424,5 @@ describe('Juicebox', async function () {
 
   // Run the tests.
   describe('Unit', unit);
-  describe('Integration', integration);
+  // describe('Integration', integration);
 });

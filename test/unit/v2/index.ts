@@ -1,5 +1,5 @@
 import jbOperatorStore from './jb_operator_store';
-import jbPrices from './jb_prices';
+//import jbPrices from './jb_prices';
 
 let snapshotId: any;
 export default function () {
@@ -11,7 +11,7 @@ export default function () {
 
   // Test each contract.
   describe('JBOperatorStore', jbOperatorStore);
-  describe('JBPrices', jbPrices);
+  //describe('JBPrices', jbPrices);
 
   // After each test, restore the contract state.
   afterEach(async function () {

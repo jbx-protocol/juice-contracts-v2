@@ -1,11 +1,12 @@
 // TODO(odd-amphora): Use better calldata pattern.
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 
 const tests = {
   success: [
     {
       description: 'has permission, account is caller',
-      fn: ({ deployer, addrs }) => ({
+      fn: ({ deployer, addrs }: { deployer: SignerWithAddress; addrs: SignerWithAddress[] }) => ({
         set: {
           caller: deployer,
           domain: 1,
@@ -24,7 +25,7 @@ const tests = {
     },
     {
       description: 'has permission, account is not caller',
-      fn: ({ deployer, addrs }) => ({
+      fn: ({ deployer, addrs }: { deployer: SignerWithAddress; addrs: SignerWithAddress[] }) => ({
         set: {
           caller: deployer,
           domain: 1,
@@ -43,7 +44,7 @@ const tests = {
     },
     {
       description: 'doesnt have permission, never set',
-      fn: ({ deployer, addrs }) => ({
+      fn: ({ deployer, addrs }: { deployer: SignerWithAddress; addrs: SignerWithAddress[] }) => ({
         check: {
           caller: deployer,
           account: deployer,
@@ -56,7 +57,7 @@ const tests = {
     },
     {
       description: 'doesnt have permission, indexes differ',
-      fn: ({ deployer, addrs }) => ({
+      fn: ({ deployer, addrs }: { deployer: SignerWithAddress; addrs: SignerWithAddress[] }) => ({
         set: {
           caller: deployer,
           domain: 1,
@@ -75,7 +76,7 @@ const tests = {
     },
     {
       description: 'doesnt have permission, domain differs',
-      fn: ({ deployer, addrs }) => ({
+      fn: ({ deployer, addrs }: { deployer: SignerWithAddress; addrs: SignerWithAddress[] }) => ({
         set: {
           caller: deployer,
           domain: 1,
@@ -96,7 +97,7 @@ const tests = {
   failure: [
     {
       description: 'index out of bounds',
-      fn: ({ deployer, addrs }) => ({
+      fn: ({ deployer, addrs }: { deployer: SignerWithAddress; addrs: SignerWithAddress[] }) => ({
         check: {
           caller: deployer,
           account: deployer,
@@ -114,7 +115,9 @@ export default function () {
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {
-        const { set, check, result } = successTest.fn(this);
+        const { set, check, result }: { set?: any; check: any; result: any } = successTest.fn(
+          this as any,
+        );
 
         // If specified, set an operator before the rest of the test.
         if (set) {
@@ -140,7 +143,7 @@ export default function () {
   describe('Failure cases', function () {
     tests.failure.forEach(function (failureTest) {
       it(failureTest.description, async function () {
-        const { check, revert } = failureTest.fn(this);
+        const { check, revert } = failureTest.fn(this as any);
         await expect(
           this.contract
             .connect(check.caller)
@@ -154,4 +157,4 @@ export default function () {
       });
     });
   });
-};
+}
