@@ -25,7 +25,7 @@ const tests = {
     },
     {
       description: 'has permission, account is not caller',
-      fn: ({ deployer, addrs }: { deployer: SignerWithAddress; addrs: SignerWithAddress[] }) => ({
+      fn: (context: Context: { deployer: SignerWithAddress; addrs: SignerWithAddress[] }) => ({
         set: {
           caller: deployer,
           domain: 1,
