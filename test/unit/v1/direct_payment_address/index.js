@@ -1,8 +1,8 @@
-const receive = require('./receive');
+import receive from './receive';
 
 const contractName = 'DirectPaymentAddress';
 
-module.exports = function () {
+export default function () {
   // Before the tests, deploy mocked dependencies and the contract.
   before(async function () {
     // Deploy mock dependency contracts.

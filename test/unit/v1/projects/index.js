@@ -1,14 +1,14 @@
-const challengeHandle = require('./challenge_handle');
-const claimHandle = require('./claim_handle');
-const create = require('./create');
-const renewHandle = require('./renew_handle');
-const setHandle = require('./set_handle');
-const setUri = require('./set_uri');
-const transferHandle = require('./transfer_handle');
+import challengeHandle from './challenge_handle';
+import claimHandle from './claim_handle';
+import create from './create';
+import renewHandle from './renew_handle';
+import setHandle from './set_handle';
+import setUri from './set_uri';
+import transferHandle from './transfer_handle';
 
 const contractName = 'Projects';
 
-module.exports = function () {
+export default function () {
   // Before the tests, deploy mocked dependencies and the contract.
   before(async function () {
     // Deploy mock dependency contracts.

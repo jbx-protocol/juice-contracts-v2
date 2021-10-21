@@ -1,5 +1,5 @@
-const { BigNumber, constants, utils } = require('ethers');
-const workflows = require('./workflows');
+import { BigNumber, constants, utils } from 'ethers';
+import { projects as _projects, challengeHandle, deploy, ticketLockingAndTransfers, redeem, printReservedTickets, printPreminedTickets, issueTickets, tap, takeFee, reconfigure, limit, zeroDuration, nonRecurring, approvedBallot, failedBallot, iteratedFailedBallot, migrate, operatorPermissions, setPayoutMods, setTicketMods, governance as _governance, setFee, currencyConversion, transferProjectOwnership, directPaymentAddresses, setTerminal, proxyPaymentAddresses } from './workflows';
 
 // The first project ID is used for governance.
 let projectId = BigNumber.from(1);
@@ -23,7 +23,7 @@ const run = function (ops) {
   };
 };
 
-module.exports = function () {
+export default function () {
   // Deploy all contracts.
   before(async function () {
     const operatorStore = await this.deployContractFn('OperatorStore');
@@ -166,64 +166,64 @@ module.exports = function () {
   for (let i = 0; i < 8; i += 1) {
     describe(
       'Projects can be created, have their URIs changed, transfer/claim handles, and be attached to funding cycles',
-      run(workflows.projects),
+      run(_projects),
     );
     describe(
       "Projects can have their handle's challenged, and claimed if not renewed in time",
-      run(workflows.challengeHandle),
+      run(challengeHandle),
     );
     describe(
       'Deployment of a project with funding cycles and mods included',
-      run(workflows.deploy),
+      run(deploy),
     );
     describe(
       'Ticket holders can lock their tickets, which prevents them from being redeemed, unstaked, or transfered',
-      run(workflows.ticketLockingAndTransfers),
+      run(ticketLockingAndTransfers),
     );
-    describe('Redeem tickets for overflow', run(workflows.redeem));
-    describe('Prints reserved tickets', run(workflows.printReservedTickets));
+    describe('Redeem tickets for overflow', run(redeem));
+    describe('Prints reserved tickets', run(printReservedTickets));
     describe(
       'Projects can print premined tickets before a payment has been made to it',
-      run(workflows.printPreminedTickets),
+      run(printPreminedTickets),
     );
-    describe('Issues tickets and honors preference', run(workflows.issueTickets));
-    describe('Tap funds up to the configured target', run(workflows.tap));
+    describe('Issues tickets and honors preference', run(issueTickets));
+    describe('Tap funds up to the configured target', run(tap));
     describe(
       "A fee should be taken into governance's project when a project taps funds",
-      run(workflows.takeFee),
+      run(takeFee),
     );
-    describe('Reconfigures a project', run(workflows.reconfigure));
-    describe('A funding cycle configuration can have a limit', run(workflows.limit));
-    describe('A funding cycle configuration can have a duration of 0', run(workflows.zeroDuration));
-    describe('A funding cycle configuration can be non recurring', run(workflows.nonRecurring));
+    describe('Reconfigures a project', run(reconfigure));
+    describe('A funding cycle configuration can have a limit', run(limit));
+    describe('A funding cycle configuration can have a duration of 0', run(zeroDuration));
+    describe('A funding cycle configuration can be non recurring', run(nonRecurring));
     describe(
       'Ballot must be approved for reconfiguration to become active',
-      run(workflows.approvedBallot),
+      run(approvedBallot),
     );
-    describe('Reconfiguration that fails a ballot should be ignored', run(workflows.failedBallot));
+    describe('Reconfiguration that fails a ballot should be ignored', run(failedBallot));
     describe(
       'Reconfiguration proposed after a failed configuration should obide by the ballot duration',
-      run(workflows.iteratedFailedBallot),
+      run(iteratedFailedBallot),
     );
-    describe('Migrate from one Terminal to another', run(workflows.migrate));
-    describe('Operators can be given permissions', run(workflows.operatorPermissions));
-    describe('Set and update payout mods, honoring locked status', run(workflows.setPayoutMods));
-    describe('Set and update ticket mods, honoring locked status', run(workflows.setTicketMods));
-    describe('A new governance can be appointed and accepted', run(workflows.governance));
-    describe('Governance can set a new fee for future configurations', run(workflows.setFee));
-    describe('Currencies rates are converted to/from correctly', run(workflows.currencyConversion));
-    describe('Transfer ownership over a project', run(workflows.transferProjectOwnership));
+    describe('Migrate from one Terminal to another', run(migrate));
+    describe('Operators can be given permissions', run(operatorPermissions));
+    describe('Set and update payout mods, honoring locked status', run(setPayoutMods));
+    describe('Set and update ticket mods, honoring locked status', run(setTicketMods));
+    describe('A new governance can be appointed and accepted', run(_governance));
+    describe('Governance can set a new fee for future configurations', run(setFee));
+    describe('Currencies rates are converted to/from correctly', run(currencyConversion));
+    describe('Transfer ownership over a project', run(transferProjectOwnership));
     describe(
       'Direct payment addresses can be deployed to add an fundable address to a project',
-      run(workflows.directPaymentAddresses),
+      run(directPaymentAddresses),
     );
     describe(
       'A project can be created without a payment terminal, and can set one after',
-      run(workflows.setTerminal),
+      run(setTerminal),
     );
     describe(
       'Proxy payment addresses can be deployed to add an fundable address to a project',
-      run(workflows.proxyPaymentAddresses),
+      run(proxyPaymentAddresses),
     );
   }
 };

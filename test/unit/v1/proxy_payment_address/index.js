@@ -1,9 +1,9 @@
-const tap = require('./tap');
-const transferTickets = require('./transfer_tickets');
+import tap from './tap';
+import transferTickets from './transfer_tickets';
 
 const contractName = 'ProxyPaymentAddress';
 
-module.exports = function () {
+export default function () {
   // Before the tests, deploy mocked dependencies and the contract.
   before(async function () {
     // Deploy mock dependency contracts.

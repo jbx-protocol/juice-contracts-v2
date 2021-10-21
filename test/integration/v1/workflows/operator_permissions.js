@@ -486,7 +486,7 @@ const operations = [
   },
 ];
 
-module.exports = [
+export default [
   // For each operation, test owner access, operator access, and unauthorized access.
   ...operations.reduce((all, { pre = [], expand, override, allowWildcard }) => {
     return [

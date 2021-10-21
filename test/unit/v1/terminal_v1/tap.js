@@ -1,5 +1,5 @@
-const { expect } = require('chai');
-const { BigNumber, constants, utils } = require('ethers');
+import { expect } from 'chai';
+import { BigNumber, constants, utils } from 'ethers';
 
 const mockFn =
   ({ condition, mockContract, fn, args, returns = [] }) =>
@@ -589,7 +589,7 @@ const ops =
     ];
   };
 
-module.exports = function () {
+export default function () {
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

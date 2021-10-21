@@ -1,20 +1,20 @@
-const acceptGovernance = require('./accept_governance');
-const addToBalance = require('./add_to_balance');
-const allowMigration = require('./allow_migration');
-const appointGovernance = require('./appoint_governance');
-const configure = require('./configure');
-const deploy = require('./deploy');
-const migrate = require('./migrate');
-const pay = require('./pay');
-const printPreminedTickets = require('./print_premined_tickets');
-const printReservedTickets = require('./print_reserved_tickets');
-const redeem = require('./redeem');
-const setFee = require('./set_fee');
-const tap = require('./tap');
+import acceptGovernance from './accept_governance';
+import addToBalance from './add_to_balance';
+import allowMigration from './allow_migration';
+import appointGovernance from './appoint_governance';
+import configure from './configure';
+import deploy from './deploy';
+import migrate from './migrate';
+import pay from './pay';
+import printPreminedTickets from './print_premined_tickets';
+import printReservedTickets from './print_reserved_tickets';
+import redeem from './redeem';
+import setFee from './set_fee';
+import tap from './tap';
 
 const contractName = 'TerminalV1';
 
-module.exports = function () {
+export default function () {
   // Before the tests, deploy mocked dependencies and the contract.
   before(async function () {
     // Deploy mock dependency contracts.

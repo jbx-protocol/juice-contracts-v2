@@ -1,8 +1,8 @@
-const deployProxyPaymentAddress = require('./deploy_proxy_payment_address');
+import deployProxyPaymentAddress from './deploy_proxy_payment_address';
 
 const contractName = 'ProxyPaymentAddressManager';
 
-module.exports = function () {
+export default function () {
   // Before the tests, deploy mocked dependencies and the contract.
   before(async function () {
     // Deploy mock dependency contracts.

@@ -1,13 +1,13 @@
-const { ethers, config } = require('hardhat');
-const chai = require('chai');
-const fs = require('fs');
-const glob = require('glob');
+import { ethers, config } from 'hardhat';
+import { expect as _expect } from 'chai';
+import { readFileSync } from 'fs';
+import { sync } from 'glob';
 
-const { deployMockContract } = require('@ethereum-waffle/mock-contract');
+import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
-const { BigNumber, Contract } = require('ethers');
-const unit = require('./unit');
-const integration = require('./integration');
+import { BigNumber, Contract } from 'ethers';
+import unit from './unit';
+import integration from './integration';
 
 describe('Juicebox', async function () {
   before(async function () {
@@ -74,7 +74,7 @@ describe('Juicebox', async function () {
 
     // Reads a contract.
     this.readContractAbi = (contractName) => {
-      const files = glob.sync(
+      const files = sync(
         `${config.paths.artifacts}/contracts/**/${contractName}.sol/${contractName}.json`,
         {},
       );
@@ -84,7 +84,7 @@ describe('Juicebox', async function () {
       if (files.length > 1) {
         throw 'Multiple files found!';
       }
-      return JSON.parse(fs.readFileSync(files[0]).toString()).abi;
+      return JSON.parse(readFileSync(files[0]).toString()).abi;
     };
 
     // Bind a function that executes a transaction on a contract.
@@ -125,7 +125,7 @@ describe('Juicebox', async function () {
 
       // If a revert message is passed in, check to see if it was thrown.
       if (revert) {
-        await chai.expect(promise).to.be.revertedWith(revert);
+        await _expect(promise).to.be.revertedWith(revert);
         return;
       }
 
@@ -143,8 +143,7 @@ describe('Juicebox', async function () {
 
       // Check for events.
       events.forEach((event) =>
-        chai
-          .expect(tx)
+        _expect(tx)
           .to.emit(contract, event.name)
           .withArgs(...event.args),
       );
@@ -164,7 +163,7 @@ describe('Juicebox', async function () {
 
       // If a revert message is passed in, check to see if it was thrown.
       if (revert) {
-        await chai.expect(promise).to.be.revertedWith(revert);
+        await _expect(promise).to.be.revertedWith(revert);
         return;
       }
 
@@ -182,8 +181,7 @@ describe('Juicebox', async function () {
 
       // Check for events.
       events.forEach((event) =>
-        chai
-          .expect(tx)
+        _expect(tx)
           .to.emit(event.contract, event.name)
           .withArgs(...event.args),
       );
@@ -198,10 +196,10 @@ describe('Juicebox', async function () {
           diff: storedVal.sub(expect),
           plusMinus: plusMinus.amount,
         });
-        chai.expect(storedVal.lte(expect.add(plusMinus.amount))).to.equal(true);
-        chai.expect(storedVal.gte(expect.sub(plusMinus.amount))).to.equal(true);
+        _expect(storedVal.lte(expect.add(plusMinus.amount))).to.equal(true);
+        _expect(storedVal.gte(expect.sub(plusMinus.amount))).to.equal(true);
       } else {
-        chai.expect(storedVal).to.deep.equal(expect);
+        _expect(storedVal).to.deep.equal(expect);
       }
     };
 
@@ -214,10 +212,10 @@ describe('Juicebox', async function () {
           diff: storedVal.sub(expect),
           plusMinus: plusMinus.amount,
         });
-        chai.expect(storedVal.lte(expect.add(plusMinus.amount))).to.equal(true);
-        chai.expect(storedVal.gte(expect.sub(plusMinus.amount))).to.equal(true);
+        _expect(storedVal.lte(expect.add(plusMinus.amount))).to.equal(true);
+        _expect(storedVal.gte(expect.sub(plusMinus.amount))).to.equal(true);
       } else {
-        chai.expect(storedVal).to.deep.equal(expect);
+        _expect(storedVal).to.deep.equal(expect);
       }
     };
 
@@ -225,7 +223,7 @@ describe('Juicebox', async function () {
     this.getBalanceFn = (address) => ethers.provider.getBalance(address);
 
     // Binds the standard expect function.
-    this.expectFn = chai.expect;
+    this.expectFn = _expect;
 
     // Bind some constants.
 

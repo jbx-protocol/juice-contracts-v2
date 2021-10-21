@@ -1,5 +1,5 @@
-const { expect } = require('chai');
-const { constants } = require('ethers');
+import { expect } from 'chai';
+import { constants } from 'ethers';
 
 const tests = {
   success: [
@@ -50,7 +50,7 @@ const tests = {
   ],
 };
 
-module.exports = function () {
+export default function () {
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

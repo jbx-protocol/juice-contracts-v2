@@ -1,34 +1,34 @@
-const deploy = require('./deploy');
-const migrate = require('./migrate');
-const payoutToPayoutMods = require('./tap');
-const setPayoutMods = require('./set_payout_mods');
-const setTicketMods = require('./set_ticket_mods');
-const tap = require('./tap');
-const redeem = require('./redeem');
-const printReservedTickets = require('./print_reserved_tickets');
-const issueTickets = require('./issue_tickets');
-const reconfigure = require('./reconfigure');
-const approvedBallot = require('./approved_ballot');
-const failedBallot = require('./failed_ballot');
-const iteratedFailedBallot = require('./iterated_failed_ballot');
-const governance = require('./governance');
-const setFee = require('./set_fee');
-const printPreminedTickets = require('./print_premined_tickets');
-const projects = require('./projects');
-const currencyConversion = require('./currency_conversion');
-const transferProjectOwnership = require('./transfer_project_ownership');
-const directPaymentAddresses = require('./direct_payment_addresses');
-const operatorPermissions = require('./operator_permissions');
-const ticketLockingAndTransfers = require('./ticket_locking_and transfers');
-const setTerminal = require('./set_terminal');
-const limit = require('./limit');
-const zeroDuration = require('./zero_duration');
-const nonRecurring = require('./non_recurring');
-const challengeHandle = require('./challenge_handle');
-const takeFee = require('./take_fee');
-const proxyPaymentAddresses = require('./proxy_payment_addresses');
+import deploy from './deploy';
+import migrate from './migrate';
+import payoutToPayoutMods from './tap';
+import setPayoutMods from './set_payout_mods';
+import setTicketMods from './set_ticket_mods';
+import tap from './tap';
+import redeem from './redeem';
+import printReservedTickets from './print_reserved_tickets';
+import issueTickets from './issue_tickets';
+import reconfigure from './reconfigure';
+import approvedBallot from './approved_ballot';
+import failedBallot from './failed_ballot';
+import iteratedFailedBallot from './iterated_failed_ballot';
+import governance from './governance';
+import setFee from './set_fee';
+import printPreminedTickets from './print_premined_tickets';
+import projects from './projects';
+import currencyConversion from './currency_conversion';
+import transferProjectOwnership from './transfer_project_ownership';
+import directPaymentAddresses from './direct_payment_addresses';
+import operatorPermissions from './operator_permissions';
+import ticketLockingAndTransfers from './ticket_locking_and transfers';
+import setTerminal from './set_terminal';
+import limit from './limit';
+import zeroDuration from './zero_duration';
+import nonRecurring from './non_recurring';
+import challengeHandle from './challenge_handle';
+import takeFee from './take_fee';
+import proxyPaymentAddresses from './proxy_payment_addresses';
 
-module.exports = {
+export {
   deploy,
   projects,
   migrate,

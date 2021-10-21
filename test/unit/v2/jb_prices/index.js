@@ -1,14 +1,14 @@
-const AggregatorV3Interface = require('@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json');
+import { compilerOutput } from '@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json';
 
-const addFeedFor = require('./add_feed_for');
-const priceFor = require('./price_for');
-const targetDecimals = require('./target_decimals');
+import addFeedFor from './add_feed_for';
+import priceFor from './price_for';
+import targetDecimals from './target_decimals';
 
-module.exports = function () {
+export default function () {
   before(async function () {
     // Deploy a mock of the price feed oracle contract.
     this.aggregatorV3Contract = await this.deployMockContractFn(
-      AggregatorV3Interface.compilerOutput.abi,
+      compilerOutput.abi,
     );
 
     this.contract = await this.deployContractFn('JBPrices');

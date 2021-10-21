@@ -1,11 +1,11 @@
-const addPriceFeed = require('./add_price_feed');
-const allowMigration = require('./allow_migration');
-const appointGovernance = require('./appoint_governance');
-const setFee = require('./set_fee');
+import addPriceFeed from './add_price_feed';
+import allowMigration from './allow_migration';
+import appointGovernance from './appoint_governance';
+import setFee from './set_fee';
 
 const contractName = 'Governance';
 
-module.exports = function () {
+export default function () {
   // Before the tests, deploy the contract.
   before(async function () {
     this.projectId = 1;
