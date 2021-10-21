@@ -72,17 +72,27 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     skipIfAlreadyDeployed: true,
   });
 
-  const _ = await deploy('JBETHPaymentTerminal', {
+  const JBETHPaymentTerminalStore = await deploy('JBETHPaymentTerminalStore', {
     from: deployer,
     args: [
-      JBOperatorStore.address,
       JBPrices.address,
       JBProjects.address,
       JBDirectory.address,
       JBFundingCycleStore.address,
       JBTokenStore.address,
+    ],
+    log: true,
+    skipIfAlreadyDeployed: true,
+  });
+
+  const _ = await deploy('JBETHPaymentTerminal', {
+    from: deployer,
+    args: [
+      JBOperatorStore.address,
+      JBProjects.address,
+      JBDirectory.address,
       JBSplitStore.address,
-      JBControllerV1.address,
+      JBETHPaymentTerminalStore.address,      
     ],
     log: true,
     skipIfAlreadyDeployed: true,
