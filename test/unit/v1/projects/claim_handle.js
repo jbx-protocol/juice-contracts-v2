@@ -385,4 +385,4 @@ export default function () {
       });
     });
   });
-};
+}

@@ -22,4 +22,4 @@ export default function () {
   describe('deployAddress(...)', deployAddress);
   describe('setTerminal(...)', setTerminal);
   describe('setPayerPreferences(...)', setPayerPreferences);
-};
+}

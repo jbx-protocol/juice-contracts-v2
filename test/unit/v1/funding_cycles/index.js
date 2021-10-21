@@ -39,4 +39,4 @@ export default function () {
   describe('currentOf(...)', currentOf);
   describe('queuedOf(...)', queuedOf);
   describe('currentBallotStateOf(...)', currentBallotStateOf);
-};
+}

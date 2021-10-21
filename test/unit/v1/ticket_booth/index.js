@@ -38,4 +38,4 @@ export default function () {
   describe('unlock(...)', unlock);
   describe('balanceOf(...)', balanceOf);
   describe('totalSupplyOf(...)', totalSupplyOf);
-};
+}

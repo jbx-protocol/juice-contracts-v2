@@ -313,4 +313,4 @@ export default function () {
       });
     });
   });
-};
+}

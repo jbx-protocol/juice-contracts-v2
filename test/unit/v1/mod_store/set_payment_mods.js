@@ -675,4 +675,4 @@ export default function () {
       });
     });
   });
-};
+}

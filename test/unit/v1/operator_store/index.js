@@ -17,4 +17,4 @@ export default function () {
   describe('setOperators(...)', setOperators);
   describe('hasPermission(...)', hasPermission);
   describe('hasPermissions(...)', hasPermissions);
-};
+}

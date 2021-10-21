@@ -9,9 +9,7 @@ export default function () {
   // Before the tests, deploy mocked dependencies and the contract.
   before(async function () {
     // Deploy a mock of the price feed oracle contract.
-    this.aggregatorV3Contract = await this.deployMockContractFn(
-      compilerOutput.abi,
-    );
+    this.aggregatorV3Contract = await this.deployMockContractFn(compilerOutput.abi);
 
     // Deploy the contract.
     this.contract = await this.deployContractFn(contractName);
@@ -20,4 +18,4 @@ export default function () {
   // Test each function.
   describe('addFeed(...)', addFeed);
   describe('getETHPriceFor(...)', getEthPriceFor);
-};
+}

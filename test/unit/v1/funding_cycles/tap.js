@@ -1019,4 +1019,4 @@ export default function () {
       });
     });
   });
-};
+}

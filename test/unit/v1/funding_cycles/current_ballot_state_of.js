@@ -635,4 +635,4 @@ export default function () {
       });
     });
   });
-};
+}

@@ -80,4 +80,4 @@ export default function () {
   describe('redeem(...)', redeem);
   describe('tap(...)', tap);
   describe('printReservedTickets(...)', printReservedTickets);
-};
+}

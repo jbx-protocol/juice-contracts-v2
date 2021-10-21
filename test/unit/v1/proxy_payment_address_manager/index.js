@@ -18,4 +18,4 @@ export default function () {
 
   // Test each function.
   describe('deploy_proxy_payment_address(...)', deployProxyPaymentAddress);
-};
+}

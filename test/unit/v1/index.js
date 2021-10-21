@@ -44,4 +44,4 @@ export default function () {
   afterEach(async function () {
     await this.restoreFn(snapshotId);
   });
-};
+}

@@ -23,4 +23,4 @@ export default function () {
   // Test each function.
   describe('setPaymentMods(...)', setPaymentMods);
   describe('setTicketMods(...)', setTicketMods);
-};
+}

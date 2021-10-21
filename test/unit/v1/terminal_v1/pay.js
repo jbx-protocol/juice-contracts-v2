@@ -232,4 +232,4 @@ export default function () {
       });
     });
   });
-};
+}

@@ -1223,4 +1223,4 @@ export default function () {
       });
     });
   });
-};
+}

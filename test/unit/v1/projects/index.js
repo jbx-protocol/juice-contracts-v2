@@ -26,4 +26,4 @@ export default function () {
   describe('claimHandle(...)', claimHandle);
   describe('renewHandle(...)', renewHandle);
   describe('challengeHandle(...)', challengeHandle);
-};
+}

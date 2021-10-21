@@ -451,4 +451,4 @@ export default function () {
       });
     });
   });
-};
+}

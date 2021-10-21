@@ -21,4 +21,4 @@ export default function () {
 
   // Test each function.
   describe('receiver(...)', receive);
-};
+}

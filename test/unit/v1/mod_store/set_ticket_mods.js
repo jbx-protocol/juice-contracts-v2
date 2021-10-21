@@ -620,4 +620,4 @@ export default function () {
       });
     });
   });
-};
+}

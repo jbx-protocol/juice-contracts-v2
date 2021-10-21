@@ -247,4 +247,4 @@ export default function () {
       });
     });
   });
-};
+}

@@ -7,9 +7,7 @@ import targetDecimals from './target_decimals';
 export default function () {
   before(async function () {
     // Deploy a mock of the price feed oracle contract.
-    this.aggregatorV3Contract = await this.deployMockContractFn(
-      compilerOutput.abi,
-    );
+    this.aggregatorV3Contract = await this.deployMockContractFn(compilerOutput.abi);
 
     this.contract = await this.deployContractFn('JBPrices');
   });
@@ -17,4 +15,4 @@ export default function () {
   describe('addFeedFor(...)', addFeedFor);
   describe('priceFor(...)', priceFor);
   describe('targetDecimals(...)', targetDecimals);
-};
+}

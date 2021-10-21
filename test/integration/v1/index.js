@@ -1,5 +1,34 @@
 import { BigNumber, constants, utils } from 'ethers';
-import { projects as _projects, challengeHandle, deploy, ticketLockingAndTransfers, redeem, printReservedTickets, printPreminedTickets, issueTickets, tap, takeFee, reconfigure, limit, zeroDuration, nonRecurring, approvedBallot, failedBallot, iteratedFailedBallot, migrate, operatorPermissions, setPayoutMods, setTicketMods, governance as _governance, setFee, currencyConversion, transferProjectOwnership, directPaymentAddresses, setTerminal, proxyPaymentAddresses } from './workflows';
+import {
+  projects as _projects,
+  challengeHandle,
+  deploy,
+  ticketLockingAndTransfers,
+  redeem,
+  printReservedTickets,
+  printPreminedTickets,
+  issueTickets,
+  tap,
+  takeFee,
+  reconfigure,
+  limit,
+  zeroDuration,
+  nonRecurring,
+  approvedBallot,
+  failedBallot,
+  iteratedFailedBallot,
+  migrate,
+  operatorPermissions,
+  setPayoutMods,
+  setTicketMods,
+  governance as _governance,
+  setFee,
+  currencyConversion,
+  transferProjectOwnership,
+  directPaymentAddresses,
+  setTerminal,
+  proxyPaymentAddresses,
+} from './workflows';
 
 // The first project ID is used for governance.
 let projectId = BigNumber.from(1);
@@ -172,10 +201,7 @@ export default function () {
       "Projects can have their handle's challenged, and claimed if not renewed in time",
       run(challengeHandle),
     );
-    describe(
-      'Deployment of a project with funding cycles and mods included',
-      run(deploy),
-    );
+    describe('Deployment of a project with funding cycles and mods included', run(deploy));
     describe(
       'Ticket holders can lock their tickets, which prevents them from being redeemed, unstaked, or transfered',
       run(ticketLockingAndTransfers),
@@ -196,10 +222,7 @@ export default function () {
     describe('A funding cycle configuration can have a limit', run(limit));
     describe('A funding cycle configuration can have a duration of 0', run(zeroDuration));
     describe('A funding cycle configuration can be non recurring', run(nonRecurring));
-    describe(
-      'Ballot must be approved for reconfiguration to become active',
-      run(approvedBallot),
-    );
+    describe('Ballot must be approved for reconfiguration to become active', run(approvedBallot));
     describe('Reconfiguration that fails a ballot should be ignored', run(failedBallot));
     describe(
       'Reconfiguration proposed after a failed configuration should obide by the ballot duration',
@@ -226,4 +249,4 @@ export default function () {
       run(proxyPaymentAddresses),
     );
   }
-};
+}

@@ -30,4 +30,4 @@ export default function () {
   describe('takeFee(...)', takeFee);
   describe('setProjectId(...)', setProjectId);
   describe('withdraw(...)', withdraw);
-};
+}

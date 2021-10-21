@@ -25,4 +25,4 @@ export default function () {
   // Test each function.
   describe('tap(...)', tap);
   describe('transfer_tickets(...)', transferTickets);
-};
+}

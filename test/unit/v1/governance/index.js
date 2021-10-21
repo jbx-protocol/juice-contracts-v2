@@ -24,4 +24,4 @@ export default function () {
   describe('addPriceFeed(...)', addPriceFeed);
   describe('setFee(...)', setFee);
   describe('appointGovernance(...)', appointGovernance);
-};
+}

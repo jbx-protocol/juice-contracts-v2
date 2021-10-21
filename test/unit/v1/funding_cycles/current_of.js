@@ -741,4 +741,4 @@ export default function () {
       });
     });
   });
-};
+}
