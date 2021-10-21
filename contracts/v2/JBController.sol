@@ -228,6 +228,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     @dev 
     A project owner will be able to reconfigure the funding cycle's properties as long as it has not yet received a payment.
 
+    @param _owner The address to set as the owner of the project.
     @param _handle The project's unique handle. This can be updated any time by the owner of the project.
     @param _uri A link to associate with the project. This can be updated any time by the owner of the project.
     @param _data The funding cycle configuration data. These properties will remain fixed for the duration of the funding cycle.
@@ -250,14 +251,20 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
       @dev _metadata.pauseRedeem Whether or not the redeem functionality should be paused during this cycle.
       @dev _metadata.pauseMint Whether or not the mint functionality should be paused during this cycle.
       @dev _metadata.pauseBurn Whether or not the burn functionality should be paused during this cycle.
+      @dev _metadata.allowTerminalMigration Whether or not the terminal migration functionality should be paused during this cycle.
+      @dev _metadata.allowControllerMigration Whether or not the controller migration functionality should be paused during this cycle.
+      @dev _metadata.holdFees Whether or not fees should be held to be processed at a later time during this cycle.
       @dev _metadata.useDataSourceForPay Whether or not the data source should be used when processing a payment.
       @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
       @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
     @param _overflowAllowances The amount, in wei (18 decimals), of ETH that a project can use from its own overflow on-demand.
     @param _payoutSplits Any payout splits to set.
     @param _reservedTokenSplits Any reserved token splits to set.
+
+    @return projectId The ID of the project.
   */
   function launchProjectFor(
+    address _owner,
     bytes32 _handle,
     string calldata _uri,
     JBFundingCycleData calldata _data,
@@ -266,21 +273,21 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     JBSplit[] memory _payoutSplits,
     JBSplit[] memory _reservedTokenSplits,
     IJBTerminal _terminal
-  ) external {
+  ) external returns (uint256 projectId) {
     // Make sure the metadata is validated and packed into a uint256.
     uint256 _packedMetadata = _validateAndPackFundingCycleMetadata(_metadata);
 
     // Create the project for into the wallet of the message sender.
-    uint256 _projectId = projects.createFor(msg.sender, _handle, _uri);
+    projectId = projects.createFor(_owner, _handle, _uri);
 
     // Set the this contract as the project's controller in the directory.
-    directory.setControllerOf(_projectId, this);
+    directory.setControllerOf(projectId, this);
 
     // Add the provided terminal to the list of terminals.
-    if (_terminal != IJBTerminal(address(0))) directory.addTerminalOf(_projectId, _terminal);
+    if (_terminal != IJBTerminal(address(0))) directory.addTerminalOf(projectId, _terminal);
 
     _configure(
-      _projectId,
+      projectId,
       _data,
       _packedMetadata,
       _overflowAllowances,
@@ -320,6 +327,9 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
       @dev _metadata.pauseRedeem Whether or not the redeem functionality should be paused during this cycle.
       @dev _metadata.pauseMint Whether or not the mint functionality should be paused during this cycle.
       @dev _metadata.pauseBurn Whether or not the burn functionality should be paused during this cycle.
+      @dev _metadata.allowTerminalMigration Whether or not the terminal migration functionality should be paused during this cycle.
+      @dev _metadata.allowControllerMigration Whether or not the controller migration functionality should be paused during this cycle.
+      @dev _metadata.holdFees Whether or not fees should be held to be processed at a later time during this cycle.
       @dev _metadata.useDataSourceForPay Whether or not the data source should be used when processing a payment.
       @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
       @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
@@ -416,7 +426,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
       projects.ownerOf(_projectId),
       _projectId,
       JBOperations.MINT,
-      directory.isTerminalOf(_projectId, msg.sender)
+      directory.isTerminalDelegateOf(_projectId, msg.sender)
     )
   {
     // Can't send to the zero address.
@@ -428,8 +438,11 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-    // The current funding cycle must not be paused.
-    require(_fundingCycle.mintPaused(), 'PAUSED');
+    // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
+    require(
+      !_fundingCycle.mintPaused() || directory.isTerminalDelegateOf(_projectId, msg.sender),
+      'PAUSED'
+    );
 
     if (_shouldReserveTokens && _fundingCycle.reservedRate() == 200) {
       // Subtract the total weighted amount from the tracker so the full reserved token amount can be printed later.
@@ -477,7 +490,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
       _holder,
       _projectId,
       JBOperations.BURN,
-      directory.isTerminalOf(_projectId, msg.sender)
+      directory.isTerminalDelegateOf(_projectId, msg.sender)
     )
   {
     // There should be tokens to burn
@@ -486,8 +499,11 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-    // The current funding cycle must not be paused.
-    require(_fundingCycle.burnPaused(), 'PAUSED');
+    // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
+    require(
+      !_fundingCycle.burnPaused() || directory.isTerminalDelegateOf(_projectId, msg.sender),
+      'PAUSED'
+    );
 
     // Update the token tracker so that reserved tokens will still be correctly mintable.
     _subtractFromTokenTrackerOf(_projectId, _tokenCount);
@@ -513,25 +529,6 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     returns (uint256)
   {
     return _distributeReservedTokensOf(_projectId, _memo);
-  }
-
-  /** 
-    @notice
-    Allows a terminal to signal to the controller that it is getting replaced by a new terminal.
-
-    @param _projectId The ID of the project that is swapping terminals.
-    @param _terminal The terminal that is being swapped to.
-  */
-  function swapTerminalOf(uint256 _projectId, IJBTerminal _terminal)
-    external
-    override
-    onlyTerminal(_projectId)
-  {
-    // Remove the current terminal.
-    directory.removeTerminalOf(_projectId, IJBTerminal(msg.sender));
-
-    // Add the new terminal.
-    directory.addTerminalOf(_projectId, _terminal);
   }
 
   /** 
@@ -562,6 +559,12 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     // This controller must be the project's current controller.
     require(directory.controllerOf(_projectId) == this, 'UNAUTHORIZED');
 
+    // Get a reference to the project's current funding cycle.
+    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
+
+    // Migration must be allowed
+    require(_fundingCycle.controllerMigrationAllowed(), 'TODO');
+
     // All reserved tokens must be minted before migrating.
     if (uint256(_processedTokenTrackerOf[_projectId]) != tokenStore.totalSupplyOf(_projectId))
       _distributeReservedTokensOf(_projectId, '');
@@ -573,6 +576,11 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     directory.setControllerOf(_projectId, _to);
 
     emit Migrate(_projectId, _to, msg.sender);
+  }
+
+  function setFee(uint256 _fee) external onlyOwner {
+    require(_fee <= 10, 'TODO');
+    fee = _fee;
   }
 
   //*********************************************************************//
@@ -619,12 +627,18 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     packed |= (_metadata.pauseMint ? 1 : 0) << 35;
     // pause mint in bit 36.
     packed |= (_metadata.pauseBurn ? 1 : 0) << 36;
-    // use pay data source in bit 37.
-    packed |= (_metadata.useDataSourceForPay ? 1 : 0) << 37;
-    // use redeem data source in bit 38.
-    packed |= (_metadata.useDataSourceForRedeem ? 1 : 0) << 38;
-    // data source address in bits 39-198.
-    packed |= uint160(address(_metadata.dataSource)) << 39;
+    // allow terminal migration in bit 37.
+    packed |= (_metadata.allowTerminalMigration ? 1 : 0) << 37;
+    // allow controller migration in bit 38.
+    packed |= (_metadata.allowTerminalMigration ? 1 : 0) << 38;
+    // hold fees in bit 39.
+    packed |= (_metadata.holdFees ? 1 : 0) << 39;
+    // use pay data source in bit 40.
+    packed |= (_metadata.useDataSourceForPay ? 1 : 0) << 40;
+    // use redeem data source in bit 41.
+    packed |= (_metadata.useDataSourceForRedeem ? 1 : 0) << 41;
+    // data source address in bits 42-201.
+    packed |= uint160(address(_metadata.dataSource)) << 42;
   }
 
   /**

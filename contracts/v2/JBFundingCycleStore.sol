@@ -8,7 +8,7 @@ import './abstract/JBControllerUtility.sol';
 
 /** 
   @notice 
-  Manage funding cycle configurations, accounting, and scheduling.
+  Manages funding cycle configurations, accounting, and scheduling.
 */
 contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
   //*********************************************************************//

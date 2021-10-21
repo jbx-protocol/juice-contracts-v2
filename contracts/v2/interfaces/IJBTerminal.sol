@@ -5,14 +5,11 @@ import './IJBDirectory.sol';
 import './IJBVault.sol';
 
 interface IJBTerminal {
-  function vault() external view returns (IJBVault);
+  function token() external view returns (address);
 
-  function currentETHBalanceOf(uint256 _projectId) external view returns (uint256);
+  function ethBalanceOf(uint256 _projectId) external view returns (uint256);
 
-  function usedOverflowAllowanceOf(uint256 _projectId, uint256 _configuration)
-    external
-    view
-    returns (uint256);
+  function delegate() external view returns (address);
 
   function pay(
     uint256 _projectId,

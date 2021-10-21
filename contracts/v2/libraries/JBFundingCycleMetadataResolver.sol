@@ -41,8 +41,28 @@ library JBFundingCycleMetadataResolver {
     return ((_fundingCycle.metadata >> 36) & 1) == 0;
   }
 
+  function terminalMigrationAllowed(JBFundingCycle memory _fundingCycle)
+    internal
+    pure
+    returns (bool)
+  {
+    return ((_fundingCycle.metadata >> 37) & 1) == 0;
+  }
+
+  function controllerMigrationAllowed(JBFundingCycle memory _fundingCycle)
+    internal
+    pure
+    returns (bool)
+  {
+    return ((_fundingCycle.metadata >> 38) & 1) == 0;
+  }
+
+  function shouldHoldFees(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
+    return ((_fundingCycle.metadata >> 39) & 1) == 0;
+  }
+
   function useDataSourceForPay(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
-    return (_fundingCycle.metadata >> 37) & 1 == 0;
+    return (_fundingCycle.metadata >> 40) & 1 == 0;
   }
 
   function useDataSourceForRedeem(JBFundingCycle memory _fundingCycle)
@@ -50,15 +70,14 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (bool)
   {
-    return (_fundingCycle.metadata >> 38) & 1 == 0;
+    return (_fundingCycle.metadata >> 41) & 1 == 0;
   }
 
-  // TODO see if functions can be optionally implemented.
   function dataSource(JBFundingCycle memory _fundingCycle)
     internal
     pure
     returns (IJBFundingCycleDataSource)
   {
-    return IJBFundingCycleDataSource(address(uint160(_fundingCycle.metadata >> 39)));
+    return IJBFundingCycleDataSource(address(uint160(_fundingCycle.metadata >> 42)));
   }
 }
