@@ -3,11 +3,11 @@ import { expect as _expect } from 'chai';
 import { readFileSync } from 'fs';
 import { sync } from 'glob';
 
-import { deployMockContract } from '@ethereum-waffle/mock-contract';
-
 import { BigNumber, Contract } from 'ethers';
 import unit from './unit';
 import integration from './integration';
+
+import { deployMockContract } from './utils'
 
 describe('Juicebox', async function () {
   before(async function () {
@@ -37,15 +37,6 @@ describe('Juicebox', async function () {
       await ethers.provider.send('evm_increaseTime', [fastforwardAmount]);
       // Mine a block.
       await ethers.provider.send('evm_mine');
-    };
-
-    // Bind a reference to a function that can deploy mock contracts from an abi.
-    this.deployMockContractFn = (abi) => deployMockContract(this.deployer, abi);
-
-    // Bind a reference to a function that can deploy mock local contracts from names.
-    this.deployMockLocalContractFn = async (mockContractName) => {
-      // Deploy mock contracts.
-      return this.deployMockContractFn(this.readContractAbi(mockContractName));
     };
 
     // Bind a reference to a function that can deploy a contract on the local network.

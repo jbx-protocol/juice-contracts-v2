@@ -1,6 +1,8 @@
 import { expect } from 'chai';
 import { compilerOutput } from '@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json';
 
+import { deployMockContract, deployMockLocalContract } from '../../../utils';
+
 const tests = {
   success: [
     {
@@ -27,9 +29,9 @@ export default function () {
       it(successTest.description, async function () {
         const { caller } = successTest.fn(this);
 
-        const prices = await this.deployMockLocalContractFn('Prices');
+        const prices = await deployMockLocalContract('Prices');
         // Deploy a mock of the price feed oracle contract.
-        const priceFeed = await this.deployMockContractFn(compilerOutput.abi);
+        const priceFeed = await deployMockContract(compilerOutput.abi);
 
         const currency = 1;
 
@@ -47,9 +49,9 @@ export default function () {
       it(failureTest.description, async function () {
         const { caller, revert } = failureTest.fn(this);
 
-        const prices = await this.deployMockLocalContractFn('Prices');
+        const prices = await deployMockLocalContract('Prices');
         // Deploy a mock of the price feed oracle contract.
-        const priceFeed = await this.deployMockContractFn(compilerOutput.abi);
+        const priceFeed = await deployMockContract(compilerOutput.abi);
 
         const currency = 1;
 

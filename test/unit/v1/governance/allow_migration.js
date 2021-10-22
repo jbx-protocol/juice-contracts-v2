@@ -1,5 +1,7 @@
 import { expect } from 'chai';
 
+import { deployMockLocalContract } from '../../../utils';
+
 const tests = {
   success: [
     {
@@ -26,27 +28,27 @@ export default function () {
       it(successTest.description, async function () {
         const { caller } = successTest.fn(this);
 
-        const operatorStore = await this.deployMockLocalContractFn('OperatorStore');
-        const projects = await this.deployMockLocalContractFn('Projects', [operatorStore.address]);
-        const prices = await this.deployMockLocalContractFn('Prices');
-        const terminalDirectory = await this.deployMockLocalContractFn('TerminalDirectory', [
+        const operatorStore = await deployMockLocalContract('OperatorStore');
+        const projects = await deployMockLocalContract('Projects', [operatorStore.address]);
+        const prices = await deployMockLocalContract('Prices');
+        const terminalDirectory = await deployMockLocalContract('TerminalDirectory', [
           projects.address,
         ]);
-        const fundingCycles = await this.deployMockLocalContractFn('FundingCycles', [
+        const fundingCycles = await deployMockLocalContract('FundingCycles', [
           terminalDirectory.address,
         ]);
-        const ticketBooth = await this.deployMockLocalContractFn('TicketBooth', [
+        const ticketBooth = await deployMockLocalContract('TicketBooth', [
           projects.address,
           operatorStore.address,
           terminalDirectory.address,
         ]);
-        const modStore = await this.deployMockLocalContractFn('ModStore', [
+        const modStore = await deployMockLocalContract('ModStore', [
           projects.address,
           operatorStore.address,
         ]);
 
         // Deploy mock dependency contracts.
-        const from = await this.deployMockLocalContractFn('TerminalV1', [
+        const from = await deployMockLocalContract('TerminalV1', [
           projects.address,
           fundingCycles.address,
           ticketBooth.address,
@@ -55,7 +57,7 @@ export default function () {
           prices.address,
           terminalDirectory.address,
         ]);
-        const to = await this.deployMockLocalContractFn('TerminalV1', [
+        const to = await deployMockLocalContract('TerminalV1', [
           projects.address,
           fundingCycles.address,
           ticketBooth.address,
@@ -77,27 +79,27 @@ export default function () {
       it(failureTest.description, async function () {
         const { caller, revert } = failureTest.fn(this);
 
-        const operatorStore = await this.deployMockLocalContractFn('OperatorStore');
-        const projects = await this.deployMockLocalContractFn('Projects', [operatorStore.address]);
-        const prices = await this.deployMockLocalContractFn('Prices');
-        const terminalDirectory = await this.deployMockLocalContractFn('TerminalDirectory', [
+        const operatorStore = await deployMockLocalContract('OperatorStore');
+        const projects = await deployMockLocalContract('Projects', [operatorStore.address]);
+        const prices = await deployMockLocalContract('Prices');
+        const terminalDirectory = await deployMockLocalContract('TerminalDirectory', [
           projects.address,
         ]);
-        const fundingCycles = await this.deployMockLocalContractFn('FundingCycles', [
+        const fundingCycles = await deployMockLocalContract('FundingCycles', [
           terminalDirectory.address,
         ]);
-        const ticketBooth = await this.deployMockLocalContractFn('TicketBooth', [
+        const ticketBooth = await deployMockLocalContract('TicketBooth', [
           projects.address,
           operatorStore.address,
           terminalDirectory.address,
         ]);
-        const modStore = await this.deployMockLocalContractFn('ModStore', [
+        const modStore = await deployMockLocalContract('ModStore', [
           projects.address,
           operatorStore.address,
         ]);
 
         // Deploy mock dependency contracts.
-        const from = await this.deployMockLocalContractFn('TerminalV1', [
+        const from = await deployMockLocalContract('TerminalV1', [
           projects.address,
           fundingCycles.address,
           ticketBooth.address,
@@ -106,7 +108,7 @@ export default function () {
           prices.address,
           terminalDirectory.address,
         ]);
-        const to = await this.deployMockLocalContractFn('TerminalV1', [
+        const to = await deployMockLocalContract('TerminalV1', [
           projects.address,
           fundingCycles.address,
           ticketBooth.address,

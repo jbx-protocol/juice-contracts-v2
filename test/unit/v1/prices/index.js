@@ -1,5 +1,7 @@
 import { compilerOutput } from '@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json';
 
+import { deployMockContract } from '../../../utils';
+
 import addFeed from './add_feed';
 import getEthPriceFor from './get_eth_price_for';
 
@@ -9,7 +11,7 @@ export default function () {
   // Before the tests, deploy mocked dependencies and the contract.
   before(async function () {
     // Deploy a mock of the price feed oracle contract.
-    this.aggregatorV3Contract = await this.deployMockContractFn(compilerOutput.abi);
+    this.aggregatorV3Contract = await deployMockContract(compilerOutput.abi);
 
     // Deploy the contract.
     this.contract = await this.deployContractFn(contractName);

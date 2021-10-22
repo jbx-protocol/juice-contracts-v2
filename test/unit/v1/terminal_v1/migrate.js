@@ -5,16 +5,18 @@ const {
 
 import { expect } from 'chai';
 
+import { deployMockLocalContract } from '../../../utils';
+
 const tests = {
   success: [
     {
       description: 'no preset balance',
-      fn: async ({ deployer, deployMockLocalContractFn, mockContracts, governance }) => ({
+      fn: async ({ deployer, mockContracts, governance }) => ({
         caller: deployer,
         projectOwner: deployer.address,
         governance,
         projectId: 1,
-        terminal: await deployMockLocalContractFn('TerminalV1', [
+        terminal: await deployMockLocalContract('TerminalV1', [
           mockContracts.projects.address,
           mockContracts.fundingCycles.address,
           mockContracts.ticketBooth.address,
@@ -29,12 +31,12 @@ const tests = {
     },
     {
       description: 'with preset balance',
-      fn: async ({ deployer, deployMockLocalContractFn, mockContracts, governance }) => ({
+      fn: async ({ deployer, mockContracts, governance }) => ({
         caller: deployer,
         projectOwner: deployer.address,
         governance,
         projectId: 1,
-        terminal: await deployMockLocalContractFn('TerminalV1', [
+        terminal: await deployMockLocalContract('TerminalV1', [
           mockContracts.projects.address,
           mockContracts.fundingCycles.address,
           mockContracts.ticketBooth.address,
@@ -51,12 +53,12 @@ const tests = {
     },
     {
       description: 'with unprinted reserved tickets',
-      fn: async ({ deployer, deployMockLocalContractFn, mockContracts, governance }) => ({
+      fn: async ({ deployer, mockContracts, governance }) => ({
         caller: deployer,
         projectOwner: deployer.address,
         governance,
         projectId: 1,
-        terminal: await deployMockLocalContractFn('TerminalV1', [
+        terminal: await deployMockLocalContract('TerminalV1', [
           mockContracts.projects.address,
           mockContracts.fundingCycles.address,
           mockContracts.ticketBooth.address,
@@ -73,12 +75,12 @@ const tests = {
     },
     {
       description: 'with operator',
-      fn: async ({ deployer, addrs, deployMockLocalContractFn, mockContracts, governance }) => ({
+      fn: async ({ deployer, addrs, mockContracts, governance }) => ({
         caller: deployer,
         projectOwner: addrs[0].address,
         governance,
         projectId: 1,
-        terminal: await deployMockLocalContractFn('TerminalV1', [
+        terminal: await deployMockLocalContract('TerminalV1', [
           mockContracts.projects.address,
           mockContracts.fundingCycles.address,
           mockContracts.ticketBooth.address,
@@ -99,7 +101,6 @@ const tests = {
       description: 'unauthorized',
       fn: async ({
         deployer,
-        deployMockLocalContractFn,
         mockContracts,
         governance,
         targetContract,
@@ -110,7 +111,7 @@ const tests = {
           projectOwner: addrs[0].address,
           governance,
           projectId: 1,
-          terminal: await deployMockLocalContractFn('TerminalV1', [
+          terminal: await deployMockLocalContract('TerminalV1', [
             mockContracts.projects.address,
             mockContracts.fundingCycles.address,
             mockContracts.ticketBooth.address,
@@ -130,13 +131,13 @@ const tests = {
     },
     {
       description: 'unauthorized terminal',
-      fn: async ({ deployer, deployMockLocalContractFn, mockContracts, governance }) => {
+      fn: async ({ deployer, mockContracts, governance }) => {
         return {
           caller: deployer,
           projectOwner: deployer.address,
           governance,
           projectId: 1,
-          terminal: await deployMockLocalContractFn('TerminalV1', [
+          terminal: await deployMockLocalContract('TerminalV1', [
             mockContracts.projects.address,
             mockContracts.fundingCycles.address,
             mockContracts.ticketBooth.address,
@@ -148,7 +149,7 @@ const tests = {
           ]),
           setup: {
             allowMigration: false,
-            currentTerminal: await deployMockLocalContractFn('TerminalV1', [
+            currentTerminal: await deployMockLocalContract('TerminalV1', [
               mockContracts.projects.address,
               mockContracts.fundingCycles.address,
               mockContracts.ticketBooth.address,
@@ -167,7 +168,6 @@ const tests = {
       description: 'not allowed',
       fn: async ({
         deployer,
-        deployMockLocalContractFn,
         mockContracts,
         governance,
         targetContract,
@@ -177,7 +177,7 @@ const tests = {
           projectOwner: deployer.address,
           governance,
           projectId: 1,
-          terminal: await deployMockLocalContractFn('TerminalV1', [
+          terminal: await deployMockLocalContract('TerminalV1', [
             mockContracts.projects.address,
             mockContracts.fundingCycles.address,
             mockContracts.ticketBooth.address,
