@@ -11,12 +11,12 @@ export default [
     description: 'Deploy a project for the owner',
     fn: async ({
       executeFn,
-      randomBigNumberFn,
+      randomBigNumber,
       randomSignerFn,
-      randomStringFn,
+      randomString,
       BigNumber,
       getBalanceFn,
-      randomBytesFn,
+      randomBytes,
       incrementProjectIdFn,
       incrementFundingCycleIdFn,
       constants,
@@ -35,22 +35,22 @@ export default [
 
       // Two payments will be made. Cant pay entire balance because some is needed for gas.
       // So, arbitrarily find a number less than a third so that all payments can be made successfully.
-      const paymentValue1 = randomBigNumberFn({
+      const paymentValue1 = randomBigNumber({
         min: BigNumber.from(1),
         max: (await getBalanceFn(payer.address)).div(100),
       });
-      const paymentValue2 = randomBigNumberFn({
+      const paymentValue2 = randomBigNumber({
         min: BigNumber.from(1),
         max: (await getBalanceFn(payer.address)).div(100),
       });
 
       // The project's funding cycle target will at most be a fourth of the payment value. Leaving plenty of overflow.
-      const target = randomBigNumberFn({
+      const target = randomBigNumber({
         max: paymentValue1.add(paymentValue2).div(4),
       });
 
       // Set a random percentage of tickets to reserve for the project owner.
-      const reservedRate = randomBigNumberFn({ max: constants.MaxPercent });
+      const reservedRate = randomBigNumber({ max: constants.MaxPercent });
 
       await executeFn({
         caller: randomSignerFn(),
@@ -58,30 +58,30 @@ export default [
         fn: 'deploy',
         args: [
           owner.address,
-          randomBytesFn({
+          randomBytes({
             // Make sure its unique by prepending the id.
             prepend: expectedProjectId.toString(),
           }),
-          randomStringFn(),
+          randomString(),
           {
             target,
             currency,
-            duration: randomBigNumberFn({
+            duration: randomBigNumber({
               min: BigNumber.from(1),
               max: constants.MaxUint16,
             }),
-            cycleLimit: randomBigNumberFn({
+            cycleLimit: randomBigNumber({
               max: constants.MaxCycleLimit,
             }),
-            discountRate: randomBigNumberFn({ max: constants.MaxPercent }),
+            discountRate: randomBigNumber({ max: constants.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
             reservedRate,
-            bondingCurveRate: randomBigNumberFn({
+            bondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
-            reconfigurationBondingCurveRate: randomBigNumberFn({
+            reconfigurationBondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
           },
@@ -117,7 +117,7 @@ export default [
       randomSignerFn,
       executeFn,
       contracts,
-      randomStringFn,
+      randomString,
       randomBoolFn,
       local: { expectedProjectId, payer, paymentValue1 },
     }) => {
@@ -128,7 +128,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, ticketBeneficiary.address, randomStringFn(), randomBoolFn()],
+        args: [expectedProjectId, ticketBeneficiary.address, randomString(), randomBoolFn()],
         value: paymentValue1,
       });
 
@@ -187,15 +187,15 @@ export default [
   },
   {
     description: 'Issue tickets',
-    fn: ({ executeFn, contracts, randomStringFn, local: { owner, expectedProjectId } }) =>
+    fn: ({ executeFn, contracts, randomString, local: { owner, expectedProjectId } }) =>
       executeFn({
         caller: owner,
         contract: contracts.ticketBooth,
         fn: 'issue',
         args: [
           expectedProjectId,
-          randomStringFn({ canBeEmpty: false }),
-          randomStringFn({ canBeEmpty: false }),
+          randomString({ canBeEmpty: false }),
+          randomString({ canBeEmpty: false }),
         ],
       }),
   },
@@ -205,7 +205,7 @@ export default [
     fn: ({
       executeFn,
       contracts,
-      randomStringFn,
+      randomString,
       local: { payer, expectedProjectId, ticketBeneficiary, paymentValue2 },
     }) =>
       executeFn({
@@ -215,7 +215,7 @@ export default [
         args: [
           expectedProjectId,
           ticketBeneficiary.address,
-          randomStringFn(),
+          randomString(),
           true, // prefer unstaked
         ],
         value: paymentValue2,
@@ -275,7 +275,7 @@ export default [
   {
     description: 'Redeem some of the staked tickets',
     fn: async ({
-      randomBigNumberFn,
+      randomBigNumber,
       executeFn,
       BigNumber,
       contracts,
@@ -286,7 +286,7 @@ export default [
       const redeemedPortionOfStakedBalance = expectedStakedBalance.eq(0)
         ? BigNumber.from(0)
         : expectedStakedBalance.sub(
-            randomBigNumberFn({
+            randomBigNumber({
               min: BigNumber.from(1),
               max: expectedStakedBalance.sub(1),
             }),
@@ -377,7 +377,7 @@ export default [
     description: 'Redeem some of the unstaked tickets',
     fn: async ({
       executeFn,
-      randomBigNumberFn,
+      randomBigNumber,
       BigNumber,
       contracts,
       randomAddressFn,
@@ -392,7 +392,7 @@ export default [
       const redeemedPortionOfUnstakedBalance = expectedUnstakedBalance.eq(0)
         ? BigNumber.from(0)
         : expectedUnstakedBalance.sub(
-            randomBigNumberFn({
+            randomBigNumber({
               min: BigNumber.from(1),
               max: expectedUnstakedBalance.sub(1),
             }),

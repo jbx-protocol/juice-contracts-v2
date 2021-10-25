@@ -1,14 +1,16 @@
 import { expect } from 'chai';
 import { constants } from 'ethers';
 
+import { deployMockLocalContract } from '../../../utils';
+
 const tests = {
   success: [
     {
       description: 'set a new terminal',
-      fn: async ({ governance, deployMockLocalContractFn, mockContracts }) => ({
+      fn: async ({ governance, mockContracts }) => ({
         caller: governance,
         terminal: (
-          await deployMockLocalContractFn('TerminalV1', [
+          await deployMockLocalContract('TerminalV1', [
             mockContracts.projects.address,
             mockContracts.fundingCycles.address,
             mockContracts.ticketBooth.address,

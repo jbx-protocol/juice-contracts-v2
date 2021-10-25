@@ -1,3 +1,5 @@
+import { deployMockLocalContract } from '../../../utils';
+
 import tap from './tap';
 import transferTickets from './transfer_tickets';
 
@@ -7,9 +9,9 @@ export default function () {
   // Before the tests, deploy mocked dependencies and the contract.
   before(async function () {
     // Deploy mock dependency contracts.
-    this.terminalV1 = await this.deployMockLocalContractFn('TerminalV1');
-    this.terminalDirectory = await this.deployMockLocalContractFn('TerminalDirectory');
-    this.ticketBooth = await this.deployMockLocalContractFn('TicketBooth');
+    this.terminalV1 = await deployMockLocalContract('TerminalV1');
+    this.terminalDirectory = await deployMockLocalContract('TerminalDirectory');
+    this.ticketBooth = await deployMockLocalContract('TicketBooth');
 
     // Deploy the contract.
     this.projectId = 1;

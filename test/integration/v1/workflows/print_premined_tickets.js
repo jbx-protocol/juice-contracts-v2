@@ -10,9 +10,9 @@ export default [
     description: 'Create a project',
     fn: async ({
       executeFn,
-      randomStringFn,
+      randomString,
       contracts,
-      randomBytesFn,
+      randomBytes,
       randomSignerFn,
       incrementProjectIdFn,
     }) => {
@@ -27,11 +27,11 @@ export default [
         fn: 'create',
         args: [
           owner.address,
-          randomBytesFn({
+          randomBytes({
             // Make sure its unique by prepending the id.
             prepend: expectedProjectId.toString(),
           }),
-          randomStringFn(),
+          randomString(),
           contracts.terminalV1.address,
         ],
       });
@@ -55,18 +55,18 @@ export default [
     fn: async ({
       randomSignerFn,
       randomBoolFn,
-      randomBigNumberFn,
+      randomBigNumber,
       BigNumber,
       executeFn,
       contracts,
-      randomStringFn,
+      randomString,
       local: { owner, expectedProjectId },
     }) => {
       // The address that will receive the first batch of preconfigure tickets.
       const preconfigureTicketBeneficiary1 = randomSignerFn();
 
       // The first amount of premined tickets to print.
-      const preminePrintAmount1 = randomBigNumberFn({
+      const preminePrintAmount1 = randomBigNumber({
         min: BigNumber.from(1),
         // Use an arbitrary large big number that can be added to other large big numbers without risk of running into uint256 boundaries.
         max: BigNumber.from(10).pow(30),
@@ -81,7 +81,7 @@ export default [
           preminePrintAmount1,
           currency,
           preconfigureTicketBeneficiary1.address,
-          randomStringFn(),
+          randomString(),
           randomBoolFn(),
         ],
       });
@@ -151,12 +151,12 @@ export default [
     description: 'Make a payment before configuring a funding cycle',
     fn: async ({
       randomSignerFn,
-      randomBigNumberFn,
+      randomBigNumber,
       BigNumber,
       getBalanceFn,
       executeFn,
       contracts,
-      randomStringFn,
+      randomString,
       randomBoolFn,
       local: { expectedProjectId },
     }) => {
@@ -165,7 +165,7 @@ export default [
 
       // One payment will be made. Cant pay entire balance because some is needed for gas.
       // So, arbitrarily divide the balance so that all payments can be made successfully.
-      const paymentValue1 = randomBigNumberFn({
+      const paymentValue1 = randomBigNumber({
         min: BigNumber.from(1),
         max: (await getBalanceFn(payer.address)).div(100),
       });
@@ -180,7 +180,7 @@ export default [
         args: [
           expectedProjectId,
           preconfigureTicketBeneficiary2.address,
-          randomStringFn(),
+          randomString(),
           randomBoolFn(),
         ],
         value: paymentValue1,
@@ -266,15 +266,15 @@ export default [
   },
   {
     description: "Issue the project's tickets so that the unstaked preference can be checked",
-    fn: ({ executeFn, contracts, randomStringFn, local: { expectedProjectId, owner } }) =>
+    fn: ({ executeFn, contracts, randomString, local: { expectedProjectId, owner } }) =>
       executeFn({
         caller: owner,
         contract: contracts.ticketBooth,
         fn: 'issue',
         args: [
           expectedProjectId,
-          randomStringFn({ canBeEmpty: false }),
-          randomStringFn({ canBeEmpty: false }),
+          randomString({ canBeEmpty: false }),
+          randomString({ canBeEmpty: false }),
         ],
       }),
   },
@@ -284,7 +284,7 @@ export default [
     fn: async ({
       executeFn,
       contracts,
-      randomBigNumberFn,
+      randomBigNumber,
       constants,
       BigNumber,
       incrementFundingCycleIdFn,
@@ -300,24 +300,24 @@ export default [
         args: [
           expectedProjectId,
           {
-            target: randomBigNumberFn(),
-            currency: randomBigNumberFn({ max: constants.MaxUint8 }),
-            duration: randomBigNumberFn({
+            target: randomBigNumber(),
+            currency: randomBigNumber({ max: constants.MaxUint8 }),
+            duration: randomBigNumber({
               min: BigNumber.from(1),
               max: constants.MaxUint16,
             }),
-            cycleLimit: randomBigNumberFn({
+            cycleLimit: randomBigNumber({
               max: constants.MaxCycleLimit,
             }),
-            discountRate: randomBigNumberFn({ max: constants.MaxPercent }),
+            discountRate: randomBigNumber({ max: constants.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
-            reservedRate: randomBigNumberFn({ max: constants.MaxPercent }),
-            bondingCurveRate: randomBigNumberFn({
+            reservedRate: randomBigNumber({ max: constants.MaxPercent }),
+            bondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
-            reconfigurationBondingCurveRate: randomBigNumberFn({
+            reconfigurationBondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
           },
@@ -330,19 +330,19 @@ export default [
   {
     description: 'Print some more premined tickets to another beneficiary',
     fn: async ({
-      randomBigNumberFn,
+      randomBigNumber,
       executeFn,
       BigNumber,
       randomBoolFn,
       randomSignerFn,
-      randomStringFn,
+      randomString,
       contracts,
       local: { expectedProjectId, owner },
     }) => {
       // The address that will receive the second batch of premined tickets.
       const preconfigureTicketBeneficiary3 = randomSignerFn();
 
-      const preminePrintAmount2 = randomBigNumberFn({
+      const preminePrintAmount2 = randomBigNumber({
         min: BigNumber.from(1),
         // Use an arbitrary large big number that can be added to other large big numbers without risk of running into uint256 boundaries.
         max: BigNumber.from(10).pow(30),
@@ -360,7 +360,7 @@ export default [
           preminePrintAmount2,
           currency,
           preconfigureTicketBeneficiary3.address,
-          randomStringFn(),
+          randomString(),
           preferUnstakedTickets,
         ],
       });
@@ -481,19 +481,19 @@ export default [
     description:
       "Make a second payment to lock in the premined amount now that there's a configured funding cycle",
     fn: async ({
-      randomBigNumberFn,
+      randomBigNumber,
       BigNumber,
       getBalanceFn,
       executeFn,
       contracts,
       randomAddressFn,
-      randomStringFn,
+      randomString,
       randomBoolFn,
       local: { expectedProjectId, payer },
     }) => {
       // One payment will be made. Cant pay entire balance because some is needed for gas.
       // So, arbitrarily divide the balance so that all payments can be made successfully.
-      const paymentValue2 = randomBigNumberFn({
+      const paymentValue2 = randomBigNumber({
         min: BigNumber.from(1),
         max: (await getBalanceFn(payer.address)).div(100),
       });
@@ -502,7 +502,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, randomAddressFn(), randomStringFn(), randomBoolFn()],
+        args: [expectedProjectId, randomAddressFn(), randomString(), randomBoolFn()],
         value: paymentValue2,
       });
     },
@@ -523,8 +523,8 @@ export default [
     fn: async ({
       executeFn,
       contracts,
-      randomBigNumberFn,
-      randomStringFn,
+      randomBigNumber,
+      randomString,
       randomAddressFn,
       randomBoolFn,
       BigNumber,
@@ -536,14 +536,14 @@ export default [
         fn: 'printPreminedTickets',
         args: [
           expectedProjectId,
-          randomBigNumberFn({
+          randomBigNumber({
             min: BigNumber.from(1),
             // Use an arbitrary large big number that can be added to other large big numbers without risk of running into uint256 boundaries.
             max: BigNumber.from(10).pow(30),
           }),
           currency,
           randomAddressFn(),
-          randomStringFn(),
+          randomString(),
           randomBoolFn(),
         ],
         revert: 'TerminalV1::printTickets: ALREADY_ACTIVE',

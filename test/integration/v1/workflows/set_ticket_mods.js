@@ -15,11 +15,11 @@ export default [
       contracts,
       executeFn,
       BigNumber,
-      randomBigNumberFn,
-      randomBytesFn,
+      randomBigNumber,
+      randomBytes,
       getTimestampFn,
       randomBoolFn,
-      randomStringFn,
+      randomString,
       randomAddressFn,
       randomSignerFn,
       incrementProjectIdFn,
@@ -37,14 +37,14 @@ export default [
       const lockedMod = {
         preferUnstaked: randomBoolFn(),
         // Arbitrary percent that adds up to <= 100% across all mods.
-        percent: randomBigNumberFn({
+        percent: randomBigNumber({
           min: BigNumber.from(1),
           max: constants.MaxModPercent.div(2),
         }).toNumber(),
         // Lock at least until the end of the tests.
         lockedUntil: (await getTimestampFn())
           .add(
-            randomBigNumberFn({
+            randomBigNumber({
               min: BigNumber.from(1000),
               max: BigNumber.from(100000000),
             }),
@@ -55,7 +55,7 @@ export default [
       const unlockedMod1 = {
         preferUnstaked: randomBoolFn(),
         // Arbitrary percent that adds up to <= 100% across all mods.
-        percent: randomBigNumberFn({
+        percent: randomBigNumber({
           min: BigNumber.from(1),
           max: constants.MaxModPercent.div(4),
         }).toNumber(),
@@ -68,30 +68,30 @@ export default [
         fn: 'deploy',
         args: [
           owner.address,
-          randomBytesFn({
+          randomBytes({
             // Make sure its unique by prepending the id.
             prepend: expectedProjectId.toString(),
           }),
-          randomStringFn(),
+          randomString(),
           {
-            target: randomBigNumberFn(),
-            currency: randomBigNumberFn({ max: constants.MaxUint8 }),
-            duration: randomBigNumberFn({
+            target: randomBigNumber(),
+            currency: randomBigNumber({ max: constants.MaxUint8 }),
+            duration: randomBigNumber({
               min: BigNumber.from(1),
               max: constants.MaxUint16,
             }),
-            cycleLimit: randomBigNumberFn({
+            cycleLimit: randomBigNumber({
               max: constants.MaxCycleLimit,
             }),
-            discountRate: randomBigNumberFn({ max: constants.MaxPercent }),
+            discountRate: randomBigNumber({ max: constants.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
             reservedRate: BigNumber.from(0),
-            bondingCurveRate: randomBigNumberFn({
+            bondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
-            reconfigurationBondingCurveRate: randomBigNumberFn({
+            reconfigurationBondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
           },
@@ -143,14 +143,14 @@ export default [
       randomAddressFn,
       timeMark,
       constants,
-      randomBigNumberFn,
+      randomBigNumber,
       BigNumber,
       local: { owner, expectedProjectId, unlockedMod1 },
     }) => {
       // Arbitrary percent that adds up to <= 100% across all mods.
       const unlockedMod2 = {
         preferUnstaked: randomBoolFn(),
-        percent: randomBigNumberFn({
+        percent: randomBigNumber({
           min: BigNumber.from(1),
           max: constants.MaxModPercent.div(5),
         }).toNumber(),
@@ -258,7 +258,7 @@ export default [
       contracts,
       executeFn,
       BigNumber,
-      randomBigNumberFn,
+      randomBigNumber,
       local: { owner, expectedProjectId, unlockedMod1 },
     }) =>
       executeFn({
@@ -268,24 +268,24 @@ export default [
         args: [
           expectedProjectId,
           {
-            target: randomBigNumberFn(),
-            currency: randomBigNumberFn({ max: constants.MaxUint8 }),
-            duration: randomBigNumberFn({
+            target: randomBigNumber(),
+            currency: randomBigNumber({ max: constants.MaxUint8 }),
+            duration: randomBigNumber({
               min: BigNumber.from(1),
               max: constants.MaxUint16,
             }),
-            cycleLimit: randomBigNumberFn({
+            cycleLimit: randomBigNumber({
               max: constants.MaxCycleLimit,
             }),
-            discountRate: randomBigNumberFn({ max: constants.MaxPercent }),
+            discountRate: randomBigNumber({ max: constants.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
             reservedRate: BigNumber.from(0),
-            bondingCurveRate: randomBigNumberFn({
+            bondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
-            reconfigurationBondingCurveRate: randomBigNumberFn({
+            reconfigurationBondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
           },

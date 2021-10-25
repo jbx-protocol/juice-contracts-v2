@@ -1,5 +1,7 @@
 import { expect } from 'chai';
 
+import { deployMockLocalContract } from '../../../utils';
+
 const tests = {
   success: [
     {
@@ -32,7 +34,7 @@ export default function () {
       it(successTest.description, async function () {
         const { caller, projectIds, operators, permissionIndexes } = successTest.fn(this);
 
-        const operatorStore = await this.deployMockLocalContractFn('OperatorStore');
+        const operatorStore = await deployMockLocalContract('OperatorStore');
 
         await operatorStore.mock.setOperators
           .withArgs(operators, projectIds, permissionIndexes)
@@ -50,7 +52,7 @@ export default function () {
       it(failureTest.description, async function () {
         const { caller, projectIds, operators, permissionIndexes, revert } = failureTest.fn(this);
 
-        const operatorStore = await this.deployMockLocalContractFn('OperatorStore');
+        const operatorStore = await deployMockLocalContract('OperatorStore');
 
         await operatorStore.mock.setOperators
           .withArgs(operators, projectIds, permissionIndexes)

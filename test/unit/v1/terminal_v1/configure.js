@@ -22,7 +22,7 @@ const tests = {
     },
     {
       description: 'with mods',
-      fn: async ({ deployMockLocalContractFn }) => ({
+      fn: async () => ({
         payoutMods: [
           {
             // These values dont matter.
@@ -30,7 +30,7 @@ const tests = {
             percent: 200,
             lockedUntil: 1000,
             beneficiary: constants.AddressZero,
-            allocator: (await deployMockLocalContractFn('ExampleModAllocator')).address,
+            allocator: (await deployMockLocalContract('ExampleModAllocator')).address,
             projectId: 1,
           },
         ],

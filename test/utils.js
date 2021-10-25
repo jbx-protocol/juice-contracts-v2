@@ -12,8 +12,67 @@ export const deployMockContract = async (abi) => {
   return _deployMockContract(await deployer(), abi);
 };
 
-// Bind a reference to a function that can deploy mock local contracts from names.
 export const deployMockLocalContract = async (mockContractName) => {
   // Deploy mock contracts.
   return deployMockContract(this.readContractAbi(mockContractName));
+};
+
+export const randomBigNumber = ({
+  min = ethers.BigNumber.from(0),
+  max = this.constants.MaxUint256,
+  precision = 10000000,
+  favorEdges = true,
+} = {}) => {
+  // To test an edge condition, return the min or the max and the numbers around them more often.
+  // Return the min or the max or the numbers around them 50% of the time.
+  if (favorEdges && Math.random() < 0.5) {
+    const r = Math.random();
+    if (r <= 0.25 && min.add(1).lt(max)) return min.add(1);
+    if (r >= 0.75 && max.sub(1).gt(min)) return max.sub(1);
+    // return the min 50% of the time.
+    return r < 0.5 ? min : max;
+  }
+
+  const base = max.sub(min);
+  const randomInRange = base.gt(precision)
+    ? base.div(precision).mul(ethers.BigNumber.from(Math.floor(Math.random() * precision)))
+    : base.mul(ethers.BigNumber.from(Math.floor(Math.random() * precision))).div(precision);
+
+  return randomInRange.add(min);
+};
+
+export const randomString = ({
+  exclude = [],
+  prepend = '',
+  canBeEmpty = true,
+  favorEdges = true,
+} = {}) => {
+  const seed = this.randomBigNumber({
+    min: canBeEmpty ? BigNumber.from(0) : BigNumber.from(1),
+    favorEdges,
+  });
+  const candidate = prepend.concat(Math.random().toString(36).substr(2, seed));
+  if (exclude.includes(candidate)) return randomString({ exclude, prepend, canBeEmpty });
+  return candidate;
+};
+
+// Bind a function that returns a random set of bytes.
+export const randomBytes = ({
+  min = BigNumber.from(10),
+  max = BigNumber.from(32),
+  prepend = '',
+  exclude = [],
+} = {}) => {
+  const candidate = ethers.utils.formatBytes32String(
+    randomString({
+      prepend,
+      seed: this.randomBigNumber({
+        min,
+        max,
+      }),
+      favorEdges: false,
+    }),
+  );
+  if (exclude.includes(candidate)) return this.randomBytes({ exclude, min, max, prepend });
+  return candidate;
 };

@@ -36,10 +36,9 @@ export default [
       contracts,
       executeFn,
       BigNumber,
-      randomBigNumberFn,
-      randomBytesFn,
+      randomBigNumber,
+      randomBytes,
       getBalanceFn,
-      randomStringFn,
       randomSignerFn,
       incrementProjectIdFn,
       incrementFundingCycleIdFn,
@@ -58,12 +57,12 @@ export default [
 
       // One payment will be made. Cant pay entire balance because some is needed for gas.
       // So, arbitrarily divide the balance so that all payments can be made successfully.
-      const paymentValueInWei = randomBigNumberFn({
+      const paymentValueInWei = randomBigNumber({
         min: BigNumber.from(1),
         max: (await getBalanceFn(payer.address)).div(2),
       });
       // The target must be at most the payment value.
-      const targetDenominatedInWei = randomBigNumberFn({
+      const targetDenominatedInWei = randomBigNumber({
         min: BigNumber.from(1),
         max: paymentValueInWei,
       });
@@ -81,28 +80,28 @@ export default [
         fn: 'deploy',
         args: [
           owner.address,
-          randomBytesFn({
+          randomBytes({
             // Make sure its unique by prepending the id.
             prepend: expectedProjectId.toString(),
           }),
-          randomStringFn(),
+          randomString(),
           {
             target: targetDenominatedInCurrency,
             currency,
-            duration: randomBigNumberFn({
+            duration: randomBigNumber({
               min: BigNumber.from(1),
               max: constants.MaxUint16,
             }),
-            cycleLimit: randomBigNumberFn({ max: constants.MaxCycleLimit }),
-            discountRate: randomBigNumberFn({ max: constants.MaxPercent }),
+            cycleLimit: randomBigNumber({ max: constants.MaxCycleLimit }),
+            discountRate: randomBigNumber({ max: constants.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
             reservedRate,
-            bondingCurveRate: randomBigNumberFn({
+            bondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
-            reconfigurationBondingCurveRate: randomBigNumberFn({
+            reconfigurationBondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
           },
@@ -126,15 +125,14 @@ export default [
       contracts,
       executeFn,
       BigNumber,
-      randomBigNumberFn,
+      randomBigNumber,
       randomBoolFn,
-      randomStringFn,
       randomAddressFn,
       local: { owner, rate, decimals, currency, expectedProjectId },
     }) => {
       // An account that will receive tickets for the premine.
       const premineTicketBeneficiary = randomAddressFn();
-      const premineValueInWei = randomBigNumberFn({
+      const premineValueInWei = randomBigNumber({
         min: BigNumber.from(1),
         // Use an arbitrary large big number that can be added to other large big numbers without risk of running into uint256 boundaries.
         max: BigNumber.from(10).pow(30),
@@ -152,7 +150,7 @@ export default [
           premineValueInCurrency,
           currency,
           premineTicketBeneficiary,
-          randomStringFn(),
+          randomString(),
           randomBoolFn(),
         ],
       });
@@ -185,7 +183,6 @@ export default [
       contracts,
       executeFn,
       randomBoolFn,
-      randomStringFn,
       randomAddressFn,
       local: { payer, paymentValueInWei, expectedProjectId, premineTicketBeneficiary },
     }) => {
@@ -198,7 +195,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, paymentTicketBeneficiary, randomStringFn(), randomBoolFn()],
+        args: [expectedProjectId, paymentTicketBeneficiary, randomString(), randomBoolFn()],
         value: paymentValueInWei,
       });
       return { paymentTicketBeneficiary };
@@ -249,14 +246,14 @@ export default [
       contracts,
       executeFn,
       BigNumber,
-      randomBigNumberFn,
+      randomBigNumber,
       randomSignerFn,
       getBalanceFn,
       local: { targetDenominatedInWei, rate, decimals, currency, expectedProjectId, owner },
     }) => {
       // Tap a portion of the target.
       const amountToTapInWei = targetDenominatedInWei.sub(
-        randomBigNumberFn({
+        randomBigNumber({
           min: BigNumber.from(1),
           max: targetDenominatedInWei,
         }),

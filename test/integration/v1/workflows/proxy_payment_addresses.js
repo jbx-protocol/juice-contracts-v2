@@ -14,10 +14,10 @@ export default [
       constants,
       contracts,
       executeFn,
-      randomBigNumberFn,
+      randomBigNumber,
       BigNumber,
-      randomBytesFn,
-      randomStringFn,
+      randomBytes,
+      randomString,
       randomSignerFn,
       incrementFundingCycleIdFn,
       incrementProjectIdFn,
@@ -38,30 +38,30 @@ export default [
         fn: 'deploy',
         args: [
           owner.address,
-          randomBytesFn({
+          randomBytes({
             // Make sure its unique by prepending the id.
             prepend: expectedProjectId.toString(),
           }),
-          randomStringFn(),
+          randomString(),
           {
             target: BigNumber.from(1),
             currency,
-            duration: randomBigNumberFn({
+            duration: randomBigNumber({
               min: BigNumber.from(0),
               max: constants.MaxUint16,
             }),
-            cycleLimit: randomBigNumberFn({
+            cycleLimit: randomBigNumber({
               max: constants.MaxCycleLimit,
             }),
-            discountRate: randomBigNumberFn({ max: constants.MaxPercent }),
+            discountRate: randomBigNumber({ max: constants.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
             reservedRate,
-            bondingCurveRate: randomBigNumberFn({
+            bondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
-            reconfigurationBondingCurveRate: randomBigNumberFn({
+            reconfigurationBondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
           },
@@ -85,12 +85,12 @@ export default [
   },
   {
     description: 'Deploy a proxy payment address',
-    fn: ({ executeFn, deployer, contracts, randomStringFn, local: { expectedProjectId } }) =>
+    fn: ({ executeFn, deployer, contracts, randomString, local: { expectedProjectId } }) =>
       executeFn({
         caller: deployer,
         contract: contracts.proxyPaymentAddressManager,
         fn: 'deploy',
-        args: [expectedProjectId, randomStringFn()],
+        args: [expectedProjectId, randomString()],
       }),
   },
   {

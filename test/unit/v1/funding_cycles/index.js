@@ -14,6 +14,8 @@
 */
 process.env.INCLUDE_TIME_EDGE_CASE_TEST = false;
 
+import { deployMockLocalContract } from "../../../utils"
+
 import configure from './configure';
 import currentBallotStateOf from './current_ballot_state_of';
 import currentOf from './current_of';
@@ -26,8 +28,8 @@ export default function () {
   // Before the tests, deploy mocked dependencies and the contract.
   before(async function () {
     // Deploy mock dependency contracts.
-    this.ballot = await this.deployMockLocalContractFn('Active14DaysFundingCycleBallot');
-    this.terminalDirectory = await this.deployMockLocalContractFn('TerminalDirectory');
+    this.ballot = await deployMockLocalContract('Active14DaysFundingCycleBallot');
+    this.terminalDirectory = await deployMockLocalContract('TerminalDirectory');
 
     // Deploy the contract.
     this.contract = await this.deployContractFn(contractName, [this.terminalDirectory.address]);

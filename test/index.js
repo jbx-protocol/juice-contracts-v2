@@ -140,10 +140,6 @@ describe('Juicebox', async function () {
       );
     };
 
-    this.bindContractFn = async ({ address, contractName, signerOrProvider }) => {
-      return new Contract(address, this.readContractAbi(contractName), signerOrProvider);
-    };
-
     // Bind a function that sends funds from one address to another.
     this.sendTransactionFn = async ({ from, to, value, revert, events }) => {
       // Transfer the funds.
@@ -227,31 +223,6 @@ describe('Juicebox', async function () {
       MaxUint8: ethers.BigNumber.from(2).pow(8).sub(1),
     };
 
-    // Bind function that gets a random big number.
-    this.randomBigNumberFn = ({
-      min = ethers.BigNumber.from(0),
-      max = this.constants.MaxUint256,
-      precision = 10000000,
-      favorEdges = true,
-    } = {}) => {
-      // To test an edge condition, return the min or the max and the numbers around them more often.
-      // Return the min or the max or the numbers around them 50% of the time.
-      if (favorEdges && Math.random() < 0.5) {
-        const r = Math.random();
-        if (r <= 0.25 && min.add(1).lt(max)) return min.add(1);
-        if (r >= 0.75 && max.sub(1).gt(min)) return max.sub(1);
-        // return the min 50% of the time.
-        return r < 0.5 ? min : max;
-      }
-
-      const base = max.sub(min);
-      const randomInRange = base.gt(precision)
-        ? base.div(precision).mul(ethers.BigNumber.from(Math.floor(Math.random() * precision)))
-        : base.mul(ethers.BigNumber.from(Math.floor(Math.random() * precision))).div(precision);
-
-      return randomInRange.add(min);
-    };
-
     // Bind a function that gets a random address.
     this.randomAddressFn = ({ exclude = [] } = {}) => {
       // To test an edge condition, pick the same address more likely than not.
@@ -278,45 +249,8 @@ describe('Juicebox', async function () {
     // Bind a function that returns either true or false randomly.
     this.randomBoolFn = () => Math.random() > 0.5;
 
-    // Bind a function that generates a random string.
-    this.randomStringFn = ({
-      exclude = [],
-      prepend = '',
-      canBeEmpty = true,
-      favorEdges = true,
-    } = {}) => {
-      const seed = this.randomBigNumberFn({
-        min: canBeEmpty ? BigNumber.from(0) : BigNumber.from(1),
-        favorEdges,
-      });
-      const candidate = prepend.concat(Math.random().toString(36).substr(2, seed));
-      if (exclude.includes(candidate)) return this.randomStringFn({ exclude, prepend, canBeEmpty });
-      return candidate;
-    };
-
     // Bind the big number utils.
     this.BigNumber = ethers.BigNumber;
-
-    // Bind a function that returns a random set of bytes.
-    this.randomBytesFn = ({
-      min = BigNumber.from(10),
-      max = BigNumber.from(32),
-      prepend = '',
-      exclude = [],
-    } = {}) => {
-      const candidate = ethers.utils.formatBytes32String(
-        this.randomStringFn({
-          prepend,
-          seed: this.randomBigNumberFn({
-            min,
-            max,
-          }),
-          favorEdges: false,
-        }),
-      );
-      if (exclude.includes(candidate)) return this.randomBytesFn({ exclude, min, max, prepend });
-      return candidate;
-    };
 
     this.stringToBytes = ethers.utils.formatBytes32String;
 

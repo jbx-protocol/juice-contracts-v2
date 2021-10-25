@@ -1,6 +1,8 @@
 import { expect } from 'chai';
 import { BigNumber, utils, constants } from 'ethers';
 
+import { deployMockLocalContract } from '../../../utils';
+
 const tests = {
   success: [
     {
@@ -33,7 +35,7 @@ const tests = {
     },
     {
       description: 'deposit with mods',
-      fn: async ({ deployer, deployMockLocalContractFn }) => ({
+      fn: async ({ deployer }) => ({
         caller: deployer,
         owner: deployer.address,
         metadata: {
@@ -48,7 +50,7 @@ const tests = {
             percent: 200,
             lockedUntil: 1000,
             beneficiary: constants.AddressZero,
-            allocator: (await deployMockLocalContractFn('ExampleModAllocator')).address,
+            allocator: (await deployMockLocalContract('ExampleModAllocator')).address,
             projectId: 1,
             note: 'banana',
           },

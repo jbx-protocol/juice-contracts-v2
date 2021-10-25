@@ -12,10 +12,9 @@ export default [
       constants,
       contracts,
       executeFn,
-      randomBigNumberFn,
+      randomBigNumber,
       BigNumber,
-      randomBytesFn,
-      randomStringFn,
+      randomBytes,
       randomSignerFn,
       incrementFundingCycleIdFn,
       incrementProjectIdFn,
@@ -36,30 +35,30 @@ export default [
         fn: 'deploy',
         args: [
           owner.address,
-          randomBytesFn({
+          randomBytes({
             // Make sure its unique by prepending the id.
             prepend: expectedProjectId.toString(),
           }),
-          randomStringFn(),
+          randomString(),
           {
-            target: randomBigNumberFn(),
+            target: randomBigNumber(),
             currency,
-            duration: randomBigNumberFn({
+            duration: randomBigNumber({
               min: BigNumber.from(0),
               max: constants.MaxUint16,
             }),
-            cycleLimit: randomBigNumberFn({
+            cycleLimit: randomBigNumber({
               max: constants.MaxCycleLimit,
             }),
-            discountRate: randomBigNumberFn({ max: constants.MaxPercent }),
+            discountRate: randomBigNumber({ max: constants.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
             reservedRate,
-            bondingCurveRate: randomBigNumberFn({
+            bondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
-            reconfigurationBondingCurveRate: randomBigNumberFn({
+            reconfigurationBondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
           },
@@ -83,19 +82,19 @@ export default [
   },
   {
     description: 'Deploy a direct payment address',
-    fn: ({ executeFn, deployer, contracts, randomStringFn, local: { expectedProjectId } }) =>
+    fn: ({ executeFn, deployer, contracts, randomString, local: { expectedProjectId } }) =>
       executeFn({
         caller: deployer,
         contract: contracts.terminalDirectory,
         fn: 'deployAddress',
-        args: [expectedProjectId, randomStringFn()],
+        args: [expectedProjectId, randomString()],
       }),
   },
   {
     description: 'Make a payment to the address',
     fn: async ({
       contracts,
-      randomBigNumberFn,
+      randomBigNumber,
       BigNumber,
       getBalanceFn,
       randomSignerFn,
@@ -107,7 +106,7 @@ export default [
 
       // Three payments will be made. Cant pay entire balance because some is needed for gas.
       // So, arbitrarily divide the balance so that all payments can be made successfully.
-      const paymentValue = randomBigNumberFn({
+      const paymentValue = randomBigNumber({
         min: BigNumber.from(1),
         max: (await getBalanceFn(payer.address)).div(100),
       });
@@ -175,26 +174,26 @@ export default [
   },
   {
     description: 'Issue tickets',
-    fn: ({ contracts, executeFn, randomStringFn, local: { owner, expectedProjectId } }) =>
+    fn: ({ contracts, executeFn, randomString, local: { owner, expectedProjectId } }) =>
       executeFn({
         caller: owner,
         contract: contracts.ticketBooth,
         fn: 'issue',
         args: [
           expectedProjectId,
-          randomStringFn({ canBeEmpty: false }),
-          randomStringFn({ canBeEmpty: false }),
+          randomString({ canBeEmpty: false }),
+          randomString({ canBeEmpty: false }),
         ],
       }),
   },
   {
     description: 'Deploy another direct payment address',
-    fn: ({ deployer, contracts, executeFn, randomStringFn, local: { expectedProjectId } }) =>
+    fn: ({ deployer, contracts, executeFn, randomString, local: { expectedProjectId } }) =>
       executeFn({
         caller: deployer,
         contract: contracts.terminalDirectory,
         fn: 'deployAddress',
-        args: [expectedProjectId, randomStringFn()],
+        args: [expectedProjectId, randomString()],
       }),
   },
   {

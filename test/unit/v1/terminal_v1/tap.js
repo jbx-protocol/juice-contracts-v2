@@ -1,6 +1,8 @@
 import { expect } from 'chai';
 import { BigNumber, constants, utils } from 'ethers';
 
+import { deployMockLocalContract } from '../../../utils';
+
 const mockFn =
   ({ condition, mockContract, fn, args, returns = [] }) =>
   async () => {
@@ -73,8 +75,8 @@ const tests = {
     },
     {
       description: 'with project mod using different terminal',
-      fn: async ({ addrs, mockContracts, governance, contractName, deployMockLocalContractFn }) => {
-        const terminal = await deployMockLocalContractFn(contractName, [
+      fn: async ({ addrs, mockContracts, governance, contractName }) => {
+        const terminal = await deployMockLocalContract(contractName, [
           mockContracts.projects.address,
           mockContracts.fundingCycles.address,
           mockContracts.ticketBooth.address,
@@ -100,8 +102,8 @@ const tests = {
     },
     {
       description: 'with all mods',
-      fn: async ({ addrs, deployMockLocalContractFn }) => {
-        const allocator = await deployMockLocalContractFn('ExampleModAllocator');
+      fn: async ({ addrs }) => {
+        const allocator = await deployMockLocalContract('ExampleModAllocator');
 
         return {
           projectMod: {
@@ -194,7 +196,7 @@ const tests = {
 };
 
 const ops =
-  ({ deployer, addrs, mockContracts, deployMockLocalContractFn, deployContractFn, contractName }) =>
+  ({ deployer, addrs, mockContracts, deployContractFn, contractName }) =>
   async (custom) => {
     const {
       caller = deployer,
@@ -290,7 +292,7 @@ const ops =
     }
 
     // Governance must be a mocked contract here.
-    const governance = await deployMockLocalContractFn('Governance', [
+    const governance = await deployMockLocalContract('Governance', [
       govProjectId,
       mockContracts.terminalDirectory.address,
     ]);

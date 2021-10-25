@@ -1,3 +1,5 @@
+import { deployMockLocalContract } from '../../../utils';
+
 import balanceOf from './balance_of';
 import issue from './issue';
 import lock from './lock';
@@ -15,9 +17,9 @@ export default function () {
   // Before the tests, deploy mocked dependencies and the contract.
   before(async function () {
     // Deploy mock dependency contracts.
-    this.projects = await this.deployMockLocalContractFn('Projects');
-    this.operatorStore = await this.deployMockLocalContractFn('OperatorStore');
-    this.terminalDirectory = await this.deployMockLocalContractFn('TerminalDirectory');
+    this.projects = await deployMockLocalContract('Projects');
+    this.operatorStore = await deployMockLocalContract('OperatorStore');
+    this.terminalDirectory = await deployMockLocalContract('TerminalDirectory');
 
     // Deploy the contract.
     this.contract = await this.deployContractFn(contractName, [

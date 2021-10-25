@@ -11,41 +11,40 @@ export default [
       constants,
       contracts,
       executeFn,
-      randomBigNumberFn,
+      randomBigNumber,
       BigNumber,
-      randomStringFn,
       randomAddressFn,
-      randomBytesFn,
+      randomBytes,
       incrementProjectIdFn,
       incrementFundingCycleIdFn,
     }) => {
       const expectedFundingCycleId = incrementFundingCycleIdFn();
       const expectedProjectId = incrementProjectIdFn();
 
-      const target = randomBigNumberFn();
-      const handle = randomBytesFn({
+      const target = randomBigNumber();
+      const handle = randomBytes({
         // Make sure its unique by prepending the id.
         prepend: expectedProjectId.toString(),
       });
-      const uri = randomStringFn();
-      const currency = randomBigNumberFn({ max: constants.MaxUint8 });
-      const duration = randomBigNumberFn({
+      const uri = randomString();
+      const currency = randomBigNumber({ max: constants.MaxUint8 });
+      const duration = randomBigNumber({
         min: BigNumber.from(1),
         max: constants.MaxUint16,
       });
-      const cycleLimit = randomBigNumberFn({
+      const cycleLimit = randomBigNumber({
         max: constants.MaxCycleLimit,
       });
-      const discountRate = randomBigNumberFn({
+      const discountRate = randomBigNumber({
         max: constants.MaxDiscountRate,
       });
       const ballot = constants.AddressZero;
 
-      const reservedRate = randomBigNumberFn({ max: constants.MaxPercent });
-      const bondingCurveRate = randomBigNumberFn({
+      const reservedRate = randomBigNumber({ max: constants.MaxPercent });
+      const bondingCurveRate = randomBigNumber({
         max: constants.MaxPercent,
       });
-      const reconfigurationBondingCurveRate = randomBigNumberFn({
+      const reconfigurationBondingCurveRate = randomBigNumber({
         max: constants.MaxPercent,
       });
 

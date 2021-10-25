@@ -9,10 +9,10 @@ export default [
       contracts,
       constants,
       executeFn,
-      randomStringFn,
+      randomString,
       randomSignerFn,
       incrementProjectIdFn,
-      randomBytesFn,
+      randomBytes,
     }) => {
       const expectedProjectId = incrementProjectIdFn();
 
@@ -25,11 +25,11 @@ export default [
         fn: 'create',
         args: [
           owner.address,
-          randomBytesFn({
+          randomBytes({
             // Make sure its unique by prepending the id.
             prepend: expectedProjectId.toString(),
           }),
-          randomStringFn(),
+          randomString(),
           constants.AddressZero,
         ],
       });
@@ -38,12 +38,12 @@ export default [
   },
   {
     description: 'The owner should be able to set a new uri for the project',
-    fn: ({ contracts, executeFn, randomStringFn, local: { owner, expectedProjectId } }) =>
+    fn: ({ contracts, executeFn, randomString, local: { owner, expectedProjectId } }) =>
       executeFn({
         caller: owner,
         contract: contracts.projects,
         fn: 'setUri',
-        args: [expectedProjectId, randomStringFn()],
+        args: [expectedProjectId, randomString()],
       }),
   },
   {
@@ -51,7 +51,7 @@ export default [
     fn: ({
       executeFn,
       contracts,
-      randomStringFn,
+      randomString,
       randomSignerFn,
       local: { owner, expectedProjectId },
     }) =>
@@ -59,7 +59,7 @@ export default [
         caller: randomSignerFn({ exclude: [owner.address] }),
         contract: contracts.projects,
         fn: 'setUri',
-        args: [expectedProjectId, randomStringFn()],
+        args: [expectedProjectId, randomString()],
         revert: 'Operatable: UNAUTHORIZED',
       }),
   },
@@ -79,12 +79,12 @@ export default [
   },
   {
     description: 'The new owner should be able to set a new uri for the project',
-    fn: ({ executeFn, contracts, randomStringFn, local: { secondOwner, expectedProjectId } }) =>
+    fn: ({ executeFn, contracts, randomString, local: { secondOwner, expectedProjectId } }) =>
       executeFn({
         caller: secondOwner,
         contract: contracts.projects,
         fn: 'setUri',
-        args: [expectedProjectId, randomStringFn()],
+        args: [expectedProjectId, randomString()],
       }),
   },
   {
@@ -92,14 +92,14 @@ export default [
     fn: ({
       executeFn,
       contracts,
-      randomStringFn,
+      randomString,
       local: { owner, secondOwner, expectedProjectId },
     }) =>
       executeFn({
         caller: owner,
         contract: contracts.projects,
         fn: 'setUri',
-        args: [expectedProjectId, randomStringFn()],
+        args: [expectedProjectId, randomString()],
         revert: owner.address !== secondOwner.address && 'Operatable: UNAUTHORIZED',
       }),
   },

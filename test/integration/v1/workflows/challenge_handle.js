@@ -4,11 +4,11 @@
 export default [
   {
     description: 'The challenge expiry for an unused handle should start at 0',
-    fn: async ({ contracts, checkFn, randomSignerFn, incrementProjectIdFn, randomBytesFn }) => {
+    fn: async ({ contracts, checkFn, randomSignerFn, incrementProjectIdFn, randomBytes }) => {
       const expectedProjectId1 = incrementProjectIdFn();
 
       // Make sure its unique by prepending the id.
-      const handle = randomBytesFn({ prepend: expectedProjectId1.toString() });
+      const handle = randomBytes({ prepend: expectedProjectId1.toString() });
 
       await checkFn({
         caller: randomSignerFn(),
@@ -27,7 +27,6 @@ export default [
       deployer,
       contracts,
       executeFn,
-      randomStringFn,
       randomSignerFn,
       local: { handle },
     }) => {
@@ -38,7 +37,7 @@ export default [
         caller: deployer,
         contract: contracts.projects,
         fn: 'create',
-        args: [owner.address, handle, randomStringFn(), contracts.terminalV1.address],
+        args: [owner.address, handle, randomString(), contracts.terminalV1.address],
       });
 
       return { owner, handle };
@@ -107,10 +106,9 @@ export default [
       deployer,
       contracts,
       executeFn,
-      randomStringFn,
       randomSignerFn,
       incrementProjectIdFn,
-      randomBytesFn,
+      randomBytes,
     }) => {
       // The address that will own the second project.
       const claimer = randomSignerFn();
@@ -118,13 +116,13 @@ export default [
       const expectedProjectId2 = incrementProjectIdFn();
 
       // Make sure its unique by prepending the id.
-      const handle2 = randomBytesFn({ prepend: expectedProjectId2.toString() });
+      const handle2 = randomBytes({ prepend: expectedProjectId2.toString() });
 
       await executeFn({
         caller: deployer,
         contract: contracts.projects,
         fn: 'create',
-        args: [claimer.address, handle2, randomStringFn(), contracts.terminalV1.address],
+        args: [claimer.address, handle2, randomString(), contracts.terminalV1.address],
       });
 
       return { claimer, handle2, expectedProjectId2 };
@@ -169,9 +167,9 @@ export default [
   },
   {
     description: 'Fastforward to past the challenge expiry',
-    fn: ({ BigNumber, fastforwardFn, randomBigNumberFn }) =>
+    fn: ({ BigNumber, fastforwardFn, randomBigNumber }) =>
       fastforwardFn(
-        randomBigNumberFn({
+        randomBigNumber({
           min: BigNumber.from(100),
           max: BigNumber.from(9999),
         }),
@@ -294,9 +292,9 @@ export default [
   },
   {
     description: 'Fastforward to past the challenge expiry prior to renewing',
-    fn: ({ BigNumber, fastforwardFn, randomBigNumberFn }) =>
+    fn: ({ BigNumber, fastforwardFn, randomBigNumber }) =>
       fastforwardFn(
-        randomBigNumberFn({
+        randomBigNumber({
           min: BigNumber.from(10),
           max: BigNumber.from(9999),
         }),

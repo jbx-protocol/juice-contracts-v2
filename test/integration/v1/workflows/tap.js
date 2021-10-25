@@ -19,15 +19,15 @@ export default [
       executeFn,
       BigNumber,
       deployContractFn,
-      randomBigNumberFn,
+      randomBigNumber,
       getBalanceFn,
       randomBoolFn,
-      randomStringFn,
+      randomString,
       randomAddressFn,
       incrementProjectIdFn,
       incrementFundingCycleIdFn,
       randomSignerFn,
-      randomBytesFn,
+      randomBytes,
     }) => {
       const expectedIdOfBaseProject = incrementProjectIdFn();
       const expectedIdOfModProject = incrementProjectIdFn();
@@ -44,32 +44,32 @@ export default [
 
       // Two payments will be made.
       // So, arbitrarily divide the balance so that all payments can be made successfully.
-      const paymentValue1 = randomBigNumberFn({
+      const paymentValue1 = randomBigNumber({
         min: BigNumber.from(1),
         max: (await getBalanceFn(payer.address)).div(100),
       });
 
       // The target must at most be the payment value.
-      const target = randomBigNumberFn({
+      const target = randomBigNumber({
         min: BigNumber.from(1),
         max: paymentValue1,
       });
 
-      const duration = randomBigNumberFn({
+      const duration = randomBigNumber({
         min: BigNumber.from(1),
         max: constants.MaxUint16,
       });
 
       // The mod percents should add up to <= constants.MaxPercent.
-      const percent1 = randomBigNumberFn({
+      const percent1 = randomBigNumber({
         min: BigNumber.from(1),
         max: constants.MaxModPercent.sub(2),
       });
-      const percent2 = randomBigNumberFn({
+      const percent2 = randomBigNumber({
         min: BigNumber.from(1),
         max: constants.MaxModPercent.sub(percent1).sub(1),
       });
-      const percent3 = randomBigNumberFn({
+      const percent3 = randomBigNumber({
         min: BigNumber.from(1),
         max: constants.MaxModPercent.sub(percent1).sub(percent2),
       });
@@ -112,20 +112,20 @@ export default [
         fn: 'deploy',
         args: [
           owner.address,
-          randomBytesFn({
+          randomBytes({
             // Make sure its unique by prepending the id.
             prepend: expectedIdOfBaseProject.toString(),
           }),
-          randomStringFn(),
+          randomString(),
           {
             target,
             currency,
             duration,
-            cycleLimit: randomBigNumberFn({
+            cycleLimit: randomBigNumber({
               max: constants.MaxCycleLimit,
             }),
             // Recurring.
-            discountRate: randomBigNumberFn({
+            discountRate: randomBigNumber({
               max: constants.MaxPercent.sub(1),
             }),
             ballot: constants.AddressZero,
@@ -133,10 +133,10 @@ export default [
           {
             // Don't use a reserved rate to make the calculations a little simpler.
             reservedRate: BigNumber.from(0),
-            bondingCurveRate: randomBigNumberFn({
+            bondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
-            reconfigurationBondingCurveRate: randomBigNumberFn({
+            reconfigurationBondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
           },
@@ -207,9 +207,9 @@ export default [
       contracts,
       executeFn,
       BigNumber,
-      randomBytesFn,
-      randomBigNumberFn,
-      randomStringFn,
+      randomBytes,
+      randomBigNumber,
+      randomString,
       randomSignerFn,
       incrementFundingCycleIdFn,
       local: { duration, expectedIdOfModProject, owner },
@@ -227,7 +227,7 @@ export default [
       // the base cycle's duration (< 1/30), the program could break because it
       // could have to apply the discount rate exponentially according to the factor in the worst case.
       // This worse case only happens when the smaller cycle isnt tapped or configured for a long while.
-      const duration2 = randomBigNumberFn({
+      const duration2 = randomBigNumber({
         min: duration < 500 ? BigNumber.from(1) : duration.div(500),
         max: constants.MaxUint16,
       });
@@ -238,20 +238,20 @@ export default [
         fn: 'deploy',
         args: [
           modProjectOwner.address,
-          randomBytesFn({
+          randomBytes({
             // Make sure its unique by prepending the id.
             prepend: expectedIdOfModProject.toString(),
           }),
-          randomStringFn(),
+          randomString(),
           {
-            target: randomBigNumberFn(),
-            currency: randomBigNumberFn({ max: constants.MaxUint8 }),
+            target: randomBigNumber(),
+            currency: randomBigNumber({ max: constants.MaxUint8 }),
             duration: duration2,
-            cycleLimit: randomBigNumberFn({
+            cycleLimit: randomBigNumber({
               max: constants.MaxCycleLimit,
             }),
             // Make it recurring.
-            discountRate: randomBigNumberFn({
+            discountRate: randomBigNumber({
               max: constants.MaxPercent.sub(1),
             }),
             ballot: constants.AddressZero,
@@ -259,10 +259,10 @@ export default [
           {
             // Don't use a reserved rate to make the calculations a little simpler.
             reservedRate: BigNumber.from(0),
-            bondingCurveRate: randomBigNumberFn({
+            bondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
-            reconfigurationBondingCurveRate: randomBigNumberFn({
+            reconfigurationBondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
           },
@@ -279,7 +279,7 @@ export default [
     fn: ({
       contracts,
       executeFn,
-      randomStringFn,
+      randomString,
       local: { modProjectOwner, expectedIdOfModProject },
     }) =>
       executeFn({
@@ -288,8 +288,8 @@ export default [
         fn: 'issue',
         args: [
           expectedIdOfModProject,
-          randomStringFn({ canBeEmpty: false }),
-          randomStringFn({ canBeEmpty: false }),
+          randomString({ canBeEmpty: false }),
+          randomString({ canBeEmpty: false }),
         ],
       }),
   },
@@ -299,7 +299,7 @@ export default [
       contracts,
       executeFn,
       randomBoolFn,
-      randomStringFn,
+      randomString,
       randomAddressFn,
       local: { payer, paymentValue1, expectedIdOfBaseProject },
     }) =>
@@ -307,7 +307,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedIdOfBaseProject, randomAddressFn(), randomStringFn(), randomBoolFn()],
+        args: [expectedIdOfBaseProject, randomAddressFn(), randomString(), randomBoolFn()],
         value: paymentValue1,
       }),
   },
@@ -517,14 +517,14 @@ export default [
       contracts,
       executeFn,
       BigNumber,
-      randomBigNumberFn,
+      randomBigNumber,
       randomBoolFn,
-      randomStringFn,
+      randomString,
       randomAddressFn,
       local: { payer, expectedIdOfBaseProject, target },
     }) => {
       // The second amount should cause overflow.
-      const paymentValue2 = randomBigNumberFn({
+      const paymentValue2 = randomBigNumber({
         min: BigNumber.from(1),
         max: target,
       });
@@ -532,7 +532,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedIdOfBaseProject, randomAddressFn(), randomStringFn(), randomBoolFn()],
+        args: [expectedIdOfBaseProject, randomAddressFn(), randomString(), randomBoolFn()],
         value: paymentValue2,
       });
 

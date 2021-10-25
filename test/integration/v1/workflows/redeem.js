@@ -19,10 +19,10 @@ export default [
       randomSignerFn,
       deployer,
       BigNumber,
-      randomBytesFn,
-      randomStringFn,
+      randomBytes,
+      randomString,
       getBalanceFn,
-      randomBigNumberFn,
+      randomBigNumber,
       constants,
       contracts,
       incrementProjectIdFn,
@@ -42,41 +42,41 @@ export default [
 
       // Three payments will be made. Cant pay entire balance because some is needed for gas.
       // So, arbitrarily divide the balance so that all payments can be made successfully.
-      const paymentValue1 = randomBigNumberFn({
+      const paymentValue1 = randomBigNumber({
         min: BigNumber.from(10),
         max: (await getBalanceFn(payer.address)).div(100),
       });
 
-      const paymentValue2 = randomBigNumberFn({
+      const paymentValue2 = randomBigNumber({
         min: BigNumber.from(10),
         max: (await getBalanceFn(payer.address)).div(100),
       });
 
-      const paymentValue3 = randomBigNumberFn({
+      const paymentValue3 = randomBigNumber({
         min: BigNumber.from(10),
         max: (await getBalanceFn(payer.address)).div(100),
       });
 
       // The project's funding cycle target will at most be the sum of all payments.
-      const target = randomBigNumberFn({
+      const target = randomBigNumber({
         max: paymentValue1.add(paymentValue2).add(paymentValue3),
       });
 
       // Set a random percentage of tickets to reserve for the project owner.
-      const reservedRate = randomBigNumberFn({ max: constants.MaxPercent });
+      const reservedRate = randomBigNumber({ max: constants.MaxPercent });
 
       // Set a random discount rate. Don't allow non-recurring cycles.
-      const discountRate = randomBigNumberFn({
+      const discountRate = randomBigNumber({
         max: constants.MaxPercent,
       });
 
       // Set a random bonding curve rate.
-      const bondingCurveRate = randomBigNumberFn({
+      const bondingCurveRate = randomBigNumber({
         max: constants.MaxPercent,
       });
 
       // Set a random reconfiguration bonding curve rate.
-      const reconfigurationBondingCurveRate = randomBigNumberFn({
+      const reconfigurationBondingCurveRate = randomBigNumber({
         max: constants.MaxPercent,
       });
 
@@ -87,7 +87,7 @@ export default [
       const ballotDurationInDays = (await ballot.duration()).div(86400);
 
       // The duration of the funding cycle should be at least one day longer than the ballot.
-      const minDuration = randomBigNumberFn({
+      const minDuration = randomBigNumber({
         min: ballotDurationInDays.add(1),
         max: constants.MaxUint16,
       });
@@ -98,19 +98,19 @@ export default [
         fn: 'deploy',
         args: [
           owner.address,
-          randomBytesFn({
+          randomBytes({
             // Make sure its unique by prepending the id.
             prepend: expectedProjectId.toString(),
           }),
-          randomStringFn(),
+          randomString(),
           {
             target,
             currency,
-            duration: randomBigNumberFn({
+            duration: randomBigNumber({
               min: minDuration,
               max: constants.MaxUint16,
             }),
-            cycleLimit: randomBigNumberFn({ max: constants.MaxCycleLimit }),
+            cycleLimit: randomBigNumber({ max: constants.MaxCycleLimit }),
             discountRate,
             ballot: ballot.address,
           },
@@ -145,7 +145,7 @@ export default [
     fn: async ({
       executeFn,
       randomBoolFn,
-      randomStringFn,
+      randomString,
       randomSignerFn,
       contracts,
       local: { expectedProjectId, payer, paymentValue1, owner },
@@ -159,7 +159,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, ticketBeneficiary1.address, randomStringFn(), randomBoolFn()],
+        args: [expectedProjectId, ticketBeneficiary1.address, randomString(), randomBoolFn()],
         value: paymentValue1,
       });
 
@@ -212,7 +212,7 @@ export default [
       randomSignerFn,
       executeFn,
       contracts,
-      randomStringFn,
+      randomString,
       randomBoolFn,
       local: { payer, expectedProjectId, paymentValue2, owner, ticketBeneficiary1 },
     }) => {
@@ -225,7 +225,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, ticketBeneficiary2.address, randomStringFn(), randomBoolFn()],
+        args: [expectedProjectId, ticketBeneficiary2.address, randomString(), randomBoolFn()],
         value: paymentValue2,
       });
       return { ticketBeneficiary2 };
@@ -236,7 +236,7 @@ export default [
     fn: async ({
       executeFn,
       randomBoolFn,
-      randomStringFn,
+      randomString,
       randomSignerFn,
       contracts,
       local: {
@@ -257,7 +257,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, ticketBeneficiary3.address, randomStringFn(), randomBoolFn()],
+        args: [expectedProjectId, ticketBeneficiary3.address, randomString(), randomBoolFn()],
         value: paymentValue3,
       });
 
@@ -516,7 +516,7 @@ export default [
     description: 'A reconfiguration should activate the reconfiguration bonding curve',
     fn: async ({
       executeFn,
-      randomBigNumberFn,
+      randomBigNumber,
       contracts,
       constants,
       BigNumber,
@@ -532,26 +532,26 @@ export default [
         args: [
           expectedProjectId,
           {
-            target: randomBigNumberFn(),
-            currency: randomBigNumberFn({ max: constants.MaxUint8 }),
-            duration: randomBigNumberFn({
+            target: randomBigNumber(),
+            currency: randomBigNumber({ max: constants.MaxUint8 }),
+            duration: randomBigNumber({
               min: BigNumber.from(1),
               max: constants.MaxUint16,
             }),
-            cycleLimit: randomBigNumberFn({
+            cycleLimit: randomBigNumber({
               max: constants.MaxCycleLimit,
             }),
-            discountRate: randomBigNumberFn({ max: constants.MaxPercent }),
+            discountRate: randomBigNumber({ max: constants.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
-            reservedRate: randomBigNumberFn({
+            reservedRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
-            bondingCurveRate: randomBigNumberFn({
+            bondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
-            reconfigurationBondingCurveRate: randomBigNumberFn({
+            reconfigurationBondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
           },

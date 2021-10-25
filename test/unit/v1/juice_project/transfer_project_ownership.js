@@ -4,6 +4,8 @@ const {
 } = hardhat;
 import { expect } from 'chai';
 
+import { deployMockLocalContract } from '../../../utils';
+
 const tests = {
   success: [
     {
@@ -34,8 +36,8 @@ export default function () {
       it(successTest.description, async function () {
         const { caller, newOwner, projectId } = successTest.fn(this);
 
-        const operatorStore = await this.deployMockLocalContractFn('OperatorStore');
-        const projects = await this.deployMockLocalContractFn('Projects', [operatorStore.address]);
+        const operatorStore = await deployMockLocalContract('OperatorStore');
+        const projects = await deployMockLocalContract('Projects', [operatorStore.address]);
 
         const data = utils.formatBytes32String('some-data');
 
@@ -55,8 +57,8 @@ export default function () {
       it(failureTest.description, async function () {
         const { caller, newOwner, projectId, revert } = failureTest.fn(this);
 
-        const operatorStore = await this.deployMockLocalContractFn('OperatorStore');
-        const projects = await this.deployMockLocalContractFn('Projects', [operatorStore.address]);
+        const operatorStore = await deployMockLocalContract('OperatorStore');
+        const projects = await deployMockLocalContract('Projects', [operatorStore.address]);
 
         const data = utils.formatBytes32String('some-data');
 

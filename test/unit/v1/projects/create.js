@@ -1,6 +1,8 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
+import { deployMockLocalContract } from '../../../utils';
+
 const tests = {
   success: [
     {
@@ -65,29 +67,29 @@ const tests = {
     },
     {
       description: 'with terminal',
-      fn: async ({ deployer, deployMockLocalContractFn }) => {
+      fn: async ({ deployer }) => {
         // Create a mock for a terminalV1.
-        const operatorStore = await deployMockLocalContractFn('OperatorStore');
-        const projects = await deployMockLocalContractFn('Projects', [operatorStore.address]);
-        const prices = await deployMockLocalContractFn('Prices');
-        const terminalDirectory = await deployMockLocalContractFn('TerminalDirectory', [
+        const operatorStore = await deployMockLocalContract('OperatorStore');
+        const projects = await deployMockLocalContract('Projects', [operatorStore.address]);
+        const prices = await deployMockLocalContract('Prices');
+        const terminalDirectory = await deployMockLocalContract('TerminalDirectory', [
           projects.address,
         ]);
-        const fundingCycles = await deployMockLocalContractFn('FundingCycles', [
+        const fundingCycles = await deployMockLocalContract('FundingCycles', [
           terminalDirectory.address,
         ]);
-        const ticketBooth = await deployMockLocalContractFn('TicketBooth', [
+        const ticketBooth = await deployMockLocalContract('TicketBooth', [
           projects.address,
           operatorStore.address,
           terminalDirectory.address,
         ]);
-        const modStore = await deployMockLocalContractFn('ModStore', [
+        const modStore = await deployMockLocalContract('ModStore', [
           projects.address,
           operatorStore.address,
         ]);
 
         // Deploy mock dependency contracts.
-        const terminalV1 = await deployMockLocalContractFn('TerminalV1', [
+        const terminalV1 = await deployMockLocalContract('TerminalV1', [
           projects.address,
           fundingCycles.address,
           ticketBooth.address,

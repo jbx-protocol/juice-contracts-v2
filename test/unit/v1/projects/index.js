@@ -1,3 +1,5 @@
+import { deployMockLocalContract } from "../../../utils"
+
 import challengeHandle from './challenge_handle';
 import claimHandle from './claim_handle';
 import create from './create';
@@ -12,7 +14,7 @@ export default function () {
   // Before the tests, deploy mocked dependencies and the contract.
   before(async function () {
     // Deploy mock dependency contracts.
-    this.operatorStore = await this.deployMockLocalContractFn('OperatorStore');
+    this.operatorStore = await deployMockLocalContract('OperatorStore');
 
     // Deploy the contract.
     this.contract = await this.deployContractFn(contractName, [this.operatorStore.address]);

@@ -113,7 +113,7 @@ const operations = [
         fn: ({
           executeFn,
           contracts,
-          randomBytesFn,
+          randomBytes,
           randomAddressFn,
           local: { owner, operator, expectedProjectId },
         }) =>
@@ -122,7 +122,7 @@ const operations = [
             contract: contracts.projects,
             fn: 'claimHandle',
             args: [
-              randomBytesFn(),
+              randomBytes(),
               randomAddressFn({ exclude: [owner.address, operator.address] }),
               expectedProjectId,
             ],
@@ -131,12 +131,12 @@ const operations = [
       },
       {
         description: 'Authorized if claiming for owner account',
-        fn: ({ executeFn, contracts, randomBytesFn, local: { owner, expectedProjectId } }) =>
+        fn: ({ executeFn, contracts, randomBytes, local: { owner, expectedProjectId } }) =>
           executeFn({
             caller: owner,
             contract: contracts.projects,
             fn: 'claimHandle',
-            args: [randomBytesFn(), owner.address, expectedProjectId],
+            args: [randomBytes(), owner.address, expectedProjectId],
             revert: 'Projects::claimHandle: UNAUTHORIZED',
           }),
       },
@@ -245,14 +245,14 @@ const operations = [
         fn: ({
           executeFn,
           contracts,
-          randomBytesFn,
+          randomBytes,
           local: { expectedProjectId, operator, claimer },
         }) =>
           executeFn({
             caller: operator,
             contract: contracts.projects,
             fn: 'claimHandle',
-            args: [randomBytesFn(), claimer.address, expectedProjectId],
+            args: [randomBytes(), claimer.address, expectedProjectId],
             revert: 'Projects::claimHandle: UNAUTHORIZED',
           }),
       },
@@ -319,14 +319,14 @@ const operations = [
         fn: ({
           executeFn,
           contracts,
-          randomBytesFn,
+          randomBytes,
           local: { expectedProjectId, operator, claimer },
         }) =>
           executeFn({
             caller: operator,
             contract: contracts.projects,
             fn: 'claimHandle',
-            args: [randomBytesFn(), claimer.address, expectedProjectId],
+            args: [randomBytes(), claimer.address, expectedProjectId],
             revert: 'Projects::claimHandle: UNAUTHORIZED',
           }),
       },
@@ -335,7 +335,7 @@ const operations = [
         fn: ({
           executeFn,
           contracts,
-          randomBytesFn,
+          randomBytes,
           randomSignerFn,
           local: { expectedProjectId, owner, operator, claimer },
         }) =>
@@ -345,7 +345,7 @@ const operations = [
             }),
             contract: contracts.projects,
             fn: 'claimHandle',
-            args: [randomBytesFn(), claimer.address, expectedProjectId],
+            args: [randomBytes(), claimer.address, expectedProjectId],
             revert: 'Operatable: UNAUTHORIZED',
           }),
       },
@@ -375,14 +375,14 @@ const operations = [
         fn: ({
           executeFn,
           contracts,
-          randomBytesFn,
+          randomBytes,
           local: { expectedProjectId, operator, claimer },
         }) =>
           executeFn({
             caller: operator,
             contract: contracts.projects,
             fn: 'claimHandle',
-            args: [randomBytesFn(), claimer.address, expectedProjectId],
+            args: [randomBytes(), claimer.address, expectedProjectId],
             revert: 'Operatable: UNAUTHORIZED',
           }),
       },
@@ -495,10 +495,10 @@ export default [
         description: 'Create a project',
         fn: async ({
           executeFn,
-          randomBytesFn,
+          randomBytes,
           randomSignerFn,
           contracts,
-          randomStringFn,
+          randomString,
           incrementProjectIdFn,
         }) => {
           const expectedProjectId = incrementProjectIdFn();
@@ -515,11 +515,11 @@ export default [
             fn: 'create',
             args: [
               owner.address,
-              randomBytesFn({
+              randomBytes({
                 // Make sure its unique by prepending the id.
                 prepend: expectedProjectId.toString(),
               }),
-              randomStringFn(),
+              randomString(),
               contracts.terminalV1.address,
             ],
           });

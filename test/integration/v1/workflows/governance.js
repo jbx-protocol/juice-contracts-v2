@@ -5,12 +5,12 @@
 export default [
   {
     description: 'The initial governance can set a new fee',
-    fn: ({ executeFn, deployer, contracts, randomBigNumberFn, constants }) =>
+    fn: ({ executeFn, deployer, contracts, randomBigNumber, constants }) =>
       executeFn({
         caller: deployer,
         contract: contracts.governance,
         fn: 'setFee',
-        args: [contracts.terminalV1.address, randomBigNumberFn({ max: constants.MaxPercent })],
+        args: [contracts.terminalV1.address, randomBigNumber({ max: constants.MaxPercent })],
       }),
   },
   {
@@ -33,7 +33,7 @@ export default [
     fn: ({
       executeFn,
       contracts,
-      randomBigNumberFn,
+      randomBigNumber,
       constants,
       local: { firstAppointedGovernance },
     }) =>
@@ -41,18 +41,18 @@ export default [
         caller: firstAppointedGovernance,
         contract: contracts.terminalV1,
         fn: 'setFee',
-        args: [randomBigNumberFn({ max: constants.MaxPercent })],
+        args: [randomBigNumber({ max: constants.MaxPercent })],
         revert: 'TerminalV1: UNAUTHORIZED',
       }),
   },
   {
     description: 'The current governance should still be able to set a fee',
-    fn: ({ executeFn, deployer, contracts, randomBigNumberFn, constants }) =>
+    fn: ({ executeFn, deployer, contracts, randomBigNumber, constants }) =>
       executeFn({
         caller: deployer,
         contract: contracts.governance,
         fn: 'setFee',
-        args: [contracts.terminalV1.address, randomBigNumberFn({ max: constants.MaxPercent })],
+        args: [contracts.terminalV1.address, randomBigNumber({ max: constants.MaxPercent })],
       }),
   },
   {
@@ -103,7 +103,7 @@ export default [
       executeFn,
       deployer,
       contracts,
-      randomBigNumberFn,
+      randomBigNumber,
       constants,
       local: { secondAppointedGovernance },
     }) =>
@@ -111,7 +111,7 @@ export default [
         caller: deployer,
         contract: contracts.governance,
         fn: 'setFee',
-        args: [contracts.terminalV1.address, randomBigNumberFn({ max: constants.MaxPercent })],
+        args: [contracts.terminalV1.address, randomBigNumber({ max: constants.MaxPercent })],
         revert:
           contracts.governance.address !== secondAppointedGovernance.address &&
           'TerminalV1: UNAUTHORIZED',
@@ -121,7 +121,7 @@ export default [
     description: 'The new governance should be able to set a fee',
     fn: ({
       executeFn,
-      randomBigNumberFn,
+      randomBigNumber,
       constants,
       contracts,
       local: { secondAppointedGovernance },
@@ -130,7 +130,7 @@ export default [
         caller: secondAppointedGovernance,
         contract: contracts.terminalV1,
         fn: 'setFee',
-        args: [randomBigNumberFn({ max: constants.MaxPercent })],
+        args: [randomBigNumber({ max: constants.MaxPercent })],
       }),
   },
   {

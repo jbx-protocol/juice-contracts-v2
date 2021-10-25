@@ -18,8 +18,8 @@ export default [
       contracts,
       BigNumber,
       executeFn,
-      randomBigNumberFn,
-      randomBytesFn,
+      randomBigNumber,
+      randomBytes,
       getBalanceFn,
       randomSignerFn,
       incrementProjectIdFn,
@@ -38,17 +38,17 @@ export default [
       // Two payments will be made. Cant pay entire balance because some is needed for gas.
       // So, arbitrarily divide the balance so that all payments can be made successfully.
       // Also make sure the first payment is well positive to make the test cases cleaner.
-      const paymentValue1 = randomBigNumberFn({
+      const paymentValue1 = randomBigNumber({
         min: BigNumber.from(1000),
         max: (await getBalanceFn(payer.address)).div(100),
       });
-      const paymentValue2 = randomBigNumberFn({
+      const paymentValue2 = randomBigNumber({
         min: BigNumber.from(1),
         max: (await getBalanceFn(payer.address)).div(100),
       });
 
       // The project's funding cycle target will be less than the payment value.
-      const target = randomBigNumberFn({
+      const target = randomBigNumber({
         min: BigNumber.from(1),
         // Arbitrarily divide by two so there will be plenty of overflow.
         max: paymentValue1.div(2),
@@ -56,7 +56,7 @@ export default [
 
       // Set a random percentage of tickets to reserve for the project owner.
       // Arbitrarily it to under 50% to make sure funds aren't not all reserved.
-      const reservedRate = randomBigNumberFn({
+      const reservedRate = randomBigNumber({
         max: constants.MaxPercent.div(2),
       });
 
@@ -66,7 +66,7 @@ export default [
         fn: 'deploy',
         args: [
           owner.address,
-          randomBytesFn({
+          randomBytes({
             // Make sure its unique by prepending the id.
             prepend: expectedProjectId.toString(),
           }),
@@ -74,22 +74,22 @@ export default [
           {
             target,
             currency,
-            duration: randomBigNumberFn({
+            duration: randomBigNumber({
               min: BigNumber.from(0),
               max: constants.MaxUint16,
             }),
-            cycleLimit: randomBigNumberFn({
+            cycleLimit: randomBigNumber({
               max: constants.MaxCycleLimit,
             }),
-            discountRate: randomBigNumberFn({ max: constants.MaxPercent }),
+            discountRate: randomBigNumber({ max: constants.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
             reservedRate,
-            bondingCurveRate: randomBigNumberFn({
+            bondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
-            reconfigurationBondingCurveRate: randomBigNumberFn({
+            reconfigurationBondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
           },
@@ -124,7 +124,7 @@ export default [
     description: 'Make a payment to the project',
     fn: async ({
       executeFn,
-      randomStringFn,
+      randomString,
       randomSignerFn,
       randomBoolFn,
       getBalanceFn,
@@ -141,7 +141,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, ticketBeneficiary.address, randomStringFn(), randomBoolFn()],
+        args: [expectedProjectId, ticketBeneficiary.address, randomString(), randomBoolFn()],
         value: paymentValue1,
       });
 
@@ -162,7 +162,7 @@ export default [
       deployer,
       contracts,
       executeFn,
-      randomBigNumberFn,
+      randomBigNumber,
       randomAddressFn,
       getBalanceFn,
       randomBoolFn,
@@ -178,7 +178,7 @@ export default [
       // Redeem a portion of the total.
       const portionOfRedeemableTicketsOfTicketBeneficiary =
         redeemableTicketsOfTicketBeneficiary.div(
-          randomBigNumberFn({ min: BigNumber.from(2), max: BigNumber.from(5) }),
+          randomBigNumber({ min: BigNumber.from(2), max: BigNumber.from(5) }),
         );
 
       // An address that will be the beneficiary of funds when redeeming tickets.
@@ -219,12 +219,12 @@ export default [
       contracts,
       BigNumber,
       executeFn,
-      randomBigNumberFn,
+      randomBigNumber,
       randomSignerFn,
       local: { expectedProjectId, target, redeemBeneficiary },
     }) => {
       // Initially tap a portion of the funding cycle's target.
-      const amountToTap1 = randomBigNumberFn({
+      const amountToTap1 = randomBigNumber({
         min: BigNumber.from(1),
         max: target.sub(1),
       });
@@ -378,14 +378,14 @@ export default [
       executeFn,
       randomAddressFn,
       randomBoolFn,
-      randomStringFn,
+      randomString,
       local: { payer, paymentValue2, expectedProjectId },
     }) =>
       executeFn({
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, randomAddressFn(), randomStringFn(), randomBoolFn()],
+        args: [expectedProjectId, randomAddressFn(), randomString(), randomBoolFn()],
         value: paymentValue2,
         revert: 'TerminalUtility: UNAUTHORIZED',
       }),
@@ -460,14 +460,14 @@ export default [
       executeFn,
       randomAddressFn,
       randomBoolFn,
-      randomStringFn,
+      randomString,
       local: { payer, paymentValue2, expectedProjectId, secondTerminalV1 },
     }) =>
       executeFn({
         caller: payer,
         contract: secondTerminalV1,
         fn: 'pay',
-        args: [expectedProjectId, randomAddressFn(), randomStringFn(), randomBoolFn()],
+        args: [expectedProjectId, randomAddressFn(), randomString(), randomBoolFn()],
         value: paymentValue2,
       }),
   },

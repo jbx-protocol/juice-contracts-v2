@@ -14,13 +14,13 @@ export default [
       constants,
       contracts,
       executeFn,
-      randomBigNumberFn,
+      randomBigNumber,
       getBalanceFn,
-      randomStringFn,
+      randomString,
       incrementProjectIdFn,
       incrementFundingCycleIdFn,
       randomSignerFn,
-      randomBytesFn,
+      randomBytes,
     }) => {
       const expectedProjectId = incrementProjectIdFn();
 
@@ -36,7 +36,7 @@ export default [
 
       // One payments will be made.
       // So, arbitrarily divide the balance so that all payments can be made successfully.
-      const paymentValue = randomBigNumberFn({
+      const paymentValue = randomBigNumber({
         // Two amounts need to be tapped, so make the minimum an amount at least 2.
         min: BigNumber.from(2),
         max: (await getBalanceFn(payer.address)).div(100),
@@ -51,23 +51,23 @@ export default [
         fn: 'deploy',
         args: [
           owner.address,
-          randomBytesFn({
+          randomBytes({
             // Make sure its unique by prepending the id.
             prepend: expectedProjectId.toString(),
           }),
-          randomStringFn(),
+          randomString(),
           {
             target,
             currency,
-            duration: randomBigNumberFn({
+            duration: randomBigNumber({
               min: BigNumber.from(1),
               max: constants.MaxUint16,
             }),
-            cycleLimit: randomBigNumberFn({
+            cycleLimit: randomBigNumber({
               max: constants.MaxCycleLimit,
             }),
             // Recurring.
-            discountRate: randomBigNumberFn({
+            discountRate: randomBigNumber({
               max: constants.MaxPercent.sub(1),
             }),
             ballot: constants.AddressZero,
@@ -75,10 +75,10 @@ export default [
           {
             // Don't use a reserved rate to make the calculations a little simpler.
             reservedRate: BigNumber.from(0),
-            bondingCurveRate: randomBigNumberFn({
+            bondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
-            reconfigurationBondingCurveRate: randomBigNumberFn({
+            reconfigurationBondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
           },
@@ -101,7 +101,7 @@ export default [
       contracts,
       executeFn,
       randomBoolFn,
-      randomStringFn,
+      randomString,
       randomAddressFn,
       local: { payer, paymentValue, expectedProjectId },
     }) =>
@@ -109,7 +109,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, randomAddressFn(), randomStringFn(), randomBoolFn()],
+        args: [expectedProjectId, randomAddressFn(), randomString(), randomBoolFn()],
         value: paymentValue,
       }),
   },
@@ -119,13 +119,13 @@ export default [
       contracts,
       executeFn,
       randomSignerFn,
-      randomBigNumberFn,
+      randomBigNumber,
       constants,
       local: { target, expectedProjectId },
     }) => {
       // Tap some of the target.
       const amountToTap1 = target.sub(
-        randomBigNumberFn({ min: BigNumber.from(1), max: target.sub(1) }),
+        randomBigNumber({ min: BigNumber.from(1), max: target.sub(1) }),
       );
 
       // Save the initial balances of the owner, address mod beneficiary, and the allocator mod contract.

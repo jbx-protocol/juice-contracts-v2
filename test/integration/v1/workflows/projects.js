@@ -13,9 +13,9 @@ export default [
       deployer,
       contracts,
       executeFn,
-      randomStringFn,
+      randomString,
       randomSignerFn,
-      randomBytesFn,
+      randomBytes,
       incrementProjectIdFn,
     }) => {
       // The address that will own a project.
@@ -27,9 +27,9 @@ export default [
       const expectedProjectId = incrementProjectIdFn();
 
       // Make sure its unique by prepending the id.
-      const handle = randomBytesFn({ prepend: expectedProjectId.toString() });
+      const handle = randomBytes({ prepend: expectedProjectId.toString() });
 
-      const uri = randomStringFn();
+      const uri = randomString();
 
       await executeFn({
         caller: deployer,
@@ -91,7 +91,7 @@ export default [
       contracts,
       constants,
       executeFn,
-      randomStringFn,
+      randomString,
       randomSignerFn,
       local: { handle },
     }) => {
@@ -101,7 +101,7 @@ export default [
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'create',
-        args: [secondOwner.address, handle, randomStringFn(), constants.AddressZero],
+        args: [secondOwner.address, handle, randomString(), constants.AddressZero],
         revert: 'Projects::create: HANDLE_TAKEN',
       });
 
@@ -110,8 +110,8 @@ export default [
   },
   {
     description: 'Set a new URI',
-    fn: async ({ contracts, executeFn, randomStringFn, local: { owner, expectedProjectId } }) => {
-      const secondUri = randomStringFn();
+    fn: async ({ contracts, executeFn, randomString, local: { owner, expectedProjectId } }) => {
+      const secondUri = randomString();
       await executeFn({
         caller: owner,
         contract: contracts.projects,
@@ -138,10 +138,10 @@ export default [
     fn: async ({
       contracts,
       executeFn,
-      randomBytesFn,
+      randomBytes,
       local: { owner, handle, expectedProjectId },
     }) => {
-      const secondHandle = randomBytesFn({
+      const secondHandle = randomBytes({
         // Make sure its unique by prepending the id.
         prepend: expectedProjectId.toString(),
         exclude: [handle],
@@ -195,7 +195,7 @@ export default [
       contracts,
       constants,
       executeFn,
-      randomStringFn,
+      randomString,
       randomSignerFn,
       incrementProjectIdFn,
       local: { secondOwner, handle },
@@ -206,7 +206,7 @@ export default [
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'create',
-        args: [secondOwner.address, handle, randomStringFn(), constants.AddressZero],
+        args: [secondOwner.address, handle, randomString(), constants.AddressZero],
       });
       return { expectedSecondProjectId };
     },
@@ -239,10 +239,10 @@ export default [
     fn: async ({
       contracts,
       executeFn,
-      randomBytesFn,
+      randomBytes,
       local: { owner, secondOwner, expectedProjectId, handle, secondHandle },
     }) => {
-      const thirdHandle = randomBytesFn({
+      const thirdHandle = randomBytes({
         // Make sure its unique by prepending the id.
         prepend: expectedProjectId.toString(),
         exclude: [handle, secondHandle],
@@ -296,14 +296,14 @@ export default [
       contracts,
       constants,
       executeFn,
-      randomStringFn,
+      randomString,
       local: { secondOwner, secondHandle },
     }) =>
       executeFn({
         caller: deployer,
         contract: contracts.projects,
         fn: 'create',
-        args: [secondOwner.address, secondHandle, randomStringFn(), constants.AddressZero],
+        args: [secondOwner.address, secondHandle, randomString(), constants.AddressZero],
         revert: 'Projects::create: HANDLE_TAKEN',
       }),
   },
@@ -402,8 +402,8 @@ export default [
       contracts,
       executeFn,
       BigNumber,
-      randomBigNumberFn,
-      randomStringFn,
+      randomBigNumber,
+      randomString,
       getBalanceFn,
       randomAddressFn,
       randomBoolFn,
@@ -415,7 +415,7 @@ export default [
 
       // One payment will be made. Cant pay entire balance because some is needed for gas.
       // So, arbitrarily divide the balance so that all payments can be made successfully.
-      const paymentValue = randomBigNumberFn({
+      const paymentValue = randomBigNumber({
         min: BigNumber.from(1),
         max: (await getBalanceFn(payer.address)).div(100),
       });
@@ -424,7 +424,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, randomAddressFn(), randomStringFn(), randomBoolFn()],
+        args: [expectedProjectId, randomAddressFn(), randomString(), randomBoolFn()],
         value: paymentValue,
       });
 
@@ -438,7 +438,7 @@ export default [
       constants,
       executeFn,
       BigNumber,
-      randomBigNumberFn,
+      randomBigNumber,
       incrementFundingCycleIdFn,
       local: { owner, paymentValue, expectedProjectId },
     }) => {
@@ -455,24 +455,24 @@ export default [
           expectedProjectId,
           {
             // Set a target amount thats at least the payment value so that the full payment value can be tapped.
-            target: randomBigNumberFn({ min: paymentValue }),
+            target: randomBigNumber({ min: paymentValue }),
             currency,
-            duration: randomBigNumberFn({
+            duration: randomBigNumber({
               min: BigNumber.from(1),
               max: constants.MaxUint16,
             }),
-            cycleLimit: randomBigNumberFn({ max: constants.MaxCycleLimit }),
-            discountRate: randomBigNumberFn({ max: constants.MaxPercent }),
+            cycleLimit: randomBigNumber({ max: constants.MaxCycleLimit }),
+            discountRate: randomBigNumber({ max: constants.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
-            reservedRate: randomBigNumberFn({
+            reservedRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
-            bondingCurveRate: randomBigNumberFn({
+            bondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
-            reconfigurationBondingCurveRate: randomBigNumberFn({
+            reconfigurationBondingCurveRate: randomBigNumber({
               max: constants.MaxPercent,
             }),
           },

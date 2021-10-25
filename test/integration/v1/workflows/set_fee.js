@@ -14,10 +14,10 @@ export default [
       constants,
       contracts,
       executeFn,
-      randomBigNumberFn,
+      randomBigNumber,
       BigNumber,
-      randomBytesFn,
-      randomStringFn,
+      randomBytes,
+      randomString,
       randomSignerFn,
       incrementFundingCycleIdFn,
       incrementProjectIdFn,
@@ -35,18 +35,18 @@ export default [
       const amountToTap = BigNumber.from(1);
 
       // Make sure the target is arbitrarily larger than the amount that will be tapped, included fees that will be incurred.
-      const target = randomBigNumberFn({ min: amountToTap.mul(2) });
+      const target = randomBigNumber({ min: amountToTap.mul(2) });
 
-      const duration = randomBigNumberFn({
+      const duration = randomBigNumber({
         min: BigNumber.from(1),
         max: BigNumber.from(10000),
       });
-      const cycleLimit = randomBigNumberFn({
+      const cycleLimit = randomBigNumber({
         max: constants.MaxCycleLimit,
       });
 
       // Make recurring.
-      const discountRate = randomBigNumberFn({
+      const discountRate = randomBigNumber({
         max: constants.MaxPercent,
       });
       const ballot = constants.AddressZero;
@@ -54,10 +54,10 @@ export default [
       // Set the reserved rate to 0 to make test cases cleaner.
       const reservedRate = BigNumber.from(0);
 
-      const bondingCurveRate = randomBigNumberFn({
+      const bondingCurveRate = randomBigNumber({
         max: constants.MaxPercent,
       });
-      const reconfigurationBondingCurveRate = randomBigNumberFn({
+      const reconfigurationBondingCurveRate = randomBigNumber({
         max: constants.MaxPercent,
       });
 
@@ -73,11 +73,11 @@ export default [
         fn: 'deploy',
         args: [
           owner.address,
-          randomBytesFn({
+          randomBytes({
             // Make sure its unique by prepending the id.
             prepend: expectedProjectId.toString(),
           }),
-          randomStringFn(),
+          randomString(),
           {
             target,
             currency,
@@ -189,8 +189,8 @@ export default [
   },
   {
     description: 'Set a new fee',
-    fn: async ({ randomBigNumberFn, constants, executeFn, deployer, contracts }) => {
-      const newFee = randomBigNumberFn({ max: constants.MaxPercent });
+    fn: async ({ randomBigNumber, constants, executeFn, deployer, contracts }) => {
+      const newFee = randomBigNumber({ max: constants.MaxPercent });
       await executeFn({
         caller: deployer,
         contract: contracts.governance,
@@ -202,11 +202,11 @@ export default [
   },
   {
     description: 'Fast forward to the next funding cycle that uses the same configuration',
-    fn: ({ randomBigNumberFn, fastforwardFn, BigNumber, local: { duration } }) =>
+    fn: ({ randomBigNumber, fastforwardFn, BigNumber, local: { duration } }) =>
       fastforwardFn(
         // An arbitrary day after the duration is within the next cycle.
         duration.mul(86400).add(
-          randomBigNumberFn({
+          randomBigNumber({
             min: BigNumber.from(5),
             max: BigNumber.from(86390),
           }),
@@ -269,9 +269,9 @@ export default [
     fn: async ({
       contracts,
       executeFn,
-      randomBigNumberFn,
+      randomBigNumber,
       getBalanceFn,
-      randomStringFn,
+      randomString,
       randomAddressFn,
       randomBoolFn,
       randomSignerFn,
@@ -283,7 +283,7 @@ export default [
 
       // One payment will be made. Cant pay entire balance because some is needed for gas.
       // So, arbitrarily divide the balance so that all payments can be made successfully.
-      const paymentValue = randomBigNumberFn({
+      const paymentValue = randomBigNumber({
         // The min should be some decently meaningful number.
         // Otherwise its possible that the weight amount of the payment is 0, which means no tickets will be printed,
         // which means the configuration in this test will configure the active cycle and not expect it.
@@ -295,7 +295,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, randomAddressFn(), randomStringFn(), randomBoolFn()],
+        args: [expectedProjectId, randomAddressFn(), randomString(), randomBoolFn()],
         value: paymentValue,
       });
 
