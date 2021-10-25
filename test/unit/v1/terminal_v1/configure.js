@@ -1,6 +1,8 @@
 import { expect } from 'chai';
 import { BigNumber, utils, constants } from 'ethers';
 
+import { deployMockLocalContract } from '../../../utils';
+
 const tests = {
   success: [
     {

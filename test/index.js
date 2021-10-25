@@ -1,13 +1,9 @@
-import { ethers, config } from 'hardhat';
+import { ethers } from 'hardhat';
 import { expect as _expect } from 'chai';
-import { readFileSync } from 'fs';
-import { sync } from 'glob';
 
-import { BigNumber, Contract } from 'ethers';
+import { Contract } from 'ethers';
 import unit from './unit';
 import integration from './integration';
-
-import { deployMockContract } from './utils'
 
 describe('Juicebox', async function () {
   before(async function () {
@@ -61,21 +57,6 @@ describe('Juicebox', async function () {
 
       // Set its return value.
       await mock.returns(...normalizedReturns);
-    };
-
-    // Reads a contract.
-    this.readContractAbi = (contractName) => {
-      const files = sync(
-        `${config.paths.artifacts}/contracts/**/${contractName}.sol/${contractName}.json`,
-        {},
-      );
-      if (files.length == 0) {
-        throw 'No files found!';
-      }
-      if (files.length > 1) {
-        throw 'Multiple files found!';
-      }
-      return JSON.parse(readFileSync(files[0]).toString()).abi;
     };
 
     // Bind a function that executes a transaction on a contract.

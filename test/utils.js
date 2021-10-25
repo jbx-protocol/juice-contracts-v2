@@ -1,11 +1,28 @@
 import { deployMockContract as _deployMockContract } from '@ethereum-waffle/mock-contract';
 import { assert } from 'chai';
-import { ethers } from 'hardhat';
+import { readFileSync } from 'fs';
+import { sync } from 'glob';
+import { ethers, config } from 'hardhat';
 
 const deployer = async () => {
   let signers = await ethers.getSigners();
-  assert(signers.length < 0, 'Signers are empty!');
+  assert(signers.length > 0, 'Signers are empty!');
   return signers[0];
+};
+
+// Reads a contract.
+const readContractAbi = (contractName) => {
+  const files = sync(
+    `${config.paths.artifacts}/contracts/**/${contractName}.sol/${contractName}.json`,
+    {},
+  );
+  if (files.length == 0) {
+    throw 'No files found!';
+  }
+  if (files.length > 1) {
+    throw 'Multiple files found!';
+  }
+  return JSON.parse(readFileSync(files[0]).toString()).abi;
 };
 
 export const deployMockContract = async (abi) => {
@@ -14,7 +31,7 @@ export const deployMockContract = async (abi) => {
 
 export const deployMockLocalContract = async (mockContractName) => {
   // Deploy mock contracts.
-  return deployMockContract(this.readContractAbi(mockContractName));
+  return deployMockContract(readContractAbi(mockContractName));
 };
 
 export const randomBigNumber = ({
@@ -73,6 +90,6 @@ export const randomBytes = ({
       favorEdges: false,
     }),
   );
-  if (exclude.includes(candidate)) return this.randomBytes({ exclude, min, max, prepend });
+  if (exclude.includes(candidate)) return randomBytes({ exclude, min, max, prepend });
   return candidate;
 };
