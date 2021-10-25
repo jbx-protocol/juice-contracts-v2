@@ -106,12 +106,12 @@ export default [
     description: 'Check that the ticket mods got set',
     fn: async ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       timeMark,
       local: { expectedProjectId, lockedMod, unlockedMod1 },
     }) => {
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.modStore,
         fn: 'ticketModsOf',
@@ -223,11 +223,11 @@ export default [
     description: 'Check that the new payout mods got set correctly',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { expectedProjectId, lockedMod, unlockedMod2, configurationTimeMark },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.modStore,
         fn: 'ticketModsOf',
@@ -296,12 +296,12 @@ export default [
     description: 'Check that the new configuration has its mods',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       timeMark,
       local: { expectedProjectId, unlockedMod1 },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.modStore,
         fn: 'ticketModsOf',
@@ -320,11 +320,11 @@ export default [
     description: 'Check that the old configuration still has its mods',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { expectedProjectId, lockedMod, unlockedMod2, configurationTimeMark },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.modStore,
         fn: 'ticketModsOf',

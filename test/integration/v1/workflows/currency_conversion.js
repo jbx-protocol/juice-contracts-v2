@@ -165,13 +165,13 @@ export default [
     description: 'Check that the beneficiary of the premine got the correct amount of tickets',
     fn: async ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { premineTicketBeneficiary, premineValueInWei, expectedProjectId },
     }) => {
       // The expected number of tickets to receive during the premine.
       const expectedPremineTickets = premineValueInWei.mul(constants.InitialWeightMultiplier);
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -208,7 +208,7 @@ export default [
     description: 'Check that the beneficiary of the payment got the correct amount of tickets',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { paymentValueInWei, paymentTicketBeneficiary, reservedRate, expectedProjectId },
     }) => {
@@ -217,7 +217,7 @@ export default [
         .mul(constants.MaxPercent.sub(reservedRate))
         .div(constants.MaxPercent)
         .mul(constants.InitialWeightMultiplier);
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -230,11 +230,11 @@ export default [
     description: 'Check that the overflow amount is being converted correctly',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { paymentValueInWei, targetDenominatedInWei, expectedProjectId },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'currentOverflowOf',
@@ -296,11 +296,11 @@ export default [
     description: 'Check that the overflow amount is still being converted correctly after tapping',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { paymentValueInWei, targetDenominatedInWei, expectedProjectId },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'currentOverflowOf',

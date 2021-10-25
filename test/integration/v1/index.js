@@ -1,5 +1,5 @@
 import { BigNumber, utils } from 'ethers';
-import { deployContract } from '../../utils';
+import { constants, deployContract } from '../../utils';
 import {
   projects as _projects,
   challengeHandle,

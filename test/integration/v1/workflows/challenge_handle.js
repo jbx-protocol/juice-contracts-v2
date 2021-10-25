@@ -6,13 +6,13 @@ import { randomBigNumber, randomBytes, randomString } from '../../../utils';
 export default [
   {
     description: 'The challenge expiry for an unused handle should start at 0',
-    fn: async ({ contracts, checkFn, randomSignerFn, incrementProjectIdFn }) => {
+    fn: async ({ contracts, randomSignerFn, incrementProjectIdFn }) => {
       const expectedProjectId1 = incrementProjectIdFn();
 
       // Make sure its unique by prepending the id.
       const handle = randomBytes({ prepend: expectedProjectId1.toString() });
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'challengeExpiryOf',
@@ -41,8 +41,8 @@ export default [
   },
   {
     description: "Make sure the project's handle got saved",
-    fn: async ({ contracts, checkFn, randomSignerFn, local: { handle, expectedProjectId1 } }) =>
-      checkFn({
+    fn: async ({ contracts, randomSignerFn, local: { handle, expectedProjectId1 } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'handleOf',
@@ -52,8 +52,8 @@ export default [
   },
   {
     description: 'Make sure the project was saved to the handle',
-    fn: ({ contracts, checkFn, randomSignerFn, local: { handle, expectedProjectId1 } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { handle, expectedProjectId1 } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'projectFor',
@@ -63,8 +63,8 @@ export default [
   },
   {
     description: 'The challenge expiry should still be 0',
-    fn: async ({ contracts, checkFn, randomSignerFn, local: { handle } }) =>
-      checkFn({
+    fn: async ({ contracts, randomSignerFn, local: { handle } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'challengeExpiryOf',
@@ -84,8 +84,8 @@ export default [
   },
   {
     description: 'Make sure the challenge expiry got set',
-    fn: async ({ contracts, checkFn, randomSignerFn, timeMark, local: { handle } }) => {
-      await checkFn({
+    fn: async ({ contracts, randomSignerFn, timeMark, local: { handle } }) => {
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'challengeExpiryOf',
@@ -119,8 +119,8 @@ export default [
   },
   {
     description: "Make sure the second project's handle got saved",
-    fn: async ({ contracts, checkFn, randomSignerFn, local: { handle2, expectedProjectId2 } }) =>
-      checkFn({
+    fn: async ({ contracts, randomSignerFn, local: { handle2, expectedProjectId2 } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'handleOf',
@@ -130,8 +130,8 @@ export default [
   },
   {
     description: 'Make sure the second project was saved to the handle',
-    fn: ({ contracts, checkFn, randomSignerFn, local: { handle2, expectedProjectId2 } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { handle2, expectedProjectId2 } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'projectFor',
@@ -176,8 +176,8 @@ export default [
   },
   {
     description: "Make sure the second project's claimed handle got saved",
-    fn: async ({ contracts, checkFn, randomSignerFn, local: { handle, expectedProjectId2 } }) =>
-      checkFn({
+    fn: async ({ contracts, randomSignerFn, local: { handle, expectedProjectId2 } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'handleOf',
@@ -187,8 +187,8 @@ export default [
   },
   {
     description: 'Make sure the second project was saved to the claimed handle',
-    fn: ({ contracts, checkFn, randomSignerFn, local: { handle, expectedProjectId2 } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { handle, expectedProjectId2 } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'projectFor',
@@ -198,8 +198,8 @@ export default [
   },
   {
     description: 'The first project should still have the handle, but not the resolver.',
-    fn: async ({ contracts, checkFn, randomSignerFn, local: { handle, expectedProjectId1 } }) =>
-      checkFn({
+    fn: async ({ contracts, randomSignerFn, local: { handle, expectedProjectId1 } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'handleOf',
@@ -209,8 +209,8 @@ export default [
   },
   {
     description: 'Make sure the challenge expiry got reset',
-    fn: ({ contracts, checkFn, randomSignerFn, local: { handle } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { handle } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'challengeExpiryOf',
@@ -230,8 +230,8 @@ export default [
   },
   {
     description: 'Make sure the challenge expiry got set',
-    fn: async ({ contracts, checkFn, randomSignerFn, timeMark, local: { handle } }) => {
-      await checkFn({
+    fn: async ({ contracts, randomSignerFn, timeMark, local: { handle } }) => {
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'challengeExpiryOf',
@@ -270,8 +270,8 @@ export default [
   },
   {
     description: 'Make sure the challenge expiry got reset after the renewal',
-    fn: ({ contracts, checkFn, randomSignerFn, local: { handle } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { handle } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'challengeExpiryOf',

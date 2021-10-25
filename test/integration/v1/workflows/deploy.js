@@ -102,7 +102,7 @@ export default [
     description: 'Make sure the funding cycle got saved correctly',
     fn: async ({
       contracts,
-      checkFn,
+
       BigNumber,
       timeMark,
       randomSignerFn,
@@ -144,7 +144,7 @@ export default [
       // Expect the funding cycle's fee to be the terminalV1's fee.
       const expectedFee = await contracts.terminalV1.fee();
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'get',
@@ -172,8 +172,8 @@ export default [
   },
   {
     description: "Make sure the project's handle got saved",
-    fn: ({ contracts, checkFn, randomSignerFn, local: { handle, expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { handle, expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'handleOf',
@@ -183,8 +183,8 @@ export default [
   },
   {
     description: 'Make sure the project was saved to the handle',
-    fn: ({ contracts, randomSignerFn, checkFn, local: { handle, expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { handle, expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'projectFor',
@@ -194,8 +194,8 @@ export default [
   },
   {
     description: "Make sure the project's uri got saved",
-    fn: ({ contracts, checkFn, randomSignerFn, local: { uri, expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { uri, expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'uriOf',
@@ -205,8 +205,8 @@ export default [
   },
   {
     description: "Make sure the terminalV1 got set as the project's current terminal",
-    fn: ({ randomSignerFn, contracts, checkFn, local: { terminal, expectedProjectId } }) =>
-      checkFn({
+    fn: ({ randomSignerFn, contracts, local: { terminal, expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalDirectory,
         fn: 'terminalOf',

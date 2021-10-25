@@ -162,12 +162,12 @@ export default [
     description: 'Check that the payout mods got set',
     fn: ({
       contracts,
-      checkFn,
+
       timeMark,
       randomSignerFn,
       local: { expectedIdOfBaseProject, addressMod, projectMod, allocatorMod },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.modStore,
         fn: 'payoutModsOf',
@@ -312,8 +312,8 @@ export default [
   },
   {
     description: 'The second project should have no balance',
-    fn: ({ contracts, checkFn, BigNumber, randomSignerFn, local: { expectedIdOfModProject } }) =>
-      checkFn({
+    fn: ({ contracts, BigNumber, randomSignerFn, local: { expectedIdOfModProject } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'balanceOf',
@@ -390,11 +390,11 @@ export default [
     description: 'Check that the second project now has a balance',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { projectMod, expectedAmountTapped, expectedIdOfModProject },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'balanceOf',
@@ -406,11 +406,11 @@ export default [
     description: 'Check that the beneficiary of the project mod got tickets',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { expectedIdOfModProject, projectMod, expectedAmountTapped },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -425,12 +425,12 @@ export default [
     description: 'Check for the correct number of staked tickets',
     fn: ({
       contracts,
-      checkFn,
+
       BigNumber,
       randomSignerFn,
       local: { expectedIdOfModProject, projectMod, expectedAmountTapped },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'stakedBalanceOf',
@@ -479,7 +479,7 @@ export default [
     description: "Make sure the project owner got governance's project tickets",
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: {
         owner,
@@ -488,7 +488,7 @@ export default [
         initialOwnerTicketBalanceOfGovernanceProject,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',

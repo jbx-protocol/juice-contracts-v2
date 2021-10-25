@@ -42,8 +42,8 @@ export default [
   },
   {
     description: 'Make sure the terminal was not set in the directory',
-    fn: ({ checkFn, randomSignerFn, contracts, local: { expectedProjectId } }) =>
-      checkFn({
+    fn: ({ randomSignerFn, contracts, local: { expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalDirectory,
         fn: 'terminalOf',
@@ -312,8 +312,8 @@ export default [
   },
   {
     description: 'The new terminal should be set',
-    fn: ({ checkFn, randomSignerFn, contracts, local: { expectedProjectId, secondTerminalV1 } }) =>
-      checkFn({
+    fn: ({ randomSignerFn, contracts, local: { expectedProjectId, secondTerminalV1 } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalDirectory,
         fn: 'terminalOf',

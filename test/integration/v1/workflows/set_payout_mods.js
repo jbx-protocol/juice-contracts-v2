@@ -120,12 +120,12 @@ export default [
     description: 'Check that the payout mod got set',
     fn: async ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       timeMark,
       local: { expectedProjectId, lockedMod1, unlockedMod1 },
     }) => {
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.modStore,
         fn: 'payoutModsOf',
@@ -243,11 +243,11 @@ export default [
     description: 'Check that the new payout mods got set correctly',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { expectedProjectId, lockedMod1, unlockedMod2, configurationTimeMark },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.modStore,
         fn: 'payoutModsOf',
@@ -320,12 +320,12 @@ export default [
     description: 'Check that the new configuration has its mods',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       timeMark,
       local: { expectedProjectId, unlockedMod1 },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.modStore,
         fn: 'payoutModsOf',
@@ -346,11 +346,11 @@ export default [
     description: 'Check that the old configuration still has its mods',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { expectedProjectId, lockedMod1, unlockedMod2, configurationTimeMark },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.modStore,
         fn: 'payoutModsOf',

@@ -3,7 +3,13 @@
   
   If approved, a the reconfigured funding cycle will take affect after the current funding cycle expires.
 */
-import { deployContract, randomBigNumber, randomBytes, randomString } from '../../../utils';
+import {
+  deployContract,
+  randomBigNumber,
+  randomBytes,
+  randomString,
+  verifyContractGetter,
+} from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -149,8 +155,8 @@ export default [
   },
   {
     description: 'The funding cycle ballot state should be in standby',
-    fn: ({ contracts, checkFn, randomSignerFn, local: { expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentBallotStateOf',
@@ -239,8 +245,8 @@ export default [
   },
   {
     description: 'The funding cycle ballot state be active',
-    fn: ({ contracts, checkFn, randomSignerFn, local: { expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentBallotStateOf',
@@ -252,7 +258,6 @@ export default [
     description: 'The queued funding cycle should have the reconfiguration',
     fn: async ({
       contracts,
-      checkFn,
       BigNumber,
       randomSignerFn,
       timeMark,
@@ -300,7 +305,7 @@ export default [
           .div(constants.DiscountRatePercentDenominator);
       }
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'queuedOf',
@@ -355,7 +360,7 @@ export default [
     description: 'The current funding cycle should have the first configuration with some tapped',
     fn: async ({
       contracts,
-      checkFn,
+
       BigNumber,
       randomSignerFn,
       local: {
@@ -385,7 +390,7 @@ export default [
       expectedPackedMetadata1 = expectedPackedMetadata1.add(reservedRate1);
       expectedPackedMetadata1 = expectedPackedMetadata1.shl(8);
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentOf',
@@ -418,8 +423,8 @@ export default [
   },
   {
     description: 'The funding cycle ballot state should still be pending',
-    fn: ({ contracts, checkFn, randomSignerFn, local: { expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentBallotStateOf',
@@ -431,7 +436,7 @@ export default [
     description: 'The ballot should not yet be approved at the end of the funding cycle',
     fn: ({
       contracts,
-      checkFn,
+
       BigNumber,
       randomSignerFn,
 
@@ -450,7 +455,7 @@ export default [
         expectedInititalWeight,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentOf',
@@ -502,8 +507,8 @@ export default [
   },
   {
     description: 'The funding cycle ballot state should still be approved',
-    fn: ({ contracts, checkFn, randomSignerFn, local: { expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentBallotStateOf',
@@ -515,7 +520,7 @@ export default [
     description: 'The current funding cycle should have the reconfiguration',
     fn: ({
       contracts,
-      checkFn,
+
       BigNumber,
       randomSignerFn,
       local: {
@@ -538,7 +543,7 @@ export default [
         expectedPostBallotWeight,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentOf',
@@ -593,7 +598,7 @@ export default [
     description: 'The current funding cycle should have the second tapped amount',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: {
         expectedProjectId,
@@ -616,7 +621,7 @@ export default [
         tapAmount2,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentOf',

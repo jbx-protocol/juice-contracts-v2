@@ -3,6 +3,7 @@ import { assert } from 'chai';
 import { readFileSync } from 'fs';
 import { sync } from 'glob';
 import { ethers, config } from 'hardhat';
+import { expect as _expect } from 'chai';
 
 const deployer = async () => {
   let signers = await ethers.getSigners();
@@ -145,4 +146,20 @@ export const mockContractFunction = async ({ mockContract, fn, args, returns = [
 
   // Set its return value.
   await mock.returns(...normalizedReturns);
+};
+
+// Bind a function that checks if a contract getter equals an expected value.
+export const verifyContractGetter = async ({ caller, contract, fn, args, expect, plusMinus }) => {
+  const storedVal = await contract.connect(caller)[fn](...args);
+  if (plusMinus) {
+    console.log({
+      storedVal,
+      diff: storedVal.sub(expect),
+      plusMinus: plusMinus.amount,
+    });
+    _expect(storedVal.lte(expect.add(plusMinus.amount))).to.equal(true);
+    _expect(storedVal.gte(expect.sub(plusMinus.amount))).to.equal(true);
+  } else {
+    _expect(storedVal).to.deep.equal(expect);
+  }
 };

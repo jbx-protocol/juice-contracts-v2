@@ -111,7 +111,7 @@ export default [
     description: 'Make sure the funding cycle got saved correctly',
     fn: async ({
       contracts,
-      checkFn,
+
       BigNumber,
       timeMark,
       randomSignerFn,
@@ -147,7 +147,7 @@ export default [
       // Expect nothing to have been tapped yet from the funding cycle.
       const expectedInitialTapped = BigNumber.from(0);
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'get',
@@ -235,7 +235,7 @@ export default [
     description: 'Make sure the same funding cycle is current',
     fn: async ({
       contracts,
-      checkFn,
+
       BigNumber,
       randomSignerFn,
       local: {
@@ -260,7 +260,7 @@ export default [
           .mul(constants.DiscountRatePercentDenominator.sub(discountRate1))
           .div(constants.DiscountRatePercentDenominator);
       }
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentOf',
@@ -295,7 +295,7 @@ export default [
     description: 'Make sure the same funding cycle is current',
     fn: async ({
       contracts,
-      checkFn,
+
       BigNumber,
       randomSignerFn,
       local: {
@@ -320,7 +320,7 @@ export default [
           .mul(constants.DiscountRatePercentDenominator.sub(discountRate1))
           .div(constants.DiscountRatePercentDenominator);
       }
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentOf',
@@ -433,7 +433,7 @@ export default [
     description: 'Make sure the same funding cycle is current',
     fn: ({
       contracts,
-      checkFn,
+
       BigNumber,
       randomSignerFn,
       local: {
@@ -452,7 +452,7 @@ export default [
         expectedInitialTapped,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentOf',
@@ -486,7 +486,7 @@ export default [
     description: 'Make sure the configuration changed',
     fn: async ({
       contracts,
-      checkFn,
+
       BigNumber,
       randomSignerFn,
       local: {
@@ -521,7 +521,7 @@ export default [
       expectedPackedMetadata2 = expectedPackedMetadata2.add(reservedRate2);
       expectedPackedMetadata2 = expectedPackedMetadata2.shl(8);
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentOf',
@@ -559,7 +559,7 @@ export default [
     description: 'Make sure the limited configuration is still active',
     fn: async ({
       contracts,
-      checkFn,
+
       BigNumber,
       randomSignerFn,
       local: {
@@ -585,7 +585,7 @@ export default [
     }) => {
       if (cycleLimit2.lte(1)) return;
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentOf',
@@ -629,7 +629,7 @@ export default [
     description: 'Make sure the permanent funding cycle is back to being the current',
     fn: async ({
       contracts,
-      checkFn,
+
       BigNumber,
       randomSignerFn,
       local: {
@@ -659,7 +659,7 @@ export default [
           .mul(constants.DiscountRatePercentDenominator.sub(discountRate2))
           .div(constants.DiscountRatePercentDenominator);
       }
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentOf',
@@ -713,7 +713,7 @@ export default [
     description: 'Make sure the tapped funding cycle is the current',
     fn: async ({
       contracts,
-      checkFn,
+
       BigNumber,
       randomSignerFn,
       local: {
@@ -744,7 +744,7 @@ export default [
           .mul(constants.DiscountRatePercentDenominator.sub(discountRate2))
           .div(constants.DiscountRatePercentDenominator);
       }
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentOf',

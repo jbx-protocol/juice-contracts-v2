@@ -119,7 +119,7 @@ export default [
     description: 'Make sure the funding cycle got saved correctly',
     fn: async ({
       contracts,
-      checkFn,
+
       BigNumber,
       timeMark,
       randomSignerFn,
@@ -154,7 +154,7 @@ export default [
       // Expect nothing to have been tapped yet from the funding cycle.
       const expectedInitialTapped = BigNumber.from(0);
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'get',
@@ -217,7 +217,7 @@ export default [
     description: 'The funding cycle should still have the original fee',
     fn: async ({
       contracts,
-      checkFn,
+
       BigNumber,
       randomSignerFn,
       local: {
@@ -236,7 +236,7 @@ export default [
         expectedInitialTapped,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentOf',
@@ -352,7 +352,7 @@ export default [
     description: 'The queued funding cycle should use the new fee',
     fn: async ({
       contracts,
-      checkFn,
+
       timeMark,
       randomSignerFn,
       BigNumber,
@@ -373,7 +373,7 @@ export default [
         expectedInitialTapped,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'queuedOf',
@@ -406,7 +406,7 @@ export default [
     description: "The current shouldn't be affected",
     fn: async ({
       contracts,
-      checkFn,
+
       BigNumber,
       randomSignerFn,
       local: {
@@ -425,7 +425,7 @@ export default [
         expectedInitialTapped,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentOf',
@@ -477,7 +477,7 @@ export default [
     description: 'The current should have the tapped amount',
     fn: async ({
       contracts,
-      checkFn,
+
       BigNumber,
       randomSignerFn,
       local: {
@@ -497,7 +497,7 @@ export default [
         expectedFee,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentOf',

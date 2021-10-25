@@ -90,14 +90,14 @@ export default [
     description: 'The preconfig ticket beneficiary should have tickets from the payment',
     fn: async ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { expectedProjectId, paymentValue1, preconfigTicketBeneficiary },
     }) => {
       // The expected number of tickets to expect from the first payment.
       const expectedPreminedPaidTicketAmount = paymentValue1.mul(constants.InitialWeightMultiplier);
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -145,8 +145,8 @@ export default [
   },
   {
     description: "There shouldn't be any reserved tickets",
-    fn: ({ contracts, checkFn, randomBigNumber, randomSignerFn, local: { expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomBigNumber, randomSignerFn, local: { expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'reservedTicketBalanceOf',
@@ -158,7 +158,7 @@ export default [
     description: 'The preconfig ticket beneficiary should now also have tickets from the premine',
     fn: async ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: {
         expectedProjectId,
@@ -172,7 +172,7 @@ export default [
         constants.InitialWeightMultiplier,
       );
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -303,8 +303,8 @@ export default [
   },
   {
     description: 'The owner should not have any tickets initially',
-    fn: ({ contracts, checkFn, randomSignerFn, local: { expectedProjectId, owner } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { expectedProjectId, owner } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -324,8 +324,8 @@ export default [
   },
   {
     description: 'The owner should still not have any tickets',
-    fn: ({ contracts, checkFn, randomSignerFn, local: { expectedProjectId, owner } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { expectedProjectId, owner } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -364,7 +364,7 @@ export default [
     description: 'The owner should now have printable reserved tickets',
     fn: async ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { expectedProjectId, reservedRate, paymentValue2 },
     }) => {
@@ -374,7 +374,7 @@ export default [
         .mul(reservedRate)
         .div(constants.MaxPercent);
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'reservedTicketBalanceOf',
@@ -391,8 +391,8 @@ export default [
   },
   {
     description: 'The owner should still not have any tickets',
-    fn: ({ contracts, checkFn, randomSignerFn, local: { expectedProjectId, owner } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { expectedProjectId, owner } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -430,11 +430,11 @@ export default [
       'The owner should now have the correct amount of tickets, accounting for any ticket mods',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { expectedProjectId, owner, expectedReservedTicketAmount2, percent1, percent2 },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -452,11 +452,11 @@ export default [
     description: 'The beneficiary of mod1 should now have the correct amount of tickets',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { expectedProjectId, expectedReservedTicketAmount2, mod1Beneficiary, percent1 },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -473,7 +473,7 @@ export default [
     fn: ({
       contracts,
       BigNumber,
-      checkFn,
+
       randomSignerFn,
       local: {
         expectedProjectId,
@@ -483,7 +483,7 @@ export default [
         percent1,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'stakedBalanceOf',
@@ -501,11 +501,11 @@ export default [
     description: 'The beneficiary of mod2 should now have the correct amount of tickets',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { expectedProjectId, expectedReservedTicketAmount2, mod2Beneficiary, percent2 },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -522,7 +522,7 @@ export default [
     fn: ({
       contracts,
       BigNumber,
-      checkFn,
+
       randomSignerFn,
       local: {
         expectedProjectId,
@@ -532,7 +532,7 @@ export default [
         percent2,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'stakedBalanceOf',
@@ -548,8 +548,8 @@ export default [
   },
   {
     description: 'There should no longer be reserved tickets',
-    fn: ({ contracts, checkFn, local: { expectedProjectId, owner, reservedRate } }) =>
-      checkFn({
+    fn: ({ contracts, local: { expectedProjectId, owner, reservedRate } }) =>
+      verifyContractGetter({
         caller: owner,
         contract: contracts.terminalV1,
         fn: 'reservedTicketBalanceOf',
@@ -600,7 +600,7 @@ export default [
     description: 'The owner should now have printable reserved tickets again',
     fn: async ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { expectedProjectId, reservedRate, paymentValue3 },
     }) => {
@@ -610,7 +610,7 @@ export default [
         .mul(reservedRate)
         .div(constants.MaxPercent);
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'reservedTicketBalanceOf',
@@ -662,11 +662,11 @@ export default [
     description: 'The owner should still have the same number of printable reserved tickets',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { expectedProjectId, reservedRate, expectedReservedTicketAmount3 },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'reservedTicketBalanceOf',
@@ -717,10 +717,10 @@ export default [
     description: 'The owner should still have the same number of printable reserved tickets',
     fn: ({
       contracts,
-      checkFn,
+
       local: { expectedProjectId, owner, reservedRate, expectedReservedTicketAmount3 },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: owner,
         contract: contracts.terminalV1,
         fn: 'reservedTicketBalanceOf',
@@ -744,8 +744,8 @@ export default [
   },
   {
     description: 'There should no longer be reserved tickets',
-    fn: ({ contracts, checkFn, local: { expectedProjectId, owner, reservedRate } }) =>
-      checkFn({
+    fn: ({ contracts, local: { expectedProjectId, owner, reservedRate } }) =>
+      verifyContractGetter({
         caller: owner,
         contract: contracts.terminalV1,
         fn: 'reservedTicketBalanceOf',

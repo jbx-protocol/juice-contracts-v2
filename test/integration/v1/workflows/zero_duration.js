@@ -107,7 +107,7 @@ export default [
     description: 'Make sure the funding cycle got saved correctly',
     fn: async ({
       contracts,
-      checkFn,
+
       BigNumber,
       timeMark,
       randomSignerFn,
@@ -143,7 +143,7 @@ export default [
       // Expect nothing to have been tapped yet from the funding cycle.
       const expectedInitialTapped = BigNumber.from(0);
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'get',
@@ -181,7 +181,7 @@ export default [
     description: 'The funding cycle should be current',
     fn: async ({
       contracts,
-      checkFn,
+
       BigNumber,
       timeMark,
       randomSignerFn,
@@ -200,7 +200,7 @@ export default [
         expectedInitialTapped,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentOf',
@@ -230,13 +230,13 @@ export default [
     description: 'There should be no queued cycle',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       BigNumber,
 
       local: { expectedProjectId },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'queuedOf',
@@ -308,7 +308,7 @@ export default [
     description: 'The funding cycle should be still current',
     fn: async ({
       contracts,
-      checkFn,
+
       BigNumber,
       randomSignerFn,
       local: {
@@ -327,7 +327,7 @@ export default [
         originalTimeMark,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentOf',
@@ -357,13 +357,13 @@ export default [
     description: 'There should still be no queued cycle',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       BigNumber,
 
       local: { expectedProjectId },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'queuedOf',
@@ -467,7 +467,7 @@ export default [
     description: 'Make sure the current configuration changed',
     fn: async ({
       contracts,
-      checkFn,
+
       BigNumber,
       randomSignerFn,
       timeMark,
@@ -499,7 +499,7 @@ export default [
       expectedPackedMetadata2 = expectedPackedMetadata2.add(reservedRate2);
       expectedPackedMetadata2 = expectedPackedMetadata2.shl(8);
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'currentOf',
@@ -533,7 +533,7 @@ export default [
     description: 'Make sure the queued configuration changed',
     fn: ({
       contracts,
-      checkFn,
+
       BigNumber,
       randomSignerFn,
       timeMark,
@@ -560,7 +560,7 @@ export default [
         expectedPackedMetadata1,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
         fn: 'queuedOf',

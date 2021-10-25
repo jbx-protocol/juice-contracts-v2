@@ -42,8 +42,8 @@ export default [
   },
   {
     description: 'The project should still be able to print premined tickets',
-    fn: ({ randomSignerFn, checkFn, contracts, local: { expectedProjectId } }) =>
-      checkFn({
+    fn: ({ randomSignerFn, contracts, local: { expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'canPrintPreminedTickets',
@@ -97,7 +97,7 @@ export default [
     description: 'The beneficiary should have gotten the correct amount of tickets',
     fn: async ({
       randomSignerFn,
-      checkFn,
+
       contracts,
       local: { preconfigureTicketBeneficiary1, preminePrintAmount1, expectedProjectId },
     }) => {
@@ -105,7 +105,7 @@ export default [
       const expectedPreminedPrintedTicketAmount1 = preminePrintAmount1.mul(
         constants.InitialWeightMultiplier,
       );
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -120,7 +120,7 @@ export default [
     description: 'All the tickets should be staked',
     fn: ({
       randomSignerFn,
-      checkFn,
+
       contracts,
       local: {
         expectedProjectId,
@@ -128,7 +128,7 @@ export default [
         expectedPreminedPrintedTicketAmount1,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'stakedBalanceOf',
@@ -138,8 +138,8 @@ export default [
   },
   {
     description: 'The project should still be allowed to print more premined tickets',
-    fn: ({ randomSignerFn, checkFn, contracts, local: { expectedProjectId } }) =>
-      checkFn({
+    fn: ({ randomSignerFn, contracts, local: { expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'canPrintPreminedTickets',
@@ -197,7 +197,7 @@ export default [
     description: 'The payment beneficiary should have gotten the correct amount of tickets',
     fn: async ({
       randomSignerFn,
-      checkFn,
+
       contracts,
       local: {
         preconfigureTicketBeneficiary1,
@@ -211,7 +211,7 @@ export default [
       const expectedPaymentPrintedTicketAmount1 = paymentValue1.mul(
         constants.InitialWeightMultiplier,
       );
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -230,7 +230,7 @@ export default [
     description: 'All the tickets should still be staked',
     fn: ({
       randomSignerFn,
-      checkFn,
+
       contracts,
       local: {
         expectedProjectId,
@@ -240,7 +240,7 @@ export default [
         expectedPreminedPrintedTicketAmount1,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'stakedBalanceOf',
@@ -254,8 +254,8 @@ export default [
   },
   {
     description: 'The project should still be able to print more premined tickets',
-    fn: ({ randomSignerFn, checkFn, contracts, local: { expectedProjectId } }) =>
-      checkFn({
+    fn: ({ randomSignerFn, contracts, local: { expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'canPrintPreminedTickets',
@@ -374,7 +374,7 @@ export default [
     description: 'The third beneficiary should have gotten the correct amount of tickets',
     fn: async ({
       randomSignerFn,
-      checkFn,
+
       contracts,
       local: {
         expectedProjectId,
@@ -400,7 +400,7 @@ export default [
       if (preconfigureTicketBeneficiary3.address === preconfigureTicketBeneficiary2.address)
         expect = expect.add(expectedPaymentPrintedTicketAmount1);
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -415,7 +415,7 @@ export default [
     description: 'Check for the correct number of staked tickets',
     fn: async ({
       randomSignerFn,
-      checkFn,
+
       contracts,
       BigNumber,
       local: {
@@ -441,7 +441,7 @@ export default [
       if (preconfigureTicketBeneficiary3.address === preconfigureTicketBeneficiary2.address)
         expectedStaked = expectedStaked.add(expectedPaymentPrintedTicketAmount1);
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'stakedBalanceOf',
@@ -455,7 +455,7 @@ export default [
       'The total supply of tickets for the project should equal the total of the premined printed amounts',
     fn: ({
       randomSignerFn,
-      checkFn,
+
       contracts,
       local: {
         expectedProjectId,
@@ -464,7 +464,7 @@ export default [
         expectedPaymentPrintedTicketAmount1,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'totalSupplyOf',
@@ -506,8 +506,8 @@ export default [
   },
   {
     description: 'Printing tickets should no longer allowed',
-    fn: ({ randomSignerFn, checkFn, contracts, local: { expectedProjectId } }) =>
-      checkFn({
+    fn: ({ randomSignerFn, contracts, local: { expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'canPrintPreminedTickets',

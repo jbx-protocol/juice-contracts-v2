@@ -144,13 +144,8 @@ const operations = [
       },
       {
         description: 'The operator should not have permission',
-        fn: ({
-          checkFn,
-          contracts,
-          randomSignerFn,
-          local: { owner, expectedProjectId, operator },
-        }) =>
-          checkFn({
+        fn: ({ contracts, randomSignerFn, local: { owner, expectedProjectId, operator } }) =>
+          verifyContractGetter({
             caller: randomSignerFn(),
             contract: contracts.operatorStore,
             fn: 'hasPermission',
@@ -170,13 +165,8 @@ const operations = [
       },
       {
         description: 'The operator should now have permission',
-        fn: ({
-          checkFn,
-          contracts,
-          randomSignerFn,
-          local: { owner, expectedProjectId, operator },
-        }) =>
-          checkFn({
+        fn: ({ contracts, randomSignerFn, local: { owner, expectedProjectId, operator } }) =>
+          verifyContractGetter({
             caller: randomSignerFn(),
             contract: contracts.operatorStore,
             fn: 'hasPermission',
@@ -187,13 +177,12 @@ const operations = [
       {
         description: 'The operator should not have permission over the claimer',
         fn: ({
-          checkFn,
           contracts,
           randomAddressFn,
           randomSignerFn,
           local: { expectedProjectId, owner, operator },
         }) =>
-          checkFn({
+          verifyContractGetter({
             caller: randomSignerFn(),
             contract: contracts.operatorStore,
             fn: 'hasPermission',
@@ -228,13 +217,8 @@ const operations = [
       },
       {
         description: 'The operator should now have permission over the claimer',
-        fn: ({
-          checkFn,
-          contracts,
-          randomSignerFn,
-          local: { expectedProjectId, operator, claimer },
-        }) =>
-          checkFn({
+        fn: ({ contracts, randomSignerFn, local: { expectedProjectId, operator, claimer } }) =>
+          verifyContractGetter({
             caller: randomSignerFn(),
             contract: contracts.operatorStore,
             fn: 'hasPermission',
@@ -270,13 +254,8 @@ const operations = [
       },
       {
         description: 'The operator should not have permission over the claimer',
-        fn: ({
-          checkFn,
-          contracts,
-          randomSignerFn,
-          local: { expectedProjectId, operator, claimer },
-        }) =>
-          checkFn({
+        fn: ({ contracts, randomSignerFn, local: { expectedProjectId, operator, claimer } }) =>
+          verifyContractGetter({
             caller: randomSignerFn(),
             contract: contracts.operatorStore,
             fn: 'hasPermission',
@@ -286,8 +265,8 @@ const operations = [
       },
       {
         description: "The operator should not have permission over the claimer's wildcard",
-        fn: ({ checkFn, randomSignerFn, contracts, local: { operator, claimer } }) =>
-          checkFn({
+        fn: ({ randomSignerFn, contracts, local: { operator, claimer } }) =>
+          verifyContractGetter({
             caller: randomSignerFn(),
             contract: contracts.operatorStore,
             fn: 'hasPermission',
@@ -307,8 +286,8 @@ const operations = [
       },
       {
         description: "The operator should now have permission over the claimer's wildcard",
-        fn: ({ checkFn, randomSignerFn, contracts, local: { operator, claimer } }) =>
-          checkFn({
+        fn: ({ randomSignerFn, contracts, local: { operator, claimer } }) =>
+          verifyContractGetter({
             caller: randomSignerFn(),
             contract: contracts.operatorStore,
             fn: 'hasPermission',
@@ -363,8 +342,8 @@ const operations = [
       },
       {
         description: "The operator should not have permission over the claimer's wildcard",
-        fn: ({ checkFn, contracts, randomSignerFn, local: { operator, claimer } }) =>
-          checkFn({
+        fn: ({ contracts, randomSignerFn, local: { operator, claimer } }) =>
+          verifyContractGetter({
             caller: randomSignerFn(),
             contract: contracts.operatorStore,
             fn: 'hasPermission',
@@ -555,12 +534,11 @@ export default [
         {
           description: 'Operator shouldnt have permission at first',
           fn: ({
-            checkFn,
             contracts,
             randomSignerFn,
             local: { operator, domain, permissionIndex, owner },
           }) =>
-            checkFn({
+            verifyContractGetter({
               caller: randomSignerFn(),
               contract: contracts.operatorStore,
               fn: 'hasPermission',
@@ -592,12 +570,11 @@ export default [
         {
           description: 'The operator should now have permission',
           fn: ({
-            checkFn,
             randomSignerFn,
             contracts,
             local: { operator, domain, owner, permissionIndex },
           }) =>
-            checkFn({
+            verifyContractGetter({
               caller: randomSignerFn(),
               contract: contracts.operatorStore,
               fn: 'hasPermission',
@@ -632,12 +609,11 @@ export default [
               {
                 description: 'The operator should no longer have permission over this domain',
                 fn: ({
-                  checkFn,
                   randomSignerFn,
                   contracts,
                   local: { operator, domain, owner, permissionIndex },
                 }) =>
-                  checkFn({
+                  verifyContractGetter({
                     caller: randomSignerFn(),
                     contract: contracts.operatorStore,
                     fn: 'hasPermission',
@@ -657,13 +633,8 @@ export default [
               },
               {
                 description: 'The operator should now have permission over the wildcard',
-                fn: ({
-                  checkFn,
-                  randomSignerFn,
-                  contracts,
-                  local: { operator, owner, permissionIndex },
-                }) =>
-                  checkFn({
+                fn: ({ randomSignerFn, contracts, local: { operator, owner, permissionIndex } }) =>
+                  verifyContractGetter({
                     caller: randomSignerFn(),
                     contract: contracts.operatorStore,
                     fn: 'hasPermission',
@@ -694,13 +665,8 @@ export default [
               },
               {
                 description: 'The operator should no longer have permission over the wildcard',
-                fn: ({
-                  checkFn,
-                  contracts,
-                  randomSignerFn,
-                  local: { operator, permissionIndex, owner },
-                }) =>
-                  checkFn({
+                fn: ({ contracts, randomSignerFn, local: { operator, permissionIndex, owner } }) =>
+                  verifyContractGetter({
                     caller: randomSignerFn(),
                     contract: contracts.operatorStore,
                     fn: 'hasPermission',
@@ -740,12 +706,11 @@ export default [
         {
           description: 'The operator should no longer have permission over this domain',
           fn: ({
-            checkFn,
             contracts,
             randomSignerFn,
             local: { operator, domain, permissionIndex, owner },
           }) =>
-            checkFn({
+            verifyContractGetter({
               caller: randomSignerFn(),
               contract: contracts.operatorStore,
               fn: 'hasPermission',

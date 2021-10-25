@@ -97,22 +97,6 @@ describe('Juicebox', async function () {
       );
     };
 
-    // Bind a function that checks if a contract getter equals an expected value.
-    this.checkFn = async ({ caller, contract, fn, args, expect, plusMinus }) => {
-      const storedVal = await contract.connect(caller)[fn](...args);
-      if (plusMinus) {
-        console.log({
-          storedVal,
-          diff: storedVal.sub(expect),
-          plusMinus: plusMinus.amount,
-        });
-        _expect(storedVal.lte(expect.add(plusMinus.amount))).to.equal(true);
-        _expect(storedVal.gte(expect.sub(plusMinus.amount))).to.equal(true);
-      } else {
-        _expect(storedVal).to.deep.equal(expect);
-      }
-    };
-
     // Binds a function that gets the balance of an address.
     this.getBalanceFn = (address) => ethers.provider.getBalance(address);
 

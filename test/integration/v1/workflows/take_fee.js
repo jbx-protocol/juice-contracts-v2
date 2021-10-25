@@ -150,7 +150,7 @@ export default [
     description: 'Check that the governance project now has a balance',
     fn: async ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { amountToTap1, governanceInitialBalance },
     }) => {
@@ -161,7 +161,7 @@ export default [
           .div((await contracts.terminalV1.fee()).add(constants.MaxPercent)),
       );
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'balanceOf',
@@ -233,7 +233,7 @@ export default [
     description: 'Check that the governance project got the fee in its terminal',
     fn: async ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { amountToTap2, governanceInitialBalance, expectedFeeAmount1 },
     }) => {
@@ -244,7 +244,7 @@ export default [
           .div((await contracts.terminalV1.fee()).add(constants.MaxPercent)),
       );
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'balanceOf',

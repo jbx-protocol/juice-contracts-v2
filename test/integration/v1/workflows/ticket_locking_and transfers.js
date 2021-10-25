@@ -143,7 +143,6 @@ export default [
   {
     description: 'The ticket beneficiary should have tickets',
     fn: async ({
-      checkFn,
       randomSignerFn,
       contracts,
       local: { expectedProjectId, ticketBeneficiary, paymentValue, reservedRate },
@@ -156,7 +155,7 @@ export default [
         .mul(constants.MaxPercent.sub(reservedRate))
         .div(constants.MaxPercent);
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -174,12 +173,11 @@ export default [
   {
     description: "The ticket beneficiary's tickets should all be staked",
     fn: ({
-      checkFn,
       randomSignerFn,
       contracts,
       local: { expectedProjectId, ticketBeneficiary, expectedStakedBalance },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'stakedBalanceOf',
@@ -247,12 +245,11 @@ export default [
   {
     description: "The balance shouldn't have changed",
     fn: ({
-      checkFn,
       randomSignerFn,
       contracts,
       local: { expectedProjectId, ticketBeneficiary, expectedStakedBalance },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -267,12 +264,11 @@ export default [
   {
     description: 'The staked balance should be updated',
     fn: ({
-      checkFn,
       randomSignerFn,
       contracts,
       local: { expectedProjectId, ticketBeneficiary, expectedStakedBalance, amountToUnstake },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'stakedBalanceOf',
@@ -317,7 +313,6 @@ export default [
   {
     description: 'The balance should be updated to reflect the transfer',
     fn: ({
-      checkFn,
       contracts,
       BigNumber,
       randomSignerFn,
@@ -329,7 +324,7 @@ export default [
         ticketTransferRecipient,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -348,7 +343,6 @@ export default [
   {
     description: 'The staked balance should be updated to reflect the transfer',
     fn: ({
-      checkFn,
       contracts,
       BigNumber,
       randomSignerFn,
@@ -361,7 +355,7 @@ export default [
         ticketTransferRecipient,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'stakedBalanceOf',
@@ -382,7 +376,6 @@ export default [
   {
     description: 'The balance of the recipient should be updated to reflect the transfer',
     fn: ({
-      checkFn,
       contracts,
       randomSignerFn,
       local: {
@@ -393,7 +386,7 @@ export default [
         amountToTransfer,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -411,7 +404,6 @@ export default [
   {
     description: 'The staked balance of the recipient should be updated to reflect the transfer',
     fn: ({
-      checkFn,
       deployer,
       contracts,
       local: {
@@ -423,7 +415,7 @@ export default [
         amountToTransfer,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: deployer,
         contract: contracts.ticketBooth,
         fn: 'stakedBalanceOf',
@@ -614,13 +606,12 @@ export default [
   {
     description: 'The balance should be 0',
     fn: ({
-      checkFn,
       randomSignerFn,
       contracts,
       BigNumber,
       local: { expectedProjectId, ticketBeneficiary },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -636,13 +627,12 @@ export default [
     description:
       'The staked balance should be zero, or with a small margin of error caused by division rounding',
     fn: ({
-      checkFn,
       randomSignerFn,
       contracts,
       BigNumber,
       local: { expectedProjectId, ticketBeneficiary },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'stakedBalanceOf',

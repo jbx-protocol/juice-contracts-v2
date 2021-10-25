@@ -70,8 +70,8 @@ export default [
   },
   {
     description: "Make sure the terminalV1 got set as the project's current terminal",
-    fn: ({ checkFn, contracts, randomSignerFn, local: { expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalDirectory,
         fn: 'terminalOf',
@@ -119,8 +119,8 @@ export default [
   },
   {
     description: 'There should now be a balance in the terminal',
-    fn: ({ contracts, checkFn, randomSignerFn, local: { paymentValue, expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { paymentValue, expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'balanceOf',
@@ -133,14 +133,14 @@ export default [
     fn: async ({
       randomSignerFn,
       contracts,
-      checkFn,
+
       local: { payer, paymentValue, reservedRate, expectedProjectId },
     }) => {
       const expectedTicketAmount = paymentValue
         .mul(constants.InitialWeightMultiplier)
         .mul(constants.MaxPercent.sub(reservedRate))
         .div(constants.MaxPercent);
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -205,8 +205,8 @@ export default [
   },
   {
     description: 'There should now be a double the payment value balance in the terminal',
-    fn: ({ contracts, checkFn, randomSignerFn, local: { paymentValue, expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { paymentValue, expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'balanceOf',
@@ -218,11 +218,11 @@ export default [
     description: 'The beneficiary should have gotten tickets',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { payerTicketBeneficiary, expectedTicketAmount, expectedProjectId },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -234,7 +234,7 @@ export default [
     description: 'If there was a preference for unstaked tickets, the tickets should be unstaked',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: {
         payerTicketBeneficiary,
@@ -243,7 +243,7 @@ export default [
         expectedProjectId,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'stakedBalanceOf',
@@ -297,12 +297,8 @@ export default [
   },
   {
     description: 'There should now be triple the payment value balance in the new terminal',
-    fn: ({
-      checkFn,
-      randomSignerFn,
-      local: { paymentValue, expectedProjectId, secondTerminalV1 },
-    }) =>
-      checkFn({
+    fn: ({ randomSignerFn, local: { paymentValue, expectedProjectId, secondTerminalV1 } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: secondTerminalV1,
         fn: 'balanceOf',
@@ -314,11 +310,11 @@ export default [
     description: 'The beneficiary should have gotten tickets',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { payerTicketBeneficiary, expectedTicketAmount, expectedProjectId },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',

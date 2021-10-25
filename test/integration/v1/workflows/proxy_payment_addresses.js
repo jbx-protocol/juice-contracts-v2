@@ -75,8 +75,8 @@ export default [
   },
   {
     description: "Make sure the terminalV1 got set as the project's current terminal",
-    fn: ({ checkFn, contracts, randomSignerFn, local: { expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalDirectory,
         fn: 'terminalOf',
@@ -146,13 +146,12 @@ export default [
     description:
       'Make sure the correct number of tickets were printed for the proxy payment address',
     fn: ({
-      checkFn,
       contracts,
       randomSignerFn,
       local: { proxyPaymentAddress, expectedProjectId, paymentValue },
     }) => {
       const expectedNumTickets = paymentValue.mul(constants.InitialWeightMultiplier);
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -207,12 +206,11 @@ export default [
   {
     description: 'Make sure the correct number of tickets are transferred to the beneficiary',
     fn: ({
-      checkFn,
       contracts,
       randomSignerFn,
       local: { expectedNumTickets, expectedProjectId, beneficiary },
     }) => {
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',

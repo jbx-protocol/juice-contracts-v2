@@ -111,8 +111,8 @@ export default [
   },
   {
     description: 'Check that the terminal got set',
-    fn: ({ contracts, checkFn, randomSignerFn, local: { expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalDirectory,
         fn: 'terminalOf',
@@ -356,8 +356,8 @@ export default [
   },
   {
     description: 'The terminal should have been updated to the new terminalV1 in the directory',
-    fn: ({ contracts, checkFn, randomSignerFn, local: { expectedProjectId, secondTerminalV1 } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { expectedProjectId, secondTerminalV1 } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalDirectory,
         fn: 'terminalOf',

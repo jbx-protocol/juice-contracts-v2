@@ -265,12 +265,11 @@ export default [
   {
     description: "The project's balance should match the payments just made",
     fn: ({
-      checkFn,
       contracts,
       randomAddressFn,
       local: { expectedProjectId, paymentValue1, paymentValue2, paymentValue3 },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomAddressFn(),
         contract: contracts.terminalV1,
         fn: 'balanceOf',
@@ -293,7 +292,7 @@ export default [
     description: 'The first ticket beneficiary received the expected amount of tickets',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: {
         expectedProjectId,
@@ -301,7 +300,7 @@ export default [
         expectedRedeemableTicketsOfTicketBeneficiary1,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -314,7 +313,7 @@ export default [
     fn: async ({
       contracts,
       bondingCurveFn,
-      checkFn,
+
       randomSignerFn,
       local: {
         expectedProjectId,
@@ -342,7 +341,7 @@ export default [
         expectedProjectId,
       );
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'claimableOverflowOf',
@@ -444,11 +443,11 @@ export default [
     description: 'The first ticket beneficiary has no tickets left',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { expectedProjectId, ticketBeneficiary1, leftoverTicketsOfTicketBeneficiary1 },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -480,7 +479,7 @@ export default [
     description: 'The second ticket beneficiary received the expected amount of tickets',
     fn: async ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: {
         reservedRate,
@@ -493,7 +492,7 @@ export default [
         .mul(constants.MaxPercent.sub(reservedRate))
         .div(constants.MaxPercent);
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -558,7 +557,7 @@ export default [
     fn: async ({
       contracts,
       bondingCurveFn,
-      checkFn,
+
       randomSignerFn,
       local: {
         expectedProjectId,
@@ -580,7 +579,7 @@ export default [
         expectedProjectId,
       );
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'claimableOverflowOf',
@@ -685,11 +684,11 @@ export default [
     description: 'The second ticket beneficiary has no tickets left',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { expectedProjectId, ticketBeneficiary2, leftoverTicketsOfTicketBeneficiary2 },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -723,7 +722,7 @@ export default [
     description: 'The third ticket beneficiary received the expected amount of tickets',
     fn: async ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: {
         reservedRate,
@@ -736,7 +735,7 @@ export default [
         .mul(constants.MaxPercent.sub(reservedRate))
         .div(constants.MaxPercent);
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -757,7 +756,7 @@ export default [
     fn: async ({
       contracts,
       bondingCurveFn,
-      checkFn,
+
       randomSignerFn,
       local: {
         expectedProjectId,
@@ -782,7 +781,7 @@ export default [
         expectedProjectId,
       );
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'claimableOverflowOf',
@@ -890,11 +889,11 @@ export default [
     description: 'The first ticket beneficiary has no tickets left',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { expectedProjectId, ticketBeneficiary3, leftoverTicketsOfTicketBeneficiary3 },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -940,7 +939,7 @@ export default [
     description: 'The owner has the correct ticket balance',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: {
         expectedTotalTickets,
@@ -951,7 +950,7 @@ export default [
         owner,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
@@ -970,7 +969,7 @@ export default [
     description: "The owners' balance is the expected total ticket balance",
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: {
         expectedTotalTickets,
@@ -983,7 +982,7 @@ export default [
         expectedProjectId,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'totalSupplyOf',
@@ -1005,7 +1004,7 @@ export default [
     description: 'The remaining overflow should be correct',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: {
         paymentValue1,
@@ -1018,7 +1017,7 @@ export default [
         expectedProjectId,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'currentOverflowOf',
@@ -1042,7 +1041,7 @@ export default [
     // "The expected redeem amount for the owner's portion should match the remainder of overflow",
     fn: async ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       bondingCurveFn,
       local: { expectedProjectId, owner, bondingCurveRate },
@@ -1052,7 +1051,7 @@ export default [
         expectedProjectId,
       );
 
-      await checkFn({
+      await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'claimableOverflowOf',
@@ -1138,7 +1137,7 @@ export default [
     description: 'There should only be the expected leftover tickets left',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: {
         expectedProjectId,
@@ -1148,7 +1147,7 @@ export default [
         leftoverReservedTickets,
       },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'totalSupplyOf',

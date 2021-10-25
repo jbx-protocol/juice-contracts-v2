@@ -45,8 +45,8 @@ export default [
   },
   {
     description: "Make sure the project's handle got saved",
-    fn: async ({ contracts, checkFn, randomSignerFn, local: { handle, expectedProjectId } }) =>
-      checkFn({
+    fn: async ({ contracts, randomSignerFn, local: { handle, expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'handleOf',
@@ -56,8 +56,8 @@ export default [
   },
   {
     description: 'Make sure the project was saved to the handle',
-    fn: ({ contracts, checkFn, randomSignerFn, local: { handle, expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { handle, expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'projectFor',
@@ -67,8 +67,8 @@ export default [
   },
   {
     description: "Make sure the project's uri got saved",
-    fn: ({ contracts, checkFn, randomSignerFn, local: { uri, expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { uri, expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'uriOf',
@@ -78,8 +78,8 @@ export default [
   },
   {
     description: 'Make sure the terminal was set in the directory',
-    fn: ({ contracts, checkFn, randomSignerFn, local: { terminal, expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { terminal, expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalDirectory,
         fn: 'terminalOf',
@@ -119,8 +119,8 @@ export default [
   },
   {
     description: 'Make sure the new uri got saved',
-    fn: ({ contracts, checkFn, randomSignerFn, local: { secondUri, expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { secondUri, expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'uriOf',
@@ -153,8 +153,8 @@ export default [
   },
   {
     description: 'Make sure the new handle got saved',
-    fn: ({ contracts, randomSignerFn, checkFn, local: { secondHandle, expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { secondHandle, expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'handleOf',
@@ -164,8 +164,8 @@ export default [
   },
   {
     description: 'Make sure the project was saved to the new handle',
-    fn: ({ contracts, randomSignerFn, checkFn, local: { secondHandle, expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { secondHandle, expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'projectFor',
@@ -175,8 +175,8 @@ export default [
   },
   {
     description: "Make sure the old handle isn't affiliated with a project any longer",
-    fn: ({ contracts, randomSignerFn, checkFn, local: { handle } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { handle } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'projectFor',
@@ -252,8 +252,8 @@ export default [
   },
   {
     description: 'Make sure the replacement handle got saved',
-    fn: ({ contracts, randomSignerFn, checkFn, local: { thirdHandle, expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { thirdHandle, expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'handleOf',
@@ -263,8 +263,8 @@ export default [
   },
   {
     description: 'Make sure the project was saved to the replacement handle',
-    fn: ({ contracts, randomSignerFn, checkFn, local: { thirdHandle, expectedProjectId } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { thirdHandle, expectedProjectId } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'projectFor',
@@ -274,8 +274,8 @@ export default [
   },
   {
     description: 'Make sure there is no project associated with the transfered handle',
-    fn: ({ contracts, randomSignerFn, checkFn, local: { secondHandle } }) =>
-      checkFn({
+    fn: ({ contracts, randomSignerFn, local: { secondHandle } }) =>
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'projectFor',
@@ -339,11 +339,11 @@ export default [
     description: 'Make sure the claimed handle got saved',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { owner, secondOwner, secondHandle, expectedProjectId, expectedSecondProjectId },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'handleOf',
@@ -355,11 +355,11 @@ export default [
     description: 'Make sure the project was saved to the claimed handle',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { owner, secondOwner, secondHandle, expectedProjectId, expectedSecondProjectId },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'projectFor',
@@ -371,11 +371,11 @@ export default [
     description: 'Check to see if the first handle is still set correctly',
     fn: ({
       contracts,
-      checkFn,
+
       randomSignerFn,
       local: { owner, secondOwner, handle, expectedSecondProjectId },
     }) =>
-      checkFn({
+      verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'projectFor',
