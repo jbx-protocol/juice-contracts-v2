@@ -35,24 +35,6 @@ describe('Juicebox', async function () {
       await ethers.provider.send('evm_mine');
     };
 
-    // Bind a function that mocks a contract function's execution with the provided args to return the provided values.
-    this.mockFn = async ({ mockContract, fn, args, returns = [] }) => {
-      // The `args` can be a function or an array.
-      const normalizedArgs = args && typeof args === 'function' ? await args() : args;
-
-      // The `returns` value can be a function or an array.
-      const normalizedReturns = typeof returns === 'function' ? await returns() : returns;
-
-      // Get a reference to the mock.
-      const mock = mockContract.mock[fn];
-
-      // If args were provided, make the the mock only works if invoked with the provided args.
-      if (normalizedArgs) mock.withArgs(...normalizedArgs);
-
-      // Set its return value.
-      await mock.returns(...normalizedReturns);
-    };
-
     // Bind a function that executes a transaction on a contract.
     this.executeFn = async ({
       caller,

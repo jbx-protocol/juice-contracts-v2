@@ -5,7 +5,7 @@ const {
 
 import { expect } from 'chai';
 
-import { deployMockLocalContract } from '../../../utils';
+import { deployMockLocalContract, mockContractFunction } from '../../../utils';
 
 const tests = {
   success: [
@@ -214,7 +214,7 @@ export default function () {
         // Allow migration to the given terminal.
         await this.targetContract.connect(governance).allowMigration(terminal.address);
 
-        await this.mockFn({
+        await mockContractFunction({
           mockContract: this.mockContracts.ticketBooth,
           fn: 'totalSupplyOf',
           args: [projectId],
@@ -242,7 +242,7 @@ export default function () {
         await this.mockContracts.projects.mock.ownerOf.withArgs(projectId).returns(projectOwner);
 
         if (unprintedReservedTicketAmount.gt(0))
-          await this.mockFn({
+          await mockContractFunction({
             mockContract: this.mockContracts.fundingCycles,
             fn: 'currentOf',
             args: [projectId],
