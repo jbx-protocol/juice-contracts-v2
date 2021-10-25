@@ -5,7 +5,7 @@
 // The currency will be 0, which corresponds to ETH.
 const currency = 0;
 
-module.exports = [
+export default [
   {
     description: 'Create a project',
     fn: async ({

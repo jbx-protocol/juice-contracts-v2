@@ -8,7 +8,7 @@ const currency = 0;
 // Expect the first funding cycle to be based on the 0th funding cycle.
 const expectedInitialBasedOn = 0;
 
-module.exports = [
+export default [
   {
     description: 'Deploy a project with 0 duration',
     fn: async ({

@@ -1,9 +1,9 @@
-const setPaymentMods = require('./set_payment_mods');
-const setTicketMods = require('./set_ticket_mods');
+import setPaymentMods from './set_payment_mods';
+import setTicketMods from './set_ticket_mods';
 
 const contractName = 'ModStore';
 
-module.exports = function () {
+export default function () {
   // Before the tests, deploy mocked dependencies and the contract.
   before(async function () {
     // Deploy mock dependency contracts.
@@ -23,4 +23,4 @@ module.exports = function () {
   // Test each function.
   describe('setPaymentMods(...)', setPaymentMods);
   describe('setTicketMods(...)', setTicketMods);
-};
+}

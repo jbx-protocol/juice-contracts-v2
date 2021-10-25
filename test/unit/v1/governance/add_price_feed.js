@@ -1,5 +1,5 @@
-const { expect } = require('chai');
-const AggregatorV3Interface = require('@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json');
+import { expect } from 'chai';
+import { compilerOutput } from '@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json';
 
 const tests = {
   success: [
@@ -21,7 +21,7 @@ const tests = {
   ],
 };
 
-module.exports = function () {
+export default function () {
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {
@@ -29,7 +29,7 @@ module.exports = function () {
 
         const prices = await this.deployMockLocalContractFn('Prices');
         // Deploy a mock of the price feed oracle contract.
-        const priceFeed = await this.deployMockContractFn(AggregatorV3Interface.compilerOutput.abi);
+        const priceFeed = await this.deployMockContractFn(compilerOutput.abi);
 
         const currency = 1;
 
@@ -49,7 +49,7 @@ module.exports = function () {
 
         const prices = await this.deployMockLocalContractFn('Prices');
         // Deploy a mock of the price feed oracle contract.
-        const priceFeed = await this.deployMockContractFn(AggregatorV3Interface.compilerOutput.abi);
+        const priceFeed = await this.deployMockContractFn(compilerOutput.abi);
 
         const currency = 1;
 
@@ -60,4 +60,4 @@ module.exports = function () {
       });
     });
   });
-};
+}

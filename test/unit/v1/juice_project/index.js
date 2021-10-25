@@ -1,14 +1,14 @@
-const pay = require('./pay');
-const setOperator = require('./set_operator');
-const setOperators = require('./set_operators');
-const setProjectId = require('./set_project_id');
-const takeFee = require('./take_fee');
-const transferProjectOwnership = require('./transfer_project_ownership');
-const withdraw = require('./withdraw');
+import pay from './pay';
+import setOperator from './set_operator';
+import setOperators from './set_operators';
+import setProjectId from './set_project_id';
+import takeFee from './take_fee';
+import transferProjectOwnership from './transfer_project_ownership';
+import withdraw from './withdraw';
 
 const contractName = 'ExampleJuiceboxProject';
 
-module.exports = function () {
+export default function () {
   // Before the tests, deploy the contract.
   before(async function () {
     this.projectId = 1;
@@ -30,4 +30,4 @@ module.exports = function () {
   describe('takeFee(...)', takeFee);
   describe('setProjectId(...)', setProjectId);
   describe('withdraw(...)', withdraw);
-};
+}

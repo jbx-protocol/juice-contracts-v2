@@ -1,8 +1,8 @@
-// const { ethers } = require("hardhat");
-const { expect } = require('chai');
+import { expect } from 'chai';
+import hardhat from 'hardhat';
 const {
   ethers: { BigNumber },
-} = require('hardhat');
+} = hardhat;
 
 const tests = {
   success: [
@@ -91,7 +91,7 @@ const tests = {
   ],
 };
 
-module.exports = function () {
+export default function () {
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {
@@ -144,4 +144,4 @@ module.exports = function () {
       });
     });
   });
-};
+}

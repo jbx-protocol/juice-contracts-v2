@@ -1,17 +1,17 @@
-const balanceOf = require('./balance_of');
-const issue = require('./issue');
-const lock = require('./lock');
-const print = require('./print');
-const redeem = require('./redeem');
-const stake = require('./stake');
-const totalSupplyOf = require('./total_supply_of');
-const transfer = require('./transfer');
-const unlock = require('./unlock');
-const unstake = require('./unstake');
+import balanceOf from './balance_of';
+import issue from './issue';
+import lock from './lock';
+import print from './print';
+import redeem from './redeem';
+import stake from './stake';
+import totalSupplyOf from './total_supply_of';
+import transfer from './transfer';
+import unlock from './unlock';
+import unstake from './unstake';
 
 const contractName = 'TicketBooth';
 
-module.exports = function () {
+export default function () {
   // Before the tests, deploy mocked dependencies and the contract.
   before(async function () {
     // Deploy mock dependency contracts.
@@ -38,4 +38,4 @@ module.exports = function () {
   describe('unlock(...)', unlock);
   describe('balanceOf(...)', balanceOf);
   describe('totalSupplyOf(...)', totalSupplyOf);
-};
+}

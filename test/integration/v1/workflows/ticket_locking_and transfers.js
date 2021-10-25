@@ -2,7 +2,7 @@
   Tickets can be locked, which prevent them from being redeemed, unstaked, or transfered.
 */
 
-module.exports = [
+export default [
   {
     description: 'Deploy a project for the owner',
     fn: async ({

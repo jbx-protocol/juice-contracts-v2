@@ -9,7 +9,7 @@
   These new mods will take effect once the reconfigured funding cycle becomes active.
 */
 
-module.exports = [
+export default [
   {
     description: 'Deploy first project with at least a locked payout mod',
     fn: async ({

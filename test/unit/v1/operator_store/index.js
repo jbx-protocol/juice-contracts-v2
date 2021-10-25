@@ -1,11 +1,11 @@
-const hasPermission = require('./has_permission');
-const hasPermissions = require('./has_permissions');
-const setOperator = require('./set_operator');
-const setOperators = require('./set_operators');
+import hasPermission from './has_permission';
+import hasPermissions from './has_permissions';
+import setOperator from './set_operator';
+import setOperators from './set_operators';
 
 const contractName = 'OperatorStore';
 
-module.exports = function () {
+export default function () {
   // Before the tests, deploy the contract.
   before(async function () {
     // Deploy the contract.
@@ -17,4 +17,4 @@ module.exports = function () {
   describe('setOperators(...)', setOperators);
   describe('hasPermission(...)', hasPermission);
   describe('hasPermissions(...)', hasPermissions);
-};
+}

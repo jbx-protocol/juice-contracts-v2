@@ -3,7 +3,7 @@
 
   These steps can all be taken seperately without calling `deploy`.
 */
-module.exports = [
+export default [
   {
     description: 'Deploy a project',
     fn: async ({

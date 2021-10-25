@@ -7,7 +7,7 @@
 
   This test makes sure the conversion rates are honored.
 */
-module.exports = [
+export default [
   {
     description: 'Add the price feed to the prices contract',
     fn: async ({ deployer, contracts, executeFn, deployContractFn, incrementCurrencyFn }) => {

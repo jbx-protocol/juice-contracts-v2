@@ -1,10 +1,10 @@
-const deployAddress = require('./deploy_address');
-const setPayerPreferences = require('./set_payer_preferences');
-const setTerminal = require('./set_terminal');
+import deployAddress from './deploy_address';
+import setPayerPreferences from './set_payer_preferences';
+import setTerminal from './set_terminal';
 
 const contractName = 'TerminalDirectory';
 
-module.exports = function () {
+export default function () {
   // Before the tests, deploy the contract.
   before(async function () {
     // Deploy mock dependency contracts.
@@ -22,4 +22,4 @@ module.exports = function () {
   describe('deployAddress(...)', deployAddress);
   describe('setTerminal(...)', setTerminal);
   describe('setPayerPreferences(...)', setPayerPreferences);
-};
+}

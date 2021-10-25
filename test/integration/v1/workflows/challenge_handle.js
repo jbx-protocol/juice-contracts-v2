@@ -1,7 +1,7 @@
 /** 
   A project's handle can be challenged, after which a year must pass without it being renewed before it can be claimed.
 */
-module.exports = [
+export default [
   {
     description: 'The challenge expiry for an unused handle should start at 0',
     fn: async ({ contracts, checkFn, randomSignerFn, incrementProjectIdFn, randomBytesFn }) => {

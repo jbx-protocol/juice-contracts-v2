@@ -7,7 +7,7 @@
   If a project reconfigures its funding cycle, new mods can be set that override any locked payout mods.
   These new mods will take effect once the reconfigured funding cycle becomes active.
 */
-module.exports = [
+export default [
   {
     description: 'Deploy first project with at least a locked ticket mod',
     fn: async ({

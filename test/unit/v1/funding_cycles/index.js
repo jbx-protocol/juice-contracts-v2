@@ -14,15 +14,15 @@
 */
 process.env.INCLUDE_TIME_EDGE_CASE_TEST = false;
 
-const configure = require('./configure');
-const currentBallotStateOf = require('./current_ballot_state_of');
-const currentOf = require('./current_of');
-const queuedOf = require('./queued_of');
-const tap = require('./tap');
+import configure from './configure';
+import currentBallotStateOf from './current_ballot_state_of';
+import currentOf from './current_of';
+import queuedOf from './queued_of';
+import tap from './tap';
 
 const contractName = 'FundingCycles';
 
-module.exports = function () {
+export default function () {
   // Before the tests, deploy mocked dependencies and the contract.
   before(async function () {
     // Deploy mock dependency contracts.
@@ -39,4 +39,4 @@ module.exports = function () {
   describe('currentOf(...)', currentOf);
   describe('queuedOf(...)', queuedOf);
   describe('currentBallotStateOf(...)', currentBallotStateOf);
-};
+}

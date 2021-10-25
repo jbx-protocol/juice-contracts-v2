@@ -1,7 +1,8 @@
+import hardhat from 'hardhat';
 const {
   ethers: { BigNumber, constants },
-} = require('hardhat');
-const { expect } = require('chai');
+} = hardhat;
+import { expect } from 'chai';
 
 /** 
   These tests rely on time manipulation quite a bit, which as far as i understand is hard to do precisely. 
@@ -641,7 +642,7 @@ const tests = {
   ],
 };
 
-module.exports = function () {
+export default function () {
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {
@@ -740,4 +741,4 @@ module.exports = function () {
       });
     });
   });
-};
+}

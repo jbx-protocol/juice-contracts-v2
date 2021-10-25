@@ -1,5 +1,5 @@
-const { expect } = require('chai');
-const { BigNumber, constants } = require('ethers');
+import { expect } from 'chai';
+import { BigNumber, constants } from 'ethers';
 
 const tests = {
   success: [
@@ -215,7 +215,7 @@ const ops =
     ];
   };
 
-module.exports = function () {
+export default function () {
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {
@@ -240,4 +240,4 @@ module.exports = function () {
       });
     });
   });
-};
+}

@@ -6,7 +6,7 @@
 
   A created project can make use all TerminalV1 functionality as normal.
 */
-module.exports = [
+export default [
   {
     description: 'Create a project',
     fn: async ({
