@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
-import { deployMockLocalContract } from '../../../utils';
+import { constants, deployMockLocalContract } from '../../../utils';
 
 const tests = {
   success: [
@@ -12,7 +12,7 @@ const tests = {
         owner: deployer.address,
         handle: ethers.utils.formatBytes32String('some-handle'),
         uri: '',
-        terminal: ethers.constants.AddressZero,
+        terminal: constants.AddressZero,
         expectation: {
           projectId: 1,
         },
@@ -25,7 +25,7 @@ const tests = {
         owner: addrs[0].address,
         handle: ethers.utils.formatBytes32String('some-handle'),
         uri: '',
-        terminal: ethers.constants.AddressZero,
+        terminal: constants.AddressZero,
         expectation: {
           projectId: 1,
         },
@@ -38,7 +38,7 @@ const tests = {
         owner: deployer.address,
         handle: ethers.utils.formatBytes32String('some-handle'),
         uri: 'some-uri',
-        terminal: ethers.constants.AddressZero,
+        terminal: constants.AddressZero,
         expectation: {
           projectId: 1,
         },
@@ -51,7 +51,7 @@ const tests = {
         owner: deployer.address,
         handle: ethers.utils.formatBytes32String('some-handle'),
         uri: 'some-uri',
-        terminal: ethers.constants.AddressZero,
+        terminal: constants.AddressZero,
         expectation: {
           projectId: 2,
         },
@@ -60,7 +60,7 @@ const tests = {
             owner: deployer.address,
             handle: ethers.utils.formatBytes32String('some-other-handle'),
             uri: 'some-uri',
-            terminal: ethers.constants.AddressZero,
+            terminal: constants.AddressZero,
           },
         },
       }),
@@ -235,7 +235,7 @@ export default function () {
         if (create) {
           await this.contract
             .connect(caller)
-            .create(create.owner, create.handle, create.uri, this.constants.AddressZero);
+            .create(create.owner, create.handle, create.uri, constants.AddressZero);
 
           if (transfer) {
             await this.contract.connect(caller).transferHandle(1, transfer.to, transfer.handle);

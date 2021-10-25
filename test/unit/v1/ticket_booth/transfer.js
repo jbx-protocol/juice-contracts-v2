@@ -1,8 +1,10 @@
 import hardhat from 'hardhat';
 const {
-  ethers: { BigNumber, constants },
+  ethers: { BigNumber },
 } = hardhat;
 import { expect } from 'chai';
+
+import { constants } from '../../../utils';
 
 const tests = {
   success: [

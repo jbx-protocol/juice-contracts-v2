@@ -1,6 +1,8 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
+import { constants } from '../../../utils';
+
 const tests = {
   success: [
     {
@@ -118,7 +120,7 @@ export default function () {
         // Setup by creating a project.
         await this.contract
           .connect(caller)
-          .create(create.owner, create.handle, '', this.constants.AddressZero);
+          .create(create.owner, create.handle, '', constants.AddressZero);
         if (permissionFlag !== undefined) {
           const permissionIndex = 5;
 
@@ -168,7 +170,7 @@ export default function () {
         // Setup by creating a project.
         await this.contract
           .connect(caller)
-          .create(create.owner, create.handle, '', this.constants.AddressZero);
+          .create(create.owner, create.handle, '', constants.AddressZero);
         if (transfer) {
           await this.contract.connect(caller).transferHandle(1, transfer.to, transfer.handle);
         }

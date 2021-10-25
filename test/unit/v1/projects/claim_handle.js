@@ -1,6 +1,8 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
+import { constants } from '../../../utils';
+
 const tests = {
   success: [
     {
@@ -227,11 +229,11 @@ export default function () {
         // Setup by creating a project that the handle will be transfered from.
         await this.contract
           .connect(caller)
-          .create(source.owner.address, source.handle, '', this.constants.AddressZero);
+          .create(source.owner.address, source.handle, '', constants.AddressZero);
         // Setup by creating another project that the handle will be transfered to.
         await this.contract
           .connect(caller)
-          .create(destination.owner, destination.handle, '', this.constants.AddressZero);
+          .create(destination.owner, destination.handle, '', constants.AddressZero);
 
         if (transfer) {
           // Execute the transaction.
@@ -325,12 +327,12 @@ export default function () {
         // Setup by creating a project that the handle will be transfered from.
         await this.contract
           .connect(caller)
-          .create(source.owner, source.handle, '', this.constants.AddressZero);
+          .create(source.owner, source.handle, '', constants.AddressZero);
 
         // Setup by creating another project that the handle will be transfered to.
         await this.contract
           .connect(caller)
-          .create(destination.owner, destination.handle, '', this.constants.AddressZero);
+          .create(destination.owner, destination.handle, '', constants.AddressZero);
 
         if (transfer) {
           // Execute the transaction.

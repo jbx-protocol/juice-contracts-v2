@@ -1,6 +1,8 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
+import { constants } from '../../../utils';
+
 const tests = {
   success: [
     {
@@ -59,7 +61,7 @@ export default function () {
         // Setup by creating a project.
         await this.contract
           .connect(caller)
-          .create(create.owner, create.handle, '', this.constants.AddressZero);
+          .create(create.owner, create.handle, '', constants.AddressZero);
 
         // Execute the transaction.
         const tx = await this.contract.connect(caller).challengeHandle(handle);
@@ -92,7 +94,7 @@ export default function () {
         // Setup by creating a project.
         await this.contract
           .connect(caller)
-          .create(create.owner, create.handle, '', this.constants.AddressZero);
+          .create(create.owner, create.handle, '', constants.AddressZero);
 
         if (prechallenge) {
           // Challenge the handle.

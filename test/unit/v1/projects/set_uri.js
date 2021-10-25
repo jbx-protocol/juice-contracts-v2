@@ -1,6 +1,8 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
+import { constants } from '../../../utils';
+
 const tests = {
   success: [
     {
@@ -60,7 +62,7 @@ export default function () {
             create.owner,
             ethers.utils.formatBytes32String('some-handle'),
             '',
-            this.constants.AddressZero,
+            constants.AddressZero,
           );
         if (permissionFlag !== undefined) {
           const permissionIndex = 6;
@@ -102,7 +104,7 @@ export default function () {
             create.owner,
             ethers.utils.formatBytes32String('some-handle'),
             '',
-            this.constants.AddressZero,
+            constants.AddressZero,
           );
 
         if (permissionFlag !== undefined) {
