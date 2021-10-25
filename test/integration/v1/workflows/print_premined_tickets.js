@@ -1,6 +1,7 @@
 /** 
   A project can print premined tickets up until the point when a payment is made to it after its configured its first funding cycle.
 */
+import { constants } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH.
 const currency = 0;
@@ -96,7 +97,6 @@ export default [
     description: 'The beneficiary should have gotten the correct amount of tickets',
     fn: async ({
       randomSignerFn,
-      constants,
       checkFn,
       contracts,
       local: { preconfigureTicketBeneficiary1, preminePrintAmount1, expectedProjectId },
@@ -199,7 +199,6 @@ export default [
       randomSignerFn,
       checkFn,
       contracts,
-      constants,
       local: {
         preconfigureTicketBeneficiary1,
         preconfigureTicketBeneficiary2,
@@ -285,7 +284,6 @@ export default [
       executeFn,
       contracts,
       randomBigNumber,
-      constants,
       BigNumber,
       incrementFundingCycleIdFn,
       local: { expectedProjectId, owner },
@@ -376,7 +374,6 @@ export default [
     description: 'The third beneficiary should have gotten the correct amount of tickets',
     fn: async ({
       randomSignerFn,
-      constants,
       checkFn,
       contracts,
       local: {

@@ -137,38 +137,11 @@ describe('Juicebox', async function () {
       }
     };
 
-    // Binds a function that makes sure the provided address has the balance
-    this.verifyBalanceFn = async ({ address, expect, plusMinus }) => {
-      const storedVal = await ethers.provider.getBalance(address);
-      if (plusMinus) {
-        console.log({
-          storedVal,
-          diff: storedVal.sub(expect),
-          plusMinus: plusMinus.amount,
-        });
-        _expect(storedVal.lte(expect.add(plusMinus.amount))).to.equal(true);
-        _expect(storedVal.gte(expect.sub(plusMinus.amount))).to.equal(true);
-      } else {
-        _expect(storedVal).to.deep.equal(expect);
-      }
-    };
-
     // Binds a function that gets the balance of an address.
     this.getBalanceFn = (address) => ethers.provider.getBalance(address);
 
     // Binds the standard expect function.
     this.expectFn = _expect;
-
-    // Bind some constants.
-
-    this.constants = {
-      AddressZero: ethers.constants.AddressZero,
-      MaxUint256: ethers.constants.MaxUint256,
-      MaxInt256: ethers.BigNumber.from(2).pow(255).sub(1),
-      MaxUint24: ethers.BigNumber.from(2).pow(24).sub(1),
-      MaxUint16: ethers.BigNumber.from(2).pow(16).sub(1),
-      MaxUint8: ethers.BigNumber.from(2).pow(8).sub(1),
-    };
 
     // Bind a function that gets a random address.
     this.randomAddressFn = ({ exclude = [] } = {}) => {

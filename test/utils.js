@@ -25,6 +25,16 @@ const readContractAbi = (contractName) => {
   return JSON.parse(readFileSync(files[0]).toString()).abi;
 };
 
+// Bind some constants.
+export const constants = {
+  AddressZero: ethers.constants.AddressZero,
+  MaxUint256: ethers.constants.MaxUint256,
+  MaxInt256: ethers.BigNumber.from(2).pow(255).sub(1),
+  MaxUint24: ethers.BigNumber.from(2).pow(24).sub(1),
+  MaxUint16: ethers.BigNumber.from(2).pow(16).sub(1),
+  MaxUint8: ethers.BigNumber.from(2).pow(8).sub(1),
+};
+
 export const deployMockContract = async (abi) => {
   return _deployMockContract(await deployer(), abi);
 };
@@ -92,4 +102,20 @@ export const randomBytes = ({
   );
   if (exclude.includes(candidate)) return randomBytes({ exclude, min, max, prepend });
   return candidate;
+};
+
+// Binds a function that makes sure the provided address has the balance
+export const verifyBalance = async ({ address, expect, plusMinus }) => {
+  const storedVal = await ethers.provider.getBalance(address);
+  if (plusMinus) {
+    console.log({
+      storedVal,
+      diff: storedVal.sub(expect),
+      plusMinus: plusMinus.amount,
+    });
+    _expect(storedVal.lte(expect.add(plusMinus.amount))).to.equal(true);
+    _expect(storedVal.gte(expect.sub(plusMinus.amount))).to.equal(true);
+  } else {
+    _expect(storedVal).to.deep.equal(expect);
+  }
 };

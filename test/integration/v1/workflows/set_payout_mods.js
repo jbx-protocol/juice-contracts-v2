@@ -8,12 +8,12 @@
   If a project reconfigures its funding cycle, new mods can be set that override any locked payout mods.
   These new mods will take effect once the reconfigured funding cycle becomes active.
 */
+import { constants } from '../../../utils';
 
 export default [
   {
     description: 'Deploy first project with at least a locked payout mod',
     fn: async ({
-      constants,
       contracts,
       executeFn,
       BigNumber,
@@ -162,8 +162,6 @@ export default [
       randomBoolFn,
       randomAddressFn,
       timeMark,
-      constants,
-      randomBigNumber,
       local: { owner, expectedProjectId, unlockedMod1 },
     }) => {
       const unlockedMod2 = {
@@ -280,7 +278,6 @@ export default [
     description:
       'Configuring a project should allow overriding locked mods for the new configuration',
     fn: ({
-      constants,
       contracts,
       executeFn,
       BigNumber,

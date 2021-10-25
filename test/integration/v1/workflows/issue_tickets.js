@@ -19,7 +19,7 @@ export default [
       randomBytes,
       incrementProjectIdFn,
       incrementFundingCycleIdFn,
-      constants,
+
       contracts,
     }) => {
       const expectedProjectId = incrementProjectIdFn();
@@ -101,7 +101,7 @@ export default [
   },
   {
     description: 'The owner should not have issued tickets initially',
-    fn: ({ checkFn, randomSignerFn, contracts, constants, local: { expectedProjectId } }) =>
+    fn: ({ checkFn, randomSignerFn, contracts, local: { expectedProjectId } }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
@@ -139,7 +139,7 @@ export default [
     description: 'The ticket beneficiary should have tickets',
     fn: async ({
       checkFn,
-      constants,
+
       randomSignerFn,
       contracts,
       local: { paymentValue1, reservedRate, ticketBeneficiary, expectedProjectId },
@@ -226,7 +226,7 @@ export default [
     fn: async ({
       randomSignerFn,
       checkFn,
-      constants,
+
       contracts,
       local: { paymentValue1, paymentValue2, reservedRate, expectedProjectId, ticketBeneficiary },
     }) => {

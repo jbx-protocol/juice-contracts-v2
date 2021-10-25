@@ -14,7 +14,6 @@ export default [
   {
     description: 'Deploy first project with a payout mod',
     fn: async ({
-      constants,
       contracts,
       executeFn,
       BigNumber,
@@ -203,7 +202,6 @@ export default [
   {
     description: "Deploy second project that'll be sent funds by the configured project payout mod",
     fn: async ({
-      constants,
       contracts,
       executeFn,
       BigNumber,
@@ -329,7 +327,7 @@ export default [
       executeFn,
       randomSignerFn,
       getBalanceFn,
-      constants,
+
       local: { target, owner, expectedIdOfBaseProject, addressMod, allocatorMod },
     }) => {
       // An amount up to the target can be tapped.
@@ -369,9 +367,7 @@ export default [
   {
     description: 'Check that payout mod beneficiary has expected funds',
     fn: async ({
-      constants,
       contracts,
-      verifyBalanceFn,
       local: { addressMod, amountToTap, addressModBeneficiaryInitialBalance },
     }) => {
       // The amount tapped takes into account any fees paid.
@@ -379,7 +375,7 @@ export default [
         .mul(constants.MaxPercent)
         .div((await contracts.terminalV1.fee()).add(constants.MaxPercent));
 
-      await verifyBalanceFn({
+      await verifyBalance({
         address: addressMod.beneficiary,
         expect: addressModBeneficiaryInitialBalance.add(
           expectedAmountTapped.mul(addressMod.percent).div(constants.MaxModPercent),
@@ -392,7 +388,6 @@ export default [
   {
     description: 'Check that the second project now has a balance',
     fn: ({
-      constants,
       contracts,
       checkFn,
       randomSignerFn,
@@ -409,7 +404,6 @@ export default [
   {
     description: 'Check that the beneficiary of the project mod got tickets',
     fn: ({
-      constants,
       contracts,
       checkFn,
       randomSignerFn,
@@ -429,7 +423,6 @@ export default [
   {
     description: 'Check for the correct number of staked tickets',
     fn: ({
-      constants,
       contracts,
       checkFn,
       BigNumber,
@@ -451,12 +444,8 @@ export default [
   },
   {
     description: "Check that mod's allocator got paid",
-    fn: ({
-      constants,
-      verifyBalanceFn,
-      local: { allocatorMod, expectedAmountTapped, allocatorModContractInitialBalance },
-    }) =>
-      verifyBalanceFn({
+    fn: ({ local: { allocatorMod, expectedAmountTapped, allocatorModContractInitialBalance } }) =>
+      verifyBalance({
         address: allocatorMod.allocator,
         expect: allocatorModContractInitialBalance.add(
           expectedAmountTapped.mul(allocatorMod.percent).div(constants.MaxModPercent),
@@ -466,8 +455,6 @@ export default [
   {
     description: 'Check that the project owner got any leftovers',
     fn: ({
-      verifyBalanceFn,
-      constants,
       local: {
         owner,
         addressMod,
@@ -477,7 +464,7 @@ export default [
         ownerInitialBalance,
       },
     }) =>
-      verifyBalanceFn({
+      verifyBalance({
         address: owner.address,
         expect: ownerInitialBalance.add(
           expectedAmountTapped
@@ -490,7 +477,6 @@ export default [
   {
     description: "Make sure the project owner got governance's project tickets",
     fn: ({
-      constants,
       contracts,
       checkFn,
       randomSignerFn,

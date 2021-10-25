@@ -6,6 +6,7 @@
    - The old terminal can no longer receive funds or print tickets.
    - All funds will migrate to the new terminal for users to tap and redeem tickets on.
 */
+import { verifyBalance } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -14,7 +15,6 @@ export default [
   {
     description: 'Deploy a project for the owner',
     fn: async ({
-      constants,
       contracts,
       BigNumber,
       executeFn,
@@ -150,8 +150,8 @@ export default [
   },
   {
     description: "The terminal's balance should match the payment just made",
-    fn: ({ contracts, verifyBalanceFn, local: { paymentValue1, initialTerminalV1Balance } }) =>
-      verifyBalanceFn({
+    fn: ({ contracts, local: { paymentValue1, initialTerminalV1Balance } }) =>
+      verifyBalance({
         address: contracts.terminalV1.address,
         expect: initialTerminalV1Balance.add(paymentValue1),
       }),
@@ -321,16 +321,11 @@ export default [
   {
     description:
       'The only balance that should be left in the old terminalV1 is the admin fee incurred while tapping',
-    fn: async ({
-      constants,
-      contracts,
-      verifyBalanceFn,
-      local: { amountToTap1, initialTerminalV1Balance },
-    }) => {
+    fn: async ({ contracts, local: { amountToTap1, initialTerminalV1Balance } }) => {
       // The percent, out of `constants.MaxPercent`, that will be charged as a fee.
       const fee = await contracts.terminalV1.fee();
 
-      await verifyBalanceFn({
+      await verifyBalance({
         address: contracts.terminalV1.address,
         // Take the fee from the amount that was tapped.
         expect: initialTerminalV1Balance
@@ -342,7 +337,6 @@ export default [
   {
     description: 'The rest of the balance should be entirely in the new TerminalV1',
     fn: async ({
-      verifyBalanceFn,
       getBalanceFn,
       local: {
         paymentValue1,
@@ -352,7 +346,7 @@ export default [
         initialBalanceOfRedeemBeneficiary,
       },
     }) =>
-      verifyBalanceFn({
+      verifyBalance({
         address: secondTerminalV1.address,
         // The balance should be the amount paid minus the amount tapped and the amount claimed from redeeming tickets.
         expect: paymentValue1

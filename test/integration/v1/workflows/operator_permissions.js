@@ -5,9 +5,11 @@
   Test to make sure each function that can be operated 
   handles authorization correctly.
 */
+import { constants } from '../../../utils';
+
 const operations = [
   {
-    expand: ({ BigNumber, contracts, constants, local: { expectedProjectId } }) => ({
+    expand: ({ BigNumber, contracts, local: { expectedProjectId } }) => ({
       contract: contracts.terminalV1,
       fn: 'configure',
       args: [
@@ -34,7 +36,7 @@ const operations = [
     }),
   },
   {
-    expand: ({ contracts, BigNumber, constants, local: { expectedProjectId } }) => ({
+    expand: ({ contracts, BigNumber, local: { expectedProjectId } }) => ({
       contract: contracts.terminalV1,
       fn: 'printPreminedTickets',
       args: [
@@ -51,7 +53,7 @@ const operations = [
     }),
   },
   {
-    expand: ({ contracts, BigNumber, constants, local: { expectedProjectId, owner } }) => ({
+    expand: ({ contracts, BigNumber, local: { expectedProjectId, owner } }) => ({
       contract: contracts.terminalV1,
       fn: 'redeem',
       args: [
@@ -68,7 +70,7 @@ const operations = [
     }),
   },
   {
-    expand: ({ contracts, constants, local: { expectedProjectId } }) => ({
+    expand: ({ contracts, local: { expectedProjectId } }) => ({
       contract: contracts.terminalV1,
       fn: 'migrate',
       args: [expectedProjectId, constants.AddressZero],
@@ -78,7 +80,7 @@ const operations = [
     }),
   },
   {
-    expand: ({ contracts, stringToBytes, local: { expectedProjectId } }) => ({
+    expand: ({ stringToBytes, local: { expectedProjectId } }) => ({
       contract: contracts.projects,
       fn: 'setHandle',
       args: [expectedProjectId, stringToBytes('')],
@@ -97,7 +99,7 @@ const operations = [
     }),
   },
   {
-    expand: ({ contracts, constants, stringToBytes, local: { expectedProjectId } }) => ({
+    expand: ({ contracts, stringToBytes, local: { expectedProjectId } }) => ({
       contract: contracts.projects,
       fn: 'transferHandle',
       args: [expectedProjectId, constants.AddressZero, stringToBytes('')],
@@ -430,7 +432,7 @@ const operations = [
     allowWildcard: true,
   },
   {
-    expand: ({ contracts, BigNumber, constants, local: { owner, expectedProjectId } }) => ({
+    expand: ({ contracts, BigNumber, local: { owner, expectedProjectId } }) => ({
       contract: contracts.ticketBooth,
       fn: 'transfer',
       args: [owner.address, expectedProjectId, BigNumber.from(1), constants.AddressZero],
@@ -474,7 +476,7 @@ const operations = [
   },
   // The other allow cases are tested in various other integration tests.
   {
-    expand: ({ contracts, constants, local: { expectedProjectId } }) => ({
+    expand: ({ contracts, local: { expectedProjectId } }) => ({
       contract: contracts.terminalDirectory,
       fn: 'setTerminal',
       args: [expectedProjectId, constants.AddressZero],

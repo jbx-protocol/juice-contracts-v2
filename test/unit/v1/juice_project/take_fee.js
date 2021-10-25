@@ -127,9 +127,7 @@ export default function () {
 
         if (setTerminal) {
           const operatorStore = await deployMockLocalContract('OperatorStore');
-          const projects = await deployMockLocalContract('Projects', [
-            operatorStore.address,
-          ]);
+          const projects = await deployMockLocalContract('Projects', [operatorStore.address]);
           const prices = await deployMockLocalContract('Prices');
           const terminalDirectory = await deployMockLocalContract('TerminalDirectory', [
             projects.address,

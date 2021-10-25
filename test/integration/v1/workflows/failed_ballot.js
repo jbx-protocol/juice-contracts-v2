@@ -2,7 +2,7 @@
   This test is the same as the `approveBallot` test, but instead of a ballot that auto succeeds after its duration,
   the initial configuration of this test uses a ballot that auto fails after its duration.
 */
-import { randomBigNumber, randomBytes, randomString } from "../../../utils";
+import { randomBigNumber, randomBytes, randomString } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -15,7 +15,7 @@ export default [
     description: 'Deploy a project',
     fn: async ({
       deployer,
-      constants,
+
       contracts,
       executeFn,
       deployContractFn,
@@ -160,7 +160,6 @@ export default [
   {
     description: 'Reconfiguring should create a new funding cycle',
     fn: async ({
-      constants,
       contracts,
       executeFn,
       BigNumber,
@@ -246,7 +245,6 @@ export default [
   {
     description: 'The queued funding cycle should have the reconfiguration',
     fn: async ({
-      constants,
       contracts,
       checkFn,
       BigNumber,
@@ -441,7 +439,7 @@ export default [
       checkFn,
       BigNumber,
       randomSignerFn,
-      constants,
+
       local: {
         expectedProjectId,
         expectedFundingCycleId1,
@@ -488,11 +486,7 @@ export default [
   },
   {
     description: 'Fast forward to the end of ballot duration.',
-    fn: async ({
-      fastforwardFn,
-      BigNumber,
-      local: { cycleCountDuringBallot, duration1 },
-    }) =>
+    fn: async ({ fastforwardFn, BigNumber, local: { cycleCountDuringBallot, duration1 } }) =>
       // Add random padding to comfortably fit the fast forward within the next cycle.
       fastforwardFn(
         duration1
@@ -574,7 +568,7 @@ export default [
       checkFn,
       BigNumber,
       randomSignerFn,
-      constants,
+
       local: {
         expectedProjectId,
         expectedFundingCycleId1,

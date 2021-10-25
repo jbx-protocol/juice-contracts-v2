@@ -1,6 +1,6 @@
 import hardhat from 'hardhat';
 const {
-  ethers: { BigNumber, constants, getContractFactory },
+  ethers: { BigNumber, getContractFactory },
 } = hardhat;
 import { expect } from 'chai';
 

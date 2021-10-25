@@ -4,6 +4,8 @@
 
 import { BigNumber } from 'ethers';
 
+import { verifyBalance } from '../../../utils';
+
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
 
@@ -11,7 +13,6 @@ export default [
   {
     description: 'Deploy a project',
     fn: async ({
-      constants,
       contracts,
       executeFn,
       randomBigNumber,
@@ -116,8 +117,8 @@ export default [
   },
   {
     description: 'There should now be a balance in the proxy payment address',
-    fn: ({ verifyBalanceFn, local: { paymentValue, proxyPaymentAddress } }) =>
-      verifyBalanceFn({
+    fn: ({ local: { paymentValue, proxyPaymentAddress } }) =>
+      verifyBalance({
         address: proxyPaymentAddress,
         expect: paymentValue,
       }),
@@ -135,8 +136,8 @@ export default [
   },
   {
     description: 'The balance should be empty in the proxy payment address',
-    fn: ({ verifyBalanceFn, local: { proxyPaymentAddress } }) =>
-      verifyBalanceFn({
+    fn: ({ local: { proxyPaymentAddress } }) =>
+      verifyBalance({
         address: proxyPaymentAddress,
         expect: BigNumber.from(0),
       }),
@@ -147,7 +148,6 @@ export default [
     fn: ({
       checkFn,
       contracts,
-      constants,
       randomSignerFn,
       local: { proxyPaymentAddress, expectedProjectId, paymentValue },
     }) => {

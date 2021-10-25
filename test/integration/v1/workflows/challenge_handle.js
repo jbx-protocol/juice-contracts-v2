@@ -1,7 +1,7 @@
 /** 
   A project's handle can be challenged, after which a year must pass without it being renewed before it can be claimed.
 */
-import { randomBigNumber, randomBytes, randomString } from "../../../utils";
+import { randomBigNumber, randomBytes, randomString } from '../../../utils';
 
 export default [
   {
@@ -25,13 +25,7 @@ export default [
   },
   {
     description: 'Create a project',
-    fn: async ({
-      deployer,
-      contracts,
-      executeFn,
-      randomSignerFn,
-      local: { handle },
-    }) => {
+    fn: async ({ deployer, contracts, executeFn, randomSignerFn, local: { handle } }) => {
       // The address that will own a project.
       const owner = randomSignerFn();
 
@@ -104,13 +98,7 @@ export default [
   },
   {
     description: 'Create another project to claim the challenged handle onto',
-    fn: async ({
-      deployer,
-      contracts,
-      executeFn,
-      randomSignerFn,
-      incrementProjectIdFn,
-    }) => {
+    fn: async ({ deployer, contracts, executeFn, randomSignerFn, incrementProjectIdFn }) => {
       // The address that will own the second project.
       const claimer = randomSignerFn();
 

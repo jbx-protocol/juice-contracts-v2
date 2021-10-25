@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { BigNumber, constants, utils } from 'ethers';
+import { BigNumber, utils } from 'ethers';
 
 import { deployMockLocalContract } from '../../../utils';
 

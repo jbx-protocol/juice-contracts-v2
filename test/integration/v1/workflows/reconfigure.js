@@ -4,6 +4,7 @@
 
   These tests use an empty ballot, so reconfigurations may take effect right after the current funding cycle expires.
 */
+import { constants } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -15,7 +16,6 @@ export default [
   {
     description: 'Deploy a project',
     fn: async ({
-      constants,
       contracts,
       executeFn,
       randomBigNumber,
@@ -239,7 +239,6 @@ export default [
       BigNumber,
       randomSignerFn,
       timeMark,
-      constants,
       local: {
         cycleLimit1,
         target1,
@@ -287,7 +286,6 @@ export default [
     description:
       'Reconfiguring a project before a payment has been made should change the active funding cycle',
     fn: async ({
-      constants,
       contracts,
       executeFn,
       randomBigNumber,
@@ -631,7 +629,6 @@ export default [
   {
     description: 'The second funding cycle should have been configured',
     fn: ({
-      constants,
       contracts,
       checkFn,
       timeMark,
@@ -738,7 +735,6 @@ export default [
   {
     description: 'The second funding cycle should be queued',
     fn: ({
-      constants,
       contracts,
       checkFn,
       timeMark,

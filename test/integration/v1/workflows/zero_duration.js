@@ -12,7 +12,6 @@ export default [
   {
     description: 'Deploy a project with 0 duration',
     fn: async ({
-      constants,
       contracts,
       executeFn,
       randomBigNumber,
@@ -234,7 +233,7 @@ export default [
       checkFn,
       randomSignerFn,
       BigNumber,
-      constants,
+
       local: { expectedProjectId },
     }) =>
       checkFn({
@@ -361,7 +360,7 @@ export default [
       checkFn,
       randomSignerFn,
       BigNumber,
-      constants,
+
       local: { expectedProjectId },
     }) =>
       checkFn({
@@ -392,7 +391,6 @@ export default [
   {
     description: 'Reconfigure the project',
     fn: async ({
-      constants,
       contracts,
       executeFn,
       randomBigNumber,
@@ -468,7 +466,6 @@ export default [
   {
     description: 'Make sure the current configuration changed',
     fn: async ({
-      constants,
       contracts,
       checkFn,
       BigNumber,
@@ -535,7 +532,6 @@ export default [
   {
     description: 'Make sure the queued configuration changed',
     fn: ({
-      constants,
       contracts,
       checkFn,
       BigNumber,

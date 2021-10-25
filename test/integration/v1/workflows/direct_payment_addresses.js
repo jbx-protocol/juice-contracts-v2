@@ -3,7 +3,7 @@
 */
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
-import { randomBigNumber, randomBytes, randomString } from "../../../utils";
+import { randomBigNumber, randomBytes, randomString } from '../../../utils';
 
 const currency = 0;
 
@@ -11,7 +11,6 @@ export default [
   {
     description: 'Deploy a project',
     fn: async ({
-      constants,
       contracts,
       executeFn,
       BigNumber,
@@ -94,7 +93,6 @@ export default [
     description: 'Make a payment to the address',
     fn: async ({
       contracts,
-      randomBigNumber,
       BigNumber,
       getBalanceFn,
       randomSignerFn,
@@ -134,7 +132,6 @@ export default [
     description: 'The payer should have gotten tickets',
     fn: async ({
       randomSignerFn,
-      constants,
       contracts,
       checkFn,
       local: { payer, paymentValue, reservedRate, expectedProjectId },

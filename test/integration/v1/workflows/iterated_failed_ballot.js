@@ -1,6 +1,7 @@
 /** 
   If a funding cycle ballot fails, any subsequent reconfigurations should be based on the last approved cycle.
 */
+import { constants } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -13,7 +14,6 @@ export default [
     description: 'Deploy a project',
     fn: async ({
       deployer,
-      constants,
       contracts,
       executeFn,
       deployContractFn,
@@ -162,7 +162,6 @@ export default [
   {
     description: 'Reconfiguring should create a new funding cycle',
     fn: async ({
-      constants,
       contracts,
       executeFn,
       randomBigNumber,

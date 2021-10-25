@@ -12,7 +12,7 @@ export default [
       incrementFundingCycleIdFn,
       randomSignerFn,
       deployer,
-      constants,
+
       contracts,
       BigNumber,
       executeFn,
@@ -143,7 +143,6 @@ export default [
   {
     description: 'The ticket beneficiary should have tickets',
     fn: async ({
-      constants,
       checkFn,
       randomSignerFn,
       contracts,

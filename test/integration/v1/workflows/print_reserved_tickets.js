@@ -6,6 +6,7 @@
 
  Any configured ticket mods will get sent some of the printing reserved tickets at this time.
 */
+import { constants } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -93,7 +94,6 @@ export default [
   {
     description: 'The preconfig ticket beneficiary should have tickets from the payment',
     fn: async ({
-      constants,
       contracts,
       checkFn,
       randomSignerFn,
@@ -150,14 +150,7 @@ export default [
   },
   {
     description: "There shouldn't be any reserved tickets",
-    fn: ({
-      constants,
-      contracts,
-      checkFn,
-      randomBigNumber,
-      randomSignerFn,
-      local: { expectedProjectId },
-    }) =>
+    fn: ({ contracts, checkFn, randomBigNumber, randomSignerFn, local: { expectedProjectId } }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
@@ -169,7 +162,6 @@ export default [
   {
     description: 'The preconfig ticket beneficiary should now also have tickets from the premine',
     fn: async ({
-      constants,
       contracts,
       checkFn,
       randomSignerFn,
@@ -197,7 +189,6 @@ export default [
   {
     description: 'Configure the projects funding cycle',
     fn: async ({
-      constants,
       contracts,
       BigNumber,
       executeFn,
@@ -377,7 +368,6 @@ export default [
   {
     description: 'The owner should now have printable reserved tickets',
     fn: async ({
-      constants,
       contracts,
       checkFn,
       randomSignerFn,
@@ -444,7 +434,6 @@ export default [
     description:
       'The owner should now have the correct amount of tickets, accounting for any ticket mods',
     fn: ({
-      constants,
       contracts,
       checkFn,
       randomSignerFn,
@@ -467,7 +456,6 @@ export default [
   {
     description: 'The beneficiary of mod1 should now have the correct amount of tickets',
     fn: ({
-      constants,
       contracts,
       checkFn,
       randomSignerFn,
@@ -488,7 +476,6 @@ export default [
   {
     description: 'Check for the correct number of staked tickets',
     fn: ({
-      constants,
       contracts,
       BigNumber,
       checkFn,
@@ -518,7 +505,6 @@ export default [
   {
     description: 'The beneficiary of mod2 should now have the correct amount of tickets',
     fn: ({
-      constants,
       contracts,
       checkFn,
       randomSignerFn,
@@ -539,7 +525,6 @@ export default [
   {
     description: 'Check for the correct number of staked tickets',
     fn: ({
-      constants,
       contracts,
       BigNumber,
       checkFn,
@@ -619,7 +604,6 @@ export default [
   {
     description: 'The owner should now have printable reserved tickets again',
     fn: async ({
-      constants,
       contracts,
       checkFn,
       randomSignerFn,

@@ -3,14 +3,13 @@
 
   These steps can all be taken seperately without calling `deploy`.
 */
-import { randomBigNumber, randomBytes, randomString } from "../../../utils";
+import { randomBigNumber, randomBytes, randomString } from '../../../utils';
 
 export default [
   {
     description: 'Deploy a project',
     fn: async ({
       deployer,
-      constants,
       contracts,
       executeFn,
       BigNumber,

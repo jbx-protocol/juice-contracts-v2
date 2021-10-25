@@ -7,6 +7,7 @@
   If a project has an active reconfiguration ballot, the reconfiguration bonding curve should be used,
   instead of the regular bonding curve.
 */
+import { verifyBalance } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -23,7 +24,6 @@ export default [
       randomString,
       getBalanceFn,
       randomBigNumber,
-      constants,
       contracts,
       incrementProjectIdFn,
       incrementFundingCycleIdFn,
@@ -174,7 +174,6 @@ export default [
       randomAddressFn,
       contracts,
       BigNumber,
-      constants,
       local: { expectedProjectId, ticketBeneficiary1, reservedRate, paymentValue1 },
     }) => {
       const expectedTotalTicketsFromPayment1 = paymentValue1.mul(constants.InitialWeightMultiplier);
@@ -284,10 +283,9 @@ export default [
     description: 'The terminalV1 should have the funds from the payments',
     fn: ({
       contracts,
-      verifyBalanceFn,
       local: { paymentValue1, paymentValue2, paymentValue3, initialContractBalance },
     }) =>
-      verifyBalanceFn({
+      verifyBalance({
         address: contracts.terminalV1.address,
         expect: initialContractBalance.add(paymentValue1.add(paymentValue2).add(paymentValue3)),
       }),
@@ -319,7 +317,6 @@ export default [
       bondingCurveFn,
       checkFn,
       randomSignerFn,
-      constants,
       local: {
         expectedProjectId,
         ticketBeneficiary1,
@@ -434,14 +431,13 @@ export default [
   {
     description: 'The first redeem beneficiary received the correct amount of funds',
     fn: ({
-      verifyBalanceFn,
       local: {
         redeemableAmountOfTicketBeneficiary1,
         redeemBeneficiary1,
         initialBalanceOfRedeemBeneficiary1,
       },
     }) =>
-      verifyBalanceFn({
+      verifyBalance({
         address: redeemBeneficiary1,
         expect: initialBalanceOfRedeemBeneficiary1.add(redeemableAmountOfTicketBeneficiary1),
       }),
@@ -467,7 +463,6 @@ export default [
       'The terminalV1 should no longer have the funds sent to the first redeem beneificiary',
     fn: ({
       contracts,
-      verifyBalanceFn,
       local: {
         paymentValue1,
         paymentValue2,
@@ -476,7 +471,7 @@ export default [
         redeemableAmountOfTicketBeneficiary1,
       },
     }) =>
-      verifyBalanceFn({
+      verifyBalance({
         address: contracts.terminalV1.address,
         expect: initialContractBalance
           .add(paymentValue1.add(paymentValue2).add(paymentValue3))
@@ -489,7 +484,6 @@ export default [
       contracts,
       checkFn,
       randomSignerFn,
-      constants,
       local: {
         reservedRate,
         expectedProjectId,
@@ -518,7 +512,6 @@ export default [
       executeFn,
       randomBigNumber,
       contracts,
-      constants,
       BigNumber,
       incrementFundingCycleIdFn,
       local: { owner, expectedProjectId },
@@ -680,14 +673,13 @@ export default [
   {
     description: 'The second redeem beneficiary received the correct amount of funds',
     fn: ({
-      verifyBalanceFn,
       local: {
         redeemableAmountOfTicketBeneficiary2,
         redeemBeneficiary2,
         initialBalanceOfRedeemBeneficiary2,
       },
     }) =>
-      verifyBalanceFn({
+      verifyBalance({
         address: redeemBeneficiary2,
         expect: initialBalanceOfRedeemBeneficiary2.add(redeemableAmountOfTicketBeneficiary2),
       }),
@@ -713,7 +705,6 @@ export default [
       'The terminalV1 should no longer have the funds sent to the second redeem beneificiary',
     fn: ({
       contracts,
-      verifyBalanceFn,
       local: {
         paymentValue1,
         paymentValue2,
@@ -723,7 +714,7 @@ export default [
         redeemableAmountOfTicketBeneficiary2,
       },
     }) =>
-      verifyBalanceFn({
+      verifyBalance({
         address: contracts.terminalV1.address,
         expect: initialContractBalance
           .add(paymentValue1.add(paymentValue2).add(paymentValue3))
@@ -737,7 +728,6 @@ export default [
       contracts,
       checkFn,
       randomSignerFn,
-      constants,
       local: {
         reservedRate,
         expectedProjectId,
@@ -889,14 +879,13 @@ export default [
   {
     description: 'The third redeem beneficiary received the correct amount of funds',
     fn: ({
-      verifyBalanceFn,
       local: {
         redeemableAmountOfTicketBeneficiary3,
         redeemBeneficiary3,
         initialBalanceOfRedeemBeneficiary3,
       },
     }) =>
-      verifyBalanceFn({
+      verifyBalance({
         address: redeemBeneficiary3,
         expect: initialBalanceOfRedeemBeneficiary3.add(redeemableAmountOfTicketBeneficiary3),
       }),
@@ -922,7 +911,6 @@ export default [
       'The terminalV1 should no longer have the funds sent to the second redeem beneificiary',
     fn: ({
       contracts,
-      verifyBalanceFn,
       local: {
         paymentValue1,
         paymentValue2,
@@ -933,7 +921,7 @@ export default [
         redeemableAmountOfTicketBeneficiary3,
       },
     }) =>
-      verifyBalanceFn({
+      verifyBalance({
         address: contracts.terminalV1.address,
         expect: initialContractBalance
           .add(paymentValue1.add(paymentValue2).add(paymentValue3))
@@ -1143,10 +1131,9 @@ export default [
   {
     description: 'The beneficiary received the correct amount of funds',
     fn: ({
-      verifyBalanceFn,
       local: { redeemBeneficiary4, claimableOverflow, initialBalanceOfRedeemBeneficiary4 },
     }) =>
-      verifyBalanceFn({
+      verifyBalance({
         address: redeemBeneficiary4,
         expect: initialBalanceOfRedeemBeneficiary4.add(claimableOverflow),
       }),

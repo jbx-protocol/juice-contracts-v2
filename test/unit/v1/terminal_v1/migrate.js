@@ -99,13 +99,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: async ({
-        deployer,
-        mockContracts,
-        governance,
-        targetContract,
-        addrs,
-      }) => {
+      fn: async ({ deployer, mockContracts, governance, targetContract, addrs }) => {
         return {
           caller: deployer,
           projectOwner: addrs[0].address,
@@ -166,12 +160,7 @@ const tests = {
     },
     {
       description: 'not allowed',
-      fn: async ({
-        deployer,
-        mockContracts,
-        governance,
-        targetContract,
-      }) => {
+      fn: async ({ deployer, mockContracts, governance, targetContract }) => {
         return {
           caller: deployer,
           projectOwner: deployer.address,

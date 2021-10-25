@@ -7,7 +7,7 @@
 
   This test makes sure the conversion rates are honored.
 */
-import { randomBigNumber, randomBytes, randomString } from "../../../utils";
+import { randomBigNumber, randomBytes, randomString, verifyBalance } from '../../../utils';
 
 export default [
   {
@@ -34,7 +34,6 @@ export default [
   {
     description: 'Deploy first project',
     fn: async ({
-      constants,
       contracts,
       executeFn,
       BigNumber,
@@ -159,7 +158,6 @@ export default [
   {
     description: 'Check that the beneficiary of the premine got the correct amount of tickets',
     fn: async ({
-      constants,
       contracts,
       checkFn,
       randomSignerFn,
@@ -203,7 +201,6 @@ export default [
   {
     description: 'Check that the beneficiary of the payment got the correct amount of tickets',
     fn: ({
-      constants,
       contracts,
       checkFn,
       randomSignerFn,
@@ -278,17 +275,12 @@ export default [
   },
   {
     description: 'The tapped funds should be in the owners balance',
-    fn: async ({
-      constants,
-      contracts,
-      verifyBalanceFn,
-      local: { owner, amountToTapInWei, ownersInitialBalance },
-    }) => {
+    fn: async ({ contracts, local: { owner, amountToTapInWei, ownersInitialBalance } }) => {
       // The amount tapped takes into account any fees paid.
       const expectedTappedAmountInWei = amountToTapInWei
         .mul(constants.MaxPercent)
         .div((await contracts.terminalV1.fee()).add(constants.MaxPercent));
-      await verifyBalanceFn({
+      await verifyBalance({
         address: owner.address,
         expect: ownersInitialBalance.add(expectedTappedAmountInWei),
       });

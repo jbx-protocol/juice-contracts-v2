@@ -6,6 +6,8 @@
 
   A created project can make use all TerminalV1 functionality as normal.
 */
+import { constants } from '../../../utils';
+
 export default [
   {
     description: 'Create a project',
@@ -87,14 +89,7 @@ export default [
   },
   {
     description: "Make sure someone else can't deploy a project with the same handle",
-    fn: async ({
-      contracts,
-      constants,
-      executeFn,
-      randomString,
-      randomSignerFn,
-      local: { handle },
-    }) => {
+    fn: async ({ contracts, executeFn, randomString, randomSignerFn, local: { handle } }) => {
       // The address that will own another project.
       const secondOwner = randomSignerFn();
       await executeFn({
@@ -193,7 +188,6 @@ export default [
     description: 'Create another project for a different owner using the old handle',
     fn: async ({
       contracts,
-      constants,
       executeFn,
       randomString,
       randomSignerFn,
@@ -291,14 +285,7 @@ export default [
   },
   {
     description: "Make sure a project can't be created with the transfered handle",
-    fn: ({
-      deployer,
-      contracts,
-      constants,
-      executeFn,
-      randomString,
-      local: { secondOwner, secondHandle },
-    }) =>
+    fn: ({ deployer, contracts, executeFn, randomString, local: { secondOwner, secondHandle } }) =>
       executeFn({
         caller: deployer,
         contract: contracts.projects,
@@ -435,7 +422,6 @@ export default [
     description: "Configure the project's funding cycle",
     fn: async ({
       contracts,
-      constants,
       executeFn,
       BigNumber,
       randomBigNumber,

@@ -1,6 +1,7 @@
 /** 
   A funding cycle configuration can have a limit, after which the projects reverts to the previous configuration.
 */
+import { constants } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -12,7 +13,6 @@ export default [
   {
     description: 'Setting a limit on the first deployed funding cycle shouldnt do anything',
     fn: async ({
-      constants,
       contracts,
       executeFn,
       randomBigNumber,
@@ -234,7 +234,6 @@ export default [
   {
     description: 'Make sure the same funding cycle is current',
     fn: async ({
-      constants,
       contracts,
       checkFn,
       BigNumber,
@@ -295,7 +294,6 @@ export default [
   {
     description: 'Make sure the same funding cycle is current',
     fn: async ({
-      constants,
       contracts,
       checkFn,
       BigNumber,
@@ -353,7 +351,6 @@ export default [
   {
     description: 'Reconfigure the project to have a limit',
     fn: async ({
-      constants,
       contracts,
       executeFn,
       randomBigNumber,
@@ -488,7 +485,6 @@ export default [
   {
     description: 'Make sure the configuration changed',
     fn: async ({
-      constants,
       contracts,
       checkFn,
       BigNumber,
@@ -562,7 +558,6 @@ export default [
   {
     description: 'Make sure the limited configuration is still active',
     fn: async ({
-      constants,
       contracts,
       checkFn,
       BigNumber,
@@ -633,7 +628,6 @@ export default [
   {
     description: 'Make sure the permanent funding cycle is back to being the current',
     fn: async ({
-      constants,
       contracts,
       checkFn,
       BigNumber,
@@ -718,7 +712,6 @@ export default [
   {
     description: 'Make sure the tapped funding cycle is the current',
     fn: async ({
-      constants,
       contracts,
       checkFn,
       BigNumber,

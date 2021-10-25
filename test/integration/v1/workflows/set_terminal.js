@@ -2,6 +2,7 @@
   A project can be created without specifying a payment terminal. 
   The project will have to set a terminal before it can print tickets or configure its funding cycles.
 */
+import { constants } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -10,7 +11,6 @@ export default [
   {
     description: 'Create a project with no payment terminal',
     fn: async ({
-      constants,
       contracts,
       executeFn,
       randomString,
@@ -42,7 +42,7 @@ export default [
   },
   {
     description: 'Make sure the terminal was not set in the directory',
-    fn: ({ checkFn, randomSignerFn, contracts, constants, local: { expectedProjectId } }) =>
+    fn: ({ checkFn, randomSignerFn, contracts, local: { expectedProjectId } }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.terminalDirectory,
@@ -85,7 +85,6 @@ export default [
   {
     description: "Shouldn't be able to configure",
     fn: ({
-      constants,
       contracts,
       executeFn,
       randomBigNumber,
@@ -203,7 +202,6 @@ export default [
   {
     description: 'Should now be able to configure',
     fn: async ({
-      constants,
       contracts,
       executeFn,
       randomBigNumber,

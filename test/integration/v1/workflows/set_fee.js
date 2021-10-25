@@ -3,6 +3,7 @@
 
   All current configurations will not be affected, and will keep the old fee until a new configuration is approved.
 */
+import { constants } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -11,7 +12,6 @@ export default [
   {
     description: 'Deploy a project',
     fn: async ({
-      constants,
       contracts,
       executeFn,
       randomBigNumber,
@@ -189,7 +189,7 @@ export default [
   },
   {
     description: 'Set a new fee',
-    fn: async ({ randomBigNumber, constants, executeFn, deployer, contracts }) => {
+    fn: async ({ randomBigNumber, executeFn, deployer, contracts }) => {
       const newFee = randomBigNumber({ max: constants.MaxPercent });
       await executeFn({
         caller: deployer,
@@ -216,7 +216,6 @@ export default [
   {
     description: 'The funding cycle should still have the original fee',
     fn: async ({
-      constants,
       contracts,
       checkFn,
       BigNumber,
@@ -352,7 +351,6 @@ export default [
   {
     description: 'The queued funding cycle should use the new fee',
     fn: async ({
-      constants,
       contracts,
       checkFn,
       timeMark,
@@ -407,7 +405,6 @@ export default [
   {
     description: "The current shouldn't be affected",
     fn: async ({
-      constants,
       contracts,
       checkFn,
       BigNumber,
@@ -479,7 +476,6 @@ export default [
   {
     description: 'The current should have the tapped amount',
     fn: async ({
-      constants,
       contracts,
       checkFn,
       BigNumber,

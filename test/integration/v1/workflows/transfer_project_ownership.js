@@ -7,7 +7,7 @@ export default [
     description: 'Create a project for the initial owner',
     fn: async ({
       contracts,
-      constants,
+
       executeFn,
       randomString,
       randomSignerFn,
