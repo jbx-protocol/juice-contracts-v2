@@ -121,40 +121,6 @@ describe('Juicebox', async function () {
       );
     };
 
-    // Bind a function that sends funds from one address to another.
-    this.sendTransactionFn = async ({ from, to, value, revert, events }) => {
-      // Transfer the funds.
-      const promise = from.sendTransaction({
-        to,
-        value,
-      });
-
-      // If a revert message is passed in, check to see if it was thrown.
-      if (revert) {
-        await _expect(promise).to.be.revertedWith(revert);
-        return;
-      }
-
-      // Await the promise.
-      const tx = await promise;
-
-      // Wait for a block to get mined.
-      await tx.wait();
-
-      // Set the time mark of this function.
-      await this.setTimeMarkFn(tx.blockNumber);
-
-      // Return if there are no events.
-      if (events.length === 0) return;
-
-      // Check for events.
-      events.forEach((event) =>
-        _expect(tx)
-          .to.emit(event.contract, event.name)
-          .withArgs(...event.args),
-      );
-    };
-
     // Bind a function that checks if a contract getter equals an expected value.
     this.checkFn = async ({ caller, contract, fn, args, expect, plusMinus }) => {
       const storedVal = await contract.connect(caller)[fn](...args);
