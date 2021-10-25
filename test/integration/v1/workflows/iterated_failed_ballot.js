@@ -1,7 +1,7 @@
 /** 
   If a funding cycle ballot fails, any subsequent reconfigurations should be based on the last approved cycle.
 */
-import { constants } from '../../../utils';
+import { constants } from "../../../utils";
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -134,7 +134,7 @@ export default [
       executeFn,
       randomString,
       randomAddressFn,
-      randomBoolFn,
+      
       timeMark,
       local: { expectedProjectId, payer, paymentValue },
     }) => {
@@ -142,7 +142,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, randomAddressFn(), randomString(), randomBoolFn()],
+        args: [expectedProjectId, randomAddressFn(), randomString(), randomBool()],
         value: paymentValue,
       });
       return { originalTimeMark: timeMark };
@@ -249,7 +249,6 @@ export default [
   {
     description: 'The queued funding cycle should have the reconfiguration',
     fn: async ({
-      constants,
       contracts,
       checkFn,
       BigNumber,
@@ -445,7 +444,6 @@ export default [
       checkFn,
       BigNumber,
       randomSignerFn,
-      constants,
       local: {
         expectedProjectId,
         expectedFundingCycleId1,
@@ -642,7 +640,6 @@ export default [
       checkFn,
       BigNumber,
       randomSignerFn,
-      constants,
       local: {
         expectedProjectId,
         expectedFundingCycleId1,

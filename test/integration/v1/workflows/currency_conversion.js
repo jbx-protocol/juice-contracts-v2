@@ -124,7 +124,7 @@ export default [
       contracts,
       executeFn,
       BigNumber,
-      randomBoolFn,
+      
       randomAddressFn,
       local: { owner, rate, decimals, currency, expectedProjectId },
     }) => {
@@ -149,7 +149,7 @@ export default [
           currency,
           premineTicketBeneficiary,
           randomString(),
-          randomBoolFn(),
+          randomBool(),
         ],
       });
       return { premineTicketBeneficiary, premineValueInWei };
@@ -179,7 +179,7 @@ export default [
     fn: async ({
       contracts,
       executeFn,
-      randomBoolFn,
+      
       randomAddressFn,
       local: { payer, paymentValueInWei, expectedProjectId, premineTicketBeneficiary },
     }) => {
@@ -192,7 +192,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, paymentTicketBeneficiary, randomString(), randomBoolFn()],
+        args: [expectedProjectId, paymentTicketBeneficiary, randomString(), randomBool()],
         value: paymentValueInWei,
       });
       return { paymentTicketBeneficiary };

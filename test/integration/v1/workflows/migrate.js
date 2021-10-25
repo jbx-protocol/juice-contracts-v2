@@ -126,7 +126,7 @@ export default [
       executeFn,
       randomString,
       randomSignerFn,
-      randomBoolFn,
+      
       getBalanceFn,
       contracts,
       local: { payer, paymentValue1, expectedProjectId },
@@ -141,7 +141,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, ticketBeneficiary.address, randomString(), randomBoolFn()],
+        args: [expectedProjectId, ticketBeneficiary.address, randomString(), randomBool()],
         value: paymentValue1,
       });
 
@@ -165,7 +165,7 @@ export default [
       randomBigNumber,
       randomAddressFn,
       getBalanceFn,
-      randomBoolFn,
+      
       BigNumber,
       local: { ticketBeneficiary, expectedProjectId, owner },
     }) => {
@@ -200,7 +200,7 @@ export default [
           portionOfRedeemableTicketsOfTicketBeneficiary,
           0, // must be lower than the expected amount of ETH that is being claimed.
           redeemBeneficiary,
-          randomBoolFn(),
+          randomBool(),
         ],
       });
 
@@ -371,7 +371,7 @@ export default [
       contracts,
       executeFn,
       randomAddressFn,
-      randomBoolFn,
+      
       randomString,
       local: { payer, paymentValue2, expectedProjectId },
     }) =>
@@ -379,7 +379,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, randomAddressFn(), randomString(), randomBoolFn()],
+        args: [expectedProjectId, randomAddressFn(), randomString(), randomBool()],
         value: paymentValue2,
         revert: 'TerminalUtility: UNAUTHORIZED',
       }),
@@ -403,7 +403,7 @@ export default [
     fn: ({
       executeFn,
       randomAddressFn,
-      randomBoolFn,
+      
       local: {
         leftoverRedeemableTicketsOfTicketBeneficiary,
         ticketBeneficiary,
@@ -421,7 +421,7 @@ export default [
           leftoverRedeemableTicketsOfTicketBeneficiary,
           0, // must be lower than the expected amount of ETH that is being claimed.
           randomAddressFn(),
-          randomBoolFn(),
+          randomBool(),
         ],
       }),
   },
@@ -430,7 +430,7 @@ export default [
     fn: ({
       executeFn,
       randomAddressFn,
-      randomBoolFn,
+      
       local: { reservedTicketAmount, owner, reservedRate, expectedProjectId, secondTerminalV1 },
     }) =>
       executeFn({
@@ -443,7 +443,7 @@ export default [
           reservedTicketAmount,
           0, // must be lower than the expected amount of ETH that is being claimed.
           randomAddressFn(),
-          randomBoolFn(),
+          randomBool(),
         ],
         revert: reservedRate.eq(0) && 'TerminalV1::redeem: NO_OP',
       }),
@@ -453,7 +453,7 @@ export default [
     fn: ({
       executeFn,
       randomAddressFn,
-      randomBoolFn,
+      
       randomString,
       local: { payer, paymentValue2, expectedProjectId, secondTerminalV1 },
     }) =>
@@ -461,7 +461,7 @@ export default [
         caller: payer,
         contract: secondTerminalV1,
         fn: 'pay',
-        args: [expectedProjectId, randomAddressFn(), randomString(), randomBoolFn()],
+        args: [expectedProjectId, randomAddressFn(), randomString(), randomBool()],
         value: paymentValue2,
       }),
   },

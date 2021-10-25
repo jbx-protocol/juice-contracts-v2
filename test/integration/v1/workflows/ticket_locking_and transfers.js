@@ -501,7 +501,7 @@ export default [
       executeFn,
       contracts,
       randomAddressFn,
-      randomBoolFn,
+      
       local: { expectedProjectId, ticketBeneficiary, amountToLock },
     }) => {
       // Try redeeming everything except what was transfered away.
@@ -529,7 +529,7 @@ export default [
           ticketsToRedeem,
           0,
           randomAddressFn(),
-          randomBoolFn(),
+          randomBool(),
         ],
         revert:
           // No op if no tickets are being redeemed, or if there's no amount to claim.
@@ -582,7 +582,7 @@ export default [
       executeFn,
       contracts,
       randomAddressFn,
-      randomBoolFn,
+      
       local: {
         expectedProjectId,
         ticketBeneficiary,
@@ -601,7 +601,7 @@ export default [
           ticketsToRedeem,
           0,
           randomAddressFn(),
-          randomBoolFn(),
+          randomBool(),
         ],
         revert:
           ticketsToRedeem.eq(0) || expectedClaimedAmountIsZero

@@ -166,9 +166,6 @@ describe('Juicebox', async function () {
       return candidate;
     };
 
-    // Bind a function that returns either true or false randomly.
-    this.randomBoolFn = () => Math.random() > 0.5;
-
     // Bind the big number utils.
     this.BigNumber = ethers.BigNumber;
 

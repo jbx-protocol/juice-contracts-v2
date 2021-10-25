@@ -20,7 +20,7 @@ export default [
       deployContractFn,
       randomBigNumber,
       getBalanceFn,
-      randomBoolFn,
+      
       randomString,
       randomAddressFn,
       incrementProjectIdFn,
@@ -76,7 +76,7 @@ export default [
       // There are three types of mods.
       // Address mods route payout directly to an address.
       const addressMod = {
-        preferUnstaked: randomBoolFn(),
+        preferUnstaked: randomBool(),
         percent: percent1.toNumber(),
         lockedUntil: 0,
         // Make sure the beneficiary isnt the owner.
@@ -88,7 +88,7 @@ export default [
       };
       // Project mods route payout directly to another project on TerminalV1.
       const projectMod = {
-        preferUnstaked: randomBoolFn(),
+        preferUnstaked: randomBool(),
         percent: percent2.toNumber(),
         lockedUntil: 0,
         beneficiary: randomAddressFn(),
@@ -97,7 +97,7 @@ export default [
       };
       // Allocator mods route payments directly to the specified contract that inherits from IModAllocator.
       const allocatorMod = {
-        preferUnstaked: randomBoolFn(),
+        preferUnstaked: randomBool(),
         percent: percent3.toNumber(),
         lockedUntil: 0,
         beneficiary: randomAddressFn(),
@@ -296,7 +296,7 @@ export default [
     fn: ({
       contracts,
       executeFn,
-      randomBoolFn,
+      
       randomString,
       randomAddressFn,
       local: { payer, paymentValue1, expectedIdOfBaseProject },
@@ -305,7 +305,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedIdOfBaseProject, randomAddressFn(), randomString(), randomBoolFn()],
+        args: [expectedIdOfBaseProject, randomAddressFn(), randomString(), randomBool()],
         value: paymentValue1,
       }),
   },
@@ -504,7 +504,7 @@ export default [
       executeFn,
       BigNumber,
       randomBigNumber,
-      randomBoolFn,
+      
       randomString,
       randomAddressFn,
       local: { payer, expectedIdOfBaseProject, target },
@@ -518,7 +518,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedIdOfBaseProject, randomAddressFn(), randomString(), randomBoolFn()],
+        args: [expectedIdOfBaseProject, randomAddressFn(), randomString(), randomBool()],
         value: paymentValue2,
       });
 

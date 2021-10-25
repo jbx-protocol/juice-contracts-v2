@@ -104,6 +104,9 @@ export const randomBytes = ({
   return candidate;
 };
 
+// Bind a function that returns either true or false randomly.
+export const randomBool = () => Math.random() > 0.5;
+
 // Binds a function that makes sure the provided address has the balance
 export const verifyBalance = async ({ address, expect, plusMinus }) => {
   const storedVal = await ethers.provider.getBalance(address);

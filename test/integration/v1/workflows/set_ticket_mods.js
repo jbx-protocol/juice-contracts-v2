@@ -18,7 +18,7 @@ export default [
       randomBigNumber,
       randomBytes,
       getTimestampFn,
-      randomBoolFn,
+      
       randomString,
       randomAddressFn,
       randomSignerFn,
@@ -35,7 +35,7 @@ export default [
 
       // Ticket mods can be locked.
       const lockedMod = {
-        preferUnstaked: randomBoolFn(),
+        preferUnstaked: randomBool(),
         // Arbitrary percent that adds up to <= 100% across all mods.
         percent: randomBigNumber({
           min: BigNumber.from(1),
@@ -53,7 +53,7 @@ export default [
         beneficiary: randomAddressFn(),
       };
       const unlockedMod1 = {
-        preferUnstaked: randomBoolFn(),
+        preferUnstaked: randomBool(),
         // Arbitrary percent that adds up to <= 100% across all mods.
         percent: randomBigNumber({
           min: BigNumber.from(1),
@@ -139,17 +139,16 @@ export default [
     fn: async ({
       contracts,
       executeFn,
-      randomBoolFn,
+      
       randomAddressFn,
       timeMark,
-      constants,
       randomBigNumber,
       BigNumber,
       local: { owner, expectedProjectId, unlockedMod1 },
     }) => {
       // Arbitrary percent that adds up to <= 100% across all mods.
       const unlockedMod2 = {
-        preferUnstaked: randomBoolFn(),
+        preferUnstaked: randomBool(),
         percent: randomBigNumber({
           min: BigNumber.from(1),
           max: constants.MaxModPercent.div(5),
@@ -254,7 +253,6 @@ export default [
     description:
       'Configuring a project should allow overriding locked mods for the new configuration',
     fn: ({
-      constants,
       contracts,
       executeFn,
       BigNumber,

@@ -144,7 +144,7 @@ export default [
     description: 'Make a payment to the project',
     fn: async ({
       executeFn,
-      randomBoolFn,
+      
       randomString,
       randomSignerFn,
       contracts,
@@ -159,7 +159,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, ticketBeneficiary1.address, randomString(), randomBoolFn()],
+        args: [expectedProjectId, ticketBeneficiary1.address, randomString(), randomBool()],
         value: paymentValue1,
       });
 
@@ -170,7 +170,7 @@ export default [
     description: "Can't redeem with no overflow",
     fn: async ({
       executeFn,
-      randomBoolFn,
+      
       randomAddressFn,
       contracts,
       BigNumber,
@@ -192,7 +192,7 @@ export default [
           BigNumber.from(1),
           0,
           randomAddressFn(),
-          randomBoolFn(),
+          randomBool(),
         ],
         revert: expectedRedeemableTicketsOfTicketBeneficiary1.eq(0)
           ? 'TerminalV1::claimableOverflow: INSUFFICIENT_TICKETS'
@@ -212,7 +212,7 @@ export default [
       executeFn,
       contracts,
       randomString,
-      randomBoolFn,
+      
       local: { payer, expectedProjectId, paymentValue2, owner, ticketBeneficiary1 },
     }) => {
       // An account that will be distributed tickets in the second payment.
@@ -224,7 +224,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, ticketBeneficiary2.address, randomString(), randomBoolFn()],
+        args: [expectedProjectId, ticketBeneficiary2.address, randomString(), randomBool()],
         value: paymentValue2,
       });
       return { ticketBeneficiary2 };
@@ -234,7 +234,7 @@ export default [
     description: 'Make a third payment to the project, sending tickets to a different beneficiary',
     fn: async ({
       executeFn,
-      randomBoolFn,
+      
       randomString,
       randomSignerFn,
       contracts,
@@ -256,7 +256,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, ticketBeneficiary3.address, randomString(), randomBoolFn()],
+        args: [expectedProjectId, ticketBeneficiary3.address, randomString(), randomBool()],
         value: paymentValue3,
       });
 
@@ -375,7 +375,7 @@ export default [
   {
     description: 'The first ticket beneficiary tickets can be redeemed successfully',
     fn: async ({
-      randomBoolFn,
+      
       contracts,
       executeFn,
       getBalanceFn,
@@ -410,7 +410,7 @@ export default [
           redeemableTicketsOfTicketBeneficiary1,
           redeemableAmountOfTicketBeneficiary1,
           redeemBeneficiary1,
-          randomBoolFn(),
+          randomBool(),
         ],
         revert: expectNoOp && 'TerminalV1::redeem: NO_OP',
       });
@@ -617,7 +617,7 @@ export default [
   {
     description: 'The second ticket beneficiary tickets can be redeemed successfully',
     fn: async ({
-      randomBoolFn,
+      
       contracts,
       executeFn,
       getBalanceFn,
@@ -652,7 +652,7 @@ export default [
           redeemableTicketsOfTicketBeneficiary2,
           redeemableAmountOfTicketBeneficiary2,
           redeemBeneficiary2,
-          randomBoolFn(),
+          randomBool(),
         ],
         revert: expectNoOp && 'TerminalV1::redeem: NO_OP',
       });
@@ -823,7 +823,7 @@ export default [
   {
     description: 'The third ticket beneficiary tickets can be redeemed successfully',
     fn: async ({
-      randomBoolFn,
+      
       contracts,
       executeFn,
       getBalanceFn,
@@ -858,7 +858,7 @@ export default [
           redeemableTicketsOfTicketBeneficiary3,
           redeemableAmountOfTicketBeneficiary3,
           redeemBeneficiary3,
-          randomBoolFn(),
+          randomBool(),
         ],
         revert: expectNoOp && 'TerminalV1::redeem: NO_OP',
       });
@@ -1081,7 +1081,7 @@ export default [
     fn: async ({
       executeFn,
       contracts,
-      randomBoolFn,
+      
       getBalanceFn,
       randomAddressFn,
       BigNumber,
@@ -1113,7 +1113,7 @@ export default [
           reservedTicketBalance,
           claimableOverflow,
           redeemBeneficiary4,
-          randomBoolFn(),
+          randomBool(),
         ],
         revert: expectNoOp && 'TerminalV1::redeem: NO_OP',
       });

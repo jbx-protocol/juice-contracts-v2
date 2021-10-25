@@ -21,7 +21,7 @@ export default [
       randomBigNumber,
       randomBytes,
       getTimestampFn,
-      randomBoolFn,
+      
       randomString,
       randomAddressFn,
       incrementFundingCycleIdFn,
@@ -38,7 +38,7 @@ export default [
       // Payment mods can be locked.
       // Make a locked mods.
       const lockedMod1 = {
-        preferUnstaked: randomBoolFn(),
+        preferUnstaked: randomBool(),
         // Arbitrary percent that adds up to <= 100% across all mods.
         percent: randomBigNumber({
           min: BigNumber.from(1),
@@ -58,7 +58,7 @@ export default [
         projectId: BigNumber.from(0),
       };
       const unlockedMod1 = {
-        preferUnstaked: randomBoolFn(),
+        preferUnstaked: randomBool(),
         // Arbitrary percent that adds up to <= 100% across all mods.
         percent: randomBigNumber({
           min: BigNumber.from(1),
@@ -159,13 +159,13 @@ export default [
       executeFn,
       BigNumber,
       deployContractFn,
-      randomBoolFn,
+      
       randomAddressFn,
       timeMark,
       local: { owner, expectedProjectId, unlockedMod1 },
     }) => {
       const unlockedMod2 = {
-        preferUnstaked: randomBoolFn(),
+        preferUnstaked: randomBool(),
         // Arbitrary percent that adds up to <= 100% across all mods.
         percent: randomBigNumber({
           min: BigNumber.from(1),

@@ -118,7 +118,7 @@ export default [
       executeFn,
       contracts,
       randomString,
-      randomBoolFn,
+      
       local: { expectedProjectId, payer, paymentValue1 },
     }) => {
       // An account that will be distributed tickets in the first payment.
@@ -128,7 +128,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, ticketBeneficiary.address, randomString(), randomBoolFn()],
+        args: [expectedProjectId, ticketBeneficiary.address, randomString(), randomBool()],
         value: paymentValue1,
       });
 
@@ -487,7 +487,7 @@ export default [
     fn: async ({
       executeFn,
       randomAddressFn,
-      randomBoolFn,
+      
       contracts,
       BigNumber,
       local: { ticketBeneficiary, expectedProjectId },
@@ -521,7 +521,7 @@ export default [
           balance,
           claimableAmount,
           randomAddressFn(),
-          randomBoolFn(),
+          randomBool(),
         ],
         revert: expectNoOp && 'TerminalV1::redeem: NO_OP',
       });

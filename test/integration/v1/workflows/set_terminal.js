@@ -60,7 +60,7 @@ export default [
       BigNumber,
       randomString,
       randomAddressFn,
-      randomBoolFn,
+      
       local: { expectedProjectId, owner },
     }) =>
       executeFn({
@@ -77,7 +77,7 @@ export default [
           currency,
           randomAddressFn(),
           randomString(),
-          randomBoolFn(),
+          randomBool(),
         ],
         revert: 'TerminalUtility: UNAUTHORIZED',
       }),
@@ -133,7 +133,7 @@ export default [
       getBalanceFn,
       executeFn,
       randomString,
-      randomBoolFn,
+      
       randomAddressFn,
       randomSignerFn,
       BigNumber,
@@ -151,7 +151,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, randomAddressFn(), randomString(), randomBoolFn()],
+        args: [expectedProjectId, randomAddressFn(), randomString(), randomBool()],
         value: paymentValue,
         revert: 'TerminalUtility: UNAUTHORIZED',
       });
@@ -177,7 +177,7 @@ export default [
       BigNumber,
       randomString,
       randomAddressFn,
-      randomBoolFn,
+      
 
       local: { expectedProjectId, owner },
     }) =>
@@ -195,7 +195,7 @@ export default [
           currency,
           randomAddressFn(),
           randomString(),
-          randomBoolFn(),
+          randomBool(),
         ],
       }),
   },
@@ -252,14 +252,14 @@ export default [
       contracts,
       randomAddressFn,
       randomString,
-      randomBoolFn,
+      
       local: { expectedProjectId, payer, paymentValue },
     }) =>
       executeFn({
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, randomAddressFn(), randomString(), randomBoolFn()],
+        args: [expectedProjectId, randomAddressFn(), randomString(), randomBool()],
         value: paymentValue,
       }),
   },

@@ -272,7 +272,7 @@ export default [
       getBalanceFn,
       randomString,
       randomAddressFn,
-      randomBoolFn,
+      
       randomSignerFn,
       BigNumber,
       local: { expectedProjectId },
@@ -294,7 +294,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, randomAddressFn(), randomString(), randomBoolFn()],
+        args: [expectedProjectId, randomAddressFn(), randomString(), randomBool()],
         value: paymentValue,
       });
 

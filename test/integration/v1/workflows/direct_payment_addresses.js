@@ -152,14 +152,14 @@ export default [
   },
   {
     description: 'Set a beneficiary address and staked ticket preference',
-    fn: async ({ contracts, executeFn, randomBoolFn, randomAddressFn, local: { payer } }) => {
+    fn: async ({ contracts, executeFn,  randomAddressFn, local: { payer } }) => {
       // The beneficiary to give tickets to.
       // Exclude the payers address to make the test cases cleaner.
       const payerTicketBeneficiary = randomAddressFn({
         exclude: [payer.address],
       });
       // The unstaked preference to set.
-      const preferUnstakedTickets = randomBoolFn();
+      const preferUnstakedTickets = randomBool();
       await executeFn({
         caller: payer,
         contract: contracts.terminalDirectory,
@@ -328,12 +328,12 @@ export default [
   },
   {
     description: 'Set a beneficiary address back to the paying address',
-    fn: ({ contracts, executeFn, randomBoolFn, local: { payer } }) =>
+    fn: ({ contracts, executeFn,  local: { payer } }) =>
       executeFn({
         caller: payer,
         contract: contracts.terminalDirectory,
         fn: 'setPayerPreferences',
-        args: [payer.address, randomBoolFn()],
+        args: [payer.address, randomBool()],
       }),
   },
 ];

@@ -13,7 +13,6 @@ export default [
   {
     description: 'Deploy a project',
     fn: async ({
-      constants,
       contracts,
       executeFn,
       randomBigNumber,
@@ -102,7 +101,7 @@ export default [
     fn: ({
       contracts,
       executeFn,
-      randomBoolFn,
+      
       randomString,
       randomAddressFn,
       local: { payer, paymentValue, expectedProjectId },
@@ -111,7 +110,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, randomAddressFn(), randomString(), randomBoolFn()],
+        args: [expectedProjectId, randomAddressFn(), randomString(), randomBool()],
         value: paymentValue,
       }),
   },
@@ -122,7 +121,6 @@ export default [
       executeFn,
       randomSignerFn,
       randomBigNumber,
-      constants,
       local: { target, expectedProjectId },
     }) => {
       // Tap some of the target.
@@ -151,7 +149,6 @@ export default [
   {
     description: 'Check that the governance project now has a balance',
     fn: async ({
-      constants,
       contracts,
       checkFn,
       randomSignerFn,
@@ -235,7 +232,6 @@ export default [
   {
     description: 'Check that the governance project got the fee in its terminal',
     fn: async ({
-      constants,
       contracts,
       checkFn,
       randomSignerFn,

@@ -132,7 +132,7 @@ export default [
       contracts,
       executeFn,
       randomAddressFn,
-      randomBoolFn,
+      
       timeMark,
       local: { expectedProjectId, payer, paymentValue },
     }) => {
@@ -140,7 +140,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, randomAddressFn(), randomString(), randomBoolFn()],
+        args: [expectedProjectId, randomAddressFn(), randomString(), randomBool()],
         value: paymentValue,
       });
       return { originalTimeMark: timeMark };

@@ -1,7 +1,7 @@
 /** 
   A funding cycle configuration can have a discount rate of of 0. This makes it non recurring.
 */
-import { constants } from '../../../utils';
+import { constants } from "../../../utils";
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -13,7 +13,6 @@ export default [
   {
     description: 'Deploy a project with a discount rate of 0',
     fn: async ({
-      constants,
       contracts,
       executeFn,
       randomBigNumber,
@@ -236,7 +235,6 @@ export default [
       checkFn,
       randomSignerFn,
       BigNumber,
-      constants,
       local: { expectedProjectId },
     }) =>
       checkFn({
@@ -271,7 +269,6 @@ export default [
       executeFn,
       BigNumber,
       randomBigNumber,
-      constants,
       local: {
         owner,
         expectedProjectId,
@@ -324,7 +321,7 @@ export default [
       getBalanceFn,
       randomString,
       randomAddressFn,
-      randomBoolFn,
+      
       randomSignerFn,
       local: { expectedProjectId },
     }) => {
@@ -342,7 +339,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, randomAddressFn(), randomString(), randomBoolFn()],
+        args: [expectedProjectId, randomAddressFn(), randomString(), randomBool()],
         value: paymentValue,
       });
     },
@@ -350,7 +347,6 @@ export default [
   {
     description: "Reconfiguring the project shouldn't be possible",
     fn: async ({
-      constants,
       contracts,
       executeFn,
       randomBigNumber,
@@ -405,7 +401,6 @@ export default [
       checkFn,
       randomSignerFn,
       BigNumber,
-      constants,
       local: { expectedProjectId },
     }) =>
       checkFn({
@@ -440,7 +435,6 @@ export default [
       checkFn,
       randomSignerFn,
       BigNumber,
-      constants,
       local: { expectedProjectId },
     }) =>
       checkFn({
@@ -483,7 +477,6 @@ export default [
   {
     description: "Reconfiguring the project still shouldn't work",
     fn: async ({
-      constants,
       contracts,
       executeFn,
       randomBigNumber,

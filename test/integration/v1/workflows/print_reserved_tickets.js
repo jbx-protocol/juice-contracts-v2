@@ -54,7 +54,7 @@ export default [
       contracts,
       executeFn,
       randomBigNumber,
-      randomBoolFn,
+      
       randomString,
       getBalanceFn,
       BigNumber,
@@ -83,7 +83,7 @@ export default [
           expectedProjectId,
           preconfigTicketBeneficiary.address,
           randomString(),
-          randomBoolFn(),
+          randomBool(),
         ],
         value: paymentValue1,
       });
@@ -119,7 +119,7 @@ export default [
       contracts,
       executeFn,
       randomBigNumber,
-      randomBoolFn,
+      
       randomString,
       BigNumber,
       local: { expectedProjectId, owner, preconfigTicketBeneficiary },
@@ -141,7 +141,7 @@ export default [
           currency,
           preconfigTicketBeneficiary.address,
           randomString(),
-          randomBoolFn(),
+          randomBool(),
         ],
       });
 
@@ -194,7 +194,7 @@ export default [
       executeFn,
       getBalanceFn,
       randomBigNumber,
-      randomBoolFn,
+      
       randomSignerFn,
       incrementFundingCycleIdFn,
       local: { expectedProjectId, owner, payer, preconfigTicketBeneficiary },
@@ -238,7 +238,7 @@ export default [
       });
 
       // The preference for unstaked tickets.
-      const preferUnstaked = randomBoolFn();
+      const preferUnstaked = randomBool();
 
       // Add two ticket mods.
       const mod1 = {
@@ -343,7 +343,7 @@ export default [
     fn: async ({
       contracts,
       executeFn,
-      randomBoolFn,
+      
       randomString,
       randomSignerFn,
       local: { expectedProjectId, payer, paymentValue2, owner, mod1Beneficiary, mod2Beneficiary },
@@ -358,7 +358,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, ticketBeneficiary1.address, randomString(), randomBoolFn()],
+        args: [expectedProjectId, ticketBeneficiary1.address, randomString(), randomBool()],
         value: paymentValue2,
       });
 
@@ -567,7 +567,7 @@ export default [
     fn: async ({
       contracts,
       executeFn,
-      randomBoolFn,
+      
       randomString,
       randomSignerFn,
       local: {
@@ -594,7 +594,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, ticketBeneficiary2.address, randomString(), randomBoolFn()],
+        args: [expectedProjectId, ticketBeneficiary2.address, randomString(), randomBool()],
         value: paymentValue3,
       });
 
@@ -635,7 +635,7 @@ export default [
       contracts,
       executeFn,
       randomAddressFn,
-      randomBoolFn,
+      
       local: { expectedProjectId, ticketBeneficiary1, owner },
     }) => {
       const ticketAmount = await contracts.ticketBooth.balanceOf(
@@ -657,7 +657,7 @@ export default [
           ticketAmount,
           claimable,
           randomAddressFn({ exclude: [owner.address] }),
-          randomBoolFn(),
+          randomBool(),
         ],
         revert: (ticketAmount.eq(0) || claimable.eq(0)) && 'TerminalV1::redeem: NO_OP',
       });
@@ -689,7 +689,7 @@ export default [
       contracts,
       executeFn,
       randomAddressFn,
-      randomBoolFn,
+      
       local: { expectedProjectId, ticketBeneficiary2 },
     }) => {
       const ticketAmount = await contracts.ticketBooth.balanceOf(
@@ -712,7 +712,7 @@ export default [
           ticketAmount,
           claimable,
           randomAddressFn(),
-          randomBoolFn(),
+          randomBool(),
         ],
         revert: (ticketAmount.eq(0) || claimable.eq(0)) && 'TerminalV1::redeem: NO_OP',
       });

@@ -55,7 +55,7 @@ export default [
     description: 'Print some premined tickets',
     fn: async ({
       randomSignerFn,
-      randomBoolFn,
+      
       randomBigNumber,
       BigNumber,
       executeFn,
@@ -83,7 +83,7 @@ export default [
           currency,
           preconfigureTicketBeneficiary1.address,
           randomString(),
-          randomBoolFn(),
+          randomBool(),
         ],
       });
 
@@ -157,7 +157,7 @@ export default [
       executeFn,
       contracts,
       randomString,
-      randomBoolFn,
+      
       local: { expectedProjectId },
     }) => {
       // An account that will be used to make payments.
@@ -181,7 +181,7 @@ export default [
           expectedProjectId,
           preconfigureTicketBeneficiary2.address,
           randomString(),
-          randomBoolFn(),
+          randomBool(),
         ],
         value: paymentValue1,
       });
@@ -331,7 +331,7 @@ export default [
       randomBigNumber,
       executeFn,
       BigNumber,
-      randomBoolFn,
+      
       randomSignerFn,
       randomString,
       contracts,
@@ -347,7 +347,7 @@ export default [
       });
 
       // The unsrtaked preference to use.
-      const preferUnstakedTickets = randomBoolFn();
+      const preferUnstakedTickets = randomBool();
 
       await executeFn({
         caller: owner,
@@ -485,7 +485,7 @@ export default [
       contracts,
       randomAddressFn,
       randomString,
-      randomBoolFn,
+      
       local: { expectedProjectId, payer },
     }) => {
       // One payment will be made. Cant pay entire balance because some is needed for gas.
@@ -499,7 +499,7 @@ export default [
         caller: payer,
         contract: contracts.terminalV1,
         fn: 'pay',
-        args: [expectedProjectId, randomAddressFn(), randomString(), randomBoolFn()],
+        args: [expectedProjectId, randomAddressFn(), randomString(), randomBool()],
         value: paymentValue2,
       });
     },
@@ -523,7 +523,7 @@ export default [
       randomBigNumber,
       randomString,
       randomAddressFn,
-      randomBoolFn,
+      
       BigNumber,
       local: { owner, expectedProjectId },
     }) =>
@@ -541,7 +541,7 @@ export default [
           currency,
           randomAddressFn(),
           randomString(),
-          randomBoolFn(),
+          randomBool(),
         ],
         revert: 'TerminalV1::printTickets: ALREADY_ACTIVE',
       }),
