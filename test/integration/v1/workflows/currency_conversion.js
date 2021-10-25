@@ -7,6 +7,8 @@
 
   This test makes sure the conversion rates are honored.
 */
+import { randomBigNumber, randomBytes, randomString } from "../../../utils";
+
 export default [
   {
     description: 'Add the price feed to the prices contract',
@@ -36,8 +38,6 @@ export default [
       contracts,
       executeFn,
       BigNumber,
-      randomBigNumber,
-      randomBytes,
       getBalanceFn,
       randomSignerFn,
       incrementProjectIdFn,
@@ -125,7 +125,6 @@ export default [
       contracts,
       executeFn,
       BigNumber,
-      randomBigNumber,
       randomBoolFn,
       randomAddressFn,
       local: { owner, rate, decimals, currency, expectedProjectId },
@@ -246,7 +245,6 @@ export default [
       contracts,
       executeFn,
       BigNumber,
-      randomBigNumber,
       randomSignerFn,
       getBalanceFn,
       local: { targetDenominatedInWei, rate, decimals, currency, expectedProjectId, owner },

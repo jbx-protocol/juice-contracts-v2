@@ -3,7 +3,7 @@
   
   If approved, a the reconfigured funding cycle will take affect after the current funding cycle expires.
 */
-import { randomString } from "../../../utils";
+import { randomBigNumber, randomBytes, randomString } from "../../../utils";
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -20,9 +20,7 @@ export default [
       contracts,
       executeFn,
       deployContractFn,
-      randomBigNumber,
       BigNumber,
-      randomBytes,
       randomSignerFn,
       getBalanceFn,
       incrementFundingCycleIdFn,

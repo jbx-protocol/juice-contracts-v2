@@ -1,10 +1,12 @@
 /** 
   A project's handle can be challenged, after which a year must pass without it being renewed before it can be claimed.
 */
+import { randomBigNumber, randomBytes, randomString } from "../../../utils";
+
 export default [
   {
     description: 'The challenge expiry for an unused handle should start at 0',
-    fn: async ({ contracts, checkFn, randomSignerFn, incrementProjectIdFn, randomBytes }) => {
+    fn: async ({ contracts, checkFn, randomSignerFn, incrementProjectIdFn }) => {
       const expectedProjectId1 = incrementProjectIdFn();
 
       // Make sure its unique by prepending the id.
@@ -108,7 +110,6 @@ export default [
       executeFn,
       randomSignerFn,
       incrementProjectIdFn,
-      randomBytes,
     }) => {
       // The address that will own the second project.
       const claimer = randomSignerFn();
@@ -167,7 +168,7 @@ export default [
   },
   {
     description: 'Fastforward to past the challenge expiry',
-    fn: ({ BigNumber, fastforwardFn, randomBigNumber }) =>
+    fn: ({ BigNumber, fastforwardFn }) =>
       fastforwardFn(
         randomBigNumber({
           min: BigNumber.from(100),
@@ -292,7 +293,7 @@ export default [
   },
   {
     description: 'Fastforward to past the challenge expiry prior to renewing',
-    fn: ({ BigNumber, fastforwardFn, randomBigNumber }) =>
+    fn: ({ BigNumber, fastforwardFn }) =>
       fastforwardFn(
         randomBigNumber({
           min: BigNumber.from(10),

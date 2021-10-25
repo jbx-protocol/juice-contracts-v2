@@ -2,10 +2,12 @@
   The governance of the TerminalV1 can transfer its power to a new address.
   To do so, the governance must appoint a new address, and that address must accept the appointment.
 */
+import { randomBigNumber } from "../../../utils";
+
 export default [
   {
     description: 'The initial governance can set a new fee',
-    fn: ({ executeFn, deployer, contracts, randomBigNumber, constants }) =>
+    fn: ({ executeFn, deployer, contracts, constants }) =>
       executeFn({
         caller: deployer,
         contract: contracts.governance,
@@ -33,7 +35,6 @@ export default [
     fn: ({
       executeFn,
       contracts,
-      randomBigNumber,
       constants,
       local: { firstAppointedGovernance },
     }) =>
@@ -47,7 +48,7 @@ export default [
   },
   {
     description: 'The current governance should still be able to set a fee',
-    fn: ({ executeFn, deployer, contracts, randomBigNumber, constants }) =>
+    fn: ({ executeFn, deployer, contracts, constants }) =>
       executeFn({
         caller: deployer,
         contract: contracts.governance,
@@ -103,7 +104,6 @@ export default [
       executeFn,
       deployer,
       contracts,
-      randomBigNumber,
       constants,
       local: { secondAppointedGovernance },
     }) =>
@@ -121,7 +121,6 @@ export default [
     description: 'The new governance should be able to set a fee',
     fn: ({
       executeFn,
-      randomBigNumber,
       constants,
       contracts,
       local: { secondAppointedGovernance },

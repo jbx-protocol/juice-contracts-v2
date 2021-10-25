@@ -3,6 +3,8 @@
 */
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
+import { randomBigNumber, randomBytes, randomString } from "../../../utils";
+
 const currency = 0;
 
 export default [
@@ -12,9 +14,7 @@ export default [
       constants,
       contracts,
       executeFn,
-      randomBigNumber,
       BigNumber,
-      randomBytes,
       randomSignerFn,
       incrementFundingCycleIdFn,
       incrementProjectIdFn,
