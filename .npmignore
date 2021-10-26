@@ -4,3 +4,7 @@
 # Allow whitelisted deployment networks
 !/deployments/rinkeby/**
 !/deployments/mainnet/**
+
+# Allow contract interfaces
+!/contracts/v1/interfaces
+!/contracts/v2/interfaces
