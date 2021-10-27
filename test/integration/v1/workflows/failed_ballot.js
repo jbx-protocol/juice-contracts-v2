@@ -67,15 +67,15 @@ export default [
 
       // make recurring.
       const discountRate1 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
 
-      const reservedRate1 = randomBigNumber({ max: constants.MaxPercent });
+      const reservedRate1 = randomBigNumber({ max: this.MaxPercent });
       const bondingCurveRate1 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       const reconfigurationBondingCurveRate1 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
 
       await executeFn({
@@ -183,15 +183,15 @@ export default [
 
       // make recurring.
       const discountRate2 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       const ballot2 = constants.AddressZero;
-      const reservedRate2 = randomBigNumber({ max: constants.MaxPercent });
+      const reservedRate2 = randomBigNumber({ max: this.MaxPercent });
       const bondingCurveRate2 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       const reconfigurationBondingCurveRate2 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       await executeFn({
         caller: owner,
@@ -289,8 +289,8 @@ export default [
       let expectedPostBallotWeight = expectedInititalWeight;
       for (let i = 0; i < cycleCountDuringBallot.add(1); i += 1) {
         expectedPostBallotWeight = expectedPostBallotWeight
-          .mul(constants.DiscountRatePercentDenominator.sub(discountRate1))
-          .div(constants.DiscountRatePercentDenominator);
+          .mul(this.DiscountRatePercentDenominator.sub(discountRate1))
+          .div(this.DiscountRatePercentDenominator);
       }
 
       await verifyContractGetter({
@@ -469,8 +469,8 @@ export default [
           // The cycle limit should be one lower than the previous.
           cycleLimit1.eq(0) ? BigNumber.from(0) : cycleLimit1.sub(1),
           expectedInititalWeight
-            .mul(constants.DiscountRatePercentDenominator.sub(discountRate1))
-            .div(constants.DiscountRatePercentDenominator),
+            .mul(this.DiscountRatePercentDenominator.sub(discountRate1))
+            .div(this.DiscountRatePercentDenominator),
           ballot.address,
           // The start time should be one duration after the initial start.
           originalTimeMark.add(duration1.mul(86400)),
@@ -598,8 +598,8 @@ export default [
           originalTimeMark,
           cycleLimit1,
           expectedPostBallotWeight
-            .mul(constants.DiscountRatePercentDenominator.sub(discountRate1))
-            .div(constants.DiscountRatePercentDenominator),
+            .mul(this.DiscountRatePercentDenominator.sub(discountRate1))
+            .div(this.DiscountRatePercentDenominator),
           ballot.address,
           originalTimeMark.add(duration1.mul(86400).mul(cycleCountDuringBallot.add(2))),
           duration1,

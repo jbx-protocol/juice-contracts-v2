@@ -65,11 +65,11 @@ export default [
               max: constants.MaxUint16,
             }),
             cycleLimit: randomBigNumber({
-              max: constants.MaxCycleLimit,
+              max: this.MaxCycleLimit,
             }),
             // Recurring.
             discountRate: randomBigNumber({
-              max: constants.MaxPercent.sub(1),
+              max: this.MaxPercent.sub(1),
             }),
             ballot: constants.AddressZero,
           },
@@ -77,10 +77,10 @@ export default [
             // Don't use a reserved rate to make the calculations a little simpler.
             reservedRate: BigNumber.from(0),
             bondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
           },
           [],
@@ -130,7 +130,7 @@ export default [
 
       // Save the initial balances of the owner, address mod beneficiary, and the allocator mod contract.
       const governanceInitialBalance = await contracts.terminalV1.balanceOf(
-        constants.GovernanceProjectId,
+        this.GovernanceProjectId,
       );
 
       await executeFn({
@@ -157,15 +157,15 @@ export default [
       // A fee should be taken.
       const expectedFeeAmount1 = amountToTap1.sub(
         amountToTap1
-          .mul(constants.MaxPercent)
-          .div((await contracts.terminalV1.fee()).add(constants.MaxPercent)),
+          .mul(this.MaxPercent)
+          .div((await contracts.terminalV1.fee()).add(this.MaxPercent)),
       );
 
       await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'balanceOf',
-        args: [constants.GovernanceProjectId],
+        args: [this.GovernanceProjectId],
         expect: governanceInitialBalance.add(expectedFeeAmount1),
       });
 
@@ -240,15 +240,15 @@ export default [
       // A fee should be taken.
       const expectedFeeAmount2 = amountToTap2.sub(
         amountToTap2
-          .mul(constants.MaxPercent)
-          .div((await contracts.terminalV1.fee()).add(constants.MaxPercent)),
+          .mul(this.MaxPercent)
+          .div((await contracts.terminalV1.fee()).add(this.MaxPercent)),
       );
 
       await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'balanceOf',
-        args: [constants.GovernanceProjectId],
+        args: [this.GovernanceProjectId],
         expect: governanceInitialBalance.add(expectedFeeAmount1).add(expectedFeeAmount2),
       });
     },

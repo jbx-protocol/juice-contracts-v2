@@ -41,21 +41,21 @@ export default [
 
       const cycleLimit1 = randomBigNumber({
         min: BigNumber.from(1),
-        max: constants.MaxCycleLimit,
+        max: this.MaxCycleLimit,
       });
 
       // dont allow non recurring.
       const discountRate1 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       const ballot1 = constants.AddressZero;
 
-      const reservedRate1 = randomBigNumber({ max: constants.MaxPercent });
+      const reservedRate1 = randomBigNumber({ max: this.MaxPercent });
       const bondingCurveRate1 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       const reconfigurationBondingCurveRate1 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       await executeFn({
         caller: randomSignerFn(),
@@ -409,21 +409,21 @@ export default [
       });
       const cycleLimit2 = randomBigNumber({
         min: BigNumber.from(0),
-        max: constants.MaxCycleLimit,
+        max: this.MaxCycleLimit,
       });
 
       // Non recurring.
       const discountRate2 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       const ballot2 = constants.AddressZero;
 
-      const reservedRate2 = randomBigNumber({ max: constants.MaxPercent });
+      const reservedRate2 = randomBigNumber({ max: this.MaxPercent });
       const bondingCurveRate2 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       const reconfigurationBondingCurveRate2 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
 
       await executeFn({
@@ -512,8 +512,8 @@ export default [
           timeMark,
           cycleLimit2,
           expectedInitialWeight
-            .mul(constants.DiscountRatePercentDenominator.sub(discountRate1))
-            .div(constants.DiscountRatePercentDenominator),
+            .mul(this.DiscountRatePercentDenominator.sub(discountRate1))
+            .div(this.DiscountRatePercentDenominator),
           ballot2,
           timeMark,
           duration2,
@@ -574,10 +574,10 @@ export default [
               timeMark,
               cycleLimit2.eq(0) ? BigNumber.from(0) : cycleLimit2.sub(1),
               expectedInitialWeight
-                .mul(constants.DiscountRatePercentDenominator.sub(discountRate1))
-                .div(constants.DiscountRatePercentDenominator)
-                .mul(constants.DiscountRatePercentDenominator.sub(discountRate2))
-                .div(constants.DiscountRatePercentDenominator),
+                .mul(this.DiscountRatePercentDenominator.sub(discountRate1))
+                .div(this.DiscountRatePercentDenominator)
+                .mul(this.DiscountRatePercentDenominator.sub(discountRate2))
+                .div(this.DiscountRatePercentDenominator),
               ballot2,
               timeMark.add(duration2.mul(86400)),
               duration2,
@@ -596,10 +596,10 @@ export default [
               originalTimeMark,
               BigNumber.from(0),
               expectedInitialWeight
-                .mul(constants.DiscountRatePercentDenominator.sub(discountRate1))
-                .div(constants.DiscountRatePercentDenominator)
-                .mul(constants.DiscountRatePercentDenominator.sub(discountRate2))
-                .div(constants.DiscountRatePercentDenominator),
+                .mul(this.DiscountRatePercentDenominator.sub(discountRate1))
+                .div(this.DiscountRatePercentDenominator)
+                .mul(this.DiscountRatePercentDenominator.sub(discountRate2))
+                .div(this.DiscountRatePercentDenominator),
               ballot1,
               timeMark.add(duration2.mul(86400)),
               duration1,

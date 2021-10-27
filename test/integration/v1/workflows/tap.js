@@ -37,7 +37,7 @@ export default [
 
       // The owner of the project with mods.
       // Exclude the governance project's owner to make the test calculations cleaner.
-      const owner = randomSignerFn({ exclude: [constants.GovenanceOwner] });
+      const owner = randomSignerFn({ exclude: [this.GovenanceOwner] });
 
       // An account that will be used to make a payment.
       const payer = randomSignerFn();
@@ -60,18 +60,18 @@ export default [
         max: constants.MaxUint16,
       });
 
-      // The mod percents should add up to <= constants.MaxPercent.
+      // The mod percents should add up to <= this.MaxPercent.
       const percent1 = randomBigNumber({
         min: BigNumber.from(1),
-        max: constants.MaxModPercent.sub(2),
+        max: this.MaxModPercent.sub(2),
       });
       const percent2 = randomBigNumber({
         min: BigNumber.from(1),
-        max: constants.MaxModPercent.sub(percent1).sub(1),
+        max: this.MaxModPercent.sub(percent1).sub(1),
       });
       const percent3 = randomBigNumber({
         min: BigNumber.from(1),
-        max: constants.MaxModPercent.sub(percent1).sub(percent2),
+        max: this.MaxModPercent.sub(percent1).sub(percent2),
       });
 
       // There are three types of mods.
@@ -122,11 +122,11 @@ export default [
             currency,
             duration,
             cycleLimit: randomBigNumber({
-              max: constants.MaxCycleLimit,
+              max: this.MaxCycleLimit,
             }),
             // Recurring.
             discountRate: randomBigNumber({
-              max: constants.MaxPercent.sub(1),
+              max: this.MaxPercent.sub(1),
             }),
             ballot: constants.AddressZero,
           },
@@ -134,10 +134,10 @@ export default [
             // Don't use a reserved rate to make the calculations a little simpler.
             reservedRate: BigNumber.from(0),
             bondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
           },
           [addressMod, projectMod, allocatorMod],
@@ -219,7 +219,7 @@ export default [
       // The owner of the mod project.
       // exlcude the owner address and the governance owner to make the test calculations cleaner.
       const modProjectOwner = randomSignerFn({
-        exclude: [owner.address, constants.GovenanceOwner],
+        exclude: [owner.address, this.GovenanceOwner],
       });
 
       // If this funding cycle duration is too much smaller than
@@ -247,11 +247,11 @@ export default [
             currency: randomBigNumber({ max: constants.MaxUint8 }),
             duration: duration2,
             cycleLimit: randomBigNumber({
-              max: constants.MaxCycleLimit,
+              max: this.MaxCycleLimit,
             }),
             // Make it recurring.
             discountRate: randomBigNumber({
-              max: constants.MaxPercent.sub(1),
+              max: this.MaxPercent.sub(1),
             }),
             ballot: constants.AddressZero,
           },
@@ -259,10 +259,10 @@ export default [
             // Don't use a reserved rate to make the calculations a little simpler.
             reservedRate: BigNumber.from(0),
             bondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
           },
           [],
@@ -343,7 +343,7 @@ export default [
       // Save the amount of governance project tickets the owner has owner initially has.
       const initialOwnerTicketBalanceOfGovernanceProject = await contracts.ticketBooth.balanceOf(
         owner.address,
-        constants.GovernanceProjectId,
+        this.GovernanceProjectId,
       );
 
       await executeFn({
@@ -373,13 +373,13 @@ export default [
     }) => {
       // The amount tapped takes into account any fees paid.
       const expectedAmountTapped = amountToTap
-        .mul(constants.MaxPercent)
-        .div((await contracts.terminalV1.fee()).add(constants.MaxPercent));
+        .mul(this.MaxPercent)
+        .div((await contracts.terminalV1.fee()).add(this.MaxPercent));
 
       await verifyBalance({
         address: addressMod.beneficiary,
         expect: addressModBeneficiaryInitialBalance.add(
-          expectedAmountTapped.mul(addressMod.percent).div(constants.MaxModPercent),
+          expectedAmountTapped.mul(addressMod.percent).div(this.MaxModPercent),
         ),
       });
 
@@ -399,7 +399,7 @@ export default [
         contract: contracts.terminalV1,
         fn: 'balanceOf',
         args: [expectedIdOfModProject],
-        expect: expectedAmountTapped.mul(projectMod.percent).div(constants.MaxModPercent),
+        expect: expectedAmountTapped.mul(projectMod.percent).div(this.MaxModPercent),
       }),
   },
   {
@@ -417,8 +417,8 @@ export default [
         args: [projectMod.beneficiary, expectedIdOfModProject],
         expect: expectedAmountTapped
           .mul(projectMod.percent)
-          .div(constants.MaxModPercent)
-          .mul(constants.InitialWeightMultiplier),
+          .div(this.MaxModPercent)
+          .mul(this.InitialWeightMultiplier),
       }),
   },
   {
@@ -439,8 +439,8 @@ export default [
           ? BigNumber.from(0)
           : expectedAmountTapped
               .mul(projectMod.percent)
-              .div(constants.MaxModPercent)
-              .mul(constants.InitialWeightMultiplier),
+              .div(this.MaxModPercent)
+              .mul(this.InitialWeightMultiplier),
       }),
   },
   {
@@ -449,7 +449,7 @@ export default [
       verifyBalance({
         address: allocatorMod.allocator,
         expect: allocatorModContractInitialBalance.add(
-          expectedAmountTapped.mul(allocatorMod.percent).div(constants.MaxModPercent),
+          expectedAmountTapped.mul(allocatorMod.percent).div(this.MaxModPercent),
         ),
       }),
   },
@@ -469,9 +469,9 @@ export default [
         address: owner.address,
         expect: ownerInitialBalance.add(
           expectedAmountTapped
-            .sub(expectedAmountTapped.mul(addressMod.percent).div(constants.MaxModPercent))
-            .sub(expectedAmountTapped.mul(projectMod.percent).div(constants.MaxModPercent))
-            .sub(expectedAmountTapped.mul(allocatorMod.percent).div(constants.MaxModPercent)),
+            .sub(expectedAmountTapped.mul(addressMod.percent).div(this.MaxModPercent))
+            .sub(expectedAmountTapped.mul(projectMod.percent).div(this.MaxModPercent))
+            .sub(expectedAmountTapped.mul(allocatorMod.percent).div(this.MaxModPercent)),
         ),
       }),
   },
@@ -492,9 +492,9 @@ export default [
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
-        args: [owner.address, constants.GovernanceProjectId],
+        args: [owner.address, this.GovernanceProjectId],
         expect: initialOwnerTicketBalanceOfGovernanceProject.add(
-          amountToTap.sub(expectedAmountTapped).mul(constants.InitialWeightMultiplier),
+          amountToTap.sub(expectedAmountTapped).mul(this.InitialWeightMultiplier),
         ),
       }),
   },

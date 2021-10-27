@@ -95,7 +95,7 @@ export default [
       local: { expectedProjectId, paymentValue1, preconfigTicketBeneficiary },
     }) => {
       // The expected number of tickets to expect from the first payment.
-      const expectedPreminedPaidTicketAmount = paymentValue1.mul(constants.InitialWeightMultiplier);
+      const expectedPreminedPaidTicketAmount = paymentValue1.mul(this.InitialWeightMultiplier);
 
       await verifyContractGetter({
         caller: randomSignerFn(),
@@ -150,7 +150,7 @@ export default [
         caller: randomSignerFn(),
         contract: contracts.terminalV1,
         fn: 'reservedTicketBalanceOf',
-        args: [expectedProjectId, randomBigNumber({ max: constants.MaxPercent })],
+        args: [expectedProjectId, randomBigNumber({ max: this.MaxPercent })],
         expect: 0,
       }),
   },
@@ -169,7 +169,7 @@ export default [
     }) => {
       // The ticket amount is based on the initial funding cycle's weight.
       const expectedPreminedPrintedTicketAmount = preminePrintAmount.mul(
-        constants.InitialWeightMultiplier,
+        this.InitialWeightMultiplier,
       );
 
       await verifyContractGetter({
@@ -222,14 +222,14 @@ export default [
         exclude: [owner.address, preconfigTicketBeneficiary.address],
       });
 
-      // The mod percents should add up to <= constants.MaxPercent.
+      // The mod percents should add up to <= this.MaxPercent.
       const percent1 = randomBigNumber({
         min: BigNumber.from(1),
-        max: constants.MaxModPercent.sub(2),
+        max: this.MaxModPercent.sub(2),
       });
       const percent2 = randomBigNumber({
         min: BigNumber.from(1),
-        max: constants.MaxModPercent.sub(percent1).sub(1),
+        max: this.MaxModPercent.sub(percent1).sub(1),
       });
 
       // The preference for unstaked tickets.
@@ -257,7 +257,7 @@ export default [
       };
 
       // Set a random percentage of tickets to reserve for the project owner.
-      const reservedRate = randomBigNumber({ max: constants.MaxPercent });
+      const reservedRate = randomBigNumber({ max: this.MaxPercent });
 
       await executeFn({
         caller: owner,
@@ -270,18 +270,18 @@ export default [
             currency,
             duration,
             cycleLimit: randomBigNumber({
-              max: constants.MaxCycleLimit,
+              max: this.MaxCycleLimit,
             }),
-            discountRate: randomBigNumber({ max: constants.MaxPercent }),
+            discountRate: randomBigNumber({ max: this.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
             reservedRate,
             bondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
           },
           [],
@@ -370,9 +370,9 @@ export default [
     }) => {
       // The expected number of reserved tickets to expect from the first payment.
       const expectedReservedTicketAmount2 = paymentValue2
-        .mul(constants.InitialWeightMultiplier)
+        .mul(this.InitialWeightMultiplier)
         .mul(reservedRate)
-        .div(constants.MaxPercent);
+        .div(this.MaxPercent);
 
       await verifyContractGetter({
         caller: randomSignerFn(),
@@ -440,8 +440,8 @@ export default [
         fn: 'balanceOf',
         args: [owner.address, expectedProjectId],
         expect: expectedReservedTicketAmount2
-          .mul(constants.MaxModPercent.sub(percent1).sub(percent2))
-          .div(constants.MaxModPercent),
+          .mul(this.MaxModPercent.sub(percent1).sub(percent2))
+          .div(this.MaxModPercent),
         // Allow some wiggle room due to possible division precision errors.
         plusMinus: {
           amount: 10000,
@@ -461,7 +461,7 @@ export default [
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
         args: [mod1Beneficiary.address, expectedProjectId],
-        expect: expectedReservedTicketAmount2.mul(percent1).div(constants.MaxModPercent),
+        expect: expectedReservedTicketAmount2.mul(percent1).div(this.MaxModPercent),
         // Allow some wiggle room due to possible division precision errors.
         plusMinus: {
           amount: 10000,
@@ -490,7 +490,7 @@ export default [
         args: [mod1Beneficiary.address, expectedProjectId],
         expect: preferUnstaked
           ? BigNumber.from(0)
-          : expectedReservedTicketAmount2.mul(percent1).div(constants.MaxModPercent),
+          : expectedReservedTicketAmount2.mul(percent1).div(this.MaxModPercent),
         // Allow some wiggle room due to possible division precision errors.
         plusMinus: {
           amount: 10000,
@@ -510,7 +510,7 @@ export default [
         contract: contracts.ticketBooth,
         fn: 'balanceOf',
         args: [mod2Beneficiary.address, expectedProjectId],
-        expect: expectedReservedTicketAmount2.mul(percent2).div(constants.MaxModPercent),
+        expect: expectedReservedTicketAmount2.mul(percent2).div(this.MaxModPercent),
         // Allow some wiggle room due to possible division precision errors.
         plusMinus: {
           amount: 10000,
@@ -539,7 +539,7 @@ export default [
         args: [mod2Beneficiary.address, expectedProjectId],
         expect: preferUnstaked
           ? BigNumber.from(0)
-          : expectedReservedTicketAmount2.mul(percent2).div(constants.MaxModPercent),
+          : expectedReservedTicketAmount2.mul(percent2).div(this.MaxModPercent),
         // Allow some wiggle room due to possible division precision errors.
         plusMinus: {
           amount: 10000,
@@ -606,9 +606,9 @@ export default [
     }) => {
       // The expected number of reserved tickets to expect from the second payment.
       const expectedReservedTicketAmount3 = paymentValue3
-        .mul(constants.InitialWeightMultiplier)
+        .mul(this.InitialWeightMultiplier)
         .mul(reservedRate)
-        .div(constants.MaxPercent);
+        .div(this.MaxPercent);
 
       await verifyContractGetter({
         caller: randomSignerFn(),

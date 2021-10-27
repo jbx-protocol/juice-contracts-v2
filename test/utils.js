@@ -82,7 +82,7 @@ export const randomString = ({
   favorEdges = true,
 } = {}) => {
   const seed = this.randomBigNumber({
-    min: canBeEmpty ? BigNumber.from(0) : BigNumber.from(1),
+    min: canBeEmpty ? ethers.BigNumber.from(0) : ethers.BigNumber.from(1),
     favorEdges,
   });
   const candidate = prepend.concat(Math.random().toString(36).substr(2, seed));
@@ -92,8 +92,8 @@ export const randomString = ({
 
 // Bind a function that returns a random set of bytes.
 export const randomBytes = ({
-  min = BigNumber.from(10),
-  max = BigNumber.from(32),
+  min = ethers.BigNumber.from(10),
+  max = ethers.BigNumber.from(32),
   prepend = '',
   exclude = [],
 } = {}) => {

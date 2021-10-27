@@ -45,19 +45,19 @@ export default [
 
       const cycleLimit1 = randomBigNumber({
         min: BigNumber.from(1),
-        max: constants.MaxCycleLimit,
+        max: this.MaxCycleLimit,
       });
 
-      const discountRate1 = BigNumber.from(constants.MaxDiscountRate);
+      const discountRate1 = BigNumber.from(this.MaxDiscountRate);
 
       const ballot1 = constants.AddressZero;
 
-      const reservedRate1 = randomBigNumber({ max: constants.MaxPercent });
+      const reservedRate1 = randomBigNumber({ max: this.MaxPercent });
       const bondingCurveRate1 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       const reconfigurationBondingCurveRate1 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       await executeFn({
         caller: randomSignerFn(),
@@ -362,20 +362,20 @@ export default [
             }),
             cycleLimit: randomBigNumber({
               min: BigNumber.from(0),
-              max: constants.MaxCycleLimit,
+              max: this.MaxCycleLimit,
             }),
             discountRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
             ballot: constants.AddressZero,
           },
           {
-            reservedRate: randomBigNumber({ max: constants.MaxPercent }),
+            reservedRate: randomBigNumber({ max: this.MaxPercent }),
             bondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
           },
           [],
@@ -480,20 +480,20 @@ export default [
             }),
             cycleLimit: randomBigNumber({
               min: BigNumber.from(0),
-              max: constants.MaxCycleLimit,
+              max: this.MaxCycleLimit,
             }),
             discountRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
             ballot: constants.AddressZero,
           },
           {
-            reservedRate: randomBigNumber({ max: constants.MaxPercent }),
+            reservedRate: randomBigNumber({ max: this.MaxPercent }),
             bondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
           },
           [],

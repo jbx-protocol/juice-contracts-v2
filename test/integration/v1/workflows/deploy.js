@@ -33,19 +33,19 @@ export default [
         max: constants.MaxUint16,
       });
       const cycleLimit = randomBigNumber({
-        max: constants.MaxCycleLimit,
+        max: this.MaxCycleLimit,
       });
       const discountRate = randomBigNumber({
-        max: constants.MaxDiscountRate,
+        max: this.MaxDiscountRate,
       });
       const ballot = constants.AddressZero;
 
-      const reservedRate = randomBigNumber({ max: constants.MaxPercent });
+      const reservedRate = randomBigNumber({ max: this.MaxPercent });
       const bondingCurveRate = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       const reconfigurationBondingCurveRate = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
 
       // These can be whatever.

@@ -47,10 +47,10 @@ export default [
       const currency = 0;
 
       // Set a random percentage of tickets to reserve for the project owner.
-      const reservedRate = randomBigNumber({ max: constants.MaxPercent });
+      const reservedRate = randomBigNumber({ max: this.MaxPercent });
 
       // Set a random bonding curve rate.
-      const bondingCurveRate = randomBigNumber({ max: constants.MaxPercent });
+      const bondingCurveRate = randomBigNumber({ max: this.MaxPercent });
 
       await executeFn({
         caller: deployer,
@@ -68,16 +68,16 @@ export default [
               max: constants.MaxUint16,
             }),
             cycleLimit: randomBigNumber({
-              max: constants.MaxCycleLimit,
+              max: this.MaxCycleLimit,
             }),
-            discountRate: randomBigNumber({ max: constants.MaxPercent }),
+            discountRate: randomBigNumber({ max: this.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
             reservedRate,
             bondingCurveRate,
             reconfigurationBondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
           },
           [],
@@ -147,13 +147,13 @@ export default [
       contracts,
       local: { expectedProjectId, ticketBeneficiary, paymentValue, reservedRate },
     }) => {
-      const expectedTotalTicketBalance = paymentValue.mul(constants.InitialWeightMultiplier);
+      const expectedTotalTicketBalance = paymentValue.mul(this.InitialWeightMultiplier);
 
       // The amount of tickets that will be expected to be staked after the first payment.
       const expectedStakedBalance = paymentValue
-        .mul(constants.InitialWeightMultiplier)
-        .mul(constants.MaxPercent.sub(reservedRate))
-        .div(constants.MaxPercent);
+        .mul(this.InitialWeightMultiplier)
+        .mul(this.MaxPercent.sub(reservedRate))
+        .div(this.MaxPercent);
 
       await verifyContractGetter({
         caller: randomSignerFn(),

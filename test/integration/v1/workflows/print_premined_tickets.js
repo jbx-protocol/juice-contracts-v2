@@ -103,7 +103,7 @@ export default [
     }) => {
       // The ticket amount is based on the initial funding cycle's weight.
       const expectedPreminedPrintedTicketAmount1 = preminePrintAmount1.mul(
-        constants.InitialWeightMultiplier,
+        this.InitialWeightMultiplier,
       );
       await verifyContractGetter({
         caller: randomSignerFn(),
@@ -208,9 +208,7 @@ export default [
       },
     }) => {
       // The ticket amount is based on the initial funding cycle's weight.
-      const expectedPaymentPrintedTicketAmount1 = paymentValue1.mul(
-        constants.InitialWeightMultiplier,
-      );
+      const expectedPaymentPrintedTicketAmount1 = paymentValue1.mul(this.InitialWeightMultiplier);
       await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
@@ -305,18 +303,18 @@ export default [
               max: constants.MaxUint16,
             }),
             cycleLimit: randomBigNumber({
-              max: constants.MaxCycleLimit,
+              max: this.MaxCycleLimit,
             }),
-            discountRate: randomBigNumber({ max: constants.MaxPercent }),
+            discountRate: randomBigNumber({ max: this.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
-            reservedRate: randomBigNumber({ max: constants.MaxPercent }),
+            reservedRate: randomBigNumber({ max: this.MaxPercent }),
             bondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
           },
           [],
@@ -387,7 +385,7 @@ export default [
       },
     }) => {
       const expectedPreminedPrintedTicketAmount2 = preminePrintAmount2.mul(
-        constants.InitialWeightMultiplier,
+        this.InitialWeightMultiplier,
       );
 
       let expect = expectedPreminedPrintedTicketAmount2;

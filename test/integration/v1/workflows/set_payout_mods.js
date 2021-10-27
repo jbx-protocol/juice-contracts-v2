@@ -42,7 +42,7 @@ export default [
         // Arbitrary percent that adds up to <= 100% across all mods.
         percent: randomBigNumber({
           min: BigNumber.from(1),
-          max: constants.MaxModPercent.div(2),
+          max: this.MaxModPercent.div(2),
         }).toNumber(),
         // Lock at least until the end of the tests.
         lockedUntil: (await getTimestampFn())
@@ -62,7 +62,7 @@ export default [
         // Arbitrary percent that adds up to <= 100% across all mods.
         percent: randomBigNumber({
           min: BigNumber.from(1),
-          max: constants.MaxModPercent.div(4),
+          max: this.MaxModPercent.div(4),
         }).toNumber(),
         lockedUntil: 0,
         beneficiary: randomAddressFn(),
@@ -89,18 +89,18 @@ export default [
               max: constants.MaxUint16,
             }),
             cycleLimit: randomBigNumber({
-              max: constants.MaxCycleLimit,
+              max: this.MaxCycleLimit,
             }),
-            discountRate: randomBigNumber({ max: constants.MaxPercent }),
+            discountRate: randomBigNumber({ max: this.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
             reservedRate: BigNumber.from(0),
             bondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
           },
           [lockedMod1, unlockedMod1],
@@ -168,7 +168,7 @@ export default [
         // Arbitrary percent that adds up to <= 100% across all mods.
         percent: randomBigNumber({
           min: BigNumber.from(1),
-          max: constants.MaxModPercent.div(5),
+          max: this.MaxModPercent.div(5),
         }).toNumber(),
         lockedUntil: 0,
         beneficiary: randomAddressFn(),
@@ -297,18 +297,18 @@ export default [
               max: constants.MaxUint16,
             }),
             cycleLimit: randomBigNumber({
-              max: constants.MaxCycleLimit,
+              max: this.MaxCycleLimit,
             }),
-            discountRate: randomBigNumber({ max: constants.MaxPercent }),
+            discountRate: randomBigNumber({ max: this.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
             reservedRate: BigNumber.from(0),
             bondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
           },
           [unlockedMod1],

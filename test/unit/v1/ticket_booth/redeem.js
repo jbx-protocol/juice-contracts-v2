@@ -5,7 +5,7 @@ const {
   ethers: { BigNumber, getContractFactory },
 } = hardhat;
 
-import { constants } from "../../../utils"
+import { constants } from '../../../utils';
 
 const tests = {
   success: [

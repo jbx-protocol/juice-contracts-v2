@@ -62,21 +62,21 @@ export default [
       });
 
       // Set a random percentage of tickets to reserve for the project owner.
-      const reservedRate = randomBigNumber({ max: constants.MaxPercent });
+      const reservedRate = randomBigNumber({ max: this.MaxPercent });
 
       // Set a random discount rate. Don't allow non-recurring cycles.
       const discountRate = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
 
       // Set a random bonding curve rate.
       const bondingCurveRate = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
 
       // Set a random reconfiguration bonding curve rate.
       const reconfigurationBondingCurveRate = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
 
       // Use a ballot that has a fixed approval time.
@@ -109,7 +109,7 @@ export default [
               min: minDuration,
               max: constants.MaxUint16,
             }),
-            cycleLimit: randomBigNumber({ max: constants.MaxCycleLimit }),
+            cycleLimit: randomBigNumber({ max: this.MaxCycleLimit }),
             discountRate,
             ballot: ballot.address,
           },
@@ -175,11 +175,11 @@ export default [
       BigNumber,
       local: { expectedProjectId, ticketBeneficiary1, reservedRate, paymentValue1 },
     }) => {
-      const expectedTotalTicketsFromPayment1 = paymentValue1.mul(constants.InitialWeightMultiplier);
+      const expectedTotalTicketsFromPayment1 = paymentValue1.mul(this.InitialWeightMultiplier);
 
       const expectedRedeemableTicketsOfTicketBeneficiary1 = expectedTotalTicketsFromPayment1
-        .mul(constants.MaxPercent.sub(reservedRate))
-        .div(constants.MaxPercent);
+        .mul(this.MaxPercent.sub(reservedRate))
+        .div(this.MaxPercent);
 
       await executeFn({
         caller: ticketBeneficiary1,
@@ -327,9 +327,9 @@ export default [
         expectedRedeemableTicketsOfTicketBeneficiary1,
       },
     }) => {
-      const expectedTotalTicketsFromPayment2 = paymentValue2.mul(constants.InitialWeightMultiplier);
+      const expectedTotalTicketsFromPayment2 = paymentValue2.mul(this.InitialWeightMultiplier);
 
-      const expectedTotalTicketsFromPayment3 = paymentValue3.mul(constants.InitialWeightMultiplier);
+      const expectedTotalTicketsFromPayment3 = paymentValue3.mul(this.InitialWeightMultiplier);
 
       const expectedTotalTickets = expectedTotalTicketsFromPayment1
         .add(expectedTotalTicketsFromPayment2)
@@ -489,8 +489,8 @@ export default [
       },
     }) => {
       const expectedRedeemableTicketsOfTicketBeneficiary2 = expectedTotalTicketsFromPayment2
-        .mul(constants.MaxPercent.sub(reservedRate))
-        .div(constants.MaxPercent);
+        .mul(this.MaxPercent.sub(reservedRate))
+        .div(this.MaxPercent);
 
       await verifyContractGetter({
         caller: randomSignerFn(),
@@ -529,20 +529,20 @@ export default [
               max: constants.MaxUint16,
             }),
             cycleLimit: randomBigNumber({
-              max: constants.MaxCycleLimit,
+              max: this.MaxCycleLimit,
             }),
-            discountRate: randomBigNumber({ max: constants.MaxPercent }),
+            discountRate: randomBigNumber({ max: this.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
             reservedRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
             bondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
           },
           [],
@@ -732,8 +732,8 @@ export default [
       },
     }) => {
       const expectedRedeemableTicketsOfTicketBeneficiary3 = expectedTotalTicketsFromPayment3
-        .mul(constants.MaxPercent.sub(reservedRate))
-        .div(constants.MaxPercent);
+        .mul(this.MaxPercent.sub(reservedRate))
+        .div(this.MaxPercent);
 
       await verifyContractGetter({
         caller: randomSignerFn(),

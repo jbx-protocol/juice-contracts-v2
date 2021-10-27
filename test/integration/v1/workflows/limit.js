@@ -45,21 +45,21 @@ export default [
 
       const cycleLimit1 = randomBigNumber({
         min: BigNumber.from(1),
-        max: constants.MaxCycleLimit,
+        max: this.MaxCycleLimit,
       });
 
       // dont allow non recurring.
       const discountRate1 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       const ballot1 = constants.AddressZero;
 
-      const reservedRate1 = randomBigNumber({ max: constants.MaxPercent });
+      const reservedRate1 = randomBigNumber({ max: this.MaxPercent });
       const bondingCurveRate1 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       const reconfigurationBondingCurveRate1 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       await executeFn({
         caller: randomSignerFn(),
@@ -257,8 +257,8 @@ export default [
       let expectedWeight = expectedInitialWeight;
       for (let i = 0; i < cycleLimit1.sub(1); i += 1) {
         expectedWeight = expectedWeight
-          .mul(constants.DiscountRatePercentDenominator.sub(discountRate1))
-          .div(constants.DiscountRatePercentDenominator);
+          .mul(this.DiscountRatePercentDenominator.sub(discountRate1))
+          .div(this.DiscountRatePercentDenominator);
       }
       await verifyContractGetter({
         caller: randomSignerFn(),
@@ -317,8 +317,8 @@ export default [
       let expectedFullLimitWeight = expectedInitialWeight;
       for (let i = 0; i < cycleLimit1; i += 1) {
         expectedFullLimitWeight = expectedFullLimitWeight
-          .mul(constants.DiscountRatePercentDenominator.sub(discountRate1))
-          .div(constants.DiscountRatePercentDenominator);
+          .mul(this.DiscountRatePercentDenominator.sub(discountRate1))
+          .div(this.DiscountRatePercentDenominator);
       }
       await verifyContractGetter({
         caller: randomSignerFn(),
@@ -369,20 +369,20 @@ export default [
       });
       const cycleLimit2 = randomBigNumber({
         min: BigNumber.from(1),
-        max: constants.MaxCycleLimit,
+        max: this.MaxCycleLimit,
       });
       // dont allow non recurring.
       const discountRate2 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       const ballot2 = constants.AddressZero;
 
-      const reservedRate2 = randomBigNumber({ max: constants.MaxPercent });
+      const reservedRate2 = randomBigNumber({ max: this.MaxPercent });
       const bondingCurveRate2 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       const reconfigurationBondingCurveRate2 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
 
       await executeFn({
@@ -534,8 +534,8 @@ export default [
           configurationTimeMark,
           cycleLimit2,
           expectedFullLimitWeight
-            .mul(constants.DiscountRatePercentDenominator.sub(discountRate1))
-            .div(constants.DiscountRatePercentDenominator),
+            .mul(this.DiscountRatePercentDenominator.sub(discountRate1))
+            .div(this.DiscountRatePercentDenominator),
           ballot2,
           originalTimeMark.add(cycleLimit1.add(1).mul(duration1).mul(86400)),
           duration2,
@@ -598,10 +598,10 @@ export default [
           configurationTimeMark,
           cycleLimit2.sub(1),
           expectedFullLimitWeight
-            .mul(constants.DiscountRatePercentDenominator.sub(discountRate1))
-            .div(constants.DiscountRatePercentDenominator)
-            .mul(constants.DiscountRatePercentDenominator.sub(discountRate2))
-            .div(constants.DiscountRatePercentDenominator),
+            .mul(this.DiscountRatePercentDenominator.sub(discountRate1))
+            .div(this.DiscountRatePercentDenominator)
+            .mul(this.DiscountRatePercentDenominator.sub(discountRate2))
+            .div(this.DiscountRatePercentDenominator),
           ballot2,
           originalTimeMark
             .add(cycleLimit1.add(1).mul(duration1).mul(86400))
@@ -652,12 +652,12 @@ export default [
       },
     }) => {
       let expectedFullLimitWeight2 = expectedFullLimitWeight
-        .mul(constants.DiscountRatePercentDenominator.sub(discountRate1))
-        .div(constants.DiscountRatePercentDenominator);
+        .mul(this.DiscountRatePercentDenominator.sub(discountRate1))
+        .div(this.DiscountRatePercentDenominator);
       for (let i = 0; i < cycleLimit2; i += 1) {
         expectedFullLimitWeight2 = expectedFullLimitWeight2
-          .mul(constants.DiscountRatePercentDenominator.sub(discountRate2))
-          .div(constants.DiscountRatePercentDenominator);
+          .mul(this.DiscountRatePercentDenominator.sub(discountRate2))
+          .div(this.DiscountRatePercentDenominator);
       }
       verifyContractGetter({
         caller: randomSignerFn(),
@@ -737,12 +737,12 @@ export default [
       },
     }) => {
       let expectedFullLimitWeight2 = expectedFullLimitWeight
-        .mul(constants.DiscountRatePercentDenominator.sub(discountRate1))
-        .div(constants.DiscountRatePercentDenominator);
+        .mul(this.DiscountRatePercentDenominator.sub(discountRate1))
+        .div(this.DiscountRatePercentDenominator);
       for (let i = 0; i < cycleLimit2; i += 1) {
         expectedFullLimitWeight2 = expectedFullLimitWeight2
-          .mul(constants.DiscountRatePercentDenominator.sub(discountRate2))
-          .div(constants.DiscountRatePercentDenominator);
+          .mul(this.DiscountRatePercentDenominator.sub(discountRate2))
+          .div(this.DiscountRatePercentDenominator);
       }
       await verifyContractGetter({
         caller: randomSignerFn(),

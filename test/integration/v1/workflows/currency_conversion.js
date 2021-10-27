@@ -97,17 +97,17 @@ export default [
               min: BigNumber.from(1),
               max: constants.MaxUint16,
             }),
-            cycleLimit: randomBigNumber({ max: constants.MaxCycleLimit }),
-            discountRate: randomBigNumber({ max: constants.MaxPercent }),
+            cycleLimit: randomBigNumber({ max: this.MaxCycleLimit }),
+            discountRate: randomBigNumber({ max: this.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
             reservedRate,
             bondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
           },
           [],
@@ -170,7 +170,7 @@ export default [
       local: { premineTicketBeneficiary, premineValueInWei, expectedProjectId },
     }) => {
       // The expected number of tickets to receive during the premine.
-      const expectedPremineTickets = premineValueInWei.mul(constants.InitialWeightMultiplier);
+      const expectedPremineTickets = premineValueInWei.mul(this.InitialWeightMultiplier);
       await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
@@ -214,9 +214,9 @@ export default [
     }) => {
       // The expected number of tickets to receive during the payment.
       const expectedPaymentTickets = paymentValueInWei
-        .mul(constants.MaxPercent.sub(reservedRate))
-        .div(constants.MaxPercent)
-        .mul(constants.InitialWeightMultiplier);
+        .mul(this.MaxPercent.sub(reservedRate))
+        .div(this.MaxPercent)
+        .mul(this.InitialWeightMultiplier);
       verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,
@@ -284,8 +284,8 @@ export default [
     fn: async ({ contracts, local: { owner, amountToTapInWei, ownersInitialBalance } }) => {
       // The amount tapped takes into account any fees paid.
       const expectedTappedAmountInWei = amountToTapInWei
-        .mul(constants.MaxPercent)
-        .div((await contracts.terminalV1.fee()).add(constants.MaxPercent));
+        .mul(this.MaxPercent)
+        .div((await contracts.terminalV1.fee()).add(this.MaxPercent));
       await verifyBalance({
         address: owner.address,
         expect: ownersInitialBalance.add(expectedTappedAmountInWei),

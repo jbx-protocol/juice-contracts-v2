@@ -6,20 +6,19 @@
 
   A created project can make use all TerminalV1 functionality as normal.
 */
-import { constants } from '../../../utils';
+import {
+  constants,
+  randomBool,
+  randomBigNumber,
+  randomBytes,
+  randomString,
+  verifyContractGetter,
+} from '../../../utils';
 
 export default [
   {
     description: 'Create a project',
-    fn: async ({
-      deployer,
-      contracts,
-      executeFn,
-      randomString,
-      randomSignerFn,
-      randomBytes,
-      incrementProjectIdFn,
-    }) => {
+    fn: async ({ deployer, contracts, executeFn, randomSignerFn, incrementProjectIdFn }) => {
       // The address that will own a project.
       const owner = randomSignerFn();
 
@@ -89,7 +88,7 @@ export default [
   },
   {
     description: "Make sure someone else can't deploy a project with the same handle",
-    fn: async ({ contracts, executeFn, randomString, randomSignerFn, local: { handle } }) => {
+    fn: async ({ contracts, executeFn, randomSignerFn, local: { handle } }) => {
       // The address that will own another project.
       const secondOwner = randomSignerFn();
       await executeFn({
@@ -105,7 +104,7 @@ export default [
   },
   {
     description: 'Set a new URI',
-    fn: async ({ contracts, executeFn, randomString, local: { owner, expectedProjectId } }) => {
+    fn: async ({ contracts, executeFn, local: { owner, expectedProjectId } }) => {
       const secondUri = randomString();
       await executeFn({
         caller: owner,
@@ -130,12 +129,7 @@ export default [
   },
   {
     description: 'Set a new handle.',
-    fn: async ({
-      contracts,
-      executeFn,
-      randomBytes,
-      local: { owner, handle, expectedProjectId },
-    }) => {
+    fn: async ({ contracts, executeFn, local: { owner, handle, expectedProjectId } }) => {
       const secondHandle = randomBytes({
         // Make sure its unique by prepending the id.
         prepend: expectedProjectId.toString(),
@@ -189,7 +183,6 @@ export default [
     fn: async ({
       contracts,
       executeFn,
-      randomString,
       randomSignerFn,
       incrementProjectIdFn,
       local: { secondOwner, handle },
@@ -233,7 +226,6 @@ export default [
     fn: async ({
       contracts,
       executeFn,
-      randomBytes,
       local: { owner, secondOwner, expectedProjectId, handle, secondHandle },
     }) => {
       const thirdHandle = randomBytes({
@@ -285,7 +277,7 @@ export default [
   },
   {
     description: "Make sure a project can't be created with the transfered handle",
-    fn: ({ deployer, contracts, executeFn, randomString, local: { secondOwner, secondHandle } }) =>
+    fn: ({ deployer, contracts, executeFn, local: { secondOwner, secondHandle } }) =>
       executeFn({
         caller: deployer,
         contract: contracts.projects,
@@ -389,8 +381,6 @@ export default [
       contracts,
       executeFn,
       BigNumber,
-      randomBigNumber,
-      randomString,
       getBalanceFn,
       randomAddressFn,
 
@@ -424,7 +414,6 @@ export default [
       contracts,
       executeFn,
       BigNumber,
-      randomBigNumber,
       incrementFundingCycleIdFn,
       local: { owner, paymentValue, expectedProjectId },
     }) => {
@@ -447,19 +436,19 @@ export default [
               min: BigNumber.from(1),
               max: constants.MaxUint16,
             }),
-            cycleLimit: randomBigNumber({ max: constants.MaxCycleLimit }),
-            discountRate: randomBigNumber({ max: constants.MaxPercent }),
+            cycleLimit: randomBigNumber({ max: this.MaxCycleLimit }),
+            discountRate: randomBigNumber({ max: this.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
             reservedRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
             bondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
           },
           [],

@@ -57,7 +57,7 @@ export default [
       // Set a random percentage of tickets to reserve for the project owner.
       // Arbitrarily it to under 50% to make sure funds aren't not all reserved.
       const reservedRate = randomBigNumber({
-        max: constants.MaxPercent.div(2),
+        max: this.MaxPercent.div(2),
       });
 
       await executeFn({
@@ -79,18 +79,18 @@ export default [
               max: constants.MaxUint16,
             }),
             cycleLimit: randomBigNumber({
-              max: constants.MaxCycleLimit,
+              max: this.MaxCycleLimit,
             }),
-            discountRate: randomBigNumber({ max: constants.MaxPercent }),
+            discountRate: randomBigNumber({ max: this.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
             reservedRate,
             bondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
           },
           [],
@@ -322,7 +322,7 @@ export default [
     description:
       'The only balance that should be left in the old terminalV1 is the admin fee incurred while tapping',
     fn: async ({ contracts, local: { amountToTap1, initialTerminalV1Balance } }) => {
-      // The percent, out of `constants.MaxPercent`, that will be charged as a fee.
+      // The percent, out of `this.MaxPercent`, that will be charged as a fee.
       const fee = await contracts.terminalV1.fee();
 
       await verifyBalance({
@@ -330,7 +330,7 @@ export default [
         // Take the fee from the amount that was tapped.
         expect: initialTerminalV1Balance
           .add(amountToTap1)
-          .sub(amountToTap1.mul(constants.MaxPercent).div(constants.MaxPercent.add(fee))),
+          .sub(amountToTap1.mul(this.MaxPercent).div(this.MaxPercent.add(fee))),
       });
     },
   },

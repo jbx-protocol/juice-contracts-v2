@@ -50,7 +50,7 @@ export default [
       });
 
       // Set a random percentage of tickets to reserve for the project owner.
-      const reservedRate = randomBigNumber({ max: constants.MaxPercent });
+      const reservedRate = randomBigNumber({ max: this.MaxPercent });
 
       await executeFn({
         caller: randomSignerFn(),
@@ -71,18 +71,18 @@ export default [
               max: constants.MaxUint16,
             }),
             cycleLimit: randomBigNumber({
-              max: constants.MaxCycleLimit,
+              max: this.MaxCycleLimit,
             }),
-            discountRate: randomBigNumber({ max: constants.MaxPercent }),
+            discountRate: randomBigNumber({ max: this.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
             reservedRate,
             bondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
           },
           [],
@@ -144,9 +144,9 @@ export default [
     }) => {
       // The amount of tickets that will be expected to be staked after the first payment.
       const expectedStakedBalance = paymentValue1
-        .mul(constants.InitialWeightMultiplier)
-        .mul(constants.MaxPercent.sub(reservedRate))
-        .div(constants.MaxPercent);
+        .mul(this.InitialWeightMultiplier)
+        .mul(this.MaxPercent.sub(reservedRate))
+        .div(this.MaxPercent);
 
       await verifyContractGetter({
         caller: randomSignerFn(),
@@ -229,9 +229,9 @@ export default [
       // Total amount of tickets that will be expected to be both staked and unstaked after the second payment.
       const expectedTotalTicketBalance = paymentValue1
         .add(paymentValue2)
-        .mul(constants.InitialWeightMultiplier)
-        .mul(constants.MaxPercent.sub(reservedRate))
-        .div(constants.MaxPercent);
+        .mul(this.InitialWeightMultiplier)
+        .mul(this.MaxPercent.sub(reservedRate))
+        .div(this.MaxPercent);
 
       await verifyContractGetter({
         caller: randomSignerFn(),

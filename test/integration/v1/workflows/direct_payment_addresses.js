@@ -47,18 +47,18 @@ export default [
               max: constants.MaxUint16,
             }),
             cycleLimit: randomBigNumber({
-              max: constants.MaxCycleLimit,
+              max: this.MaxCycleLimit,
             }),
-            discountRate: randomBigNumber({ max: constants.MaxPercent }),
+            discountRate: randomBigNumber({ max: this.MaxPercent }),
             ballot: constants.AddressZero,
           },
           {
             reservedRate,
             bondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
             reconfigurationBondingCurveRate: randomBigNumber({
-              max: constants.MaxPercent,
+              max: this.MaxPercent,
             }),
           },
           [],
@@ -137,9 +137,9 @@ export default [
       local: { payer, paymentValue, reservedRate, expectedProjectId },
     }) => {
       const expectedTicketAmount = paymentValue
-        .mul(constants.InitialWeightMultiplier)
-        .mul(constants.MaxPercent.sub(reservedRate))
-        .div(constants.MaxPercent);
+        .mul(this.InitialWeightMultiplier)
+        .mul(this.MaxPercent.sub(reservedRate))
+        .div(this.MaxPercent);
       await verifyContractGetter({
         caller: randomSignerFn(),
         contract: contracts.ticketBooth,

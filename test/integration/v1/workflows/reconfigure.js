@@ -46,20 +46,20 @@ export default [
         max: constants.MaxUint16,
       });
       const cycleLimit1 = randomBigNumber({
-        max: constants.MaxCycleLimit,
+        max: this.MaxCycleLimit,
       });
       // Make sure its recurring.
       const discountRate1 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       const ballot1 = constants.AddressZero;
 
-      const reservedRate1 = randomBigNumber({ max: constants.MaxPercent });
+      const reservedRate1 = randomBigNumber({ max: this.MaxPercent });
       const bondingCurveRate1 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       const reconfigurationBondingCurveRate1 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
 
       await executeFn({
@@ -268,8 +268,8 @@ export default [
           // Cycle limit should be 0 for the first funding cycle.
           cycleLimit1.eq(0) ? BigNumber.from(0) : cycleLimit1.sub(1),
           expectedInitialWeight
-            .mul(constants.DiscountRatePercentDenominator.sub(discountRate1))
-            .div(constants.DiscountRatePercentDenominator),
+            .mul(this.DiscountRatePercentDenominator.sub(discountRate1))
+            .div(this.DiscountRatePercentDenominator),
           ballot1,
           timeMark.add(duration1.mul(86400)),
           duration1,
@@ -299,20 +299,20 @@ export default [
         max: constants.MaxUint16,
       });
       const cycleLimit2 = randomBigNumber({
-        max: constants.MaxCycleLimit,
+        max: this.MaxCycleLimit,
       });
       // Make sure its not recurring.
       const discountRate2 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       const ballot2 = constants.AddressZero;
 
-      const reservedRate2 = randomBigNumber({ max: constants.MaxPercent });
+      const reservedRate2 = randomBigNumber({ max: this.MaxPercent });
       const bondingCurveRate2 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
       const reconfigurationBondingCurveRate2 = randomBigNumber({
-        max: constants.MaxPercent,
+        max: this.MaxPercent,
       });
 
       await executeFn({
@@ -667,8 +667,8 @@ export default [
           timeMark,
           cycleLimit2,
           expectedInitialWeight
-            .mul(constants.DiscountRatePercentDenominator.sub(discountRate1))
-            .div(constants.DiscountRatePercentDenominator),
+            .mul(this.DiscountRatePercentDenominator.sub(discountRate1))
+            .div(this.DiscountRatePercentDenominator),
           ballot2,
           // The start time should be one duration after the initial start.
           originalTimeMark.add(duration1.mul(86400)),
@@ -772,8 +772,8 @@ export default [
           timeMark,
           cycleLimit2,
           expectedInitialWeight
-            .mul(constants.DiscountRatePercentDenominator.sub(discountRate1))
-            .div(constants.DiscountRatePercentDenominator),
+            .mul(this.DiscountRatePercentDenominator.sub(discountRate1))
+            .div(this.DiscountRatePercentDenominator),
           ballot2,
           // The start time should be one duration after the initial start.
           originalTimeMark.add(duration1.mul(86400)),

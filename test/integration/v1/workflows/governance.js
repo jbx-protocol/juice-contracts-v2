@@ -12,7 +12,7 @@ export default [
         caller: deployer,
         contract: contracts.governance,
         fn: 'setFee',
-        args: [contracts.terminalV1.address, randomBigNumber({ max: constants.MaxPercent })],
+        args: [contracts.terminalV1.address, randomBigNumber({ max: this.MaxPercent })],
       }),
   },
   {
@@ -42,7 +42,7 @@ export default [
         caller: firstAppointedGovernance,
         contract: contracts.terminalV1,
         fn: 'setFee',
-        args: [randomBigNumber({ max: constants.MaxPercent })],
+        args: [randomBigNumber({ max: this.MaxPercent })],
         revert: 'TerminalV1: UNAUTHORIZED',
       }),
   },
@@ -53,7 +53,7 @@ export default [
         caller: deployer,
         contract: contracts.governance,
         fn: 'setFee',
-        args: [contracts.terminalV1.address, randomBigNumber({ max: constants.MaxPercent })],
+        args: [contracts.terminalV1.address, randomBigNumber({ max: this.MaxPercent })],
       }),
   },
   {
@@ -111,7 +111,7 @@ export default [
         caller: deployer,
         contract: contracts.governance,
         fn: 'setFee',
-        args: [contracts.terminalV1.address, randomBigNumber({ max: constants.MaxPercent })],
+        args: [contracts.terminalV1.address, randomBigNumber({ max: this.MaxPercent })],
         revert:
           contracts.governance.address !== secondAppointedGovernance.address &&
           'TerminalV1: UNAUTHORIZED',
@@ -129,7 +129,7 @@ export default [
         caller: secondAppointedGovernance,
         contract: contracts.terminalV1,
         fn: 'setFee',
-        args: [randomBigNumber({ max: constants.MaxPercent })],
+        args: [randomBigNumber({ max: this.MaxPercent })],
       }),
   },
   {

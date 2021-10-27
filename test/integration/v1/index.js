@@ -141,31 +141,31 @@ export default function () {
       proxyPaymentAddressManager,
     };
 
-    // The governance project should have an ID of 1.
-    this.constants.GovernanceProjectId = 1;
+    // TODO(odd-amphora): Temporary fix for dynamic integration testing constants.
+    // This actually doesn't work.
 
     // Bind the standard weight multiplier to the constants.
     // This is used to determine how many tickets get printed per value contributed during a first funding cycle.
-    this.constants.InitialWeightMultiplier = (await fundingCycles.BASE_WEIGHT()).div(
+    this.InitialWeightMultiplier = (await fundingCycles.BASE_WEIGHT()).div(
       BigNumber.from(10).pow(18),
     );
 
-    this.constants.MaxCycleLimit = await fundingCycles.MAX_CYCLE_LIMIT();
+    this.MaxCycleLimit = await fundingCycles.MAX_CYCLE_LIMIT();
 
-    this.constants.GovernanceProjectId = projectId;
-    this.constants.GovenanceOwner = this.deployer.address;
+    this.GovernanceProjectId = projectId;
+    this.GovenanceOwner = this.deployer.address;
 
     // All perecents are out of 200, except for mods.
-    this.constants.MaxPercent = BigNumber.from(200);
+    this.MaxPercent = BigNumber.from(200);
 
     // Mod percents are out of 10000.
-    this.constants.MaxModPercent = BigNumber.from(10000);
+    this.MaxModPercent = BigNumber.from(10000);
 
     // Discount rate percents are out of 201. sending 201 creates a non recurring funding cycle.
-    this.constants.MaxDiscountRate = BigNumber.from(201);
+    this.MaxDiscountRate = BigNumber.from(201);
 
     // The denominator for discount rates is 1000, meaning only 80% - 100% are accessible.
-    this.constants.DiscountRatePercentDenominator = BigNumber.from(1000);
+    this.DiscountRatePercentDenominator = BigNumber.from(1000);
 
     this.incrementProjectIdFn = () => {
       projectId = projectId.add(1);
@@ -183,13 +183,13 @@ export default function () {
 
     this.bondingCurveFn = ({ rate, count, total, overflow }) => {
       if (count.eq(total)) return overflow;
-      if (rate.eq(this.constants.MaxPercent)) return overflow.mul(count).div(total);
+      if (rate.eq(this.this.MaxPercent)) return overflow.mul(count).div(total);
       if (rate.eq(0)) return overflow.mul(count).div(total).mul(count).div(total);
       return overflow
         .mul(count)
         .div(total)
-        .mul(rate.add(count.mul(this.constants.MaxPercent.sub(rate)).div(total)))
-        .div(this.constants.MaxPercent);
+        .mul(rate.add(count.mul(this.this.MaxPercent.sub(rate)).div(total)))
+        .div(this.this.MaxPercent);
     };
   });
 
