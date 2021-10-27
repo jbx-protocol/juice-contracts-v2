@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { BigNumber, utils } from 'ethers';
 
-import { deployContract, deployMockLocalContract } from '../../../utils';
+import { constants, deployContract, deployMockLocalContract } from '../../../utils';
 
 const mockFn =
   ({ condition, mockContract, fn, args, returns = [] }) =>

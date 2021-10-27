@@ -5,7 +5,7 @@ const {
 
 import { expect } from 'chai';
 
-import { deployMockLocalContract, mockContractFunction } from '../../../utils';
+import { constants, deployMockLocalContract, mockContractFunction } from '../../../utils';
 
 const tests = {
   success: [
@@ -255,7 +255,7 @@ export default function () {
                 number: 0,
                 basedOn: 0,
                 weight: 0,
-                ballot: this.constants.AddressZero,
+                ballot: constants.AddressZero,
                 start: 0,
                 duration: 0,
                 target: 0,
