@@ -540,7 +540,7 @@ contract JBETHPaymentTerminal is
             _fundingCycle.projectId,
             _split.projectId,
             _split.beneficiary,
-            _split.preferUnstaked
+            _split.preferClaimed
           );
           // Otherwise, if a project is specified, make a payment to it.
         } else if (_split.projectId != 0) {
@@ -557,7 +557,7 @@ contract JBETHPaymentTerminal is
               _split.projectId,
               _split.beneficiary,
               0,
-              _split.preferUnstaked,
+              _split.preferClaimed,
               _memo,
               bytes('')
             );
@@ -566,7 +566,7 @@ contract JBETHPaymentTerminal is
               _split.projectId,
               _split.beneficiary,
               0,
-              _split.preferUnstaked,
+              _split.preferClaimed,
               _memo,
               bytes('')
             );

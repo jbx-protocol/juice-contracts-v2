@@ -39,8 +39,7 @@ interface IJBFundingCycleStore {
     uint256 _projectId,
     JBFundingCycleData calldata _data,
     uint256 _metadata,
-    uint256 _fee,
-    bool _configureActiveFundingCycle
+    uint256 _fee
   ) external returns (JBFundingCycle memory fundingCycle);
 
   function tapFrom(uint256 _projectId, uint256 _amount)

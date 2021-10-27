@@ -295,8 +295,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
       _packedMetadata,
       _overflowAllowances,
       _payoutSplits,
-      _reservedTokenSplits,
-      true
+      _reservedTokenSplits
     );
   }
 
@@ -360,14 +359,6 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
       _metadata
     );
 
-    // All reserved tokens must be minted before configuring.
-    if (uint256(_processedTokenTrackerOf[_projectId]) != tokenStore.totalSupplyOf(_projectId))
-      _distributeReservedTokensOf(_projectId, '');
-
-    // Set the this contract as the project's controller in the directory if its not already set.
-    if (address(directory.controllerOf(_projectId)) == address(0))
-      directory.setControllerOf(_projectId, this);
-
     // Configure the active project if its tokens have yet to be minted.
     bool _shouldConfigureActive = tokenStore.totalSupplyOf(_projectId) == 0;
 
@@ -378,8 +369,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
         _packedMetadata,
         _overflowAllowances,
         _payoutSplits,
-        _reservedTokenSplits,
-        _shouldConfigureActive
+        _reservedTokenSplits
       );
   }
 
@@ -519,7 +509,9 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     );
 
     // Update the token tracker so that reserved tokens will still be correctly mintable.
-    _subtractFromTokenTrackerOf(_projectId, _tokenCount);
+    _processedTokenTrackerOf[_projectId] =
+      _processedTokenTrackerOf[_projectId] -
+      int256(_tokenCount);
 
     // Burn the tokens.
     tokenStore.burnFrom(_holder, _projectId, _tokenCount, _preferClaimedTokens);
@@ -552,7 +544,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
   */
   function prepForMigrationOf(uint256 _projectId, IJBController) external override {
     // This controller must not be the project's current controller.
-    require(directory.controllerOf(_projectId) != this, '0x34: UNAUTHORIZED');
+    require(directory.controllerOf(_projectId) != this, '0x34: NO_OP');
 
     // Set the tracker as the total supply.
     _processedTokenTrackerOf[_projectId] = int256(tokenStore.totalSupplyOf(_projectId));
@@ -574,7 +566,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     nonReentrant
   {
     // This controller must be the project's current controller.
-    require(directory.controllerOf(_projectId) == this, '0x35: UNAUTHORIZED');
+    require(directory.controllerOf(_projectId) == this, '0x35: NO_OP');
 
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
@@ -628,9 +620,6 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
   {
     // Get the current funding cycle to read the reserved rate from.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
-
-    // There aren't any reserved tokens to mint and distribute if there is no funding cycle.
-    if (_fundingCycle.number == 0) return 0;
 
     // Get a reference to new total supply of tokens before minting reserved tokens.
     uint256 _totalTokens = tokenStore.totalSupplyOf(_projectId);
@@ -701,23 +690,26 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
       // Mints tokens for the split if needed.
       if (_tokenCount > 0)
         tokenStore.mintFor(
-          // If a projectId is set in the split, set the project's owner as the beneficiary.
-          // Otherwise use the split's beneficiary.
-          _split.projectId != 0 ? projects.ownerOf(_split.projectId) : _split.beneficiary,
+          // If an allocator is set in the splits, set it as the beneficiary. Otherwise if a projectId is set in the split, set the project's owner as the beneficiary. Otherwise use the split's beneficiary.
+          _split.allocator != IJBSplitAllocator(address(0))
+            ? address(_split.allocator)
+            : _split.projectId != 0
+            ? projects.ownerOf(_split.projectId)
+            : _split.beneficiary,
           _fundingCycle.projectId,
           _tokenCount,
-          _split.preferUnstaked
+          _split.preferClaimed
         );
 
       // If there's an allocator set, trigger its `allocate` function.
       if (_split.allocator != IJBSplitAllocator(address(0)))
         _split.allocator.allocate(
           _tokenCount,
-          2,
+          JBSplitsGroups.RESERVED_TOKENS,
           _fundingCycle.projectId,
           _split.projectId,
           _split.beneficiary,
-          _split.preferUnstaked
+          _split.preferClaimed
         );
 
       // Subtract from the amount to be sent to the beneficiary.
@@ -731,31 +723,6 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
         msg.sender
       );
     }
-  }
-
-  /** 
-    @notice
-    Subtracts the provided value from the processed token tracker.
-
-    @dev
-    Necessary to account for both positive and negative values.
-
-    @param _projectId The ID of the project that is having its tracker subtracted from.
-    @param _amount The amount to subtract.
-
-  */
-  function _subtractFromTokenTrackerOf(uint256 _projectId, uint256 _amount) private {
-    // Get a reference to the processed token tracker for the project.
-    int256 _processedTokenTracker = _processedTokenTrackerOf[_projectId];
-
-    // Subtract the count from the processed token tracker.
-    // If there are at least as many processed tokens as the specified amount,
-    // the processed token tracker of the project will be positive. Otherwise it will be negative.
-    _processedTokenTrackerOf[_projectId] = _processedTokenTracker < 0 // If the tracker is negative, add the count and reverse it.
-      ? -int256(uint256(-_processedTokenTracker) + _amount) // the tracker is less than the count, subtract it from the count and reverse it.
-      : _processedTokenTracker < int256(_amount)
-      ? -(int256(_amount) - _processedTokenTracker) // simply subtract otherwise.
-      : _processedTokenTracker - int256(_amount);
   }
 
   /**
@@ -774,7 +741,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     uint256 _totalEligibleTokens
   ) private pure returns (uint256) {
     // Get a reference to the amount of tokens that are unprocessed.
-    uint256 _unprocessedTokenBalanceOf = _processedTokenTracker >= 0 // preconfigure tokens shouldn't contribute to the reserved token amount.
+    uint256 _unprocessedTokenBalanceOf = _processedTokenTracker >= 0
       ? _totalEligibleTokens - uint256(_processedTokenTracker)
       : _totalEligibleTokens + uint256(-_processedTokenTracker);
 
@@ -802,16 +769,14 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     uint256 _packedMetadata,
     JBOverflowAllowance[] memory _overflowAllowances,
     JBSplit[] memory _payoutSplits,
-    JBSplit[] memory _reservedTokenSplits,
-    bool _shouldConfigureActive
+    JBSplit[] memory _reservedTokenSplits
   ) private returns (uint256) {
     // Configure the funding cycle's properties.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.configureFor(
       _projectId,
       _data,
       _packedMetadata,
-      fee,
-      _shouldConfigureActive
+      fee
     );
 
     // Set payout splits if there are any.
