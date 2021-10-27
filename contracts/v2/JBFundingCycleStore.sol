@@ -291,7 +291,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       @dev _data.ballot The new ballot that will be used to approve subsequent reconfigurations.
     @param _metadata Data to associate with this funding cycle configuration.
     @param _fee The fee that this configuration incurs when tapping.
-    @param _configureActiveFundingCycle If a funding cycle that has already started should be configurable.
 
     @return The funding cycle that the configuration will take effect during.
   */
@@ -299,8 +298,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _projectId,
     JBFundingCycleData calldata _data,
     uint256 _metadata,
-    uint256 _fee,
-    bool _configureActiveFundingCycle
+    uint256 _fee
   ) external override onlyController(_projectId) returns (JBFundingCycle memory) {
     // Duration must fit in a uint16.
     require(_data.duration <= type(uint16).max, '0x15: BAD_DURATION');
@@ -321,12 +319,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _configured = block.timestamp;
 
     // Gets the ID of the funding cycle to reconfigure.
-    uint256 _fundingCycleId = _configurableOf(
-      _projectId,
-      _configured,
-      _data.weight,
-      _configureActiveFundingCycle
-    );
+    uint256 _fundingCycleId = _configurableOf(_projectId, _configured, _data.weight);
 
     // Store the configuration.
     _packAndStoreConfigurationPropertiesOf(
@@ -399,15 +392,13 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @param _projectId The ID of the project to find a configurable funding cycle for.
     @param _configured The time at which the configuration is occurring.
     @param _weight The weight to store along with a newly created configurable funding cycle.
-    @param _configureActiveFundingCycle If the active funding cycle should be configurable. Otherwise the next funding cycle will be used.
 
     @return fundingCycleId The ID of the configurable funding cycle.
   */
   function _configurableOf(
     uint256 _projectId,
     uint256 _configured,
-    uint256 _weight,
-    bool _configureActiveFundingCycle
+    uint256 _weight
   ) private returns (uint256 fundingCycleId) {
     // If there's not yet a funding cycle for the project, return the ID of a newly created one.
     if (latestIdOf[_projectId] == 0)
@@ -441,8 +432,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
         // If it hasn't been approved, set the ID to be the based funding cycle,
         // which carries the last approved configuration.
         fundingCycleId = _getStructFor(fundingCycleId).basedOn;
-      } else if (_configureActiveFundingCycle) {
-        return fundingCycleId;
       }
     } else {
       // Get the ID of the latest funding cycle which has the latest reconfiguration.
@@ -462,20 +451,8 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // Determine if the configurable funding cycle can only take effect on or after a certain date.
     uint256 _mustStartOnOrAfter;
 
-    if (_configureActiveFundingCycle) {
-      // If the duration is zero, always go back to the original start.
-      if (_fundingCycle.duration == 0) {
-        _mustStartOnOrAfter = _fundingCycle.start;
-      } else {
-        // Set to the start time of the current active funding cycle.
-        uint256 _timeFromStartMultiple = (block.timestamp - _fundingCycle.start) %
-          (_fundingCycle.duration * _SECONDS_IN_DAY);
-        _mustStartOnOrAfter = block.timestamp - _timeFromStartMultiple;
-      }
-    } else {
-      // The ballot must have ended.
-      _mustStartOnOrAfter = _getLatestTimeAfterBallotOf(_fundingCycle, _configured);
-    }
+    // The ballot must have ended.
+    _mustStartOnOrAfter = _getLatestTimeAfterBallotOf(_fundingCycle, _configured);
 
     // Return the newly initialized configurable funding cycle.
     // No need to copy since a new configuration is going to be applied.
