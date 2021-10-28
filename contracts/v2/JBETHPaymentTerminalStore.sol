@@ -31,7 +31,7 @@ contract JBETHPaymentTerminalStore {
 
   // A modifier only allowing the associated payment terminal to access the function.
   modifier onlyAssociatedPaymentTerminal() {
-    require(msg.sender == terminal, 'NOPE');
+    require(msg.sender == terminal, '0x3a: UNAUTHORIZED');
     _;
   }
 
@@ -168,27 +168,24 @@ contract JBETHPaymentTerminalStore {
 
   /**
     @notice
-    Records newly contributed ETH to a project made at the payment layer.
+    Records newly contributed ETH to a project.
 
     @dev
     Mint's the project's tokens according to values provided by a configured data source. If no data source is configured, mints tokens proportional to the amount of the contribution.
 
-    @dev
-    The msg.value is the amount of the contribution in wei.
-
-    @param _payer The original address that sent the payment to the payment layer.
+    @param _payer The original address that sent the payment to the terminal.
     @param _amount The amount that is being paid.
-    @param _projectId The ID of the project being contribute to.
+    @param _projectId The ID of the project being paid.
     @param _preferClaimedTokensAndBeneficiary Two properties are included in this packed uint256:
-      The first bit contains the flag indicating whether the request prefers to issue tokens unstaked rather than staked.
+      The first bit contains the flag indicating whether the request prefers to issue tokens claimed as ERC-20s.
       The remaining bits contains the address that should receive benefits from the payment.
 
       This design is necessary two prevent a "Stack too deep" compiler error that comes up if the variables are declared seperately.
-    @param _minReturnedTokens The minimum number of tokens expected in return.
+    @param _minReturnedTokens The minimum number of tokens expected to be minted in return.
     @param _memo A memo that will be included in the published event.
-    @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
+    @param _delegateMetadata Bytes to send along to the delegate, if one is used.
 
-    @return fundingCycle The funding cycle during which payment was made.
+    @return fundingCycle The project's funding cycle during which payment was made.
     @return weight The weight according to which new token supply was minted.
     @return tokenCount The number of tokens that were minted.
     @return memo A memo that should be included in the published event.
@@ -215,10 +212,10 @@ contract JBETHPaymentTerminalStore {
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // The project must have a funding cycle configured.
-    require(fundingCycle.number > 0, 'NOT_FOUND');
+    require(fundingCycle.number > 0, '0x3a: NOT_FOUND');
 
     // Must not be paused.
-    require(!fundingCycle.payPaused(), 'PAUSED');
+    require(!fundingCycle.payPaused(), '0x3b: PAUSED');
 
     // Save a reference to the delegate to use.
     IJBPayDelegate _delegate;
@@ -249,7 +246,7 @@ contract JBETHPaymentTerminalStore {
     tokenCount = PRBMath.mulDiv(_weightedAmount, 200 - fundingCycle.reservedRate(), 200);
 
     // The token count must be greater than or equal to the minimum expected.
-    require(tokenCount >= _minReturnedTokens, 'INADEQUATE');
+    require(tokenCount >= _minReturnedTokens, '0x3c: INADEQUATE');
 
     // Add the amount to the balance of the project.
     balanceOf[_projectId] = balanceOf[_projectId] + _amount;
@@ -283,7 +280,7 @@ contract JBETHPaymentTerminalStore {
 
   /**
     @notice
-    Records newly withdrawn funds for a project made at the payment layer.
+    Records newly withdrawn funds for a project.
 
     @param _projectId The ID of the project that is having funds withdrawn.
     @param _amount The amount being withdrawn. Send as wei (18 decimals).
@@ -307,13 +304,13 @@ contract JBETHPaymentTerminalStore {
     fundingCycle = directory.controllerOf(_projectId).signalWithdrawlFrom(_projectId, _amount);
 
     // Funds cannot be withdrawn if there's no funding cycle.
-    require(fundingCycle.id > 0, 'NOT_FOUND');
+    require(fundingCycle.id > 0, '0x3d: NOT_FOUND');
 
     // The funding cycle must not be paused.
-    require(!fundingCycle.tapPaused(), 'PAUSED');
+    require(!fundingCycle.tapPaused(), '0x3e: PAUSED');
 
     // Make sure the currencies match.
-    require(_currency == fundingCycle.currency, 'UNEXPECTED_CURRENCY');
+    require(_currency == fundingCycle.currency, '0x3f: UNEXPECTED_CURRENCY');
 
     // Convert the amount to wei.
     withdrawnAmount = PRBMathUD60x18.div(
@@ -322,10 +319,10 @@ contract JBETHPaymentTerminalStore {
     );
 
     // The amount being withdrawn must be at least as much as was expected.
-    require(_minReturnedWei <= withdrawnAmount, 'INADEQUATE');
+    require(_minReturnedWei <= withdrawnAmount, '0x3e: INADEQUATE');
 
     // The amount being withdrawn must be available.
-    require(withdrawnAmount <= balanceOf[_projectId], 'INSUFFICIENT_FUNDS');
+    require(withdrawnAmount <= balanceOf[_projectId], '0x3f: INSUFFICIENT_FUNDS');
 
     // Removed the withdrawn funds from the project's balance.
     balanceOf[_projectId] = balanceOf[_projectId] - withdrawnAmount;
@@ -333,7 +330,7 @@ contract JBETHPaymentTerminalStore {
 
   /** 
     @notice 
-    Records newly used allowance funds of a project made at the payment layer.
+    Records newly used allowance funds of a project.
 
     @param _projectId The ID of the project to use the allowance of.
     @param _amount The amount of the allowance to use.
@@ -356,7 +353,7 @@ contract JBETHPaymentTerminalStore {
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Make sure the currencies match.
-    require(_currency == fundingCycle.currency, 'UNEXPECTED_CURRENCY');
+    require(_currency == fundingCycle.currency, '0x40: UNEXPECTED_CURRENCY');
 
     // Convert the amount to wei.
     withdrawnAmount = PRBMathUD60x18.div(
@@ -373,14 +370,14 @@ contract JBETHPaymentTerminalStore {
           _terminal
         ) -
           usedOverflowAllowanceOf[_projectId][fundingCycle.configured],
-      'NOT_ALLOWED'
+      '0x41: NOT_ALLOWED'
     );
 
     // The amount being withdrawn must be at least as much as was expected.
-    require(_minReturnedWei <= withdrawnAmount, 'INADEQUATE');
+    require(_minReturnedWei <= withdrawnAmount, '0x42: INADEQUATE');
 
     // The amount being withdrawn must be available.
-    require(withdrawnAmount <= balanceOf[_projectId], 'INSUFFICIENT_FUNDS');
+    require(withdrawnAmount <= balanceOf[_projectId], '0x43: INSUFFICIENT_FUNDS');
 
     // Store the decremented value.
     usedOverflowAllowanceOf[_projectId][fundingCycle.configured] =
@@ -393,7 +390,7 @@ contract JBETHPaymentTerminalStore {
 
   /**
     @notice
-    Records newly redeemed tokens of a project made at the payment layer.
+    Records newly redeemed tokens of a project.
 
     @param _holder The account that is having its tokens redeemed.
     @param _projectId The ID of the project to which the tokens being redeemed belong.
@@ -425,13 +422,13 @@ contract JBETHPaymentTerminalStore {
     )
   {
     // The holder must have the specified number of the project's tokens.
-    require(tokenStore.balanceOf(_holder, _projectId) >= _tokenCount, 'INSUFFICIENT_TOKENS');
+    require(tokenStore.balanceOf(_holder, _projectId) >= _tokenCount, '0x44: INSUFFICIENT_TOKENS');
 
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // The current funding cycle must not be paused.
-    require(!fundingCycle.redeemPaused(), 'PAUSED');
+    require(!fundingCycle.redeemPaused(), '0x45: PAUSED');
 
     // Save a reference to the delegate to use.
     IJBRedemptionDelegate _delegate;
@@ -455,10 +452,10 @@ contract JBETHPaymentTerminalStore {
     }
 
     // The amount being claimed must be at least as much as was expected.
-    require(claimAmount >= _minReturnedWei, 'INADEQUATE');
+    require(claimAmount >= _minReturnedWei, '0x46: INADEQUATE');
 
     // The amount being claimed must be within the project's balance.
-    require(claimAmount <= balanceOf[_projectId], 'INSUFFICIENT_FUNDS');
+    require(claimAmount <= balanceOf[_projectId], '0x47: INSUFFICIENT_FUNDS');
 
     // Redeem the tokens, which burns them.
     if (_tokenCount > 0)
@@ -509,7 +506,7 @@ contract JBETHPaymentTerminalStore {
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-    // Set the balance.
+    // Increment the balance.
     balanceOf[_projectId] = balanceOf[_projectId] + _amount;
   }
 
@@ -519,7 +516,7 @@ contract JBETHPaymentTerminalStore {
 
     @param _projectId The ID of the project being migrated.
 
-    @return balance The current balance.
+    @return balance The project's current balance.
   */
   function recordMigration(uint256 _projectId)
     external
@@ -530,7 +527,7 @@ contract JBETHPaymentTerminalStore {
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Migration must be allowed
-    require(_fundingCycle.terminalMigrationAllowed(), 'TODO');
+    require(_fundingCycle.terminalMigrationAllowed(), '0x47: NOT_ALLOWED');
 
     // Return the current balance.
     balance = balanceOf[_projectId];
@@ -545,7 +542,7 @@ contract JBETHPaymentTerminalStore {
   */
   function claim() external {
     // This store can only be claimed once.
-    require(terminal == address(0), 'NOPE');
+    require(terminal == address(0), '0x48: ALREADY_CLAIMED');
 
     // Set the terminal as the msg.sender.
     terminal = msg.sender;

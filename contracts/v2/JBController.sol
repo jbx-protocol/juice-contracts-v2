@@ -437,7 +437,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
         _processedTokenTrackerOf[_projectId] -
         int256(_tokenCount);
     } else {
-      // Redeem the tokens, which burns them.
+      // Mint the tokens.
       tokenStore.mintFor(_beneficiary, _projectId, _tokenCount, _preferClaimedTokens);
 
       if (!_shouldReserveTokens)
