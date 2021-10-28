@@ -51,7 +51,7 @@ contract JBETHPaymentTerminal is
     @notice 
     Fees that are being held to be processed later.
 
-    _projectId The ID of the project whos fees are held.
+    _projectId The ID of the project for which fees are being held.
   */
   mapping(uint256 => JBFee[]) private _heldFeesOf;
 
@@ -113,7 +113,7 @@ contract JBETHPaymentTerminal is
     @notice 
     The fees that are currently being held to be processed later for each project.
 
-    @param _projectId The ID of the project for which the returned fees are being held.
+    @param _projectId The ID of the project for which fees are being held.
 
     @return An array of fees that are being held.
   */
