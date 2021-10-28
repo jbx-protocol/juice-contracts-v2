@@ -20,6 +20,10 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
   /** 
     @notice
     All splits for each project ID's configurations.
+
+    _projectId is The ID of the project to get splits for.
+    _domain is An identifier within which the returned splits should be considered active.
+    _group The identifying group of the splits.
   */
   mapping(uint256 => mapping(uint256 => mapping(uint256 => JBSplit[]))) private _splitsOf;
 

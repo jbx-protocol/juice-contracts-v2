@@ -12,9 +12,6 @@ import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 
-// Inheritance
-import '@openzeppelin/contracts/access/Ownable.sol';
-
 /**
   @notice
   This contract manages all inflows and outflows of funds into the Juicebox ecosystem.
@@ -28,9 +25,15 @@ import '@openzeppelin/contracts/access/Ownable.sol';
   JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
   ReentrencyGuard - several function in this contract shouldn't be accessible recursively.
 */
-contract JBETHPaymentTerminalStore is Ownable {
+contract JBETHPaymentTerminalStore {
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
+
+  // A modifier only allowing the associated payment terminal to access the function.
+  modifier onlyAssociatedPaymentTerminal() {
+    require(msg.sender == terminal, 'NOPE');
+    _;
+  }
 
   event DelegateDidPay(IJBPayDelegate indexed delegate, JBDidPayData data);
 
@@ -66,6 +69,12 @@ contract JBETHPaymentTerminalStore is Ownable {
   */
   IJBPrices public immutable prices;
 
+  /** 
+    @notice
+    The associated payment terminal for which this contract stores data.
+  */
+  address public terminal;
+
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
@@ -74,26 +83,19 @@ contract JBETHPaymentTerminalStore is Ownable {
     @notice 
     The amount of ETH that each project has.
 
-    @dev
-    [_projectId] 
-
     _projectId The ID of the project to get the balance of.
-
-    @return The ETH balance of the specified project.
   */
   mapping(uint256 => uint256) public balanceOf;
 
   /**
     @notice 
-    The amount of overflow that a project is allowed to tap into on-demand.
+    The amount of overflow that a project is allowed to tap into on-demand for the specified project configuration. 
 
-    @dev
-    [_projectId][_configuration]
+    @dev 
+    Decreases as projects use of the allowance.
 
     _projectId The ID of the project to get the current overflow allowance of.
     _configuration The configuration of the during which the allowance applies.
-
-    @return The current overflow allowance for the specified project configuration. Decreases as projects use of the allowance.
   */
   mapping(uint256 => mapping(uint256 => uint256)) public usedOverflowAllowanceOf;
 
@@ -113,10 +115,7 @@ contract JBETHPaymentTerminalStore is Ownable {
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-    // There's no overflow if there's no funding cycle.
-    if (_fundingCycle.number == 0) return 0;
-
-    return _overflowFrom(_fundingCycle);
+    return _overflowDuring(_fundingCycle);
   }
 
   /**
@@ -204,7 +203,7 @@ contract JBETHPaymentTerminalStore is Ownable {
     bytes memory _delegateMetadata
   )
     external
-    onlyOwner
+    onlyAssociatedPaymentTerminal
     returns (
       JBFundingCycle memory fundingCycle,
       uint256 weight,
@@ -299,7 +298,11 @@ contract JBETHPaymentTerminalStore is Ownable {
     uint256 _amount,
     uint256 _currency,
     uint256 _minReturnedWei
-  ) external onlyOwner returns (JBFundingCycle memory fundingCycle, uint256 withdrawnAmount) {
+  )
+    external
+    onlyAssociatedPaymentTerminal
+    returns (JBFundingCycle memory fundingCycle, uint256 withdrawnAmount)
+  {
     // Registers the funds as withdrawn and gets the ID of the funding cycle during which this withdrawal is being made.
     fundingCycle = directory.controllerOf(_projectId).signalWithdrawlFrom(_projectId, _amount);
 
@@ -344,7 +347,11 @@ contract JBETHPaymentTerminalStore is Ownable {
     uint256 _amount,
     uint256 _currency,
     uint256 _minReturnedWei
-  ) external onlyOwner returns (JBFundingCycle memory fundingCycle, uint256 withdrawnAmount) {
+  )
+    external
+    onlyAssociatedPaymentTerminal
+    returns (JBFundingCycle memory fundingCycle, uint256 withdrawnAmount)
+  {
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
@@ -410,7 +417,7 @@ contract JBETHPaymentTerminalStore is Ownable {
     bytes memory _delegateMetadata
   )
     external
-    onlyOwner
+    onlyAssociatedPaymentTerminal
     returns (
       JBFundingCycle memory fundingCycle,
       uint256 claimAmount,
@@ -484,10 +491,10 @@ contract JBETHPaymentTerminalStore is Ownable {
 
   /**
     @notice
-    Records newly added funds for the project made at the payment layer.
+    Records newly added funds for the project.
 
     @dev
-    Only the owner can record added balance.
+    Only the associated payment terminal can record an added balance.
 
     @param _projectId The ID of the project to which the funds being added belong.
     @param _amount The amount added, in wei.
@@ -496,7 +503,7 @@ contract JBETHPaymentTerminalStore is Ownable {
   */
   function recordAddedBalanceFor(uint256 _projectId, uint256 _amount)
     external
-    onlyOwner
+    onlyAssociatedPaymentTerminal
     returns (JBFundingCycle memory fundingCycle)
   {
     // Get a reference to the project's current funding cycle.
@@ -514,7 +521,11 @@ contract JBETHPaymentTerminalStore is Ownable {
 
     @return balance The current balance.
   */
-  function recordMigration(uint256 _projectId) external onlyOwner returns (uint256 balance) {
+  function recordMigration(uint256 _projectId)
+    external
+    onlyAssociatedPaymentTerminal
+    returns (uint256 balance)
+  {
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
@@ -526,6 +537,18 @@ contract JBETHPaymentTerminalStore is Ownable {
 
     // Set the balance to 0.
     balanceOf[_projectId] = 0;
+  }
+
+  /** 
+    @notice
+    Allows this store to be claimed by an address so that it recognized the address as its terminal.
+  */
+  function claim() external {
+    // This store can only be claimed once.
+    require(terminal == address(0), 'NOPE');
+
+    // Set the terminal as the msg.sender.
+    terminal = msg.sender;
   }
 
   //*********************************************************************//
@@ -542,7 +565,7 @@ contract JBETHPaymentTerminalStore is Ownable {
     returns (uint256)
   {
     // Get the amount of current overflow.
-    uint256 _currentOverflow = _overflowFrom(_fundingCycle);
+    uint256 _currentOverflow = _overflowDuring(_fundingCycle);
 
     // If there is no overflow, nothing is claimable.
     if (_currentOverflow == 0) return 0;
@@ -561,18 +584,20 @@ contract JBETHPaymentTerminalStore is Ownable {
     // If the amount being redeemed is the the total supply, return the rest of the overflow.
     if (_tokenCount == _totalSupply) return _currentOverflow;
 
-    // Get a reference to the linear proportion.
-    uint256 _base = PRBMath.mulDiv(_currentOverflow, _tokenCount, _totalSupply);
-
     // Use the ballot redemption rate if the queued cycle is pending approval according to the previous funding cycle's ballot.
     uint256 _redemptionRate = fundingCycleStore.currentBallotStateOf(_fundingCycle.projectId) ==
       JBBallotState.Active
       ? _fundingCycle.ballotRedemptionRate()
       : _fundingCycle.redemptionRate();
 
+    // If the redemption rate is 0, nothing is claimable.
+    if (_redemptionRate == 0) return 0;
+
+    // Get a reference to the linear proportion.
+    uint256 _base = PRBMath.mulDiv(_currentOverflow, _tokenCount, _totalSupply);
+
     // These conditions are all part of the same curve. Edge conditions are separated because fewer operation are necessary.
     if (_redemptionRate == 200) return _base;
-    if (_redemptionRate == 0) return 0;
     return
       PRBMath.mulDiv(
         _base,
@@ -583,7 +608,7 @@ contract JBETHPaymentTerminalStore is Ownable {
 
   /**
     @notice
-    Gets the amount that is overflowing if measured from the specified funding cycle.
+    Gets the amount that is overflowing when measured from the specified funding cycle.
 
     @dev
     This amount changes as the price of ETH changes in relation to the funding cycle's currency.
@@ -592,7 +617,7 @@ contract JBETHPaymentTerminalStore is Ownable {
 
     @return overflow The overflow of funds.
   */
-  function _overflowFrom(JBFundingCycle memory _fundingCycle) private view returns (uint256) {
+  function _overflowDuring(JBFundingCycle memory _fundingCycle) private view returns (uint256) {
     // Get the current balance of the project.
     uint256 _balanceOf = balanceOf[_fundingCycle.projectId];
 
@@ -600,14 +625,17 @@ contract JBETHPaymentTerminalStore is Ownable {
     if (_balanceOf == 0) return 0;
 
     // Get a reference to the amount still withdrawable during the funding cycle.
-    uint256 _limit = _fundingCycle.target - _fundingCycle.tapped;
+    uint256 _targetRemaining = _fundingCycle.target - _fundingCycle.tapped;
 
-    // Convert the limit to ETH.
-    uint256 _ethLimit = _limit == 0
+    // Convert the _targetRemaining to ETH.
+    uint256 _ethTargetRemaining = _targetRemaining == 0
       ? 0 // Get the current price of ETH.
-      : PRBMathUD60x18.div(_limit, prices.priceFor(_fundingCycle.currency, JBCurrencies.ETH));
+      : PRBMathUD60x18.div(
+        _targetRemaining,
+        prices.priceFor(_fundingCycle.currency, JBCurrencies.ETH)
+      );
 
     // Overflow is the balance of this project minus the amount that can still be withdrawn.
-    return _balanceOf < _ethLimit ? 0 : _balanceOf - _ethLimit;
+    return _balanceOf < _ethTargetRemaining ? 0 : _balanceOf - _ethTargetRemaining;
   }
 }

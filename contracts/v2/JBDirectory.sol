@@ -21,7 +21,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @notice 
     For each project ID, the terminals that are currently managing its funds.
 
-    [_projectId]
+    _projectId The ID of the project to get terminals of.
   */
   mapping(uint256 => IJBTerminal[]) private _terminalsOf;
 
@@ -29,7 +29,8 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @notice 
     The project's primary terminal for a token.
 
-    [_projectId][_token]
+    _projectId The ID of the project to get the primary terminal of.
+    _token The token to get the project's primary terminal of.
   */
   mapping(uint256 => mapping(address => IJBTerminal)) private _primaryTerminalOf;
 
@@ -51,7 +52,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @notice 
     For each project ID, the controller that manages how terminals interact with tokens and funding cycles.
 
-    [_projectId]
+    _projectId The ID of the project to get the controller of.
   */
   mapping(uint256 => IJBController) public override controllerOf;
 

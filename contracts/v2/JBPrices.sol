@@ -27,7 +27,8 @@ contract JBPrices is IJBPrices, Ownable {
     @notice 
     The number to multiply each price feed by to get to the target decimals.
 
-    [_currency][_base]
+    _currency The currency of the feed to get the decimal adjuster for.
+    _base The base of the feed to get the decimal adjuster for. 
   */
   mapping(uint256 => mapping(uint256 => uint256)) public override feedDecimalAdjusterFor;
 
@@ -35,7 +36,8 @@ contract JBPrices is IJBPrices, Ownable {
     @notice 
     The available price feeds.
 
-    [_currency][_base]
+    _currency he currency of the feed.
+    _base he base of the feed. 
   */
   mapping(uint256 => mapping(uint256 => AggregatorV3Interface)) public override feedFor;
 

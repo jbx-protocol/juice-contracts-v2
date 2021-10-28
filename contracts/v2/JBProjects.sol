@@ -46,6 +46,8 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
 
     @dev
     This is optional for each project.
+
+    _projectId The ID of the project to which the URI belongs.
   */
   mapping(uint256 => string) public override uriOf;
 
@@ -55,18 +57,24 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
 
     @dev
     Each project must have a handle.
+
+    _projectId The ID of the project to which the handle belongs.
   */
   mapping(uint256 => bytes32) public override handleOf;
 
   /** 
     @notice 
     The ID of the project that each unique handle is currently referencing.
+
+    _handle The handle from which the project ID can be referenced.
   */
   mapping(bytes32 => uint256) public override idFor;
 
   /** 
     @notice 
     The address that can reallocate a handle that have been transferred to it.
+
+    _handle The handle to look for the transfer address for.
   */
   mapping(bytes32 => address) public override transferAddressFor;
 
@@ -76,6 +84,8 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
 
     @dev
     A value of 0 means a handle isn't yet being challenged.
+
+    _handle The handle to look for the challenge expiry of.
   */
   mapping(bytes32 => uint256) public override challengeExpiryOf;
 

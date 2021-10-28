@@ -51,9 +51,6 @@ contract JBETHPaymentTerminal is
     @notice 
     Fees that are being held to be processed later.
 
-    @dev
-    [_projectId]
-
     _projectId The ID of the project whos fees are held.
   */
   mapping(uint256 => JBFee[]) private _heldFeesOf;
@@ -92,8 +89,6 @@ contract JBETHPaymentTerminal is
 
     @dev
     ETH is represented as address 0x0000000000000000000000000000000000042069.
-
-    @return The address of the token.
   */
   address public immutable override token = 0x0000000000000000000000000000000000042069;
 
@@ -103,20 +98,20 @@ contract JBETHPaymentTerminal is
 
   /** 
     @notice 
-    The ETH balance that this terminal holds.
+    The ETH balance that this terminal holds for each project.
 
     @param _projectId The ID of the project to which the balance belongs.
 
     @return The ETH balance.
   */
   function ethBalanceOf(uint256 _projectId) external view override returns (uint256) {
-    //The store's balance is already in ETH.
+    // The store's balance is already in ETH.
     return store.balanceOf(_projectId);
   }
 
   /** 
     @notice 
-    The fees that are currently being held to be processed later.
+    The fees that are currently being held to be processed later for each project.
 
     @param _projectId The ID of the project for which the returned fees are being held.
 
@@ -158,6 +153,10 @@ contract JBETHPaymentTerminal is
     projects = _projects;
     directory = _directory;
     splitsStore = _splitsStore;
+
+    // Claim the store so that it recognizes this terminal as the one that can access it.
+    _store.claim();
+
     store = _store;
   }
 
@@ -251,14 +250,15 @@ contract JBETHPaymentTerminal is
 
     // Payout to splits and get a reference to the leftover transfer amount after all mods have been paid.
     // The net transfer amount is the withdrawn amount minus the fee.
-    uint256 _leftoverTransferAmount = _distributeToPayoutSplitsOf(
+    uint256 _leftoverDistributionAmount = _distributeToPayoutSplitsOf(
       _fundingCycle,
       _withdrawnAmount - _feeAmount,
       string(bytes.concat('Payout from @', _handle))
     );
 
     // Transfer any remaining balance to the project owner.
-    if (_leftoverTransferAmount > 0) Address.sendValue(_projectOwner, _leftoverTransferAmount);
+    if (_leftoverDistributionAmount > 0)
+      Address.sendValue(_projectOwner, _leftoverDistributionAmount);
 
     emit DistributePayouts(
       _fundingCycle.id,
@@ -267,7 +267,7 @@ contract JBETHPaymentTerminal is
       _amount,
       _withdrawnAmount,
       _feeAmount,
-      _leftoverTransferAmount,
+      _leftoverDistributionAmount,
       _memo,
       msg.sender
     );
@@ -487,7 +487,7 @@ contract JBETHPaymentTerminal is
     // Delete the held fee's now that they've been processed.
     delete _heldFeesOf[_projectId];
 
-    emit ProcessFees(_projectId, _heldFees);
+    emit ProcessFees(_projectId, _heldFees, msg.sender);
   }
 
   //*********************************************************************//

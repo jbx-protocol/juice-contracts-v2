@@ -139,14 +139,9 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     @notice 
     The amount of overflow that a project is allowed to tap into on-demand.
 
-    @dev
-    [_projectId][_configuration][_terminal]
-
     _projectId The ID of the project to get the current overflow allowance of.
     _configuration The configuration of the during which the allowance applies.
     _terminal The terminal managing the overflow.
-
-    @return The current overflow allowance for the specified project configuration. Decreases as projects use of the allowance.
   */
   mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
     public
@@ -358,9 +353,6 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     uint256 _packedMetadata = JBFundingCycleMetadataResolver.validateAndPackFundingCycleMetadata(
       _metadata
     );
-
-    // Configure the active project if its tokens have yet to be minted.
-    bool _shouldConfigureActive = tokenStore.totalSupplyOf(_projectId) == 0;
 
     return
       _configure(

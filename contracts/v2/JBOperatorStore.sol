@@ -21,7 +21,9 @@ contract JBOperatorStore is IJBOperatorStore {
     There is no domain with a value of 0 – accounts can use the 0 domain to give an operator
     permissions to all domains on their behalf.
 
-    [_operator][_account][_domain]
+    _operator The address of the operator.
+    _account The address of the account being operated.
+    _domain The domain within which the permissions apply.
   */
   mapping(address => mapping(address => mapping(uint256 => uint256))) public override permissionsOf;
 

@@ -42,7 +42,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     @notice
     Each project's ERC20 Token tokens.
 
-    [_projectId]
+    _projectId The ID of the project to which the token belongs.
   */
   mapping(uint256 => IJBToken) public override tokenOf;
 
@@ -50,7 +50,8 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     @notice
     Each holder's balance of unclaimed Tokens for each project.
 
-    [_holder][_projectId]
+    _holder The holder of balance.
+    _projectId The ID of the project to which the token belongs.
   */
   mapping(address => mapping(uint256 => uint256)) public override unclaimedBalanceOf;
 
@@ -58,7 +59,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     @notice
     The total supply of unclaimed tokens for each project.
 
-    [_projectId]
+    _projectId The ID of the project to which the token belongs.
   */
   mapping(uint256 => uint256) public override unclaimedTotalSupplyOf;
 
@@ -66,7 +67,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     @notice
     A flag indicating if tokens are required to be issued as claimed for a particular project.
 
-    [_projectId]
+    _projectId The ID of the project to which the requirement applies.
   */
   mapping(uint256 => bool) public override requireClaimFor;
 
