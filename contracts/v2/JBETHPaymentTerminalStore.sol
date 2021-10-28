@@ -242,24 +242,21 @@ contract JBETHPaymentTerminalStore {
     // Multiply the amount by the weight to determine the amount of tokens to mint.
     uint256 _weightedAmount = PRBMathUD60x18.mul(_amount, weight);
 
-    // Only print the tokens that are unreserved.
-    tokenCount = PRBMath.mulDiv(_weightedAmount, 200 - fundingCycle.reservedRate(), 200);
-
-    // The token count must be greater than or equal to the minimum expected.
-    require(tokenCount >= _minReturnedTokens, '0x3c: INADEQUATE');
-
     // Add the amount to the balance of the project.
     balanceOf[_projectId] = balanceOf[_projectId] + _amount;
 
     if (_weightedAmount > 0)
-      directory.controllerOf(_projectId).mintTokensOf(
+      tokenCount = directory.controllerOf(_projectId).mintTokensOf(
         _projectId,
-        tokenCount,
+        _weightedAmount,
         address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
         'ETH received',
         (_preferClaimedTokensAndBeneficiary & 1) == 0,
-        true
+        fundingCycle.reservedRate()
       );
+
+    // The token count for the beneficiary must be greater than or equal to the minimum expected.
+    require(tokenCount >= _minReturnedTokens, '0x3c: INADEQUATE');
 
     // If a delegate was returned by the data source, issue a callback to it.
     if (_delegate != IJBPayDelegate(address(0))) {
