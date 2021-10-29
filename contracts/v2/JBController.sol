@@ -241,7 +241,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
         where x is _count, o is _currentOverflow, s is _totalSupply, and r is _redemptionRate.
       @dev _metadata.ballotRedemptionRate The redemption rate to apply when there is an active ballot.
       @dev _metadata.pausePay Whether or not the pay functionality should be paused during this cycle.
-      @dev _metadata.pauseWithdraw Whether or not the withdraw functionality should be paused during this cycle.
+      @dev _metadata.pauseWithdrawals Whether or not the withdraw functionality should be paused during this cycle.
       @dev _metadata.pauseRedeem Whether or not the redeem functionality should be paused during this cycle.
       @dev _metadata.pauseMint Whether or not the mint functionality should be paused during this cycle.
       @dev _metadata.pauseBurn Whether or not the burn functionality should be paused during this cycle.
@@ -319,7 +319,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
         where x is _count, o is _currentOverflow, s is _totalSupply, and r is _redemptionRate.
       @dev _metadata.ballotRedemptionRate The redemption rate to apply when there is an active ballot.
       @dev _metadata.pausePay Whether or not the pay functionality should be paused during this cycle.
-      @dev _metadata.pauseWithdraw Whether or not the withdraw functionality should be paused during this cycle.
+      @dev _metadata.pauseWithdrawals Whether or not the withdraw functionality should be paused during this cycle.
       @dev _metadata.pauseRedeem Whether or not the redeem functionality should be paused during this cycle.
       @dev _metadata.pauseMint Whether or not the mint functionality should be paused during this cycle.
       @dev _metadata.pauseBurn Whether or not the burn functionality should be paused during this cycle.
@@ -391,12 +391,12 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     @dev
     Only a project's owner, a designated operator, or one of its terminal's delegate can mint its tokens.
 
-    @param _projectId The ID of the project to which the tokens being burned belong.
+    @param _projectId The ID of the project to which the tokens being minted belong.
     @param _tokenCount The amount of tokens to mint.
     @param _beneficiary The account that the tokens are being minted for.
     @param _memo A memo to pass along to the emitted event.
-    @param _preferClaimedTokens A flag indicating whether ERC20's should be burned first if they have been issued.
-    @param _reservedRate The reserved rate to use when minting tokens. A positive amount will reduce the token count minted to the beneficiary.
+    @param _preferClaimedTokens A flag indicating whether ERC20's should be minted if they have been issued.
+    @param _reservedRate The reserved rate to use when minting tokens. A positive amount will reduce the token count minted to the beneficiary, instead being reserved for preprogrammed splits. This number is out of 200.
 
     @return beneficiaryTokenCount The amount of tokens minted for the beneficiary.
   */

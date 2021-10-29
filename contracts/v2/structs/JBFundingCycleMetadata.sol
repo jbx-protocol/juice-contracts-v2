@@ -13,7 +13,7 @@ struct JBFundingCycleMetadata {
   // If the pay functionality should be paused during the funding cycle.
   bool pausePay;
   // If the withdraw functionality should be paused during the funding cycle.
-  bool pauseWithdraw;
+  bool pauseWithdrawals;
   // If the redeem functionality should be paused during the funding cycle.
   bool pauseRedeem;
   // If the mint functionality should be paused during the funding cycle.

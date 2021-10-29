@@ -26,7 +26,7 @@ library JBFundingCycleMetadataResolver {
     return ((_fundingCycle.metadata >> 32) & 1) == 0;
   }
 
-  function tapPaused(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
+  function withdrawalsPaused(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
     return ((_fundingCycle.metadata >> 33) & 1) == 0;
   }
 
@@ -115,7 +115,7 @@ library JBFundingCycleMetadataResolver {
     // pause pay in bit 32.
     packed |= (_metadata.pausePay ? 1 : 0) << 32;
     // pause tap in bit 33.
-    packed |= (_metadata.pauseWithdraw ? 1 : 0) << 33;
+    packed |= (_metadata.pauseWithdrawals ? 1 : 0) << 33;
     // pause redeem in bit 34.
     packed |= (_metadata.pauseRedeem ? 1 : 0) << 34;
     // pause mint in bit 35.
