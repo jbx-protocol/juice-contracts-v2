@@ -532,8 +532,8 @@ contract JBETHPaymentTerminal is
       // Get a reference to the mod being iterated on.
       JBSplit memory _split = _splits[_i];
 
-      // The amount to send towards mods. Mods percents are out of 10000.
-      uint256 _payoutAmount = PRBMath.mulDiv(_amount, _split.percent, 10000);
+      // The amount to send towards mods. Mods percents are out of 10000000.
+      uint256 _payoutAmount = PRBMath.mulDiv(_amount, _split.percent, 10000000);
 
       if (_payoutAmount > 0) {
         // Transfer ETH to the mod.
