@@ -245,8 +245,8 @@ contract JBETHPaymentTerminalStore {
     // Multiply the amount by the weight to determine the amount of tokens to mint.
     uint256 _weightedAmount = PRBMathUD60x18.mul(_amount, weight);
 
-    // Add the amount to the balance of the project.
-    balanceOf[_projectId] = balanceOf[_projectId] + _amount;
+    // Add the amount to the balance of the project if needed.
+    if (_amount > 0) balanceOf[_projectId] = balanceOf[_projectId] + _amount;
 
     if (_weightedAmount > 0)
       tokenCount = directory.controllerOf(_projectId).mintTokensOf(

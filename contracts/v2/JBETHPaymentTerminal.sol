@@ -501,13 +501,13 @@ contract JBETHPaymentTerminal is
 
   /** 
     @notice
-    Pays out the splits.
+    Pays out splits for a project's funding cycle configuration.
 
     @param _fundingCycle The funding cycle during which the distribution is being made.
     @param _amount The total amount being distributed.
     @param _memo A memo to pass along to the emitted events.
 
-    @return leftoverAmount If the split module percents dont add up to 100%, the leftover amount is returned.
+    @return leftoverAmount If the leftover amount if the splits don't add up to 100%.
   */
   function _distributeToPayoutSplitsOf(
     JBFundingCycle memory _fundingCycle,
@@ -524,9 +524,6 @@ contract JBETHPaymentTerminal is
       JBSplitsGroups.ETH_PAYOUT
     );
 
-    // If there are no splits, return the full leftover amount.
-    if (_splits.length == 0) return leftoverAmount;
-
     //Transfer between all splits.
     for (uint256 _i = 0; _i < _splits.length; _i++) {
       // Get a reference to the mod being iterated on.
@@ -541,7 +538,7 @@ contract JBETHPaymentTerminal is
         if (_split.allocator != IJBSplitAllocator(address(0))) {
           _split.allocator.allocate{value: _payoutAmount}(
             _payoutAmount,
-            1,
+            JBSplitsGroups.ETH_PAYOUT,
             _fundingCycle.projectId,
             _split.projectId,
             _split.beneficiary,
@@ -658,11 +655,8 @@ contract JBETHPaymentTerminal is
     string memory _memo,
     bytes memory _delegateMetadata
   ) private returns (uint256) {
-    // Positive payments only.
-    require(_amount > 0, '0x4e: BAD_AMOUNT');
-
     // Cant send tokens to the zero address.
-    require(_beneficiary != address(0), '0x4f: ZERO_ADDRESS');
+    require(_beneficiary != address(0), '0x4e: ZERO_ADDRESS');
 
     JBFundingCycle memory _fundingCycle;
     uint256 _weight;

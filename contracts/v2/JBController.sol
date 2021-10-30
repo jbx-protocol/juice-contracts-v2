@@ -678,7 +678,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
       uint256 _tokenCount = PRBMath.mulDiv(_amount, _split.percent, 10000000);
 
       // Mints tokens for the split if needed.
-      if (_tokenCount > 0)
+      if (_tokenCount > 0) {
         tokenStore.mintFor(
           // If an allocator is set in the splits, set it as the beneficiary. Otherwise if a projectId is set in the split, set the project's owner as the beneficiary. Otherwise use the split's beneficiary.
           _split.allocator != IJBSplitAllocator(address(0))
@@ -691,19 +691,20 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
           _split.preferClaimed
         );
 
-      // If there's an allocator set, trigger its `allocate` function.
-      if (_split.allocator != IJBSplitAllocator(address(0)))
-        _split.allocator.allocate(
-          _tokenCount,
-          JBSplitsGroups.RESERVED_TOKENS,
-          _fundingCycle.projectId,
-          _split.projectId,
-          _split.beneficiary,
-          _split.preferClaimed
-        );
+        // If there's an allocator set, trigger its `allocate` function.
+        if (_split.allocator != IJBSplitAllocator(address(0)))
+          _split.allocator.allocate(
+            _tokenCount,
+            JBSplitsGroups.RESERVED_TOKENS,
+            _fundingCycle.projectId,
+            _split.projectId,
+            _split.beneficiary,
+            _split.preferClaimed
+          );
 
-      // Subtract from the amount to be sent to the beneficiary.
-      leftoverAmount = leftoverAmount - _tokenCount;
+        // Subtract from the amount to be sent to the beneficiary.
+        leftoverAmount = leftoverAmount - _tokenCount;
+      }
 
       emit DistributeToReservedTokenSplit(
         _fundingCycle.id,
