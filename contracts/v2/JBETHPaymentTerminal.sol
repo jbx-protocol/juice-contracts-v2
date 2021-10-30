@@ -171,14 +171,14 @@ contract JBETHPaymentTerminal is
     @dev
     The msg.value is the amount of the contribution in wei.
 
-    @param _projectId The ID of the project being contribute to.
+    @param _projectId The ID of the project being paid.
     @param _beneficiary The address to mint tokens for and pass along to the funding cycle's data source and delegate.
     @param _minReturnedTokens The minimum number of tokens expected in return.
     @param _preferClaimedTokens A flag indicating whether the request prefers to issue tokens unstaked rather than staked.
-    @param _memo A memo that will be included in the published event, and passed along the the funding cycle's data source and delegate.
+    @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.
     @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
 
-    @return fundingCycleId The number of the funding cycle that the payment was made during.
+    @return The number of the funding cycle that the payment was made during.
   */
   function pay(
     uint256 _projectId,
@@ -187,21 +187,24 @@ contract JBETHPaymentTerminal is
     bool _preferClaimedTokens,
     string calldata _memo,
     bytes calldata _delegateMetadata
-  ) external payable override returns (uint256 fundingCycleId) {
-    fundingCycleId = _pay(
-      msg.value,
-      _projectId,
-      _beneficiary,
-      _minReturnedTokens,
-      _preferClaimedTokens,
-      _memo,
-      _delegateMetadata
-    );
+  ) external payable override returns (uint256) {
+    return
+      _pay(
+        msg.value,
+        _projectId,
+        _beneficiary,
+        _minReturnedTokens,
+        _preferClaimedTokens,
+        _memo,
+        _delegateMetadata
+      );
   }
 
   /**
     @notice 
     Distributes payouts for a project according to the constraints of its current funding cycle.
+
+    @dev
     Payouts are sent to the preprogrammed splits. 
 
     @dev
@@ -221,7 +224,7 @@ contract JBETHPaymentTerminal is
     uint256 _minReturnedWei,
     string memory _memo
   ) external override nonReentrant returns (uint256) {
-    // Record the withdrawal in the data layer.
+    // Record the withdrawal.
     (JBFundingCycle memory _fundingCycle, uint256 _withdrawnAmount) = store.recordWithdrawalFor(
       _projectId,
       _amount,
@@ -278,6 +281,9 @@ contract JBETHPaymentTerminal is
   /**
     @notice 
     Allows a project to send funds from its overflow up to the preconfigured allowance.
+    
+    @dev 
+    Only a project's owner or a designated operator can migrate it.
 
     @param _projectId The ID of the project to use the allowance of.
     @param _amount The amount of the allowance to use.
@@ -298,7 +304,7 @@ contract JBETHPaymentTerminal is
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.USE_ALLOWANCE)
     returns (uint256)
   {
-    // Record the use of the allowance in the data layer.
+    // Record the use of the allowance.
     (JBFundingCycle memory _fundingCycle, uint256 _withdrawnAmount) = store.recordUsedAllowanceOf(
       _projectId,
       this,
@@ -327,10 +333,7 @@ contract JBETHPaymentTerminal is
       );
 
     // Transfer any remaining balance to the project owner.
-    // The leftover amount once the fee has been taken.
-    if (_withdrawnAmount - _feeAmount > 0)
-      // Send the funds to the beneficiary.
-      Address.sendValue(_beneficiary, _withdrawnAmount - _feeAmount);
+    Address.sendValue(_beneficiary, _withdrawnAmount - _feeAmount);
 
     emit UseAllowance(
       _fundingCycle.id,
@@ -358,7 +361,7 @@ contract JBETHPaymentTerminal is
     @param _tokenCount The number of tokens to redeem.
     @param _minReturnedWei The minimum amount of Wei expected in return.
     @param _beneficiary The address to send the ETH to. Send the address this contract to burn the count.
-    @param _memo A memo to attach to the emitted event.
+    @param _memo A memo to pass along to the emitted event.
     @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
 
     @return claimAmount The amount of ETH that the tokens were redeemed for, in wei.
@@ -379,11 +382,12 @@ contract JBETHPaymentTerminal is
     returns (uint256 claimAmount)
   {
     // Can't send claimed funds to the zero address.
-    require(_beneficiary != address(0), 'ZERO_ADDRESS');
+    require(_beneficiary != address(0), '0x4c: ZERO_ADDRESS');
+
     // Keep a reference to the funding cycles during which the redemption is being made.
     JBFundingCycle memory _fundingCycle;
 
-    // Record the redemption in the data layer.
+    // Record the redemption.
     (_fundingCycle, claimAmount, _memo) = store.recordRedemptionFor(
       _holder,
       _projectId,
@@ -397,7 +401,7 @@ contract JBETHPaymentTerminal is
     // Send the claimed funds to the beneficiary.
     if (claimAmount > 0) Address.sendValue(_beneficiary, claimAmount);
 
-    emit Redeem(
+    emit RedeemTokens(
       _fundingCycle.id,
       _projectId,
       _holder,
@@ -427,7 +431,7 @@ contract JBETHPaymentTerminal is
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_TERMINAL)
   {
     // The terminal being migrated to must accept the same token as this terminal.
-    require(token == _to.token(), 'TODO');
+    require(token == _to.token(), '0x4d: INCOMPATIBLE');
 
     // Record the migration in the store.
     uint256 _balance = store.recordMigration(_projectId);
@@ -444,13 +448,13 @@ contract JBETHPaymentTerminal is
     Receives and allocated funds belonging to the specified project.
 
     @param _projectId The ID of the project to which the funds received belong.
-    @param _memo A memo to include in the emitted event.
+    @param _memo A memo to pass along to the emitted event.
   */
   function addToBalanceOf(uint256 _projectId, string memory _memo) external payable override {
     // Amount must be greater than 0.
-    require(msg.value > 0, 'NO_OP');
+    require(msg.value > 0, '0x4c: NO_OP');
 
-    // Record the added funds in the data later.
+    // Record the added funds.
     JBFundingCycle memory _fundingCycle = store.recordAddedBalanceFor(_projectId, msg.value);
 
     // Refund any held fees to make sure the project doesn't pay double for funds going in and out of the protocol.
@@ -476,6 +480,7 @@ contract JBETHPaymentTerminal is
       JBOperations.PROCESS_FEES,
       msg.sender == owner()
     )
+    nonReentrant
   {
     // Get a reference to the project's held fees.
     JBFee[] memory _heldFees = _heldFeesOf[_projectId];
@@ -500,7 +505,7 @@ contract JBETHPaymentTerminal is
 
     @param _fundingCycle The funding cycle during which the distribution is being made.
     @param _amount The total amount being distributed.
-    @param _memo A memo to send along with emitted distribution events.
+    @param _memo A memo to pass along to the emitted events.
 
     @return leftoverAmount If the split module percents dont add up to 100%, the leftover amount is returned.
   */
@@ -548,7 +553,7 @@ contract JBETHPaymentTerminal is
           IJBTerminal _terminal = directory.primaryTerminalOf(_split.projectId, token);
 
           // The project must have a terminal to send funds to.
-          require(_terminal != IJBTerminal(address(0)), 'BAD_SPLIT');
+          require(_terminal != IJBTerminal(address(0)), '0x4d: BAD_SPLIT');
 
           // Save gas if this contract is being used as the terminal.
           if (_terminal == this) {
@@ -597,7 +602,7 @@ contract JBETHPaymentTerminal is
     @param _fundingCycle The funding cycle during which the fee is being taken. 
     @param _amount The amount to take a fee from.
     @param _beneficiary The address to print the platforms tokens for.
-    @param _memo A memo to send with the fee.
+    @param _memo A memo to pass along to the emitted event.
 
     @return feeAmount The amount of the fee taken.
   */
@@ -624,7 +629,7 @@ contract JBETHPaymentTerminal is
 
     @param _amount The fee amount.
     @param _beneficiary The address to print the platforms tokens for.
-    @param _memo A memo to send with the fee.
+    @param _memo A memo to pass along to the emitted event.
   */
   function _takeFee(
     uint256 _amount,
@@ -654,16 +659,16 @@ contract JBETHPaymentTerminal is
     bytes memory _delegateMetadata
   ) private returns (uint256) {
     // Positive payments only.
-    require(_amount > 0, 'BAD_AMOUNT');
+    require(_amount > 0, '0x4e: BAD_AMOUNT');
 
     // Cant send tokens to the zero address.
-    require(_beneficiary != address(0), 'ZERO_ADDRESS');
+    require(_beneficiary != address(0), '0x4f: ZERO_ADDRESS');
 
     JBFundingCycle memory _fundingCycle;
     uint256 _weight;
     uint256 _tokenCount;
 
-    // Record the payment in the data layer.
+    // Record the payment.
     (_fundingCycle, _weight, _tokenCount, _memo) = store.recordPaymentFrom(
       msg.sender,
       _amount,

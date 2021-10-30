@@ -30,7 +30,7 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
 /**
   @notice
-  Stitches together funding cycles and treasury tokens, making sure all activity is accounted for and correct.
+  Stitches together funding cycles and community tokens, making sure all activity is accounted for and correct.
 
   @dev 
   A project can transfer control from this contract to another allowed controller contract at any time.

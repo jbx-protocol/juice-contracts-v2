@@ -79,7 +79,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     @notice 
     The total supply of tokens for each project, including claimed and unclaimed tokens.
 
-    @param _projectId The ID of the project to get the total supply of.
+    @param _projectId The ID of the project to get the total token supply of.
 
     @return supply The total supply.
   */

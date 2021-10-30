@@ -52,7 +52,7 @@ interface IJBETHPaymentTerminal {
     string memo,
     address caller
   );
-  event Redeem(
+  event RedeemTokens(
     uint256 indexed fundingCycleId,
     uint256 indexed projectId,
     address indexed holder,
