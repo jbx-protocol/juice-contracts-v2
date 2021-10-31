@@ -92,11 +92,9 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
       JBProjects.address,
       JBDirectory.address,
       JBSplitStore.address,
-      JBETHPaymentTerminalStore.address,      
+      JBETHPaymentTerminalStore.address,
     ],
     log: true,
     skipIfAlreadyDeployed: true,
   });
-
-  // transfer ownership of terminalStore to terminal.
 };

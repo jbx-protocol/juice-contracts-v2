@@ -245,7 +245,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
     if (_shouldClaimTokens) {
       // Mint the equivalent amount of ERC20s.
-      _token.mint(_holder, _amount);
+      _token.mint(_holder, _amount, _projectId);
     } else {
       // Add to the unclaimed balance and total supply.
       unclaimedBalanceOf[_holder][_projectId] = unclaimedBalanceOf[_holder][_projectId] + _amount;
@@ -309,7 +309,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     uint256 _unclaimedTokensToBurn = _amount - _claimedTokensToBurn;
 
     // burn the tokens.
-    if (_claimedTokensToBurn > 0) _token.burn(_holder, _claimedTokensToBurn);
+    if (_claimedTokensToBurn > 0) _token.burn(_holder, _claimedTokensToBurn, _projectId);
     if (_unclaimedTokensToBurn > 0) {
       // Reduce the holders balance and the total supply.
       unclaimedBalanceOf[_holder][_projectId] =
@@ -358,7 +358,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     unclaimedTotalSupplyOf[_projectId] = unclaimedTotalSupplyOf[_projectId] - _amount;
 
     // Mint the equivalent amount of ERC20s.
-    _token.mint(_holder, _amount);
+    _token.mint(_holder, _amount, _projectId);
 
     emit Claim(_holder, _projectId, _amount, msg.sender);
   }

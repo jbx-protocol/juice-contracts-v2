@@ -14,11 +14,19 @@ contract JBToken is IJBToken, ERC20, ERC20Permit, Ownable {
     ERC20Permit(_name)
   {}
 
-  function mint(address _account, uint256 _amount) external override onlyOwner {
+  function mint(
+    address _account,
+    uint256 _amount,
+    uint256
+  ) external override onlyOwner {
     return _mint(_account, _amount);
   }
 
-  function burn(address _account, uint256 _amount) external override onlyOwner {
+  function burn(
+    address _account,
+    uint256 _amount,
+    uint256
+  ) external override onlyOwner {
     return _burn(_account, _amount);
   }
 
