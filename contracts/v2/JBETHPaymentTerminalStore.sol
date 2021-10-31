@@ -603,12 +603,12 @@ contract JBETHPaymentTerminalStore {
     uint256 _base = PRBMath.mulDiv(_currentOverflow, _tokenCount, _totalSupply);
 
     // These conditions are all part of the same curve. Edge conditions are separated because fewer operation are necessary.
-    if (_redemptionRate == 200) return _base;
+    if (_redemptionRate == 10000) return _base;
     return
       PRBMath.mulDiv(
         _base,
-        _redemptionRate + PRBMath.mulDiv(_tokenCount, 200 - _redemptionRate, _totalSupply),
-        200
+        _redemptionRate + PRBMath.mulDiv(_tokenCount, 10000 - _redemptionRate, _totalSupply),
+        10000
       );
   }
 

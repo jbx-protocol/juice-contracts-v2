@@ -235,8 +235,8 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
         If the number is 10001, an non-recurring funding cycle will get made.
       @dev _data.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
     @param _metadata A JBFundingCycleMetadata data structure specifying the controller specific params that a funding cycle can have.
-      @dev _metadata.reservedRate A number from 0-200 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
-      @dev _metadata.redemptionRate The rate from 0-200 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
+      @dev _metadata.reservedRate A number from 0-10000 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
+      @dev _metadata.redemptionRate The rate from 0-10000 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
         The bonding curve formula is https://www.desmos.com/calculator/sp9ru6zbpk
         where x is _count, o is _currentOverflow, s is _totalSupply, and r is _redemptionRate.
       @dev _metadata.ballotRedemptionRate The redemption rate to apply when there is an active ballot.
@@ -269,10 +269,17 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     JBSplit[] memory _reservedTokenSplits,
     IJBTerminal _terminal
   ) external returns (uint256 projectId) {
+    // The reserved project token rate must be less than or equal to 10000.
+    require(_metadata.reservedRate <= 10000, '0x37: BAD_RESERVED_RATE');
+
+    // The redemption rate must be between 0 and 10000.
+    require(_metadata.redemptionRate <= 10000, '0x38: BAD_REDEMPTION_RATE');
+
+    // The ballot redemption rate must be less than or equal to 10000.
+    require(_metadata.ballotRedemptionRate <= 10000, '0x39: BAD_BALLOT_REDEMPTION_RATE');
+
     // Make sure the metadata is validated and packed into a uint256.
-    uint256 _packedMetadata = JBFundingCycleMetadataResolver.validateAndPackFundingCycleMetadata(
-      _metadata
-    );
+    uint256 _packedMetadata = JBFundingCycleMetadataResolver.packFundingCycleMetadata(_metadata);
 
     // Create the project for into the wallet of the message sender.
     projectId = projects.createFor(_owner, _handle, _uri);
@@ -313,8 +320,8 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
         If the number is 10001, an non-recurring funding cycle will get made.
       @dev _data.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
     @param _metadata A JBFundingCycleMetadata data structure specifying the controller specific params that a funding cycle can have.
-      @dev _metadata.reservedRate A number from 0-200 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
-      @dev _metadata.redemptionRate The rate from 0-200 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
+      @dev _metadata.reservedRate A number from 0-10000 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
+      @dev _metadata.redemptionRate The rate from 0-10000 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
         The bonding curve formula is https://www.desmos.com/calculator/sp9ru6zbpk
         where x is _count, o is _currentOverflow, s is _totalSupply, and r is _redemptionRate.
       @dev _metadata.ballotRedemptionRate The redemption rate to apply when there is an active ballot.
@@ -348,10 +355,17 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
     returns (uint256)
   {
+    // The reserved project token rate must be less than or equal to 10000.
+    require(_metadata.reservedRate <= 10000, '0x51: BAD_RESERVED_RATE');
+
+    // The redemption rate must be between 0 and 10000.
+    require(_metadata.redemptionRate <= 10000, '0x52: BAD_REDEMPTION_RATE');
+
+    // The ballot redemption rate must be less than or equal to 10000.
+    require(_metadata.ballotRedemptionRate <= 10000, '0x53: BAD_BALLOT_REDEMPTION_RATE');
+
     // Make sure the metadata is validated and packed into a uint256.
-    uint256 _packedMetadata = JBFundingCycleMetadataResolver.validateAndPackFundingCycleMetadata(
-      _metadata
-    );
+    uint256 _packedMetadata = JBFundingCycleMetadataResolver.packFundingCycleMetadata(_metadata);
 
     return
       _configure(
@@ -396,7 +410,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     @param _beneficiary The account that the tokens are being minted for.
     @param _memo A memo to pass along to the emitted event.
     @param _preferClaimedTokens A flag indicating whether ERC20's should be minted if they have been issued.
-    @param _reservedRate The reserved rate to use when minting tokens. A positive amount will reduce the token count minted to the beneficiary, instead being reserved for preprogrammed splits. This number is out of 200.
+    @param _reservedRate The reserved rate to use when minting tokens. A positive amount will reduce the token count minted to the beneficiary, instead being reserved for preprogrammed splits. This number is out of 10000.
 
     @return beneficiaryTokenCount The amount of tokens minted for the beneficiary.
   */
@@ -420,7 +434,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     returns (uint256 beneficiaryTokenCount)
   {
     // Can't send to the zero address.
-    require(_reservedRate == 200 || _beneficiary != address(0), '0x2f: ZERO_ADDRESS');
+    require(_reservedRate == 10000 || _beneficiary != address(0), '0x2f: ZERO_ADDRESS');
 
     // There should be tokens to mint.
     require(_tokenCount > 0, '0x30: NO_OP');
@@ -434,14 +448,14 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
       '0x31: PAUSED'
     );
 
-    if (_reservedRate == 200) {
+    if (_reservedRate == 10000) {
       // Subtract the total weighted amount from the tracker so the full reserved token amount can be printed later.
       _processedTokenTrackerOf[_projectId] =
         _processedTokenTrackerOf[_projectId] -
         int256(_tokenCount);
     } else {
       // The unreserved token count that will be minted for the beneficiary.
-      beneficiaryTokenCount = PRBMath.mulDiv(_tokenCount, 200 - _reservedRate, 200);
+      beneficiaryTokenCount = PRBMath.mulDiv(_tokenCount, 10000 - _reservedRate, 10000);
 
       // Mint the tokens.
       tokenStore.mintFor(_beneficiary, _projectId, beneficiaryTokenCount, _preferClaimedTokens);
@@ -740,10 +754,10 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     if (_unprocessedTokenBalanceOf == 0) return 0;
 
     // If all tokens are reserved, return the full unprocessed amount.
-    if (_reservedRate == 200) return _unprocessedTokenBalanceOf;
+    if (_reservedRate == 10000) return _unprocessedTokenBalanceOf;
 
     return
-      PRBMath.mulDiv(_unprocessedTokenBalanceOf, 200, 200 - _reservedRate) -
+      PRBMath.mulDiv(_unprocessedTokenBalanceOf, 10000, 10000 - _reservedRate) -
       _unprocessedTokenBalanceOf;
   }
 
