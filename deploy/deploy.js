@@ -11,6 +11,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
 
   let multisigAddress;
 
+  console.log({ deployer, k: await getChainId() });
   switch (await getChainId()) {
     // mainnet 
     case "1":
@@ -19,6 +20,10 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     // rinkeby
     case "4":
       multisigAddress = "0x69C6026e3938adE9e1ddE8Ff6A37eC96595bF1e1";
+      break;
+    // hardhat / localhost
+    case "31337":
+      multisigAddress = deployer;
       break;
   }
 
