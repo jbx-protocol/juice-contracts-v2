@@ -445,7 +445,7 @@ contract JBETHPaymentTerminal is
 
   /**
     @notice
-    Receives and allocated funds belonging to the specified project.
+    Receives funds belonging to the specified project.
 
     @param _projectId The ID of the project to which the funds received belong.
     @param _memo A memo to pass along to the emitted event.
