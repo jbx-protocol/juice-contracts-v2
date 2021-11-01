@@ -356,7 +356,6 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     JBSplit[] memory _reservedTokenSplits
   )
     external
-    nonReentrant
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
     returns (uint256)
   {
