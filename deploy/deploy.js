@@ -5,13 +5,25 @@
  *
  * npx hardhat deploy --network rinkeby
  */
-module.exports = async ({ getNamedAccounts, deployments }) => {
+module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  const multisigAddress = "0xAF28bcB48C40dBC86f52D459A6562F658fc94B1e";
+  let multisigAddress;
 
-  console.log({ deployer });
+  switch (await getChainId()) {
+    // mainnet 
+    case "1":
+      multisigAddress = "0xAF28bcB48C40dBC86f52D459A6562F658fc94B1e";
+      break;
+    // rinkeby
+    case "4":
+      multisigAddress = "0x69C6026e3938adE9e1ddE8Ff6A37eC96595bF1e1";
+      break;
+  }
+
+  console.log({ multisigAddress })
+
   const JBOperatorStore = await deploy('JBOperatorStore', {
     from: deployer,
     args: [],
