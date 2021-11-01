@@ -193,6 +193,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     @param _fundingCycleStore A contract storing all funding cycle configurations.
     @param _tokenStore A contract that manages token minting and burning.
     @param _splitsStore A contract that stores splits for each project.
+    @param _owner The address that will own the contract.
   */
   constructor(
     IJBOperatorStore _operatorStore,
@@ -200,12 +201,16 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     IJBDirectory _directory,
     IJBFundingCycleStore _fundingCycleStore,
     IJBTokenStore _tokenStore,
-    IJBSplitsStore _splitsStore
+    IJBSplitsStore _splitsStore,
+    address _owner
   ) JBTerminalUtility(_directory) JBOperatable(_operatorStore) {
     projects = _projects;
     fundingCycleStore = _fundingCycleStore;
     tokenStore = _tokenStore;
     splitsStore = _splitsStore;
+
+    // Transfer the ownership.
+    transferOwnership(_owner);
   }
 
   //*********************************************************************//

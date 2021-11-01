@@ -25,15 +25,6 @@ contract JBPrices is IJBPrices, Ownable {
 
   /** 
     @notice 
-    The number to multiply each price feed by to get to the target decimals.
-
-    _currency The currency of the feed to get the decimal adjuster for.
-    _base The base of the feed to get the decimal adjuster for. 
-  */
-  mapping(uint256 => mapping(uint256 => uint256)) public override feedDecimalAdjusterFor;
-
-  /** 
-    @notice 
     The available price feeds.
 
     _currency he currency of the feed.
@@ -67,8 +58,29 @@ contract JBPrices is IJBPrices, Ownable {
     // Get the latest round information. Only need the price is needed.
     (, int256 _price, , , ) = _feed.latestRoundData();
 
-    // Multiply the price by the decimal adjuster to get the normalized result.
-    return uint256(_price) * feedDecimalAdjusterFor[_currency][_base];
+    // Get a reference to the number of decimals the feed uses.
+    uint256 _decimals = _feed.decimals();
+
+    // If decimals need adjusting, multiply or divide the price by the decimal adjuster to get the normalized result.
+    if (TARGET_DECIMALS == _decimals) {
+      return uint256(_price);
+    } else if (TARGET_DECIMALS > _decimals) {
+      return uint256(_price) * 10**(TARGET_DECIMALS - _decimals);
+    } else {
+      return uint256(_price) / 10**(_decimals - TARGET_DECIMALS);
+    }
+  }
+
+  //*********************************************************************//
+  // ---------------------------- constructor -------------------------- //
+  //*********************************************************************//
+
+  /** 
+    @param _owner The address that will own the contract.
+  */
+  constructor(address _owner) {
+    // Transfer the ownership.
+    transferOwnership(_owner);
   }
 
   //*********************************************************************//
@@ -94,18 +106,9 @@ contract JBPrices is IJBPrices, Ownable {
     // There can't already be a feed for the specified currency.
     require(feedFor[_currency][_base] == AggregatorV3Interface(address(0)), '0x04: ALREADY_EXISTS');
 
-    // Get a reference to the number of decimals the feed uses.
-    uint256 _decimals = _feed.decimals();
-
-    // Decimals should be less than or equal to the target number of decimals.
-    require(_decimals <= TARGET_DECIMALS, '0x05: BAD_DECIMALS');
-
     // Set the feed.
     feedFor[_currency][_base] = _feed;
 
-    // Set the decimal adjuster for the currency.
-    feedDecimalAdjusterFor[_currency][_base] = 10**(TARGET_DECIMALS - _decimals);
-
-    emit AddFeed(_currency, _base, _decimals, _feed);
+    emit AddFeed(_currency, _base, _feed);
   }
 }

@@ -9,6 +9,8 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
 
+  const multisigAddress = "0xAF28bcB48C40dBC86f52D459A6562F658fc94B1e";
+
   const JBOperatorStore = await deploy('JBOperatorStore', {
     from: deployer,
     args: [],
@@ -18,7 +20,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
   const JBPrices = await deploy('JBPrices', {
     from: deployer,
-    args: [],
+    args: [multisigAddress],
     log: true,
     skipIfAlreadyDeployed: true,
   });
@@ -58,7 +60,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     skipIfAlreadyDeployed: true,
   });
 
-  const JBControllerV1 = await deploy('JBController', {
+  await deploy('JBController', {
     from: deployer,
     args: [
       JBOperatorStore.address,
@@ -67,6 +69,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
       JBFundingCycleStore.address,
       JBTokenStore.address,
       JBSplitStore.address,
+      multisigAddress
     ],
     log: true,
     skipIfAlreadyDeployed: true,
@@ -85,7 +88,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     skipIfAlreadyDeployed: true,
   });
 
-  const _ = await deploy('JBETHPaymentTerminal', {
+  await deploy('JBETHPaymentTerminal', {
     from: deployer,
     args: [
       JBOperatorStore.address,

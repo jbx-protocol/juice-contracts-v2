@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import '@openzeppelin/contracts/access/Ownable.sol';
-
 import './interfaces/IJBTerminal.sol';
 import './interfaces/IJBDirectory.sol';
 import './abstract/JBOperatable.sol';
@@ -12,7 +10,7 @@ import './libraries/JBOperations.sol';
   @notice
   Keeps a reference of which terminal contracts each project is currently accepting funds through, and which controller contract is managing each project's tokens and funding cycles.
 */
-contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
+contract JBDirectory is IJBDirectory, JBOperatable {
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//
