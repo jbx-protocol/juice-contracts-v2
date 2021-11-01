@@ -47,6 +47,17 @@ const tests = {
         expectedPrice: 123456789,
       }),
     },
+    {
+      description: 'check price 20 decimals',
+      fn: ({ deployer }) => ({
+        caller: deployer,
+        currency: 1,
+        base: 2,
+        decimals: 20,
+        setPrice: 123456789,
+        expectedPrice: 123456789,
+      }),
+    },
   ],
   failure: [
     {
@@ -68,10 +79,11 @@ export default function () {
       it(successTest.description, async function () {
         const { caller, currency, base, decimals, setPrice, expectedPrice } = successTest.fn(this);
 
-        // Set the mock to the return the specified number of decimals.
-        await this.aggregatorV3Contract.mock.decimals.returns(decimals);
         // Set the mock to return the specified price.
         await this.aggregatorV3Contract.mock.latestRoundData.returns(0, setPrice, 0, 0, 0);
+
+        // Set the mock to the return the specified number of decimals.
+        await this.aggregatorV3Contract.mock.decimals.returns(decimals);
 
         // Add price feed.
         await this.contract
@@ -85,9 +97,19 @@ export default function () {
         const targetDecimals = await this.contract.TARGET_DECIMALS();
 
         // Get a reference to the expected price value.
-        const expectedPriceBigNum = ethers.BigNumber.from(expectedPrice).mul(
-          ethers.BigNumber.from(10).pow(targetDecimals - (currency !== base ? decimals : 0)),
-        );
+        let expectedPriceBigNum;
+
+        if (currency == base) {
+          expectedPriceBigNum = ethers.BigNumber.from(10).pow(targetDecimals);
+        } else if (targetDecimals.eq(decimals)) {
+          expectedPriceBigNum = ethers.BigNumber.from(expectedPrice);
+        } else if (decimals < targetDecimals) {
+          expectedPriceBigNum = ethers.BigNumber.from(expectedPrice).mul(
+            ethers.BigNumber.from(10).pow(targetDecimals - (decimals)))
+        } else {
+          expectedPriceBigNum = ethers.BigNumber.from(expectedPrice).div(
+            ethers.BigNumber.from(10).pow((decimals) - targetDecimals))
+        }
 
         // Expect the stored price value to match the expected value.
         expect(resultingPrice).to.equal(expectedPriceBigNum);

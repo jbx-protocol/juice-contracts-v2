@@ -20,6 +20,10 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
   /** 
     @notice
     All splits for each project ID's configurations.
+
+    _projectId is The ID of the project to get splits for.
+    _domain is An identifier within which the returned splits should be considered active.
+    _group The identifying group of the splits.
   */
   mapping(uint256 => mapping(uint256 => mapping(uint256 => JBSplit[]))) private _splitsOf;
 
@@ -158,8 +162,8 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
       // Add to the total percents.
       _percentTotal = _percentTotal + _splits[_i].percent;
 
-      // The total percent should be less than 10000.
-      require(_percentTotal <= 10000, '0x12: BAD_TOTAL_PERCENT');
+      // The total percent should be less than 10000000.
+      require(_percentTotal <= 10000000, '0x12: BAD_TOTAL_PERCENT');
 
       // Push the new split into the project's list of splits.
       _splitsOf[_projectId][_domain][_group].push(_splits[_i]);

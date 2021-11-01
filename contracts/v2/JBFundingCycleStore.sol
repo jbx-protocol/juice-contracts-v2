@@ -29,7 +29,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @notice
     Stores the reconfiguration properties of each funding cycle, packed into one storage slot.
 
-    [_projectId]
+    _projectId The ID of the project to get configuration properties of.
   */
   mapping(uint256 => uint256) private _packedConfigurationPropertiesOf;
 
@@ -37,7 +37,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @notice
     Stores the properties added by the mechanism to manage and schedule each funding cycle, packed into one storage slot.
     
-    [_projectId]
+    _projectId The ID of the project to get instrinsic properties of.
   */
   mapping(uint256 => uint256) private _packedIntrinsicPropertiesOf;
 
@@ -45,7 +45,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @notice
     Stores the metadata for each funding cycle, packed into one storage slot.
 
-    [_projectId]
+    _projectId The ID of the project to get the`_metadataOf`.
   */
   mapping(uint256 => uint256) private _metadataOf;
 
@@ -53,7 +53,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @notice
     Stores the amount that each funding cycle can tap funding cycle.
 
-    [_projectId]
+    _projectId The ID of the project to get the target of.
   */
   mapping(uint256 => uint256) private _targetOf;
 
@@ -61,7 +61,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @notice
     Stores the amount that has been tapped within each funding cycle.
 
-    [_projectId]
+    _projectId The ID of the project to get the tapped amount of.
   */
   mapping(uint256 => uint256) private _tappedAmountOf;
 
@@ -72,6 +72,8 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
   /** 
     @notice 
     The ID of the latest funding cycle for each project.
+
+    _projectId The ID of the project to get the latest funding cycle ID of.
   */
   mapping(uint256 => uint256) public override latestIdOf;
 

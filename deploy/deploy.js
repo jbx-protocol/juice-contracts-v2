@@ -5,9 +5,29 @@
  *
  * npx hardhat deploy --network rinkeby
  */
-module.exports = async ({ getNamedAccounts, deployments }) => {
+module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
+
+  let multisigAddress;
+
+  console.log({ deployer, k: await getChainId() });
+  switch (await getChainId()) {
+    // mainnet 
+    case "1":
+      multisigAddress = "0xAF28bcB48C40dBC86f52D459A6562F658fc94B1e";
+      break;
+    // rinkeby
+    case "4":
+      multisigAddress = "0x69C6026e3938adE9e1ddE8Ff6A37eC96595bF1e1";
+      break;
+    // hardhat / localhost
+    case "31337":
+      multisigAddress = deployer;
+      break;
+  }
+
+  console.log({ multisigAddress })
 
   const JBOperatorStore = await deploy('JBOperatorStore', {
     from: deployer,
@@ -18,7 +38,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
   const JBPrices = await deploy('JBPrices', {
     from: deployer,
-    args: [],
+    args: [multisigAddress],
     log: true,
     skipIfAlreadyDeployed: true,
   });
@@ -58,7 +78,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     skipIfAlreadyDeployed: true,
   });
 
-  const JBControllerV1 = await deploy('JBController', {
+  await deploy('JBController', {
     from: deployer,
     args: [
       JBOperatorStore.address,
@@ -67,6 +87,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
       JBFundingCycleStore.address,
       JBTokenStore.address,
       JBSplitStore.address,
+      multisigAddress
     ],
     log: true,
     skipIfAlreadyDeployed: true,
@@ -85,18 +106,16 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     skipIfAlreadyDeployed: true,
   });
 
-  const _ = await deploy('JBETHPaymentTerminal', {
+  await deploy('JBETHPaymentTerminal', {
     from: deployer,
     args: [
       JBOperatorStore.address,
       JBProjects.address,
       JBDirectory.address,
       JBSplitStore.address,
-      JBETHPaymentTerminalStore.address,      
+      JBETHPaymentTerminalStore.address,
     ],
     log: true,
     skipIfAlreadyDeployed: true,
   });
-
-  // transfer ownership of terminalStore to terminal.
 };

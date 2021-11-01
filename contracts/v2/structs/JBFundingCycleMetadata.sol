@@ -4,16 +4,16 @@ pragma solidity 0.8.6;
 import './../interfaces/IJBFundingCycleDataSource.sol';
 
 struct JBFundingCycleMetadata {
-  // The reserved rate of the funding cycle.
+  // The reserved rate of the funding cycle. This number is a percentage calculated out of 10000.
   uint256 reservedRate;
-  // The redemption rate of the funding cycle.
+  // The redemption rate of the funding cycle. This number is a percentage calculated out of 10000.
   uint256 redemptionRate;
-  // The redemption rate to use during an active ballot of the funding cycle.
+  // The redemption rate to use during an active ballot of the funding cycle. This number is a percentage calculated out of 10000.
   uint256 ballotRedemptionRate;
   // If the pay functionality should be paused during the funding cycle.
   bool pausePay;
   // If the withdraw functionality should be paused during the funding cycle.
-  bool pauseWithdraw;
+  bool pauseWithdrawals;
   // If the redeem functionality should be paused during the funding cycle.
   bool pauseRedeem;
   // If the mint functionality should be paused during the funding cycle.

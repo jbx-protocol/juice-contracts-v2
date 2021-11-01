@@ -30,7 +30,7 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
 /**
   @notice
-  Stitches together funding cycles and treasury tokens, making sure all activity is accounted for and correct.
+  Stitches together funding cycles and community tokens, making sure all activity is accounted for and correct.
 
   @dev 
   A project can transfer control from this contract to another allowed controller contract at any time.
@@ -75,7 +75,6 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     uint256 indexed projectId,
     uint256 indexed count,
     string memo,
-    bool shouldReserveTokens,
     uint256 reservedRate,
     address caller
   );
@@ -139,14 +138,9 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     @notice 
     The amount of overflow that a project is allowed to tap into on-demand.
 
-    @dev
-    [_projectId][_configuration][_terminal]
-
     _projectId The ID of the project to get the current overflow allowance of.
     _configuration The configuration of the during which the allowance applies.
     _terminal The terminal managing the overflow.
-
-    @return The current overflow allowance for the specified project configuration. Decreases as projects use of the allowance.
   */
   mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
     public
@@ -199,6 +193,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     @param _fundingCycleStore A contract storing all funding cycle configurations.
     @param _tokenStore A contract that manages token minting and burning.
     @param _splitsStore A contract that stores splits for each project.
+    @param _owner The address that will own the contract.
   */
   constructor(
     IJBOperatorStore _operatorStore,
@@ -206,12 +201,16 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     IJBDirectory _directory,
     IJBFundingCycleStore _fundingCycleStore,
     IJBTokenStore _tokenStore,
-    IJBSplitsStore _splitsStore
+    IJBSplitsStore _splitsStore,
+    address _owner
   ) JBTerminalUtility(_directory) JBOperatable(_operatorStore) {
     projects = _projects;
     fundingCycleStore = _fundingCycleStore;
     tokenStore = _tokenStore;
     splitsStore = _splitsStore;
+
+    // Transfer the ownership.
+    transferOwnership(_owner);
   }
 
   //*********************************************************************//
@@ -230,7 +229,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
 
     @param _owner The address to set as the owner of the project. The project ERC-721 will be owned by this address.
     @param _handle The project's unique handle. This can be updated any time by the owner of the project.
-    @param _uri A link to associate with the project. This can be updated any time by the owner of the project.
+    @param _metadataCid A link to associate with the project. This can be updated any time by the owner of the project.
     @param _data A JBFundingCycleData data structure that defines the project's first funding cycle. These properties will remain fixed for the duration of the funding cycle.
       @dev _data.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
       @dev _data.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
@@ -241,13 +240,13 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
         If the number is 10001, an non-recurring funding cycle will get made.
       @dev _data.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
     @param _metadata A JBFundingCycleMetadata data structure specifying the controller specific params that a funding cycle can have.
-      @dev _metadata.reservedRate A number from 0-200 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
-      @dev _metadata.redemptionRate The rate from 0-200 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
+      @dev _metadata.reservedRate A number from 0-10000 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
+      @dev _metadata.redemptionRate The rate from 0-10000 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
         The bonding curve formula is https://www.desmos.com/calculator/sp9ru6zbpk
         where x is _count, o is _currentOverflow, s is _totalSupply, and r is _redemptionRate.
       @dev _metadata.ballotRedemptionRate The redemption rate to apply when there is an active ballot.
       @dev _metadata.pausePay Whether or not the pay functionality should be paused during this cycle.
-      @dev _metadata.pauseWithdraw Whether or not the withdraw functionality should be paused during this cycle.
+      @dev _metadata.pauseWithdrawals Whether or not the withdraw functionality should be paused during this cycle.
       @dev _metadata.pauseRedeem Whether or not the redeem functionality should be paused during this cycle.
       @dev _metadata.pauseMint Whether or not the mint functionality should be paused during this cycle.
       @dev _metadata.pauseBurn Whether or not the burn functionality should be paused during this cycle.
@@ -267,7 +266,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
   function launchProjectFor(
     address _owner,
     bytes32 _handle,
-    string calldata _uri,
+    string calldata _metadataCid,
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
     JBOverflowAllowance[] memory _overflowAllowances,
@@ -275,13 +274,20 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     JBSplit[] memory _reservedTokenSplits,
     IJBTerminal _terminal
   ) external returns (uint256 projectId) {
+    // The reserved project token rate must be less than or equal to 10000.
+    require(_metadata.reservedRate <= 10000, '0x37: BAD_RESERVED_RATE');
+
+    // The redemption rate must be between 0 and 10000.
+    require(_metadata.redemptionRate <= 10000, '0x38: BAD_REDEMPTION_RATE');
+
+    // The ballot redemption rate must be less than or equal to 10000.
+    require(_metadata.ballotRedemptionRate <= 10000, '0x39: BAD_BALLOT_REDEMPTION_RATE');
+
     // Make sure the metadata is validated and packed into a uint256.
-    uint256 _packedMetadata = JBFundingCycleMetadataResolver.validateAndPackFundingCycleMetadata(
-      _metadata
-    );
+    uint256 _packedMetadata = JBFundingCycleMetadataResolver.packFundingCycleMetadata(_metadata);
 
     // Create the project for into the wallet of the message sender.
-    projectId = projects.createFor(_owner, _handle, _uri);
+    projectId = projects.createFor(_owner, _handle, _metadataCid);
 
     // Set the this contract as the project's controller in the directory.
     directory.setControllerOf(projectId, this);
@@ -319,13 +325,13 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
         If the number is 10001, an non-recurring funding cycle will get made.
       @dev _data.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
     @param _metadata A JBFundingCycleMetadata data structure specifying the controller specific params that a funding cycle can have.
-      @dev _metadata.reservedRate A number from 0-200 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
-      @dev _metadata.redemptionRate The rate from 0-200 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
+      @dev _metadata.reservedRate A number from 0-10000 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
+      @dev _metadata.redemptionRate The rate from 0-10000 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
         The bonding curve formula is https://www.desmos.com/calculator/sp9ru6zbpk
         where x is _count, o is _currentOverflow, s is _totalSupply, and r is _redemptionRate.
       @dev _metadata.ballotRedemptionRate The redemption rate to apply when there is an active ballot.
       @dev _metadata.pausePay Whether or not the pay functionality should be paused during this cycle.
-      @dev _metadata.pauseWithdraw Whether or not the withdraw functionality should be paused during this cycle.
+      @dev _metadata.pauseWithdrawals Whether or not the withdraw functionality should be paused during this cycle.
       @dev _metadata.pauseRedeem Whether or not the redeem functionality should be paused during this cycle.
       @dev _metadata.pauseMint Whether or not the mint functionality should be paused during this cycle.
       @dev _metadata.pauseBurn Whether or not the burn functionality should be paused during this cycle.
@@ -350,17 +356,20 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     JBSplit[] memory _reservedTokenSplits
   )
     external
-    nonReentrant
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
     returns (uint256)
   {
-    // Make sure the metadata is validated and packed into a uint256.
-    uint256 _packedMetadata = JBFundingCycleMetadataResolver.validateAndPackFundingCycleMetadata(
-      _metadata
-    );
+    // The reserved project token rate must be less than or equal to 10000.
+    require(_metadata.reservedRate <= 10000, '0x51: BAD_RESERVED_RATE');
 
-    // Configure the active project if its tokens have yet to be minted.
-    bool _shouldConfigureActive = tokenStore.totalSupplyOf(_projectId) == 0;
+    // The redemption rate must be between 0 and 10000.
+    require(_metadata.redemptionRate <= 10000, '0x52: BAD_REDEMPTION_RATE');
+
+    // The ballot redemption rate must be less than or equal to 10000.
+    require(_metadata.ballotRedemptionRate <= 10000, '0x53: BAD_BALLOT_REDEMPTION_RATE');
+
+    // Make sure the metadata is validated and packed into a uint256.
+    uint256 _packedMetadata = JBFundingCycleMetadataResolver.packFundingCycleMetadata(_metadata);
 
     return
       _configure(
@@ -400,11 +409,14 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     @dev
     Only a project's owner, a designated operator, or one of its terminal's delegate can mint its tokens.
 
-    @param _projectId The ID of the project to which the tokens being burned belong.
+    @param _projectId The ID of the project to which the tokens being minted belong.
     @param _tokenCount The amount of tokens to mint.
     @param _beneficiary The account that the tokens are being minted for.
     @param _memo A memo to pass along to the emitted event.
-    @param _preferClaimedTokens A flag indicating whether ERC20's should be burned first if they have been issued.
+    @param _preferClaimedTokens A flag indicating whether ERC20's should be minted if they have been issued.
+    @param _reservedRate The reserved rate to use when minting tokens. A positive amount will reduce the token count minted to the beneficiary, instead being reserved for preprogrammed splits. This number is out of 10000.
+
+    @return beneficiaryTokenCount The amount of tokens minted for the beneficiary.
   */
   function mintTokensOf(
     uint256 _projectId,
@@ -412,7 +424,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     address _beneficiary,
     string calldata _memo,
     bool _preferClaimedTokens,
-    bool _shouldReserveTokens
+    uint256 _reservedRate
   )
     external
     override
@@ -423,9 +435,10 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
       JBOperations.MINT,
       directory.isTerminalDelegateOf(_projectId, msg.sender)
     )
+    returns (uint256 beneficiaryTokenCount)
   {
     // Can't send to the zero address.
-    require(_beneficiary != address(0), '0x2f: ZERO_ADDRESS');
+    require(_reservedRate == 10000 || _beneficiary != address(0), '0x2f: ZERO_ADDRESS');
 
     // There should be tokens to mint.
     require(_tokenCount > 0, '0x30: NO_OP');
@@ -439,31 +452,26 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
       '0x31: PAUSED'
     );
 
-    if (_shouldReserveTokens && _fundingCycle.reservedRate() == 200) {
+    if (_reservedRate == 10000) {
       // Subtract the total weighted amount from the tracker so the full reserved token amount can be printed later.
       _processedTokenTrackerOf[_projectId] =
         _processedTokenTrackerOf[_projectId] -
         int256(_tokenCount);
     } else {
-      // Redeem the tokens, which burns them.
-      tokenStore.mintFor(_beneficiary, _projectId, _tokenCount, _preferClaimedTokens);
+      // The unreserved token count that will be minted for the beneficiary.
+      beneficiaryTokenCount = PRBMath.mulDiv(_tokenCount, 10000 - _reservedRate, 10000);
 
-      if (!_shouldReserveTokens)
-        // Set the minted tokens as processed so that reserved tokens cant be minted against them.
+      // Mint the tokens.
+      tokenStore.mintFor(_beneficiary, _projectId, beneficiaryTokenCount, _preferClaimedTokens);
+
+      if (_reservedRate == 0)
+        // If there's no reserved rate, increment the tracker with the newly minted tokens.
         _processedTokenTrackerOf[_projectId] =
           _processedTokenTrackerOf[_projectId] +
-          int256(_tokenCount);
+          int256(beneficiaryTokenCount);
     }
 
-    emit MintTokens(
-      _beneficiary,
-      _projectId,
-      _tokenCount,
-      _memo,
-      _shouldReserveTokens,
-      _fundingCycle.reservedRate(),
-      msg.sender
-    );
+    emit MintTokens(_beneficiary, _projectId, _tokenCount, _memo, _reservedRate, msg.sender);
   }
 
   /**
@@ -684,11 +692,11 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
       // Get a reference to the split being iterated on.
       JBSplit memory _split = _splits[_i];
 
-      // The amount to send towards the split. JBSplit percents are out of 10000.
-      uint256 _tokenCount = PRBMath.mulDiv(_amount, _split.percent, 10000);
+      // The amount to send towards the split. JBSplit percents are out of 10000000.
+      uint256 _tokenCount = PRBMath.mulDiv(_amount, _split.percent, 10000000);
 
       // Mints tokens for the split if needed.
-      if (_tokenCount > 0)
+      if (_tokenCount > 0) {
         tokenStore.mintFor(
           // If an allocator is set in the splits, set it as the beneficiary. Otherwise if a projectId is set in the split, set the project's owner as the beneficiary. Otherwise use the split's beneficiary.
           _split.allocator != IJBSplitAllocator(address(0))
@@ -701,19 +709,20 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
           _split.preferClaimed
         );
 
-      // If there's an allocator set, trigger its `allocate` function.
-      if (_split.allocator != IJBSplitAllocator(address(0)))
-        _split.allocator.allocate(
-          _tokenCount,
-          JBSplitsGroups.RESERVED_TOKENS,
-          _fundingCycle.projectId,
-          _split.projectId,
-          _split.beneficiary,
-          _split.preferClaimed
-        );
+        // If there's an allocator set, trigger its `allocate` function.
+        if (_split.allocator != IJBSplitAllocator(address(0)))
+          _split.allocator.allocate(
+            _tokenCount,
+            JBSplitsGroups.RESERVED_TOKENS,
+            _fundingCycle.projectId,
+            _split.projectId,
+            _split.beneficiary,
+            _split.preferClaimed
+          );
 
-      // Subtract from the amount to be sent to the beneficiary.
-      leftoverAmount = leftoverAmount - _tokenCount;
+        // Subtract from the amount to be sent to the beneficiary.
+        leftoverAmount = leftoverAmount - _tokenCount;
+      }
 
       emit DistributeToReservedTokenSplit(
         _fundingCycle.id,
@@ -749,10 +758,10 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     if (_unprocessedTokenBalanceOf == 0) return 0;
 
     // If all tokens are reserved, return the full unprocessed amount.
-    if (_reservedRate == 200) return _unprocessedTokenBalanceOf;
+    if (_reservedRate == 10000) return _unprocessedTokenBalanceOf;
 
     return
-      PRBMath.mulDiv(_unprocessedTokenBalanceOf, 200, 200 - _reservedRate) -
+      PRBMath.mulDiv(_unprocessedTokenBalanceOf, 10000, 10000 - _reservedRate) -
       _unprocessedTokenBalanceOf;
   }
 

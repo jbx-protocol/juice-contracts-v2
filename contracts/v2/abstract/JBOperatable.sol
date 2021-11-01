@@ -38,7 +38,10 @@ abstract contract JBOperatable is IJBOperatable {
     _;
   }
 
-  /// @notice A contract storing operator assignments.
+  /** 
+    @notice 
+    A contract storing operator assignments.
+  */
   IJBOperatorStore public immutable override operatorStore;
 
   /** 

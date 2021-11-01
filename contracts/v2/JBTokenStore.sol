@@ -42,7 +42,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     @notice
     Each project's ERC20 Token tokens.
 
-    [_projectId]
+    _projectId The ID of the project to which the token belongs.
   */
   mapping(uint256 => IJBToken) public override tokenOf;
 
@@ -50,7 +50,8 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     @notice
     Each holder's balance of unclaimed Tokens for each project.
 
-    [_holder][_projectId]
+    _holder The holder of balance.
+    _projectId The ID of the project to which the token belongs.
   */
   mapping(address => mapping(uint256 => uint256)) public override unclaimedBalanceOf;
 
@@ -58,7 +59,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     @notice
     The total supply of unclaimed tokens for each project.
 
-    [_projectId]
+    _projectId The ID of the project to which the token belongs.
   */
   mapping(uint256 => uint256) public override unclaimedTotalSupplyOf;
 
@@ -66,7 +67,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     @notice
     A flag indicating if tokens are required to be issued as claimed for a particular project.
 
-    [_projectId]
+    _projectId The ID of the project to which the requirement applies.
   */
   mapping(uint256 => bool) public override requireClaimFor;
 
@@ -78,7 +79,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     @notice 
     The total supply of tokens for each project, including claimed and unclaimed tokens.
 
-    @param _projectId The ID of the project to get the total supply of.
+    @param _projectId The ID of the project to get the total token supply of.
 
     @return supply The total supply.
   */
@@ -244,7 +245,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
     if (_shouldClaimTokens) {
       // Mint the equivalent amount of ERC20s.
-      _token.mint(_holder, _amount);
+      _token.mint(_holder, _amount, _projectId);
     } else {
       // Add to the unclaimed balance and total supply.
       unclaimedBalanceOf[_holder][_projectId] = unclaimedBalanceOf[_holder][_projectId] + _amount;
@@ -308,7 +309,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     uint256 _unclaimedTokensToBurn = _amount - _claimedTokensToBurn;
 
     // burn the tokens.
-    if (_claimedTokensToBurn > 0) _token.burn(_holder, _claimedTokensToBurn);
+    if (_claimedTokensToBurn > 0) _token.burn(_holder, _claimedTokensToBurn, _projectId);
     if (_unclaimedTokensToBurn > 0) {
       // Reduce the holders balance and the total supply.
       unclaimedBalanceOf[_holder][_projectId] =
@@ -357,7 +358,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     unclaimedTotalSupplyOf[_projectId] = unclaimedTotalSupplyOf[_projectId] - _amount;
 
     // Mint the equivalent amount of ERC20s.
-    _token.mint(_holder, _amount);
+    _token.mint(_holder, _amount, _projectId);
 
     emit Claim(_holder, _projectId, _amount, msg.sender);
   }
