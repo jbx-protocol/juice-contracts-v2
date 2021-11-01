@@ -9,7 +9,7 @@ export default function () {
     // Deploy a mock of the price feed oracle contract.
     this.aggregatorV3Contract = await this.deployMockContractFn(compilerOutput.abi);
 
-    this.contract = await this.deployContractFn('JBPrices');
+    this.contract = await this.deployContractFn('JBPrices', [this.deployer.address]);
   });
 
   describe('addFeedFor(...)', addFeedFor);

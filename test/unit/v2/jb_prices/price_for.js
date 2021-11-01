@@ -97,10 +97,19 @@ export default function () {
         const targetDecimals = await this.contract.TARGET_DECIMALS();
 
         // Get a reference to the expected price value.
-        const expectedPriceBigNum = decimals == targetDecimals ? ethers.BigNumber.from(expectedPrice) : decimals < targetDecimals ? ethers.BigNumber.from(expectedPrice).mul(
-          ethers.BigNumber.from(10).pow(targetDecimals - (currency !== base ? decimals : 0))) : ethers.BigNumber.from(expectedPrice).div(
-            ethers.BigNumber.from(10).pow((currency !== base ? decimals : 0) - targetDecimals))
-          ;
+        let expectedPriceBigNum;
+
+        if (currency == base) {
+          expectedPriceBigNum = ethers.BigNumber.from(10).pow(targetDecimals);
+        } else if (targetDecimals.eq(decimals)) {
+          expectedPriceBigNum = ethers.BigNumber.from(expectedPrice);
+        } else if (decimals < targetDecimals) {
+          expectedPriceBigNum = ethers.BigNumber.from(expectedPrice).mul(
+            ethers.BigNumber.from(10).pow(targetDecimals - (decimals)))
+        } else {
+          expectedPriceBigNum = ethers.BigNumber.from(expectedPrice).div(
+            ethers.BigNumber.from(10).pow((decimals) - targetDecimals))
+        }
 
         // Expect the stored price value to match the expected value.
         expect(resultingPrice).to.equal(expectedPriceBigNum);
