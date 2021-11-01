@@ -45,8 +45,7 @@
   "scripts": {
     "chain": "hardhat node",
     "account": "hardhat account",
-    "test": "hardhat test --network localhost",
-    "test:gas": "REPORT_GAS=true hardhat test --network localhost",
+    "test": "mocha -r esm --bail",
     "test:unit": "mocha -r esm --grep \"Unit\" --bail",
     "test:integration": "mocha -r esm --grep \"Integration\" --bail",
     "clean": "rimraf ./cache && rimraf ./artifacts",
