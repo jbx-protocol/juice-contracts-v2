@@ -35,6 +35,7 @@ module.exports = {
     },
     rinkeby: {
       url: 'https://rinkeby.infura.io/v3/' + infuraId,
+      gasPrice: 50000000000,
       accounts: {
         mnemonic: mnemonic(),
       },
@@ -42,31 +43,6 @@ module.exports = {
     mainnet: {
       url: 'https://mainnet.infura.io/v3/' + infuraId,
       gasPrice: 50000000000,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    },
-    ropsten: {
-      url: 'https://ropsten.infura.io/v3/' + infuraId,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    },
-    kovan: {
-      url: 'https://kovan.infura.io/v3/' + infuraId,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    },
-    goerli: {
-      url: 'https://goerli.infura.io/v3/' + infuraId,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    },
-    xdai: {
-      url: 'https://dai.poa.network',
-      gasPrice: 1000000000,
       accounts: {
         mnemonic: mnemonic(),
       },
@@ -119,7 +95,6 @@ task(
     const account_index = 0;
     let fullPath = wallet_hdpath + account_index;
     const wallet = hdwallet.derivePath(fullPath).getWallet();
-    const privateKey = "0x" + wallet._privKey.toString("hex");
     var EthUtil = require("ethereumjs-util");
     const address =
       "0x" + EthUtil.privateToAddress(wallet._privKey).toString("hex");
