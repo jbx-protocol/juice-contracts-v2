@@ -44,6 +44,7 @@
   ],
   "scripts": {
     "chain": "hardhat node",
+    "account": "hardhat account",
     "test": "hardhat test --network localhost",
     "test:gas": "REPORT_GAS=true hardhat test --network localhost",
     "test:unit": "mocha -r esm --grep \"Unit\" --bail",

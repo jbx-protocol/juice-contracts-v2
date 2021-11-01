@@ -105,12 +105,6 @@ module.exports = {
   },
 };
 
-// List all accounts.
-task("accounts", "Prints accounts", async (_, { web3 }) => {
-  const accounts = await ethers.provider.listAccounts();
-  accounts.forEach((account) => console.log(account));
-});
-
 // List details of deployer account.
 task(
   "account",
