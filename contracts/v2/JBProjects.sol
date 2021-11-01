@@ -49,7 +49,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
 
     _projectId The ID of the project to which the URI belongs.
   */
-  mapping(uint256 => string) public override uriOf;
+  mapping(uint256 => string) public override metadataCidOf;
 
   /** 
     @notice 
@@ -114,14 +114,14 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
 
     @param _owner The address that will be the owner of the project.
     @param _handle A unique string to associate with the project that will resolve to its token ID.
-    @param _uri An IPFS CID hash where metadata about the project has been uploaded. An empty string is acceptable if no metadata is being provided.
+    @param _metadataCid An IPFS CID hash where metadata about the project has been uploaded. An empty string is acceptable if no metadata is being provided.
 
     @return The token ID of the newly created project
   */
   function createFor(
     address _owner,
     bytes32 _handle,
-    string calldata _uri
+    string calldata _metadataCid
   ) external override returns (uint256) {
     // Handle must exist.
     require(_handle != bytes32(0), '0x06: EMPTY_HANDLE');
@@ -142,9 +142,9 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     idFor[_handle] = count;
 
     // Set the URI if one was provided.
-    if (bytes(_uri).length > 0) uriOf[count] = _uri;
+    if (bytes(_metadataCid).length > 0) metadataCidOf[count] = _metadataCid;
 
-    emit Create(count, _owner, _handle, _uri, msg.sender);
+    emit Create(count, _owner, _handle, _metadataCid, msg.sender);
 
     return count;
   }
@@ -190,18 +190,18 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     Only a project's owner or operator can set its URI.
 
     @param _projectId The ID of the project who's URI is being changed.
-    @param _uri The new IPFS CID hash where metadata about the project has been uploaded.
+    @param _metadataCid The new IPFS CID hash where metadata about the project has been uploaded.
 
   */
-  function setUriOf(uint256 _projectId, string calldata _uri)
+  function setMetadataCidOf(uint256 _projectId, string calldata _metadataCid)
     external
     override
-    requirePermission(ownerOf(_projectId), _projectId, JBOperations.SET_URI)
+    requirePermission(ownerOf(_projectId), _projectId, JBOperations.SET_METADATA_CID)
   {
     // Set the new uri.
-    uriOf[_projectId] = _uri;
+    metadataCidOf[_projectId] = _metadataCid;
 
-    emit SetUri(_projectId, _uri, msg.sender);
+    emit SetUri(_projectId, _metadataCid, msg.sender);
   }
 
   /**
