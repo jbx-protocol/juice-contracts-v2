@@ -20,7 +20,7 @@ yarn test:unit
 yarn test:integration
 ```
 
-You can also filter by version, test name, etc.:
+Yo can also filter by version, test name, etc.:
 
 ```bash
 yarn test:unit --grep "ProxyPaymentAddressManager"
