@@ -19,7 +19,8 @@ import './interfaces/IJBController.sol';
 
 import './structs/JBFundingCycleData.sol';
 import './structs/JBFundingCycleMetadata.sol';
-import './structs/JBOverflowAllowance.sol';
+import './structs/JBFundAccessConstraints.sol';
+import './structs/JBGroupedSplits.sol';
 
 // Inheritance
 import './interfaces/IJBController.sol';
@@ -42,14 +43,14 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
   Ownable - includes convenience functionality for specifying an address that owns the contract, with modifiers that only allow access by the owner.
   ReentrencyGuard - several function in this contract shouldn't be accessible recursively.
 */
-contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable, ReentrancyGuard {
+contract JBController is IJBController, JBTerminalUtility, JBOperatable, ReentrancyGuard {
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
-  event SetOverflowAllowance(
+  event SetFundAccessConstraints(
     uint256 indexed projectId,
     uint256 indexed configuration,
-    JBOverflowAllowance allowance,
+    JBFundAccessConstraints constraints,
     address caller
   );
   event DistributeReservedTokens(
@@ -88,8 +89,6 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
   );
 
   event Migrate(uint256 indexed projectId, IJBController to, address caller);
-
-  event SetFee(uint256 fee, address caller);
 
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
@@ -146,14 +145,22 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     public
     override overflowAllowanceOf;
 
-  /** 
+  /**
     @notice 
-    The platform fee percent.
+    The amount of that a project can withdraw per funding cycle.
 
-    @dev 
-    Out of 200.
+    _projectId The ID of the project to get the current distribution allowance of.
+    _configuration The configuration during which the distribution limit applies.
+    _terminal The terminal managing distribution.
   */
-  uint256 public fee = 10;
+  mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
+    public
+    override distributionLimitOf;
+
+  // TODO
+  mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
+    public
+    override currencyOf;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -193,7 +200,6 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     @param _fundingCycleStore A contract storing all funding cycle configurations.
     @param _tokenStore A contract that manages token minting and burning.
     @param _splitsStore A contract that stores splits for each project.
-    @param _owner The address that will own the contract.
   */
   constructor(
     IJBOperatorStore _operatorStore,
@@ -201,16 +207,12 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     IJBDirectory _directory,
     IJBFundingCycleStore _fundingCycleStore,
     IJBTokenStore _tokenStore,
-    IJBSplitsStore _splitsStore,
-    address _owner
+    IJBSplitsStore _splitsStore
   ) JBTerminalUtility(_directory) JBOperatable(_operatorStore) {
     projects = _projects;
     fundingCycleStore = _fundingCycleStore;
     tokenStore = _tokenStore;
     splitsStore = _splitsStore;
-
-    // Transfer the ownership.
-    transferOwnership(_owner);
   }
 
   //*********************************************************************//
@@ -256,10 +258,9 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
       @dev _metadata.useDataSourceForPay Whether or not the data source should be used when processing a payment.
       @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
       @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
-    @param _overflowAllowances An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
-    @param _payoutSplits An array of payout splits to set.
-    @param _reservedTokenSplits An array of reserved token splits to set.
-    @param _terminal A payment terminal to add for the project.
+    @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
+    @param _groupedSplits TODO An array of payout splits to set.
+    @param _terminals TODO A payment terminal to add for the project.
 
     @return projectId The ID of the project.
   */
@@ -269,10 +270,9 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     string calldata _metadataCid,
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
-    JBOverflowAllowance[] memory _overflowAllowances,
-    JBSplit[] memory _payoutSplits,
-    JBSplit[] memory _reservedTokenSplits,
-    IJBTerminal _terminal
+    JBFundAccessConstraints[] memory _fundAccessConstraints,
+    JBGroupedSplits[] memory _groupedSplits,
+    IJBTerminal[] memory _terminals
   ) external returns (uint256 projectId) {
     // The reserved project token rate must be less than or equal to 10000.
     require(_metadata.reservedRate <= 10000, '0x37: BAD_RESERVED_RATE');
@@ -283,9 +283,6 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     // The ballot redemption rate must be less than or equal to 10000.
     require(_metadata.ballotRedemptionRate <= 10000, '0x39: BAD_BALLOT_REDEMPTION_RATE');
 
-    // Make sure the metadata is validated and packed into a uint256.
-    uint256 _packedMetadata = JBFundingCycleMetadataResolver.packFundingCycleMetadata(_metadata);
-
     // Create the project for into the wallet of the message sender.
     projectId = projects.createFor(_owner, _handle, _metadataCid);
 
@@ -293,16 +290,10 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     directory.setControllerOf(projectId, this);
 
     // Add the provided terminal to the list of terminals.
-    if (_terminal != IJBTerminal(address(0))) directory.addTerminalOf(projectId, _terminal);
+    //TODO
+    if (_terminals.length > 0) directory.addTerminalsOf(projectId, _terminals);
 
-    _configure(
-      projectId,
-      _data,
-      _packedMetadata,
-      _overflowAllowances,
-      _payoutSplits,
-      _reservedTokenSplits
-    );
+    _configure(projectId, _data, _metadata, _fundAccessConstraints, _groupedSplits);
   }
 
   /**
@@ -341,9 +332,8 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
       @dev _metadata.useDataSourceForPay Whether or not the data source should be used when processing a payment.
       @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
       @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
-    @param _overflowAllowances An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
-    @param _payoutSplits An array of payout splits to set.
-    @param _reservedTokenSplits An array of reserved token splits to set.
+    @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
+    @param _groupedSplits TODO An array of payout splits to set.
 
     @return The ID of the funding cycle that was successfully configured.
   */
@@ -351,9 +341,8 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     uint256 _projectId,
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
-    JBOverflowAllowance[] memory _overflowAllowances,
-    JBSplit[] memory _payoutSplits,
-    JBSplit[] memory _reservedTokenSplits
+    JBFundAccessConstraints[] memory _fundAccessConstraints,
+    JBGroupedSplits[] memory _groupedSplits
   )
     external
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
@@ -368,38 +357,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     // The ballot redemption rate must be less than or equal to 10000.
     require(_metadata.ballotRedemptionRate <= 10000, '0x53: BAD_BALLOT_REDEMPTION_RATE');
 
-    // Make sure the metadata is validated and packed into a uint256.
-    uint256 _packedMetadata = JBFundingCycleMetadataResolver.packFundingCycleMetadata(_metadata);
-
-    return
-      _configure(
-        _projectId,
-        _data,
-        _packedMetadata,
-        _overflowAllowances,
-        _payoutSplits,
-        _reservedTokenSplits
-      );
-  }
-
-  /**
-    @notice
-    Signals that a project's funds are being withdrawn.
-
-    @dev
-    Only a project's terminal can signal a withdrawal.
-
-    @param _projectId The ID of the project that is being withdrawn from.
-    @param _amount The amount being withdraw.
-  */
-  function signalWithdrawlFrom(uint256 _projectId, uint256 _amount)
-    external
-    override
-    onlyTerminal(_projectId)
-    returns (JBFundingCycle memory)
-  {
-    // Tap from the project's funding cycle.
-    return fundingCycleStore.tapFrom(_projectId, _amount);
+    return _configure(_projectId, _data, _metadata, _fundAccessConstraints, _groupedSplits);
   }
 
   /**
@@ -595,25 +553,6 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
     emit Migrate(_projectId, _to, msg.sender);
   }
 
-  /** 
-    @notice
-    Allows the fee to be updated for subsequent funding cycle configurations.
-
-    @dev
-    Only the owner of this contract can change the fee.
-
-    @param _fee The new fee.
-  */
-  function setFee(uint256 _fee) external onlyOwner {
-    // The max fee is 5%.
-    require(_fee <= 10, '0x36: BAD_FEE');
-
-    // Store the new fee.
-    fee = _fee;
-
-    emit SetFee(_fee, msg.sender);
-  }
-
   //*********************************************************************//
   // --------------------- private helper functions -------------------- //
   //*********************************************************************//
@@ -775,51 +714,47 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Ownable
   function _configure(
     uint256 _projectId,
     JBFundingCycleData calldata _data,
-    uint256 _packedMetadata,
-    JBOverflowAllowance[] memory _overflowAllowances,
-    JBSplit[] memory _payoutSplits,
-    JBSplit[] memory _reservedTokenSplits
+    JBFundingCycleMetadata calldata _metadata,
+    JBFundAccessConstraints[] memory _fundAccessConstraints,
+    JBGroupedSplits[] memory _groupedSplits
   ) private returns (uint256) {
     // Configure the funding cycle's properties.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.configureFor(
       _projectId,
       _data,
-      _packedMetadata,
-      fee
+      JBFundingCycleMetadataResolver.packFundingCycleMetadata(_metadata)
     );
 
-    // Set payout splits if there are any.
-    if (_payoutSplits.length > 0)
-      splitsStore.set(
-        _projectId,
-        _fundingCycle.configured,
-        JBSplitsGroups.ETH_PAYOUT,
-        _payoutSplits
-      );
-
-    // Set token splits if there are any.
-    if (_reservedTokenSplits.length > 0)
-      splitsStore.set(
-        _projectId,
-        _fundingCycle.configured,
-        JBSplitsGroups.RESERVED_TOKENS,
-        _reservedTokenSplits
-      );
+    for (uint256 _i; _i < _groupedSplits.length; _i++)
+      // Set payout splits if there are any.
+      if (_groupedSplits[_i].splits.length > 0)
+        splitsStore.set(
+          _projectId,
+          _fundingCycle.configured,
+          _groupedSplits[_i].group,
+          _groupedSplits[_i].splits
+        );
 
     // Set overflow allowances if there are any.
-    for (uint256 _i; _i < _overflowAllowances.length; _i++) {
-      JBOverflowAllowance memory _allowance = _overflowAllowances[_i];
+    for (uint256 _i; _i < _fundAccessConstraints.length; _i++) {
+      JBFundAccessConstraints memory _constraints = _fundAccessConstraints[_i];
 
       // Set the overflow allowance if the value is different from the currently set value.
-      if (
-        _allowance.amount !=
-        overflowAllowanceOf[_projectId][_fundingCycle.configured][_allowance.terminal]
-      ) {
-        overflowAllowanceOf[_projectId][_fundingCycle.configured][_allowance.terminal] = _allowance
-          .amount;
+      if (_constraints.overflowAllowance > 0)
+        overflowAllowanceOf[_projectId][_fundingCycle.configured][
+          _constraints.terminal
+        ] = _constraints.overflowAllowance;
 
-        emit SetOverflowAllowance(_projectId, _fundingCycle.configured, _allowance, msg.sender);
-      }
+      if (_constraints.distributionLimit > 0)
+        distributionLimitOf[_projectId][_fundingCycle.configured][
+          _constraints.terminal
+        ] = _constraints.distributionLimit;
+
+      if (_constraints.currency > 0)
+        currencyOf[_projectId][_fundingCycle.configured][_constraints.terminal] = _constraints
+          .currency;
+
+      emit SetFundAccessConstraints(_projectId, _fundingCycle.configured, _constraints, msg.sender);
     }
 
     return _fundingCycle.id;

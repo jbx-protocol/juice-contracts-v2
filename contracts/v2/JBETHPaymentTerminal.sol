@@ -8,7 +8,6 @@ import '@paulrberg/contracts/math/PRBMath.sol';
 import './libraries/JBCurrencies.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
-import './libraries/JBFundingCycleMetadataResolver.sol';
 
 import './JBETHPaymentTerminalStore.sol';
 
@@ -92,6 +91,15 @@ contract JBETHPaymentTerminal is
   */
   address public immutable override token = 0x0000000000000000000000000000000000042069;
 
+  /** 
+    @notice 
+    The platform fee percent.
+
+    @dev 
+    Out of 200.
+  */
+  uint256 public fee = 10;
+
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
   //*********************************************************************//
@@ -155,7 +163,7 @@ contract JBETHPaymentTerminal is
     splitsStore = _splitsStore;
 
     // Claim the store so that it recognizes this terminal as the one that can access it.
-    _store.claim();
+    _store.claimFor(this);
 
     store = _store;
   }
@@ -242,7 +250,7 @@ contract JBETHPaymentTerminal is
     // Take a fee from the _withdrawnAmount, if needed.
     // The project's owner will be the beneficiary of the resulting minted tokens from platform project.
     // The platform project's ID is 1.
-    uint256 _feeAmount = _fundingCycle.fee == 0 || _projectId == 1
+    uint256 _feeAmount = fee == 0 || _projectId == 1
       ? 0
       : _takeFeeFrom(
         _fundingCycle,
@@ -307,7 +315,6 @@ contract JBETHPaymentTerminal is
     // Record the use of the allowance.
     (JBFundingCycle memory _fundingCycle, uint256 _withdrawnAmount) = store.recordUsedAllowanceOf(
       _projectId,
-      this,
       _amount,
       _currency,
       _minReturnedWei
@@ -323,7 +330,7 @@ contract JBETHPaymentTerminal is
     // Take a fee from the _withdrawnAmount, if needed.
     // The project's owner will be the beneficiary of the resulting minted tokens from platform project.
     // The platform project's ID is 1.
-    uint256 _feeAmount = _fundingCycle.fee == 0 || _projectId == 1
+    uint256 _feeAmount = fee == 0 || _projectId == 1
       ? 0
       : _takeFeeFrom(
         _fundingCycle,
@@ -454,11 +461,8 @@ contract JBETHPaymentTerminal is
     // Amount must be greater than 0.
     require(msg.value > 0, '0x4c: NO_OP');
 
-    // Record the added funds.
-    JBFundingCycle memory _fundingCycle = store.recordAddedBalanceFor(_projectId, msg.value);
-
     // Refund any held fees to make sure the project doesn't pay double for funds going in and out of the protocol.
-    _refundHeldFees(_projectId, msg.value, _fundingCycle.fee);
+    _refundHeldFees(_projectId, msg.value);
 
     emit AddToBalance(_projectId, msg.value, _memo, msg.sender);
   }
@@ -487,12 +491,35 @@ contract JBETHPaymentTerminal is
 
     // Process each fee.
     for (uint256 _i = 0; _i < _heldFees.length; _i++)
-      _takeFee(_heldFees[_i].amount, _heldFees[_i].beneficiary, _heldFees[_i].memo);
+      _takeFee(
+        _heldFees[_i].amount - PRBMath.mulDiv(_heldFees[_i].amount, 200, _heldFees[_i].fee + 200),
+        _heldFees[_i].beneficiary,
+        _heldFees[_i].memo
+      );
 
     // Delete the held fee's now that they've been processed.
     delete _heldFeesOf[_projectId];
 
     emit ProcessFees(_projectId, _heldFees, msg.sender);
+  }
+
+  /** 
+    @notice
+    Allows the fee to be updated for subsequent funding cycle configurations.
+
+    @dev
+    Only the owner of this contract can change the fee.
+
+    @param _fee The new fee.
+  */
+  function setFee(uint256 _fee) external onlyOwner {
+    // The max fee is 5%.
+    require(_fee <= 10, '0x36: BAD_FEE');
+
+    // Store the new fee.
+    fee = _fee;
+
+    emit SetFee(_fee, msg.sender);
   }
 
   //*********************************************************************//
@@ -610,13 +637,13 @@ contract JBETHPaymentTerminal is
     string memory _memo
   ) private returns (uint256 feeAmount) {
     // The amount of ETH from the _amount to pay as a fee.
-    feeAmount = _amount - PRBMath.mulDiv(_amount, 200, _fundingCycle.fee + 200);
+    feeAmount = _amount - PRBMath.mulDiv(_amount, 200, fee + 200);
 
     // Nothing to do if there's no fee to take.
     if (feeAmount == 0) return 0;
 
     _fundingCycle.shouldHoldFees()
-      ? _heldFeesOf[_fundingCycle.projectId].push(JBFee(feeAmount, _beneficiary, _memo)) // Take the fee.
+      ? _heldFeesOf[_fundingCycle.projectId].push(JBFee(_amount, uint8(fee), _beneficiary, _memo)) // Take the fee.
       : _takeFee(feeAmount, _beneficiary, _memo);
   }
 
@@ -694,16 +721,8 @@ contract JBETHPaymentTerminal is
 
     @param _projectId The project for which fees are being refunded.
     @param _amount The amount to base the refund on.
-    @param _percent The current fee percent to issue a refund based on.
   */
-  function _refundHeldFees(
-    uint256 _projectId,
-    uint256 _amount,
-    uint256 _percent
-  ) private {
-    // The amount of fees that were taken from an original payout to yield the provided amount.
-    uint256 _refundAmount = PRBMath.mulDiv(_amount, _percent + 200, 200) - _amount;
-
+  function _refundHeldFees(uint256 _projectId, uint256 _amount) private {
     // Get a reference to the project's held fees.
     JBFee[] memory _heldFees = _heldFeesOf[_projectId];
 
@@ -712,15 +731,20 @@ contract JBETHPaymentTerminal is
 
     // Process each fee.
     for (uint256 _i = 0; _i < _heldFees.length; _i++) {
-      if (_refundAmount == 0) {
+      if (_amount == 0) {
         _heldFeesOf[_projectId].push(_heldFees[_i]);
-      } else if (_refundAmount >= _heldFees[_i].amount) {
-        _refundAmount = _refundAmount - _heldFees[_i].amount;
+      } else if (_amount >= _heldFees[_i].amount) {
+        _amount = _amount - _heldFees[_i].amount;
       } else {
         _heldFeesOf[_projectId].push(
-          JBFee(_heldFees[_i].amount - _refundAmount, _heldFees[_i].beneficiary, _heldFees[_i].memo)
+          JBFee(
+            _heldFees[_i].amount - _amount,
+            _heldFees[_i].fee,
+            _heldFees[_i].beneficiary,
+            _heldFees[_i].memo
+          )
         );
-        _refundAmount = 0;
+        _amount = 0;
       }
     }
   }

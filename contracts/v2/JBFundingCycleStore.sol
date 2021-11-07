@@ -49,22 +49,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
   */
   mapping(uint256 => uint256) private _metadataOf;
 
-  /** 
-    @notice
-    Stores the amount that each funding cycle can tap funding cycle.
-
-    _projectId The ID of the project to get the target of.
-  */
-  mapping(uint256 => uint256) private _targetOf;
-
-  /** 
-    @notice
-    Stores the amount that has been tapped within each funding cycle.
-
-    _projectId The ID of the project to get the tapped amount of.
-  */
-  mapping(uint256 => uint256) private _tappedAmountOf;
-
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
@@ -238,7 +222,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
   /** 
     @notice 
-    The currency ballot state of the project.
+    The current ballot state of the project.
 
     @param _projectId The ID of the project to check the ballot state of.
 
@@ -283,7 +267,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @param _projectId The ID of the project being configured.
     @param _data The funding cycle configuration.
       @dev _data.target The amount that the project wants to receive in each funding cycle. 18 decimals.
-      @dev _data.currency The currency of the `_target`. Send 0 for ETH or 1 for USD.
       @dev _data.duration The duration of the funding cycle for which the `_target` amount is needed. Measured in days. 
         Set to 0 for no expiry and to be able to reconfigure anytime.
       @dev _data.discountRate A number from 0-10000 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
@@ -292,15 +275,13 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
         If the number is 10001, an non-recurring funding cycle will get made.
       @dev _data.ballot The new ballot that will be used to approve subsequent reconfigurations.
     @param _metadata Data to associate with this funding cycle configuration.
-    @param _fee The fee that this configuration incurs when tapping.
 
     @return The funding cycle that the configuration will take effect during.
   */
   function configureFor(
     uint256 _projectId,
     JBFundingCycleData calldata _data,
-    uint256 _metadata,
-    uint256 _fee
+    uint256 _metadata
   ) external override onlyController(_projectId) returns (JBFundingCycle memory) {
     // Duration must fit in a uint16.
     require(_data.duration <= type(uint16).max, '0x15: BAD_DURATION');
@@ -308,14 +289,8 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // Discount rate token must be less than or equal to 100%. A value of 10001 means non-recurring.
     require(_data.discountRate <= 10001, '0x16: BAD_DISCOUNT_RATE');
 
-    // Currency must fit into a uint8.
-    require(_data.currency <= type(uint8).max, '0x17: BAD_CURRENCY');
-
     // Weight must fit into a uint8.
     require(_data.weight <= type(uint80).max, '0x18: BAD_WEIGHT');
-
-    // Fee must be less than or equal to 100%.
-    require(_fee <= 200, '0x19: BAD_FEE');
 
     // Set the configuration timestamp is now.
     uint256 _configured = block.timestamp;
@@ -329,56 +304,16 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       _configured,
       _data.ballot,
       _data.duration,
-      _data.currency,
-      _fee,
       _data.discountRate
     );
 
-    // Set the target amount.
-    _targetOf[_fundingCycleId] = _data.target;
+    // // Set the target amount.
+    // _targetOf[_fundingCycleId] = _data.target;
 
     // Set the metadata.
     _metadataOf[_fundingCycleId] = _metadata;
 
     emit Configure(_fundingCycleId, _projectId, _configured, _data, _metadata, msg.sender);
-
-    return _getStructFor(_fundingCycleId);
-  }
-
-  /** 
-    @notice 
-    Tap funds from a project's currently tappable funding cycle.
-
-    @dev
-    Only a project's current controller can tap funds for its funding cycles.
-
-    @param _projectId The ID of the project being tapped.
-    @param _amount The amount being tapped.
-
-    @return The tapped funding cycle.
-  */
-  function tapFrom(uint256 _projectId, uint256 _amount)
-    external
-    override
-    onlyController(_projectId)
-    returns (JBFundingCycle memory)
-  {
-    // Amount must be positive.
-    require(_amount > 0, '0x1a: INSUFFICIENT_FUNDS');
-
-    // Get a reference to the funding cycle being tapped.
-    uint256 _fundingCycleId = _tappableOf(_projectId);
-
-    // The new amount that has been tapped.
-    uint256 _newTappedAmount = _tappedAmountOf[_fundingCycleId] + _amount;
-
-    // Amount must be within what is still tappable.
-    require(_newTappedAmount <= _targetOf[_fundingCycleId], '0x1b: INSUFFICIENT_FUNDS');
-
-    // Store the new amount.
-    _tappedAmountOf[_fundingCycleId] = _newTappedAmount;
-
-    emit Tap(_fundingCycleId, _projectId, _amount, _newTappedAmount, msg.sender);
 
     return _getStructFor(_fundingCycleId);
   }
@@ -459,91 +394,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // Return the newly initialized configurable funding cycle.
     // No need to copy since a new configuration is going to be applied.
     fundingCycleId = _initFor(_projectId, _fundingCycle, _mustStartOnOrAfter, _weight);
-  }
-
-  /**
-    @notice 
-    Returns the funding cycle that can be tapped at the time of the call.
-
-    @param _projectId The ID of the project to find a tappable funding cycle for.
-
-    @return fundingCycleId The ID of the tappable funding cycle.
-  */
-  function _tappableOf(uint256 _projectId) private returns (uint256 fundingCycleId) {
-    // Check for the ID of an eligible funding cycle.
-    fundingCycleId = _eligibleOf(_projectId);
-
-    // No eligible funding cycle found, check for the ID of a standby funding cycle.
-    // If this one exists, it will become eligible one it has started.
-    if (fundingCycleId == 0) fundingCycleId = _standbyOf(_projectId);
-
-    // Keep a reference to the funding cycle eligible for being tappable.
-    JBFundingCycle memory _fundingCycle;
-
-    // If the ID of an eligible funding cycle exists,
-    // check to see if it has been approved by the based funding cycle's ballot.
-    if (fundingCycleId > 0) {
-      // Get the necessary properties for the funding cycle.
-      _fundingCycle = _getStructFor(fundingCycleId);
-
-      // Check to see if the cycle is approved. If so, return it.
-      if (_fundingCycle.start <= block.timestamp && _isApproved(_fundingCycle))
-        return fundingCycleId;
-
-      // If it hasn't been approved, set the ID to be the base funding cycle,
-      // which carries the last approved configuration.
-      fundingCycleId = _fundingCycle.basedOn;
-    } else {
-      // No upcoming funding cycle found that is eligible to become active, clone the latest active funding cycle.
-      // which carries the last configuration.
-      fundingCycleId = latestIdOf[_projectId];
-
-      // Get the funding cycle for the latest ID.
-      _fundingCycle = _getStructFor(fundingCycleId);
-
-      // If it's not approved, get a reference to the funding cycle that the latest is based on, which has the latest approved configuration.
-      if (!_isApproved(_fundingCycle)) fundingCycleId = _fundingCycle.basedOn;
-    }
-
-    // The funding cycle cant be 0.
-    require(fundingCycleId > 0, '0x1d: NOT_FOUND');
-
-    // Set the eligible funding cycle.
-    _fundingCycle = _getStructFor(fundingCycleId);
-
-    // Funding cycles with a discount rate of 100% are non-recurring.
-    require(_fundingCycle.discountRate < 10001, '0x1e: NON_RECURRING');
-
-    // The time when the funding cycle immediately after the eligible funding cycle starts.
-    uint256 _nextImmediateStart = _fundingCycle.start + (_fundingCycle.duration * _SECONDS_IN_DAY);
-
-    // The distance from now until the nearest past multiple of the cycle duration from its start.
-    // A duration of zero means the reconfiguration can start right away.
-    uint256 _timeFromImmediateStartMultiple = _fundingCycle.duration == 0
-      ? 0
-      : (block.timestamp - _nextImmediateStart) % (_fundingCycle.duration * _SECONDS_IN_DAY);
-
-    // Return the tappable funding cycle.
-    fundingCycleId = _initFor(
-      _projectId,
-      _fundingCycle,
-      block.timestamp - _timeFromImmediateStartMultiple,
-      0
-    );
-
-    // Copy the properties of the base funding cycle onto the new configuration efficiently.
-    _packAndStoreConfigurationPropertiesOf(
-      fundingCycleId,
-      _fundingCycle.configured,
-      _fundingCycle.ballot,
-      _fundingCycle.duration,
-      _fundingCycle.currency,
-      _fundingCycle.fee,
-      _fundingCycle.discountRate
-    );
-
-    _metadataOf[fundingCycleId] = _metadataOf[_fundingCycle.id];
-    _targetOf[fundingCycleId] = _targetOf[_fundingCycle.id];
   }
 
   /**
@@ -674,8 +524,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @param _configured The timestamp of the configuration.
     @param _ballot The ballot to use for future reconfiguration approvals. 
     @param _duration The duration of the funding cycle.
-    @param _currency The currency of the funding cycle.
-    @param _fee The fee of the funding cycle.
     @param _discountRate The discount rate of the base funding cycle.
   */
   function _packAndStoreConfigurationPropertiesOf(
@@ -683,8 +531,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _configured,
     IJBFundingCycleBallot _ballot,
     uint256 _duration,
-    uint256 _currency,
-    uint256 _fee,
     uint256 _discountRate
   ) private {
     // ballot in bytes 0-159 bytes.
@@ -693,12 +539,8 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     packed |= _configured << 160;
     // duration in bytes 208-223 bytes.
     packed |= _duration << 208;
-    // basedOn in bytes 224-231 bytes.
-    packed |= _currency << 224;
-    // fee in bytes 232-239 bytes.
-    packed |= _fee << 232;
-    // discountRate in bytes 240-255 bytes.
-    packed |= _discountRate << 240;
+    // discountRate in bytes 224-239 bytes.
+    packed |= _discountRate << 224;
 
     // Set in storage.
     _packedConfigurationPropertiesOf[_fundingCycleId] = packed;
@@ -818,11 +660,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
         _baseFundingCycle.ballot,
         _start,
         _baseFundingCycle.duration,
-        _baseFundingCycle.target,
-        _baseFundingCycle.currency,
-        _baseFundingCycle.fee,
         _baseFundingCycle.discountRate,
-        0,
         _baseFundingCycle.metadata
       );
   }
@@ -854,12 +692,8 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     fundingCycle.ballot = IJBFundingCycleBallot(address(uint160(_packedConfigurationProperties)));
     fundingCycle.configured = uint256(uint48(_packedConfigurationProperties >> 160));
     fundingCycle.duration = uint256(uint16(_packedConfigurationProperties >> 208));
-    fundingCycle.currency = uint256(uint8(_packedConfigurationProperties >> 224));
-    fundingCycle.fee = uint256(uint8(_packedConfigurationProperties >> 232));
-    fundingCycle.discountRate = uint256(uint16(_packedConfigurationProperties >> 240));
+    fundingCycle.discountRate = uint256(uint16(_packedConfigurationProperties >> 224));
 
-    fundingCycle.target = _targetOf[_id];
-    fundingCycle.tapped = _tappedAmountOf[_id];
     fundingCycle.metadata = _metadataOf[_id];
   }
 

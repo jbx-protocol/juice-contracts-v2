@@ -202,15 +202,15 @@ contract JBDirectory is IJBDirectory, JBOperatable {
 
   /** 
     @notice 
-    Add a terminal to project's list of terminals.
+    Add terminals to project's list of terminals.
 
     @dev
-    Only a project owner, an operator, or its controller can add a terminal.
+    Only a project owner, an operator, or its controller can add terminals.
 
     @param _projectId The ID of the project having a terminal added.
-    @param _terminal The terminal to add.
+    @param _terminals The terminals to add.
   */
-  function addTerminalOf(uint256 _projectId, IJBTerminal _terminal)
+  function addTerminalsOf(uint256 _projectId, IJBTerminal[] calldata _terminals)
     external
     override
     requirePermissionAllowingOverride(
@@ -220,16 +220,18 @@ contract JBDirectory is IJBDirectory, JBOperatable {
       msg.sender == address(controllerOf[_projectId])
     )
   {
-    // Can't set the zero address.
-    require(_terminal != IJBTerminal(address(0)), '0x2d: ZERO_ADDRESS');
+    for (uint256 _i = 0; _i < _terminals.length; _i++) {
+      // Can't set the zero address.
+      require(_terminals[_i] != IJBTerminal(address(0)), '0x2d: ZERO_ADDRESS');
 
-    // If the terminal is already in the project's list of terminals, return.
-    if (isTerminalOf(_projectId, _terminal)) return;
+      // If the terminal is already in the project's list of terminals, return.
+      if (isTerminalOf(_projectId, _terminals[_i])) continue;
 
-    // Set the new terminal.
-    _terminalsOf[_projectId].push(_terminal);
+      // Set the new terminal.
+      _terminalsOf[_projectId].push(_terminals[_i]);
 
-    emit AddTerminal(_projectId, _terminal, msg.sender);
+      emit AddTerminal(_projectId, _terminals[_i], msg.sender);
+    }
   }
 
   /** 

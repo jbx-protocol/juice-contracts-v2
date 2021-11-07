@@ -6,6 +6,7 @@ import '@paulrberg/contracts/math/PRBMath.sol';
 
 import './interfaces/IJBPrices.sol';
 import './interfaces/IJBTokenStore.sol';
+import './interfaces/IJBTerminal.sol';
 
 import './libraries/JBCurrencies.sol';
 import './libraries/JBOperations.sol';
@@ -31,7 +32,7 @@ contract JBETHPaymentTerminalStore {
 
   // A modifier only allowing the associated payment terminal to access the function.
   modifier onlyAssociatedPaymentTerminal() {
-    require(msg.sender == terminal, '0x3a: UNAUTHORIZED');
+    require(msg.sender == address(terminal), '0x3a: UNAUTHORIZED');
     _;
   }
 
@@ -73,7 +74,7 @@ contract JBETHPaymentTerminalStore {
     @notice
     The associated payment terminal for which this contract stores data.
   */
-  address public terminal;
+  IJBTerminal public terminal;
 
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
@@ -98,6 +99,9 @@ contract JBETHPaymentTerminalStore {
     _configuration The configuration of the during which the allowance applies.
   */
   mapping(uint256 => mapping(uint256 => uint256)) public usedOverflowAllowanceOf;
+
+  // TODO
+  mapping(uint256 => mapping(uint256 => uint256)) public usedDistributionLimitOf;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -303,8 +307,26 @@ contract JBETHPaymentTerminalStore {
     onlyAssociatedPaymentTerminal
     returns (JBFundingCycle memory fundingCycle, uint256 withdrawnAmount)
   {
-    // Registers the funds as withdrawn and gets the ID of the funding cycle during which this withdrawal is being made.
-    fundingCycle = directory.controllerOf(_projectId).signalWithdrawlFrom(_projectId, _amount);
+    // Get a reference to the project's current funding cycle.
+    fundingCycle = fundingCycleStore.currentOf(_projectId);
+
+    // The new amount that has been tapped.
+    uint256 _newUsedDistributionLimitOf = usedDistributionLimitOf[_projectId][fundingCycle.id] +
+      _amount;
+
+    // Amount must be within what is still tappable.
+    require(
+      _newUsedDistributionLimitOf <=
+        directory.controllerOf(_projectId).distributionLimitOf(
+          _projectId,
+          fundingCycle.configured,
+          terminal
+        ),
+      '0x1b: INSUFFICIENT_FUNDS'
+    );
+
+    // Store the new amount.
+    usedDistributionLimitOf[_projectId][fundingCycle.id] = _newUsedDistributionLimitOf;
 
     // Funds cannot be withdrawn if there's no funding cycle.
     require(fundingCycle.id > 0, '0x3d: NOT_FOUND');
@@ -313,13 +335,21 @@ contract JBETHPaymentTerminalStore {
     require(!fundingCycle.withdrawalsPaused(), '0x3e: PAUSED');
 
     // Make sure the currencies match.
-    require(_currency == fundingCycle.currency, '0x3f: UNEXPECTED_CURRENCY');
+    require(
+      _currency ==
+        directory.controllerOf(_projectId).currencyOf(
+          _projectId,
+          fundingCycle.configured,
+          terminal
+        ),
+      '0x3f: UNEXPECTED_CURRENCY'
+    );
 
     // Convert the amount to wei.
-    withdrawnAmount = PRBMathUD60x18.div(
-      _amount,
-      prices.priceFor(fundingCycle.currency, JBCurrencies.ETH)
-    );
+    // A currency of 0 should be interpreted as whatever the currency being withdrawn is.
+    withdrawnAmount = _currency == 0
+      ? _amount
+      : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, JBCurrencies.ETH));
 
     // The amount being withdrawn must be available.
     require(withdrawnAmount <= balanceOf[_projectId], '0x40: INSUFFICIENT_FUNDS');
@@ -336,7 +366,6 @@ contract JBETHPaymentTerminalStore {
     Records newly used allowance funds of a project.
 
     @param _projectId The ID of the project to use the allowance of.
-    @param _terminal The terminal for the allowance.
     @param _amount The amount of the allowance to use.
     @param _currency The currency of the `_amount` value. Must match the funding cycle's currency.
     @param _minReturnedWei The amount of wei that is expected to be withdrawn.
@@ -346,7 +375,6 @@ contract JBETHPaymentTerminalStore {
   */
   function recordUsedAllowanceOf(
     uint256 _projectId,
-    IJBTerminal _terminal,
     uint256 _amount,
     uint256 _currency,
     uint256 _minReturnedWei
@@ -359,13 +387,21 @@ contract JBETHPaymentTerminalStore {
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Make sure the currencies match.
-    require(_currency == fundingCycle.currency, '0x42: UNEXPECTED_CURRENCY');
+    require(
+      _currency ==
+        directory.controllerOf(_projectId).currencyOf(
+          _projectId,
+          fundingCycle.configured,
+          terminal
+        ),
+      '0x42: UNEXPECTED_CURRENCY'
+    );
 
     // Convert the amount to wei.
-    withdrawnAmount = PRBMathUD60x18.div(
-      _amount,
-      prices.priceFor(fundingCycle.currency, JBCurrencies.ETH)
-    );
+    // A currency of 0 should be interpreted as whatever the currency being withdrawn is.
+    withdrawnAmount = _currency == 0
+      ? _amount
+      : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, JBCurrencies.ETH));
 
     // There must be sufficient allowance available.
     require(
@@ -373,7 +409,7 @@ contract JBETHPaymentTerminalStore {
         directory.controllerOf(_projectId).overflowAllowanceOf(
           _projectId,
           fundingCycle.configured,
-          _terminal
+          terminal
         ) -
           usedOverflowAllowanceOf[_projectId][fundingCycle.configured],
       '0x43: NOT_ALLOWED'
@@ -549,12 +585,12 @@ contract JBETHPaymentTerminalStore {
     @notice
     Allows this store to be claimed by an address so that it recognized the address as its terminal.
   */
-  function claim() external {
+  function claimFor(IJBTerminal _terminal) external {
     // This store can only be claimed once.
-    require(terminal == address(0), '0x4b: ALREADY_CLAIMED');
+    require(terminal == IJBTerminal(address(0)), '0x4b: ALREADY_CLAIMED');
 
     // Set the terminal as the msg.sender.
-    terminal = msg.sender;
+    terminal = _terminal;
   }
 
   //*********************************************************************//
@@ -631,15 +667,26 @@ contract JBETHPaymentTerminalStore {
     if (_balanceOf == 0) return 0;
 
     // Get a reference to the amount still withdrawable during the funding cycle.
-    uint256 _targetRemaining = _fundingCycle.target - _fundingCycle.tapped;
+    uint256 _targetRemaining = directory.controllerOf(_fundingCycle.projectId).distributionLimitOf(
+      _fundingCycle.projectId,
+      _fundingCycle.configured,
+      terminal
+    ) - usedDistributionLimitOf[_fundingCycle.projectId][_fundingCycle.id]; //_fundingCycle.target - _fundingCycle.tapped;
+
+    // Get a reference to the current funding cycle's currency for this terminal.
+    uint256 _currency = directory.controllerOf(_fundingCycle.projectId).currencyOf(
+      _fundingCycle.projectId,
+      _fundingCycle.configured,
+      terminal
+    );
 
     // Convert the _targetRemaining to ETH.
     uint256 _ethTargetRemaining = _targetRemaining == 0
       ? 0 // Get the current price of ETH.
-      : PRBMathUD60x18.div(
-        _targetRemaining,
-        prices.priceFor(_fundingCycle.currency, JBCurrencies.ETH)
-      );
+      : // A currency of 0 should be interpreted as whatever the currency being withdrawn is.
+      _currency == 0
+      ? _targetRemaining
+      : PRBMathUD60x18.div(_targetRemaining, prices.priceFor(_currency, JBCurrencies.ETH));
 
     // Overflow is the balance of this project minus the amount that can still be withdrawn.
     return _balanceOf < _ethTargetRemaining ? 0 : _balanceOf - _ethTargetRemaining;

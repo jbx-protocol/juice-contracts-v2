@@ -71,6 +71,8 @@ interface IJBETHPaymentTerminal {
     address caller
   );
 
+  event SetFee(uint256 fee, address caller);
+
   function projects() external view returns (IJBProjects);
 
   function splitsStore() external view returns (IJBSplitsStore);

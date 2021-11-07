@@ -30,11 +30,19 @@ interface IJBController {
     bool _preferClaimedTokens
   ) external;
 
-  function signalWithdrawlFrom(uint256 _projectId, uint256 _amount)
-    external
-    returns (JBFundingCycle memory);
-
   function overflowAllowanceOf(
+    uint256 _projectId,
+    uint256 _configuration,
+    IJBTerminal _terminal
+  ) external view returns (uint256);
+
+  function distributionLimitOf(
+    uint256 _projectId,
+    uint256 _configuration,
+    IJBTerminal _terminal
+  ) external view returns (uint256);
+
+  function currencyOf(
     uint256 _projectId,
     uint256 _configuration,
     IJBTerminal _terminal

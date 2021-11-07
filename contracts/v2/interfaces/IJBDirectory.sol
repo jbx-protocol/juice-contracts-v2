@@ -34,7 +34,7 @@ interface IJBDirectory {
 
   function isTerminalDelegateOf(uint256 _projectId, address _delegate) external view returns (bool);
 
-  function addTerminalOf(uint256 _projectId, IJBTerminal _terminal) external;
+  function addTerminalsOf(uint256 _projectId, IJBTerminal[] calldata _terminals) external;
 
   function removeTerminalOf(uint256 _projectId, IJBTerminal _terminal) external;
 

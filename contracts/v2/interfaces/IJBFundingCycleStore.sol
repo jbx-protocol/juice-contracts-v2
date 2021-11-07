@@ -15,14 +15,6 @@ interface IJBFundingCycleStore {
     address caller
   );
 
-  event Tap(
-    uint256 indexed fundingCycleId,
-    uint256 indexed projectId,
-    uint256 amount,
-    uint256 newTappedAmount,
-    address caller
-  );
-
   event Init(uint256 indexed fundingCycleId, uint256 indexed projectId, uint256 indexed basedOn);
 
   function latestIdOf(uint256 _projectId) external view returns (uint256);
@@ -38,11 +30,6 @@ interface IJBFundingCycleStore {
   function configureFor(
     uint256 _projectId,
     JBFundingCycleData calldata _data,
-    uint256 _metadata,
-    uint256 _fee
+    uint256 _metadata
   ) external returns (JBFundingCycle memory fundingCycle);
-
-  function tapFrom(uint256 _projectId, uint256 _amount)
-    external
-    returns (JBFundingCycle memory fundingCycle);
 }
