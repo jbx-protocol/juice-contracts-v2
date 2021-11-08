@@ -602,7 +602,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     if (_leftoverTokenCount > 0) tokenStore.mintFor(_owner, _projectId, _leftoverTokenCount, false);
 
     emit DistributeReservedTokens(
-      _fundingCycle.configured,
+      _fundingCycle.configuration,
       _fundingCycle.number,
       _projectId,
       _owner,
@@ -633,7 +633,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     // Get a reference to the project's reserved token splits.
     JBSplit[] memory _splits = splitsStore.splitsOf(
       _projectId,
-      _fundingCycle.configured,
+      _fundingCycle.configuration,
       JBSplitsGroups.RESERVED_TOKENS
     );
 
@@ -675,7 +675,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       }
 
       emit DistributeToReservedTokenSplit(
-        _fundingCycle.configured,
+        _fundingCycle.configuration,
         _fundingCycle.number,
         _projectId,
         _split,
@@ -742,7 +742,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       if (_groupedSplits[_i].splits.length > 0)
         splitsStore.set(
           _projectId,
-          _fundingCycle.configured,
+          _fundingCycle.configuration,
           _groupedSplits[_i].group,
           _groupedSplits[_i].splits
         );
@@ -753,23 +753,28 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
       // Set the distribution limit if there is one.
       if (_constraints.distributionLimit > 0)
-        distributionLimitOf[_projectId][_fundingCycle.configured][
+        distributionLimitOf[_projectId][_fundingCycle.configuration][
           _constraints.terminal
         ] = _constraints.distributionLimit;
 
       // Set the overflow allowance if there is one.
       if (_constraints.overflowAllowance > 0)
-        overflowAllowanceOf[_projectId][_fundingCycle.configured][
+        overflowAllowanceOf[_projectId][_fundingCycle.configuration][
           _constraints.terminal
         ] = _constraints.overflowAllowance;
 
       if (_constraints.currency > 0)
-        currencyOf[_projectId][_fundingCycle.configured][_constraints.terminal] = _constraints
+        currencyOf[_projectId][_fundingCycle.configuration][_constraints.terminal] = _constraints
           .currency;
 
-      emit SetFundAccessConstraints(_projectId, _fundingCycle.configured, _constraints, msg.sender);
+      emit SetFundAccessConstraints(
+        _projectId,
+        _fundingCycle.configuration,
+        _constraints,
+        msg.sender
+      );
     }
 
-    return _fundingCycle.configured;
+    return _fundingCycle.configuration;
   }
 }

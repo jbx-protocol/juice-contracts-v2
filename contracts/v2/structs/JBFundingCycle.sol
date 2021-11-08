@@ -10,7 +10,7 @@ struct JBFundingCycle {
   // The ID of a previous funding cycle that this one is based on.
   uint256 basedOn;
   // The time when this funding cycle was configured.
-  uint256 configured;
+  uint256 configuration;
   // A number that contracts can use to base arbitrary calculations on.
   uint256 weight;
   // The ballot contract to use to determine a subsequent funding cycle's reconfiguration status.

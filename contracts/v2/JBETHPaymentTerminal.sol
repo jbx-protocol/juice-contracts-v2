@@ -274,7 +274,7 @@ contract JBETHPaymentTerminal is
       Address.sendValue(_projectOwner, _leftoverDistributionAmount);
 
     emit DistributePayouts(
-      _fundingCycle.configured,
+      _fundingCycle.configuration,
       _fundingCycle.number,
       _projectId,
       _projectOwner,
@@ -346,7 +346,7 @@ contract JBETHPaymentTerminal is
     Address.sendValue(_beneficiary, _withdrawnAmount - _feeAmount);
 
     emit UseAllowance(
-      _fundingCycle.configured,
+      _fundingCycle.configuration,
       _fundingCycle.number,
       _projectId,
       _beneficiary,
@@ -412,7 +412,7 @@ contract JBETHPaymentTerminal is
     if (claimAmount > 0) Address.sendValue(_beneficiary, claimAmount);
 
     emit RedeemTokens(
-      _fundingCycle.configured,
+      _fundingCycle.configuration,
       _fundingCycle.number,
       _projectId,
       _holder,
@@ -554,7 +554,7 @@ contract JBETHPaymentTerminal is
     // Get a reference to the project's payout splits.
     JBSplit[] memory _splits = splitsStore.splitsOf(
       _projectId,
-      _fundingCycle.configured,
+      _fundingCycle.configuration,
       JBSplitsGroups.ETH_PAYOUT
     );
 
@@ -617,7 +617,7 @@ contract JBETHPaymentTerminal is
       }
 
       emit DistributeToPayoutSplit(
-        _fundingCycle.configured,
+        _fundingCycle.configuration,
         _fundingCycle.number,
         _projectId,
         _split,
@@ -710,7 +710,7 @@ contract JBETHPaymentTerminal is
     );
 
     emit Pay(
-      _fundingCycle.configured,
+      _fundingCycle.configuration,
       _fundingCycle.number,
       _projectId,
       _beneficiary,

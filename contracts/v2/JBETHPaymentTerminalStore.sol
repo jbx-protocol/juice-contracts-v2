@@ -327,7 +327,7 @@ contract JBETHPaymentTerminalStore {
       _currency ==
         directory.controllerOf(_projectId).currencyOf(
           _projectId,
-          fundingCycle.configured,
+          fundingCycle.configuration,
           terminal
         ),
       '0x3f: UNEXPECTED_CURRENCY'
@@ -342,7 +342,7 @@ contract JBETHPaymentTerminalStore {
       _newUsedDistributionLimitOf <=
         directory.controllerOf(_projectId).distributionLimitOf(
           _projectId,
-          fundingCycle.configured,
+          fundingCycle.configuration,
           terminal
         ),
       '0x1b: LIMIT_REACHED'
@@ -397,7 +397,7 @@ contract JBETHPaymentTerminalStore {
       _currency ==
         directory.controllerOf(_projectId).currencyOf(
           _projectId,
-          fundingCycle.configured,
+          fundingCycle.configuration,
           terminal
         ),
       '0x42: UNEXPECTED_CURRENCY'
@@ -414,10 +414,10 @@ contract JBETHPaymentTerminalStore {
       withdrawnAmount <=
         directory.controllerOf(_projectId).overflowAllowanceOf(
           _projectId,
-          fundingCycle.configured,
+          fundingCycle.configuration,
           terminal
         ) -
-          usedOverflowAllowanceOf[_projectId][fundingCycle.configured],
+          usedOverflowAllowanceOf[_projectId][fundingCycle.configuration],
       '0x43: NOT_ALLOWED'
     );
 
@@ -428,8 +428,8 @@ contract JBETHPaymentTerminalStore {
     require(_minReturnedWei <= withdrawnAmount, '0x45: INADEQUATE');
 
     // Store the decremented value.
-    usedOverflowAllowanceOf[_projectId][fundingCycle.configured] =
-      usedOverflowAllowanceOf[_projectId][fundingCycle.configured] +
+    usedOverflowAllowanceOf[_projectId][fundingCycle.configuration] =
+      usedOverflowAllowanceOf[_projectId][fundingCycle.configuration] +
       withdrawnAmount;
 
     // Update the project's balance.
@@ -680,14 +680,14 @@ contract JBETHPaymentTerminalStore {
     // Get a reference to the amount still withdrawable during the funding cycle.
     uint256 _targetRemaining = directory.controllerOf(_projectId).distributionLimitOf(
       _projectId,
-      _fundingCycle.configured,
+      _fundingCycle.configuration,
       terminal
     ) - usedDistributionLimitOf[_projectId][_fundingCycle.number];
 
     // Get a reference to the current funding cycle's currency for this terminal.
     uint256 _currency = directory.controllerOf(_projectId).currencyOf(
       _projectId,
-      _fundingCycle.configured,
+      _fundingCycle.configuration,
       terminal
     );
 
