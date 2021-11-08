@@ -39,8 +39,9 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
   Inherits from:
 
   IJBController - general interface for the generic controller methods in this contract that interacts with funding cycles and tokens according to the Juicebox protocol's rules.
+  JBTerminalUtility - provides tools for contracts that has functionality that can only be accessed
+  by a project's terminals. 
   JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
-  Ownable - includes convenience functionality for specifying an address that owns the contract, with modifiers that only allow access by the owner.
   ReentrencyGuard - several function in this contract shouldn't be accessible recursively.
 */
 contract JBController is IJBController, JBTerminalUtility, JBOperatable, ReentrancyGuard {
@@ -135,7 +136,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
   /**
     @notice 
-    The amount of overflow that a project is allowed to tap into on-demand.
+    The amount of overflow that a project is allowed to tap into on-demand throughout configuration.
 
     _projectId The ID of the project to get the current overflow allowance of.
     _configuration The configuration of the during which the allowance applies.
@@ -149,15 +150,22 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     @notice 
     The amount of that a project can withdraw per funding cycle.
 
-    _projectId The ID of the project to get the current distribution allowance of.
+    _projectId The ID of the project to get the current distribution limit of.
     _configuration The configuration during which the distribution limit applies.
-    _terminal The terminal managing distribution.
+    _terminal The terminal from which distributions are being limited. 
   */
   mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
     public
     override distributionLimitOf;
 
-  // TODO
+  /**
+    @notice 
+    The currency that overflowAllowances and distribution limits are measured in for a particular funding cycle configuration, applied only to the specified terminal.
+
+    _projectId The ID of the project to get the currency of.
+    _configuration The configuration during which the currency applies.
+    _terminal The terminal for which the currency should be used. 
+  */
   mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
     public
     override currencyOf;
@@ -241,7 +249,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
         If the number is 9000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
         If the number is 10001, an non-recurring funding cycle will get made.
       @dev _data.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
-    @param _metadata A JBFundingCycleMetadata data structure specifying the controller specific params that a funding cycle can have.
+    @param _metadata A JBFundingCycleMetadata data structure specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
       @dev _metadata.reservedRate A number from 0-10000 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
       @dev _metadata.redemptionRate The rate from 0-10000 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
         The bonding curve formula is https://www.desmos.com/calculator/sp9ru6zbpk
@@ -259,8 +267,8 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
       @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
     @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
-    @param _groupedSplits TODO An array of payout splits to set.
-    @param _terminals TODO A payment terminal to add for the project.
+    @param _groupedSplits An array of splits to set for any number of group.
+    @param _terminals Payment terminals to add for the project.
 
     @return projectId The ID of the project.
   */
@@ -289,8 +297,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     // Set the this contract as the project's controller in the directory.
     directory.setControllerOf(projectId, this);
 
-    // Add the provided terminal to the list of terminals.
-    //TODO
+    // Add the provided terminals to the list of terminals.
     if (_terminals.length > 0) directory.addTerminalsOf(projectId, _terminals);
 
     _configure(projectId, _data, _metadata, _fundAccessConstraints, _groupedSplits);
@@ -315,7 +322,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
         If the number is 9000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
         If the number is 10001, an non-recurring funding cycle will get made.
       @dev _data.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
-    @param _metadata A JBFundingCycleMetadata data structure specifying the controller specific params that a funding cycle can have.
+    @param _metadata A JBFundingCycleMetadata data structure specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
       @dev _metadata.reservedRate A number from 0-10000 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
       @dev _metadata.redemptionRate The rate from 0-10000 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
         The bonding curve formula is https://www.desmos.com/calculator/sp9ru6zbpk
@@ -333,7 +340,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
       @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
     @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
-    @param _groupedSplits TODO An array of payout splits to set.
+    @param _groupedSplits An array of splits to set for any number of group.
 
     @return The ID of the funding cycle that was successfully configured.
   */
@@ -709,7 +716,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     Configures a funding cycle and stores information pertinent to the configuration.
 
     @dev
-    See the docs for `launchProject` and `configureFundingCycles`.
+    See the docs for `launchProjectFor` and `reconfigureFundingCyclesOf`.
   */
   function _configure(
     uint256 _projectId,
@@ -739,16 +746,17 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     for (uint256 _i; _i < _fundAccessConstraints.length; _i++) {
       JBFundAccessConstraints memory _constraints = _fundAccessConstraints[_i];
 
-      // Set the overflow allowance if the value is different from the currently set value.
-      if (_constraints.overflowAllowance > 0)
-        overflowAllowanceOf[_projectId][_fundingCycle.configured][
-          _constraints.terminal
-        ] = _constraints.overflowAllowance;
-
+      // Set the distribution limit if there is one.
       if (_constraints.distributionLimit > 0)
         distributionLimitOf[_projectId][_fundingCycle.configured][
           _constraints.terminal
         ] = _constraints.distributionLimit;
+
+      // Set the overflow allowance if there is one.
+      if (_constraints.overflowAllowance > 0)
+        overflowAllowanceOf[_projectId][_fundingCycle.configured][
+          _constraints.terminal
+        ] = _constraints.overflowAllowance;
 
       if (_constraints.currency > 0)
         currencyOf[_projectId][_fundingCycle.configured][_constraints.terminal] = _constraints

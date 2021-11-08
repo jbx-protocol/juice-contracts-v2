@@ -12,8 +12,8 @@ struct JBFundingCycleMetadata {
   uint256 ballotRedemptionRate;
   // If the pay functionality should be paused during the funding cycle.
   bool pausePay;
-  // If the withdraw functionality should be paused during the funding cycle.
-  bool pauseWithdrawals;
+  // If the distribute functionality should be paused during the funding cycle.
+  bool pauseDistributions;
   // If the redeem functionality should be paused during the funding cycle.
   bool pauseRedeem;
   // If the mint functionality should be paused during the funding cycle.

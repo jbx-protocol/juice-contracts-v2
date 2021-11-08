@@ -216,7 +216,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     requirePermissionAllowingOverride(
       projects.ownerOf(_projectId),
       _projectId,
-      JBOperations.ADD_TERMINAL,
+      JBOperations.ADD_TERMINALS,
       msg.sender == address(controllerOf[_projectId])
     )
   {

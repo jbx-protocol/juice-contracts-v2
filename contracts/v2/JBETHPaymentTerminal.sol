@@ -233,7 +233,7 @@ contract JBETHPaymentTerminal is
     string memory _memo
   ) external override nonReentrant returns (uint256) {
     // Record the withdrawal.
-    (JBFundingCycle memory _fundingCycle, uint256 _withdrawnAmount) = store.recordWithdrawalFor(
+    (JBFundingCycle memory _fundingCycle, uint256 _withdrawnAmount) = store.recordDistributionFor(
       _projectId,
       _amount,
       _currency,
@@ -460,6 +460,9 @@ contract JBETHPaymentTerminal is
   function addToBalanceOf(uint256 _projectId, string memory _memo) external payable override {
     // Amount must be greater than 0.
     require(msg.value > 0, '0x4c: NO_OP');
+
+    // Record the added funds.
+    JBFundingCycle memory _fundingCycle = store.recordAddedBalanceFor(_projectId, msg.value);
 
     // Refund any held fees to make sure the project doesn't pay double for funds going in and out of the protocol.
     _refundHeldFees(_projectId, msg.value);

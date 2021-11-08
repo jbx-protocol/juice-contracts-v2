@@ -90,17 +90,26 @@ contract JBETHPaymentTerminalStore {
 
   /**
     @notice 
-    The amount of overflow that a project is allowed to tap into on-demand for the specified project configuration. 
+    The amount of overflow that a project has used from its allowance during the current funding cycle configuration. 
 
     @dev 
-    Decreases as projects use of the allowance.
+    Increases as projects use their allowance.
 
-    _projectId The ID of the project to get the current overflow allowance of.
+    _projectId The ID of the project to get the used overflow allowance of.
     _configuration The configuration of the during which the allowance applies.
   */
   mapping(uint256 => mapping(uint256 => uint256)) public usedOverflowAllowanceOf;
 
-  // TODO
+  /**
+    @notice 
+    The amount that a project has distributed from its limit during the current funding cycle. 
+
+    @dev 
+    Increases as projects use their distribution limit.
+
+    _projectId The ID of the project to get the used distribution limit of.
+    _configuration The configuration of the during which the disitrution limit applies.
+  */
   mapping(uint256 => mapping(uint256 => uint256)) public usedDistributionLimitOf;
 
   //*********************************************************************//
@@ -284,20 +293,20 @@ contract JBETHPaymentTerminalStore {
 
   /**
     @notice
-    Records newly withdrawn funds for a project.
+    Records newly distributed funds for a project.
 
     @dev
-    Only the associated payment terminal can record a withdrawal.
+    Only the associated payment terminal can record a distribution.
 
-    @param _projectId The ID of the project that is having funds withdrawn.
-    @param _amount The amount being withdrawn. Send as wei (18 decimals).
+    @param _projectId The ID of the project that is having funds distributed.
+    @param _amount The amount being distributed. Send as wei (18 decimals).
     @param _currency The expected currency of the `_amount` being tapped. This must match the project's current funding cycle's currency.
-    @param _minReturnedWei The minimum number of wei that should be withdrawn.
+    @param _minReturnedWei The minimum number of wei that should be distributed.
 
     @return fundingCycle The funding cycle during which the withdrawal was made.
-    @return withdrawnAmount The amount withdrawn.
+    @return distributedAmount The amount distribution.
   */
-  function recordWithdrawalFor(
+  function recordDistributionFor(
     uint256 _projectId,
     uint256 _amount,
     uint256 _currency,
@@ -305,34 +314,13 @@ contract JBETHPaymentTerminalStore {
   )
     external
     onlyAssociatedPaymentTerminal
-    returns (JBFundingCycle memory fundingCycle, uint256 withdrawnAmount)
+    returns (JBFundingCycle memory fundingCycle, uint256 distributedAmount)
   {
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-    // The new amount that has been tapped.
-    uint256 _newUsedDistributionLimitOf = usedDistributionLimitOf[_projectId][fundingCycle.id] +
-      _amount;
-
-    // Amount must be within what is still tappable.
-    require(
-      _newUsedDistributionLimitOf <=
-        directory.controllerOf(_projectId).distributionLimitOf(
-          _projectId,
-          fundingCycle.configured,
-          terminal
-        ),
-      '0x1b: INSUFFICIENT_FUNDS'
-    );
-
-    // Store the new amount.
-    usedDistributionLimitOf[_projectId][fundingCycle.id] = _newUsedDistributionLimitOf;
-
-    // Funds cannot be withdrawn if there's no funding cycle.
-    require(fundingCycle.id > 0, '0x3d: NOT_FOUND');
-
-    // The funding cycle must not be configured to have withdrawals paused.
-    require(!fundingCycle.withdrawalsPaused(), '0x3e: PAUSED');
+    // The funding cycle must not be configured to have distributions paused.
+    require(!fundingCycle.distributionsPaused(), '0x3e: PAUSED');
 
     // Make sure the currencies match.
     require(
@@ -345,20 +333,38 @@ contract JBETHPaymentTerminalStore {
       '0x3f: UNEXPECTED_CURRENCY'
     );
 
+    // The new total amount that has been distributed during this funding cycle.
+    uint256 _newUsedDistributionLimitOf = usedDistributionLimitOf[_projectId][fundingCycle.id] +
+      _amount;
+
+    // Amount must be within what is still distributable.
+    require(
+      _newUsedDistributionLimitOf <=
+        directory.controllerOf(_projectId).distributionLimitOf(
+          _projectId,
+          fundingCycle.configured,
+          terminal
+        ),
+      '0x1b: LIMIT_REACHED'
+    );
+
     // Convert the amount to wei.
-    // A currency of 0 should be interpreted as whatever the currency being withdrawn is.
-    withdrawnAmount = _currency == 0
+    // A currency of 0 should be interpreted as whatever the currency being distributed is.
+    distributedAmount = _currency == 0
       ? _amount
       : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, JBCurrencies.ETH));
 
-    // The amount being withdrawn must be available.
-    require(withdrawnAmount <= balanceOf[_projectId], '0x40: INSUFFICIENT_FUNDS');
+    // The amount being distributed must be available.
+    require(distributedAmount <= balanceOf[_projectId], '0x40: INSUFFICIENT_FUNDS');
 
-    // The amount being withdrawn must be at least as much as was expected.
-    require(_minReturnedWei <= withdrawnAmount, '0x41: INADEQUATE');
+    // The amount being distributed must be at least as much as was expected.
+    require(_minReturnedWei <= distributedAmount, '0x41: INADEQUATE');
 
-    // Removed the withdrawn funds from the project's balance.
-    balanceOf[_projectId] = balanceOf[_projectId] - withdrawnAmount;
+    // Store the new amount.
+    usedDistributionLimitOf[_projectId][fundingCycle.id] = _newUsedDistributionLimitOf;
+
+    // Removed the distributed funds from the project's balance.
+    balanceOf[_projectId] = balanceOf[_projectId] - distributedAmount;
   }
 
   /** 
@@ -589,7 +595,7 @@ contract JBETHPaymentTerminalStore {
     // This store can only be claimed once.
     require(terminal == IJBTerminal(address(0)), '0x4b: ALREADY_CLAIMED');
 
-    // Set the terminal as the msg.sender.
+    // Set the terminal.
     terminal = _terminal;
   }
 
@@ -671,7 +677,7 @@ contract JBETHPaymentTerminalStore {
       _fundingCycle.projectId,
       _fundingCycle.configured,
       terminal
-    ) - usedDistributionLimitOf[_fundingCycle.projectId][_fundingCycle.id]; //_fundingCycle.target - _fundingCycle.tapped;
+    ) - usedDistributionLimitOf[_fundingCycle.projectId][_fundingCycle.id];
 
     // Get a reference to the current funding cycle's currency for this terminal.
     uint256 _currency = directory.controllerOf(_fundingCycle.projectId).currencyOf(
@@ -682,9 +688,8 @@ contract JBETHPaymentTerminalStore {
 
     // Convert the _targetRemaining to ETH.
     uint256 _ethTargetRemaining = _targetRemaining == 0
-      ? 0 // Get the current price of ETH.
-      : // A currency of 0 should be interpreted as whatever the currency being withdrawn is.
-      _currency == 0
+      ? 0 // Get the current price of ETH. // A currency of 0 should be interpreted as whatever the currency being withdrawn is.
+      : _currency == 0
       ? _targetRemaining
       : PRBMathUD60x18.div(_targetRemaining, prices.priceFor(_currency, JBCurrencies.ETH));
 

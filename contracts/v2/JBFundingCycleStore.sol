@@ -307,9 +307,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       _data.discountRate
     );
 
-    // // Set the target amount.
-    // _targetOf[_fundingCycleId] = _data.target;
-
     // Set the metadata.
     _metadataOf[_fundingCycleId] = _metadata;
 
