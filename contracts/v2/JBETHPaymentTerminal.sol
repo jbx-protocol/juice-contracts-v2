@@ -462,7 +462,7 @@ contract JBETHPaymentTerminal is
     require(msg.value > 0, '0x4c: NO_OP');
 
     // Record the added funds.
-    JBFundingCycle memory _fundingCycle = store.recordAddedBalanceFor(_projectId, msg.value);
+    store.recordAddedBalanceFor(_projectId, msg.value);
 
     // Refund any held fees to make sure the project doesn't pay double for funds going in and out of the protocol.
     _refundHeldFees(_projectId, msg.value);
