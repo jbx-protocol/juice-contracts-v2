@@ -223,7 +223,7 @@ contract JBETHPaymentTerminal is
     @param _currency The expected currency of the amount being distributed. Must match the project's current funding cycle's currency.
     @param _minReturnedWei The minimum number of wei that the amount should be valued at.
 
-    @return The ID of the funding cycle during which the distribution was made.
+    @return The number of the funding cycle during which the distribution was made.
   */
   function distributePayoutsOf(
     uint256 _projectId,
@@ -253,6 +253,7 @@ contract JBETHPaymentTerminal is
     uint256 _feeAmount = fee == 0 || _projectId == 1
       ? 0
       : _takeFeeFrom(
+        _projectId,
         _fundingCycle,
         _withdrawnAmount,
         _projectOwner,
@@ -262,6 +263,7 @@ contract JBETHPaymentTerminal is
     // Payout to splits and get a reference to the leftover transfer amount after all mods have been paid.
     // The net transfer amount is the withdrawn amount minus the fee.
     uint256 _leftoverDistributionAmount = _distributeToPayoutSplitsOf(
+      _projectId,
       _fundingCycle,
       _withdrawnAmount - _feeAmount,
       string(bytes.concat('Payout from @', _handle))
@@ -272,18 +274,18 @@ contract JBETHPaymentTerminal is
       Address.sendValue(_projectOwner, _leftoverDistributionAmount);
 
     emit DistributePayouts(
-      _fundingCycle.id,
+      _fundingCycle.configured,
+      _fundingCycle.number,
       _projectId,
       _projectOwner,
       _amount,
-      _withdrawnAmount,
       _feeAmount,
       _leftoverDistributionAmount,
       _memo,
       msg.sender
     );
 
-    return _fundingCycle.id;
+    return _fundingCycle.number;
   }
 
   /**
@@ -333,6 +335,7 @@ contract JBETHPaymentTerminal is
     uint256 _feeAmount = fee == 0 || _projectId == 1
       ? 0
       : _takeFeeFrom(
+        _projectId,
         _fundingCycle,
         _withdrawnAmount,
         _projectOwner,
@@ -343,8 +346,8 @@ contract JBETHPaymentTerminal is
     Address.sendValue(_beneficiary, _withdrawnAmount - _feeAmount);
 
     emit UseAllowance(
-      _fundingCycle.id,
       _fundingCycle.configured,
+      _fundingCycle.number,
       _projectId,
       _beneficiary,
       _withdrawnAmount,
@@ -353,7 +356,7 @@ contract JBETHPaymentTerminal is
       msg.sender
     );
 
-    return _fundingCycle.id;
+    return _fundingCycle.number;
   }
 
   /**
@@ -409,10 +412,10 @@ contract JBETHPaymentTerminal is
     if (claimAmount > 0) Address.sendValue(_beneficiary, claimAmount);
 
     emit RedeemTokens(
-      _fundingCycle.id,
+      _fundingCycle.configured,
+      _fundingCycle.number,
       _projectId,
       _holder,
-      _fundingCycle,
       _beneficiary,
       _tokenCount,
       claimAmount,
@@ -540,6 +543,7 @@ contract JBETHPaymentTerminal is
     @return leftoverAmount If the leftover amount if the splits don't add up to 100%.
   */
   function _distributeToPayoutSplitsOf(
+    uint256 _projectId,
     JBFundingCycle memory _fundingCycle,
     uint256 _amount,
     string memory _memo
@@ -549,7 +553,7 @@ contract JBETHPaymentTerminal is
 
     // Get a reference to the project's payout splits.
     JBSplit[] memory _splits = splitsStore.splitsOf(
-      _fundingCycle.projectId,
+      _projectId,
       _fundingCycle.configured,
       JBSplitsGroups.ETH_PAYOUT
     );
@@ -569,7 +573,7 @@ contract JBETHPaymentTerminal is
           _split.allocator.allocate{value: _payoutAmount}(
             _payoutAmount,
             JBSplitsGroups.ETH_PAYOUT,
-            _fundingCycle.projectId,
+            _projectId,
             _split.projectId,
             _split.beneficiary,
             _split.preferClaimed
@@ -613,8 +617,9 @@ contract JBETHPaymentTerminal is
       }
 
       emit DistributeToPayoutSplit(
-        _fundingCycle.id,
-        _fundingCycle.projectId,
+        _fundingCycle.configured,
+        _fundingCycle.number,
+        _projectId,
         _split,
         _payoutAmount,
         msg.sender
@@ -634,6 +639,7 @@ contract JBETHPaymentTerminal is
     @return feeAmount The amount of the fee taken.
   */
   function _takeFeeFrom(
+    uint256 _projectId,
     JBFundingCycle memory _fundingCycle,
     uint256 _amount,
     address _beneficiary,
@@ -646,7 +652,7 @@ contract JBETHPaymentTerminal is
     if (feeAmount == 0) return 0;
 
     _fundingCycle.shouldHoldFees()
-      ? _heldFeesOf[_fundingCycle.projectId].push(JBFee(_amount, uint8(fee), _beneficiary, _memo)) // Take the fee.
+      ? _heldFeesOf[_projectId].push(JBFee(_amount, uint8(fee), _beneficiary, _memo)) // Take the fee.
       : _takeFee(feeAmount, _beneficiary, _memo);
   }
 
@@ -704,10 +710,10 @@ contract JBETHPaymentTerminal is
     );
 
     emit Pay(
-      _fundingCycle.id,
+      _fundingCycle.configured,
+      _fundingCycle.number,
       _projectId,
       _beneficiary,
-      _fundingCycle,
       _amount,
       _weight,
       _tokenCount,
@@ -715,7 +721,7 @@ contract JBETHPaymentTerminal is
       msg.sender
     );
 
-    return _fundingCycle.id;
+    return _fundingCycle.number;
   }
 
   /** 

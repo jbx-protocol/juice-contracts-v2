@@ -5,10 +5,6 @@ import './../interfaces/IJBFundingCycleBallot.sol';
 
 /// @notice The funding cycle structure represents a project stewarded by an address, and accounts for which addresses have helped sustain the project.
 struct JBFundingCycle {
-  // An ID that is the combination of the `projectId` and the `number`.
-  uint256 id;
-  // The ID of the project that this funding cycle belongs to.
-  uint256 projectId;
   // The number of this funding cycle for the project.
   uint256 number;
   // The ID of a previous funding cycle that this one is based on.

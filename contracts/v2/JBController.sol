@@ -55,9 +55,10 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     address caller
   );
   event DistributeReservedTokens(
-    uint256 indexed fundingCycleId,
+    uint256 indexed fundingCycleConfiguration,
+    uint256 indexed fundingCycleNumber,
     uint256 indexed projectId,
-    address indexed beneficiary,
+    address beneficiary,
     uint256 count,
     uint256 projectOwnerTokenCount,
     string memo,
@@ -65,7 +66,8 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   );
 
   event DistributeToReservedTokenSplit(
-    uint256 indexed fundingCycleId,
+    uint256 indexed fundingCycleConfiguration,
+    uint256 indexed fundingCycleNumber,
     uint256 indexed projectId,
     JBSplit split,
     uint256 count,
@@ -342,7 +344,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
     @param _groupedSplits An array of splits to set for any number of group.
 
-    @return The ID of the funding cycle that was successfully configured.
+    @return The configuration of the funding cycle that was successfully configured.
   */
   function reconfigureFundingCyclesOf(
     uint256 _projectId,
@@ -594,13 +596,14 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     // Distribute tokens to splits and get a reference to the leftover amount to mint after all splits have gotten their share.
     uint256 _leftoverTokenCount = count == 0
       ? 0
-      : _distributeToReservedTokenSplitsOf(_fundingCycle, count);
+      : _distributeToReservedTokenSplitsOf(_projectId, _fundingCycle, count);
 
     // Mint any leftover tokens to the project owner.
     if (_leftoverTokenCount > 0) tokenStore.mintFor(_owner, _projectId, _leftoverTokenCount, false);
 
     emit DistributeReservedTokens(
-      _fundingCycle.id,
+      _fundingCycle.configured,
+      _fundingCycle.number,
       _projectId,
       _owner,
       count,
@@ -619,16 +622,17 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
     @return leftoverAmount If the splits percents dont add up to 100%, the leftover amount is returned.
   */
-  function _distributeToReservedTokenSplitsOf(JBFundingCycle memory _fundingCycle, uint256 _amount)
-    private
-    returns (uint256 leftoverAmount)
-  {
+  function _distributeToReservedTokenSplitsOf(
+    uint256 _projectId,
+    JBFundingCycle memory _fundingCycle,
+    uint256 _amount
+  ) private returns (uint256 leftoverAmount) {
     // Set the leftover amount to the initial amount.
     leftoverAmount = _amount;
 
     // Get a reference to the project's reserved token splits.
     JBSplit[] memory _splits = splitsStore.splitsOf(
-      _fundingCycle.projectId,
+      _projectId,
       _fundingCycle.configured,
       JBSplitsGroups.RESERVED_TOKENS
     );
@@ -650,7 +654,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
             : _split.projectId != 0
             ? projects.ownerOf(_split.projectId)
             : _split.beneficiary,
-          _fundingCycle.projectId,
+          _projectId,
           _tokenCount,
           _split.preferClaimed
         );
@@ -660,7 +664,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
           _split.allocator.allocate(
             _tokenCount,
             JBSplitsGroups.RESERVED_TOKENS,
-            _fundingCycle.projectId,
+            _projectId,
             _split.projectId,
             _split.beneficiary,
             _split.preferClaimed
@@ -671,8 +675,9 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       }
 
       emit DistributeToReservedTokenSplit(
-        _fundingCycle.id,
-        _fundingCycle.projectId,
+        _fundingCycle.configured,
+        _fundingCycle.number,
+        _projectId,
         _split,
         _tokenCount,
         msg.sender
@@ -765,6 +770,6 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       emit SetFundAccessConstraints(_projectId, _fundingCycle.configured, _constraints, msg.sender);
     }
 
-    return _fundingCycle.id;
+    return _fundingCycle.configured;
   }
 }
