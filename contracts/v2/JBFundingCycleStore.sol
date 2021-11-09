@@ -172,6 +172,9 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       // Get the funding cycle for the latest ID.
       _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
 
+      // There's no current if the latest is non recurring, represented by a discount rate of 1000000001.
+      if (_fundingCycle.discountRate == 1000000001) return _getStructFor(0, 0);
+
       // If it's not approved or if it hasn't yet started, get a reference to the funding cycle that the latest is based on, which has the latest approved configuration.
       if (!_isApproved(_projectId, _fundingCycle) || block.timestamp < _fundingCycle.start)
         _fundingCycleConfiguration = _fundingCycle.basedOn;
@@ -614,11 +617,11 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
         _number,
         _baseFundingCycle.configuration,
         _baseFundingCycle.basedOn,
-        _deriveWeightFrom(_baseFundingCycle, _start),
-        _baseFundingCycle.ballot,
         _start,
         _baseFundingCycle.duration,
+        _deriveWeightFrom(_baseFundingCycle, _start),
         _baseFundingCycle.discountRate,
+        _baseFundingCycle.ballot,
         _baseFundingCycle.metadata
       );
   }
