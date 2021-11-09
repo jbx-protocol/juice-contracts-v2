@@ -22,11 +22,11 @@ interface IJBETHPaymentTerminal {
     uint256 indexed fundingCycleConfiguration,
     uint256 indexed fundingCycleNumber,
     uint256 indexed projectId,
-    address projectOwner,
+    address beneficiary,
     uint256 amount,
     uint256 distributedAmount,
     uint256 feeAmount,
-    uint256 projectOwnerDistributionAmount,
+    uint256 beneficiaryDistributionAmount,
     string memo,
     address caller
   );
@@ -107,7 +107,7 @@ interface IJBETHPaymentTerminal {
     uint256 _currency,
     uint256 _minReturnedWei,
     address payable _beneficiary
-  ) external returns (uint256 fundingCycleNumber);
+  ) external;
 
   function migrate(uint256 _projectId, IJBTerminal _to) external;
 }

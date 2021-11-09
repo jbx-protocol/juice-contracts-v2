@@ -49,8 +49,9 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
   event SetFundAccessConstraints(
+    uint256 indexed fundingCycleConfiguration,
+    uint256 indexed fundingCycleNumber,
     uint256 indexed projectId,
-    uint256 indexed configuration,
     JBFundAccessConstraints constraints,
     address caller
   );
@@ -60,7 +61,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     uint256 indexed projectId,
     address beneficiary,
     uint256 count,
-    uint256 projectOwnerTokenCount,
+    uint256 beneficiaryTokenCount,
     string memo,
     address caller
   );
@@ -101,6 +102,8 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     @notice
     The difference between the processed token tracker of a project and the project's token's total supply is the amount of tokens that
     still need to have reserves minted against them.
+
+    _projectId The ID of the project to get the tracker of.
   */
   mapping(uint256 => int256) private _processedTokenTrackerOf;
 
@@ -246,14 +249,14 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       @dev _data.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
       @dev _data.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
       @dev _data.duration The duration of the funding cycle for which the `target` amount is needed. Measured in days. Send 0 for cycles that are reconfigurable at any time.
-      @dev _data.discountRate A number from 0-10000 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
+      @dev _data.discountRate A number from 0-1000000001 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
         If it's 0, each funding cycle will have equal weight.
-        If the number is 9000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
-        If the number is 10001, an non-recurring funding cycle will get made.
+        If the number is 900000000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
+        If the number is 1000000001, an non-recurring funding cycle will get made.
       @dev _data.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
     @param _metadata A JBFundingCycleMetadata data structure specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
-      @dev _metadata.reservedRate A number from 0-10000 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
-      @dev _metadata.redemptionRate The rate from 0-10000 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
+      @dev _metadata.reservedRate A number from 0-200 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
+      @dev _metadata.redemptionRate The rate from 0-200 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
         The bonding curve formula is https://www.desmos.com/calculator/sp9ru6zbpk
         where x is _count, o is _currentOverflow, s is _totalSupply, and r is _redemptionRate.
       @dev _metadata.ballotRedemptionRate The redemption rate to apply when there is an active ballot.
@@ -284,14 +287,14 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     JBGroupedSplits[] memory _groupedSplits,
     IJBTerminal[] memory _terminals
   ) external returns (uint256 projectId) {
-    // The reserved project token rate must be less than or equal to 10000.
-    require(_metadata.reservedRate <= 10000, '0x37: BAD_RESERVED_RATE');
+    // The reserved project token rate must be less than or equal to 200.
+    require(_metadata.reservedRate <= 200, '0x37: BAD_RESERVED_RATE');
 
-    // The redemption rate must be between 0 and 10000.
-    require(_metadata.redemptionRate <= 10000, '0x38: BAD_REDEMPTION_RATE');
+    // The redemption rate must be between 0 and 200.
+    require(_metadata.redemptionRate <= 200, '0x38: BAD_REDEMPTION_RATE');
 
-    // The ballot redemption rate must be less than or equal to 10000.
-    require(_metadata.ballotRedemptionRate <= 10000, '0x39: BAD_BALLOT_REDEMPTION_RATE');
+    // The ballot redemption rate must be less than or equal to 200.
+    require(_metadata.ballotRedemptionRate <= 200, '0x39: BAD_BALLOT_REDEMPTION_RATE');
 
     // Create the project for into the wallet of the message sender.
     projectId = projects.createFor(_owner, _handle, _metadataCid);
@@ -319,14 +322,14 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       @dev _data.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
       @dev _data.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
       @dev _data.duration The duration of the funding cycle for which the `target` amount is needed. Measured in days. Send 0 for cycles that are reconfigurable at any time.
-      @dev _data.discountRate A number from 0-10000 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
+      @dev _data.discountRate A number from 0-1000000001 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
         If it's 0, each funding cycle will have equal weight.
-        If the number is 9000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
-        If the number is 10001, an non-recurring funding cycle will get made.
+        If the number is 900000000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
+        If the number is 1000000001, an non-recurring funding cycle will get made.
       @dev _data.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
     @param _metadata A JBFundingCycleMetadata data structure specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
-      @dev _metadata.reservedRate A number from 0-10000 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
-      @dev _metadata.redemptionRate The rate from 0-10000 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
+      @dev _metadata.reservedRate A number from 0-200 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
+      @dev _metadata.redemptionRate The rate from 0-200 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
         The bonding curve formula is https://www.desmos.com/calculator/sp9ru6zbpk
         where x is _count, o is _currentOverflow, s is _totalSupply, and r is _redemptionRate.
       @dev _metadata.ballotRedemptionRate The redemption rate to apply when there is an active ballot.
@@ -344,7 +347,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
     @param _groupedSplits An array of splits to set for any number of group.
 
-    @return The configuration of the funding cycle that was successfully configured.
+    @return The configuration of the funding cycle that was successfully reconfigured.
   */
   function reconfigureFundingCyclesOf(
     uint256 _projectId,
@@ -357,14 +360,14 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
     returns (uint256)
   {
-    // The reserved project token rate must be less than or equal to 10000.
-    require(_metadata.reservedRate <= 10000, '0x51: BAD_RESERVED_RATE');
+    // The reserved project token rate must be less than or equal to 200.
+    require(_metadata.reservedRate <= 200, '0x51: BAD_RESERVED_RATE');
 
-    // The redemption rate must be between 0 and 10000.
-    require(_metadata.redemptionRate <= 10000, '0x52: BAD_REDEMPTION_RATE');
+    // The redemption rate must be between 0 and 200.
+    require(_metadata.redemptionRate <= 200, '0x52: BAD_REDEMPTION_RATE');
 
-    // The ballot redemption rate must be less than or equal to 10000.
-    require(_metadata.ballotRedemptionRate <= 10000, '0x53: BAD_BALLOT_REDEMPTION_RATE');
+    // The ballot redemption rate must be less than or equal to 200.
+    require(_metadata.ballotRedemptionRate <= 200, '0x53: BAD_BALLOT_REDEMPTION_RATE');
 
     return _configure(_projectId, _data, _metadata, _fundAccessConstraints, _groupedSplits);
   }
@@ -617,6 +620,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     @notice
     Distributed tokens to the splits according to the specified funding cycle configuration.
 
+    @param _projectId The ID of the project for which reserved token splits are being distributed.
     @param _fundingCycle The funding cycle to base the token distribution on.
     @param _amount The total amount of tokens to mint.
 
@@ -768,8 +772,9 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
           .currency;
 
       emit SetFundAccessConstraints(
-        _projectId,
         _fundingCycle.configuration,
+        _fundingCycle.number,
+        _projectId,
         _constraints,
         msg.sender
       );

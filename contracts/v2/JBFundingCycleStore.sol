@@ -62,7 +62,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @notice 
     Get the funding cycle with the given configuration for the specified project.
 
-    @param _projectId The ID of the project to which the funding cycle being gotten belongs.
+    @param _projectId The ID of the project to which the funding cycle belongs.
     @param _configuration The configuration of the funding cycle to get.
 
     @return fundingCycle The funding cycle.
@@ -107,8 +107,8 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // There's no queued if the current has a duration of 0.
     if (_fundingCycle.duration == 0) return _getStructFor(0, 0);
 
-    // Make sure the funding cycle is recurring.
-    require(_fundingCycle.discountRate < 1000000001, 'TODO 0x1c: NON_RECURRING');
+    // There's no queued if the current is non recurring, represented by a discount rate of 1000000001.
+    if (_fundingCycle.discountRate == 1000000001) return _getStructFor(0, 0);
 
     // Check to see if this funding cycle's ballot is approved.
     // If so, return a funding cycle based on it.
@@ -172,7 +172,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       // Get the funding cycle for the latest ID.
       _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
 
-      // If it's not approved or if it starts in the future, get a reference to the funding cycle that the latest is based on, which has the latest approved configuration.
+      // If it's not approved or if it hasn't yet started, get a reference to the funding cycle that the latest is based on, which has the latest approved configuration.
       if (!_isApproved(_projectId, _fundingCycle) || block.timestamp < _fundingCycle.start)
         _fundingCycleConfiguration = _fundingCycle.basedOn;
     }
@@ -262,8 +262,8 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // The configuration timestamp is now.
     uint256 _configuration = block.timestamp;
 
-    // Set up a reconfiguration.
-    _reconfigureFor(_projectId, _configuration, _data.weight);
+    // Set up a reconfiguration by configuring intrinsic properties.
+    _configureIntrinsicProperiesFor(_projectId, _configuration, _data.weight);
 
     // Store the configuration.
     _packAndStoreUserPropertiesOf(
@@ -277,7 +277,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // Set the metadata if needed.
     if (_metadata > 0) _metadataOf[_projectId][_configuration] = _metadata;
 
-    emit Configure(_projectId, _configuration, _data, _metadata, msg.sender);
+    emit Configure(_configuration, _projectId, _data, _metadata, msg.sender);
 
     // Return the funding cycle for the new configuration.
     return _getStructFor(_projectId, _configuration);
@@ -293,9 +293,9 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
     @param _projectId The ID of the project to find a configurable funding cycle for.
     @param _configuration The time at which the configuration is occurring.
-    @param _weight The weight to store along with a newly created configurable funding cycle.
+    @param _weight The weight to store in the configured funding cycle.
   */
-  function _reconfigureFor(
+  function _configureIntrinsicProperiesFor(
     uint256 _projectId,
     uint256 _configuration,
     uint256 _weight
@@ -332,7 +332,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // Get the active funding cycle's configuration.
     _currentConfiguration = _eligibleOf(_projectId);
 
-    // If an eligible funding cycle configuration exists but it's not approved, get the cycle it's based on which carries the last approved configuration.
+    // If an eligible funding cycle does not exist, get a reference to the latest funding cycle configuration for the project.
     if (_currentConfiguration == 0)
       // Get the latest funding cycle's configuration.
       _currentConfiguration = latestConfigurationOf[_projectId];
@@ -352,7 +352,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // The ballot must have ended.
     uint256 _mustStartOnOrAfter = _getLatestTimeAfterBallotOf(_currentFundingCycle, _configuration);
 
-    // Return the newly initialized configurable funding cycle.
+    // Initialize a funding cycle.
     _initFor(_projectId, _currentFundingCycle, _configuration, _mustStartOnOrAfter, _weight);
   }
 
@@ -406,7 +406,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
   /** 
     @notice
-    Updates intrinsic properties for a funding cycle.
+    Updates and stores intrinsic properties for a funding cycle.
 
     @param _configuration The configuration of the funding cycle being updated.
     @param _projectId The ID of the project whose funding cycle is being updated.
@@ -462,13 +462,13 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _basedOn,
     uint256 _start
   ) private {
-    // weight in bytes 0-87 bytes.
+    // weight in bytes 0-87.
     uint256 packed = _weight;
-    // basedOn in bytes 88-143 bytes.
+    // basedOn in bytes 88-143.
     packed |= _basedOn << 88;
-    // start in bytes 144-199 bytes.
+    // start in bytes 144-199.
     packed |= _start << 144;
-    // number in bytes 200-255 bytes.
+    // number in bytes 200-255.
     packed |= _number << 200;
 
     // Set in storage.
@@ -496,11 +496,11 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     if (_ballot == IJBFundingCycleBallot(address(0)) && _duration == 0 && _discountRate == 0)
       return;
 
-    // ballot in bytes 0-159 bytes.
+    // ballot in bits 0-159 bytes.
     uint256 packed = uint160(address(_ballot));
-    // duration in bytes 160-223 bytes.
+    // duration in bits 160-223 bytes.
     packed |= _duration << 160;
-    // discountRate in bytes 224-256 bytes.
+    // discountRate in bits 224-255 bytes.
     packed |= _discountRate << 224;
 
     // Set in storage.
@@ -637,7 +637,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     view
     returns (JBFundingCycle memory fundingCycle)
   {
-    // Return an empty funding cycle if the ID specified is 0.
+    // Return an empty funding cycle if the configuration specified is 0.
     if (_configuration == 0) return fundingCycle;
 
     fundingCycle.configuration = _configuration;
@@ -649,11 +649,11 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     fundingCycle.start = uint256(uint56(_packedIntrinsicProperties >> 128));
     fundingCycle.number = uint256(uint56(_packedIntrinsicProperties >> 176));
 
-    uint256 _packedConfigurationProperties = _packedUserPropertiesOf[_projectId][_configuration];
+    uint256 _packedUserProperties = _packedUserPropertiesOf[_projectId][_configuration];
 
-    fundingCycle.ballot = IJBFundingCycleBallot(address(uint160(_packedConfigurationProperties)));
-    fundingCycle.duration = uint256(uint64(_packedConfigurationProperties >> 208));
-    fundingCycle.discountRate = uint256(uint32(_packedConfigurationProperties >> 224));
+    fundingCycle.ballot = IJBFundingCycleBallot(address(uint160(_packedUserProperties)));
+    fundingCycle.duration = uint256(uint64(_packedUserProperties >> 208));
+    fundingCycle.discountRate = uint256(uint32(_packedUserProperties >> 224));
 
     fundingCycle.metadata = _metadataOf[_projectId][_configuration];
   }
@@ -675,24 +675,21 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // A subsequent cycle to one with a duration of 0 should start as soon as possible.
     if (_baseFundingCycle.duration == 0) return _mustStartOnOrAfter;
 
-    // Save a reference to the cycle's duration measured in seconds.
-    uint256 _cycleDurationInSeconds = _baseFundingCycle.duration;
-
     // The time when the funding cycle immediately after the specified funding cycle starts.
-    uint256 _nextImmediateStart = _baseFundingCycle.start + _cycleDurationInSeconds;
+    uint256 _nextImmediateStart = _baseFundingCycle.start + _baseFundingCycle.duration;
 
     // If the next immediate start is now or in the future, return it.
     if (_nextImmediateStart >= _mustStartOnOrAfter) return _nextImmediateStart;
 
     // The amount of seconds since the `_mustStartOnOrAfter` time that results in a start time that might satisfy the specified constraints.
     uint256 _timeFromImmediateStartMultiple = (_mustStartOnOrAfter - _nextImmediateStart) %
-      _cycleDurationInSeconds;
+      _baseFundingCycle.duration;
 
     // A reference to the first possible start timestamp.
     start = _mustStartOnOrAfter - _timeFromImmediateStartMultiple;
 
     // Add increments of duration as necessary to satisfy the threshold.
-    while (_mustStartOnOrAfter > start) start = start + _cycleDurationInSeconds;
+    while (_mustStartOnOrAfter > start) start = start + _baseFundingCycle.duration;
   }
 
   /** 
@@ -762,7 +759,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
   /** 
     @notice 
-    Checks to see if the funding cycle of the provided ID is approved according to the correct ballot.
+    Checks to see if the funding cycle of the provided configuration is approved according to the correct ballot.
 
     @param _projectId The ID of the project to which the funding cycle belongs.
     @param _configuration The configuration of the funding cycle to get an approval flag for.
@@ -782,7 +779,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @notice 
     Checks to see if the provided funding cycle is approved according to the correct ballot.
 
-    @param _projectId The ID of the project to which the funding cycle belogns. 
+    @param _projectId The ID of the project to which the funding cycle belongs. 
     @param _fundingCycle The funding cycle to get an approval flag for.
 
     @return The approval flag.
@@ -801,7 +798,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @notice 
     A funding cycle configuration's current status.
 
-    @param _projectId The ID of the project to which the funding cycle belongs
+    @param _projectId The ID of the project to which the funding cycle belongs.
     @param _configuration This differentiates reconfigurations onto the same upcoming funding cycle, which all would have the same ID but different configuration times.
     @param _ballotFundingCycleId The ID of the funding cycle which is configured with the ballot that should be used.
 
@@ -817,10 +814,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
     // Get the ballot funding cycle.
     JBFundingCycle memory _ballotFundingCycle = _getStructFor(_projectId, _ballotFundingCycleId);
-
-    // If the configuration is the same as the ballot's funding cycle,
-    // the ballot isn't applicable. Auto approve since the ballot funding cycle is approved.
-    if (_ballotFundingCycle.configuration >= _configuration) return JBBallotState.Approved;
 
     // If there is no ballot, the ID is auto approved.
     // Otherwise, return the ballot's state.

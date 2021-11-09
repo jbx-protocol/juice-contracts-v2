@@ -7,18 +7,14 @@ import './../structs/JBFundingCycleData.sol';
 
 interface IJBFundingCycleStore {
   event Configure(
+    uint256 indexed configuration,
     uint256 indexed projectId,
-    uint256 indexed configured,
     JBFundingCycleData data,
     uint256 metadata,
     address caller
   );
 
-  event Init(
-    uint256 indexed fundingCycleConfiguration,
-    uint256 indexed projectId,
-    uint256 indexed basedOn
-  );
+  event Init(uint256 indexed configuration, uint256 indexed projectId, uint256 indexed basedOn);
 
   function latestConfigurationOf(uint256 _projectId) external view returns (uint256);
 

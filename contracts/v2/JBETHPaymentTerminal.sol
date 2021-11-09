@@ -228,7 +228,7 @@ contract JBETHPaymentTerminal is
     uint256 _minReturnedWei,
     string memory _memo
   ) external override nonReentrant {
-    // Record the withdrawal.
+    // Record the distribution.
     (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordDistributionFor(
       _projectId,
       _amount,
@@ -293,8 +293,6 @@ contract JBETHPaymentTerminal is
     @param _projectId The ID of the project to use the allowance of.
     @param _amount The amount of the allowance to use.
     @param _beneficiary The address to send the funds to.
-
-    @return The ID of the funding cycle during which the allowance was use.
   */
   function useAllowanceOf(
     uint256 _projectId,
@@ -307,7 +305,6 @@ contract JBETHPaymentTerminal is
     override
     nonReentrant
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.USE_ALLOWANCE)
-    returns (uint256)
   {
     // Record the use of the allowance.
     (JBFundingCycle memory _fundingCycle, uint256 _withdrawnAmount) = store.recordUsedAllowanceOf(
@@ -350,8 +347,6 @@ contract JBETHPaymentTerminal is
       _withdrawnAmount - _feeAmount,
       msg.sender
     );
-
-    return _fundingCycle.number;
   }
 
   /**
@@ -531,6 +526,7 @@ contract JBETHPaymentTerminal is
     @notice
     Pays out splits for a project's funding cycle configuration.
 
+    @param _projectId The ID of the project for which payout splits are being distributed.
     @param _fundingCycle The funding cycle during which the distribution is being made.
     @param _amount The total amount being distributed.
     @param _memo A memo to pass along to the emitted events.
@@ -626,6 +622,7 @@ contract JBETHPaymentTerminal is
     @notice 
     Takes a fee into the platform's project, which has an id of 1.
 
+    @param _projectId The ID of the project having fees taken from.
     @param _fundingCycle The funding cycle during which the fee is being taken. 
     @param _amount The amount to take a fee from.
     @param _beneficiary The address to print the platforms tokens for.
