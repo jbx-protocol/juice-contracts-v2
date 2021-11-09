@@ -18,7 +18,7 @@ interface IJBTerminal {
     bool _preferClaimedTokens,
     string calldata _memo,
     bytes calldata _delegateMetadata
-  ) external payable returns (uint256 fundingCycleId);
+  ) external payable;
 
   function addToBalanceOf(uint256 _projectId, string memory _memo) external payable;
 }

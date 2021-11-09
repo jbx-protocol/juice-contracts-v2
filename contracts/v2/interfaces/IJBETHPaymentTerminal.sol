@@ -24,6 +24,7 @@ interface IJBETHPaymentTerminal {
     uint256 indexed projectId,
     address projectOwner,
     uint256 amount,
+    uint256 distributedAmount,
     uint256 feeAmount,
     uint256 projectOwnerDistributionAmount,
     string memo,
@@ -88,7 +89,7 @@ interface IJBETHPaymentTerminal {
     uint256 _currency,
     uint256 _minReturnedWei,
     string memory _memo
-  ) external returns (uint256);
+  ) external;
 
   function redeemTokensOf(
     address _holder,

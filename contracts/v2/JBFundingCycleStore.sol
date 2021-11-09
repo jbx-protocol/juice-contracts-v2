@@ -60,40 +60,20 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
   /**
     @notice 
-    Get the funding cycle with the given configuration and number for the specified project.
+    Get the funding cycle with the given configuration for the specified project.
 
     @param _projectId The ID of the project to which the funding cycle being gotten belongs.
     @param _configuration The configuration of the funding cycle to get.
-    @param _number The number of the funding cycle to get.
 
     @return fundingCycle The funding cycle.
   */
-  function get(
-    uint256 _projectId,
-    uint256 _configuration,
-    uint256 _number
-  ) external view override returns (JBFundingCycle memory fundingCycle) {
-    // See if there's a stored funding cycle for the provided configuration.
-    fundingCycle = _getStructFor(_projectId, _configuration);
-
-    // TODO
-    // If so, return it.
-    if (fundingCycle.number > 0) return fundingCycle;
-
-    // Get the current funding cycle. It might exist but not yet have been stored.
-    fundingCycle = currentOf(_projectId);
-
-    // If the IDs match, return it.
-    if (fundingCycle.number == _number) return fundingCycle;
-
-    // Get the queued funding cycle. It might exist but not yet have been stored.
-    fundingCycle = queuedOf(_configuration);
-
-    // If the IDs match, return it.
-    if (fundingCycle.number == _number) return fundingCycle;
-
-    // Return an empty Funding Cycle.
-    return _getStructFor(0, 0);
+  function get(uint256 _projectId, uint256 _configuration)
+    external
+    view
+    override
+    returns (JBFundingCycle memory fundingCycle)
+  {
+    return _getStructFor(_projectId, _configuration);
   }
 
   /**

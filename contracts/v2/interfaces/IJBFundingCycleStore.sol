@@ -22,11 +22,10 @@ interface IJBFundingCycleStore {
 
   function latestConfigurationOf(uint256 _projectId) external view returns (uint256);
 
-  function get(
-    uint256 _projectId,
-    uint256 _configuration,
-    uint256 _number
-  ) external view returns (JBFundingCycle memory);
+  function get(uint256 _projectId, uint256 _configuration)
+    external
+    view
+    returns (JBFundingCycle memory);
 
   function queuedOf(uint256 _projectId) external view returns (JBFundingCycle memory);
 
