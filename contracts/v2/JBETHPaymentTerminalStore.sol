@@ -128,7 +128,7 @@ contract JBETHPaymentTerminalStore {
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-    return _overflowDuring(_fundingCycle);
+    return _overflowDuring(_projectId, _fundingCycle);
   }
 
   /**
@@ -147,7 +147,7 @@ contract JBETHPaymentTerminalStore {
     view
     returns (uint256)
   {
-    return _claimableOverflowOf(fundingCycleStore.currentOf(_projectId), _tokenCount);
+    return _claimableOverflowOf(_projectId, fundingCycleStore.currentOf(_projectId), _tokenCount);
   }
 
   //*********************************************************************//
@@ -327,14 +327,14 @@ contract JBETHPaymentTerminalStore {
       _currency ==
         directory.controllerOf(_projectId).currencyOf(
           _projectId,
-          fundingCycle.configured,
+          fundingCycle.configuration,
           terminal
         ),
       '0x3f: UNEXPECTED_CURRENCY'
     );
 
     // The new total amount that has been distributed during this funding cycle.
-    uint256 _newUsedDistributionLimitOf = usedDistributionLimitOf[_projectId][fundingCycle.id] +
+    uint256 _newUsedDistributionLimitOf = usedDistributionLimitOf[_projectId][fundingCycle.number] +
       _amount;
 
     // Amount must be within what is still distributable.
@@ -342,7 +342,7 @@ contract JBETHPaymentTerminalStore {
       _newUsedDistributionLimitOf <=
         directory.controllerOf(_projectId).distributionLimitOf(
           _projectId,
-          fundingCycle.configured,
+          fundingCycle.configuration,
           terminal
         ),
       '0x1b: LIMIT_REACHED'
@@ -361,7 +361,7 @@ contract JBETHPaymentTerminalStore {
     require(_minReturnedWei <= distributedAmount, '0x41: INADEQUATE');
 
     // Store the new amount.
-    usedDistributionLimitOf[_projectId][fundingCycle.id] = _newUsedDistributionLimitOf;
+    usedDistributionLimitOf[_projectId][fundingCycle.number] = _newUsedDistributionLimitOf;
 
     // Removed the distributed funds from the project's balance.
     balanceOf[_projectId] = balanceOf[_projectId] - distributedAmount;
@@ -397,7 +397,7 @@ contract JBETHPaymentTerminalStore {
       _currency ==
         directory.controllerOf(_projectId).currencyOf(
           _projectId,
-          fundingCycle.configured,
+          fundingCycle.configuration,
           terminal
         ),
       '0x42: UNEXPECTED_CURRENCY'
@@ -414,10 +414,10 @@ contract JBETHPaymentTerminalStore {
       withdrawnAmount <=
         directory.controllerOf(_projectId).overflowAllowanceOf(
           _projectId,
-          fundingCycle.configured,
+          fundingCycle.configuration,
           terminal
         ) -
-          usedOverflowAllowanceOf[_projectId][fundingCycle.configured],
+          usedOverflowAllowanceOf[_projectId][fundingCycle.configuration],
       '0x43: NOT_ALLOWED'
     );
 
@@ -428,8 +428,8 @@ contract JBETHPaymentTerminalStore {
     require(_minReturnedWei <= withdrawnAmount, '0x45: INADEQUATE');
 
     // Store the decremented value.
-    usedOverflowAllowanceOf[_projectId][fundingCycle.configured] =
-      usedOverflowAllowanceOf[_projectId][fundingCycle.configured] +
+    usedOverflowAllowanceOf[_projectId][fundingCycle.configuration] =
+      usedOverflowAllowanceOf[_projectId][fundingCycle.configuration] +
       withdrawnAmount;
 
     // Update the project's balance.
@@ -498,7 +498,7 @@ contract JBETHPaymentTerminalStore {
         )
       );
     } else {
-      claimAmount = _claimableOverflowOf(fundingCycle, _tokenCount);
+      claimAmount = _claimableOverflowOf(_projectId, fundingCycle, _tokenCount);
       memo = _memo;
     }
 
@@ -607,24 +607,25 @@ contract JBETHPaymentTerminalStore {
     @notice
     See docs for `claimableOverflowOf`
   */
-  function _claimableOverflowOf(JBFundingCycle memory _fundingCycle, uint256 _tokenCount)
-    private
-    view
-    returns (uint256)
-  {
+  function _claimableOverflowOf(
+    uint256 _projectId,
+    JBFundingCycle memory _fundingCycle,
+    uint256 _tokenCount
+  ) private view returns (uint256) {
     // Get the amount of current overflow.
-    uint256 _currentOverflow = _overflowDuring(_fundingCycle);
+    uint256 _currentOverflow = _overflowDuring(_projectId, _fundingCycle);
 
     // If there is no overflow, nothing is claimable.
     if (_currentOverflow == 0) return 0;
 
     // Get the total number of tokens in circulation.
-    uint256 _totalSupply = tokenStore.totalSupplyOf(_fundingCycle.projectId);
+    uint256 _totalSupply = tokenStore.totalSupplyOf(_projectId);
 
     // Get the number of reserved tokens the project has.
-    uint256 _reservedTokenAmount = directory
-      .controllerOf(_fundingCycle.projectId)
-      .reservedTokenBalanceOf(_fundingCycle.projectId, _fundingCycle.reservedRate());
+    uint256 _reservedTokenAmount = directory.controllerOf(_projectId).reservedTokenBalanceOf(
+      _projectId,
+      _fundingCycle.reservedRate()
+    );
 
     // If there are reserved tokens, add them to the total supply.
     if (_reservedTokenAmount > 0) _totalSupply = _totalSupply + _reservedTokenAmount;
@@ -633,7 +634,7 @@ contract JBETHPaymentTerminalStore {
     if (_tokenCount == _totalSupply) return _currentOverflow;
 
     // Use the ballot redemption rate if the queued cycle is pending approval according to the previous funding cycle's ballot.
-    uint256 _redemptionRate = fundingCycleStore.currentBallotStateOf(_fundingCycle.projectId) ==
+    uint256 _redemptionRate = fundingCycleStore.currentBallotStateOf(_projectId) ==
       JBBallotState.Active
       ? _fundingCycle.ballotRedemptionRate()
       : _fundingCycle.redemptionRate();
@@ -665,24 +666,28 @@ contract JBETHPaymentTerminalStore {
 
     @return overflow The overflow of funds.
   */
-  function _overflowDuring(JBFundingCycle memory _fundingCycle) private view returns (uint256) {
+  function _overflowDuring(uint256 _projectId, JBFundingCycle memory _fundingCycle)
+    private
+    view
+    returns (uint256)
+  {
     // Get the current balance of the project.
-    uint256 _balanceOf = balanceOf[_fundingCycle.projectId];
+    uint256 _balanceOf = balanceOf[_projectId];
 
     // If there's no balance, there's no overflow.
     if (_balanceOf == 0) return 0;
 
     // Get a reference to the amount still withdrawable during the funding cycle.
-    uint256 _targetRemaining = directory.controllerOf(_fundingCycle.projectId).distributionLimitOf(
-      _fundingCycle.projectId,
-      _fundingCycle.configured,
+    uint256 _targetRemaining = directory.controllerOf(_projectId).distributionLimitOf(
+      _projectId,
+      _fundingCycle.configuration,
       terminal
-    ) - usedDistributionLimitOf[_fundingCycle.projectId][_fundingCycle.id];
+    ) - usedDistributionLimitOf[_projectId][_fundingCycle.number];
 
     // Get a reference to the current funding cycle's currency for this terminal.
-    uint256 _currency = directory.controllerOf(_fundingCycle.projectId).currencyOf(
-      _fundingCycle.projectId,
-      _fundingCycle.configured,
+    uint256 _currency = directory.controllerOf(_projectId).currencyOf(
+      _projectId,
+      _fundingCycle.configuration,
       terminal
     );
 

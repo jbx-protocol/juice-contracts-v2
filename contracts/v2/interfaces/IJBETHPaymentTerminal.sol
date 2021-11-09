@@ -19,20 +19,21 @@ interface IJBETHPaymentTerminal {
   event AddToBalance(uint256 indexed projectId, uint256 amount, string memo, address caller);
   event Migrate(uint256 indexed projectId, IJBTerminal indexed to, uint256 amount, address caller);
   event DistributePayouts(
-    uint256 indexed fundingCycleId,
+    uint256 indexed fundingCycleConfiguration,
+    uint256 indexed fundingCycleNumber,
     uint256 indexed projectId,
-    address projectOwner,
+    address beneficiary,
     uint256 amount,
-    uint256 withdrawnAmount,
+    uint256 distributedAmount,
     uint256 feeAmount,
-    uint256 projectOwnerDistributionAmount,
+    uint256 beneficiaryDistributionAmount,
     string memo,
     address caller
   );
 
   event UseAllowance(
-    uint256 indexed fundingCycleId,
-    uint256 indexed configuration,
+    uint256 indexed fundingCycleConfiguration,
+    uint256 indexed fundingCycleNumber,
     uint256 indexed projectId,
     address beneficiary,
     uint256 amount,
@@ -42,10 +43,10 @@ interface IJBETHPaymentTerminal {
   );
   event ProcessFees(uint256 indexed projectId, JBFee[] fees, address caller);
   event Pay(
-    uint256 indexed fundingCycleId,
+    uint256 indexed fundingCycleConfiguration,
+    uint256 indexed fundingCycleNumber,
     uint256 indexed projectId,
-    address indexed beneficiary,
-    JBFundingCycle fundingCycle,
+    address beneficiary,
     uint256 amount,
     uint256 weight,
     uint256 tokenCount,
@@ -53,10 +54,10 @@ interface IJBETHPaymentTerminal {
     address caller
   );
   event RedeemTokens(
-    uint256 indexed fundingCycleId,
+    uint256 indexed fundingCycleConfiguration,
+    uint256 indexed fundingCycleNumber,
     uint256 indexed projectId,
-    address indexed holder,
-    JBFundingCycle fundingCycle,
+    address holder,
     address beneficiary,
     uint256 tokenCount,
     uint256 claimedAmount,
@@ -64,7 +65,8 @@ interface IJBETHPaymentTerminal {
     address caller
   );
   event DistributeToPayoutSplit(
-    uint256 indexed fundingCycleId,
+    uint256 indexed fundingCycleConfiguration,
+    uint256 indexed fundingCycleNumber,
     uint256 indexed projectId,
     JBSplit split,
     uint256 amount,
@@ -87,7 +89,7 @@ interface IJBETHPaymentTerminal {
     uint256 _currency,
     uint256 _minReturnedWei,
     string memory _memo
-  ) external returns (uint256);
+  ) external;
 
   function redeemTokensOf(
     address _holder,
@@ -105,7 +107,7 @@ interface IJBETHPaymentTerminal {
     uint256 _currency,
     uint256 _minReturnedWei,
     address payable _beneficiary
-  ) external returns (uint256 fundingCycleNumber);
+  ) external;
 
   function migrate(uint256 _projectId, IJBTerminal _to) external;
 }

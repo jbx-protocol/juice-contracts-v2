@@ -54,8 +54,8 @@ abstract contract JBProject is Ownable {
     string memory _memo,
     bool _preferClaimedTokens,
     address _token
-  ) external payable returns (uint256) {
-    return _pay(_beneficiary, _memo, _preferClaimedTokens, _token);
+  ) external payable {
+    _pay(_beneficiary, _memo, _preferClaimedTokens, _token);
   }
 
   /** 
@@ -109,7 +109,7 @@ abstract contract JBProject is Ownable {
     string memory _memo,
     bool _preferClaimedTokens,
     address _token
-  ) private returns (uint256) {
+  ) private {
     require(projectId != 0, 'JuiceboxProject::_pay: PROJECT_NOT_FOUND');
 
     // Get the terminal for this contract's project.
@@ -118,14 +118,13 @@ abstract contract JBProject is Ownable {
     // There must be a terminal.
     require(_terminal != IJBTerminal(address(0)), 'JuiceboxProject::_pay: TERMINAL_NOT_FOUND');
 
-    return
-      _terminal.pay{value: msg.value}(
-        projectId,
-        _beneficiary,
-        0,
-        _preferClaimedTokens,
-        _memo,
-        bytes('')
-      );
+    _terminal.pay{value: msg.value}(
+      projectId,
+      _beneficiary,
+      0,
+      _preferClaimedTokens,
+      _memo,
+      bytes('')
+    );
   }
 }
