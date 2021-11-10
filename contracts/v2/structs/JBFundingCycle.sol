@@ -19,13 +19,16 @@ struct JBFundingCycle {
   // The number of seconds the funding cycle lasts for, after which a new funding cycle will start.
   // A duration of 0 means that the funding cycle will stay active until the project owner explicitly issues a reconfiguration, at which point a new funding cycle will be triggered with the updated properties.
   // If the duration is greater than 0, a project owner cannot make changes to a funding cycle's parameters while it is active – any proposed changes will apply to the subsequent cycle.
-  // If no changes are proposed, a funding cycle rolls over to another one with the same properties but new `start` timestamp.
+  // If no changes are proposed, a funding cycle rolls over to another one with the same properties but new `start` timestamp and a discounted `weight`.
   // A duration has a minimum of 1000 seconds to prevent extractive miner behavior, see https://ethereum.stackexchange.com/questions/413/can-a-contract-safely-rely-on-block-timestamp.
   uint256 duration;
   // A number that contracts can use to base arbitrary calculations on.
   // For example, the `JBETHPaymentTerminalStore` uses this to determine how many tokens it should mint when a payment is received.
   uint256 weight;
-  // A percentage by which the `weight` of the subsequent funding cycle should be reduced, if the project owner hasn't configured the subsequent funding cycle with an explicit `weight`.
+  // A number from 0-1000000000 indicating by how much the `weight` of the subsequent funding cycle should be reduced, if the project owner hasn't configured the subsequent funding cycle with an explicit `weight`.
+  // If it's 0, each funding cycle will have equal weight.
+  // If the number is 900000000, the next funding cycle will have a 10% smaller weight.
+  // If the number is 1000000001, the funding cycle is non-recurrin so there cannot be a next cycle.
   uint256 discountRate;
   // An address of a contract that says whether a proposed reconfiguration should be accepted or rejected.
   // It can be used to create rules around how a project owner can change funding cycle parameters over time.

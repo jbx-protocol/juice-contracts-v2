@@ -91,7 +91,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     IJBToken _token = tokenOf[_projectId];
 
     // If the project has issued a token, add it's total supply to the total.
-    if (_token != IJBToken(address(0))) supply = supply + _token.totalSupply();
+    if (_token != IJBToken(address(0))) supply = supply + _token.totalSupply(_projectId);
   }
 
   /** 
@@ -116,7 +116,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     IJBToken _token = tokenOf[_projectId];
 
     // If the project has issued a token, add the holder's balance to the total.
-    if (_token != IJBToken(address(0))) balance = balance + _token.balanceOf(_holder);
+    if (_token != IJBToken(address(0))) balance = balance + _token.balanceOf(_projectId, _holder);
   }
 
   //*********************************************************************//
@@ -245,7 +245,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
     if (_shouldClaimTokens) {
       // Mint the equivalent amount of ERC20s.
-      _token.mint(_holder, _amount, _projectId);
+      _token.mint(_projectId, _holder, _amount);
     } else {
       // Add to the unclaimed balance and total supply.
       unclaimedBalanceOf[_holder][_projectId] = unclaimedBalanceOf[_holder][_projectId] + _amount;
@@ -280,7 +280,9 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     uint256 _unclaimedBalance = unclaimedBalanceOf[_holder][_projectId];
 
     // Get a reference to the number of tokens there are.
-    uint256 _claimedBalance = _token == IJBToken(address(0)) ? 0 : _token.balanceOf(_holder);
+    uint256 _claimedBalance = _token == IJBToken(address(0))
+      ? 0
+      : _token.balanceOf(_projectId, _holder);
 
     // There must be enough tokens.
     // Prevent potential overflow by not relying on addition.
@@ -309,7 +311,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     uint256 _unclaimedTokensToBurn = _amount - _claimedTokensToBurn;
 
     // burn the tokens.
-    if (_claimedTokensToBurn > 0) _token.burn(_holder, _claimedTokensToBurn, _projectId);
+    if (_claimedTokensToBurn > 0) _token.burn(_projectId, _holder, _claimedTokensToBurn);
     if (_unclaimedTokensToBurn > 0) {
       // Reduce the holders balance and the total supply.
       unclaimedBalanceOf[_holder][_projectId] =
@@ -358,7 +360,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     unclaimedTotalSupplyOf[_projectId] = unclaimedTotalSupplyOf[_projectId] - _amount;
 
     // Mint the equivalent amount of ERC20s.
-    _token.mint(_holder, _amount, _projectId);
+    _token.mint(_projectId, _holder, _amount);
 
     emit Claim(_holder, _projectId, _amount, msg.sender);
   }

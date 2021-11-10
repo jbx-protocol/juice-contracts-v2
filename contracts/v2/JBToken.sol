@@ -12,6 +12,14 @@ import './interfaces/IJBToken.sol';
   An ERC-20 token that can be minted and burned by its owner.
 */
 contract JBToken is IJBToken, ERC20, ERC20Permit, Ownable {
+  function totalSupply(uint256) external view override returns (uint256) {
+    return super.totalSupply();
+  }
+
+  function balanceOf(uint256, address _account) external view override returns (uint256) {
+    return super.balanceOf(_account);
+  }
+
   //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
@@ -40,9 +48,9 @@ contract JBToken is IJBToken, ERC20, ERC20Permit, Ownable {
     @param _amount The amount of tokens to mint.
   */
   function mint(
+    uint256,
     address _account,
-    uint256 _amount,
-    uint256
+    uint256 _amount
   ) external override onlyOwner {
     return _mint(_account, _amount);
   }
@@ -58,9 +66,9 @@ contract JBToken is IJBToken, ERC20, ERC20Permit, Ownable {
     @param _amount The amount of tokens to burn.
   */
   function burn(
+    uint256,
     address _account,
-    uint256 _amount,
-    uint256
+    uint256 _amount
   ) external override onlyOwner {
     return _burn(_account, _amount);
   }

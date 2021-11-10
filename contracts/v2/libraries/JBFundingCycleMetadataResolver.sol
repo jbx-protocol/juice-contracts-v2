@@ -62,8 +62,16 @@ library JBFundingCycleMetadataResolver {
     return ((_fundingCycle.metadata >> 47) & 1) == 0;
   }
 
+  function shouldUseLocalBalanceForRedemptions(JBFundingCycle memory _fundingCycle)
+    internal
+    pure
+    returns (bool)
+  {
+    return ((_fundingCycle.metadata >> 48) & 1) == 0;
+  }
+
   function useDataSourceForPay(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
-    return (_fundingCycle.metadata >> 48) & 1 == 0;
+    return (_fundingCycle.metadata >> 49) & 1 == 0;
   }
 
   function useDataSourceForRedeem(JBFundingCycle memory _fundingCycle)
@@ -71,7 +79,7 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (bool)
   {
-    return (_fundingCycle.metadata >> 49) & 1 == 0;
+    return (_fundingCycle.metadata >> 50) & 1 == 0;
   }
 
   function dataSource(JBFundingCycle memory _fundingCycle)
@@ -79,7 +87,7 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (IJBFundingCycleDataSource)
   {
-    return IJBFundingCycleDataSource(address(uint160(_fundingCycle.metadata >> 50)));
+    return IJBFundingCycleDataSource(address(uint160(_fundingCycle.metadata >> 51)));
   }
 
   /**
@@ -119,11 +127,13 @@ library JBFundingCycleMetadataResolver {
     packed |= (_metadata.allowControllerMigration ? 1 : 0) << 38;
     // hold fees in bit 39.
     packed |= (_metadata.holdFees ? 1 : 0) << 39;
-    // use pay data source in bit 40.
-    packed |= (_metadata.useDataSourceForPay ? 1 : 0) << 40;
-    // use redeem data source in bit 41.
-    packed |= (_metadata.useDataSourceForRedeem ? 1 : 0) << 41;
-    // data source address in bits 42-201.
-    packed |= uint160(address(_metadata.dataSource)) << 42;
+    // useLocalBalanceForRedemptions in bit 40.
+    packed |= (_metadata.useLocalBalanceForRedemptions ? 1 : 0) << 40;
+    // use pay data source in bit 41.
+    packed |= (_metadata.useDataSourceForPay ? 1 : 0) << 41;
+    // use redeem data source in bit 42.
+    packed |= (_metadata.useDataSourceForRedeem ? 1 : 0) << 42;
+    // data source address in bits 43-202.
+    packed |= uint160(address(_metadata.dataSource)) << 43;
   }
 }

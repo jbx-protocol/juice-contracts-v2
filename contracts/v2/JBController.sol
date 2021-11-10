@@ -165,7 +165,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
   /**
     @notice 
-    The currency that overflowAllowances and distribution limits are measured in for a particular funding cycle configuration, applied only to the specified terminal.
+    The currency that overflow allowances and distribution limits are measured in for a particular funding cycle configuration, applied only to the specified terminal.
 
     _projectId The ID of the project to get the currency of.
     _configuration The configuration during which the currency applies.
@@ -249,6 +249,12 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       @dev _data.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
       @dev _data.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
       @dev _data.duration The duration of the funding cycle for which the `target` amount is needed. Measured in days. Send 0 for cycles that are reconfigurable at any time.
+      @dev _data.weight The weight of the funding cycle.
+        This number is interpreted as a wad, meaning it has 18 decimal places.
+        The protocol uses the weight to determine how many tokens to mint upon receiving a payment during a funding cycle.
+        A value of 0 means that the weight should be inherited and potentially discounted from the currently active cycle if possible. Otherwise a weight of 0 will be used.
+        A value of 1 means that no tokens should be minted regardless of how many ETH was paid. The protocol will set the stored weight value to 0.
+        A value of 1 X 10^18 means that one token should be minted per ETH received.
       @dev _data.discountRate A number from 0-1000000001 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
         If it's 0, each funding cycle will have equal weight.
         If the number is 900000000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
@@ -271,8 +277,8 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       @dev _metadata.useDataSourceForPay Whether or not the data source should be used when processing a payment.
       @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
       @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
-    @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
     @param _groupedSplits An array of splits to set for any number of group.
+    @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
     @param _terminals Payment terminals to add for the project.
 
     @return projectId The ID of the project.
@@ -283,8 +289,8 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     string calldata _metadataCid,
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
-    JBFundAccessConstraints[] memory _fundAccessConstraints,
     JBGroupedSplits[] memory _groupedSplits,
+    JBFundAccessConstraints[] memory _fundAccessConstraints,
     IJBTerminal[] memory _terminals
   ) external returns (uint256 projectId) {
     // The reserved project token rate must be less than or equal to 200.
@@ -302,10 +308,10 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     // Set the this contract as the project's controller in the directory.
     directory.setControllerOf(projectId, this);
 
+    _configure(projectId, _data, _metadata, _groupedSplits, _fundAccessConstraints);
+
     // Add the provided terminals to the list of terminals.
     if (_terminals.length > 0) directory.addTerminalsOf(projectId, _terminals);
-
-    _configure(projectId, _data, _metadata, _fundAccessConstraints, _groupedSplits);
   }
 
   /**
@@ -322,6 +328,12 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       @dev _data.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
       @dev _data.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
       @dev _data.duration The duration of the funding cycle for which the `target` amount is needed. Measured in days. Send 0 for cycles that are reconfigurable at any time.
+      @dev _data.weight The weight of the funding cycle.
+        This number is interpreted as a wad, meaning it has 18 decimal places.
+        The protocol uses the weight to determine how many tokens to mint upon receiving a payment during a funding cycle.
+        A value of 0 means that the weight should be inherited and potentially discounted from the currently active cycle if possible. Otherwise a weight of 0 will be used.
+        A value of 1 means that no tokens should be minted regardless of how many ETH was paid. The protocol will set the stored weight value to 0.
+        A value of 1 X 10^18 means that one token should be minted per ETH received.
       @dev _data.discountRate A number from 0-1000000001 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
         If it's 0, each funding cycle will have equal weight.
         If the number is 900000000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
@@ -344,8 +356,8 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       @dev _metadata.useDataSourceForPay Whether or not the data source should be used when processing a payment.
       @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
       @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
-    @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
     @param _groupedSplits An array of splits to set for any number of group.
+    @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
 
     @return The configuration of the funding cycle that was successfully reconfigured.
   */
@@ -353,8 +365,8 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     uint256 _projectId,
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
-    JBFundAccessConstraints[] memory _fundAccessConstraints,
-    JBGroupedSplits[] memory _groupedSplits
+    JBGroupedSplits[] memory _groupedSplits,
+    JBFundAccessConstraints[] memory _fundAccessConstraints
   )
     external
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
@@ -369,7 +381,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     // The ballot redemption rate must be less than or equal to 200.
     require(_metadata.ballotRedemptionRate <= 200, '0x53: BAD_BALLOT_REDEMPTION_RATE');
 
-    return _configure(_projectId, _data, _metadata, _fundAccessConstraints, _groupedSplits);
+    return _configure(_projectId, _data, _metadata, _groupedSplits, _fundAccessConstraints);
   }
 
   /**
@@ -731,8 +743,8 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     uint256 _projectId,
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
-    JBFundAccessConstraints[] memory _fundAccessConstraints,
-    JBGroupedSplits[] memory _groupedSplits
+    JBGroupedSplits[] memory _groupedSplits,
+    JBFundAccessConstraints[] memory _fundAccessConstraints
   ) private returns (uint256) {
     // Configure the funding cycle's properties.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.configureFor(
@@ -742,7 +754,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     );
 
     for (uint256 _i; _i < _groupedSplits.length; _i++)
-      // Set payout splits if there are any.
+      // Set splits for the current group being iterated on if there are any.
       if (_groupedSplits[_i].splits.length > 0)
         splitsStore.set(
           _projectId,

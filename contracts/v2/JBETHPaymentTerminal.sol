@@ -87,9 +87,9 @@ contract JBETHPaymentTerminal is
     The token that this terminal accepts. 
 
     @dev
-    ETH is represented as address 0x0000000000000000000000000000000000042069.
+    ETH is represented as address 0x0000000000000000000000000000000000069420.
   */
-  address public immutable override token = 0x0000000000000000000000000000000000042069;
+  address public immutable override token = 0x0000000000000000000000000000000000069420;
 
   /** 
     @notice 
@@ -115,6 +115,30 @@ contract JBETHPaymentTerminal is
   function ethBalanceOf(uint256 _projectId) external view override returns (uint256) {
     // The store's balance is already in ETH.
     return store.balanceOf(_projectId);
+  }
+
+  /** 
+    @notice 
+    The amount of funds that can still be distributed within the preconfigured limit.
+
+    @param _projectId The ID of the project to which the remaining limit belongs.
+    @param _fundingCycleConfiguration The funding cycle configuration during which the limit remaining is being calculated. 
+    @param _fundingCycleNumber The number of the funding cycle during which the limit remaining is being calculated. 
+
+    @return The remaining distribution limit for this terminal.
+  */
+  function remainingDistributionLimitOf(
+    uint256 _projectId,
+    uint256 _fundingCycleConfiguration,
+    uint256 _fundingCycleNumber
+  ) external view override returns (uint256) {
+    // Subtract the used distribution limit during the specified funding cycle from the preconfigured distribution limit.
+    return
+      directory.controllerOf(_projectId).distributionLimitOf(
+        _projectId,
+        _fundingCycleConfiguration,
+        this
+      ) - store.usedDistributionLimitOf(_projectId, _fundingCycleNumber);
   }
 
   /** 

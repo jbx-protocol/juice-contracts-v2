@@ -118,17 +118,32 @@ contract JBETHPaymentTerminalStore {
 
   /**
     @notice
-    Gets the current overflowed amount for a specified project.
+    Gets the current overflowed amount in this terminal for a specified project.
 
     @param _projectId The ID of the project to get overflow for.
 
-    @return The current amount of overflow that project has.
+    @return The current amount of overflow that project has in this terminal.
   */
   function currentOverflowOf(uint256 _projectId) external view returns (uint256) {
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     return _overflowDuring(_projectId, _fundingCycle);
+  }
+
+  /**
+    @notice
+    Gets the current overflowed amount for a specified project across all terminals.
+
+    @param _projectId The ID of the project to get total overflow for.
+
+    @return The current total amount of overflow that project has across all terminals.
+  */
+  function currentTotalOverflowOf(uint256 _projectId) external view returns (uint256) {
+    // Get a reference to the project's current funding cycle.
+    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
+
+    return _totalOverflowDuring(_projectId, _fundingCycle);
   }
 
   /**
@@ -613,7 +628,10 @@ contract JBETHPaymentTerminalStore {
     uint256 _tokenCount
   ) private view returns (uint256) {
     // Get the amount of current overflow.
-    uint256 _currentOverflow = _overflowDuring(_projectId, _fundingCycle);
+    // Use the local overflow if the funding cycle specifies that it should be used. Otherwise use the project's total overflow across all of its terminals.
+    uint256 _currentOverflow = _fundingCycle.shouldUseLocalBalanceForRedemptions()
+      ? _overflowDuring(_projectId, _fundingCycle)
+      : _totalOverflowDuring(_projectId, _fundingCycle);
 
     // If there is no overflow, nothing is claimable.
     if (_currentOverflow == 0) return 0;
@@ -660,8 +678,9 @@ contract JBETHPaymentTerminalStore {
     Gets the amount that is overflowing when measured from the specified funding cycle.
 
     @dev
-    This amount changes as the price of ETH changes in relation to the funding cycle's currency.
+    This amount changes as the price of ETH changes in relation to the currency being used to measure the distribution limit.
 
+    @param _projectId The ID of the project to get overflow for.
     @param _fundingCycle The ID of the funding cycle to base the overflow on.
 
     @return overflow The overflow of funds.
@@ -678,7 +697,7 @@ contract JBETHPaymentTerminalStore {
     if (_balanceOf == 0) return 0;
 
     // Get a reference to the amount still withdrawable during the funding cycle.
-    uint256 _targetRemaining = directory.controllerOf(_projectId).distributionLimitOf(
+    uint256 _distributionRemaining = directory.controllerOf(_projectId).distributionLimitOf(
       _projectId,
       _fundingCycle.configuration,
       terminal
@@ -691,14 +710,77 @@ contract JBETHPaymentTerminalStore {
       terminal
     );
 
-    // Convert the _targetRemaining to ETH.
-    uint256 _ethTargetRemaining = _targetRemaining == 0
+    // Convert the _distributionRemaining to ETH.
+    uint256 _ethDistributionRemaining = _distributionRemaining == 0
       ? 0 // Get the current price of ETH. // A currency of 0 should be interpreted as whatever the currency being withdrawn is.
       : _currency == 0
-      ? _targetRemaining
-      : PRBMathUD60x18.div(_targetRemaining, prices.priceFor(_currency, JBCurrencies.ETH));
+      ? _distributionRemaining
+      : PRBMathUD60x18.div(_distributionRemaining, prices.priceFor(_currency, JBCurrencies.ETH));
 
-    // Overflow is the balance of this project minus the amount that can still be withdrawn.
-    return _balanceOf < _ethTargetRemaining ? 0 : _balanceOf - _ethTargetRemaining;
+    // Overflow is the balance of this project minus the amount that can still be distributed.
+    return _balanceOf < _ethDistributionRemaining ? 0 : _balanceOf - _ethDistributionRemaining;
+  }
+
+  /**
+    @notice
+    Gets the amount that is overflowing across all terminals when measured from the specified funding cycle.
+
+    @dev
+    This amount changes as the price of ETH changes in relation to the currency being used to measure the distribution limits.
+
+    @param _projectId The ID of the project to get total overflow for.
+    @param _fundingCycle The ID of the funding cycle to base the overflow on.
+
+    @return overflow The overflow of funds.
+  */
+  function _totalOverflowDuring(uint256 _projectId, JBFundingCycle memory _fundingCycle)
+    private
+    view
+    returns (uint256)
+  {
+    // Get a reference to the project's terminals.
+    IJBTerminal[] memory _terminals = directory.terminalsOf(_projectId);
+
+    // Keep a reference to the current eth balance of the project across all terminals, and the current eth distribution limit across all terminals.
+    uint256 _ethBalanceOf;
+    uint256 _ethDistributionLimitRemaining;
+
+    for (uint256 _i = 0; _i < _terminals.length; _i++) {
+      _ethBalanceOf = _ethBalanceOf + _terminals[_i].ethBalanceOf(_projectId);
+
+      // Get a reference to the amount still withdrawable during the funding cycle.
+      uint256 _distributionRemaining = _terminals[_i].remainingDistributionLimitOf(
+        _projectId,
+        _fundingCycle.configuration,
+        _fundingCycle.number
+      );
+
+      // Get a reference to the current funding cycle's currency for this terminal.
+      uint256 _currency = directory.controllerOf(_projectId).currencyOf(
+        _projectId,
+        _fundingCycle.configuration,
+        _terminals[_i]
+      );
+
+      // Convert the _distributionRemaining to ETH.
+      _ethDistributionLimitRemaining =
+        _ethDistributionLimitRemaining +
+        (
+          _distributionRemaining == 0
+            ? 0 // Get the current price of ETH. // A currency of 0 should be interpreted as whatever the currency being withdrawn is.
+            : _currency == 0
+            ? _distributionRemaining
+            : PRBMathUD60x18.div(
+              _distributionRemaining,
+              prices.priceFor(_currency, JBCurrencies.ETH)
+            )
+        );
+    }
+
+    // Overflow is the balance of this project minus the amount that can still be distributed.
+    return
+      _ethBalanceOf < _ethDistributionLimitRemaining
+        ? 0
+        : _ethBalanceOf - _ethDistributionLimitRemaining;
   }
 }
