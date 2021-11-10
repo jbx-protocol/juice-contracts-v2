@@ -1,6 +1,6 @@
 import { compilerOutput } from '@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json';
 
-import { deployContract, deployMockContract } from '../../../utils';
+import { deployContract, deployMockContract, getDeployer } from '../../../utils';
 
 import addFeedFor from './add_feed_for';
 import priceFor from './price_for';
@@ -10,8 +10,8 @@ export default function () {
   before(async function () {
     // Deploy a mock of the price feed oracle contract.
     this.aggregatorV3Contract = await deployMockContract(compilerOutput.abi);
-    
-    this.contract = await deployContract('JBPrices', [this.deployer.address]);
+
+    this.contract = await deployContract('JBPrices', [(await getDeployer()).address]);
   });
 
   describe('addFeedFor(...)', addFeedFor);

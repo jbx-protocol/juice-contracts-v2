@@ -1,11 +1,15 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
+import { getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'set operator, no previously set value',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         setOperator: {
           operator: addrs[0],
@@ -21,7 +25,7 @@ const tests = {
     },
     {
       description: 'set operator, overriding previously set value',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         presetOperator: {
           operator: addrs[0],
@@ -42,7 +46,7 @@ const tests = {
     },
     {
       description: 'set operator, clearing any previously set value',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         presetOperator: {
           operator: addrs[0],
@@ -65,7 +69,7 @@ const tests = {
   failure: [
     {
       description: 'index out of bounds',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         setOperator: {
           operator: addrs[0],
@@ -79,6 +83,11 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
+
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

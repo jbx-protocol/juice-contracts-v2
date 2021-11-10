@@ -87,7 +87,6 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
       JBFundingCycleStore.address,
       JBTokenStore.address,
       JBSplitStore.address,
-      multisigAddress
     ],
     log: true,
     skipIfAlreadyDeployed: true,

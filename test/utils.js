@@ -5,12 +5,6 @@ import { sync } from 'glob';
 import { ethers, config } from 'hardhat';
 import { expect as _expect } from 'chai';
 
-const deployer = async () => {
-  let signers = await ethers.getSigners();
-  assert(signers.length > 0, 'Signers are empty!');
-  return signers[0];
-};
-
 // Reads a contract.
 const readContractAbi = (contractName) => {
   const files = sync(
@@ -25,6 +19,18 @@ const readContractAbi = (contractName) => {
   }
   return JSON.parse(readFileSync(files[0]).toString()).abi;
 };
+
+export const getDeployer = async () => {
+  let signers = await ethers.getSigners();
+  assert(signers.length > 0, 'Signers are empty!');
+  return signers[0];
+};
+
+export const getAddresses = async () => {
+  let [_, ...addresses] = await ethers.getSigners();
+  assert(addresses.length > 1, 'Addresses are empty!');
+  return addresses
+}
 
 // Bind some constants.
 export const constants = {
@@ -43,7 +49,7 @@ export const deployContract = async (contractName, args = []) => {
 };
 
 export const deployMockContract = async (abi) => {
-  return _deployMockContract(await deployer(), abi);
+  return _deployMockContract(await getDeployer(), abi);
 };
 
 export const deployMockLocalContract = async (mockContractName) => {

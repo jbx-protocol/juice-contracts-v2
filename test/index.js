@@ -9,9 +9,6 @@ import { getTimestamp } from './utils'
 
 describe('Juicebox', async function () {
   before(async function () {
-    // Bind a reference to the deployer address and an array of other addresses to `this`.
-    [this.deployer, ...this.addrs] = await ethers.getSigners();
-
     // Binds a function that sets a time mark that is taken into account while fastforward.
     this.setTimeMarkFn = async (blockNumber) => {
       this.timeMark = await getTimestamp(blockNumber);
