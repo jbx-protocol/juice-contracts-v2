@@ -1,10 +1,14 @@
 import { expect } from 'chai';
+import { getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'withdraws',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         beneficiary: addrs[0].address,
         value: 1234,
@@ -14,7 +18,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: ({ addrs }) => ({
+      fn: () => ({
         caller: addrs[0].address,
         beneficiary: addrs[0].address,
         value: 1234,
@@ -25,6 +29,10 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

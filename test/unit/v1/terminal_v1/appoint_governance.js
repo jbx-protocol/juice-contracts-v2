@@ -3,12 +3,16 @@ const {
   ethers: { constants },
 } = hardhat;
 import { expect } from 'chai';
+import { getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'appoint',
-      fn: ({ addrs, governance }) => ({
+      fn: ({ governance }) => ({
         caller: governance,
         governance: addrs[0].address,
       }),
@@ -17,7 +21,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         governance: constants.AddressZero,
         revert: 'TerminalV1: UNAUTHORIZED',
@@ -43,6 +47,11 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
+
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

@@ -4,11 +4,14 @@ const {
 } = hardhat;
 import { expect } from 'chai';
 
-import { getTimestamp } from '../../../utils';
+import { getAddresses, getDeployer, getTimestamp } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const testTemplate =
   ({ op = {}, setup = {}, preconfigure = {}, fastforward, ops = [], expectation = {}, revert }) =>
-  ({ deployer, ballot }) => ({
+  ({ ballot }) => ({
     caller: deployer,
     controller: deployer.address,
     projectId: 1,
@@ -864,7 +867,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: addrs[0].address,
         setup: { preconfigure: null },
@@ -959,6 +962,11 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
+
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

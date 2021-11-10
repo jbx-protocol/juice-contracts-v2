@@ -1,13 +1,16 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
-import { constants, deployMockLocalContract } from '../../../utils';
+import { constants, deployMockLocalContract, getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'no uri, caller is owner',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         owner: deployer.address,
         handle: ethers.utils.formatBytes32String('some-handle'),
@@ -20,7 +23,7 @@ const tests = {
     },
     {
       description: 'no uri, caller is not owner',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         owner: addrs[0].address,
         handle: ethers.utils.formatBytes32String('some-handle'),
@@ -33,7 +36,7 @@ const tests = {
     },
     {
       description: 'with uri',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         owner: deployer.address,
         handle: ethers.utils.formatBytes32String('some-handle'),
@@ -46,7 +49,7 @@ const tests = {
     },
     {
       description: 'second project',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         owner: deployer.address,
         handle: ethers.utils.formatBytes32String('some-handle'),
@@ -67,7 +70,7 @@ const tests = {
     },
     {
       description: 'with terminal',
-      fn: async ({ deployer }) => {
+      fn: async () => {
         // Create a mock for a terminalV1.
         const operatorStore = await deployMockLocalContract('OperatorStore');
         const projects = await deployMockLocalContract('Projects', [operatorStore.address]);
@@ -120,7 +123,7 @@ const tests = {
   failure: [
     {
       description: 'no handle',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         owner: deployer.address,
         handle: ethers.utils.formatBytes32String(''),
@@ -131,7 +134,7 @@ const tests = {
     },
     {
       description: 'handle taken',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         owner: deployer.address,
         handle: ethers.utils.formatBytes32String('some-handle'),
@@ -149,7 +152,7 @@ const tests = {
     },
     {
       description: 'handle being transfered',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         owner: deployer.address,
         handle: ethers.utils.formatBytes32String('some-handle'),
@@ -174,6 +177,11 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
+
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

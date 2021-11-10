@@ -7,7 +7,7 @@ const tests = {
   success: [
     {
       description: 'deposit for caller',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         owner: deployer.address,
         metadata: {
@@ -21,7 +21,7 @@ const tests = {
     },
     {
       description: 'deposit for another address',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         owner: addrs[0].address,
         metadata: {
@@ -35,7 +35,7 @@ const tests = {
     },
     {
       description: 'deposit with mods',
-      fn: async ({ deployer }) => ({
+      fn: async () => ({
         caller: deployer,
         owner: deployer.address,
         metadata: {
@@ -70,7 +70,7 @@ const tests = {
   failure: [
     {
       description: 'reserved rate over 100%',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         owner: deployer.address,
         metadata: {
@@ -85,7 +85,7 @@ const tests = {
     },
     {
       description: 'bonding curve rate over 100%',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         owner: deployer.address,
         metadata: {
@@ -100,7 +100,7 @@ const tests = {
     },
     {
       description: 'reconfiguration bonding curve rate over 100%',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         owner: deployer.address,
         metadata: {

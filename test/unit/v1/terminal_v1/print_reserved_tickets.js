@@ -49,7 +49,7 @@ const tests = {
     },
     {
       description: 'with mod',
-      fn: ({ addrs }) => ({
+      fn: () => ({
         mod: {
           preferUnstaked: false,
           percent: 5000,
@@ -62,7 +62,7 @@ const tests = {
     },
     {
       description: 'with all mod',
-      fn: ({ addrs }) => ({
+      fn: () => ({
         mod: {
           preferUnstaked: false,
           percent: 10000,

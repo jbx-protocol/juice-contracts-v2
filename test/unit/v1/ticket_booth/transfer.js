@@ -10,7 +10,7 @@ const tests = {
   success: [
     {
       description: 'called by holder',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: deployer.address,
@@ -24,7 +24,7 @@ const tests = {
     },
     {
       description: 'called by personal operator',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: addrs[0].address,
@@ -40,7 +40,7 @@ const tests = {
     },
     {
       description: 'called by project operator',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: addrs[0].address,
@@ -56,7 +56,7 @@ const tests = {
     },
     {
       description: 'with locked amount',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: deployer.address,
@@ -70,7 +70,7 @@ const tests = {
     },
     {
       description: 'with max uints',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: deployer.address,
@@ -86,7 +86,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: addrs[0].address,
@@ -102,7 +102,7 @@ const tests = {
     },
     {
       description: 'zero address',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: deployer.address,
@@ -113,7 +113,7 @@ const tests = {
     },
     {
       description: 'sender is recipient',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: deployer.address,
@@ -124,7 +124,7 @@ const tests = {
     },
     {
       description: 'zero amount',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: deployer.address,
@@ -135,7 +135,7 @@ const tests = {
     },
     {
       description: 'insufficient funds',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: deployer.address,
@@ -150,7 +150,7 @@ const tests = {
     },
     {
       description: 'insufficient funds, with lock',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: deployer.address,
@@ -165,7 +165,7 @@ const tests = {
     },
     {
       description: 'insufficient funds, with max uint lock',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: deployer.address,

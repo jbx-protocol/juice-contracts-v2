@@ -5,7 +5,7 @@ const tests = {
   success: [
     {
       description: 'issues tickets, called by owner',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectOwner: deployer.address,
         projectId: 1,
@@ -14,7 +14,7 @@ const tests = {
     },
     {
       description: 'issues tickets, called by operator',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         projectOwner: addrs[0].address,
         projectId: 1,
@@ -25,7 +25,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         projectOwner: addrs[0].address,
         projectId: 1,
@@ -35,7 +35,7 @@ const tests = {
     },
     {
       description: 'empty name',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectOwner: deployer.address,
         projectId: 1,
@@ -46,7 +46,7 @@ const tests = {
     },
     {
       description: 'empty symbol',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectOwner: deployer.address,
         projectId: 1,
@@ -57,7 +57,7 @@ const tests = {
     },
     {
       description: 'tickets already issued',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectOwner: deployer.address,
         projectId: 1,

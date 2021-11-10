@@ -1,13 +1,16 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
-import { constants } from '../../../utils';
+import { constants, getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'called by owner',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         setup: {
           create: {
@@ -19,7 +22,7 @@ const tests = {
     },
     {
       description: 'called by operator',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         setup: {
           create: {
@@ -34,7 +37,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         setup: {
           create: {
@@ -50,6 +53,11 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
+
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

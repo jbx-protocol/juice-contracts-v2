@@ -1,12 +1,15 @@
 import { expect } from 'chai';
 
-import { deployMockLocalContract } from '../../../utils';
+import { deployMockLocalContract, getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'appoints governance',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         newGovernance: addrs[0].address,
       }),
@@ -15,7 +18,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: ({ addrs }) => ({
+      fn: () => ({
         caller: addrs[0].address,
         newGovernance: addrs[0].address,
         revert: 'Ownable: caller is not the owner',
@@ -25,6 +28,11 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
+
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

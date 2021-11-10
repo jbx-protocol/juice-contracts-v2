@@ -4,13 +4,16 @@ const {
   ethers: { constants },
 } = hardhat;
 
-import { deployMockLocalContract } from '../../../utils';
+import { deployMockLocalContract, getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'sets preferences',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         beneficiary: addrs[0].address,
         memo: 'some-memo',
@@ -21,7 +24,7 @@ const tests = {
   failure: [
     {
       description: 'zero project',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         beneficiary: addrs[0].address,
         memo: 'some-memo',
@@ -32,7 +35,7 @@ const tests = {
     },
     {
       description: 'zero terminal',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         beneficiary: addrs[0].address,
         memo: 'some-memo',
@@ -45,6 +48,11 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
+
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

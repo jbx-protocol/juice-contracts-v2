@@ -10,7 +10,7 @@ const tests = {
   success: [
     {
       description: 'called by holder',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: deployer.address,
@@ -23,7 +23,7 @@ const tests = {
     },
     {
       description: 'with leftovers',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: deployer.address,
@@ -36,7 +36,7 @@ const tests = {
     },
     {
       description: 'with leftovers and lock',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: deployer.address,
@@ -49,7 +49,7 @@ const tests = {
     },
     {
       description: 'uses all tickets up to lock',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: deployer.address,
@@ -62,7 +62,7 @@ const tests = {
     },
     {
       description: 'max uints',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: deployer.address,
@@ -75,7 +75,7 @@ const tests = {
     },
     {
       description: 'called by personal operator',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         personalOperator: true,
         projectId: 1,
@@ -87,7 +87,7 @@ const tests = {
     },
     {
       description: 'called by non personal operator',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         personalOperator: false,
         projectId: 1,
@@ -101,7 +101,7 @@ const tests = {
   failure: [
     {
       description: 'overflow',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: deployer.address,
@@ -116,7 +116,7 @@ const tests = {
     },
     {
       description: 'tickets not yet issued',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: deployer.address,
@@ -131,7 +131,7 @@ const tests = {
     },
     {
       description: 'unauthorized',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: addrs[0].address,
@@ -147,7 +147,7 @@ const tests = {
     },
     {
       description: 'insufficient balance',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: deployer.address,
@@ -162,7 +162,7 @@ const tests = {
     },
     {
       description: 'insufficient balance due to lock',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: deployer.address,
@@ -177,7 +177,7 @@ const tests = {
     },
     {
       description: 'insufficient balance due to lock, max uints',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: deployer.address,

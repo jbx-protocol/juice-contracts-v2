@@ -1,7 +1,9 @@
 import { expect } from 'chai';
 import { constants } from 'ethers';
 
-import { deployMockLocalContract } from '../../../utils';
+import { deployMockLocalContract, getDeployer } from '../../../utils';
+
+let deployer;
 
 const tests = {
   success: [
@@ -53,6 +55,9 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+  });
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

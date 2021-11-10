@@ -1,11 +1,15 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
+import { getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'check ETH price, non-zero currency, 18 decimals',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         currency: 1,
         decimals: 18,
@@ -14,7 +18,7 @@ const tests = {
     },
     {
       description: 'check ETH price, non-zero currency, 0 decimals',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         currency: 1,
         decimals: 0,
@@ -23,7 +27,7 @@ const tests = {
     },
     {
       description: 'check ETH price, zero currency',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         currency: 0,
         price: 1,
@@ -33,7 +37,7 @@ const tests = {
   failure: [
     {
       description: 'currency feed not found',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         currency: 1,
         decimals: 18,
@@ -45,6 +49,10 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

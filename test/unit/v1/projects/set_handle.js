@@ -1,13 +1,16 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
-import { constants } from '../../../utils';
+import { constants, getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'different handle',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         handle: ethers.utils.formatBytes32String('some-handle'),
         setup: {
@@ -20,7 +23,7 @@ const tests = {
     },
     {
       description: 'called by operator',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         handle: ethers.utils.formatBytes32String('some-handle'),
         setup: {
@@ -36,7 +39,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         handle: ethers.utils.formatBytes32String('some-handle'),
         setup: {
@@ -51,7 +54,7 @@ const tests = {
     },
     {
       description: 'no handle',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         handle: ethers.utils.formatBytes32String(''),
         setup: {
@@ -65,7 +68,7 @@ const tests = {
     },
     {
       description: 'handle taken',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         handle: ethers.utils.formatBytes32String('some-handle'),
         setup: {
@@ -79,7 +82,7 @@ const tests = {
     },
     {
       description: 'handle being transfered',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         handle: ethers.utils.formatBytes32String('some-handle'),
         setup: {
@@ -100,6 +103,10 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

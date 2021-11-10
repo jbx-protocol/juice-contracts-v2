@@ -1,11 +1,14 @@
 import { expect } from 'chai';
-import { deployMockLocalContract } from '../../../utils';
+import { deployMockLocalContract, getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'no terminal set yet, called by owner',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectOwner: deployer.address,
         projectId: 1,
@@ -13,7 +16,7 @@ const tests = {
     },
     {
       description: 'no terminal set yet, called by operator',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: addrs[0],
         projectOwner: deployer.address,
         projectId: 1,
@@ -22,7 +25,7 @@ const tests = {
     },
     {
       description: 'terminal set yet and is allowed, called by owner',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectOwner: deployer.address,
         projectId: 1,
@@ -35,7 +38,7 @@ const tests = {
     },
     {
       description: 'terminal set and is allowed, called by operator',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: addrs[0],
         projectOwner: deployer.address,
         projectId: 1,
@@ -51,7 +54,7 @@ const tests = {
   failure: [
     {
       description: 'project not found',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectOwner: deployer.address,
         projectId: 1,
@@ -61,7 +64,7 @@ const tests = {
     },
     {
       description: 'unauthorized',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: addrs[0],
         projectOwner: deployer.address,
         projectId: 1,
@@ -71,7 +74,7 @@ const tests = {
     },
     {
       description: 'terminal set yet and is not allowed, unauthorized',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectOwner: deployer.address,
         projectId: 1,
@@ -86,7 +89,7 @@ const tests = {
     },
     {
       description: 'terminal set and is not allowed, unauthorized',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: addrs[0],
         projectOwner: deployer.address,
         projectId: 1,
@@ -104,6 +107,10 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

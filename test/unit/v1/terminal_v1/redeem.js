@@ -9,14 +9,14 @@ const tests = {
     },
     {
       description: 'with no tappable sent by project operator',
-      fn: ({ addrs }) => ({
+      fn: () => ({
         account: addrs[0].address,
         projectOperator: true,
       }),
     },
     {
       description: 'with no tappable sent by wildcard operator',
-      fn: ({ addrs }) => ({
+      fn: () => ({
         account: addrs[0].address,
         projectOperator: false,
         wildcardOperator: true,
@@ -160,7 +160,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: ({ addrs }) => ({
+      fn: () => ({
         account: addrs[0].address,
         projectOperator: false,
         wildcardOperator: false,

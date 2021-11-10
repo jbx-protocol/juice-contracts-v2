@@ -9,7 +9,7 @@ const tests = {
   success: [
     {
       description: 'total supply, just staked tickets',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         issue: false,
@@ -30,7 +30,7 @@ const tests = {
     },
     {
       description: 'total supply, staked and unstaked tickets',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         issue: true,
@@ -56,7 +56,7 @@ const tests = {
     },
     {
       description: 'total supply, staked and unstaked tickets with some transfered',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         issue: true,

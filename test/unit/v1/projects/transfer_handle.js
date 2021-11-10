@@ -1,13 +1,16 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
-import { constants } from '../../../utils';
+import { constants, getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'transfers handle',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         to: addrs[0].address,
         newHandle: ethers.utils.formatBytes32String('some-new-handle'),
@@ -21,7 +24,7 @@ const tests = {
     },
     {
       description: 'called by operator',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         to: addrs[0].address,
         newHandle: ethers.utils.formatBytes32String('some-new-handle'),
@@ -38,7 +41,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         to: addrs[0].address,
         newHandle: ethers.utils.formatBytes32String('some-handle'),
@@ -54,7 +57,7 @@ const tests = {
     },
     {
       description: 'no handle',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         to: addrs[0].address,
         newHandle: ethers.utils.formatBytes32String(''),
@@ -69,7 +72,7 @@ const tests = {
     },
     {
       description: 'handle taken',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         to: addrs[0].address,
         newHandle: ethers.utils.formatBytes32String('some-handle'),
@@ -84,7 +87,7 @@ const tests = {
     },
     {
       description: 'handle being transfered',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         to: addrs[0].address,
         owner: deployer.address,
@@ -107,6 +110,10 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

@@ -1,10 +1,14 @@
 import { expect } from 'chai';
+import { getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'sets preferences',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         beneficiary: addrs[0].address,
         prefereClaimedTickets: true,
@@ -14,6 +18,10 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

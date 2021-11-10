@@ -11,7 +11,7 @@ const tests = {
     },
     {
       description: 'by operator',
-      fn: ({ addrs }) => ({
+      fn: () => ({
         owner: addrs[0].address,
         permissionFlag: true,
       }),
@@ -57,7 +57,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: ({ addrs }) => ({
+      fn: () => ({
         owner: addrs[0].address,
         revert: 'Operatable: UNAUTHORIZED',
       }),

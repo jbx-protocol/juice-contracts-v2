@@ -102,7 +102,7 @@ const tests = {
     },
     {
       description: 'with all mods',
-      fn: async ({ addrs }) => {
+      fn: async () => {
         const allocator = await deployMockLocalContract('ExampleModAllocator');
 
         return {
@@ -136,7 +136,7 @@ const tests = {
     },
     {
       description: 'with mod',
-      fn: async ({ addrs }) => {
+      fn: async () => {
         return {
           projectMod: {
             allocator: constants.AddressZero,
@@ -179,7 +179,7 @@ const tests = {
     },
     {
       description: 'bad mod project',
-      fn: async ({ addrs }) => ({
+      fn: async () => ({
         projectMod: {
           allocator: constants.AddressZero,
           projectId: 1212,

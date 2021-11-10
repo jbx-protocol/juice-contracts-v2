@@ -1,11 +1,15 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
+import { getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'set operators, no previously set values',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         domains: [1, 2],
         operators: [addrs[0], addrs[1]],
@@ -23,7 +27,7 @@ const tests = {
     },
     {
       description: 'set operators, overriding previously set values',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         domains: [1, 1],
         operators: [addrs[0], addrs[1]],
@@ -36,7 +40,7 @@ const tests = {
     },
     {
       description: 'set operators, clearing any previously set values',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         domains: [0, 1],
         operators: [addrs[0], addrs[1]],
@@ -49,7 +53,7 @@ const tests = {
     },
     {
       description: 'set operators, with the same operator used for two different projects',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         domains: [0, 1],
         operators: [addrs[0], addrs[0]],
@@ -67,7 +71,7 @@ const tests = {
     },
     {
       description: 'set operators, with the same operator used for the same project',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         domains: [0, 0],
         operators: [addrs[0], addrs[0]],
@@ -85,7 +89,7 @@ const tests = {
     },
     {
       description: 'set only one operator',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         domains: [1],
         operators: [addrs[0]],
@@ -99,7 +103,7 @@ const tests = {
   failure: [
     {
       description: 'not enough projects specified',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         domains: [1],
         operators: [addrs[0], addrs[1]],
@@ -118,7 +122,7 @@ const tests = {
     },
     {
       description: 'too many projects specified',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         domains: [1, 2, 3],
         operators: [addrs[0], addrs[1]],
@@ -137,7 +141,7 @@ const tests = {
     },
     {
       description: 'not enough permission indexes specified',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         domains: [1, 2],
         operators: [addrs[0], addrs[1]],
@@ -150,7 +154,7 @@ const tests = {
     },
     {
       description: 'too many permission indexes specified',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         domains: [1, 2],
         operators: [addrs[0], addrs[1]],
@@ -171,7 +175,7 @@ const tests = {
     },
     {
       description: 'index out of bounds',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         domains: [1, 2],
         operators: [addrs[0], addrs[1]],
@@ -192,6 +196,11 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
+
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

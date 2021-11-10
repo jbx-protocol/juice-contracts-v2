@@ -1,13 +1,16 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
-import { constants } from '../../../utils';
+import { constants, getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'claim handle',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         handle: ethers.utils.formatBytes32String('some-handle'),
         claimFor: deployer.address,
@@ -30,7 +33,7 @@ const tests = {
     },
     {
       description: 'called by personal operator',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         handle: ethers.utils.formatBytes32String('some-handle'),
         claimFor: addrs[2].address,
@@ -56,7 +59,7 @@ const tests = {
     },
     {
       description: 'called by project operator',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         handle: ethers.utils.formatBytes32String('some-handle'),
         claimFor: addrs[2].address,
@@ -82,7 +85,7 @@ const tests = {
     },
     {
       description: 'claim handle to a random other address after challenge expired',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: addrs[6],
         handle: ethers.utils.formatBytes32String('some-handle'),
         claimFor: addrs[6].address,
@@ -104,7 +107,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized, transfered to inaccessible address',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         handle: ethers.utils.formatBytes32String('some-handle'),
         claimFor: addrs[3].address,
@@ -130,7 +133,7 @@ const tests = {
     },
     {
       description: 'unauthorized, transfered to inaccessible address, cant operate project',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         handle: ethers.utils.formatBytes32String('some-handle'),
         claimFor: deployer.address,
@@ -157,7 +160,7 @@ const tests = {
     },
     {
       description: 'unauthorized, wrong for and challenge not expired',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         handle: ethers.utils.formatBytes32String('some-handle'),
         claimFor: addrs[1].address,
@@ -184,7 +187,7 @@ const tests = {
     },
     {
       description: 'claim handle to a random other address but challenge not yet expired',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: addrs[6],
         handle: ethers.utils.formatBytes32String('some-handle'),
         claimFor: addrs[6].address,
@@ -207,6 +210,11 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
+
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

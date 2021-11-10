@@ -9,14 +9,14 @@ const tests = {
     },
     {
       description: 'called by operator',
-      fn: ({ addrs }) => ({
+      fn: () => ({
         owner: addrs[0].address,
         permissionFlag: true,
       }),
     },
     {
       description: 'max uint',
-      fn: ({ addrs }) => ({
+      fn: () => ({
         owner: addrs[0].address,
         permissionFlag: true,
         amount: constants.MaxUint256,
@@ -35,7 +35,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: ({ addrs }) => ({
+      fn: () => ({
         owner: addrs[0].address,
         permissionFlag: false,
         revert: 'Operatable: UNAUTHORIZED',

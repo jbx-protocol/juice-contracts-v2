@@ -1,10 +1,13 @@
 import { expect } from 'chai';
+import { getAddresses } from '../../../utils';
+
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'appoint',
-      fn: ({ addrs, governance }) => ({
+      fn: ({ governance }) => ({
         caller: governance,
         governance: addrs[0],
       }),
@@ -22,6 +25,9 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    addrs = await getAddresses();
+  });
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

@@ -18,7 +18,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         fee: BigNumber.from(200),
         revert: 'TerminalV1: UNAUTHORIZED',

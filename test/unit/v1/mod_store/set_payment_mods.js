@@ -1,11 +1,15 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
+import { getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'set one payout mod, called by owner, max percent',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         projectOwner: deployer.address,
         projectId: 1,
@@ -24,7 +28,7 @@ const tests = {
     },
     {
       description: 'set one payout mod, beneficiary is different from caller',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         projectOwner: deployer.address,
         projectId: 1,
@@ -70,7 +74,7 @@ const tests = {
     },
     {
       description: 'set one payout mod, called by operator',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         projectOwner: addrs[0].address,
         projectId: 1,
@@ -237,7 +241,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: addrs[0].address,
         projectOwner: addrs[0].address,
@@ -250,7 +254,7 @@ const tests = {
     },
     {
       description: 'no mods',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectOwner: deployer.address,
@@ -262,7 +266,7 @@ const tests = {
     },
     {
       description: 'no allocator or beneficiary',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectOwner: deployer.address,
@@ -283,7 +287,7 @@ const tests = {
     },
     {
       description: 'mod percent over 100%',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectOwner: deployer.address,
@@ -312,7 +316,7 @@ const tests = {
     },
     {
       description: 'mod percent is 0%',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectOwner: deployer.address,
@@ -341,7 +345,7 @@ const tests = {
     },
     {
       description: 'total percents over 100%',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectOwner: deployer.address,
@@ -552,6 +556,11 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
+
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

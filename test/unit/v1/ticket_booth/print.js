@@ -9,7 +9,7 @@ const tests = {
   success: [
     {
       description: 'prints staked tickets',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,
@@ -21,7 +21,7 @@ const tests = {
     },
     {
       description: 'prints ERC-20 tickets',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,
@@ -33,7 +33,7 @@ const tests = {
     },
     {
       description: 'prints staked tickets if no ERC20 issued',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,
@@ -45,7 +45,7 @@ const tests = {
     },
     {
       description: 'prints staked tickets if ERC20 issued but not prefered',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,
@@ -57,7 +57,7 @@ const tests = {
     },
     {
       description: 'prints staked tickets, max uint',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,
@@ -71,7 +71,7 @@ const tests = {
   failure: [
     {
       description: 'overflow',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,
@@ -85,7 +85,7 @@ const tests = {
     },
     {
       description: 'unauthorized',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: addrs[0].address,
         projectId: 1,
@@ -98,7 +98,7 @@ const tests = {
     },
     {
       description: 'amount is 0',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,

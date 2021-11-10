@@ -1,13 +1,21 @@
 import { expect } from 'chai';
 import { compilerOutput } from '@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json';
 
-import { deployMockContract, deployMockLocalContract } from '../../../utils';
+import {
+  deployMockContract,
+  deployMockLocalContract,
+  getAddresses,
+  getDeployer,
+} from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'adds price feed',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
       }),
     },
@@ -15,7 +23,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: ({ addrs }) => ({
+      fn: () => ({
         caller: addrs[0].address,
         revert: 'Ownable: caller is not the owner',
       }),
@@ -24,6 +32,11 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
+
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

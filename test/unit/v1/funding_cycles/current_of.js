@@ -4,7 +4,9 @@ const {
 } = hardhat;
 import { expect } from 'chai';
 
-import { getTimestamp } from '../../../utils';
+import { getDeployer, getTimestamp } from '../../../utils';
+
+let deployer;
 
 /** 
   These tests rely on time manipulation quite a bit, which as far as i understand is hard to do precisely. 
@@ -18,7 +20,7 @@ import { getTimestamp } from '../../../utils';
 
 const testTemplate =
   ({ op = {}, setup = {}, preconfigure = {}, fastforward, ops = [], expectation = {}, revert }) =>
-  ({ deployer, ballot }) => ({
+  ({ ballot }) => ({
     caller: deployer,
     projectId: 1,
     setup: {
@@ -645,6 +647,10 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+  });
+
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

@@ -11,7 +11,7 @@ const tests = {
   success: [
     {
       description: 'redeems staked tickets',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,
@@ -27,7 +27,7 @@ const tests = {
     },
     {
       description: 'redeems ERC-20 tickets',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,
@@ -43,7 +43,7 @@ const tests = {
     },
     {
       description: 'redeems mix of staked and unstaked tickets',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,
@@ -59,7 +59,7 @@ const tests = {
     },
     {
       description: 'redeems mix of staked and unstaked tickets, prefering ERC-20s',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,
@@ -75,7 +75,7 @@ const tests = {
     },
     {
       description: 'redeems only ERC-20 tickets, prefering ERC-20s',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,
@@ -91,7 +91,7 @@ const tests = {
     },
     {
       description: 'redeems only staked tickets, prefering unstaked',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,
@@ -107,7 +107,7 @@ const tests = {
     },
     {
       description: 'redeems mix of staked and unstaked tickets, max uints',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,
@@ -123,7 +123,7 @@ const tests = {
     },
     {
       description: 'redeems mix of staked and unstaked tickets, max uints including locked',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,
@@ -139,7 +139,7 @@ const tests = {
     },
     {
       description: 'redeems mix of staked and unstaked tickets, some locked',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,
@@ -157,7 +157,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: addrs[0],
         controller: deployer.address,
         projectId: 1,
@@ -174,7 +174,7 @@ const tests = {
     },
     {
       description: 'insufficient funds with no staked or unstaked tickets',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,
@@ -191,7 +191,7 @@ const tests = {
     },
     {
       description: 'insufficient funds with staked but no unstaked tickets',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,
@@ -208,7 +208,7 @@ const tests = {
     },
     {
       description: 'insufficient funds with staked tickets but not enough unstaked tickets',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,
@@ -225,7 +225,7 @@ const tests = {
     },
     {
       description: 'insufficient funds with no staked tickets and not enough unstaked tickets',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,
@@ -242,7 +242,7 @@ const tests = {
     },
     {
       description: 'insufficient funds with staked tickets but locked',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,
@@ -259,7 +259,7 @@ const tests = {
     },
     {
       description: 'insufficient funds with staked and unstaked tickets but locked',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         controller: deployer.address,
         projectId: 1,

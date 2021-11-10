@@ -8,7 +8,7 @@ const tests = {
   success: [
     {
       description: 'with nothing pre locked',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         holder: deployer.address,
         projectId: 1,
@@ -21,7 +21,7 @@ const tests = {
     },
     {
       description: 'with some pre locked',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         holder: deployer.address,
         projectId: 1,
@@ -34,7 +34,7 @@ const tests = {
     },
     {
       description: 'with max uints',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         holder: deployer.address,
         projectId: 1,
@@ -47,7 +47,7 @@ const tests = {
     },
     {
       description: 'called by personal operator',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: addrs[0].address,
@@ -62,7 +62,7 @@ const tests = {
     },
     {
       description: 'called by project operator',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         projectId: 1,
         holder: addrs[0].address,
@@ -79,7 +79,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         holder: addrs[0].address,
         projectId: 1,
@@ -94,7 +94,7 @@ const tests = {
     },
     {
       description: 'insufficient funds, non locked',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         holder: deployer.address,
         projectId: 1,
@@ -109,7 +109,7 @@ const tests = {
     },
     {
       description: 'insufficient funds, some already locked',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         holder: deployer.address,
         projectId: 1,
@@ -124,7 +124,7 @@ const tests = {
     },
     {
       description: 'insufficient funds, max uints',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         holder: deployer.address,
         projectId: 1,
@@ -139,7 +139,7 @@ const tests = {
     },
     {
       description: 'amount is 0',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         holder: deployer.address,
         projectId: 1,

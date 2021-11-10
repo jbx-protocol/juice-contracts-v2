@@ -1,11 +1,15 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
+import { getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'add feed, 18 decimals',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         currency: 1,
         decimals: 18,
@@ -13,7 +17,7 @@ const tests = {
     },
     {
       description: 'add feed, 0 decimals',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         currency: 1,
         decimals: 0,
@@ -23,7 +27,7 @@ const tests = {
   failure: [
     {
       description: 'not owner',
-      fn: ({ addrs }) => ({
+      fn: () => ({
         caller: addrs[0],
         currency: 1,
         decimals: 18,
@@ -32,7 +36,7 @@ const tests = {
     },
     {
       description: 'reserved currency',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         currency: 0,
         decimals: 18,
@@ -41,7 +45,7 @@ const tests = {
     },
     {
       description: 'already exists',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         currency: 1,
         decimals: 18,
@@ -51,7 +55,7 @@ const tests = {
     },
     {
       description: 'over 18 decimals',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         currency: 1,
         decimals: 19,
@@ -62,6 +66,11 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
+
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

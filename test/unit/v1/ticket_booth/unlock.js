@@ -8,7 +8,7 @@ const tests = {
   success: [
     {
       description: 'unlock all',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         holder: deployer.address,
         projectId: 1,
@@ -21,7 +21,7 @@ const tests = {
     },
     {
       description: 'unlock some',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         holder: deployer.address,
         projectId: 1,
@@ -34,7 +34,7 @@ const tests = {
     },
     {
       description: 'unlock with max uints',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         holder: deployer.address,
         projectId: 1,
@@ -49,7 +49,7 @@ const tests = {
   failure: [
     {
       description: 'insufficient funds, none locked',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         holder: deployer.address,
         projectId: 1,
@@ -64,7 +64,7 @@ const tests = {
     },
     {
       description: 'insufficient funds, some locked',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         holder: deployer.address,
         projectId: 1,
@@ -80,7 +80,7 @@ const tests = {
     },
     {
       description: 'insufficient funds, max uints',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         holder: deployer.address,
         projectId: 1,
@@ -96,7 +96,7 @@ const tests = {
     },
     {
       description: 'amount is 0',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         holder: deployer.address,
         projectId: 1,
@@ -111,7 +111,7 @@ const tests = {
     },
     {
       description: 'unlocked by wrong operator',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         unlocker: addrs[0],
         holder: deployer.address,

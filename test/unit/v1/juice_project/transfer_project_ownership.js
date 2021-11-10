@@ -4,13 +4,16 @@ const {
 } = hardhat;
 import { expect } from 'chai';
 
-import { deployMockLocalContract } from '../../../utils';
+import { deployMockLocalContract, getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'transfers ownership',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         newOwner: addrs[0].address,
         projectId: 1,
@@ -20,7 +23,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: ({ addrs }) => ({
+      fn: () => ({
         caller: addrs[0].address,
         newOwner: addrs[0].address,
         projectId: 1,
@@ -31,6 +34,10 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

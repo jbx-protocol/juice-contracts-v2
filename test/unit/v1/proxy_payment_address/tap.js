@@ -3,12 +3,16 @@ const {
   ethers: { constants },
 } = hardhat;
 import { expect } from 'chai';
+import { getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'tap',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         ops: [
           {
@@ -31,6 +35,11 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
+
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

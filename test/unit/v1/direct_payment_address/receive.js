@@ -3,12 +3,15 @@ const {
   ethers: { constants },
 } = hardhat;
 import { expect } from 'chai';
+import { getDeployer } from '../../../utils';
+
+let deployer;
 
 const tests = {
   success: [
     {
       description: 'no preset beneficiary or preference for unstaked tickets',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         beneficiary: deployer.address,
         preferUnstakedTickets: false,
@@ -18,7 +21,7 @@ const tests = {
     },
     {
       description: 'preset beneficiary, preset preference for unstaked tickets',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         caller: deployer,
         beneficiary: addrs[0].address,
         preferUnstakedTickets: true,
@@ -30,6 +33,10 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+  });
+
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {
