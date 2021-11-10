@@ -2,7 +2,7 @@
  Projects can issue ERC-20 tickets that can be unstaked from the Juicebox contracts
  and used throughout Web3.
 */
-import { getBalance, randomBigNumber, randomBytes, randomString } from "../../../utils";
+import { getBalance, randomBigNumber, randomBytes, randomString } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;

@@ -1,11 +1,16 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
+import { getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
+
 const tests = {
   success: [
     {
       description: 'same currency and base should return 1',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         currency: 1,
         base: 1,
@@ -16,7 +21,7 @@ const tests = {
     },
     {
       description: 'check price no decimals',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         currency: 1,
         base: 2,
@@ -27,7 +32,7 @@ const tests = {
     },
     {
       description: 'check price one decimal',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         currency: 1,
         base: 2,
@@ -38,7 +43,7 @@ const tests = {
     },
     {
       description: 'check price 18 decimals',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         currency: 1,
         base: 2,
@@ -49,7 +54,7 @@ const tests = {
     },
     {
       description: 'check price 20 decimals',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         currency: 1,
         base: 2,
@@ -62,7 +67,7 @@ const tests = {
   failure: [
     {
       description: 'currency feed not found',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         currency: 1,
         base: 2,
@@ -74,6 +79,11 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
+
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {
@@ -105,10 +115,12 @@ export default function () {
           expectedPriceBigNum = ethers.BigNumber.from(expectedPrice);
         } else if (decimals < targetDecimals) {
           expectedPriceBigNum = ethers.BigNumber.from(expectedPrice).mul(
-            ethers.BigNumber.from(10).pow(targetDecimals - (decimals)))
+            ethers.BigNumber.from(10).pow(targetDecimals - decimals),
+          );
         } else {
           expectedPriceBigNum = ethers.BigNumber.from(expectedPrice).div(
-            ethers.BigNumber.from(10).pow((decimals) - targetDecimals))
+            ethers.BigNumber.from(10).pow(decimals - targetDecimals),
+          );
         }
 
         // Expect the stored price value to match the expected value.

@@ -3,7 +3,13 @@
 */
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
-import { deployContract, getBalance, randomBigNumber, randomBytes, randomString } from '../../../utils';
+import {
+  deployContract,
+  getBalance,
+  randomBigNumber,
+  randomBytes,
+  randomString,
+} from '../../../utils';
 
 const currency = 0;
 
@@ -91,12 +97,7 @@ export default [
   },
   {
     description: 'Make a payment to the address',
-    fn: async ({
-      contracts,
-      BigNumber,
-      randomSignerFn,
-      local: { expectedProjectId },
-    }) => {
+    fn: async ({ contracts, BigNumber, randomSignerFn, local: { expectedProjectId } }) => {
       const [address] = await contracts.terminalDirectory.addressesOf(expectedProjectId);
       // An account that will be used to make payments.
       const payer = randomSignerFn();

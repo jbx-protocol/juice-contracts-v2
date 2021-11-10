@@ -64,7 +64,7 @@ export default function () {
           .withArgs(...event.args),
       );
     };
-  })
+  });
 
   describe('V1', v1);
   describe('V2', v2);

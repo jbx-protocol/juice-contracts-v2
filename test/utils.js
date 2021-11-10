@@ -29,8 +29,8 @@ export const getDeployer = async () => {
 export const getAddresses = async () => {
   let [_, ...addresses] = await ethers.getSigners();
   assert(addresses.length > 1, 'Addresses are empty!');
-  return addresses
-}
+  return addresses;
+};
 
 // Bind some constants.
 export const constants = {
@@ -178,12 +178,12 @@ export const getTimestamp = async (block) => {
 
 export const snapshot = async () => {
   return ethers.provider.send('evm_snapshot', []);
-}
+};
 
 export const restore = async (id) => {
   return ethers.provider.send('evm_revert', [id]);
-}
+};
 
 export const getBalance = (address) => {
   return ethers.provider.getBalance(address);
-}
+};

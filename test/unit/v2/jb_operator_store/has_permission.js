@@ -2,11 +2,16 @@
 
 import { expect } from 'chai';
 
+import { getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
+
 const tests = {
   success: [
     {
       description: 'has permission, account is caller',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         set: {
           caller: deployer,
           domain: 1,
@@ -25,7 +30,7 @@ const tests = {
     },
     {
       description: 'has permission, account is not caller',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         set: {
           caller: deployer,
           domain: 1,
@@ -44,7 +49,7 @@ const tests = {
     },
     {
       description: 'doesnt have permission, never set',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         check: {
           caller: deployer,
           account: deployer,
@@ -57,7 +62,7 @@ const tests = {
     },
     {
       description: 'doesnt have permission, indexes differ',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         set: {
           caller: deployer,
           domain: 1,
@@ -76,7 +81,7 @@ const tests = {
     },
     {
       description: 'doesnt have permission, domain differs',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         set: {
           caller: deployer,
           domain: 1,
@@ -97,7 +102,7 @@ const tests = {
   failure: [
     {
       description: 'index out of bounds',
-      fn: ({ deployer, addrs }) => ({
+      fn: () => ({
         check: {
           caller: deployer,
           account: deployer,
@@ -112,6 +117,11 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
+
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
-import { getAddresses, getDeployer } from "../../../utils"
+import { getAddresses, getDeployer } from '../../../utils';
 
 let deployer;
 let addrs;

@@ -12,7 +12,7 @@ import terminalDirectory from './terminal_directory';
 import terminalV1 from './terminal_v1';
 import ticketBooth from './ticket_booth';
 
-import { snapshot, restore } from "../../utils"
+import { snapshot, restore } from '../../utils';
 
 let snapshotId;
 export default function () {

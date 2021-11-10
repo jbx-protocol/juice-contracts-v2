@@ -1,23 +1,26 @@
-import { ethers } from 'hardhat';
 import { expect } from 'chai';
+import { getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'add feed',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         set: {
           currency: 1,
           base: 2,
         },
       }),
-    }
+    },
   ],
   failure: [
     {
       description: 'not owner',
-      fn: ({ addrs }) => ({
+      fn: () => ({
         caller: addrs[0],
         set: {
           currency: 1,
@@ -29,7 +32,7 @@ const tests = {
     },
     {
       description: 'already exists',
-      fn: ({ deployer }) => ({
+      fn: () => ({
         caller: deployer,
         preset: {
           currency: 1,
@@ -47,6 +50,11 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
+
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {
