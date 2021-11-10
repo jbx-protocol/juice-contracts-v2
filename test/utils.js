@@ -1,3 +1,5 @@
+// TODO(odd-amphora): Properly document all of these functions.
+
 import { deployMockContract as _deployMockContract } from '@ethereum-waffle/mock-contract';
 import { assert } from 'chai';
 import { readFileSync } from 'fs';
