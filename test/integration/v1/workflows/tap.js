@@ -20,7 +20,7 @@ export default [
       BigNumber,
 
       randomBigNumber,
-      getBalanceFn,
+      getBalance,
 
       randomString,
       randomAddressFn,
@@ -46,7 +46,7 @@ export default [
       // So, arbitrarily divide the balance so that all payments can be made successfully.
       const paymentValue1 = randomBigNumber({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
 
       // The target must at most be the payment value.
@@ -327,7 +327,7 @@ export default [
       contracts,
       executeFn,
       randomSignerFn,
-      getBalanceFn,
+      getBalance,
 
       local: { target, owner, expectedIdOfBaseProject, addressMod, allocatorMod },
     }) => {
@@ -335,10 +335,10 @@ export default [
       const amountToTap = target;
 
       // Save the initial balances of the owner, address mod beneficiary, and the allocator mod contract.
-      const ownerInitialBalance = await getBalanceFn(owner.address);
+      const ownerInitialBalance = await getBalance(owner.address);
 
-      const addressModBeneficiaryInitialBalance = await getBalanceFn(addressMod.beneficiary);
-      const allocatorModContractInitialBalance = await getBalanceFn(allocatorMod.allocator);
+      const addressModBeneficiaryInitialBalance = await getBalance(addressMod.beneficiary);
+      const allocatorModContractInitialBalance = await getBalance(allocatorMod.allocator);
 
       // Save the amount of governance project tickets the owner has owner initially has.
       const initialOwnerTicketBalanceOfGovernanceProject = await contracts.ticketBooth.balanceOf(

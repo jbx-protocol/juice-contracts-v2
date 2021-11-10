@@ -7,7 +7,7 @@ export default [
     description: 'Deploy a project for the owner',
     fn: async ({
       randomBigNumber,
-      getBalanceFn,
+      getBalance,
       incrementProjectIdFn,
       incrementFundingCycleIdFn,
       randomSignerFn,
@@ -35,7 +35,7 @@ export default [
       // So, arbitrarily divide the balance so that all payments can be made successfully.
       const paymentValue = randomBigNumber({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
 
       // The project's funding cycle target will at most be a fourth of the payment value. Leaving plenty of overflow.
@@ -116,13 +116,13 @@ export default [
       contracts,
       randomString,
       randomSignerFn,
-      getBalanceFn,
+      getBalance,
       local: { expectedProjectId, payer, paymentValue },
     }) => {
       // An account that will be distributed tickets in the first payment.
       const ticketBeneficiary = randomSignerFn();
 
-      const initialBalanceOfTicketBeneficiary = await getBalanceFn(ticketBeneficiary.address);
+      const initialBalanceOfTicketBeneficiary = await getBalance(ticketBeneficiary.address);
 
       await executeFn({
         caller: payer,

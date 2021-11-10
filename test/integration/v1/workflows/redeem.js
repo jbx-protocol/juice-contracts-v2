@@ -22,7 +22,7 @@ export default [
       BigNumber,
       randomBytes,
       randomString,
-      getBalanceFn,
+      getBalance,
       randomBigNumber,
       contracts,
       incrementProjectIdFn,
@@ -43,17 +43,17 @@ export default [
       // So, arbitrarily divide the balance so that all payments can be made successfully.
       const paymentValue1 = randomBigNumber({
         min: BigNumber.from(10),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
 
       const paymentValue2 = randomBigNumber({
         min: BigNumber.from(10),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
 
       const paymentValue3 = randomBigNumber({
         min: BigNumber.from(10),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
 
       // The project's funding cycle target will at most be the sum of all payments.
@@ -134,7 +134,7 @@ export default [
         paymentValue1,
         paymentValue2,
         paymentValue3,
-        initialContractBalance: await getBalanceFn(contracts.terminalV1.address),
+        initialContractBalance: await getBalance(contracts.terminalV1.address),
         ballot,
       };
     },
@@ -375,7 +375,7 @@ export default [
     fn: async ({
       contracts,
       executeFn,
-      getBalanceFn,
+      getBalance,
       randomAddressFn,
       BigNumber,
       local: { redeemableTicketsOfTicketBeneficiary1, expectedProjectId, ticketBeneficiary1 },
@@ -386,7 +386,7 @@ export default [
         exclude: [ticketBeneficiary1.address],
       });
 
-      const initialBalanceOfRedeemBeneficiary1 = await getBalanceFn(redeemBeneficiary1);
+      const initialBalanceOfRedeemBeneficiary1 = await getBalance(redeemBeneficiary1);
 
       // Get the stored claimable amount.
       const redeemableAmountOfTicketBeneficiary1 = await contracts.terminalV1.claimableOverflowOf(
@@ -616,7 +616,7 @@ export default [
     fn: async ({
       contracts,
       executeFn,
-      getBalanceFn,
+      getBalance,
       randomAddressFn,
       BigNumber,
       local: { redeemableTicketsOfTicketBeneficiary2, expectedProjectId, ticketBeneficiary2 },
@@ -627,7 +627,7 @@ export default [
         exclude: [ticketBeneficiary2.address],
       });
 
-      const initialBalanceOfRedeemBeneficiary2 = await getBalanceFn(redeemBeneficiary2);
+      const initialBalanceOfRedeemBeneficiary2 = await getBalance(redeemBeneficiary2);
 
       // Get the stored claimable amount.
       const redeemableAmountOfTicketBeneficiary2 = await contracts.terminalV1.claimableOverflowOf(
@@ -821,7 +821,7 @@ export default [
     fn: async ({
       contracts,
       executeFn,
-      getBalanceFn,
+      getBalance,
       randomAddressFn,
       BigNumber,
       local: { redeemableTicketsOfTicketBeneficiary3, expectedProjectId, ticketBeneficiary3 },
@@ -832,7 +832,7 @@ export default [
         exclude: [ticketBeneficiary3.address],
       });
 
-      const initialBalanceOfRedeemBeneficiary3 = await getBalanceFn(redeemBeneficiary3);
+      const initialBalanceOfRedeemBeneficiary3 = await getBalance(redeemBeneficiary3);
 
       // Get the stored claimable amount.
       const redeemableAmountOfTicketBeneficiary3 = await contracts.terminalV1.claimableOverflowOf(
@@ -1077,7 +1077,7 @@ export default [
       executeFn,
       contracts,
 
-      getBalanceFn,
+      getBalance,
       randomAddressFn,
       BigNumber,
       local: { expectedProjectId, owner, reservedTicketBalance },
@@ -1088,7 +1088,7 @@ export default [
         exclude: [owner.address],
       });
 
-      const initialBalanceOfRedeemBeneficiary4 = await getBalanceFn(redeemBeneficiary4);
+      const initialBalanceOfRedeemBeneficiary4 = await getBalance(redeemBeneficiary4);
 
       const claimableOverflow = await contracts.terminalV1.claimableOverflowOf(
         owner.address,

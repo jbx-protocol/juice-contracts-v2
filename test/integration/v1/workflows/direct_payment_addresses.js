@@ -3,7 +3,7 @@
 */
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
-import { deployContract, randomBigNumber, randomBytes, randomString } from '../../../utils';
+import { deployContract, getBalance, randomBigNumber, randomBytes, randomString } from '../../../utils';
 
 const currency = 0;
 
@@ -94,7 +94,6 @@ export default [
     fn: async ({
       contracts,
       BigNumber,
-      getBalanceFn,
       randomSignerFn,
       local: { expectedProjectId },
     }) => {
@@ -106,7 +105,7 @@ export default [
       // So, arbitrarily divide the balance so that all payments can be made successfully.
       const paymentValue = randomBigNumber({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
 
       await payer.sendTransaction({

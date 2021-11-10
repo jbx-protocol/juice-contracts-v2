@@ -16,7 +16,7 @@ export default [
       contracts,
       executeFn,
       randomBigNumber,
-      getBalanceFn,
+      getBalance,
       randomString,
       incrementProjectIdFn,
       incrementFundingCycleIdFn,
@@ -40,7 +40,7 @@ export default [
       const paymentValue = randomBigNumber({
         // Two amounts need to be tapped, so make the minimum an amount at least 2.
         min: BigNumber.from(2),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
 
       // Make the target the payment value to make some of the test cases cleaner.

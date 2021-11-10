@@ -2,6 +2,7 @@
  Projects can issue ERC-20 tickets that can be unstaked from the Juicebox contracts
  and used throughout Web3.
 */
+import { getBalance, randomBigNumber, randomBytes, randomString } from "../../../utils";
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -11,15 +12,10 @@ export default [
     description: 'Deploy a project for the owner',
     fn: async ({
       executeFn,
-      randomBigNumber,
       randomSignerFn,
-      randomString,
       BigNumber,
-      getBalanceFn,
-      randomBytes,
       incrementProjectIdFn,
       incrementFundingCycleIdFn,
-
       contracts,
     }) => {
       const expectedProjectId = incrementProjectIdFn();
@@ -37,11 +33,11 @@ export default [
       // So, arbitrarily find a number less than a third so that all payments can be made successfully.
       const paymentValue1 = randomBigNumber({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
       const paymentValue2 = randomBigNumber({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
 
       // The project's funding cycle target will at most be a fourth of the payment value. Leaving plenty of overflow.
@@ -117,8 +113,6 @@ export default [
       randomSignerFn,
       executeFn,
       contracts,
-      randomString,
-
       local: { expectedProjectId, payer, paymentValue1 },
     }) => {
       // An account that will be distributed tickets in the first payment.
@@ -184,7 +178,7 @@ export default [
   },
   {
     description: 'Issue tickets',
-    fn: ({ executeFn, contracts, randomString, local: { owner, expectedProjectId } }) =>
+    fn: ({ executeFn, contracts, local: { owner, expectedProjectId } }) =>
       executeFn({
         caller: owner,
         contract: contracts.ticketBooth,
@@ -202,7 +196,6 @@ export default [
     fn: ({
       executeFn,
       contracts,
-      randomString,
       local: { payer, expectedProjectId, ticketBeneficiary, paymentValue2 },
     }) =>
       executeFn({
@@ -270,7 +263,6 @@ export default [
   {
     description: 'Redeem some of the staked tickets',
     fn: async ({
-      randomBigNumber,
       executeFn,
       BigNumber,
       contracts,
@@ -370,7 +362,6 @@ export default [
     description: 'Redeem some of the unstaked tickets',
     fn: async ({
       executeFn,
-      randomBigNumber,
       BigNumber,
       contracts,
       randomAddressFn,

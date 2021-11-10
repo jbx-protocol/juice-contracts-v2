@@ -56,7 +56,7 @@ export default [
       randomBigNumber,
 
       randomString,
-      getBalanceFn,
+      getBalance,
       BigNumber,
       local: { expectedProjectId, owner },
     }) => {
@@ -67,7 +67,7 @@ export default [
       // So, arbitrarily divide the balance so that all payments can be made successfully.
       const paymentValue1 = randomBigNumber({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
 
       // An account that will be distributed tickets in the preconfig payment.
@@ -187,7 +187,7 @@ export default [
       contracts,
       BigNumber,
       executeFn,
-      getBalanceFn,
+      getBalance,
       randomBigNumber,
 
       randomSignerFn,
@@ -199,11 +199,11 @@ export default [
 
       const paymentValue2 = randomBigNumber({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
       const paymentValue3 = randomBigNumber({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
 
       const target = randomBigNumber({

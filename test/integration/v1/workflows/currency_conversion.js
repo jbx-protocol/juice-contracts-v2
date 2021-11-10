@@ -9,6 +9,7 @@
 */
 import {
   deployContract,
+  getBalance,
   randomBigNumber,
   randomBytes,
   randomString,
@@ -43,7 +44,6 @@ export default [
       contracts,
       executeFn,
       BigNumber,
-      getBalanceFn,
       randomSignerFn,
       incrementProjectIdFn,
       incrementFundingCycleIdFn,
@@ -64,7 +64,7 @@ export default [
       // So, arbitrarily divide the balance so that all payments can be made successfully.
       const paymentValueInWei = randomBigNumber({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(2),
+        max: (await getBalance(payer.address)).div(2),
       });
       // The target must be at most the payment value.
       const targetDenominatedInWei = randomBigNumber({
@@ -249,7 +249,6 @@ export default [
       executeFn,
       BigNumber,
       randomSignerFn,
-      getBalanceFn,
       local: { targetDenominatedInWei, rate, decimals, currency, expectedProjectId, owner },
     }) => {
       // Tap a portion of the target.
@@ -266,7 +265,7 @@ export default [
       );
 
       // Save the owner's balance before tapping.
-      const ownersInitialBalance = await getBalanceFn(owner.address);
+      const ownersInitialBalance = await getBalance(owner.address);
 
       await executeFn({
         // Exclude the owner's address to not let gas mess up the balance calculation.

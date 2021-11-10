@@ -269,7 +269,7 @@ export default [
       contracts,
       executeFn,
       randomBigNumber,
-      getBalanceFn,
+      getBalance,
       randomString,
       randomAddressFn,
 
@@ -287,7 +287,7 @@ export default [
         // Otherwise its possible that the weight amount of the payment is 0, which means no tickets will be printed,
         // which means the configuration in this test will configure the active cycle and not expect it.
         min: BigNumber.from(100),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
 
       await executeFn({

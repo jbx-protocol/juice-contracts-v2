@@ -153,7 +153,7 @@ export default [
       randomSignerFn,
       randomBigNumber,
       BigNumber,
-      getBalanceFn,
+      getBalance,
       executeFn,
       contracts,
       randomString,
@@ -167,7 +167,7 @@ export default [
       // So, arbitrarily divide the balance so that all payments can be made successfully.
       const paymentValue1 = randomBigNumber({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
 
       // The address that will receive the second batch of preconfigure tickets.
@@ -478,7 +478,7 @@ export default [
     fn: async ({
       randomBigNumber,
       BigNumber,
-      getBalanceFn,
+      getBalance,
       executeFn,
       contracts,
       randomAddressFn,
@@ -490,7 +490,7 @@ export default [
       // So, arbitrarily divide the balance so that all payments can be made successfully.
       const paymentValue2 = randomBigNumber({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
 
       await executeFn({

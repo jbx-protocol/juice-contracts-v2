@@ -177,3 +177,7 @@ export const snapshot = async () => {
 export const restore = async (id) => {
   return ethers.provider.send('evm_revert', [id]);
 }
+
+export const getBalance = (address) => {
+  return ethers.provider.getBalance(address);
+}

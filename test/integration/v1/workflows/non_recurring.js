@@ -312,7 +312,7 @@ export default [
       executeFn,
       randomBigNumber,
       BigNumber,
-      getBalanceFn,
+      getBalance,
       randomString,
       randomAddressFn,
 
@@ -326,7 +326,7 @@ export default [
       // So, arbitrarily divide the balance so that all payments can be made successfully.
       const paymentValue = randomBigNumber({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
 
       await executeFn({

@@ -1,7 +1,7 @@
 /** 
   If a funding cycle ballot fails, any subsequent reconfigurations should be based on the last approved cycle.
 */
-import { deployContract, constants } from '../../../utils';
+import { deployContract, constants, randomBytes, randomString, getBalance } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -19,10 +19,7 @@ export default [
 
       randomBigNumber,
       BigNumber,
-      randomBytes,
-      randomString,
       randomSignerFn,
-      getBalanceFn,
       incrementFundingCycleIdFn,
       incrementProjectIdFn,
     }) => {
@@ -60,7 +57,7 @@ export default [
       const paymentValue = randomBigNumber({
         // Make sure the target is arbitrarily larger than the amount that will be tapped, included fees that will be incurred.
         min: amountToTap.mul(3),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
 
       // The target of the first funding cycle should be the same as the payment value.
@@ -132,9 +129,7 @@ export default [
     fn: async ({
       contracts,
       executeFn,
-      randomString,
       randomAddressFn,
-
       timeMark,
       local: { expectedProjectId, payer, paymentValue },
     }) => {
@@ -164,7 +159,6 @@ export default [
     fn: async ({
       contracts,
       executeFn,
-      randomBigNumber,
       BigNumber,
       incrementFundingCycleIdFn,
       local: { expectedProjectId, owner },
@@ -353,7 +347,6 @@ export default [
     description: 'The current funding cycle should have the first configuration with some tapped',
     fn: async ({
       contracts,
-
       BigNumber,
       randomSignerFn,
       local: {
@@ -441,7 +434,6 @@ export default [
       'The current funding cycle should have a new funding cycle of the first configuration',
     fn: ({
       contracts,
-
       BigNumber,
       randomSignerFn,
       local: {
@@ -587,7 +579,6 @@ export default [
     description: 'The current funding cycle should not have the reconfiguration',
     fn: ({
       contracts,
-
       BigNumber,
       randomSignerFn,
       local: {
@@ -637,7 +628,6 @@ export default [
     description: 'The queued funding cycle should have the reconfiguration',
     fn: async ({
       contracts,
-
       BigNumber,
       randomSignerFn,
       local: {

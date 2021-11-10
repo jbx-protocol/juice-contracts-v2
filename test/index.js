@@ -31,9 +31,6 @@ describe('Juicebox', async function () {
       await ethers.provider.send('evm_mine');
     };
 
-    // Binds a function that gets the balance of an address.
-    this.getBalanceFn = (address) => ethers.provider.getBalance(address);
-
     // Binds the standard expect function.
     this.expectFn = _expect;
 

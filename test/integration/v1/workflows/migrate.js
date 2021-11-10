@@ -20,7 +20,7 @@ export default [
       executeFn,
       randomBigNumber,
       randomBytes,
-      getBalanceFn,
+      getBalance,
       randomSignerFn,
       incrementProjectIdFn,
       incrementFundingCycleIdFn,
@@ -40,11 +40,11 @@ export default [
       // Also make sure the first payment is well positive to make the test cases cleaner.
       const paymentValue1 = randomBigNumber({
         min: BigNumber.from(1000),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
       const paymentValue2 = randomBigNumber({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
 
       // The project's funding cycle target will be less than the payment value.
@@ -127,7 +127,7 @@ export default [
       randomString,
       randomSignerFn,
 
-      getBalanceFn,
+      getBalance,
       contracts,
       local: { payer, paymentValue1, expectedProjectId },
     }) => {
@@ -135,7 +135,7 @@ export default [
       const ticketBeneficiary = randomSignerFn();
 
       // Get the initial balance of the jucier.
-      const initialTerminalV1Balance = await getBalanceFn(contracts.terminalV1.address);
+      const initialTerminalV1Balance = await getBalance(contracts.terminalV1.address);
 
       await executeFn({
         caller: payer,
@@ -164,7 +164,7 @@ export default [
       executeFn,
       randomBigNumber,
       randomAddressFn,
-      getBalanceFn,
+      getBalance,
 
       BigNumber,
       local: { ticketBeneficiary, expectedProjectId, owner },
@@ -187,7 +187,7 @@ export default [
         exclude: [ticketBeneficiary.address, owner.address, deployer.address],
       });
 
-      const initialBalanceOfRedeemBeneficiary = await getBalanceFn(redeemBeneficiary);
+      const initialBalanceOfRedeemBeneficiary = await getBalance(redeemBeneficiary);
 
       await executeFn({
         caller: ticketBeneficiary,
@@ -337,7 +337,7 @@ export default [
   {
     description: 'The rest of the balance should be entirely in the new TerminalV1',
     fn: async ({
-      getBalanceFn,
+      getBalance,
       local: {
         paymentValue1,
         redeemBeneficiary,
@@ -351,7 +351,7 @@ export default [
         // The balance should be the amount paid minus the amount tapped and the amount claimed from redeeming tickets.
         expect: paymentValue1
           .sub(amountToTap1)
-          .sub((await getBalanceFn(redeemBeneficiary)).sub(initialBalanceOfRedeemBeneficiary)),
+          .sub((await getBalance(redeemBeneficiary)).sub(initialBalanceOfRedeemBeneficiary)),
       }),
   },
   {

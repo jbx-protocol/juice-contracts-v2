@@ -2,7 +2,7 @@
   This test is the same as the `approveBallot` test, but instead of a ballot that auto succeeds after its duration,
   the initial configuration of this test uses a ballot that auto fails after its duration.
 */
-import { deployContract, randomBigNumber, randomBytes, randomString } from '../../../utils';
+import { deployContract, getBalance, randomBigNumber, randomBytes, randomString } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -15,13 +15,10 @@ export default [
     description: 'Deploy a project',
     fn: async ({
       deployer,
-
       contracts,
       executeFn,
-
       BigNumber,
       randomSignerFn,
-      getBalanceFn,
       incrementFundingCycleIdFn,
       incrementProjectIdFn,
     }) => {
@@ -59,7 +56,7 @@ export default [
       const paymentValue = randomBigNumber({
         // Make sure the target is arbitrarily larger than the amount that will be tapped, included fees that will be incurred.
         min: amountToTap.mul(3),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
 
       // The target of the first funding cycle should be the same as the payment value.

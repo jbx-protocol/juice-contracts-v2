@@ -130,7 +130,7 @@ export default [
     fn: async ({
       contracts,
       randomBigNumber,
-      getBalanceFn,
+      getBalance,
       executeFn,
       randomString,
 
@@ -145,7 +145,7 @@ export default [
       // So, arbitrarily divide the balance so that all payments can be made successfully.
       const paymentValue = randomBigNumber({
         min: BigNumber.from(1),
-        max: (await getBalanceFn(payer.address)).div(100),
+        max: (await getBalance(payer.address)).div(100),
       });
       await executeFn({
         caller: payer,

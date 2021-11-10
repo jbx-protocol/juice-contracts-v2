@@ -5,6 +5,7 @@
 */
 import {
   deployContract,
+  getBalance,
   randomBigNumber,
   randomBytes,
   randomString,
