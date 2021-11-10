@@ -169,3 +169,11 @@ export const verifyContractGetter = async ({ caller, contract, fn, args, expect,
 export const getTimestamp = async (block) => {
   return ethers.BigNumber.from((await ethers.provider.getBlock(block || 'latest')).timestamp);
 };
+
+export const snapshot = async () => {
+  return ethers.provider.send('evm_snapshot', []);
+}
+
+export const restore = async (id) => {
+  return ethers.provider.send('evm_revert', [id]);
+}

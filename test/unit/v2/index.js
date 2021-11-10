@@ -1,10 +1,12 @@
 import jbOperatorStore from './jb_operator_store';
 import jbPrices from './jb_prices';
 
+import { snapshot, restore } from "../../utils"
+
 let snapshotId;
 export default function () {
   beforeEach(async function () {
-    snapshotId = await this.snapshotFn();
+    snapshotId = await snapshot();
     // Mark the start time of each test.
     await this.setTimeMarkFn();
   });
@@ -15,6 +17,6 @@ export default function () {
 
   // After each test, restore the contract state.
   afterEach(async function () {
-    await this.restoreFn(snapshotId);
+    await restore(snapshotId);
   });
 }
