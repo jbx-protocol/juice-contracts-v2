@@ -31,9 +31,6 @@ describe('Juicebox', async function () {
       await ethers.provider.send('evm_mine');
     };
 
-    // Binds the standard expect function.
-    this.expectFn = _expect;
-
     // Bind a function that gets a random address.
     this.randomAddressFn = ({ exclude = [] } = {}) => {
       // To test an edge condition, pick the same address more likely than not.
