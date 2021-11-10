@@ -2,7 +2,7 @@
   This test is the same as the `approveBallot` test, but instead of a ballot that auto succeeds after its duration,
   the initial configuration of this test uses a ballot that auto fails after its duration.
 */
-import { randomBigNumber, randomBytes, randomString } from '../../../utils';
+import { deployContract, randomBigNumber, randomBytes, randomString } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -18,7 +18,7 @@ export default [
 
       contracts,
       executeFn,
-      deployContractFn,
+
       BigNumber,
       randomSignerFn,
       getBalanceFn,
@@ -35,7 +35,7 @@ export default [
       const owner = randomSignerFn();
 
       // Use a ballot that fails exactly halfway through its duration.
-      const ballot = await deployContractFn('ExampleFailingFundingCycleBallot');
+      const ballot = await deployContract('ExampleFailingFundingCycleBallot');
 
       // The duration of the funding cycle should be less than the ballot duration
       const duration1 = randomBigNumber({
@@ -132,7 +132,7 @@ export default [
       contracts,
       executeFn,
       randomAddressFn,
-      
+
       timeMark,
       local: { expectedProjectId, payer, paymentValue },
     }) => {

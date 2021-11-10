@@ -501,7 +501,7 @@ export default [
       executeFn,
       contracts,
       randomAddressFn,
-      
+
       local: { expectedProjectId, ticketBeneficiary, amountToLock },
     }) => {
       // Try redeeming everything except what was transfered away.
@@ -582,7 +582,7 @@ export default [
       executeFn,
       contracts,
       randomAddressFn,
-      
+
       local: {
         expectedProjectId,
         ticketBeneficiary,

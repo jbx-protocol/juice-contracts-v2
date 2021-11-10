@@ -8,7 +8,7 @@
   If a project reconfigures its funding cycle, new mods can be set that override any locked payout mods.
   These new mods will take effect once the reconfigured funding cycle becomes active.
 */
-import { constants } from '../../../utils';
+import { constants, deployContract } from '../../../utils';
 
 export default [
   {
@@ -21,7 +21,7 @@ export default [
       randomBigNumber,
       randomBytes,
       getTimestampFn,
-      
+
       randomString,
       randomAddressFn,
       incrementFundingCycleIdFn,
@@ -158,8 +158,7 @@ export default [
       contracts,
       executeFn,
       BigNumber,
-      deployContractFn,
-      
+
       randomAddressFn,
       timeMark,
       local: { owner, expectedProjectId, unlockedMod1 },
@@ -173,7 +172,7 @@ export default [
         }).toNumber(),
         lockedUntil: 0,
         beneficiary: randomAddressFn(),
-        allocator: (await deployContractFn('ExampleModAllocator')).address,
+        allocator: (await deployContract('ExampleModAllocator')).address,
         projectId: BigNumber.from(0),
       };
       await executeFn({

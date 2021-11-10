@@ -1,4 +1,4 @@
-import { deployMockLocalContract } from '../../../utils';
+import { deployContract, deployMockLocalContract } from '../../../utils';
 
 import pay from './pay';
 import setOperator from './set_operator';
@@ -18,7 +18,7 @@ export default function () {
     this.terminalDirectory = await deployMockLocalContract('TerminalDirectory');
 
     // Deploy the contract.
-    this.contract = await this.deployContractFn(contractName, [
+    this.contract = await deployContract(contractName, [
       this.projectId,
       this.terminalDirectory.address,
     ]);

@@ -6,7 +6,7 @@
    - The old terminal can no longer receive funds or print tickets.
    - All funds will migrate to the new terminal for users to tap and redeem tickets on.
 */
-import { verifyBalance } from '../../../utils';
+import { deployContract, verifyBalance } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -126,7 +126,7 @@ export default [
       executeFn,
       randomString,
       randomSignerFn,
-      
+
       getBalanceFn,
       contracts,
       local: { payer, paymentValue1, expectedProjectId },
@@ -165,7 +165,7 @@ export default [
       randomBigNumber,
       randomAddressFn,
       getBalanceFn,
-      
+
       BigNumber,
       local: { ticketBeneficiary, expectedProjectId, owner },
     }) => {
@@ -242,9 +242,9 @@ export default [
   },
   {
     description: "Migrating to a new terminalV1 shouldn't work because it hasn't been allowed yet",
-    fn: async ({ contracts, executeFn, deployContractFn, local: { owner, expectedProjectId } }) => {
+    fn: async ({ contracts, executeFn, local: { owner, expectedProjectId } }) => {
       // The terminalV1 that will be migrated to.
-      const secondTerminalV1 = await deployContractFn('TerminalV1', [
+      const secondTerminalV1 = await deployContract('TerminalV1', [
         contracts.projects.address,
         contracts.fundingCycles.address,
         contracts.ticketBooth.address,
@@ -371,7 +371,7 @@ export default [
       contracts,
       executeFn,
       randomAddressFn,
-      
+
       randomString,
       local: { payer, paymentValue2, expectedProjectId },
     }) =>
@@ -403,7 +403,7 @@ export default [
     fn: ({
       executeFn,
       randomAddressFn,
-      
+
       local: {
         leftoverRedeemableTicketsOfTicketBeneficiary,
         ticketBeneficiary,
@@ -430,7 +430,7 @@ export default [
     fn: ({
       executeFn,
       randomAddressFn,
-      
+
       local: { reservedTicketAmount, owner, reservedRate, expectedProjectId, secondTerminalV1 },
     }) =>
       executeFn({
@@ -453,7 +453,7 @@ export default [
     fn: ({
       executeFn,
       randomAddressFn,
-      
+
       randomString,
       local: { payer, paymentValue2, expectedProjectId, secondTerminalV1 },
     }) =>

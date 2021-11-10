@@ -118,7 +118,7 @@ export default [
       executeFn,
       contracts,
       randomString,
-      
+
       local: { expectedProjectId, payer, paymentValue1 },
     }) => {
       // An account that will be distributed tickets in the first payment.
@@ -487,7 +487,7 @@ export default [
     fn: async ({
       executeFn,
       randomAddressFn,
-      
+
       contracts,
       BigNumber,
       local: { ticketBeneficiary, expectedProjectId },

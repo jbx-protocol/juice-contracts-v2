@@ -1,4 +1,4 @@
-import { deployMockLocalContract } from '../../../utils';
+import { deployContract, deployMockLocalContract } from '../../../utils';
 
 import challengeHandle from './challenge_handle';
 import claimHandle from './claim_handle';
@@ -17,7 +17,7 @@ export default function () {
     this.operatorStore = await deployMockLocalContract('OperatorStore');
 
     // Deploy the contract.
-    this.contract = await this.deployContractFn(contractName, [this.operatorStore.address]);
+    this.contract = await deployContract(contractName, [this.operatorStore.address]);
   });
 
   // Test each function.

@@ -1,4 +1,4 @@
-import { deployMockLocalContract } from '../../../utils';
+import { deployContract, deployMockLocalContract } from '../../../utils';
 
 import addPriceFeed from './add_price_feed';
 import allowMigration from './allow_migration';
@@ -15,7 +15,7 @@ export default function () {
     this.terminalDirectory = await deployMockLocalContract('TerminalDirectory');
 
     // Deploy the contract.
-    this.contract = await this.deployContractFn(contractName, [
+    this.contract = await deployContract(contractName, [
       this.projectId,
       this.terminalDirectory.address,
     ]);

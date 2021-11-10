@@ -3,7 +3,7 @@
   
   If approved, a the reconfigured funding cycle will take affect after the current funding cycle expires.
 */
-import { randomBigNumber, randomBytes, randomString } from '../../../utils';
+import { deployContract, randomBigNumber, randomBytes, randomString } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -19,7 +19,7 @@ export default [
 
       contracts,
       executeFn,
-      deployContractFn,
+
       BigNumber,
       randomSignerFn,
       getBalanceFn,
@@ -36,7 +36,7 @@ export default [
       const owner = randomSignerFn();
 
       // Use a ballot that has a fixed approval time one its duration passes.
-      const ballot = await deployContractFn('Active14DaysFundingCycleBallot');
+      const ballot = await deployContract('Active14DaysFundingCycleBallot');
 
       // The duration of the funding cycle should be less than the ballot duration
       const duration1 = randomBigNumber({
@@ -133,7 +133,7 @@ export default [
       contracts,
       executeFn,
       randomAddressFn,
-      
+
       timeMark,
       local: { expectedProjectId, payer, paymentValue },
     }) => {

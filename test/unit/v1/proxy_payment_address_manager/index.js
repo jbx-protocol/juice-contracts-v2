@@ -1,4 +1,4 @@
-import { deployMockLocalContract } from '../../../utils';
+import { deployContract, deployMockLocalContract } from '../../../utils';
 
 import deployProxyPaymentAddress from './deploy_proxy_payment_address';
 
@@ -12,7 +12,7 @@ export default function () {
     this.ticketBooth = await deployMockLocalContract('TicketBooth');
 
     // Deploy the contract.
-    this.contract = await this.deployContractFn(contractName, [
+    this.contract = await deployContract(contractName, [
       this.terminalDirectory.address,
       this.ticketBooth.address,
     ]);

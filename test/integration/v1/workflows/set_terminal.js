@@ -2,7 +2,7 @@
   A project can be created without specifying a payment terminal. 
   The project will have to set a terminal before it can print tickets or configure its funding cycles.
 */
-import { constants } from '../../../utils';
+import { constants, deployContract } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -60,7 +60,7 @@ export default [
       BigNumber,
       randomString,
       randomAddressFn,
-      
+
       local: { expectedProjectId, owner },
     }) =>
       executeFn({
@@ -133,7 +133,7 @@ export default [
       getBalanceFn,
       executeFn,
       randomString,
-      
+
       randomAddressFn,
       randomSignerFn,
       BigNumber,
@@ -177,7 +177,6 @@ export default [
       BigNumber,
       randomString,
       randomAddressFn,
-      
 
       local: { expectedProjectId, owner },
     }) =>
@@ -252,7 +251,7 @@ export default [
       contracts,
       randomAddressFn,
       randomString,
-      
+
       local: { expectedProjectId, payer, paymentValue },
     }) =>
       executeFn({
@@ -266,9 +265,9 @@ export default [
   {
     description:
       'Setting a new terminal before migration to it has been allowed shouldnt be allowed',
-    fn: async ({ executeFn, contracts, deployContractFn, local: { expectedProjectId, owner } }) => {
+    fn: async ({ executeFn, contracts, local: { expectedProjectId, owner } }) => {
       // The terminalV1 that will be migrated to.
-      const secondTerminalV1 = await deployContractFn('TerminalV1', [
+      const secondTerminalV1 = await deployContract('TerminalV1', [
         contracts.projects.address,
         contracts.fundingCycles.address,
         contracts.ticketBooth.address,

@@ -35,12 +35,6 @@ describe('Juicebox', async function () {
       await ethers.provider.send('evm_mine');
     };
 
-    // Bind a reference to a function that can deploy a contract on the local network.
-    this.deployContractFn = async (contractName, args = []) => {
-      const artifacts = await ethers.getContractFactory(contractName);
-      return artifacts.deploy(...args);
-    };
-
     // Bind a function that mocks a contract function's execution with the provided args to return the provided values.
     this.mockFn = async ({ mockContract, fn, args, returns = [] }) => {
       // The `args` can be a function or an array.

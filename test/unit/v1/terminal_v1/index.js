@@ -1,4 +1,4 @@
-import { deployMockLocalContract } from '../../../utils';
+import { deployContract, deployMockLocalContract } from '../../../utils';
 
 import acceptGovernance from './accept_governance';
 import addToBalance from './add_to_balance';
@@ -54,7 +54,7 @@ export default function () {
       modStore,
     };
 
-    this.targetContract = await this.deployContractFn(contractName, [
+    this.targetContract = await deployContract(contractName, [
       projects.address,
       fundingCycles.address,
       ticketBooth.address,

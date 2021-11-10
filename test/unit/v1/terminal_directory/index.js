@@ -1,4 +1,4 @@
-import { deployMockLocalContract } from '../../../utils';
+import { deployContract, deployMockLocalContract } from '../../../utils';
 
 import deployAddress from './deploy_address';
 import setPayerPreferences from './set_payer_preferences';
@@ -14,7 +14,7 @@ export default function () {
     this.operatorStore = await deployMockLocalContract('OperatorStore');
 
     // Deploy the contract.
-    this.contract = await this.deployContractFn(contractName, [
+    this.contract = await deployContract(contractName, [
       this.projects.address,
       this.operatorStore.address,
     ]);

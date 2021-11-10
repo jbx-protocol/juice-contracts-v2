@@ -424,7 +424,7 @@ export default [
       BigNumber,
       randomString,
       randomAddressFn,
-      
+
       local: { owner, expectedProjectId },
     }) =>
       executeFn({
@@ -550,7 +550,7 @@ export default [
       getBalanceFn,
       randomString,
       randomAddressFn,
-      
+
       randomSignerFn,
       BigNumber,
       local: { expectedProjectId },

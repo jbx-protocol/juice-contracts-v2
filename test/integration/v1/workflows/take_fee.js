@@ -4,7 +4,7 @@
 
 import { BigNumber } from 'ethers';
 
-import { constants } from '../../../utils';
+import { constants, deployContract } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -101,7 +101,7 @@ export default [
     fn: ({
       contracts,
       executeFn,
-      
+
       randomString,
       randomAddressFn,
       local: { payer, paymentValue, expectedProjectId },
@@ -174,9 +174,9 @@ export default [
   },
   {
     description: 'Allow migration to a new terminalV1',
-    fn: async ({ deployer, contracts, executeFn, deployContractFn }) => {
+    fn: async ({ deployer, contracts, executeFn }) => {
       // The terminalV1 that will be migrated to.
-      const secondTerminalV1 = await deployContractFn('TerminalV1', [
+      const secondTerminalV1 = await deployContract('TerminalV1', [
         contracts.projects.address,
         contracts.fundingCycles.address,
         contracts.ticketBooth.address,

@@ -1,4 +1,4 @@
-import { deployMockLocalContract } from '../../../utils';
+import { deployContract, deployMockLocalContract } from '../../../utils';
 
 import setPaymentMods from './set_payment_mods';
 import setTicketMods from './set_ticket_mods';
@@ -15,7 +15,7 @@ export default function () {
     this.modAllocator = await deployMockLocalContract('ExampleModAllocator');
 
     // Deploy the contract.
-    this.contract = await this.deployContractFn(contractName, [
+    this.contract = await deployContract(contractName, [
       this.projects.address,
       this.operatorStore.address,
       this.terminalDirectory.address,

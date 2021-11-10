@@ -6,6 +6,7 @@
 
   Payment mods allow payouts to automatically be sent to either an address, another project on Juicebox, or a contract that inherits from IModAllocator.
 */
+import { deployContract } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -17,10 +18,10 @@ export default [
       contracts,
       executeFn,
       BigNumber,
-      deployContractFn,
+
       randomBigNumber,
       getBalanceFn,
-      
+
       randomString,
       randomAddressFn,
       incrementProjectIdFn,
@@ -101,7 +102,7 @@ export default [
         percent: percent3.toNumber(),
         lockedUntil: 0,
         beneficiary: randomAddressFn(),
-        allocator: (await deployContractFn('ExampleModAllocator')).address,
+        allocator: (await deployContract('ExampleModAllocator')).address,
         projectId: BigNumber.from(0),
       };
 
@@ -296,7 +297,7 @@ export default [
     fn: ({
       contracts,
       executeFn,
-      
+
       randomString,
       randomAddressFn,
       local: { payer, paymentValue1, expectedIdOfBaseProject },
@@ -504,7 +505,7 @@ export default [
       executeFn,
       BigNumber,
       randomBigNumber,
-      
+
       randomString,
       randomAddressFn,
       local: { payer, expectedIdOfBaseProject, target },

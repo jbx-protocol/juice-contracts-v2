@@ -1,3 +1,5 @@
+import { deployContract } from '../../../utils';
+
 import hasPermission from './has_permission';
 import hasPermissions from './has_permissions';
 import setOperator from './set_operator';
@@ -9,7 +11,7 @@ export default function () {
   // Before the tests, deploy the contract.
   before(async function () {
     // Deploy the contract.
-    this.contract = await this.deployContractFn(contractName);
+    this.contract = await deployContract(contractName);
   });
 
   // Test each function.

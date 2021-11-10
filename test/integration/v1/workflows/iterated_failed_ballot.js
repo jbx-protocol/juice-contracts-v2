@@ -1,7 +1,7 @@
 /** 
   If a funding cycle ballot fails, any subsequent reconfigurations should be based on the last approved cycle.
 */
-import { constants } from "../../../utils";
+import { deployContract, constants } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -16,7 +16,7 @@ export default [
       deployer,
       contracts,
       executeFn,
-      deployContractFn,
+
       randomBigNumber,
       BigNumber,
       randomBytes,
@@ -36,7 +36,7 @@ export default [
       const owner = randomSignerFn();
 
       // Use a ballot that fails exactly halfway through its duration.
-      const ballot = await deployContractFn('ExampleFailingFundingCycleBallot');
+      const ballot = await deployContract('ExampleFailingFundingCycleBallot');
 
       // The duration of the funding cycle should be less than the ballot duration
       const duration1 = randomBigNumber({
@@ -134,7 +134,7 @@ export default [
       executeFn,
       randomString,
       randomAddressFn,
-      
+
       timeMark,
       local: { expectedProjectId, payer, paymentValue },
     }) => {

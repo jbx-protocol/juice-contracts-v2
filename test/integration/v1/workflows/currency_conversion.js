@@ -7,14 +7,20 @@
 
   This test makes sure the conversion rates are honored.
 */
-import { randomBigNumber, randomBytes, randomString, verifyBalance } from '../../../utils';
+import {
+  deployContract,
+  randomBigNumber,
+  randomBytes,
+  randomString,
+  verifyBalance,
+} from '../../../utils';
 
 export default [
   {
     description: 'Add the price feed to the prices contract',
-    fn: async ({ deployer, contracts, executeFn, deployContractFn, incrementCurrencyFn }) => {
+    fn: async ({ deployer, contracts, executeFn, incrementCurrencyFn }) => {
       // An example price feed.
-      const priceFeed = await deployContractFn('ExampleETHUSDPriceFeed');
+      const priceFeed = await deployContract('ExampleETHUSDPriceFeed');
       const [, rate] = await priceFeed.latestRoundData();
       // The amount of decimals the price should be adjusted for.
       const decimals = await priceFeed.decimals();
@@ -124,7 +130,7 @@ export default [
       contracts,
       executeFn,
       BigNumber,
-      
+
       randomAddressFn,
       local: { owner, rate, decimals, currency, expectedProjectId },
     }) => {
@@ -179,7 +185,7 @@ export default [
     fn: async ({
       contracts,
       executeFn,
-      
+
       randomAddressFn,
       local: { payer, paymentValueInWei, expectedProjectId, premineTicketBeneficiary },
     }) => {

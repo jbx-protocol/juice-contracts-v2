@@ -18,7 +18,7 @@ export default [
       randomBigNumber,
       randomBytes,
       getTimestampFn,
-      
+
       randomString,
       randomAddressFn,
       randomSignerFn,
@@ -139,7 +139,7 @@ export default [
     fn: async ({
       contracts,
       executeFn,
-      
+
       randomAddressFn,
       timeMark,
       randomBigNumber,

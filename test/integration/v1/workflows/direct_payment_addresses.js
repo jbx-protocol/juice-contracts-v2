@@ -3,7 +3,7 @@
 */
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
-import { randomBigNumber, randomBytes, randomString } from '../../../utils';
+import { deployContract, randomBigNumber, randomBytes, randomString } from '../../../utils';
 
 const currency = 0;
 
@@ -152,7 +152,7 @@ export default [
   },
   {
     description: 'Set a beneficiary address and staked ticket preference',
-    fn: async ({ contracts, executeFn,  randomAddressFn, local: { payer } }) => {
+    fn: async ({ contracts, executeFn, randomAddressFn, local: { payer } }) => {
       // The beneficiary to give tickets to.
       // Exclude the payers address to make the test cases cleaner.
       const payerTicketBeneficiary = randomAddressFn({
@@ -253,9 +253,9 @@ export default [
   },
   {
     description: 'Allow a migration to the new terminal',
-    fn: async ({ deployer, contracts, executeFn, deployContractFn }) => {
+    fn: async ({ deployer, contracts, executeFn }) => {
       // The terminalV1 that will be migrated to.
-      const secondTerminalV1 = await deployContractFn('TerminalV1', [
+      const secondTerminalV1 = await deployContract('TerminalV1', [
         contracts.projects.address,
         contracts.fundingCycles.address,
         contracts.ticketBooth.address,
@@ -328,7 +328,7 @@ export default [
   },
   {
     description: 'Set a beneficiary address back to the paying address',
-    fn: ({ contracts, executeFn,  local: { payer } }) =>
+    fn: ({ contracts, executeFn, local: { payer } }) =>
       executeFn({
         caller: payer,
         contract: contracts.terminalDirectory,

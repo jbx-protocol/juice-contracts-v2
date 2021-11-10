@@ -1,7 +1,7 @@
 /** 
   A funding cycle configuration can have a discount rate of of 0. This makes it non recurring.
 */
-import { constants } from "../../../utils";
+import { constants } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -230,13 +230,7 @@ export default [
   },
   {
     description: 'There should be no queued cycle',
-    fn: ({
-      contracts,
-      checkFn,
-      randomSignerFn,
-      BigNumber,
-      local: { expectedProjectId },
-    }) =>
+    fn: ({ contracts, checkFn, randomSignerFn, BigNumber, local: { expectedProjectId } }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
@@ -321,7 +315,7 @@ export default [
       getBalanceFn,
       randomString,
       randomAddressFn,
-      
+
       randomSignerFn,
       local: { expectedProjectId },
     }) => {
@@ -396,13 +390,7 @@ export default [
   },
   {
     description: 'There should be no current cycle',
-    fn: ({
-      contracts,
-      checkFn,
-      randomSignerFn,
-      BigNumber,
-      local: { expectedProjectId },
-    }) =>
+    fn: ({ contracts, checkFn, randomSignerFn, BigNumber, local: { expectedProjectId } }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,
@@ -430,13 +418,7 @@ export default [
   },
   {
     description: 'There should be no queued cycle',
-    fn: ({
-      contracts,
-      checkFn,
-      randomSignerFn,
-      BigNumber,
-      local: { expectedProjectId },
-    }) =>
+    fn: ({ contracts, checkFn, randomSignerFn, BigNumber, local: { expectedProjectId } }) =>
       checkFn({
         caller: randomSignerFn(),
         contract: contracts.fundingCycles,

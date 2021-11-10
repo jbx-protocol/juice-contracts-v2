@@ -272,7 +272,7 @@ export default [
       getBalanceFn,
       randomString,
       randomAddressFn,
-      
+
       randomSignerFn,
       BigNumber,
       local: { expectedProjectId },

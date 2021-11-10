@@ -1,4 +1,4 @@
-import { deployMockLocalContract } from '../../../utils';
+import { deployContract, deployMockLocalContract } from '../../../utils';
 
 import balanceOf from './balance_of';
 import issue from './issue';
@@ -22,7 +22,7 @@ export default function () {
     this.terminalDirectory = await deployMockLocalContract('TerminalDirectory');
 
     // Deploy the contract.
-    this.contract = await this.deployContractFn(contractName, [
+    this.contract = await deployContract(contractName, [
       this.projects.address,
       this.operatorStore.address,
       this.terminalDirectory.address,

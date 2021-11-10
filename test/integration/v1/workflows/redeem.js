@@ -7,7 +7,7 @@
   If a project has an active reconfiguration ballot, the reconfiguration bonding curve should be used,
   instead of the regular bonding curve.
 */
-import { verifyBalance } from '../../../utils';
+import { deployContract, verifyBalance } from '../../../utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;
@@ -27,7 +27,6 @@ export default [
       contracts,
       incrementProjectIdFn,
       incrementFundingCycleIdFn,
-      deployContractFn,
     }) => {
       const expectedProjectId = incrementProjectIdFn();
 
@@ -81,7 +80,7 @@ export default [
       });
 
       // Use a ballot that has a fixed approval time.
-      const ballot = await deployContractFn('Active14DaysFundingCycleBallot');
+      const ballot = await deployContract('Active14DaysFundingCycleBallot');
 
       // The duration of the ballot, after which it is approved.
       const ballotDurationInDays = (await ballot.duration()).div(86400);
@@ -144,7 +143,7 @@ export default [
     description: 'Make a payment to the project',
     fn: async ({
       executeFn,
-      
+
       randomString,
       randomSignerFn,
       contracts,
@@ -170,7 +169,7 @@ export default [
     description: "Can't redeem with no overflow",
     fn: async ({
       executeFn,
-      
+
       randomAddressFn,
       contracts,
       BigNumber,
@@ -212,7 +211,7 @@ export default [
       executeFn,
       contracts,
       randomString,
-      
+
       local: { payer, expectedProjectId, paymentValue2, owner, ticketBeneficiary1 },
     }) => {
       // An account that will be distributed tickets in the second payment.
@@ -234,7 +233,7 @@ export default [
     description: 'Make a third payment to the project, sending tickets to a different beneficiary',
     fn: async ({
       executeFn,
-      
+
       randomString,
       randomSignerFn,
       contracts,
@@ -375,7 +374,6 @@ export default [
   {
     description: 'The first ticket beneficiary tickets can be redeemed successfully',
     fn: async ({
-      
       contracts,
       executeFn,
       getBalanceFn,
@@ -617,7 +615,6 @@ export default [
   {
     description: 'The second ticket beneficiary tickets can be redeemed successfully',
     fn: async ({
-      
       contracts,
       executeFn,
       getBalanceFn,
@@ -823,7 +820,6 @@ export default [
   {
     description: 'The third ticket beneficiary tickets can be redeemed successfully',
     fn: async ({
-      
       contracts,
       executeFn,
       getBalanceFn,
@@ -1081,7 +1077,7 @@ export default [
     fn: async ({
       executeFn,
       contracts,
-      
+
       getBalanceFn,
       randomAddressFn,
       BigNumber,

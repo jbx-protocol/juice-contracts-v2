@@ -55,7 +55,7 @@ export default [
     description: 'Print some premined tickets',
     fn: async ({
       randomSignerFn,
-      
+
       randomBigNumber,
       BigNumber,
       executeFn,
@@ -157,7 +157,7 @@ export default [
       executeFn,
       contracts,
       randomString,
-      
+
       local: { expectedProjectId },
     }) => {
       // An account that will be used to make payments.
@@ -331,7 +331,7 @@ export default [
       randomBigNumber,
       executeFn,
       BigNumber,
-      
+
       randomSignerFn,
       randomString,
       contracts,
@@ -485,7 +485,7 @@ export default [
       contracts,
       randomAddressFn,
       randomString,
-      
+
       local: { expectedProjectId, payer },
     }) => {
       // One payment will be made. Cant pay entire balance because some is needed for gas.
@@ -523,7 +523,7 @@ export default [
       randomBigNumber,
       randomString,
       randomAddressFn,
-      
+
       BigNumber,
       local: { owner, expectedProjectId },
     }) =>

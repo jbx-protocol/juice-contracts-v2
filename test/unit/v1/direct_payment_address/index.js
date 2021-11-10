@@ -1,4 +1,4 @@
-import { deployMockLocalContract } from '../../../utils';
+import { deployContract, deployMockLocalContract } from '../../../utils';
 
 import receive from './receive';
 
@@ -14,7 +14,7 @@ export default function () {
     this.memo = 'some-memo';
 
     // Deploy the contract.
-    this.contract = await this.deployContractFn(contractName, [
+    this.contract = await deployContract(contractName, [
       this.terminalDirectory.address,
       this.projectId,
       this.memo,

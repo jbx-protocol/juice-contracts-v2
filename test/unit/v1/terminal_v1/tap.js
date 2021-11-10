@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { BigNumber, utils } from 'ethers';
 
-import { deployMockLocalContract } from '../../../utils';
+import { deployContract, deployMockLocalContract } from '../../../utils';
 
 const mockFn =
   ({ condition, mockContract, fn, args, returns = [] }) =>
@@ -196,7 +196,7 @@ const tests = {
 };
 
 const ops =
-  ({ deployer, addrs, mockContracts, deployContractFn, contractName }) =>
+  ({ deployer, addrs, mockContracts, contractName }) =>
   async (custom) => {
     const {
       caller = deployer,
@@ -296,7 +296,7 @@ const ops =
       govProjectId,
       mockContracts.terminalDirectory.address,
     ]);
-    const targetContract = await deployContractFn(contractName, [
+    const targetContract = await deployContract(contractName, [
       mockContracts.projects.address,
       mockContracts.fundingCycles.address,
       mockContracts.ticketBooth.address,

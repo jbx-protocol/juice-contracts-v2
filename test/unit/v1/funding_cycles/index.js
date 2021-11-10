@@ -14,7 +14,7 @@
 */
 process.env.INCLUDE_TIME_EDGE_CASE_TEST = false;
 
-import { deployMockLocalContract } from '../../../utils';
+import { deployContract, deployMockLocalContract } from '../../../utils';
 
 import configure from './configure';
 import currentBallotStateOf from './current_ballot_state_of';
@@ -32,7 +32,7 @@ export default function () {
     this.terminalDirectory = await deployMockLocalContract('TerminalDirectory');
 
     // Deploy the contract.
-    this.contract = await this.deployContractFn(contractName, [this.terminalDirectory.address]);
+    this.contract = await deployContract(contractName, [this.terminalDirectory.address]);
   });
 
   // Test each function.

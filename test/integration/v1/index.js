@@ -1,4 +1,5 @@
 import { BigNumber, utils } from 'ethers';
+import { deployContract } from '../../utils';
 import {
   projects as _projects,
   challengeHandle,
@@ -55,30 +56,30 @@ const run = function (ops) {
 export default function () {
   // Deploy all contracts.
   before(async function () {
-    const operatorStore = await this.deployContractFn('OperatorStore');
-    const projects = await this.deployContractFn('Projects', [operatorStore.address]);
-    const prices = await this.deployContractFn('Prices');
-    const terminalDirectory = await this.deployContractFn('TerminalDirectory', [
+    const operatorStore = await deployContract('OperatorStore');
+    const projects = await deployContract('Projects', [operatorStore.address]);
+    const prices = await deployContract('Prices');
+    const terminalDirectory = await deployContract('TerminalDirectory', [
       projects.address,
       operatorStore.address,
     ]);
-    const fundingCycles = await this.deployContractFn('FundingCycles', [terminalDirectory.address]);
+    const fundingCycles = await deployContract('FundingCycles', [terminalDirectory.address]);
 
-    const ticketBooth = await this.deployContractFn('TicketBooth', [
-      projects.address,
-      operatorStore.address,
-      terminalDirectory.address,
-    ]);
-
-    const modStore = await this.deployContractFn('ModStore', [
+    const ticketBooth = await deployContract('TicketBooth', [
       projects.address,
       operatorStore.address,
       terminalDirectory.address,
     ]);
 
-    const governance = await this.deployContractFn('Governance', [1, terminalDirectory.address]);
+    const modStore = await deployContract('ModStore', [
+      projects.address,
+      operatorStore.address,
+      terminalDirectory.address,
+    ]);
 
-    const terminalV1 = await this.deployContractFn('TerminalV1', [
+    const governance = await deployContract('Governance', [1, terminalDirectory.address]);
+
+    const terminalV1 = await deployContract('TerminalV1', [
       projects.address,
       fundingCycles.address,
       ticketBooth.address,
@@ -89,7 +90,7 @@ export default function () {
       governance.address,
     ]);
 
-    const proxyPaymentAddressManager = await this.deployContractFn('ProxyPaymentAddressManager', [
+    const proxyPaymentAddressManager = await deployContract('ProxyPaymentAddressManager', [
       terminalDirectory.address,
       ticketBooth.address,
     ]);

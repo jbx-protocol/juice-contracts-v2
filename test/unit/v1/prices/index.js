@@ -1,6 +1,6 @@
 import { compilerOutput } from '@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json';
 
-import { deployMockContract } from '../../../utils';
+import { deployContract, deployMockContract } from '../../../utils';
 
 import addFeed from './add_feed';
 import getEthPriceFor from './get_eth_price_for';
@@ -14,7 +14,7 @@ export default function () {
     this.aggregatorV3Contract = await deployMockContract(compilerOutput.abi);
 
     // Deploy the contract.
-    this.contract = await this.deployContractFn(contractName);
+    this.contract = await deployContract(contractName);
   });
 
   // Test each function.

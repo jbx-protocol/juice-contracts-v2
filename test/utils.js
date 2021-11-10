@@ -35,6 +35,12 @@ export const constants = {
   MaxUint8: ethers.BigNumber.from(2).pow(8).sub(1),
 };
 
+// Bind a reference to a function that can deploy a contract on the local network.
+export const deployContract = async (contractName, args = []) => {
+  const artifacts = await ethers.getContractFactory(contractName);
+  return artifacts.deploy(...args);
+};
+
 export const deployMockContract = async (abi) => {
   return _deployMockContract(await deployer(), abi);
 };
