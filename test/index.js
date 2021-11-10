@@ -59,11 +59,6 @@ describe('Juicebox', async function () {
       if (exclude.includes(candidate.address)) return this.randomSignerFn({ exclude });
       return candidate;
     };
-
-    // Bind the big number utils.
-    this.BigNumber = ethers.BigNumber;
-
-    this.stringToBytes = ethers.utils.formatBytes32String;
   });
 
   // Before each test, take a snapshot of the contract state.

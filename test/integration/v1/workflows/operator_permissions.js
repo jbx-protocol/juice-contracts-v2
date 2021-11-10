@@ -5,6 +5,8 @@
   Test to make sure each function that can be operated 
   handles authorization correctly.
 */
+import { ethers } from "hardhat"
+
 import { constants } from '../../../utils';
 
 const operations = [
@@ -80,10 +82,10 @@ const operations = [
     }),
   },
   {
-    expand: ({ stringToBytes, local: { expectedProjectId } }) => ({
+    expand: ({ local: { expectedProjectId } }) => ({
       contract: contracts.projects,
       fn: 'setHandle',
-      args: [expectedProjectId, stringToBytes('')],
+      args: [expectedProjectId, ethers.utils.formatBytes32String('')],
       domain: expectedProjectId,
       permissionIndex: 5,
       authorizedRevert: 'Projects::setHandle: EMPTY_HANDLE',
@@ -99,10 +101,10 @@ const operations = [
     }),
   },
   {
-    expand: ({ contracts, stringToBytes, local: { expectedProjectId } }) => ({
+    expand: ({ contracts, local: { expectedProjectId } }) => ({
       contract: contracts.projects,
       fn: 'transferHandle',
-      args: [expectedProjectId, constants.AddressZero, stringToBytes('')],
+      args: [expectedProjectId, constants.AddressZero, ethers.utils.formatBytes32String('')],
       domain: expectedProjectId,
       permissionIndex: 5,
       authorizedRevert: 'Projects::transferHandle: EMPTY_HANDLE',
@@ -596,85 +598,85 @@ export default [
         // Check for wildcard authorization if needed.
         ...(allowWildcard
           ? [
-              {
-                description: "Remove the operator's permission from domain",
-                fn: ({ executeFn, contracts, local: { operator, owner, domain } }) =>
-                  executeFn({
-                    caller: owner,
-                    contract: contracts.operatorStore,
-                    fn: 'setOperator',
-                    args: [operator.address, domain, []],
-                  }),
-              },
-              {
-                description: 'The operator should no longer have permission over this domain',
-                fn: ({
-                  randomSignerFn,
-                  contracts,
-                  local: { operator, domain, owner, permissionIndex },
-                }) =>
-                  verifyContractGetter({
-                    caller: randomSignerFn(),
-                    contract: contracts.operatorStore,
-                    fn: 'hasPermission',
-                    args: [operator.address, owner.address, domain, [permissionIndex]],
-                    expect: false,
-                  }),
-              },
-              {
-                description: 'Give the operator permission over the wildcard',
-                fn: ({ executeFn, contracts, local: { operator, owner, permissionIndex } }) =>
-                  executeFn({
-                    caller: owner,
-                    contract: contracts.operatorStore,
-                    fn: 'setOperator',
-                    args: [operator.address, 0, [permissionIndex]],
-                  }),
-              },
-              {
-                description: 'The operator should now have permission over the wildcard',
-                fn: ({ randomSignerFn, contracts, local: { operator, owner, permissionIndex } }) =>
-                  verifyContractGetter({
-                    caller: randomSignerFn(),
-                    contract: contracts.operatorStore,
-                    fn: 'hasPermission',
-                    args: [operator.address, owner.address, 0, [permissionIndex]],
-                    expect: true,
-                  }),
-              },
-              {
-                description: 'Should still be authorized',
-                fn: ({ executeFn, local: { operator, contract, fn, args, authorizedRevert } }) =>
-                  executeFn({
-                    caller: operator,
-                    contract,
-                    fn,
-                    args,
-                    revert: authorizedRevert,
-                  }),
-              },
-              {
-                description: 'Remove permission from wildcard',
-                fn: ({ executeFn, contracts, local: { operator, owner } }) =>
-                  executeFn({
-                    caller: owner,
-                    contract: contracts.operatorStore,
-                    fn: 'setOperator',
-                    args: [operator.address, 0, []],
-                  }),
-              },
-              {
-                description: 'The operator should no longer have permission over the wildcard',
-                fn: ({ contracts, randomSignerFn, local: { operator, permissionIndex, owner } }) =>
-                  verifyContractGetter({
-                    caller: randomSignerFn(),
-                    contract: contracts.operatorStore,
-                    fn: 'hasPermission',
-                    args: [operator.address, owner.address, 0, [permissionIndex]],
-                    expect: false,
-                  }),
-              },
-            ]
+            {
+              description: "Remove the operator's permission from domain",
+              fn: ({ executeFn, contracts, local: { operator, owner, domain } }) =>
+                executeFn({
+                  caller: owner,
+                  contract: contracts.operatorStore,
+                  fn: 'setOperator',
+                  args: [operator.address, domain, []],
+                }),
+            },
+            {
+              description: 'The operator should no longer have permission over this domain',
+              fn: ({
+                randomSignerFn,
+                contracts,
+                local: { operator, domain, owner, permissionIndex },
+              }) =>
+                verifyContractGetter({
+                  caller: randomSignerFn(),
+                  contract: contracts.operatorStore,
+                  fn: 'hasPermission',
+                  args: [operator.address, owner.address, domain, [permissionIndex]],
+                  expect: false,
+                }),
+            },
+            {
+              description: 'Give the operator permission over the wildcard',
+              fn: ({ executeFn, contracts, local: { operator, owner, permissionIndex } }) =>
+                executeFn({
+                  caller: owner,
+                  contract: contracts.operatorStore,
+                  fn: 'setOperator',
+                  args: [operator.address, 0, [permissionIndex]],
+                }),
+            },
+            {
+              description: 'The operator should now have permission over the wildcard',
+              fn: ({ randomSignerFn, contracts, local: { operator, owner, permissionIndex } }) =>
+                verifyContractGetter({
+                  caller: randomSignerFn(),
+                  contract: contracts.operatorStore,
+                  fn: 'hasPermission',
+                  args: [operator.address, owner.address, 0, [permissionIndex]],
+                  expect: true,
+                }),
+            },
+            {
+              description: 'Should still be authorized',
+              fn: ({ executeFn, local: { operator, contract, fn, args, authorizedRevert } }) =>
+                executeFn({
+                  caller: operator,
+                  contract,
+                  fn,
+                  args,
+                  revert: authorizedRevert,
+                }),
+            },
+            {
+              description: 'Remove permission from wildcard',
+              fn: ({ executeFn, contracts, local: { operator, owner } }) =>
+                executeFn({
+                  caller: owner,
+                  contract: contracts.operatorStore,
+                  fn: 'setOperator',
+                  args: [operator.address, 0, []],
+                }),
+            },
+            {
+              description: 'The operator should no longer have permission over the wildcard',
+              fn: ({ contracts, randomSignerFn, local: { operator, permissionIndex, owner } }) =>
+                verifyContractGetter({
+                  caller: randomSignerFn(),
+                  contract: contracts.operatorStore,
+                  fn: 'hasPermission',
+                  args: [operator.address, owner.address, 0, [permissionIndex]],
+                  expect: false,
+                }),
+            },
+          ]
           : []),
         {
           description: 'A non-owner or operator account shouldnt be authorized',
