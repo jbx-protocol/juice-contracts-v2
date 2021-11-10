@@ -193,61 +193,61 @@ export default function () {
     };
   });
 
-  for (let i = 0; i < 8; i += 1) {
+  for (let i = 0; i < 1; i += 1) {
     describe(
       'Projects can be created, have their URIs changed, transfer/claim handles, and be attached to funding cycles',
       run(_projects),
     );
-    describe(
-      "Projects can have their handle's challenged, and claimed if not renewed in time",
-      run(challengeHandle),
-    );
-    describe('Deployment of a project with funding cycles and mods included', run(deploy));
-    describe(
-      'Ticket holders can lock their tickets, which prevents them from being redeemed, unstaked, or transfered',
-      run(ticketLockingAndTransfers),
-    );
-    describe('Redeem tickets for overflow', run(redeem));
-    describe('Prints reserved tickets', run(printReservedTickets));
-    describe(
-      'Projects can print premined tickets before a payment has been made to it',
-      run(printPreminedTickets),
-    );
-    describe('Issues tickets and honors preference', run(issueTickets));
-    describe('Tap funds up to the configured target', run(tap));
-    describe(
-      "A fee should be taken into governance's project when a project taps funds",
-      run(takeFee),
-    );
-    describe('Reconfigures a project', run(reconfigure));
-    describe('A funding cycle configuration can have a limit', run(limit));
-    describe('A funding cycle configuration can have a duration of 0', run(zeroDuration));
-    describe('A funding cycle configuration can be non recurring', run(nonRecurring));
-    describe('Ballot must be approved for reconfiguration to become active', run(approvedBallot));
-    describe('Reconfiguration that fails a ballot should be ignored', run(failedBallot));
-    describe(
-      'Reconfiguration proposed after a failed configuration should obide by the ballot duration',
-      run(iteratedFailedBallot),
-    );
-    describe('Migrate from one Terminal to another', run(migrate));
-    describe('Operators can be given permissions', run(operatorPermissions));
-    describe('Set and update payout mods, honoring locked status', run(setPayoutMods));
-    describe('Set and update ticket mods, honoring locked status', run(setTicketMods));
-    describe('A new governance can be appointed and accepted', run(_governance));
-    describe('Governance can set a new fee for future configurations', run(setFee));
-    describe('Currencies rates are converted to/from correctly', run(currencyConversion));
-    describe('Transfer ownership over a project', run(transferProjectOwnership));
-    describe(
-      'Direct payment addresses can be deployed to add an fundable address to a project',
-      run(directPaymentAddresses),
-    );
-    describe(
-      'A project can be created without a payment terminal, and can set one after',
-      run(setTerminal),
-    );
-    describe(
-      'Proxy payment addresses can be deployed to add an fundable address to a project',
-      run(proxyPaymentAddresses),
-    );
+    // describe(
+    //   "Projects can have their handle's challenged, and claimed if not renewed in time",
+    //   run(challengeHandle),
+    // );
+    // describe('Deployment of a project with funding cycles and mods included', run(deploy));
+    // describe(
+    //   'Ticket holders can lock their tickets, which prevents them from being redeemed, unstaked, or transfered',
+    //   run(ticketLockingAndTransfers),
+    // );
+    // describe('Redeem tickets for overflow', run(redeem));
+    // describe('Prints reserved tickets', run(printReservedTickets));
+    // describe(
+    //   'Projects can print premined tickets before a payment has been made to it',
+    //   run(printPreminedTickets),
+    // );
+    // describe('Issues tickets and honors preference', run(issueTickets));
+    // describe('Tap funds up to the configured target', run(tap));
+    // describe(
+    //   "A fee should be taken into governance's project when a project taps funds",
+    //   run(takeFee),
+    // );
+    // describe('Reconfigures a project', run(reconfigure));
+    // describe('A funding cycle configuration can have a limit', run(limit));
+    // describe('A funding cycle configuration can have a duration of 0', run(zeroDuration));
+    // describe('A funding cycle configuration can be non recurring', run(nonRecurring));
+    // describe('Ballot must be approved for reconfiguration to become active', run(approvedBallot));
+    // describe('Reconfiguration that fails a ballot should be ignored', run(failedBallot));
+    // describe(
+    //   'Reconfiguration proposed after a failed configuration should obide by the ballot duration',
+    //   run(iteratedFailedBallot),
+    // );
+    // describe('Migrate from one Terminal to another', run(migrate));
+    // describe('Operators can be given permissions', run(operatorPermissions));
+    // describe('Set and update payout mods, honoring locked status', run(setPayoutMods));
+    // describe('Set and update ticket mods, honoring locked status', run(setTicketMods));
+    // describe('A new governance can be appointed and accepted', run(_governance));
+    // describe('Governance can set a new fee for future configurations', run(setFee));
+    // describe('Currencies rates are converted to/from correctly', run(currencyConversion));
+    // describe('Transfer ownership over a project', run(transferProjectOwnership));
+    // describe(
+    //   'Direct payment addresses can be deployed to add an fundable address to a project',
+    //   run(directPaymentAddresses),
+    // );
+    // describe(
+    //   'A project can be created without a payment terminal, and can set one after',
+    //   run(setTerminal),
+    // );
+    // describe(
+    //   'Proxy payment addresses can be deployed to add an fundable address to a project',
+    //   run(proxyPaymentAddresses),
+    // );
   }
 }

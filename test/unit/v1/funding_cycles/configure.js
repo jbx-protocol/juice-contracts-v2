@@ -4,6 +4,8 @@ const {
 } = hardhat;
 import { expect } from 'chai';
 
+import { getTimestamp } from '../../../utils';
+
 const testTemplate =
   ({ op = {}, setup = {}, preconfigure = {}, fastforward, ops = [], expectation = {}, revert }) =>
   ({ deployer, ballot }) => ({
@@ -1010,7 +1012,7 @@ export default function () {
         }
 
         // Get a reference to the timestamp right after the preconfiguration occurs.
-        const expectedPreconfigureStart = await this.getTimestampFn(preconfigureBlockNumber);
+        const expectedPreconfigureStart = await getTimestamp(preconfigureBlockNumber);
 
         const discountRatesToApply = [];
         const durationsToApply = [];
@@ -1076,7 +1078,7 @@ export default function () {
         );
 
         // Get the current timestamp after the transaction.
-        const now = await this.getTimestampFn(tx.blockNumber);
+        const now = await getTimestamp(tx.blockNumber);
 
         // Expect two events to have been emitted.
         await expect(tx)

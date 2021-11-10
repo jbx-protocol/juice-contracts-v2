@@ -20,8 +20,6 @@ export default [
       randomSignerFn,
       randomBigNumber,
       randomBytes,
-      getTimestampFn,
-
       randomString,
       randomAddressFn,
       incrementFundingCycleIdFn,
@@ -45,7 +43,7 @@ export default [
           max: this.MaxModPercent.div(2),
         }).toNumber(),
         // Lock at least until the end of the tests.
-        lockedUntil: (await getTimestampFn())
+        lockedUntil: (await getTimestamp())
           .add(
             randomBigNumber({
               min: BigNumber.from(1000),

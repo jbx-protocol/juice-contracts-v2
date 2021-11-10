@@ -5,25 +5,21 @@ import { Contract } from 'ethers';
 import unit from './unit';
 import integration from './integration';
 
+import { getTimestamp } from './utils'
+
 describe('Juicebox', async function () {
   before(async function () {
     // Bind a reference to the deployer address and an array of other addresses to `this`.
     [this.deployer, ...this.addrs] = await ethers.getSigners();
 
-    // Bind the ability to manipulate time to `this`.
-    // Bind a function that gets the current block's timestamp.
-    this.getTimestampFn = async (block) => {
-      return ethers.BigNumber.from((await ethers.provider.getBlock(block || 'latest')).timestamp);
-    };
-
     // Binds a function that sets a time mark that is taken into account while fastforward.
     this.setTimeMarkFn = async (blockNumber) => {
-      this.timeMark = await this.getTimestampFn(blockNumber);
+      this.timeMark = await getTimestamp(blockNumber);
     };
 
     // Binds a function that fastforward a certain amount from the beginning of the test, or from the latest time mark if one is set.
     this.fastforwardFn = async (seconds) => {
-      const now = await this.getTimestampFn();
+      const now = await getTimestamp();
       const timeSinceTimemark = now.sub(this.timeMark);
       const fastforwardAmount = seconds.toNumber() - timeSinceTimemark;
       this.timeMark = now.add(fastforwardAmount);
@@ -139,7 +135,7 @@ describe('Juicebox', async function () {
   // Before each test, take a snapshot of the contract state.
   beforeEach(async function () {
     // Make the start time of the test available.
-    this.testStart = await this.getTimestampFn();
+    this.testStart = await getTimestamp();
   });
 
   // Run the tests.

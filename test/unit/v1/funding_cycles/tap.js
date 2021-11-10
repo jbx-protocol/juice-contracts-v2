@@ -4,6 +4,8 @@ const {
 } = hardhat;
 import { expect } from 'chai';
 
+import { getTimestamp } from '../../../utils';
+
 /** 
   These tests rely on time manipulation quite a bit, which as far as i understand is hard to do precisely. 
   Ideally, the tests could mock the block.timestamp to preset numbers, but instead 
@@ -825,7 +827,7 @@ export default function () {
         }
 
         // Get a reference to the timestamp right after the preconfiguration occurs.
-        const expectedPreconfigureStart = await this.getTimestampFn(preconfigureBlockNumber);
+        const expectedPreconfigureStart = await getTimestamp(preconfigureBlockNumber);
 
         // Mock the duration as 0.
         await this.ballot.mock.duration.returns(BigNumber.from(0));
@@ -860,7 +862,7 @@ export default function () {
                   .withArgs(
                     op.ballot.fundingCycleId,
                     // eslint-disable-next-line no-await-in-loop
-                    await this.getTimestampFn(tx.blockNumber),
+                    await getTimestamp(tx.blockNumber),
                   )
                   .returns(op.ballot.state);
               }
@@ -891,7 +893,7 @@ export default function () {
         const tx = await this.contract.connect(caller).tap(projectId, amount);
 
         // Get the current timestamp after the transaction.
-        const now = await this.getTimestampFn(tx.blockNumber);
+        const now = await getTimestamp(tx.blockNumber);
 
         // Expect an event to have been emitted.
         await expect(tx)

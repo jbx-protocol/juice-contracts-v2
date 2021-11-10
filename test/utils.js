@@ -163,3 +163,9 @@ export const verifyContractGetter = async ({ caller, contract, fn, args, expect,
     _expect(storedVal).to.deep.equal(expect);
   }
 };
+
+// Bind the ability to manipulate time to `this`.
+// Bind a function that gets the current block's timestamp.
+export const getTimestamp = async (block) => {
+  return ethers.BigNumber.from((await ethers.provider.getBlock(block || 'latest')).timestamp);
+};
