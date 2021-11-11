@@ -4,7 +4,7 @@
 
   These tests use an empty ballot, so reconfigurations may take effect right after the current funding cycle expires.
 */
-import { constants } from '../../../utils';
+import { constants } from '../../../helpers/utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;

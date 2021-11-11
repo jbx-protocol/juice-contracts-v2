@@ -1,4 +1,4 @@
-import { deployContract, deployMockLocalContract } from '../../../utils';
+import { deployContract, deployMockLocalContract } from '../../../helpers/utils';
 
 import deployAddress from './deploy_address';
 import setPayerPreferences from './set_payer_preferences';

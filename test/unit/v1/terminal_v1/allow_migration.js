@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { constants } from 'ethers';
 
-import { deployMockLocalContract, getDeployer } from '../../../utils';
+import { deployMockLocalContract, getDeployer } from '../../../helpers/utils';
 
 let deployer;
 

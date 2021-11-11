@@ -1,4 +1,4 @@
-import { deployContract, deployMockLocalContract } from '../../../utils';
+import { deployContract, deployMockLocalContract } from '../../../helpers/utils';
 
 import tap from './tap';
 import transferTickets from './transfer_tickets';

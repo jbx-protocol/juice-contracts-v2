@@ -9,7 +9,7 @@ import {
   randomBigNumber,
   randomBytes,
   randomString,
-} from '../../../utils';
+} from '../../../helpers/utils';
 
 const currency = 0;
 

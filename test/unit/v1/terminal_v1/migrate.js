@@ -11,7 +11,7 @@ import {
   getAddresses,
   getDeployer,
   mockContractFunction,
-} from '../../../utils';
+} from '../../../helpers/utils';
 
 let deployer;
 let addrs;

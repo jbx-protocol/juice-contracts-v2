@@ -1,4 +1,4 @@
-import { deployContract, deployMockLocalContract } from '../../../utils';
+import { deployContract, deployMockLocalContract } from '../../../helpers/utils';
 
 import challengeHandle from './challenge_handle';
 import claimHandle from './claim_handle';

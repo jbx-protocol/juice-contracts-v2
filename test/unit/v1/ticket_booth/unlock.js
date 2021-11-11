@@ -4,7 +4,7 @@ const {
 } = hardhat;
 import { expect } from 'chai';
 import deploy from '../terminal_v1/deploy';
-import { getAddresses, getDeployer } from '../../../utils';
+import { getAddresses, getDeployer } from '../../../helpers/utils';
 
 let deployer;
 let addrs;

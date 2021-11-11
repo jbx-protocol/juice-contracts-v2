@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 
-import { deployMockLocalContract, getAddresses, getDeployer } from '../../../utils';
+import { deployMockLocalContract, getAddresses, getDeployer } from '../../../helpers/utils';
 
 let deployer;
 let addrs;

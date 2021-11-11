@@ -8,7 +8,7 @@
   If a project reconfigures its funding cycle, new mods can be set that override any locked payout mods.
   These new mods will take effect once the reconfigured funding cycle becomes active.
 */
-import { constants, deployContract } from '../../../utils';
+import { constants, deployContract } from '../../../helpers/utils';
 
 export default [
   {

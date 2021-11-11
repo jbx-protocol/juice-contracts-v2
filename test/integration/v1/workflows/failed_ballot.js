@@ -8,7 +8,7 @@ import {
   randomBigNumber,
   randomBytes,
   randomString,
-} from '../../../utils';
+} from '../../../helpers/utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;

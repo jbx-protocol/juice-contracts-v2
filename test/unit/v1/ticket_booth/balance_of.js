@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import hardhat from 'hardhat';
-import { getAddresses, getDeployer } from '../../../utils';
+import { getAddresses, getDeployer } from '../../../helpers/utils';
 const {
   ethers: { BigNumber },
 } = hardhat;

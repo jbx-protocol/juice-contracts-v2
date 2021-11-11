@@ -1,4 +1,4 @@
-import { deployContract, deployMockLocalContract } from '../../../utils';
+import { deployContract, deployMockLocalContract } from '../../../helpers/utils';
 
 import deployProxyPaymentAddress from './deploy_proxy_payment_address';
 

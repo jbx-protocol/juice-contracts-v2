@@ -5,7 +5,7 @@ import { Contract } from 'ethers';
 import unit from './unit';
 import integration from './integration';
 
-import { getTimestamp } from './utils';
+import { getTimestamp } from './helpers/utils';
 
 describe('Juicebox', async function () {
   before(async function () {

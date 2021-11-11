@@ -7,7 +7,7 @@
 */
 import { ethers } from 'hardhat';
 
-import { constants } from '../../../utils';
+import { constants } from '../../../helpers/utils';
 
 const operations = [
   {

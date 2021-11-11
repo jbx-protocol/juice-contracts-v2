@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { BigNumber, constants } from 'ethers';
-import { getDeployer } from '../../../utils';
+import { getDeployer } from '../../../helpers/utils';
 
 let deployer;
 

@@ -1,4 +1,4 @@
-import { deployContract, deployMockLocalContract } from '../../../utils';
+import { deployContract, deployMockLocalContract } from '../../../helpers/utils';
 
 import pay from './pay';
 import setOperator from './set_operator';

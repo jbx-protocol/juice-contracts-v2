@@ -6,7 +6,7 @@
 
   Payment mods allow payouts to automatically be sent to either an address, another project on Juicebox, or a contract that inherits from IModAllocator.
 */
-import { deployContract } from '../../../utils';
+import { deployContract } from '../../../helpers/utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;

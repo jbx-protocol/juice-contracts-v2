@@ -14,7 +14,7 @@
 */
 process.env.INCLUDE_TIME_EDGE_CASE_TEST = false;
 
-import { deployContract, deployMockLocalContract } from '../../../utils';
+import { deployContract, deployMockLocalContract } from '../../../helpers/utils';
 
 import configure from './configure';
 import currentBallotStateOf from './current_ballot_state_of';

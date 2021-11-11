@@ -1,6 +1,6 @@
 import { compilerOutput } from '@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json';
 
-import { deployContract, deployMockContract, getDeployer } from '../../../utils';
+import { deployContract, deployMockContract, getDeployer } from '../../../helpers/utils';
 
 import addFeedFor from './add_feed_for';
 import priceFor from './price_for';

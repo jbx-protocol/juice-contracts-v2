@@ -3,7 +3,7 @@ const {
   ethers: { BigNumber, constants },
 } = hardhat;
 import { expect } from 'chai';
-import { getAddresses, getDeployer } from '../../../utils';
+import { getAddresses, getDeployer } from '../../../helpers/utils';
 
 let addrs;
 let deployer;

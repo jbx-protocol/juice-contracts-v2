@@ -1,4 +1,4 @@
-import { deployContract } from '../../../utils';
+import { deployContract } from '../../../helpers/utils';
 
 import hasPermission from './has_permission';
 import hasPermissions from './has_permissions';

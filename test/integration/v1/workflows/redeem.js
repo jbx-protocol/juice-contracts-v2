@@ -7,7 +7,7 @@
   If a project has an active reconfiguration ballot, the reconfiguration bonding curve should be used,
   instead of the regular bonding curve.
 */
-import { deployContract, verifyBalance } from '../../../utils';
+import { deployContract, verifyBalance } from '../../../helpers/utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;

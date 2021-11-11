@@ -2,7 +2,7 @@
   A project can be created without specifying a payment terminal. 
   The project will have to set a terminal before it can print tickets or configure its funding cycles.
 */
-import { constants, deployContract } from '../../../utils';
+import { constants, deployContract } from '../../../helpers/utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;

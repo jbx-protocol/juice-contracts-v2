@@ -4,7 +4,7 @@
 
 import { BigNumber } from 'ethers';
 
-import { constants, deployContract } from '../../../utils';
+import { constants, deployContract } from '../../../helpers/utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;

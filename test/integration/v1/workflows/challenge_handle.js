@@ -1,7 +1,7 @@
 /** 
   A project's handle can be challenged, after which a year must pass without it being renewed before it can be claimed.
 */
-import { randomBigNumber, randomBytes, randomString } from '../../../utils';
+import { randomBigNumber, randomBytes, randomString } from '../../../helpers/utils';
 
 export default [
   {

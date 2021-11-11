@@ -1,7 +1,13 @@
 /** 
   If a funding cycle ballot fails, any subsequent reconfigurations should be based on the last approved cycle.
 */
-import { deployContract, constants, randomBytes, randomString, getBalance } from '../../../utils';
+import {
+  deployContract,
+  constants,
+  randomBytes,
+  randomString,
+  getBalance,
+} from '../../../helpers/utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;

@@ -1,4 +1,4 @@
-import { deployContract, deployMockLocalContract } from '../../../utils';
+import { deployContract, deployMockLocalContract } from '../../../helpers/utils';
 
 import setPaymentMods from './set_payment_mods';
 import setTicketMods from './set_ticket_mods';

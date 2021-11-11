@@ -7,7 +7,7 @@ import {
   deployMockLocalContract,
   getAddresses,
   getDeployer,
-} from '../../../utils';
+} from '../../../helpers/utils';
 
 const mockFn =
   ({ condition, mockContract, fn, args, returns = [] }) =>

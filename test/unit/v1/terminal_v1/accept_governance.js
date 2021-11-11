@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { getAddresses } from '../../../utils';
+import { getAddresses } from '../../../helpers/utils';
 
 let addrs;
 

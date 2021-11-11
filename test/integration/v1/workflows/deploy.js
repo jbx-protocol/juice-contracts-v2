@@ -3,7 +3,7 @@
 
   These steps can all be taken seperately without calling `deploy`.
 */
-import { randomBigNumber, randomBytes, randomString } from '../../../utils';
+import { randomBigNumber, randomBytes, randomString } from '../../../helpers/utils';
 
 export default [
   {

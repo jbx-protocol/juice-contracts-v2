@@ -6,7 +6,7 @@
    - The old terminal can no longer receive funds or print tickets.
    - All funds will migrate to the new terminal for users to tap and redeem tickets on.
 */
-import { deployContract, verifyBalance } from '../../../utils';
+import { deployContract, verifyBalance } from '../../../helpers/utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;

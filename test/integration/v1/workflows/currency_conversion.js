@@ -14,7 +14,7 @@ import {
   randomBytes,
   randomString,
   verifyBalance,
-} from '../../../utils';
+} from '../../../helpers/utils';
 
 export default [
   {

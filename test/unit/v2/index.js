@@ -1,7 +1,7 @@
 import jbOperatorStore from './jb_operator_store';
 import jbPrices from './jb_prices';
 
-import { snapshot, restore } from '../../utils';
+import { snapshot, restore } from '../../helpers/utils';
 
 let snapshotId;
 export default function () {

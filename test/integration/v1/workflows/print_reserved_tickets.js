@@ -6,7 +6,7 @@
 
  Any configured ticket mods will get sent some of the printing reserved tickets at this time.
 */
-import { constants } from '../../../utils';
+import { constants } from '../../../helpers/utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;

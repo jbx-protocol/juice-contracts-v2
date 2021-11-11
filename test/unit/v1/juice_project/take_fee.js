@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import hardhat from 'hardhat';
 
-import { deployMockLocalContract, getAddresses, getDeployer } from '../../../utils';
+import { deployMockLocalContract, getAddresses, getDeployer } from '../../../helpers/utils';
 
 const {
   ethers: { constants },

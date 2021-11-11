@@ -1,4 +1,4 @@
-import { deployContract, deployMockLocalContract, getAddresses } from '../../../utils';
+import { deployContract, deployMockLocalContract, getAddresses } from '../../../helpers/utils';
 
 import acceptGovernance from './accept_governance';
 import addToBalance from './add_to_balance';

@@ -1,7 +1,12 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
-import { constants, deployMockLocalContract, getAddresses, getDeployer } from '../../../utils';
+import {
+  constants,
+  deployMockLocalContract,
+  getAddresses,
+  getDeployer,
+} from '../../../helpers/utils';
 
 let deployer;
 let addrs;

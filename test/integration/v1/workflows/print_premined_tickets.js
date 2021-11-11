@@ -1,7 +1,7 @@
 /** 
   A project can print premined tickets up until the point when a payment is made to it after its configured its first funding cycle.
 */
-import { constants } from '../../../utils';
+import { constants } from '../../../helpers/utils';
 
 // The currency will be 0, which corresponds to ETH.
 const currency = 0;

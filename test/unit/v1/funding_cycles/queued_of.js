@@ -4,7 +4,7 @@ const {
 } = hardhat;
 import { expect } from 'chai';
 
-import { getDeployer, getTimestamp } from '../../../utils';
+import { getDeployer, getTimestamp } from '../../../helpers/utils';
 
 /** 
   These tests rely on time manipulation quite a bit, which as far as i understand is hard to do precisely. 

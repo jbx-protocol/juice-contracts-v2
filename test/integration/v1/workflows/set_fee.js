@@ -3,7 +3,7 @@
 
   All current configurations will not be affected, and will keep the old fee until a new configuration is approved.
 */
-import { constants } from '../../../utils';
+import { constants } from '../../../helpers/utils';
 
 // The currency will be 0, which corresponds to ETH, preventing the need for currency price conversion.
 const currency = 0;

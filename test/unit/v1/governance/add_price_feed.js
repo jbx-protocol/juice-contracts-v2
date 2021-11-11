@@ -6,7 +6,7 @@ import {
   deployMockLocalContract,
   getAddresses,
   getDeployer,
-} from '../../../utils';
+} from '../../../helpers/utils';
 
 let deployer;
 let addrs;

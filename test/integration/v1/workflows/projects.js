@@ -13,7 +13,7 @@ import {
   randomBytes,
   randomString,
   verifyContractGetter,
-} from '../../../utils';
+} from '../../../helpers/utils';
 
 export default [
   {

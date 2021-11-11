@@ -2,7 +2,7 @@
   The governance of the TerminalV1 can transfer its power to a new address.
   To do so, the governance must appoint a new address, and that address must accept the appointment.
 */
-import { randomBigNumber } from '../../../utils';
+import { randomBigNumber } from '../../../helpers/utils';
 
 export default [
   {
