@@ -3,9 +3,10 @@ const {
   ethers: { constants },
 } = hardhat;
 import { expect } from 'chai';
-import { getDeployer } from '../../../utils';
+import { getAddresses, getDeployer } from '../../../utils';
 
 let deployer;
+let addrs;
 
 const tests = {
   success: [
@@ -35,6 +36,7 @@ const tests = {
 export default function () {
   before(async function () {
     deployer = await getDeployer();
+    addrs = await getAddresses();
   });
 
   describe('Success cases', function () {

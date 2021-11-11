@@ -1,7 +1,10 @@
 import { expect } from 'chai';
 import { BigNumber, utils, constants } from 'ethers';
 
-import { deployMockLocalContract } from '../../../utils';
+import { deployMockLocalContract, getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
@@ -118,6 +121,10 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

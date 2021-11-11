@@ -1,5 +1,8 @@
 import { expect } from 'chai';
 import { BigNumber, constants } from 'ethers';
+import { getDeployer } from '../../../utils';
+
+let deployer;
 
 const tests = {
   success: [
@@ -88,7 +91,7 @@ const check =
   };
 
 const ops =
-  ({ deployer, mockContracts, targetContract }) =>
+  ({ mockContracts, targetContract }) =>
   (custom) => {
     const {
       caller = deployer,
@@ -208,6 +211,9 @@ const ops =
   };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+  });
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

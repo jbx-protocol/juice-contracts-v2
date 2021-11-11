@@ -1,5 +1,10 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
+import { getAddresses, getDeployer } from '../../../utils';
+import { getAddress } from '@ethersproject/address';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
@@ -70,6 +75,10 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

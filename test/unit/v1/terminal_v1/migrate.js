@@ -5,13 +5,22 @@ const {
 
 import { expect } from 'chai';
 
-import { constants, deployMockLocalContract, mockContractFunction } from '../../../utils';
+import {
+  constants,
+  deployMockLocalContract,
+  getAddresses,
+  getDeployer,
+  mockContractFunction,
+} from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
     {
       description: 'no preset balance',
-      fn: async ({ deployer, mockContracts, governance }) => ({
+      fn: async ({ mockContracts, governance }) => ({
         caller: deployer,
         projectOwner: deployer.address,
         governance,
@@ -31,7 +40,7 @@ const tests = {
     },
     {
       description: 'with preset balance',
-      fn: async ({ deployer, mockContracts, governance }) => ({
+      fn: async ({ mockContracts, governance }) => ({
         caller: deployer,
         projectOwner: deployer.address,
         governance,
@@ -53,7 +62,7 @@ const tests = {
     },
     {
       description: 'with unprinted reserved tickets',
-      fn: async ({ deployer, mockContracts, governance }) => ({
+      fn: async ({ mockContracts, governance }) => ({
         caller: deployer,
         projectOwner: deployer.address,
         governance,
@@ -75,7 +84,7 @@ const tests = {
     },
     {
       description: 'with operator',
-      fn: async ({ deployer, addrs, mockContracts, governance }) => ({
+      fn: async ({ mockContracts, governance }) => ({
         caller: deployer,
         projectOwner: addrs[0].address,
         governance,
@@ -99,7 +108,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: async ({ deployer, mockContracts, governance, targetContract, addrs }) => {
+      fn: async ({ mockContracts, governance, targetContract }) => {
         return {
           caller: deployer,
           projectOwner: addrs[0].address,
@@ -125,7 +134,7 @@ const tests = {
     },
     {
       description: 'unauthorized terminal',
-      fn: async ({ deployer, mockContracts, governance }) => {
+      fn: async ({ mockContracts, governance }) => {
         return {
           caller: deployer,
           projectOwner: deployer.address,
@@ -160,7 +169,7 @@ const tests = {
     },
     {
       description: 'not allowed',
-      fn: async ({ deployer, mockContracts, governance, targetContract }) => {
+      fn: async ({ mockContracts, governance, targetContract }) => {
         return {
           caller: deployer,
           projectOwner: deployer.address,
@@ -188,6 +197,10 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

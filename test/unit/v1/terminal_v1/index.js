@@ -1,4 +1,4 @@
-import { deployContract, deployMockLocalContract } from '../../../utils';
+import { deployContract, deployMockLocalContract, getAddresses } from '../../../utils';
 
 import acceptGovernance from './accept_governance';
 import addToBalance from './add_to_balance';
@@ -40,7 +40,7 @@ export default function () {
       operatorStore.address,
     ]);
 
-    const governance = this.addrs[9];
+    const governance = (await getAddresses())[9];
 
     this.governance = governance;
 

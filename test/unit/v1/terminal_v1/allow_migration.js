@@ -29,7 +29,7 @@ const tests = {
   failure: [
     {
       description: 'unauthorized',
-      fn: ({ deployer, targetContract }) => ({
+      fn: ({ targetContract }) => ({
         caller: deployer,
         terminal: targetContract.address,
         revert: 'TerminalV1: UNAUTHORIZED',

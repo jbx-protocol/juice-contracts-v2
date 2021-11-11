@@ -83,7 +83,7 @@ export default function () {
         const storedBalanceOf = await this.targetContract.balanceOf(projectId);
 
         // Get the total stored balance.
-        const storedBalance = await this.deployer.provider.getBalance(this.targetContract.address);
+        const storedBalance = await deployer.provider.getBalance(this.targetContract.address);
 
         // Expect the stored value to equal whats expected.
         expect(storedBalanceOf).to.equal(projectBalance);

@@ -1,7 +1,13 @@
 import { expect } from 'chai';
 import { BigNumber, utils } from 'ethers';
 
-import { constants, deployContract, deployMockLocalContract } from '../../../utils';
+import {
+  constants,
+  deployContract,
+  deployMockLocalContract,
+  getAddresses,
+  getDeployer,
+} from '../../../utils';
 
 const mockFn =
   ({ condition, mockContract, fn, args, returns = [] }) =>
@@ -47,6 +53,9 @@ const check =
     expect(storedVal).to.equal(value);
   };
 
+let deployer;
+let addrs;
+
 const tests = {
   success: [
     {
@@ -75,7 +84,7 @@ const tests = {
     },
     {
       description: 'with project mod using different terminal',
-      fn: async ({ addrs, mockContracts, governance, contractName }) => {
+      fn: async ({ mockContracts, governance, contractName }) => {
         const terminal = await deployMockLocalContract(contractName, [
           mockContracts.projects.address,
           mockContracts.fundingCycles.address,
@@ -196,7 +205,7 @@ const tests = {
 };
 
 const ops =
-  ({ deployer, addrs, mockContracts, contractName }) =>
+  ({ mockContracts, contractName }) =>
   async (custom) => {
     const {
       caller = deployer,
@@ -592,6 +601,11 @@ const ops =
   };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
+
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

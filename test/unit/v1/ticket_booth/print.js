@@ -3,7 +3,10 @@ const {
   ethers: { BigNumber, getContractFactory },
 } = hardhat;
 import { expect } from 'chai';
-import { constants } from '../../../utils';
+import { constants, getAddresses, getDeployer } from '../../../utils';
+
+let deployer;
+let addrs;
 
 const tests = {
   success: [
@@ -113,6 +116,10 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+    addrs = await getAddresses();
+  });
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

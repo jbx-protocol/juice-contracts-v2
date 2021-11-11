@@ -84,7 +84,7 @@ const tests = {
     },
     {
       description: 'lock passed',
-      fn: ({ deployer, testStart }) => ({
+      fn: ({ testStart }) => ({
         caller: deployer,
         projectOwner: deployer.address,
         projectId: 1,
@@ -115,7 +115,7 @@ const tests = {
     },
     {
       description: 'lock and included with different unstaked preferences',
-      fn: ({ deployer, testStart }) => ({
+      fn: ({ testStart }) => ({
         caller: deployer,
         projectOwner: deployer.address,
         projectId: 1,
@@ -151,7 +151,7 @@ const tests = {
     },
     {
       description: 'lock and included with longer lock',
-      fn: ({ deployer, testStart }) => ({
+      fn: ({ testStart }) => ({
         caller: deployer,
         projectOwner: deployer.address,
         projectId: 1,
@@ -187,7 +187,7 @@ const tests = {
     },
     {
       description: 'not locked with different configurations',
-      fn: ({ deployer, addrs, testStart }) => ({
+      fn: ({ testStart }) => ({
         caller: deployer,
         projectOwner: deployer.address,
         projectId: 1,
@@ -218,7 +218,7 @@ const tests = {
     },
     {
       description: 'not locked with different projects',
-      fn: ({ deployer, addrs, testStart }) => ({
+      fn: ({ testStart }) => ({
         caller: deployer,
         projectOwner: deployer.address,
         projectId: 1,
@@ -276,7 +276,7 @@ const tests = {
     },
     {
       description: 'locked with difference beneficiaries',
-      fn: ({ deployer, addrs, testStart }) => ({
+      fn: ({ testStart }) => ({
         caller: deployer,
         controller: deployer.address,
         projectOwner: deployer.address,
@@ -308,7 +308,7 @@ const tests = {
     },
     {
       description: 'locked with different percents',
-      fn: ({ deployer, testStart }) => ({
+      fn: ({ testStart }) => ({
         caller: deployer,
         controller: deployer.address,
         projectOwner: deployer.address,
@@ -340,7 +340,7 @@ const tests = {
     },
     {
       description: 'locked with shorter locked until values',
-      fn: ({ deployer, testStart }) => ({
+      fn: ({ testStart }) => ({
         caller: deployer,
         controller: deployer.address,
         projectOwner: deployer.address,
@@ -416,7 +416,7 @@ const tests = {
     },
     {
       description: 'mod percent over 100% with locked',
-      fn: ({ deployer, testStart }) => ({
+      fn: ({ testStart }) => ({
         caller: deployer,
         controller: deployer.address,
         projectOwner: deployer.address,

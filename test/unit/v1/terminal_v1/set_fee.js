@@ -4,6 +4,9 @@ const {
 } = hardhat;
 
 import { expect } from 'chai';
+import { getDeployer } from '../../../utils';
+
+let deployer;
 
 const tests = {
   success: [
@@ -36,6 +39,9 @@ const tests = {
 };
 
 export default function () {
+  before(async function () {
+    deployer = await getDeployer();
+  });
   describe('Success cases', function () {
     tests.success.forEach(function (successTest) {
       it(successTest.description, async function () {

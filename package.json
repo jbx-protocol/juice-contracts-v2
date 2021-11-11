@@ -45,9 +45,9 @@
   "scripts": {
     "chain": "hardhat node",
     "account": "hardhat account",
-    "test": "mocha -r esm --bail",
-    "test:unit": "mocha -r esm --grep \"Unit\" --bail",
-    "test:integration": "mocha -r esm --grep \"Integration\" --bail",
+    "test": "mocha -r esm",
+    "test:unit": "mocha -r esm --grep \"Unit\"",
+    "test:integration": "mocha -r esm --grep \"Integration\"",
     "clean": "rimraf ./cache && rimraf ./artifacts",
     "compile": "yarn clean && hardhat compile",
     "pretty": "prettier --write \"./**/*.{js,jsx,json}\""

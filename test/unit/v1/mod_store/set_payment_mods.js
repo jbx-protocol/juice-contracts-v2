@@ -47,7 +47,7 @@ const tests = {
     },
     {
       description: 'set many payout mods, called by owner',
-      fn: ({ deployer, modAllocator }) => ({
+      fn: ({ modAllocator }) => ({
         caller: deployer,
         projectOwner: deployer.address,
         projectId: 1,
@@ -94,7 +94,7 @@ const tests = {
     },
     {
       description: 'lock passed',
-      fn: ({ deployer, testStart }) => ({
+      fn: ({ testStart }) => ({
         caller: deployer,
         projectOwner: deployer.address,
         projectId: 1,
@@ -129,7 +129,7 @@ const tests = {
     },
     {
       description: 'lock and included with different unstaked preferences',
-      fn: ({ deployer, testStart }) => ({
+      fn: ({ testStart }) => ({
         caller: deployer,
         projectOwner: deployer.address,
         projectId: 1,
@@ -171,7 +171,7 @@ const tests = {
     },
     {
       description: 'not locked if different configuration',
-      fn: ({ deployer, addrs, testStart }) => ({
+      fn: ({ testStart }) => ({
         caller: deployer,
         projectOwner: deployer.address,
         projectId: 1,
@@ -205,7 +205,7 @@ const tests = {
     },
     {
       description: 'not locked if different project',
-      fn: ({ deployer, addrs, testStart }) => ({
+      fn: ({ testStart }) => ({
         caller: deployer,
         projectOwner: deployer.address,
         projectId: 1,
@@ -374,7 +374,7 @@ const tests = {
     },
     {
       description: 'locked with different beneficiaries',
-      fn: ({ deployer, addrs, testStart }) => ({
+      fn: ({ testStart }) => ({
         caller: deployer,
         controller: deployer.address,
         projectOwner: deployer.address,
@@ -410,7 +410,7 @@ const tests = {
     },
     {
       description: 'locked with different percents',
-      fn: ({ deployer, testStart }) => ({
+      fn: ({ testStart }) => ({
         caller: deployer,
         controller: deployer.address,
         projectOwner: deployer.address,
@@ -446,7 +446,7 @@ const tests = {
     },
     {
       description: 'locked with different allocators',
-      fn: ({ deployer, modAllocator, testStart }) => ({
+      fn: ({ modAllocator, testStart }) => ({
         caller: deployer,
         controller: deployer.address,
         projectOwner: deployer.address,
@@ -482,7 +482,7 @@ const tests = {
     },
     {
       description: 'locked with different project',
-      fn: ({ deployer, testStart }) => ({
+      fn: ({ testStart }) => ({
         caller: deployer,
         controller: deployer.address,
         projectOwner: deployer.address,
@@ -518,7 +518,7 @@ const tests = {
     },
     {
       description: 'locked with shorter locked until values',
-      fn: ({ deployer, testStart }) => ({
+      fn: ({ testStart }) => ({
         caller: deployer,
         controller: deployer.address,
         projectOwner: deployer.address,
