@@ -174,13 +174,15 @@ contract JBETHPaymentTerminal is
     @param _directory A contract storing directories of terminals and controllers for each project.
     @param _splitsStore A contract that stores splits for each project.
     @param _store A contract that stores the terminal's data.
+    @param _owner The address that will own this contract.
   */
   constructor(
     IJBOperatorStore _operatorStore,
     IJBProjects _projects,
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
-    JBETHPaymentTerminalStore _store
+    JBETHPaymentTerminalStore _store,
+    address _owner
   ) JBOperatable(_operatorStore) {
     projects = _projects;
     directory = _directory;
@@ -190,6 +192,8 @@ contract JBETHPaymentTerminal is
     _store.claimFor(this);
 
     store = _store;
+
+    transferOwnership(_owner);
   }
 
   //*********************************************************************//

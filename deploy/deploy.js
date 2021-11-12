@@ -86,8 +86,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
       JBDirectory.address,
       JBFundingCycleStore.address,
       JBTokenStore.address,
-      JBSplitStore.address,
-      multisigAddress
+      JBSplitStore.address
     ],
     log: true,
     skipIfAlreadyDeployed: true,
@@ -114,6 +113,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
       JBDirectory.address,
       JBSplitStore.address,
       JBETHPaymentTerminalStore.address,
+      multisigAddress
     ],
     log: true,
     skipIfAlreadyDeployed: true,
