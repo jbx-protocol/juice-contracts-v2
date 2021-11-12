@@ -148,7 +148,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     Deploys an owner's Token ERC-20 token contract.
 
     @dev
-    Only a project owner or operator can issue its token.
+    Only a project's current controller can issue its token.
 
     @param _projectId The ID of the project being issued tokens.
     @param _name The ERC-20's name.
@@ -158,12 +158,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     uint256 _projectId,
     string calldata _name,
     string calldata _symbol
-  )
-    external
-    override
-    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.ISSUE)
-    returns (IJBToken token)
-  {
+  ) external override onlyController(_projectId) returns (IJBToken token) {
     // There must be a name.
     require((bytes(_name).length > 0), '0x1f: EMPTY_NAME');
 
@@ -187,21 +182,17 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     Swap the current project's token that is minted and burned for another, and transfer ownership from the current to another address.
 
     @dev
-    Only a project owner or operator can change its token.
+    Only a project's current controller can change its token.
 
     @param _projectId The ID of the project to which the changed token belongs.
     @param _token The new token.
     @param _newOwner An address to transfer the current token's ownership to. This is optional, but it cannot be done later.
   */
-  function changeTokenOf(
+  function changeFor(
     uint256 _projectId,
     IJBToken _token,
     address _newOwner
-  )
-    external
-    override
-    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.CHANGE_TOKEN)
-  {
+  ) external override onlyController(_projectId) {
     // Get a reference to the current owner of the token.
     IJBToken _currentToken = tokenOf[_projectId];
 

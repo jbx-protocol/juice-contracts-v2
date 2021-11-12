@@ -70,7 +70,7 @@ interface IJBTokenStore {
     string calldata _symbol
   ) external returns (IJBToken token);
 
-  function changeTokenOf(
+  function changeFor(
     uint256 _projectId,
     IJBToken _token,
     address _newOwner

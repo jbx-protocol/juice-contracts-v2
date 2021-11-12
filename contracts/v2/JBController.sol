@@ -510,6 +510,63 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   }
 
   /**
+    @notice 
+    Issues an owner's ERC-20 Tokens that'll be used when claiming tokens.
+
+    @dev 
+    Deploys an owner's Token ERC-20 token contract.
+
+    @dev
+    Only a project owner or operator can issue its token.
+
+    @param _projectId The ID of the project being issued tokens.
+    @param _name The ERC-20's name.
+    @param _symbol The ERC-20's symbol.
+  */
+  function issueTokenFor(
+    uint256 _projectId,
+    string calldata _name,
+    string calldata _symbol
+  )
+    external
+    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.ISSUE)
+    returns (IJBToken token)
+  {
+    // Issue the token in the store.
+    return tokenStore.issueFor(_projectId, _name, _symbol);
+  }
+
+  /**
+    @notice 
+    Swap the current project's token that is minted and burned for another, and transfer ownership from the current to another address.
+
+    @dev
+    Only a project owner or operator can change its token.
+
+    @param _projectId The ID of the project to which the changed token belongs.
+    @param _token The new token.
+    @param _newOwner An address to transfer the current token's ownership to. This is optional, but it cannot be done later.
+  */
+  function changeTokenOf(
+    uint256 _projectId,
+    IJBToken _token,
+    address _newOwner
+  )
+    external
+    nonReentrant
+    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.CHANGE_TOKEN)
+  {
+    // Get a reference to the project's current funding cycle.
+    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
+
+    // The current funding cycle must not be paused.
+    require(_fundingCycle.changeTokenAllowed(), '0x05: NOT_ALLOWED');
+
+    // Change the token in the store.
+    tokenStore.changeFor(_projectId, _token, _newOwner);
+  }
+
+  /**
     @notice
     Distributes all outstanding reserved tokens for a project.
 

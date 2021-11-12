@@ -19,27 +19,31 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (uint256)
   {
-    return uint256(uint16(_fundingCycle.metadata >> 32));
+    return uint256(uint16(_fundingCycle.metadata >> 40));
   }
 
   function payPaused(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
-    return ((_fundingCycle.metadata >> 40) & 1) == 0;
+    return ((_fundingCycle.metadata >> 56) & 1) == 0;
   }
 
   function distributionsPaused(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
-    return ((_fundingCycle.metadata >> 41) & 1) == 0;
+    return ((_fundingCycle.metadata >> 57) & 1) == 0;
   }
 
   function redeemPaused(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
-    return ((_fundingCycle.metadata >> 42) & 1) == 0;
+    return ((_fundingCycle.metadata >> 58) & 1) == 0;
   }
 
   function mintPaused(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
-    return ((_fundingCycle.metadata >> 43) & 1) == 0;
+    return ((_fundingCycle.metadata >> 59) & 1) == 0;
   }
 
   function burnPaused(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
-    return ((_fundingCycle.metadata >> 44) & 1) == 0;
+    return ((_fundingCycle.metadata >> 60) & 1) == 0;
+  }
+
+  function changeTokenAllowed(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
+    return ((_fundingCycle.metadata >> 61) & 1) == 0;
   }
 
   function terminalMigrationAllowed(JBFundingCycle memory _fundingCycle)
@@ -47,7 +51,7 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (bool)
   {
-    return ((_fundingCycle.metadata >> 45) & 1) == 0;
+    return ((_fundingCycle.metadata >> 62) & 1) == 0;
   }
 
   function controllerMigrationAllowed(JBFundingCycle memory _fundingCycle)
@@ -55,11 +59,11 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (bool)
   {
-    return ((_fundingCycle.metadata >> 46) & 1) == 0;
+    return ((_fundingCycle.metadata >> 63) & 1) == 0;
   }
 
   function shouldHoldFees(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
-    return ((_fundingCycle.metadata >> 47) & 1) == 0;
+    return ((_fundingCycle.metadata >> 64) & 1) == 0;
   }
 
   function shouldUseLocalBalanceForRedemptions(JBFundingCycle memory _fundingCycle)
@@ -67,11 +71,11 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (bool)
   {
-    return ((_fundingCycle.metadata >> 48) & 1) == 0;
+    return ((_fundingCycle.metadata >> 65) & 1) == 0;
   }
 
   function useDataSourceForPay(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
-    return (_fundingCycle.metadata >> 49) & 1 == 0;
+    return (_fundingCycle.metadata >> 66) & 1 == 0;
   }
 
   function useDataSourceForRedeem(JBFundingCycle memory _fundingCycle)
@@ -79,7 +83,7 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (bool)
   {
-    return (_fundingCycle.metadata >> 50) & 1 == 0;
+    return (_fundingCycle.metadata >> 67) & 1 == 0;
   }
 
   function dataSource(JBFundingCycle memory _fundingCycle)
@@ -87,7 +91,7 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (IJBFundingCycleDataSource)
   {
-    return IJBFundingCycleDataSource(address(uint160(_fundingCycle.metadata >> 51)));
+    return IJBFundingCycleDataSource(address(uint160(_fundingCycle.metadata >> 68)));
   }
 
   /**
@@ -105,35 +109,37 @@ library JBFundingCycleMetadataResolver {
   {
     // version 1 in the first 8 bytes.
     packed = 1;
-    // reserved rate in bits 8-15.
+    // reserved rate in bits 8-23.
     packed |= _metadata.reservedRate << 8;
-    // bonding curve in bits 16-23.
-    packed |= _metadata.redemptionRate << 16;
-    // reconfiguration bonding curve rate in bits 24-31.
-    packed |= _metadata.ballotRedemptionRate << 24;
-    // pause pay in bit 32.
-    packed |= (_metadata.pausePay ? 1 : 0) << 32;
-    // pause tap in bit 33.
-    packed |= (_metadata.pauseDistributions ? 1 : 0) << 33;
-    // pause redeem in bit 34.
-    packed |= (_metadata.pauseRedeem ? 1 : 0) << 34;
-    // pause mint in bit 35.
-    packed |= (_metadata.pauseMint ? 1 : 0) << 35;
-    // pause mint in bit 36.
-    packed |= (_metadata.pauseBurn ? 1 : 0) << 36;
-    // allow terminal migration in bit 37.
-    packed |= (_metadata.allowTerminalMigration ? 1 : 0) << 37;
-    // allow controller migration in bit 38.
-    packed |= (_metadata.allowControllerMigration ? 1 : 0) << 38;
-    // hold fees in bit 39.
-    packed |= (_metadata.holdFees ? 1 : 0) << 39;
-    // useLocalBalanceForRedemptions in bit 40.
-    packed |= (_metadata.useLocalBalanceForRedemptions ? 1 : 0) << 40;
-    // use pay data source in bit 41.
-    packed |= (_metadata.useDataSourceForPay ? 1 : 0) << 41;
-    // use redeem data source in bit 42.
-    packed |= (_metadata.useDataSourceForRedeem ? 1 : 0) << 42;
-    // data source address in bits 43-202.
-    packed |= uint160(address(_metadata.dataSource)) << 43;
+    // bonding curve in bits 24-39.
+    packed |= _metadata.redemptionRate << 24;
+    // reconfiguration bonding curve rate in bits 40-55.
+    packed |= _metadata.ballotRedemptionRate << 50;
+    // pause pay in bit 56.
+    packed |= (_metadata.pausePay ? 1 : 0) << 56;
+    // pause tap in bit 57.
+    packed |= (_metadata.pauseDistributions ? 1 : 0) << 57;
+    // pause redeem in bit 58.
+    packed |= (_metadata.pauseRedeem ? 1 : 0) << 58;
+    // pause mint in bit 59.
+    packed |= (_metadata.pauseMint ? 1 : 0) << 59;
+    // pause mint in bit 60.
+    packed |= (_metadata.pauseBurn ? 1 : 0) << 60;
+    // pause change token in bit 61.
+    packed |= (_metadata.allowChangeToken ? 1 : 0) << 61;
+    // allow terminal migration in bit 62.
+    packed |= (_metadata.allowTerminalMigration ? 1 : 0) << 62;
+    // allow controller migration in bit 63.
+    packed |= (_metadata.allowControllerMigration ? 1 : 0) << 63;
+    // hold fees in bit 64.
+    packed |= (_metadata.holdFees ? 1 : 0) << 64;
+    // useLocalBalanceForRedemptions in bit 65.
+    packed |= (_metadata.useLocalBalanceForRedemptions ? 1 : 0) << 65;
+    // use pay data source in bit 66.
+    packed |= (_metadata.useDataSourceForPay ? 1 : 0) << 66;
+    // use redeem data source in bit 67.
+    packed |= (_metadata.useDataSourceForRedeem ? 1 : 0) << 67;
+    // data source address in bits 68-227.
+    packed |= uint160(address(_metadata.dataSource)) << 68;
   }
 }

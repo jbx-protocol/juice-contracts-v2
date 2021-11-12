@@ -20,6 +20,8 @@ struct JBFundingCycleMetadata {
   bool pauseMint;
   // If the burn functionality should be paused during the funding cycle.
   bool pauseBurn;
+  // If changing tokens should be allowed during this funding cycle.
+  bool allowChangeToken;
   // If migrating terminals should be allowed during this funding cycle.
   bool allowTerminalMigration;
   // If migrating controllers should be allowed during this funding cycle.
