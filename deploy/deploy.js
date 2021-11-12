@@ -4,6 +4,8 @@
  * Example usage:
  *
  * npx hardhat deploy --network rinkeby
+ *
+ * TODO(odd-amphora): Conditionally use `skipIfAlreadyDeployed` iff mainnet.
  */
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deploy } = deployments;
@@ -33,49 +35,42 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     from: deployer,
     args: [],
     log: true,
-    skipIfAlreadyDeployed: true,
   });
 
   const JBPrices = await deploy('JBPrices', {
     from: deployer,
     args: [multisigAddress],
     log: true,
-    skipIfAlreadyDeployed: true,
   });
 
   const JBProjects = await deploy('JBProjects', {
     from: deployer,
     args: [JBOperatorStore.address],
     log: true,
-    skipIfAlreadyDeployed: true,
   });
 
   const JBDirectory = await deploy('JBDirectory', {
     from: deployer,
     args: [JBOperatorStore.address, JBProjects.address],
     log: true,
-    skipIfAlreadyDeployed: true,
   });
 
   const JBFundingCycleStore = await deploy('JBFundingCycleStore', {
     from: deployer,
     args: [JBDirectory.address],
     log: true,
-    skipIfAlreadyDeployed: true,
   });
 
   const JBTokenStore = await deploy('JBTokenStore', {
     from: deployer,
     args: [JBOperatorStore.address, JBProjects.address, JBDirectory.address],
     log: true,
-    skipIfAlreadyDeployed: true,
   });
 
   const JBSplitStore = await deploy('JBSplitsStore', {
     from: deployer,
     args: [JBOperatorStore.address, JBProjects.address, JBDirectory.address],
     log: true,
-    skipIfAlreadyDeployed: true,
   });
 
   await deploy('JBController', {
@@ -89,7 +84,6 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
       JBSplitStore.address
     ],
     log: true,
-    skipIfAlreadyDeployed: true,
   });
 
   const JBETHPaymentTerminalStore = await deploy('JBETHPaymentTerminalStore', {
@@ -102,7 +96,6 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
       JBTokenStore.address,
     ],
     log: true,
-    skipIfAlreadyDeployed: true,
   });
 
   await deploy('JBETHPaymentTerminal', {
@@ -116,6 +109,5 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
       multisigAddress
     ],
     log: true,
-    skipIfAlreadyDeployed: true,
   });
 };
