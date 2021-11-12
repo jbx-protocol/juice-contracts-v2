@@ -261,8 +261,8 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
         If the number is 1000000001, an non-recurring funding cycle will get made.
       @dev _data.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
     @param _metadata A JBFundingCycleMetadata data structure specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
-      @dev _metadata.reservedRate A number from 0-200 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
-      @dev _metadata.redemptionRate The rate from 0-200 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
+      @dev _metadata.reservedRate A number from 0-10000 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
+      @dev _metadata.redemptionRate The rate from 0-10000 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
         The bonding curve formula is https://www.desmos.com/calculator/sp9ru6zbpk
         where x is _count, o is _currentOverflow, s is _totalSupply, and r is _redemptionRate.
       @dev _metadata.ballotRedemptionRate The redemption rate to apply when there is an active ballot.
@@ -293,14 +293,14 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     JBFundAccessConstraints[] memory _fundAccessConstraints,
     IJBTerminal[] memory _terminals
   ) external returns (uint256 projectId) {
-    // The reserved project token rate must be less than or equal to 200.
-    require(_metadata.reservedRate <= 200, '0x37: BAD_RESERVED_RATE');
+    // The reserved project token rate must be less than or equal to 10000.
+    require(_metadata.reservedRate <= 10000, '0x37: BAD_RESERVED_RATE');
 
-    // The redemption rate must be between 0 and 200.
-    require(_metadata.redemptionRate <= 200, '0x38: BAD_REDEMPTION_RATE');
+    // The redemption rate must be between 0 and 10000.
+    require(_metadata.redemptionRate <= 10000, '0x38: BAD_REDEMPTION_RATE');
 
-    // The ballot redemption rate must be less than or equal to 200.
-    require(_metadata.ballotRedemptionRate <= 200, '0x39: BAD_BALLOT_REDEMPTION_RATE');
+    // The ballot redemption rate must be less than or equal to 10000.
+    require(_metadata.ballotRedemptionRate <= 10000, '0x39: BAD_BALLOT_REDEMPTION_RATE');
 
     // Create the project for into the wallet of the message sender.
     projectId = projects.createFor(_owner, _handle, _metadataCid);
@@ -340,8 +340,8 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
         If the number is 1000000001, an non-recurring funding cycle will get made.
       @dev _data.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
     @param _metadata A JBFundingCycleMetadata data structure specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
-      @dev _metadata.reservedRate A number from 0-200 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
-      @dev _metadata.redemptionRate The rate from 0-200 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
+      @dev _metadata.reservedRate A number from 0-10000 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
+      @dev _metadata.redemptionRate The rate from 0-10000 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
         The bonding curve formula is https://www.desmos.com/calculator/sp9ru6zbpk
         where x is _count, o is _currentOverflow, s is _totalSupply, and r is _redemptionRate.
       @dev _metadata.ballotRedemptionRate The redemption rate to apply when there is an active ballot.
@@ -372,16 +372,73 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
     returns (uint256)
   {
-    // The reserved project token rate must be less than or equal to 200.
-    require(_metadata.reservedRate <= 200, '0x51: BAD_RESERVED_RATE');
+    // The reserved project token rate must be less than or equal to 10000.
+    require(_metadata.reservedRate <= 10000, '0x51: BAD_RESERVED_RATE');
 
-    // The redemption rate must be between 0 and 200.
-    require(_metadata.redemptionRate <= 200, '0x52: BAD_REDEMPTION_RATE');
+    // The redemption rate must be between 0 and 10000.
+    require(_metadata.redemptionRate <= 10000, '0x52: BAD_REDEMPTION_RATE');
 
-    // The ballot redemption rate must be less than or equal to 200.
-    require(_metadata.ballotRedemptionRate <= 200, '0x53: BAD_BALLOT_REDEMPTION_RATE');
+    // The ballot redemption rate must be less than or equal to 10000.
+    require(_metadata.ballotRedemptionRate <= 10000, '0x53: BAD_BALLOT_REDEMPTION_RATE');
 
     return _configure(_projectId, _data, _metadata, _groupedSplits, _fundAccessConstraints);
+  }
+
+  /**
+    @notice 
+    Issues an owner's ERC-20 Tokens that'll be used when claiming tokens.
+
+    @dev 
+    Deploys a project's ERC-20 token contract.
+
+    @dev
+    Only a project owner or operator can issue its token.
+
+    @param _projectId The ID of the project being issued tokens.
+    @param _name The ERC-20's name.
+    @param _symbol The ERC-20's symbol.
+  */
+  function issueTokenFor(
+    uint256 _projectId,
+    string calldata _name,
+    string calldata _symbol
+  )
+    external
+    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.ISSUE)
+    returns (IJBToken token)
+  {
+    // Issue the token in the store.
+    return tokenStore.issueFor(_projectId, _name, _symbol);
+  }
+
+  /**
+    @notice 
+    Swap the current project's token that is minted and burned for another, and transfer ownership of the current token to another address if needed.
+
+    @dev
+    Only a project owner or operator can change its token.
+
+    @param _projectId The ID of the project to which the changed token belongs.
+    @param _token The new token.
+    @param _newOwner An address to transfer the current token's ownership to. This is optional, but it cannot be done later.
+  */
+  function changeTokenOf(
+    uint256 _projectId,
+    IJBToken _token,
+    address _newOwner
+  )
+    external
+    nonReentrant
+    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.CHANGE_TOKEN)
+  {
+    // Get a reference to the project's current funding cycle.
+    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
+
+    // The current funding cycle must not be paused.
+    require(_fundingCycle.changeTokenAllowed(), '0x05: NOT_ALLOWED');
+
+    // Change the token in the store.
+    tokenStore.changeFor(_projectId, _token, _newOwner);
   }
 
   /**
@@ -507,63 +564,6 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     tokenStore.burnFrom(_holder, _projectId, _tokenCount, _preferClaimedTokens);
 
     emit BurnTokens(_holder, _projectId, _tokenCount, _memo, msg.sender);
-  }
-
-  /**
-    @notice 
-    Issues an owner's ERC-20 Tokens that'll be used when claiming tokens.
-
-    @dev 
-    Deploys an owner's Token ERC-20 token contract.
-
-    @dev
-    Only a project owner or operator can issue its token.
-
-    @param _projectId The ID of the project being issued tokens.
-    @param _name The ERC-20's name.
-    @param _symbol The ERC-20's symbol.
-  */
-  function issueTokenFor(
-    uint256 _projectId,
-    string calldata _name,
-    string calldata _symbol
-  )
-    external
-    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.ISSUE)
-    returns (IJBToken token)
-  {
-    // Issue the token in the store.
-    return tokenStore.issueFor(_projectId, _name, _symbol);
-  }
-
-  /**
-    @notice 
-    Swap the current project's token that is minted and burned for another, and transfer ownership from the current to another address.
-
-    @dev
-    Only a project owner or operator can change its token.
-
-    @param _projectId The ID of the project to which the changed token belongs.
-    @param _token The new token.
-    @param _newOwner An address to transfer the current token's ownership to. This is optional, but it cannot be done later.
-  */
-  function changeTokenOf(
-    uint256 _projectId,
-    IJBToken _token,
-    address _newOwner
-  )
-    external
-    nonReentrant
-    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.CHANGE_TOKEN)
-  {
-    // Get a reference to the project's current funding cycle.
-    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
-
-    // The current funding cycle must not be paused.
-    require(_fundingCycle.changeTokenAllowed(), '0x05: NOT_ALLOWED');
-
-    // Change the token in the store.
-    tokenStore.changeFor(_projectId, _token, _newOwner);
   }
 
   /**

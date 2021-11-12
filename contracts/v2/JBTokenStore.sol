@@ -145,7 +145,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     Issues an owner's ERC-20 Tokens that'll be used when claiming tokens.
 
     @dev 
-    Deploys an owner's Token ERC-20 token contract.
+    Deploys a project's ERC-20 token contract.
 
     @dev
     Only a project's current controller can issue its token.
@@ -179,7 +179,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
   /**
     @notice 
-    Swap the current project's token that is minted and burned for another, and transfer ownership from the current to another address.
+    Swap the current project's token that is minted and burned for another, and transfer ownership of the current token to another address if needed.
 
     @dev
     Only a project's current controller can change its token.
@@ -203,7 +203,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     if (_newOwner != address(0) && _currentToken != IJBToken(address(0)))
       _currentToken.transferOwnership(_newOwner);
 
-    emit ChangeToken(_projectId, _token, _newOwner, msg.sender);
+    emit Change(_projectId, _token, _newOwner, msg.sender);
   }
 
   /** 
