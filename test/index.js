@@ -1,5 +1,8 @@
 import { ethers, config } from 'hardhat';
-import { expect as _expect } from 'chai';
+
+import { expect as _expect, config as chaiConfig } from 'chai';
+chaiConfig.includeStack = true; // Chai stacktraces.
+
 import { readFileSync } from 'fs';
 import { sync } from 'glob';
 
@@ -8,6 +11,7 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { BigNumber, Contract } from 'ethers';
 import unit from './unit';
 import integration from './integration';
+
 
 describe('Juicebox', async function () {
   before(async function () {

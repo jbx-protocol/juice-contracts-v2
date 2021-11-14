@@ -1,10 +1,11 @@
-# Ignore everything
+# Ignore everything by default.
 *
 
-# Allow whitelisted deployment networks
+# Allowlisted deployment networks.
 !/deployments/rinkeby/**
 !/deployments/mainnet/**
 
-# Allow contract interfaces
+# Contract abstract classes and interfaces.
+!/contracts/v1/abstract/**
 !/contracts/v1/interfaces/**
 !/contracts/v2/interfaces/**
