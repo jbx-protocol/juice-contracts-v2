@@ -17,3 +17,12 @@ export async function increaseBy(amount) {
 export async function getBlockTimestamp(block) {
   return ethers.BigNumber.from((await ethers.provider.getBlock(block || 'latest')).timestamp);
 };
+
+export async function syncToBlock(block) {
+  let blockTimestamp = await getBlockTimestamp(block);
+  await time.increaseTo(blockTimestamp.toNumber())
+}
+
+export async function advanceBlock() {
+  await time.advanceBlock();
+}
