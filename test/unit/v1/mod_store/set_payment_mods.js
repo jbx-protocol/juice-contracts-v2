@@ -1,6 +1,8 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
+import * as time from "../../../helpers/time"
+
 const tests = {
   success: [
     {
@@ -595,7 +597,7 @@ export default function () {
             // Fast forward the clock if needed.
             // Subtract 1 so that the next operations mined block is likely to fall on the intended timestamp.
             // eslint-disable-next-line no-await-in-loop
-            await this.fastforwardFn(setup.fastforward.sub(1));
+            await time.increaseTo(this.testStart, setup.fastforward.sub(1));
           }
         }
 
@@ -665,9 +667,9 @@ export default function () {
               .setPayoutMods(setup.projectId, setup.configuration, setup.mods);
           }
           if (setup.fastforward) {
-            await this.fastforwardFn(setup.fastforward.sub(1));
+            await time.increaseTo(this.testStart, setup.fastforward.sub(1));
           }
-        }
+        }     
 
         await expect(
           this.contract.connect(caller).setPayoutMods(projectId, configuration, mods),

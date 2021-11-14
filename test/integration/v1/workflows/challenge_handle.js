@@ -1,3 +1,5 @@
+import { time } from '@openzeppelin/test-helpers';
+
 /** 
   A project's handle can be challenged, after which a year must pass without it being renewed before it can be claimed.
 */
@@ -89,16 +91,18 @@ export default [
   },
   {
     description: 'Make sure the challenge expiry got set',
-    fn: async ({ contracts, checkFn, randomSignerFn, timeMark, local: { handle } }) => {
+    fn: async ({ contracts, checkFn, randomSignerFn, latestTimestampFn, BigNumber, local: { handle } }) => {
+      let latest = await latestTimestampFn();
+
       await checkFn({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'challengeExpiryOf',
         args: [handle],
-        expect: timeMark.add(31536000),
+        expect: latest.add(BigNumber.from(31536000)),
       });
 
-      return { challengeTimeMark: timeMark };
+      return { challengeTimeMark: latest };
     },
   },
   {
@@ -243,16 +247,17 @@ export default [
   },
   {
     description: 'Make sure the challenge expiry got set',
-    fn: async ({ contracts, checkFn, randomSignerFn, timeMark, local: { handle } }) => {
+    fn: async ({ contracts, checkFn, randomSignerFn, latestTimestampFn, local: { handle } }) => {
+      let latest = await latestTimestampFn();
       await checkFn({
         caller: randomSignerFn(),
         contract: contracts.projects,
         fn: 'challengeExpiryOf',
         args: [handle],
-        expect: timeMark.add(31536000),
+        expect: latest.add(31536000),
       });
 
-      return { challengeTimeMark: timeMark };
+      return { challengeTimeMark: latest };
     },
   },
   {

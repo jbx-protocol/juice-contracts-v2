@@ -4,6 +4,8 @@ const {
 } = hardhat;
 import { expect } from 'chai';
 
+import * as time from "../../../helpers/time";
+
 /** 
   These tests rely on time manipulation quite a bit, which as far as i understand is hard to do precisely. 
   Ideally, the tests could mock the block.timestamp to preset numbers, but instead 
@@ -16,43 +18,43 @@ import { expect } from 'chai';
 
 const testTemplate =
   ({ op = {}, setup = {}, preconfigure = {}, fastforward, ops = [], expectation = {}, revert }) =>
-  ({ deployer, ballot }) => ({
-    caller: deployer,
-    projectId: 1,
-    setup: {
-      preconfigure: {
-        target: BigNumber.from(240),
-        currency: BigNumber.from(0),
-        duration: BigNumber.from(100),
-        cycleLimit: BigNumber.from(0),
-        discountRate: BigNumber.from(120),
-        fee: BigNumber.from(40),
-        metadata: BigNumber.from(3),
-        configureActiveFundingCycle: false,
-        ...preconfigure,
-        ballot: {
-          address: ballot.address,
-          duration: BigNumber.from(0),
-          ...preconfigure.ballot,
+    ({ deployer, ballot }) => ({
+      caller: deployer,
+      projectId: 1,
+      setup: {
+        preconfigure: {
+          target: BigNumber.from(240),
+          currency: BigNumber.from(0),
+          duration: BigNumber.from(100),
+          cycleLimit: BigNumber.from(0),
+          discountRate: BigNumber.from(120),
+          fee: BigNumber.from(40),
+          metadata: BigNumber.from(3),
+          configureActiveFundingCycle: false,
+          ...preconfigure,
+          ballot: {
+            address: ballot.address,
+            duration: BigNumber.from(0),
+            ...preconfigure.ballot,
+          },
         },
-      },
-      ops: [
-        ...ops,
-        ...(fastforward
-          ? [
+        ops: [
+          ...ops,
+          ...(fastforward
+            ? [
               {
                 type: 'fastforward',
                 seconds: fastforward,
               },
             ]
-          : []),
-      ],
-      ...setup,
-    },
-    expectation,
-    ...op,
-    revert,
-  });
+            : []),
+        ],
+        ...setup,
+      },
+      expectation,
+      ...op,
+      revert,
+    });
 
 const tests = {
   success: [
@@ -645,6 +647,8 @@ export default function () {
         // Mock the caller to be the project's controller.
         await this.terminalDirectory.mock.terminalOf.withArgs(projectId).returns(caller.address);
 
+        let timestamp = this.testStart;
+
         if (preconfigure) {
           // If a ballot was provided, mock the ballot contract with the provided properties.
           await this.ballot.mock.duration.returns(preconfigure.ballot.duration);
@@ -664,7 +668,7 @@ export default function () {
             preconfigure.configureActiveFundingCycle,
           );
 
-          await this.setTimeMarkFn(tx.blockNumber);
+          timestamp = await time.getBlockTimestamp(tx.blockNumber);
         }
 
         // Mock the duration as 0.
@@ -697,13 +701,15 @@ export default function () {
                 op.fee,
                 op.configureActiveFundingCycle,
               );
+
+              timestamp = await time.getBlockTimestamp(tx.blockNumber);
               if (op.ballot) {
                 // eslint-disable-next-line no-await-in-loop
                 await this.ballot.mock.state
                   .withArgs(
                     op.ballot.fundingCycleId,
                     // eslint-disable-next-line no-await-in-loop
-                    await this.getTimestampFn(tx.blockNumber),
+                    await time.getBlockTimestamp(tx.blockNumber),
                   )
                   .returns(op.ballot.state);
               }
@@ -713,7 +719,7 @@ export default function () {
             case 'fastforward': {
               // Fast forward the clock if needed.
               // eslint-disable-next-line no-await-in-loop
-              await this.fastforwardFn(op.seconds);
+              await time.increaseBy(op.seconds);
               break;
             }
             default:

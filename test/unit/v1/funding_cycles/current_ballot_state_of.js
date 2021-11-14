@@ -4,6 +4,8 @@ const {
 } = hardhat;
 import { expect } from 'chai';
 
+import * as time from "../../../helpers/time"
+
 /** 
   These tests rely on time manipulation quite a bit, which as far as i understand is hard to do precisely. 
   Ideally, the tests could mock the block.timestamp to preset numbers, but instead 
@@ -554,7 +556,7 @@ export default function () {
             preconfigure.configureActiveFundingCycle,
           );
 
-          await this.setTimeMarkFn(tx.blockNumber);
+          //await this.setTimeMarkFn(tx.blockNumber);
         }
 
         // Do any other specified operations.
@@ -591,7 +593,7 @@ export default function () {
                   .withArgs(
                     op.ballot.fundingCycleId,
                     // eslint-disable-next-line no-await-in-loop
-                    await this.getTimestampFn(tx.blockNumber),
+                    await time.getBlockTimestamp(tx.blockNumber),
                   )
                   .returns(op.ballot.state);
               }
@@ -601,7 +603,7 @@ export default function () {
             case 'fastforward': {
               // Fast forward the clock if needed.
               // eslint-disable-next-line no-await-in-loop
-              await this.fastforwardFn(op.seconds);
+              await time.increaseBy(op.seconds);
               break;
             }
             default:

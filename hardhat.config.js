@@ -2,11 +2,14 @@ const fs = require('fs');
 const dotenv = require('dotenv');
 const web3 = require('ethers');
 
+require('@nomiclabs/hardhat-ethers');
 require('@nomiclabs/hardhat-etherscan');
 require('@nomiclabs/hardhat-waffle');
-require('@nomiclabs/hardhat-ethers');
+require("@nomiclabs/hardhat-web3");
 require('hardhat-gas-reporter');
 require('hardhat-deploy');
+require('@openzeppelin/test-helpers/configure')
+require('web3');
 
 dotenv.config();
 

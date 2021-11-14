@@ -9,35 +9,12 @@ import { BigNumber, Contract } from 'ethers';
 import unit from './unit';
 import integration from './integration';
 
+import * as time from './helpers/time';
+
 describe('Juicebox', async function () {
   before(async function () {
     // Bind a reference to the deployer address and an array of other addresses to `this`.
     [this.deployer, ...this.addrs] = await ethers.getSigners();
-
-    // Bind the ability to manipulate time to `this`.
-    // Bind a function that gets the current block's timestamp.
-    this.getTimestampFn = async (block) => {
-      return ethers.BigNumber.from((await ethers.provider.getBlock(block || 'latest')).timestamp);
-    };
-
-    // Binds a function that sets a time mark that is taken into account while fastforward.
-    this.setTimeMarkFn = async (blockNumber) => {
-      this.timeMark = await this.getTimestampFn(blockNumber);
-    };
-
-    // Binds a function that fastforward a certain amount from the beginning of the test, or from the latest time mark if one is set.
-    this.fastforwardFn = async (seconds) => {
-      const now = await this.getTimestampFn();
-      const timeSinceTimemark = now.sub(this.timeMark);
-      const fastforwardAmount = seconds.toNumber() - timeSinceTimemark;
-      this.timeMark = now.add(fastforwardAmount);
-
-      // Subtract away any time that has already passed between the start of the test,
-      // or from the last fastforward, from the provided value.
-      await ethers.provider.send('evm_increaseTime', [fastforwardAmount]);
-      // Mine a block.
-      await ethers.provider.send('evm_mine');
-    };
 
     // Bind a reference to a function that can deploy mock contracts from an abi.
     this.deployMockContractFn = (abi) => deployMockContract(this.deployer, abi);
@@ -135,9 +112,6 @@ describe('Juicebox', async function () {
       // Wait for a block to get mined.
       await tx.wait();
 
-      // Set the time mark of this function.
-      await this.setTimeMarkFn(tx.blockNumber);
-
       // Return if there are no events.
       if (events.length === 0) return;
 
@@ -151,40 +125,6 @@ describe('Juicebox', async function () {
 
     this.bindContractFn = async ({ address, contractName, signerOrProvider }) => {
       return new Contract(address, this.readContractAbi(contractName), signerOrProvider);
-    };
-
-    // Bind a function that sends funds from one address to another.
-    this.sendTransactionFn = async ({ from, to, value, revert, events }) => {
-      // Transfer the funds.
-      const promise = from.sendTransaction({
-        to,
-        value,
-      });
-
-      // If a revert message is passed in, check to see if it was thrown.
-      if (revert) {
-        await _expect(promise).to.be.revertedWith(revert);
-        return;
-      }
-
-      // Await the promise.
-      const tx = await promise;
-
-      // Wait for a block to get mined.
-      await tx.wait();
-
-      // Set the time mark of this function.
-      await this.setTimeMarkFn(tx.blockNumber);
-
-      // Return if there are no events.
-      if (events.length === 0) return;
-
-      // Check for events.
-      events.forEach((event) =>
-        _expect(tx)
-          .to.emit(event.contract, event.name)
-          .withArgs(...event.args),
-      );
     };
 
     // Bind a function that checks if a contract getter equals an expected value.
@@ -328,16 +268,12 @@ describe('Juicebox', async function () {
     };
 
     this.stringToBytes = ethers.utils.formatBytes32String;
-
-    // Bind functions for cleaning state.
-    this.snapshotFn = () => ethers.provider.send('evm_snapshot', []);
-    this.restoreFn = (id) => ethers.provider.send('evm_revert', [id]);
   });
 
   // Before each test, take a snapshot of the contract state.
   beforeEach(async function () {
     // Make the start time of the test available.
-    this.testStart = await this.getTimestampFn();
+    this.testStart = await time.latest();
   });
 
   // Run the tests.

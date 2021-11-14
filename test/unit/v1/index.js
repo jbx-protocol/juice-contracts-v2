@@ -1,3 +1,5 @@
+import { snapshot as takeSnapshot } from '@openzeppelin/test-helpers';
+
 import directPaymentAddress from './direct_payment_address';
 import fundingCycles from './funding_cycles';
 import governance from './governance';
@@ -12,12 +14,12 @@ import terminalDirectory from './terminal_directory';
 import terminalV1 from './terminal_v1';
 import ticketBooth from './ticket_booth';
 
-let snapshotId;
+let snapshot;
 export default function () {
   beforeEach(async function () {
-    snapshotId = await this.snapshotFn();
+    snapshot = await takeSnapshot();
     // Mark the start time of each test.
-    await this.setTimeMarkFn();
+    //await this.setTimeMarkFn();
   });
   // Test each contract.
   describe('OperatorStore', operatorStore);
@@ -42,6 +44,6 @@ export default function () {
 
   // After each test, restore the contract state.
   afterEach(async function () {
-    await this.restoreFn(snapshotId);
+    await snapshot.restore();
   });
 }

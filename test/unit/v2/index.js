@@ -1,12 +1,14 @@
+import { snapshot as takeSnapshot } from '@openzeppelin/test-helpers';
+
 import jbOperatorStore from './jb_operator_store';
 import jbPrices from './jb_prices';
 
-let snapshotId;
+let snapshot;
 export default function () {
   beforeEach(async function () {
-    snapshotId = await this.snapshotFn();
+    snapshot = await takeSnapshot();
     // Mark the start time of each test.
-    await this.setTimeMarkFn();
+    //await this.setTimeMarkFn();
   });
 
   // Test each contract.
@@ -15,6 +17,6 @@ export default function () {
 
   // After each test, restore the contract state.
   afterEach(async function () {
-    await this.restoreFn(snapshotId);
+    await snapshot.restore();
   });
 }

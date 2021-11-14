@@ -7,6 +7,8 @@
   If a project reconfigures its funding cycle, new mods can be set that override any locked payout mods.
   These new mods will take effect once the reconfigured funding cycle becomes active.
 */
+import * as time from "../../../helpers/time"
+
 export default [
   {
     description: 'Deploy first project with at least a locked ticket mod',
@@ -17,7 +19,6 @@ export default [
       BigNumber,
       randomBigNumberFn,
       randomBytesFn,
-      getTimestampFn,
       randomBoolFn,
       randomStringFn,
       randomAddressFn,
@@ -42,7 +43,7 @@ export default [
           max: constants.MaxModPercent.div(2),
         }).toNumber(),
         // Lock at least until the end of the tests.
-        lockedUntil: (await getTimestampFn())
+        lockedUntil: (await time.latest())
           .add(
             randomBigNumberFn({
               min: BigNumber.from(1000),

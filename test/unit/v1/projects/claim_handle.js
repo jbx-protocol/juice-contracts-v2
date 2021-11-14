@@ -1,6 +1,8 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
+import * as time from "../../../helpers/time";
+
 const tests = {
   success: [
     {
@@ -270,14 +272,15 @@ export default function () {
         }
 
         // Challenge the handle if needed.
+        let challengeHandleTimestamp;
         if (challengeHandle) {
           const tx = await this.contract.connect(caller).challengeHandle(challengeHandle);
-          await this.setTimeMarkFn(tx.blockNumber);
+          challengeHandleTimestamp = await time.getBlockTimestamp(tx.blockNumber);
         }
 
         // Fastforward if needed.
         // The next transaction will happen one second after.
-        if (fastforward) await this.fastforwardFn(fastforward);
+        if (fastforward) await time.increaseTo(challengeHandleTimestamp, fastforward);
 
         const tx = await this.contract.connect(caller).claimHandle(handle, claimFor, 2);
 
@@ -371,7 +374,7 @@ export default function () {
         // Challenge the handle if needed.
         if (challengeHandle) {
           const tx = await this.contract.connect(caller).challengeHandle(challengeHandle);
-          await this.setTimeMarkFn(tx.blockNumber);
+          //await this.setTimeMarkFn(tx.blockNumber);
         }
 
         // Fastforward if needed.

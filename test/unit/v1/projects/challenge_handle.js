@@ -1,6 +1,8 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
+import * as time from "../../../helpers/time";
+
 const tests = {
   success: [
     {
@@ -64,7 +66,7 @@ export default function () {
         // Execute the transaction.
         const tx = await this.contract.connect(caller).challengeHandle(handle);
 
-        const expectedChallengeExpiry = (await this.getTimestampFn(tx.blockNumber)).add(31536000);
+        const expectedChallengeExpiry = (await time.getBlockTimestamp(tx.blockNumber)).add(31536000);
 
         // Expect an event to have been emitted.
         expect(tx)
