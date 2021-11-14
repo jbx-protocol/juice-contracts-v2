@@ -12,7 +12,7 @@ const tests = {
           base: 2,
         },
       }),
-    }
+    },
   ],
   failure: [
     {

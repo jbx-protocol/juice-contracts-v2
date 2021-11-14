@@ -105,10 +105,12 @@ export default function () {
           expectedPriceBigNum = ethers.BigNumber.from(expectedPrice);
         } else if (decimals < targetDecimals) {
           expectedPriceBigNum = ethers.BigNumber.from(expectedPrice).mul(
-            ethers.BigNumber.from(10).pow(targetDecimals - (decimals)))
+            ethers.BigNumber.from(10).pow(targetDecimals - decimals),
+          );
         } else {
           expectedPriceBigNum = ethers.BigNumber.from(expectedPrice).div(
-            ethers.BigNumber.from(10).pow((decimals) - targetDecimals))
+            ethers.BigNumber.from(10).pow(decimals - targetDecimals),
+          );
         }
 
         // Expect the stored price value to match the expected value.

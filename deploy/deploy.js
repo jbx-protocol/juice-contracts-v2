@@ -15,21 +15,21 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
 
   console.log({ deployer, k: await getChainId() });
   switch (await getChainId()) {
-    // mainnet 
-    case "1":
-      multisigAddress = "0xAF28bcB48C40dBC86f52D459A6562F658fc94B1e";
+    // mainnet
+    case '1':
+      multisigAddress = '0xAF28bcB48C40dBC86f52D459A6562F658fc94B1e';
       break;
     // rinkeby
-    case "4":
-      multisigAddress = "0x69C6026e3938adE9e1ddE8Ff6A37eC96595bF1e1";
+    case '4':
+      multisigAddress = '0x69C6026e3938adE9e1ddE8Ff6A37eC96595bF1e1';
       break;
     // hardhat / localhost
-    case "31337":
+    case '31337':
       multisigAddress = deployer;
       break;
   }
 
-  console.log({ multisigAddress })
+  console.log({ multisigAddress });
 
   const JBOperatorStore = await deploy('JBOperatorStore', {
     from: deployer,
@@ -81,7 +81,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
       JBDirectory.address,
       JBFundingCycleStore.address,
       JBTokenStore.address,
-      JBSplitStore.address
+      JBSplitStore.address,
     ],
     log: true,
   });
@@ -106,7 +106,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
       JBDirectory.address,
       JBSplitStore.address,
       JBETHPaymentTerminalStore.address,
-      multisigAddress
+      multisigAddress,
     ],
     log: true,
   });
