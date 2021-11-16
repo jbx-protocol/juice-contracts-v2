@@ -90,7 +90,7 @@ Error in plugin @nomiclabs/hardhat-etherscan: Source code exceeds max accepted (
 To compile in isolation:
 
 ```
-npx hardhat set:compile:one Tickets
+npx hardhat compile:one Tickets
 ```
 
 TODO(odd-amphora): Create a separate repo with these settings specifically for verifying V1 contracts.
