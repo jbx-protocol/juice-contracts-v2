@@ -6,4 +6,5 @@
 !/deployments/mainnet/**
 
 # Contract abstract classes and interfaces.
+!/contracts/abstract/**
 !/contracts/interfaces/**
