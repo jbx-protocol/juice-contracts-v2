@@ -8,18 +8,10 @@ To deploy the contracts to a local blockchain, run the following:
 yarn chain --network hardhat
 ```
 
-To run tests (all, unit, integration):
+To run tests:
 
 ```bash
 yarn test
-yarn test:unit
-yarn test:integration
-```
-
-You can also filter tests by name, etc.:
-
-```bash
-yarn test:unit --grep "ProxyPaymentAddressManager"
 ```
 
 ## Deploy
