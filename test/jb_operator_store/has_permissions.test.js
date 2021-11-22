@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
-describe(`JBOperatorStore::hasPermission(...)`, function () {
+describe(`JBOperatorStore::hasPermissions(...)`, function () {
   let jbOperatorStoreFactory;
   let jbOperatorStore;
 
@@ -76,7 +76,7 @@ describe(`JBOperatorStore::hasPermission(...)`, function () {
     ).to.be.false;
   });
 
-  it(`Doesn't have permission, indexes differ`, async function () {
+  it(`Doesn't have permissions, indexes differ`, async function () {
     let caller = signers[0];
     let operator = signers[1];
     let domain = 1;
@@ -93,7 +93,7 @@ describe(`JBOperatorStore::hasPermission(...)`, function () {
     ).to.be.false;
   });
 
-  it(`Doesn't have permission, domain differs`, async function () {
+  it(`Doesn't have permissions, domain differs`, async function () {
     let caller = signers[0];
     let operator = signers[1];
     let permissionIndexes = [1, 2, 3];
