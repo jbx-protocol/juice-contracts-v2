@@ -1,5 +1,6 @@
 {
   "solidity.compileUsingRemoteVersion": "0.8.6",
+  "editor.formatOnSave": true,
   "[javascript]": {
     "editor.tabSize": 2
   },  
