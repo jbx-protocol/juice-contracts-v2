@@ -29,29 +29,6 @@ describe(`JBOperatorStore::hasPermission(...)`, function () {
 
   it(`Has permission, account is caller`, async function () {
     let caller = signers[0];
-    let domain = 1;
-    let permissionIndexes = [1, 2, 3];
-
-    await jbOperatorStore
-      .connect(caller)
-      .setOperator([/*operator=*/ caller.address, domain, permissionIndexes]);
-
-    for (let permissionIndex of permissionIndexes) {
-      let hasPermission = await jbOperatorStore
-        .connect(caller)
-        .hasPermission(
-          /*operator=*/ caller.address,
-          /*account=*/ caller.address,
-          domain,
-          permissionIndex,
-        );
-
-      expect(hasPermission).to.be.true;
-    }
-  });
-
-  it('Has permission, account is not caller', async function () {
-    let caller = signers[0];
     let operator = signers[1];
     let domain = 1;
     let permissionIndexes = [1, 2, 3];
@@ -64,6 +41,26 @@ describe(`JBOperatorStore::hasPermission(...)`, function () {
       let hasPermission = await jbOperatorStore
         .connect(caller)
         .hasPermission(operator.address, /*account=*/ caller.address, domain, permissionIndex);
+
+      expect(hasPermission).to.be.true;
+    }
+  });
+
+  it('Has permission, account is not caller', async function () {
+    let caller1 = signers[0];
+    let caller2 = signers[1];
+    let operator = signers[2];
+    let domain = 1;
+    let permissionIndexes = [1, 2, 3];
+
+    await jbOperatorStore
+      .connect(caller1)
+      .setOperator([operator.address, domain, permissionIndexes]);
+
+    for (let permissionIndex of permissionIndexes) {
+      let hasPermission = await jbOperatorStore
+        .connect(caller2)
+        .hasPermission(operator.address, /*account=*/ caller1.address, domain, permissionIndex);
 
       expect(hasPermission).to.be.true;
     }
@@ -89,7 +86,7 @@ describe(`JBOperatorStore::hasPermission(...)`, function () {
 
     await jbOperatorStore
       .connect(caller)
-      .setOperator([operator.address, domain, [/*permissionIndexes=*/ 1, 2, 3]]);
+      .setOperator([operator.address, domain, /*permissionIndexes=*/ [1, 2, 3]]);
 
     // Test some invalid permission indexes.
     for (let permissionIndex of [4, 5, 6]) {
