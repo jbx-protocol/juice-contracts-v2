@@ -16,7 +16,7 @@ describe(`JBOperatorStore::setOperators(...)`, function () {
     signers = await ethers.getSigners();
   });
 
-  async function setOperatorsAndValidateEvent(
+  async function setOperatorsAndValidateEvents(
     operators,
     account,
     domain,
@@ -54,7 +54,7 @@ describe(`JBOperatorStore::setOperators(...)`, function () {
     let packedPermissions = makePackedPermissions(permissionIndexes);
 
     // Set the operator.
-    await setOperatorsAndValidateEvent(
+    await setOperatorsAndValidateEvents(
       operators,
       /*account=*/ caller,
       domain,
@@ -65,7 +65,7 @@ describe(`JBOperatorStore::setOperators(...)`, function () {
     // Override the previously set value.
     permissionIndexes = [4, 5, 6];
     packedPermissions = makePackedPermissions(permissionIndexes);
-    await setOperatorsAndValidateEvent(
+    await setOperatorsAndValidateEvents(
       operators,
       /*account=*/ caller,
       domain,
@@ -76,7 +76,7 @@ describe(`JBOperatorStore::setOperators(...)`, function () {
     // Clear previously set values.
     permissionIndexes = [];
     packedPermissions = makePackedPermissions(permissionIndexes);
-    await setOperatorsAndValidateEvent(
+    await setOperatorsAndValidateEvents(
       operators,
       /*account=*/ caller,
       domain,
