@@ -3,14 +3,14 @@ import { ethers } from 'hardhat';
 
 import { makePackedPermissions } from '../helpers/utils';
 
-describe(`JBOperatorStore::setOperator(...)`, function () {
+describe('JBOperatorStore::setOperator(...)', function () {
   let jbOperatorStoreFactory;
   let jbOperatorStore;
 
   let signers;
 
   beforeEach(async function () {
-    jbOperatorStoreFactory = await ethers.getContractFactory(`JBOperatorStore`);
+    jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
     jbOperatorStore = await jbOperatorStoreFactory.deploy();
 
     signers = await ethers.getSigners();
@@ -42,7 +42,7 @@ describe(`JBOperatorStore::setOperator(...)`, function () {
     );
   }
 
-  it(`Set operator with no previous value, override it, and clear it`, async function () {
+  it('Set operator with no previous value, override it, and clear it', async function () {
     let caller = signers[0];
     let operator = signers[1];
     let domain = 1;
@@ -81,7 +81,7 @@ describe(`JBOperatorStore::setOperator(...)`, function () {
     );
   });
 
-  it(`Index out of bounds`, async function () {
+  it('Index out of bounds', async function () {
     let caller = signers[0];
     let operator = signers[1];
     let domain = 1;
@@ -89,6 +89,6 @@ describe(`JBOperatorStore::setOperator(...)`, function () {
 
     await expect(
       jbOperatorStore.connect(caller).setOperator([operator.address, domain, permissionIndexes]),
-    ).to.be.revertedWith(`0x02: INDEX_OUT_OF_BOUNDS`);
+    ).to.be.revertedWith('0x02: INDEX_OUT_OF_BOUNDS');
   });
 });

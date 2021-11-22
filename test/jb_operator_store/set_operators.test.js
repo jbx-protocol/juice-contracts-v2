@@ -3,14 +3,14 @@ import { ethers } from 'hardhat';
 
 import { makePackedPermissions } from '../helpers/utils';
 
-describe(`JBOperatorStore::setOperators(...)`, function () {
+describe('JBOperatorStore::setOperators(...)', function () {
   let jbOperatorStoreFactory;
   let jbOperatorStore;
 
   let signers;
 
   beforeEach(async function () {
-    jbOperatorStoreFactory = await ethers.getContractFactory(`JBOperatorStore`);
+    jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
     jbOperatorStore = await jbOperatorStoreFactory.deploy();
 
     signers = await ethers.getSigners();
@@ -67,7 +67,7 @@ describe(`JBOperatorStore::setOperators(...)`, function () {
     validateEvents(tx, operators, caller);
   }
 
-  it(`Set with no previous values, then override and clear them`, async function () {
+  it('Set with no previous values, then override and clear them', async function () {
     let caller = signers[0];
     let domain = 1;
 
@@ -99,7 +99,7 @@ describe(`JBOperatorStore::setOperators(...)`, function () {
     await setOperatorsAndValidateEvents(operators, caller);
   });
 
-  it(`Same operator used for two different projects`, async function () {
+  it('Same operator used for two different projects', async function () {
     let caller = signers[0];
     let domain1 = 1;
     let domain2 = 2;
@@ -113,7 +113,7 @@ describe(`JBOperatorStore::setOperators(...)`, function () {
     await setOperatorsAndValidateEvents(operators, caller);
   });
 
-  it(`Same operator used for the same project`, async function () {
+  it('Same operator used for the same project', async function () {
     let caller = signers[0];
     let domain = 1;
 

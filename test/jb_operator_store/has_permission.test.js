@@ -1,20 +1,20 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
-describe(`JBOperatorStore::hasPermission(...)`, function () {
+describe('JBOperatorStore::hasPermission(...)', function () {
   let jbOperatorStoreFactory;
   let jbOperatorStore;
 
   let signers;
 
   beforeEach(async function () {
-    jbOperatorStoreFactory = await ethers.getContractFactory(`JBOperatorStore`);
+    jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
     jbOperatorStore = await jbOperatorStoreFactory.deploy();
 
     signers = await ethers.getSigners();
   });
 
-  it(`Permission index out of bounds`, async function () {
+  it('Permission index out of bounds', async function () {
     await expect(
       jbOperatorStore
         .connect(signers[0])
@@ -24,10 +24,10 @@ describe(`JBOperatorStore::hasPermission(...)`, function () {
           /*domain=*/ 1,
           /*permissionIndex=*/ 256,
         ),
-    ).to.be.revertedWith(`0x00: INDEX_OUT_OF_BOUNDS`);
+    ).to.be.revertedWith('0x00: INDEX_OUT_OF_BOUNDS');
   });
 
-  it(`Has permission if account is caller`, async function () {
+  it('Has permission if account is caller', async function () {
     let caller = signers[0];
     let operator = signers[1];
     let domain = 1;
@@ -67,7 +67,7 @@ describe(`JBOperatorStore::hasPermission(...)`, function () {
     }
   });
 
-  it(`Doesn't have permission if never set`, async function () {
+  it("Doesn't have permission if never set", async function () {
     expect(
       await jbOperatorStore
         .connect(signers[0])
@@ -80,7 +80,7 @@ describe(`JBOperatorStore::hasPermission(...)`, function () {
     ).to.be.be.false;
   });
 
-  it(`Doesn't have permission if indexes differ`, async function () {
+  it("Doesn't have permission if indexes differ", async function () {
     let caller = signers[0];
     let operator = signers[1];
     let domain = 1;
@@ -99,7 +99,7 @@ describe(`JBOperatorStore::hasPermission(...)`, function () {
     }
   });
 
-  it(`Doesn't have permission if domain differs`, async function () {
+  it("Doesn't have permission if domain differs", async function () {
     let caller = signers[0];
     let operator = signers[1];
     let permissionIndexes = [1, 2, 3];
