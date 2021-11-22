@@ -16,80 +16,117 @@ describe(`JBOperatorStore::setOperators(...)`, function () {
     signers = await ethers.getSigners();
   });
 
-  async function setOperatorsAndValidateEvents(
-    operators,
-    account,
-    domain,
-    permissionIndexes,
-    packedPermissionIndexes,
-  ) {
-    const tx = await jbOperatorStore
-      .connect(account)
-      .setOperators(operators.map((operator) => [operator.address, domain, permissionIndexes]));
+  function makeOperator(operator, domain, permissionIndexes) {
+    return {
+      address: operator.address,
+      domain: domain,
+      permissionIndexes: permissionIndexes,
+      packedPermissionIndexes: makePackedPermissions(permissionIndexes),
+    };
+  }
 
+  async function setOperators(operators, caller) {
+    const tx = await jbOperatorStore
+      .connect(caller)
+      .setOperators(
+        operators.map((operator) => [
+          operator.address,
+          operator.domain,
+          operator.permissionIndexes,
+        ]),
+      );
+    return tx;
+  }
+
+  async function validateEvents(tx, operators, caller) {
     await Promise.all(
       operators.map(async (operator, _) => {
         await expect(tx)
           .to.emit(jbOperatorStore, 'SetOperator')
           .withArgs(
             operator.address,
-            account.address,
-            domain,
-            permissionIndexes,
-            packedPermissionIndexes,
+            /*account=*/ caller.address,
+            operator.domain,
+            operator.permissionIndexes,
+            operator.packedPermissionIndexes,
           );
 
         expect(
-          await jbOperatorStore.permissionsOf(operator.address, account.address, domain),
-        ).to.equal(packedPermissionIndexes);
+          await jbOperatorStore.permissionsOf(
+            operator.address,
+            /*account=*/ caller.address,
+            operator.domain,
+          ),
+        ).to.equal(operator.packedPermissionIndexes);
       }),
     );
   }
 
-  it(`Set operators with no previous value, override it, and clear it`, async function () {
+  async function setOperatorsAndValidateEvents(operators, caller) {
+    let tx = await setOperators(operators, caller);
+    validateEvents(tx, operators, caller);
+  }
+
+  it(`Set with no previous values, then override and clear them`, async function () {
     let caller = signers[0];
-    let operators = [signers[1], signers[2], signers[3]];
     let domain = 1;
+
+    // Set operators with the same permission indexes for the domain.
     let permissionIndexes = [1, 2, 3];
-    let packedPermissions = makePackedPermissions(permissionIndexes);
+    let operators = [
+      makeOperator(/*operator=*/ signers[1], domain, permissionIndexes),
+      makeOperator(/*operator=*/ signers[2], domain, permissionIndexes),
+      makeOperator(/*operator=*/ signers[3], domain, permissionIndexes),
+    ];
+    await setOperatorsAndValidateEvents(operators, caller);
 
-    // Set the operator.
-    await setOperatorsAndValidateEvents(
-      operators,
-      /*account=*/ caller,
-      domain,
-      permissionIndexes,
-      packedPermissions,
-    );
-
-    // Override the previously set value.
+    // Override the previously set values.
     permissionIndexes = [4, 5, 6];
-    packedPermissions = makePackedPermissions(permissionIndexes);
-    await setOperatorsAndValidateEvents(
-      operators,
-      /*account=*/ caller,
-      domain,
-      permissionIndexes,
-      packedPermissions,
-    );
+    operators = [
+      makeOperator(/*operator=*/ signers[1], domain, permissionIndexes),
+      makeOperator(/*operator=*/ signers[2], domain, permissionIndexes),
+      makeOperator(/*operator=*/ signers[3], domain, permissionIndexes),
+    ];
+    await setOperatorsAndValidateEvents(operators, caller);
 
     // Clear previously set values.
     permissionIndexes = [];
-    packedPermissions = makePackedPermissions(permissionIndexes);
-    await setOperatorsAndValidateEvents(
-      operators,
-      /*account=*/ caller,
-      domain,
-      permissionIndexes,
-      packedPermissions,
-    );
+    operators = [
+      makeOperator(/*operator=*/ signers[1], domain, permissionIndexes),
+      makeOperator(/*operator=*/ signers[2], domain, permissionIndexes),
+      makeOperator(/*operator=*/ signers[3], domain, permissionIndexes),
+    ];
+    await setOperatorsAndValidateEvents(operators, caller);
   });
 
-  it(`Set operators with same operator used for two different projects`, async function () {
-    // TODO(odd-amphora)
+  it(`Same operator used for two different projects`, async function () {
+    let caller = signers[0];
+    let domain1 = 1;
+    let domain2 = 2;
+
+    // Set operators with the same permission indexes for the domain.
+    let permissionIndexes = [1, 2, 3];
+    let operators = [
+      makeOperator(/*operator=*/ signers[1], domain1, permissionIndexes),
+      makeOperator(/*operator=*/ signers[1], domain2, permissionIndexes),
+    ];
+    await setOperatorsAndValidateEvents(operators, caller);
   });
 
-  it(`set operators, with the same operator used for the same project`, async function () {
-    // TODO(odd-amphora)
+  it(`Same operator used for the same project`, async function () {
+    let caller = signers[0];
+    let domain = 1;
+
+    // Set operators with the same permission indexes for the domain.
+    let permissionIndexes1 = [1, 2, 3];
+    let permissionIndexes2 = [3, 4, 5];
+    let operators = [
+      makeOperator(/*operator=*/ signers[1], domain, permissionIndexes1),
+      makeOperator(/*operator=*/ signers[1], domain, permissionIndexes2),
+    ];
+    let tx = await setOperators(operators, caller);
+
+    // The permission indexes from the first set should be overridden.
+    await validateEvents(tx, operators.slice(1), caller);
   });
 });

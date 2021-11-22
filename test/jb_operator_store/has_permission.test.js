@@ -27,7 +27,7 @@ describe(`JBOperatorStore::hasPermission(...)`, function () {
     ).to.be.revertedWith(`0x00: INDEX_OUT_OF_BOUNDS`);
   });
 
-  it(`Has permission, account is caller`, async function () {
+  it(`Has permission if account is caller`, async function () {
     let caller = signers[0];
     let operator = signers[1];
     let domain = 1;
@@ -46,7 +46,7 @@ describe(`JBOperatorStore::hasPermission(...)`, function () {
     }
   });
 
-  it('Has permission, account is not caller', async function () {
+  it('Has permission if account is not caller', async function () {
     let caller1 = signers[0];
     let caller2 = signers[1];
 
@@ -67,7 +67,7 @@ describe(`JBOperatorStore::hasPermission(...)`, function () {
     }
   });
 
-  it(`Doesn't have permission, never set`, async function () {
+  it(`Doesn't have permission if never set`, async function () {
     expect(
       await jbOperatorStore
         .connect(signers[0])
@@ -80,7 +80,7 @@ describe(`JBOperatorStore::hasPermission(...)`, function () {
     ).to.be.be.false;
   });
 
-  it(`Doesn't have permission, indexes differ`, async function () {
+  it(`Doesn't have permission if indexes differ`, async function () {
     let caller = signers[0];
     let operator = signers[1];
     let domain = 1;
@@ -99,7 +99,7 @@ describe(`JBOperatorStore::hasPermission(...)`, function () {
     }
   });
 
-  it(`Doesn't have permission, domain differs`, async function () {
+  it(`Doesn't have permission if domain differs`, async function () {
     let caller = signers[0];
     let operator = signers[1];
     let permissionIndexes = [1, 2, 3];

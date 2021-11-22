@@ -3,5 +3,5 @@
   "editor.formatOnSave": true,
   "[javascript]": {
     "editor.tabSize": 2
-  },  
+  }
 }
