@@ -38,11 +38,10 @@ describe(`JBOperatorStore::hasPermission(...)`, function () {
       .setOperator([operator.address, domain, permissionIndexes]);
 
     for (let permissionIndex of permissionIndexes) {
-      let hasPermission = await jbOperatorStore
+      expect(await jbOperatorStore
         .connect(caller)
-        .hasPermission(operator.address, /*account=*/ caller.address, domain, permissionIndex);
-
-      expect(hasPermission).to.be.true;
+        .hasPermission(operator.address, /*account=*/ caller.address, domain, permissionIndex))
+        .to.be.true;
     }
   });
 
@@ -58,11 +57,10 @@ describe(`JBOperatorStore::hasPermission(...)`, function () {
       .setOperator([operator.address, domain, permissionIndexes]);
 
     for (let permissionIndex of permissionIndexes) {
-      let hasPermission = await jbOperatorStore
+      expect(await jbOperatorStore
         .connect(caller2)
-        .hasPermission(operator.address, /*account=*/ caller1.address, domain, permissionIndex);
-
-      expect(hasPermission).to.be.true;
+        .hasPermission(operator.address, /*account=*/ caller1.address, domain, permissionIndex))
+        .to.be.true;
     }
   });
 
@@ -86,15 +84,14 @@ describe(`JBOperatorStore::hasPermission(...)`, function () {
 
     await jbOperatorStore
       .connect(caller)
-      .setOperator([operator.address, domain, /*permissionIndexes=*/ [1, 2, 3]]);
+      .setOperator([operator.address, domain, /*permissionIndexes=*/[1, 2, 3]]);
 
     // Test some invalid permission indexes.
     for (let permissionIndex of [4, 5, 6]) {
-      let hasPermission = await jbOperatorStore
+      expect(await jbOperatorStore
         .connect(caller)
-        .hasPermission(operator.address, /*account=*/ caller.address, domain, permissionIndex);
-
-      expect(hasPermission).to.be.false;
+        .hasPermission(operator.address, /*account=*/ caller.address, domain, permissionIndex))
+        .to.be.false;
     }
   });
 
@@ -108,14 +105,12 @@ describe(`JBOperatorStore::hasPermission(...)`, function () {
       .setOperator([operator.address, /*domain=*/ 1, permissionIndexes]);
 
     for (let permissionIndex of permissionIndexes) {
-      let hasPermission = await jbOperatorStore.connect(caller).hasPermission(
+      expect(await jbOperatorStore.connect(caller).hasPermission(
         operator.address,
         /*account=*/ caller.address,
         /*domain=*/ 2, // Test different domain.
         permissionIndex,
-      );
-
-      expect(hasPermission).to.be.false;
+      )).to.be.false;
     }
   });
 });
