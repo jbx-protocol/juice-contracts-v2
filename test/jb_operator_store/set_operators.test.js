@@ -3,7 +3,7 @@ import { ethers } from 'hardhat';
 
 import { makePackedPermissions } from '../helpers/utils';
 
-describe(`JBOperatorStore::setOperator(...)`, function () {
+describe(`JBOperatorStore::setOperators(...)`, function () {
   let jbOperatorStoreFactory;
   let jbOperatorStore;
 
@@ -16,8 +16,8 @@ describe(`JBOperatorStore::setOperator(...)`, function () {
     signers = await ethers.getSigners();
   });
 
-  async function setOperatorAndValidateEvent(
-    operator,
+  async function setOperatorsAndValidateEvent(
+    operators,
     account,
     domain,
     permissionIndexes,
@@ -25,33 +25,37 @@ describe(`JBOperatorStore::setOperator(...)`, function () {
   ) {
     const tx = await jbOperatorStore
       .connect(account)
-      .setOperator([operator.address, domain, permissionIndexes]);
+      .setOperators(operators.map((operator) => [operator.address, domain, permissionIndexes]));
 
-    await expect(tx)
-      .to.emit(jbOperatorStore, 'SetOperator')
-      .withArgs(
-        operator.address,
-        account.address,
-        domain,
-        permissionIndexes,
-        packedPermissionIndexes,
-      );
+    await Promise.all(
+      operators.map(async (operator, _) => {
+        await expect(tx)
+          .to.emit(jbOperatorStore, 'SetOperator')
+          .withArgs(
+            operator.address,
+            account.address,
+            domain,
+            permissionIndexes,
+            packedPermissionIndexes,
+          );
 
-    expect(await jbOperatorStore.permissionsOf(operator.address, account.address, domain)).to.equal(
-      packedPermissionIndexes,
+        expect(
+          await jbOperatorStore.permissionsOf(operator.address, account.address, domain),
+        ).to.equal(packedPermissionIndexes);
+      }),
     );
   }
 
-  it(`Set operator with no previous value, override it, and clear it`, async function () {
+  it(`Set operators with no previous value, override it, and clear it`, async function () {
     let caller = signers[0];
-    let operator = signers[1];
+    let operators = [signers[1], signers[2], signers[3]];
     let domain = 1;
     let permissionIndexes = [1, 2, 3];
     let packedPermissions = makePackedPermissions(permissionIndexes);
 
     // Set the operator.
-    await setOperatorAndValidateEvent(
-      operator,
+    await setOperatorsAndValidateEvent(
+      operators,
       /*account=*/ caller,
       domain,
       permissionIndexes,
@@ -61,8 +65,8 @@ describe(`JBOperatorStore::setOperator(...)`, function () {
     // Override the previously set value.
     permissionIndexes = [4, 5, 6];
     packedPermissions = makePackedPermissions(permissionIndexes);
-    await setOperatorAndValidateEvent(
-      operator,
+    await setOperatorsAndValidateEvent(
+      operators,
       /*account=*/ caller,
       domain,
       permissionIndexes,
@@ -72,8 +76,8 @@ describe(`JBOperatorStore::setOperator(...)`, function () {
     // Clear previously set values.
     permissionIndexes = [];
     packedPermissions = makePackedPermissions(permissionIndexes);
-    await setOperatorAndValidateEvent(
-      operator,
+    await setOperatorsAndValidateEvent(
+      operators,
       /*account=*/ caller,
       domain,
       permissionIndexes,
@@ -81,14 +85,11 @@ describe(`JBOperatorStore::setOperator(...)`, function () {
     );
   });
 
-  it(`Index out of bounds`, async function () {
-    let caller = signers[0];
-    let operator = signers[1];
-    let domain = 1;
-    let permissionIndexes = [1, 2, 256];
+  it(`Set operators with same operator used for two different projects`, async function () {
+    // TODO(odd-amphora)
+  });
 
-    await expect(
-      jbOperatorStore.connect(caller).setOperator([operator.address, domain, permissionIndexes]),
-    ).to.be.revertedWith(`0x02: INDEX_OUT_OF_BOUNDS`);
+  it(`set operators, with the same operator used for the same project`, async function () {
+    // TODO(odd-amphora)
   });
 });
