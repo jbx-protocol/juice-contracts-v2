@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
-import '@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol';
+import '@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 
 import './interfaces/IJBToken.sol';
@@ -11,7 +10,7 @@ import './interfaces/IJBToken.sol';
   @notice
   An ERC-20 token that can be minted and burned by its owner.
 */
-contract JBToken is IJBToken, ERC20, ERC20Permit, Ownable {
+contract JBToken is IJBToken, ERC20Votes, Ownable {
   function totalSupply(uint256) external view override returns (uint256) {
     return super.totalSupply();
   }
