@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { compilerOutput } from '@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
+import { BigNumber } from '@ethersproject/bignumber';
 
 describe('JBPrices::priceFor(...)', function () {
   let deployer;
@@ -24,24 +25,57 @@ describe('JBPrices::priceFor(...)', function () {
     targetDecimals = await jbPrices.TARGET_DECIMALS();
   });
 
-  it('Same currency and base should return 1', async function () {
-    let currency = 1;
-    let base = 1;
-    let price = 400;
-    let decimals = 18;
-
-    // Set the mock to return the specified price.
+  /**
+   * Initialiazes mock price feed, adds it to JBPrices, and returns the fetched result.
+   */
+  async function addAndFetchPrice(price, decimals, currency, base) {
     await aggregatorV3Contract.mock.latestRoundData.returns(0, price, 0, 0, 0);
     await aggregatorV3Contract.mock.decimals.returns(decimals);
 
-    // Add price feed.
     await jbPrices.connect(deployer).addFeedFor(currency, base, aggregatorV3Contract.address);
+    return await jbPrices.connect(deployer).priceFor(currency, base);
+  }
 
-    // Check for the price.
-    const resultingPrice = await jbPrices.connect(deployer).priceFor(currency, base);
-    const expectedPrice = ethers.BigNumber.from(10).pow(targetDecimals);
+  it('Same currency and base should return 1', async function () {
+    expect(
+      await addAndFetchPrice(/*price=*/ 400, /*decimals=*/ 18, /*currency=*/ 1, /*base=*/ 1),
+    ).to.equal(ethers.BigNumber.from(10).pow(targetDecimals));
+  });
 
-    // Expect the stored price value to match the expected value.
-    expect(resultingPrice).to.equal(expectedPrice);
+  it('Check price no decimals', async function () {
+    let price = 400;
+    expect(await addAndFetchPrice(price, /*decimals=*/ 0, /*currency=*/ 1, /*base=*/ 2)).to.equal(
+      ethers.BigNumber.from(price).mul(BigNumber.from(10).pow(targetDecimals)),
+    );
+  });
+
+  it('Check price one decimal', async function () {
+    let price = 400;
+    let decimals = 1;
+    expect(await addAndFetchPrice(price, decimals, /*currency=*/ 1, /*base=*/ 2)).to.equal(
+      ethers.BigNumber.from(price).mul(BigNumber.from(10).pow(targetDecimals - decimals)),
+    );
+  });
+
+  it('Check price 18 decimals', async function () {
+    let price = 400;
+    let decimals = 18;
+    expect(await addAndFetchPrice(price, decimals, /*currency=*/ 1, /*base=*/ 2)).to.equal(
+      ethers.BigNumber.from(price),
+    );
+  });
+
+  it('Check price 20 decimals', async function () {
+    let price = 400;
+    let decimals = 20;
+    expect(await addAndFetchPrice(price, decimals, /*currency=*/ 1, /*base=*/ 2)).to.equal(
+      ethers.BigNumber.from(price).div(ethers.BigNumber.from(10).pow(decimals - targetDecimals)),
+    );
+  });
+
+  it('Feed not found', async function () {
+    await expect(
+      jbPrices.connect(deployer).priceFor(/*currency=*/ 1, /*base=*/ 7),
+    ).to.be.revertedWith('0x03: NOT_FOUND');
   });
 });
