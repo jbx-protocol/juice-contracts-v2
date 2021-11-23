@@ -4,13 +4,13 @@ import { compilerOutput } from '@chainlink/contracts/abi/v0.6/AggregatorV3Interf
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 describe('JBPrices::addFeed(...)', function () {
+  let deployer;
+  let addrs;
+
   let aggregatorV3Contract;
 
   let jbPricesFactory;
   let jbPrices;
-
-  let deployer;
-  let addrs;
 
   beforeEach(async function () {
     [deployer, ...addrs] = await ethers.getSigners();
