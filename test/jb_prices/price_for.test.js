@@ -28,7 +28,7 @@ describe('JBPrices::priceFor(...)', function () {
   /**
    * Initialiazes mock price feed, adds it to JBPrices, and returns the fetched result.
    */
-  async function addAndFetchPrice(price, decimals, currency, base) {
+  async function addFeedAndFetchPrice(price, decimals, currency, base) {
     await aggregatorV3Contract.mock.latestRoundData.returns(0, price, 0, 0, 0);
     await aggregatorV3Contract.mock.decimals.returns(decimals);
 
@@ -38,13 +38,13 @@ describe('JBPrices::priceFor(...)', function () {
 
   it('Same currency and base should return 1', async function () {
     expect(
-      await addAndFetchPrice(/*price=*/ 400, /*decimals=*/ 18, /*currency=*/ 1, /*base=*/ 1),
+      await addFeedAndFetchPrice(/*price=*/ 400, /*decimals=*/ 18, /*currency=*/ 1, /*base=*/ 1),
     ).to.equal(ethers.BigNumber.from(10).pow(targetDecimals));
   });
 
   it('Check price no decimals', async function () {
     let price = 400;
-    expect(await addAndFetchPrice(price, /*decimals=*/ 0, /*currency=*/ 1, /*base=*/ 2)).to.equal(
+    expect(await addFeedAndFetchPrice(price, /*decimals=*/ 0, /*currency=*/ 1, /*base=*/ 2)).to.equal(
       ethers.BigNumber.from(price).mul(BigNumber.from(10).pow(targetDecimals)),
     );
   });
@@ -52,7 +52,7 @@ describe('JBPrices::priceFor(...)', function () {
   it('Check price one decimal', async function () {
     let price = 400;
     let decimals = 1;
-    expect(await addAndFetchPrice(price, decimals, /*currency=*/ 1, /*base=*/ 2)).to.equal(
+    expect(await addFeedAndFetchPrice(price, decimals, /*currency=*/ 1, /*base=*/ 2)).to.equal(
       ethers.BigNumber.from(price).mul(BigNumber.from(10).pow(targetDecimals - decimals)),
     );
   });
@@ -60,7 +60,7 @@ describe('JBPrices::priceFor(...)', function () {
   it('Check price 18 decimals', async function () {
     let price = 400;
     let decimals = 18;
-    expect(await addAndFetchPrice(price, decimals, /*currency=*/ 1, /*base=*/ 2)).to.equal(
+    expect(await addFeedAndFetchPrice(price, decimals, /*currency=*/ 1, /*base=*/ 2)).to.equal(
       ethers.BigNumber.from(price),
     );
   });
@@ -68,7 +68,7 @@ describe('JBPrices::priceFor(...)', function () {
   it('Check price 20 decimals', async function () {
     let price = 400;
     let decimals = 20;
-    expect(await addAndFetchPrice(price, decimals, /*currency=*/ 1, /*base=*/ 2)).to.equal(
+    expect(await addFeedAndFetchPrice(price, decimals, /*currency=*/ 1, /*base=*/ 2)).to.equal(
       ethers.BigNumber.from(price).div(ethers.BigNumber.from(10).pow(decimals - targetDecimals)),
     );
   });
