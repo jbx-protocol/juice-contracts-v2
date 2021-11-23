@@ -9,7 +9,11 @@ import './interfaces/IJBPrices.sol';
   @notice Manages and normalizes price feeds.
 */
 contract JBPrices is IJBPrices, Ownable {
+  error NotFound();
+  error AlreadyExists(uint256 _currency, uint256 _base);
+
   //*********************************************************************//
+
   // ---------------- public constant stored properties ---------------- //
   //*********************************************************************//
 
@@ -53,7 +57,7 @@ contract JBPrices is IJBPrices, Ownable {
     AggregatorV3Interface _feed = feedFor[_currency][_base];
 
     // Feed must exist.
-    require(_feed != AggregatorV3Interface(address(0)), '0x03: NOT_FOUND');
+    if (_feed == AggregatorV3Interface(address(0))) revert NotFound();
 
     // Get the latest round information. Only need the price is needed.
     (, int256 _price, , , ) = _feed.latestRoundData();
@@ -104,7 +108,8 @@ contract JBPrices is IJBPrices, Ownable {
     AggregatorV3Interface _feed
   ) external override onlyOwner {
     // There can't already be a feed for the specified currency.
-    require(feedFor[_currency][_base] == AggregatorV3Interface(address(0)), '0x04: ALREADY_EXISTS');
+    if (feedFor[_currency][_base] != AggregatorV3Interface(address(0)))
+      revert AlreadyExists(_currency, _base);
 
     // Set the feed.
     feedFor[_currency][_base] = _feed;
