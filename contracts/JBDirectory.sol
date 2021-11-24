@@ -213,7 +213,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
   */
   function _maybeAddTerminal(
     uint256 _projectId,
-    IJBTerminal memory _terminal,
+    IJBTerminal _terminal,
     address _caller
   ) internal {
     require(_terminal != IJBTerminal(address(0)), '0x2d: ZERO_ADDRESS');
