@@ -202,6 +202,33 @@ contract JBDirectory is IJBDirectory, JBOperatable {
 
   /** 
     @notice 
+    Add a terminal to a project's list of terminals if it hasn't been already.
+
+    @dev
+    If the terminal is equal to address zero, the transaction will be reverted.
+
+    @param _projectId The ID of the project having a terminal added.
+    @param _terminal The terminal to add.
+    @param _caller The original caller that added the terminal.
+  */
+  function _maybeAddTerminal(
+    uint256 _projectId,
+    IJBTerminal _terminal,
+    address _caller
+  ) internal {
+    require(_terminal != IJBTerminal(address(0)), '0x2d: ZERO_ADDRESS');
+
+    // Check that the terminal has not already been added.
+    if (isTerminalOf(_projectId, _terminal)) return;
+
+    // Set the new terminal.
+    _terminalsOf[_projectId].push(_terminal);
+
+    emit AddTerminal(_projectId, _terminal, _caller);
+  }
+
+  /** 
+    @notice 
     Add terminals to project's list of terminals.
 
     @dev
@@ -221,16 +248,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     )
   {
     for (uint256 _i = 0; _i < _terminals.length; _i++) {
-      // Can't set the zero address.
-      require(_terminals[_i] != IJBTerminal(address(0)), '0x2d: ZERO_ADDRESS');
-
-      // If the terminal is already in the project's list of terminals, return.
-      if (isTerminalOf(_projectId, _terminals[_i])) continue;
-
-      // Set the new terminal.
-      _terminalsOf[_projectId].push(_terminals[_i]);
-
-      emit AddTerminal(_projectId, _terminals[_i], msg.sender);
+      _maybeAddTerminal(_projectId, _terminals[_i], msg.sender);
     }
   }
 
@@ -288,6 +306,12 @@ contract JBDirectory is IJBDirectory, JBOperatable {
 
     // Get a reference to the token that the terminal's vault accepts.
     address _token = _terminal.token();
+
+    // Can't set this terminal as the primary if it already is.
+    require(_terminal != _primaryTerminalOf[_projectId][_token], '0x2f: ALREADY_SET');
+
+    // Add the terminal to thge project if it hasn't been already.
+    _maybeAddTerminal(_projectId, _terminal, msg.sender);
 
     // Store the terminal as the primary for the particular token.
     _primaryTerminalOf[_projectId][_token] = _terminal;
