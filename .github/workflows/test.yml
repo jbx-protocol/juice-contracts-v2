@@ -52,3 +52,6 @@ jobs:
       # Run tests.
       - name: Run tests
         run: yarn test
+      # Run code coverage.
+      - name: Code coverage
+        run: node --require esm ./node_modules/.bin/hardhat coverage --network hardhat
