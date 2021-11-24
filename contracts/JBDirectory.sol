@@ -218,6 +218,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
   ) internal {
     require(_terminal != IJBTerminal(address(0)), '0x2d: ZERO_ADDRESS');
 
+    // Check that the terminal has not already been added.
     if (isTerminalOf(_projectId, _terminal)) return;
 
     // Set the new terminal.
@@ -306,8 +307,8 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     // Get a reference to the token that the terminal's vault accepts.
     address _token = _terminal.token();
 
-    // Check if the primary terminal is already set.
-    require(_terminal != _primaryTerminalOf[_projectId][_token], '0x30: ALREADY-SET');
+    // Check this terminal has not already been set as the primary.
+    require(_terminal != _primaryTerminalOf[_projectId][_token], '0x2f: ALREADY-SET');
 
     // Add the terminal to the project if it hasn't been already.
     _maybeAddTerminal(_projectId, _terminal, msg.sender);
