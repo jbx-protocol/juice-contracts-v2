@@ -1,3 +1,1 @@
-module.exports = {
-  configureYulOptimizer: true,
-};
+export const configureYulOptimizer = true;
