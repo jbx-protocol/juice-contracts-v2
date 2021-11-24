@@ -308,7 +308,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     address _token = _terminal.token();
 
     // Can't set this terminal as the primary if it already is.
-    require(_terminal != _primaryTerminalOf[_projectId][_token], '0x2f: ALREADY-SET');
+    require(_terminal != _primaryTerminalOf[_projectId][_token], '0x2f: ALREADY_SET');
 
     // Add the terminal to thge project if it hasn't been already.
     _maybeAddTerminal(_projectId, _terminal, msg.sender);
