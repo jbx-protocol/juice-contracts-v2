@@ -307,10 +307,10 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     // Get a reference to the token that the terminal's vault accepts.
     address _token = _terminal.token();
 
-    // Check this terminal has not already been set as the primary.
+    // Can't set this terminal as the primary if it already is.
     require(_terminal != _primaryTerminalOf[_projectId][_token], '0x2f: ALREADY-SET');
 
-    // Add the terminal to the project if it hasn't been already.
+    // Add the terminal to thge project if it hasn't been already.
     _maybeAddTerminal(_projectId, _terminal, msg.sender);
 
     // Store the terminal as the primary for the particular token.
