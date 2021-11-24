@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for contracts/JBPrices.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> JBPrices.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>0/15</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>0/10</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>0/3</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>0/13</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line low'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+pragma solidity 0.8.6;
+&nbsp;
+import '@openzeppelin/contracts/access/Ownable.sol';
+&nbsp;
+import './interfaces/IJBPrices.sol';
+&nbsp;
+/** 
+  @notice Manages and normalizes price feeds.
+*/
+contract JBPrices is IJBPrices, Ownable {
+  //*********************************************************************//
+  // ---------------- public constant stored properties ---------------- //
+  //*********************************************************************//
+&nbsp;
+  /** 
+    @notice 
+    The normalized number of decimals each price feed has.
+  */
+  uint256 public constant override TARGET_DECIMALS = 18;
+&nbsp;
+  //*********************************************************************//
+  // --------------------- public stored properties -------------------- //
+  //*********************************************************************//
+&nbsp;
+  /** 
+    @notice 
+    The available price feeds.
+&nbsp;
+    _currency he currency of the feed.
+    _base he base of the feed. 
+  */
+  mapping(uint256 =&gt; mapping(uint256 =&gt; AggregatorV3Interface)) public override feedFor;
+&nbsp;
+  //*********************************************************************//
+  // ------------------------- external views -------------------------- //
+  //*********************************************************************//
+&nbsp;
+  /** 
+      @notice 
+      Gets the current price of the provided currency in terms of the provided base currency.
+      
+      @param _currency The currency to get a price for.
+      @param _base The currency to base the price on.
+      
+      @return The price of the currency in terms of the base, with 18 decimals.
+    */
+<span class="fstat-no" title="function not covered" >  function priceFor(uint256 _currency, uint256 _base) external view override returns (uint256) {</span>
+    // If the currency is the base, return 1 since they are priced the same.
+<span class="cstat-no" title="statement not covered" >    if (_currency == _base) <span class="cstat-no" title="statement not covered" >return 10**TARGET_DECIMALS;</span></span>
+&nbsp;
+    // Get a reference to the feed.
+<span class="cstat-no" title="statement not covered" >    AggregatorV3Interface _feed = feedFor[_currency][_base];</span>
+&nbsp;
+    // Feed must exist.
+<span class="cstat-no" title="statement not covered" >    require(_feed != AggregatorV3Interface(address(0)), '0x03: NOT_FOUND')</span>;
+&nbsp;
+    // Get the latest round information. Only need the price is needed.
+<span class="cstat-no" title="statement not covered" >    (, int256 _price, , , ) = _feed.latestRoundData();</span>
+&nbsp;
+    // Get a reference to the number of decimals the feed uses.
+<span class="cstat-no" title="statement not covered" >    uint256 _decimals = _feed.decimals();</span>
+&nbsp;
+    // If decimals need adjusting, multiply or divide the price by the decimal adjuster to get the normalized result.
+<span class="cstat-no" title="statement not covered" >    if (TARGET_DECIMALS == _decimals) {</span>
+<span class="cstat-no" title="statement not covered" >      return uint256(_price);</span>
+    } else <span class="cstat-no" title="statement not covered" >if (TARGET_DECIMALS &gt; _decimals) {</span>
+<span class="cstat-no" title="statement not covered" >      return uint256(_price) * 10**(TARGET_DECIMALS - _decimals);</span>
+    } else {
+<span class="cstat-no" title="statement not covered" >      return uint256(_price) / 10**(_decimals - TARGET_DECIMALS);</span>
+    }
+  }
+&nbsp;
+  //*********************************************************************//
+  // ---------------------------- constructor -------------------------- //
+  //*********************************************************************//
+&nbsp;
+  /** 
+    @param _owner The address that will own the contract.
+  */
+<span class="fstat-no" title="function not covered" >  constructor(address _owner) {</span>
+    // Transfer the ownership.
+<span class="cstat-no" title="statement not covered" >    transferOwnership(_owner)</span>;
+  }
+&nbsp;
+  //*********************************************************************//
+  // ---------------------- external transactions ---------------------- //
+  //*********************************************************************//
+&nbsp;
+  /** 
+    @notice 
+    Add a price feed for a currency in terms of the provided base currency.
+&nbsp;
+    @dev
+    Current feeds can't be modified.
+&nbsp;
+    @param _currency The currency that the price feed is for.
+    @param _base The currency that the price feed is based on.
+    @param _feed The price feed being added.
+  */
+<span class="fstat-no" title="function not covered" >  function addFeedFor(</span>
+    uint256 _currency,
+    uint256 _base,
+    AggregatorV3Interface _feed
+  ) external override onlyOwner {
+    // There can't already be a feed for the specified currency.
+<span class="cstat-no" title="statement not covered" >    require(feedFor[_currency][_base] == AggregatorV3Interface(address(0)), '0x04: ALREADY_EXISTS')</span>;
+&nbsp;
+    // Set the feed.
+<span class="cstat-no" title="statement not covered" >    feedFor[_currency][_base] = _feed</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    emit AddFeed(_currency, _base, _feed);</span>
+  }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue Nov 23 2021 19:29:37 GMT-0500 (Eastern Standard Time)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>

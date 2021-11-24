@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for contracts/JBDirectory.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> JBDirectory.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>0/39</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>0/24</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>0/9</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>0/36</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line low'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+pragma solidity 0.8.6;
+&nbsp;
+import './interfaces/IJBTerminal.sol';
+import './interfaces/IJBDirectory.sol';
+import './abstract/JBOperatable.sol';
+import './libraries/JBOperations.sol';
+&nbsp;
+/**
+  @notice
+  Keeps a reference of which terminal contracts each project is currently accepting funds through, and which controller contract is managing each project's tokens and funding cycles.
+*/
+contract JBDirectory is IJBDirectory, JBOperatable {
+  //*********************************************************************//
+  // --------------------- private stored properties ------------------- //
+  //*********************************************************************//
+&nbsp;
+  /** 
+    @notice 
+    For each project ID, the terminals that are currently managing its funds.
+&nbsp;
+    _projectId The ID of the project to get terminals of.
+  */
+  mapping(uint256 =&gt; IJBTerminal[]) private _terminalsOf;
+&nbsp;
+  /** 
+    @notice 
+    The project's primary terminal for a token.
+&nbsp;
+    _projectId The ID of the project to get the primary terminal of.
+    _token The token to get the project's primary terminal of.
+  */
+  mapping(uint256 =&gt; mapping(address =&gt; IJBTerminal)) private _primaryTerminalOf;
+&nbsp;
+  //*********************************************************************//
+  // ---------------- public immutable stored properties --------------- //
+  //*********************************************************************//
+&nbsp;
+  /** 
+    @notice 
+    The Projects contract which mints ERC-721's that represent project ownership and transfers.
+  */
+  IJBProjects public immutable override projects;
+&nbsp;
+  //*********************************************************************//
+  // --------------------- public stored properties -------------------- //
+  //*********************************************************************//
+&nbsp;
+  /** 
+    @notice 
+    For each project ID, the controller that manages how terminals interact with tokens and funding cycles.
+&nbsp;
+    _projectId The ID of the project to get the controller of.
+  */
+  mapping(uint256 =&gt; IJBController) public override controllerOf;
+&nbsp;
+  //*********************************************************************//
+  // ------------------------- external views -------------------------- //
+  //*********************************************************************//
+&nbsp;
+  /** 
+    @notice
+    For each project ID, the terminals that are currently managing its funds.
+&nbsp;
+    @param _projectId The ID of the project to get terminals of.
+&nbsp;
+    @return An array of terminal addresses.
+  */
+<span class="fstat-no" title="function not covered" >  function terminalsOf(uint256 _projectId) external view override returns (IJBTerminal[] memory) {</span>
+<span class="cstat-no" title="statement not covered" >    return _terminalsOf[_projectId];</span>
+  }
+&nbsp;
+  /** 
+    @notice
+    Whether or not a specified terminal is a terminal of the specified project.
+&nbsp;
+    @param _projectId The ID of the project to check within.
+    @param _terminal The address of the terminal to check for.
+&nbsp;
+    @return A flag indicating whether or not the specified terminal is a terminal of the specified project.
+  */
+<span class="fstat-no" title="function not covered" >  function isTerminalOf(uint256 _projectId, IJBTerminal _terminal)</span>
+    public
+    view
+    override
+    returns (bool)
+  {
+<span class="cstat-no" title="statement not covered" >    for (uint256 _i; _i &lt; _terminalsOf[_projectId].length; _i++)</span>
+<span class="cstat-no" title="statement not covered" >      if (_terminalsOf[_projectId][_i] == _terminal) <span class="cstat-no" title="statement not covered" >return true;</span></span>
+<span class="cstat-no" title="statement not covered" >    return false;</span>
+  }
+&nbsp;
+  /** 
+    @notice
+    Whether or not a specified terminal is a terminal of the specified project.
+&nbsp;
+    @param _projectId The ID of the project to check within.
+    @param _contract The address of the terminal to check for.
+&nbsp;
+    @return A flag indicating whether or not the specified terminal is a terminal of the specified project.
+  */
+<span class="fstat-no" title="function not covered" >  function isTerminalDelegateOf(uint256 _projectId, address _contract)</span>
+    public
+    view
+    override
+    returns (bool)
+  {
+<span class="cstat-no" title="statement not covered" >    for (uint256 _i; _i &lt; _terminalsOf[_projectId].length; _i++)</span>
+<span class="cstat-no" title="statement not covered" >      if (address(_terminalsOf[_projectId][_i].delegate()) == _contract) <span class="cstat-no" title="statement not covered" >return true;</span></span>
+<span class="cstat-no" title="statement not covered" >    return false;</span>
+  }
+&nbsp;
+  /** 
+    @notice
+    The primary terminal that is managing funds for a project for a specified token.
+&nbsp;
+    @dev
+    The zero address is returned if a terminal isn't found for the specified token.
+&nbsp;
+    @param _projectId The ID of the project to get a terminal for.
+    @param _token The token the terminal accepts.
+&nbsp;
+    @return The primary terminal for the project for the specified token.
+  */
+<span class="fstat-no" title="function not covered" >  function primaryTerminalOf(uint256 _projectId, address _token)</span>
+    public
+    view
+    override
+    returns (IJBTerminal)
+  {
+    // If a primary terminal for the token was specifically set, return it.
+<span class="cstat-no" title="statement not covered" >    if (_primaryTerminalOf[_projectId][_token] != IJBTerminal(address(0)))</span>
+<span class="cstat-no" title="statement not covered" >      return _primaryTerminalOf[_projectId][_token];</span>
+&nbsp;
+    // Return the first terminal which accepts the specified token.
+<span class="cstat-no" title="statement not covered" >    for (uint256 _i; _i &lt; _terminalsOf[_projectId].length; _i++) {</span>
+<span class="cstat-no" title="statement not covered" >      IJBTerminal _terminal = _terminalsOf[_projectId][_i];</span>
+<span class="cstat-no" title="statement not covered" >      if (_terminal.token() == _token) <span class="cstat-no" title="statement not covered" >return _terminal;</span></span>
+    }
+&nbsp;
+    // Not found.
+<span class="cstat-no" title="statement not covered" >    return IJBTerminal(address(0));</span>
+  }
+&nbsp;
+  //*********************************************************************//
+  // -------------------------- constructor ---------------------------- //
+  //*********************************************************************//
+&nbsp;
+  /** 
+    @param _operatorStore A contract storing operator assignments.
+    @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
+  */
+<span class="fstat-no" title="function not covered" >  constructor(IJBOperatorStore _operatorStore, IJBProjects _projects) JBOperatable(_operatorStore) {</span>
+<span class="cstat-no" title="statement not covered" >    projects = _projects</span>;
+  }
+&nbsp;
+  //*********************************************************************//
+  // ---------------------- external transactions ---------------------- //
+  //*********************************************************************//
+&nbsp;
+  /**
+    @notice
+    Update the controller that manages how terminals interact with the ecosystem.
+&nbsp;
+    @dev 
+    A controller can be set if:
+    - the message sender is the project owner or an operator is changing the controller.
+    - or, the controller hasn't been set yet and the message sender is the controller being set.
+    - or, the current controller is setting a new controller.
+&nbsp;
+    @param _projectId The ID of the project to set a new controller for.
+    @param _controller The new controller to set.
+  */
+<span class="fstat-no" title="function not covered" >  function setControllerOf(uint256 _projectId, IJBController _controller)</span>
+    external
+    override
+    requirePermissionAllowingOverride(
+      projects.ownerOf(_projectId),
+      _projectId,
+      JBOperations.SET_CONTROLLER,
+      (address(controllerOf[_projectId]) == address(0) &amp;&amp; msg.sender == address(_controller)) ||
+        address(controllerOf[_projectId]) == msg.sender
+    )
+  {
+    // Get a reference to the current controller being used.
+<span class="cstat-no" title="statement not covered" >    IJBController _currentController = controllerOf[_projectId];</span>
+&nbsp;
+    // If the controller is already set, nothing to do.
+<span class="cstat-no" title="statement not covered" >    if (_currentController == _controller) <span class="cstat-no" title="statement not covered" >return;</span></span>
+&nbsp;
+    // The project must exist.
+<span class="cstat-no" title="statement not covered" >    require(projects.count() &gt;= _projectId, '0x2b: NOT_FOUND')</span>;
+&nbsp;
+    // Can't set the zero address.
+<span class="cstat-no" title="statement not covered" >    require(_controller != IJBController(address(0)), '0x2c: ZERO_ADDRESS')</span>;
+&nbsp;
+    // Set the new controller.
+<span class="cstat-no" title="statement not covered" >    controllerOf[_projectId] = _controller</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    emit SetController(_projectId, _controller, msg.sender);</span>
+  }
+&nbsp;
+  /** 
+    @notice 
+    Add terminals to project's list of terminals.
+&nbsp;
+    @dev
+    Only a project owner, an operator, or its controller can add terminals.
+&nbsp;
+    @param _projectId The ID of the project having a terminal added.
+    @param _terminals The terminals to add.
+  */
+<span class="fstat-no" title="function not covered" >  function addTerminalsOf(uint256 _projectId, IJBTerminal[] calldata _terminals)</span>
+    external
+    override
+    requirePermissionAllowingOverride(
+      projects.ownerOf(_projectId),
+      _projectId,
+      JBOperations.ADD_TERMINALS,
+      msg.sender == address(controllerOf[_projectId])
+    )
+  {
+<span class="cstat-no" title="statement not covered" >    for (uint256 _i = 0; _i &lt; _terminals.length; _i++) {</span>
+      // Can't set the zero address.
+<span class="cstat-no" title="statement not covered" >      require(_terminals[_i] != IJBTerminal(address(0)), '0x2d: ZERO_ADDRESS')</span>;
+&nbsp;
+      // If the terminal is already in the project's list of terminals, return.
+<span class="cstat-no" title="statement not covered" >      if (isTerminalOf(_projectId, _terminals[_i])) continue;</span>
+&nbsp;
+      // Set the new terminal.
+<span class="cstat-no" title="statement not covered" >      _terminalsOf[_projectId].push(_terminals[_i])</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >      emit AddTerminal(_projectId, _terminals[_i], msg.sender);</span>
+    }
+  }
+&nbsp;
+  /** 
+    @notice 
+    Remove a terminal from a project's list of terminals.
+&nbsp;
+    @dev
+    Only a project owner or an operator can remove one of its terminals. 
+&nbsp;
+    @param _projectId The ID of the project having a terminal removed.
+    @param _terminal The terminal to remove.
+  */
+<span class="fstat-no" title="function not covered" >  function removeTerminalOf(uint256 _projectId, IJBTerminal _terminal)</span>
+    external
+    override
+    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.REMOVE_TERMINAL)
+  {
+    // Get a reference to the terminals of the project.
+<span class="cstat-no" title="statement not covered" >    IJBTerminal[] memory _terminals = _terminalsOf[_projectId];</span>
+&nbsp;
+    // Delete the stored terminals for the project.
+    delete _terminalsOf[_projectId];
+&nbsp;
+    // Repopulate the stored terminals for the project, omitting the one being deleted.
+<span class="cstat-no" title="statement not covered" >    for (uint256 _i; _i &lt; _terminals.length; _i++)</span>
+      // Don't include the terminal being deleted.
+<span class="cstat-no" title="statement not covered" >      if (_terminals[_i] != _terminal) <span class="cstat-no" title="statement not covered" >_terminalsOf[_projectId].push(_terminals[_i])</span>;</span>
+&nbsp;
+    // If the terminal that is being removed is the primary terminal for the token, delete it from being primary terminal.
+<span class="cstat-no" title="statement not covered" >    if (_primaryTerminalOf[_projectId][_terminal.token()] == _terminal)</span>
+      delete _primaryTerminalOf[_projectId][_terminal.token()];
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    emit RemoveTerminal(_projectId, _terminal, msg.sender);</span>
+  }
+&nbsp;
+  /** 
+    @notice
+    Project's can set which terminal should be their primary for a particular token.
+    This is useful in case a project has several terminals connected for a particular token.
+&nbsp;
+    @dev
+    The terminal will be set as the primary for the token that its vault accepts. 
+&nbsp;
+    @param _projectId The ID of the project for which a primary token is being set.
+    @param _terminal The terminal to make primary.
+  */
+<span class="fstat-no" title="function not covered" >  function setPrimaryTerminalOf(uint256 _projectId, IJBTerminal _terminal)</span>
+    external
+    override
+    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.SET_PRIMARY_TERMINAL)
+  {
+    // Can't set the zero address.
+<span class="cstat-no" title="statement not covered" >    require(_terminal != IJBTerminal(address(0)), '0x2e: ZERO_ADDRESS')</span>;
+&nbsp;
+    // Get a reference to the token that the terminal's vault accepts.
+<span class="cstat-no" title="statement not covered" >    address _token = _terminal.token();</span>
+&nbsp;
+    // Store the terminal as the primary for the particular token.
+<span class="cstat-no" title="statement not covered" >    _primaryTerminalOf[_projectId][_token] = _terminal</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    emit SetPrimaryTerminal(_projectId, _token, _terminal, msg.sender);</span>
+  }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue Nov 23 2021 19:29:37 GMT-0500 (Eastern Standard Time)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>

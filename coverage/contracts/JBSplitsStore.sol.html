@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for contracts/JBSplitsStore.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> JBSplitsStore.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>0/19</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>0/12</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>0/3</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>0/19</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line low'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+pragma solidity 0.8.6;
+&nbsp;
+import './libraries/JBOperations.sol';
+&nbsp;
+// Inheritance
+import './interfaces/IJBSplitsStore.sol';
+import './interfaces/IJBDirectory.sol';
+import './abstract/JBOperatable.sol';
+&nbsp;
+/**
+  @notice
+  Stores splits for each project.
+*/
+contract JBSplitsStore is IJBSplitsStore, JBOperatable {
+  //*********************************************************************//
+  // --------------------- private stored properties ------------------- //
+  //*********************************************************************//
+&nbsp;
+  /** 
+    @notice
+    All splits for each project ID's configurations.
+&nbsp;
+    _projectId is The ID of the project to get splits for.
+    _domain is An identifier within which the returned splits should be considered active.
+    _group The identifying group of the splits.
+  */
+  mapping(uint256 =&gt; mapping(uint256 =&gt; mapping(uint256 =&gt; JBSplit[]))) private _splitsOf;
+&nbsp;
+  //*********************************************************************//
+  // ---------------- public immutable stored properties --------------- //
+  //*********************************************************************//
+&nbsp;
+  /** 
+    @notice 
+    The Projects contract which mints ERC-721's that represent project ownership and transfers.
+  */
+  IJBProjects public immutable override projects;
+&nbsp;
+  /** 
+    @notice 
+    The directory of terminals and controllers for projects.
+  */
+  IJBDirectory public immutable override directory;
+&nbsp;
+  //*********************************************************************//
+  // ------------------------- external views -------------------------- //
+  //*********************************************************************//
+&nbsp;
+  /**
+    @notice 
+    Get all splits for the specified project ID, within the specified domain, for the specified group.
+&nbsp;
+    @param _projectId The ID of the project to get splits for.
+    @param _domain An identifier within which the returned splits should be considered active.
+    @param _group The identifying group of the splits.
+&nbsp;
+    @return An array of all splits for the project.
+    */
+<span class="fstat-no" title="function not covered" >  function splitsOf(</span>
+    uint256 _projectId,
+    uint256 _domain,
+    uint256 _group
+  ) external view override returns (JBSplit[] memory) {
+<span class="cstat-no" title="statement not covered" >    return _splitsOf[_projectId][_domain][_group];</span>
+  }
+&nbsp;
+  //*********************************************************************//
+  // -------------------------- constructor ---------------------------- //
+  //*********************************************************************//
+&nbsp;
+  /** 
+    @param _operatorStore A contract storing operator assignments.
+    @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
+    @param _directory A contract storing directories of terminals and controllers for each project.
+  */
+<span class="fstat-no" title="function not covered" >  constructor(</span>
+    IJBOperatorStore _operatorStore,
+    IJBProjects _projects,
+    IJBDirectory _directory
+  ) JBOperatable(_operatorStore) {
+<span class="cstat-no" title="statement not covered" >    projects = _projects</span>;
+<span class="cstat-no" title="statement not covered" >    directory = _directory</span>;
+  }
+&nbsp;
+  //*********************************************************************//
+  // ---------------------- external transactions ---------------------- //
+  //*********************************************************************//
+&nbsp;
+  /** 
+    @notice 
+    Sets a project's splits.
+&nbsp;
+    @dev
+    Only the owner or operator of a project, or the current controller contract of the project, can set its splits.
+&nbsp;
+    @dev
+    The new splits must include any currently set splits that are locked.
+&nbsp;
+    @param _projectId The ID of the project for which splits are being added.
+    @param _domain An identifier within which the splits should be considered active.
+    @param _group An identifier between of splits being set. All splits within this _group must add up to within 100%.
+    @param _splits The splits to set.
+  */
+<span class="fstat-no" title="function not covered" >  function set(</span>
+    uint256 _projectId,
+    uint256 _domain,
+    uint256 _group,
+    JBSplit[] memory _splits
+  )
+    external
+    override
+    requirePermissionAllowingOverride(
+      projects.ownerOf(_projectId),
+      _projectId,
+      JBOperations.SET_SPLITS,
+      address(directory.controllerOf(_projectId)) == msg.sender
+    )
+  {
+    // Get a reference to the project's current splits.
+<span class="cstat-no" title="statement not covered" >    JBSplit[] memory _currentSplits = _splitsOf[_projectId][_domain][_group];</span>
+&nbsp;
+    // Check to see if all locked splits are included.
+<span class="cstat-no" title="statement not covered" >    for (uint256 _i = 0; _i &lt; _currentSplits.length; _i++) {</span>
+      // If not locked, continue.
+<span class="cstat-no" title="statement not covered" >      if (block.timestamp &gt;= _currentSplits[_i].lockedUntil) continue;</span>
+&nbsp;
+      // Keep a reference to whether or not the locked split being iterated on is included.
+<span class="cstat-no" title="statement not covered" >      bool _includesLocked = false;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >      for (uint256 _j = 0; _j &lt; _splits.length; _j++) {</span>
+        // Check for sameness.
+<span class="cstat-no" title="statement not covered" >        if (</span>
+          _splits[_j].percent == _currentSplits[_i].percent &amp;&amp;
+          _splits[_j].beneficiary == _currentSplits[_i].beneficiary &amp;&amp;
+          _splits[_j].allocator == _currentSplits[_i].allocator &amp;&amp;
+          _splits[_j].projectId == _currentSplits[_i].projectId &amp;&amp;
+          // Allow lock extention.
+          _splits[_j].lockedUntil &gt;= _currentSplits[_i].lockedUntil
+        ) <span class="cstat-no" title="statement not covered" >_includesLocked = true</span>;
+      }
+<span class="cstat-no" title="statement not covered" >      require(_includesLocked, '0x0f: SOME_LOCKED')</span>;
+    }
+&nbsp;
+    // Delete from storage so splits can be repopulated.
+    delete _splitsOf[_projectId][_domain][_group];
+&nbsp;
+    // Add up all the percents to make sure they cumulative are under 100%.
+<span class="cstat-no" title="statement not covered" >    uint256 _percentTotal = 0;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    for (uint256 _i = 0; _i &lt; _splits.length; _i++) {</span>
+      // The percent should be greater than 0.
+<span class="cstat-no" title="statement not covered" >      require(_splits[_i].percent &gt; 0, '0x10: BAD_SPLIT_PERCENT')</span>;
+&nbsp;
+      // The allocator and the beneficiary shouldn't both be the zero address.
+<span class="cstat-no" title="statement not covered" >      require(</span>
+        _splits[_i].allocator != IJBSplitAllocator(address(0)) ||
+          _splits[_i].beneficiary != address(0),
+        '0x11: ZERO_ADDRESS'
+      );
+&nbsp;
+      // Add to the total percents.
+<span class="cstat-no" title="statement not covered" >      _percentTotal = _percentTotal + _splits[_i].percent</span>;
+&nbsp;
+      // The total percent should be at most 10000000.
+<span class="cstat-no" title="statement not covered" >      require(_percentTotal &lt;= 10000000, '0x12: BAD_TOTAL_PERCENT')</span>;
+&nbsp;
+      // Push the new split into the project's list of splits.
+<span class="cstat-no" title="statement not covered" >      _splitsOf[_projectId][_domain][_group].push(_splits[_i])</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >      emit SetSplit(_projectId, _domain, _group, _splits[_i], msg.sender);</span>
+    }
+  }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue Nov 23 2021 19:29:37 GMT-0500 (Eastern Standard Time)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>
