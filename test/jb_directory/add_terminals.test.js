@@ -7,8 +7,7 @@ import jbOperatoreStore from "../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from "../../artifacts/contracts/JBProjects.sol/JBProjects.json";
 import jbTerminal from "../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json";
 
-// TODO(odd-amphora): Consider adding separate permissions tests; though we may want to fold these
-// into JBOperatable tests.
+// TODO(odd-amphora): Permissions.
 describe('JBDirectory::addTerminalsOf(...)', function () {
   const PROJECT_ID = 13;
 

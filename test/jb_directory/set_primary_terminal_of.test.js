@@ -7,6 +7,7 @@ import jbOperatoreStore from "../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from "../../artifacts/contracts/JBProjects.sol/JBProjects.json";
 import jbTerminal from "../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json";
 
+// TODO(odd-amphora): Permissions.
 describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
   const PROJECT_ID = 13;
 
@@ -40,7 +41,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     return { caller, deployer, addrs, jbDirectory, terminal1, terminal2 };
   }
 
-  it('Can\t set terminal with address(0)', async function () {
+  it(`Can't set primary terminal with address(0)`, async function () {
     const { caller, jbDirectory } = await setup();
 
     await expect(
@@ -48,8 +49,12 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     ).to.be.revertedWith('0x2e: ZERO_ADDRESS');
   });
 
-  it('Setting primary terminal should emit event', async function () {
+  it('Setting primary terminal should emit an event and be added to terminals', async function () {
     const { caller, jbDirectory, terminal1 } = await setup();
+
+    // Initially no terminals should be set.
+    let initialTerminals = [...(await jbDirectory.connect(caller).terminalsOf(PROJECT_ID))];
+    expect(initialTerminals.length).to.equal(0);
 
     const terminal1TokenAddress = ethers.Wallet.createRandom().address;
     await terminal1.mock.token.returns(terminal1TokenAddress);
@@ -64,6 +69,26 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
         caller.address
       )
 
+    let resultTerminals = [...(await jbDirectory.connect(caller).terminalsOf(PROJECT_ID))];
+    resultTerminals.sort();
+
+    // After the primary terminal is set it should be added to the project.
+    let expectedTerminals = [terminal1.address];
+    expectedTerminals.sort();
+
+    expect(resultTerminals).to.eql(expectedTerminals)
+  });
+
+  it(`Can't set the same primary terminal twice in a row`, async function () {
+    const { caller, jbDirectory, terminal1, terminal2 } = await setup();
+
+    await terminal1.mock.token.returns(ethers.Wallet.createRandom().address);
+
+    // Should succeed on the first attempt and then fail on the second.
+    await jbDirectory.connect(caller).setPrimaryTerminalOf(PROJECT_ID, terminal1.address);
+    await expect(
+      jbDirectory.connect(caller).setPrimaryTerminalOf(PROJECT_ID, terminal1.address)
+    ).to.be.revertedWith('0x2f: ALREADY_SET');
   });
 
 });
