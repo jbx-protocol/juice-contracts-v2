@@ -80,7 +80,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
   });
 
   it(`Can't set the same primary terminal twice in a row`, async function () {
-    const { caller, jbDirectory, terminal1, terminal2 } = await setup();
+    const { caller, jbDirectory, terminal1 } = await setup();
 
     await terminal1.mock.token.returns(ethers.Wallet.createRandom().address);
 
@@ -90,5 +90,26 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
       jbDirectory.connect(caller).setPrimaryTerminalOf(PROJECT_ID, terminal1.address)
     ).to.be.revertedWith('0x2f: ALREADY_SET');
   });
+
+  it('Multiple terminals for the same project with the same token', async function () {
+    const { caller, jbDirectory, terminal1, terminal2 } = await setup();
+
+    let token = ethers.Wallet.createRandom().address;
+    await terminal1.mock.token.returns(token);
+    await terminal2.mock.token.returns(token);
+
+    let terminals = [terminal1.address, terminal2.address];
+    await jbDirectory.connect(caller).addTerminalsOf(PROJECT_ID, terminals);
+
+    await jbDirectory.connect(caller).setPrimaryTerminalOf(PROJECT_ID, terminal1.address);
+    expect(
+      await jbDirectory.connect(caller).primaryTerminalOf(PROJECT_ID, token)
+    ).to.equal(terminal1.address);
+
+    await jbDirectory.connect(caller).setPrimaryTerminalOf(PROJECT_ID, terminal2.address);
+    expect(
+      await jbDirectory.connect(caller).primaryTerminalOf(PROJECT_ID, token)
+    ).to.equal(terminal2.address);
+  })
 
 });
