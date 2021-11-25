@@ -211,7 +211,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     @param _terminal The terminal to add.
     @param _caller The original caller that added the terminal.
   */
-  function _maybeAddTerminal(
+  function _addTerminalIfNeeded(
     uint256 _projectId,
     IJBTerminal _terminal,
     address _caller
@@ -248,7 +248,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     )
   {
     for (uint256 _i = 0; _i < _terminals.length; _i++) {
-      _maybeAddTerminal(_projectId, _terminals[_i], msg.sender);
+      _addTerminalIfNeeded(_projectId, _terminals[_i], msg.sender);
     }
   }
 
@@ -311,7 +311,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     require(_terminal != _primaryTerminalOf[_projectId][_token], '0x2f: ALREADY_SET');
 
     // Add the terminal to thge project if it hasn't been already.
-    _maybeAddTerminal(_projectId, _terminal, msg.sender);
+    _addTerminalIfNeeded(_projectId, _terminal, msg.sender);
 
     // Store the terminal as the primary for the particular token.
     _primaryTerminalOf[_projectId][_token] = _terminal;
