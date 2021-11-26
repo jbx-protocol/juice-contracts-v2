@@ -1,23 +1,26 @@
 import { expect } from 'chai';
-import { ethers } from 'hardhat';
+import { ethers, waffle } from 'hardhat';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
+import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
+import { MockProvider } from '@ethereum-waffle/provider';
 
 // TODO(odd-amphora): Permissions.
 describe('JBDirectory::addTerminalsOf(...)', function () {
-  const PROJECT_ID = 13;
-
+  const PROJECT_ID = 1;
   let ADD_TERMINALS_PERMISSION_INDEX;
+  let SET_CONTROLLER_PERMISSION_INDEX;
 
   before(async function () {
     let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
     let jbOperations = await jbOperationsFactory.deploy();
 
     ADD_TERMINALS_PERMISSION_INDEX = await jbOperations.ADD_TERMINALS();
+    SET_CONTROLLER_PERMISSION_INDEX = await jbOperations.SET_CONTROLLER();
   });
 
   async function setup() {
@@ -41,7 +44,7 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
       .withArgs(caller.address, caller.address, PROJECT_ID, ADD_TERMINALS_PERMISSION_INDEX)
       .returns(true);
 
-    return { caller, deployer, addrs, jbDirectory, terminal1, terminal2 };
+    return { caller, deployer, addrs, jbDirectory, terminal1, terminal2, mockJbProjects, mockJbOperatorStore };
   }
 
   it('Should add terminals and emit events', async function () {
@@ -93,4 +96,31 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
 
     expect(resultTerminals).to.eql(expectedTerminals);
   });
+
+  it('Should add if caller is controller of the project', async function () {
+    const { addrs, jbDirectory, mockJbProjects, mockJbOperatorStore, terminal1 } = await setup();
+    const projectOwner = addrs[3];
+    const controllerOwner = addrs[4];
+
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
+    await mockJbProjects.mock.count.returns(1);
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(projectOwner.address, projectOwner.address, PROJECT_ID, SET_CONTROLLER_PERMISSION_INDEX)
+      .returns(true);
+
+    let controller = await deployMockContract(controllerOwner, jbController.abi);
+    await expect(
+      jbDirectory.connect(controller.signer).addTerminalsOf(PROJECT_ID, [terminal1.address]),
+    ).to.be.reverted;
+    await jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller.address);
+    // TODO(odd-amphora): This isn't working.
+    await expect(
+      jbDirectory.connect(controller.provider).addTerminalsOf(PROJECT_ID, [terminal1.address]),
+    ).to.not.be.reverted;
+  })
+
+  it('Unauthorized', async function () {
+
+  })
+
 });
