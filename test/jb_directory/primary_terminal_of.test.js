@@ -7,13 +7,6 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
 
-// TODO(odd-amphora): Permissions.
-/**
- * Tests the following:
- *
- * JBDirectory::setPrimaryTerminalOf(...)
- * JBDirectory::primaryTerminalOf(...)
- */
 describe('JBDirectory::primaryTerminalOf(...)', function () {
   const PROJECT_ID = 13;
 
