@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { ethers, waffle } from 'hardhat';
+import { ethers, waffle, network } from 'hardhat';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
@@ -8,6 +8,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
 import { MockProvider } from '@ethereum-waffle/provider';
+import { impersonateAccount } from '../helpers/utils';
 
 // TODO(odd-amphora): Permissions.
 describe('JBDirectory::addTerminalsOf(...)', function () {
@@ -109,18 +110,16 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
       .returns(true);
 
     let controller = await deployMockContract(controllerOwner, jbController.abi);
+    let controllerSigner = await impersonateAccount(controller.address);
+
+    // Before setting the controller adding terminals from the controller should fail.
     await expect(
-      jbDirectory.connect(controller.signer).addTerminalsOf(PROJECT_ID, [terminal1.address]),
+      jbDirectory.connect(controllerSigner).addTerminalsOf(PROJECT_ID, [terminal1.address]),
     ).to.be.reverted;
     await jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller.address);
-    // TODO(odd-amphora): This isn't working.
     await expect(
-      jbDirectory.connect(controller.provider).addTerminalsOf(PROJECT_ID, [terminal1.address]),
+      jbDirectory.connect(controllerSigner).addTerminalsOf(PROJECT_ID, [terminal1.address]),
     ).to.not.be.reverted;
-  })
-
-  it('Unauthorized', async function () {
-
   })
 
 });
