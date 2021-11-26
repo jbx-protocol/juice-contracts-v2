@@ -182,6 +182,9 @@ contract JBDirectory is IJBDirectory, JBOperatable {
         address(controllerOf[_projectId]) == msg.sender
     )
   {
+    // Can't set the zero address.
+    require(_controller != IJBController(address(0)), '0x2b: ZERO_ADDRESS');
+
     // Get a reference to the current controller being used.
     IJBController _currentController = controllerOf[_projectId];
 
@@ -189,10 +192,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     if (_currentController == _controller) return;
 
     // The project must exist.
-    require(projects.count() >= _projectId, '0x2b: NOT_FOUND');
-
-    // Can't set the zero address.
-    require(_controller != IJBController(address(0)), '0x2c: ZERO_ADDRESS');
+    require(projects.count() >= _projectId, '0x2c: NOT_FOUND');
 
     // Set the new controller.
     controllerOf[_projectId] = _controller;
