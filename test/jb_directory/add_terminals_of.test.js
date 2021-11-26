@@ -3,9 +3,9 @@ import { ethers } from 'hardhat';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
-import jbOperatoreStore from "../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json";
-import jbProjects from "../../artifacts/contracts/JBProjects.sol/JBProjects.json";
-import jbTerminal from "../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json";
+import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
+import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
 
 // TODO(odd-amphora): Permissions.
 describe('JBDirectory::addTerminalsOf(...)', function () {
@@ -18,7 +18,7 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
     let jbOperations = await jbOperationsFactory.deploy();
 
     ADD_TERMINALS_PERMISSION_INDEX = await jbOperations.ADD_TERMINALS();
-  })
+  });
 
   async function setup() {
     let [deployer, ...addrs] = await ethers.getSigners();
@@ -28,7 +28,10 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
     let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
 
     let jbDirectoryFactory = await ethers.getContractFactory('JBDirectory');
-    let jbDirectory = await jbDirectoryFactory.deploy(mockJbOperatorStore.address, mockJbProjects.address);
+    let jbDirectory = await jbDirectoryFactory.deploy(
+      mockJbOperatorStore.address,
+      mockJbProjects.address,
+    );
 
     let terminal1 = await deployMockContract(caller, jbTerminal.abi);
     let terminal2 = await deployMockContract(caller, jbTerminal.abi);
@@ -51,11 +54,7 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
       terminals.map(async (terminalAddr, _) => {
         await expect(tx)
           .to.emit(jbDirectory, 'AddTerminal')
-          .withArgs(
-            PROJECT_ID,
-            terminalAddr,
-            caller.address
-          );
+          .withArgs(PROJECT_ID, terminalAddr, caller.address);
       }),
     );
   });
@@ -66,17 +65,25 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
     let terminals = [terminal1.address, ethers.constants.AddressZero, terminal2.address];
 
     await expect(
-      jbDirectory.connect(caller).addTerminalsOf(PROJECT_ID, terminals)
+      jbDirectory.connect(caller).addTerminalsOf(PROJECT_ID, terminals),
     ).to.be.revertedWith('0x2d: ZERO_ADDRESS');
   });
 
   it('Should not add terminals more than once', async function () {
     const { caller, jbDirectory, terminal1, terminal2 } = await setup();
 
-    await jbDirectory.connect(caller).addTerminalsOf(PROJECT_ID, [terminal1.address, terminal2.address]);
-    await jbDirectory.connect(caller).addTerminalsOf(PROJECT_ID, [terminal2.address, terminal1.address]);
-    await jbDirectory.connect(caller).addTerminalsOf(PROJECT_ID, [terminal1.address, terminal1.address]);
-    await jbDirectory.connect(caller).addTerminalsOf(PROJECT_ID, [terminal2.address, terminal2.address]);
+    await jbDirectory
+      .connect(caller)
+      .addTerminalsOf(PROJECT_ID, [terminal1.address, terminal2.address]);
+    await jbDirectory
+      .connect(caller)
+      .addTerminalsOf(PROJECT_ID, [terminal2.address, terminal1.address]);
+    await jbDirectory
+      .connect(caller)
+      .addTerminalsOf(PROJECT_ID, [terminal1.address, terminal1.address]);
+    await jbDirectory
+      .connect(caller)
+      .addTerminalsOf(PROJECT_ID, [terminal2.address, terminal2.address]);
 
     let resultTerminals = [...(await jbDirectory.connect(caller).terminalsOf(PROJECT_ID))];
     resultTerminals.sort();
@@ -84,7 +91,6 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
     let expectedTerminals = [terminal1.address, terminal2.address];
     expectedTerminals.sort();
 
-    expect(resultTerminals).to.eql(expectedTerminals)
+    expect(resultTerminals).to.eql(expectedTerminals);
   });
-
 });

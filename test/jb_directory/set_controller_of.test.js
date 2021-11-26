@@ -3,10 +3,10 @@ import { ethers } from 'hardhat';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
-import jbOperatoreStore from "../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json";
-import jbController from "../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json";
-import jbProjects from "../../artifacts/contracts/JBProjects.sol/JBProjects.json";
-import jbTerminal from "../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json";
+import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
+import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
+import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
 
 // TODO(odd-amphora): Permissions.
 describe('JBDirectory::setControllerOf(...)', function () {
@@ -19,7 +19,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
     let jbOperations = await jbOperationsFactory.deploy();
 
     SET_CONTROLLER_PERMISSION_INDEX = await jbOperations.SET_CONTROLLER();
-  })
+  });
 
   async function setup() {
     let [deployer, ...addrs] = await ethers.getSigners();
@@ -29,7 +29,10 @@ describe('JBDirectory::setControllerOf(...)', function () {
     let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
 
     let jbDirectoryFactory = await ethers.getContractFactory('JBDirectory');
-    let jbDirectory = await jbDirectoryFactory.deploy(mockJbOperatorStore.address, mockJbProjects.address);
+    let jbDirectory = await jbDirectoryFactory.deploy(
+      mockJbOperatorStore.address,
+      mockJbProjects.address,
+    );
 
     let controller1 = await deployMockContract(caller, jbController.abi);
     let controller2 = await deployMockContract(caller, jbController.abi);
@@ -46,7 +49,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
     const { caller, jbDirectory } = await setup();
 
     await expect(
-      jbDirectory.connect(caller).setControllerOf(PROJECT_ID, ethers.constants.AddressZero)
+      jbDirectory.connect(caller).setControllerOf(PROJECT_ID, ethers.constants.AddressZero),
     ).to.be.revertedWith('0x2b: ZERO_ADDRESS');
   });
 
@@ -56,7 +59,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
     await mockJbProjects.mock.count.returns(PROJECT_ID - 1);
 
     await expect(
-      jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller1.address)
+      jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller1.address),
     ).to.be.revertedWith('0x2c: NOT_FOUND');
   });
 
@@ -69,15 +72,10 @@ describe('JBDirectory::setControllerOf(...)', function () {
 
     await expect(tx)
       .to.emit(jbDirectory, 'SetController')
-      .withArgs(
-        PROJECT_ID,
-        controller1.address,
-        caller.address
-      );
+      .withArgs(PROJECT_ID, controller1.address, caller.address);
 
     // The controller should be set.
     let controller = await jbDirectory.connect(caller).controllerOf(PROJECT_ID);
     expect(controller).to.equal(controller1.address);
   });
-
 });

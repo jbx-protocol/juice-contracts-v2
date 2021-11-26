@@ -44,9 +44,9 @@ describe('JBPrices::priceFor(...)', function () {
 
   it('Check price no decimals', async function () {
     let price = 400;
-    expect(await addFeedAndFetchPrice(price, /*decimals=*/ 0, /*currency=*/ 1, /*base=*/ 2)).to.equal(
-      ethers.BigNumber.from(price).mul(BigNumber.from(10).pow(targetDecimals)),
-    );
+    expect(
+      await addFeedAndFetchPrice(price, /*decimals=*/ 0, /*currency=*/ 1, /*base=*/ 2),
+    ).to.equal(ethers.BigNumber.from(price).mul(BigNumber.from(10).pow(targetDecimals)));
   });
 
   it('Check price one decimal', async function () {

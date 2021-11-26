@@ -3,14 +3,14 @@ import { ethers } from 'hardhat';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
-import jbOperatoreStore from "../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json";
-import jbProjects from "../../artifacts/contracts/JBProjects.sol/JBProjects.json";
-import jbTerminal from "../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json";
+import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
+import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
 
 // TODO(odd-amphora): Permissions.
 /**
  * Tests the following:
- * 
+ *
  * JBDirectory::setPrimaryTerminalOf(...)
  * JBDirectory::primaryTerminalOf(...)
  */
@@ -24,7 +24,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     let jbOperations = await jbOperationsFactory.deploy();
 
     ADD_TERMINALS_PERMISSION_INDEX = await jbOperations.ADD_TERMINALS();
-  })
+  });
 
   async function setup() {
     let [deployer, ...addrs] = await ethers.getSigners();
@@ -34,7 +34,10 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
 
     let jbDirectoryFactory = await ethers.getContractFactory('JBDirectory');
-    let jbDirectory = await jbDirectoryFactory.deploy(mockJbOperatorStore.address, mockJbProjects.address);
+    let jbDirectory = await jbDirectoryFactory.deploy(
+      mockJbOperatorStore.address,
+      mockJbProjects.address,
+    );
 
     let terminal1 = await deployMockContract(caller, jbTerminal.abi);
     let terminal2 = await deployMockContract(caller, jbTerminal.abi);
@@ -51,7 +54,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     const { caller, jbDirectory } = await setup();
 
     await expect(
-      jbDirectory.connect(caller).setPrimaryTerminalOf(PROJECT_ID, ethers.constants.AddressZero)
+      jbDirectory.connect(caller).setPrimaryTerminalOf(PROJECT_ID, ethers.constants.AddressZero),
     ).to.be.revertedWith('0x2e: ZERO_ADDRESS');
   });
 
@@ -68,12 +71,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     let tx = await jbDirectory.connect(caller).setPrimaryTerminalOf(PROJECT_ID, terminal1.address);
     await expect(tx)
       .to.emit(jbDirectory, 'SetPrimaryTerminal')
-      .withArgs(
-        PROJECT_ID,
-        terminal1TokenAddress,
-        terminal1.address,
-        caller.address
-      )
+      .withArgs(PROJECT_ID, terminal1TokenAddress, terminal1.address, caller.address);
 
     let resultTerminals = [...(await jbDirectory.connect(caller).terminalsOf(PROJECT_ID))];
     resultTerminals.sort();
@@ -82,7 +80,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     let expectedTerminals = [terminal1.address];
     expectedTerminals.sort();
 
-    expect(resultTerminals).to.eql(expectedTerminals)
+    expect(resultTerminals).to.eql(expectedTerminals);
   });
 
   it(`Can't set the same primary terminal twice in a row`, async function () {
@@ -93,7 +91,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     // Should succeed on the first attempt and then fail on the second.
     await jbDirectory.connect(caller).setPrimaryTerminalOf(PROJECT_ID, terminal1.address);
     await expect(
-      jbDirectory.connect(caller).setPrimaryTerminalOf(PROJECT_ID, terminal1.address)
+      jbDirectory.connect(caller).setPrimaryTerminalOf(PROJECT_ID, terminal1.address),
     ).to.be.revertedWith('0x2f: ALREADY_SET');
   });
 
@@ -108,14 +106,13 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     await jbDirectory.connect(caller).addTerminalsOf(PROJECT_ID, terminals);
 
     await jbDirectory.connect(caller).setPrimaryTerminalOf(PROJECT_ID, terminal1.address);
-    expect(
-      await jbDirectory.connect(caller).primaryTerminalOf(PROJECT_ID, token)
-    ).to.equal(terminal1.address);
+    expect(await jbDirectory.connect(caller).primaryTerminalOf(PROJECT_ID, token)).to.equal(
+      terminal1.address,
+    );
 
     await jbDirectory.connect(caller).setPrimaryTerminalOf(PROJECT_ID, terminal2.address);
-    expect(
-      await jbDirectory.connect(caller).primaryTerminalOf(PROJECT_ID, token)
-    ).to.equal(terminal2.address);
-  })
-
+    expect(await jbDirectory.connect(caller).primaryTerminalOf(PROJECT_ID, token)).to.equal(
+      terminal2.address,
+    );
+  });
 });

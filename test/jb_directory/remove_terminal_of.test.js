@@ -3,9 +3,9 @@ import { ethers } from 'hardhat';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
-import jbOperatoreStore from "../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json";
-import jbProjects from "../../artifacts/contracts/JBProjects.sol/JBProjects.json";
-import jbTerminal from "../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json";
+import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
+import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
 
 // TODO(odd-amphora): Permissions.
 describe('JBDirectory::removeTerminal(...)', function () {
@@ -20,7 +20,7 @@ describe('JBDirectory::removeTerminal(...)', function () {
 
     ADD_TERMINALS_PERMISSION_INDEX = await jbOperations.ADD_TERMINALS();
     REMOVE_TERMINAL_PERMISSION_INDEX = await jbOperations.REMOVE_TERMINAL();
-  })
+  });
 
   async function setup() {
     let [deployer, ...addrs] = await ethers.getSigners();
@@ -30,7 +30,10 @@ describe('JBDirectory::removeTerminal(...)', function () {
     let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
 
     let jbDirectoryFactory = await ethers.getContractFactory('JBDirectory');
-    let jbDirectory = await jbDirectoryFactory.deploy(mockJbOperatorStore.address, mockJbProjects.address);
+    let jbDirectory = await jbDirectoryFactory.deploy(
+      mockJbOperatorStore.address,
+      mockJbProjects.address,
+    );
 
     let terminal1 = await deployMockContract(caller, jbTerminal.abi);
     let terminal2 = await deployMockContract(caller, jbTerminal.abi);
@@ -44,7 +47,9 @@ describe('JBDirectory::removeTerminal(...)', function () {
       .returns(true);
 
     // Add a few terminals.
-    await jbDirectory.connect(caller).addTerminalsOf(PROJECT_ID, [terminal1.address, terminal2.address]);
+    await jbDirectory
+      .connect(caller)
+      .addTerminalsOf(PROJECT_ID, [terminal1.address, terminal2.address]);
 
     return { caller, deployer, addrs, jbDirectory, terminal1, terminal2 };
   }
@@ -59,11 +64,7 @@ describe('JBDirectory::removeTerminal(...)', function () {
 
     await expect(tx)
       .to.emit(jbDirectory, 'RemoveTerminal')
-      .withArgs(
-        PROJECT_ID,
-        terminal1.address,
-        caller.address
-      );
+      .withArgs(PROJECT_ID, terminal1.address, caller.address);
 
     let terminals = [...(await jbDirectory.connect(caller).terminalsOf(PROJECT_ID))];
     terminals.sort();
@@ -85,8 +86,7 @@ describe('JBDirectory::removeTerminal(...)', function () {
 
     // The primary terminal should no longer be set.
     expect(
-      await jbDirectory.connect(caller).primaryTerminalOf(PROJECT_ID, terminal1TokenAddress)
+      await jbDirectory.connect(caller).primaryTerminalOf(PROJECT_ID, terminal1TokenAddress),
     ).to.equal(ethers.constants.AddressZero);
-  })
-
+  });
 });
