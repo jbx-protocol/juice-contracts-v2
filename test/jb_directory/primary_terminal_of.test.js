@@ -7,16 +7,25 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
 
-describe('JBDirectory::isTerminalDelegateOf(...)', function () {
+// TODO(odd-amphora): Permissions.
+/**
+ * Tests the following:
+ *
+ * JBDirectory::setPrimaryTerminalOf(...)
+ * JBDirectory::primaryTerminalOf(...)
+ */
+describe('JBDirectory::primaryTerminalOf(...)', function () {
   const PROJECT_ID = 13;
 
   let ADD_TERMINALS_PERMISSION_INDEX;
+  let SET_PRIMARY_TERMINAL_PERMISSION_INDEX;
 
   before(async function () {
     let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
     let jbOperations = await jbOperationsFactory.deploy();
 
     ADD_TERMINALS_PERMISSION_INDEX = await jbOperations.ADD_TERMINALS();
+    SET_PRIMARY_TERMINAL_PERMISSION_INDEX = await jbOperations.SET_PRIMARY_TERMINAL();
   });
 
   async function setup() {
@@ -35,15 +44,12 @@ describe('JBDirectory::isTerminalDelegateOf(...)', function () {
     let terminal1 = await deployMockContract(caller, jbTerminal.abi);
     let terminal2 = await deployMockContract(caller, jbTerminal.abi);
 
-    let terminal1Delegate = ethers.Wallet.createRandom().address;
-    await terminal1.mock.delegate.returns(terminal1Delegate);
-
-    let terminal2Delegate = ethers.Wallet.createRandom().address;
-    await terminal2.mock.delegate.returns(terminal2Delegate);
-
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(caller.address);
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(caller.address, caller.address, PROJECT_ID, ADD_TERMINALS_PERMISSION_INDEX)
+      .returns(true);
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, caller.address, PROJECT_ID, SET_PRIMARY_TERMINAL_PERMISSION_INDEX)
       .returns(true);
 
     // Add a few terminals
@@ -51,35 +57,32 @@ describe('JBDirectory::isTerminalDelegateOf(...)', function () {
       .connect(caller)
       .addTerminalsOf(PROJECT_ID, [terminal1.address, terminal2.address]);
 
-    return {
-      caller,
-      deployer,
-      addrs,
-      jbDirectory,
-      terminal1,
-      terminal2,
-      terminal1Delegate,
-      terminal2Delegate,
-    };
+    return { caller, deployer, addrs, jbDirectory, terminal1, terminal2 };
   }
 
-  it('Should return false if no delegate is set', async function () {
-    const { caller, jbDirectory } = await setup();
+  it('Returns primary terminal if set', async function () {
+    const { caller, jbDirectory, terminal1 } = await setup();
 
-    expect(
-      await jbDirectory
-        .connect(caller)
-        .isTerminalDelegateOf(PROJECT_ID, ethers.Wallet.createRandom().address),
-    ).to.be.false;
+    let token = ethers.Wallet.createRandom().address;
+    await terminal1.mock.token.returns(token);
+
+    await jbDirectory.connect(caller).setPrimaryTerminalOf(PROJECT_ID, terminal1.address);
+
+    expect(await jbDirectory.connect(caller).primaryTerminalOf(PROJECT_ID, token)).to.equal(
+      terminal1.address,
+    );
   });
 
-  it('Should return true if delegate is set', async function () {
-    const { caller, jbDirectory, terminal1Delegate, terminal2Delegate } = await setup();
+  it('Returns terminal with matching token if set', async function () {
+    const { caller, jbDirectory, terminal1, terminal2 } = await setup();
 
-    expect(await jbDirectory.connect(caller).isTerminalDelegateOf(PROJECT_ID, terminal1Delegate)).to
-      .be.true;
+    await terminal1.mock.token.returns(ethers.Wallet.createRandom().address);
 
-    expect(await jbDirectory.connect(caller).isTerminalDelegateOf(PROJECT_ID, terminal2Delegate)).to
-      .be.true;
+    let token = ethers.Wallet.createRandom().address;
+    await terminal2.mock.token.returns(token);
+
+    expect(await jbDirectory.connect(caller).primaryTerminalOf(PROJECT_ID, token)).to.equal(
+      terminal2.address,
+    );
   });
 });
