@@ -102,8 +102,8 @@ describe('JBDirectory::setControllerOf(...)', function () {
       .withArgs(caller.address, projectOwner.address, PROJECT_ID, SET_CONTROLLER_PERMISSION_INDEX)
       .returns(true);
 
-    await expect(jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller1.address))
-      .to.not.be.reverted;
+    await expect(jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller1.address)).to
+      .not.be.reverted;
   });
 
   it('Should fail if caller does not have permission', async function () {
@@ -116,11 +116,11 @@ describe('JBDirectory::setControllerOf(...)', function () {
       .withArgs(caller.address, projectOwner.address, PROJECT_ID, SET_CONTROLLER_PERMISSION_INDEX)
       .returns(false);
 
-    await expect(jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller1.address))
-      .to.be.reverted;
+    await expect(jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller1.address)).to.be
+      .reverted;
   });
 
   it('TODO', async function () {
     // TODO(odd-amphora): Permission override cases.
-  })
+  });
 });

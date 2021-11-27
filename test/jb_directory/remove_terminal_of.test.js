@@ -38,10 +38,20 @@ describe('JBDirectory::removeTerminalOf(...)', function () {
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(projectOwner.address, projectOwner.address, PROJECT_ID, ADD_TERMINALS_PERMISSION_INDEX)
+      .withArgs(
+        projectOwner.address,
+        projectOwner.address,
+        PROJECT_ID,
+        ADD_TERMINALS_PERMISSION_INDEX,
+      )
       .returns(true);
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(projectOwner.address, projectOwner.address, PROJECT_ID, REMOVE_TERMINAL_PERMISSION_INDEX)
+      .withArgs(
+        projectOwner.address,
+        projectOwner.address,
+        PROJECT_ID,
+        REMOVE_TERMINAL_PERMISSION_INDEX,
+      )
       .returns(true);
 
     // Add a few terminals.
@@ -49,7 +59,15 @@ describe('JBDirectory::removeTerminalOf(...)', function () {
       .connect(projectOwner)
       .addTerminalsOf(PROJECT_ID, [terminal1.address, terminal2.address]);
 
-    return { projectOwner, deployer, addrs, jbDirectory, mockJbOperatorStore, terminal1, terminal2 };
+    return {
+      projectOwner,
+      deployer,
+      addrs,
+      jbDirectory,
+      mockJbOperatorStore,
+      terminal1,
+      terminal2,
+    };
   }
 
   it('Should remove terminal and emit event', async function () {
@@ -58,7 +76,9 @@ describe('JBDirectory::removeTerminalOf(...)', function () {
     const terminal1TokenAddress = ethers.Wallet.createRandom().address;
     await terminal1.mock.token.returns(terminal1TokenAddress);
 
-    let tx = await jbDirectory.connect(projectOwner).removeTerminalOf(PROJECT_ID, terminal1.address);
+    let tx = await jbDirectory
+      .connect(projectOwner)
+      .removeTerminalOf(PROJECT_ID, terminal1.address);
 
     await expect(tx)
       .to.emit(jbDirectory, 'RemoveTerminal')
@@ -80,8 +100,9 @@ describe('JBDirectory::removeTerminalOf(...)', function () {
       .withArgs(caller.address, projectOwner.address, PROJECT_ID, REMOVE_TERMINAL_PERMISSION_INDEX)
       .returns(true);
 
-    await expect(jbDirectory.connect(caller).removeTerminalOf(PROJECT_ID, terminal1.address)).to.not.be.reverted;
-  })
+    await expect(jbDirectory.connect(caller).removeTerminalOf(PROJECT_ID, terminal1.address)).to.not
+      .be.reverted;
+  });
 
   it(`Can't set primary terminal if caller is not project owner and does not have permission`, async function () {
     const { projectOwner, addrs, jbDirectory, mockJbOperatorStore, terminal1 } = await setup();
@@ -92,8 +113,9 @@ describe('JBDirectory::removeTerminalOf(...)', function () {
       .withArgs(caller.address, projectOwner.address, PROJECT_ID, REMOVE_TERMINAL_PERMISSION_INDEX)
       .returns(false);
 
-    await expect(jbDirectory.connect(caller).removeTerminalOf(PROJECT_ID, terminal1.address)).to.be.reverted;
-  })
+    await expect(jbDirectory.connect(caller).removeTerminalOf(PROJECT_ID, terminal1.address)).to.be
+      .reverted;
+  });
 
   it('Should remove primary terminal if it is set', async function () {
     const { projectOwner, jbDirectory, terminal1, terminal2 } = await setup();
