@@ -9,7 +9,6 @@ import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
 import { impersonateAccount } from '../helpers/utils';
 
-// TODO(odd-amphora): Permissions.
 describe('JBDirectory::addTerminalsOf(...)', function () {
   const PROJECT_ID = 1;
   let ADD_TERMINALS_PERMISSION_INDEX;
@@ -25,7 +24,7 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
 
   async function setup() {
     let [deployer, ...addrs] = await ethers.getSigners();
-    let caller = addrs[1];
+    let projectOwner = addrs[1];
 
     let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
     let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
@@ -36,16 +35,21 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
       mockJbProjects.address,
     );
 
-    let terminal1 = await deployMockContract(caller, jbTerminal.abi);
-    let terminal2 = await deployMockContract(caller, jbTerminal.abi);
+    let terminal1 = await deployMockContract(projectOwner, jbTerminal.abi);
+    let terminal2 = await deployMockContract(projectOwner, jbTerminal.abi);
 
-    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(caller.address);
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(caller.address, caller.address, PROJECT_ID, ADD_TERMINALS_PERMISSION_INDEX)
+      .withArgs(
+        projectOwner.address,
+        projectOwner.address,
+        PROJECT_ID,
+        ADD_TERMINALS_PERMISSION_INDEX,
+      )
       .returns(true);
 
     return {
-      caller,
+      projectOwner,
       deployer,
       addrs,
       jbDirectory,
@@ -56,54 +60,19 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
     };
   }
 
-  it('Should add terminals and emit events', async function () {
-    const { caller, jbDirectory, terminal1, terminal2 } = await setup();
+  it('Should add terminals and emit events if caller is project owner', async function () {
+    const { projectOwner, jbDirectory, terminal1, terminal2 } = await setup();
 
     let terminals = [terminal1.address, terminal2.address];
-    let tx = await jbDirectory.connect(caller).addTerminalsOf(PROJECT_ID, terminals);
+    let tx = await jbDirectory.connect(projectOwner).addTerminalsOf(PROJECT_ID, terminals);
 
     await Promise.all(
       terminals.map(async (terminalAddr, _) => {
         await expect(tx)
           .to.emit(jbDirectory, 'AddTerminal')
-          .withArgs(PROJECT_ID, terminalAddr, caller.address);
+          .withArgs(PROJECT_ID, terminalAddr, projectOwner.address);
       }),
     );
-  });
-
-  it('Should reject terminals with address(0)', async function () {
-    const { caller, jbDirectory, terminal1, terminal2 } = await setup();
-
-    let terminals = [terminal1.address, ethers.constants.AddressZero, terminal2.address];
-
-    await expect(
-      jbDirectory.connect(caller).addTerminalsOf(PROJECT_ID, terminals),
-    ).to.be.revertedWith('0x2d: ZERO_ADDRESS');
-  });
-
-  it('Should not add terminals more than once', async function () {
-    const { caller, jbDirectory, terminal1, terminal2 } = await setup();
-
-    await jbDirectory
-      .connect(caller)
-      .addTerminalsOf(PROJECT_ID, [terminal1.address, terminal2.address]);
-    await jbDirectory
-      .connect(caller)
-      .addTerminalsOf(PROJECT_ID, [terminal2.address, terminal1.address]);
-    await jbDirectory
-      .connect(caller)
-      .addTerminalsOf(PROJECT_ID, [terminal1.address, terminal1.address]);
-    await jbDirectory
-      .connect(caller)
-      .addTerminalsOf(PROJECT_ID, [terminal2.address, terminal2.address]);
-
-    let resultTerminals = [...(await jbDirectory.connect(caller).terminalsOf(PROJECT_ID))];
-    resultTerminals.sort();
-
-    let expectedTerminals = [terminal1.address, terminal2.address];
-    expectedTerminals.sort();
-
-    expect(resultTerminals).to.eql(expectedTerminals);
   });
 
   it('Should add if caller is controller of the project', async function () {
@@ -133,5 +102,68 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
     await expect(
       jbDirectory.connect(controllerSigner).addTerminalsOf(PROJECT_ID, [terminal1.address]),
     ).to.not.be.reverted;
+  });
+
+  it('Should add if caller has permission but is not the project owner', async function () {
+    const { addrs, jbDirectory, mockJbProjects, mockJbOperatorStore, terminal1 } = await setup();
+    const projectOwner = addrs[3];
+    const caller = addrs[4];
+
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, projectOwner.address, PROJECT_ID, ADD_TERMINALS_PERMISSION_INDEX)
+      .returns(true);
+
+    await expect(jbDirectory.connect(caller).addTerminalsOf(PROJECT_ID, [terminal1.address])).to.not
+      .be.reverted;
+  });
+
+  it('Should reject if caller does not have permission', async function () {
+    const { addrs, jbDirectory, mockJbProjects, mockJbOperatorStore, terminal1 } = await setup();
+    const projectOwner = addrs[3];
+    const caller = addrs[4];
+
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, projectOwner.address, PROJECT_ID, ADD_TERMINALS_PERMISSION_INDEX)
+      .returns(false);
+
+    await expect(jbDirectory.connect(caller).addTerminalsOf(PROJECT_ID, [terminal1.address])).to.be
+      .reverted;
+  });
+
+  it('Should reject terminals with address(0)', async function () {
+    const { projectOwner, jbDirectory, terminal1, terminal2 } = await setup();
+
+    let terminals = [terminal1.address, ethers.constants.AddressZero, terminal2.address];
+
+    await expect(
+      jbDirectory.connect(projectOwner).addTerminalsOf(PROJECT_ID, terminals),
+    ).to.be.revertedWith('0x2d: ZERO_ADDRESS');
+  });
+
+  it('Should not add terminals more than once', async function () {
+    const { projectOwner, jbDirectory, terminal1, terminal2 } = await setup();
+
+    await jbDirectory
+      .connect(projectOwner)
+      .addTerminalsOf(PROJECT_ID, [terminal1.address, terminal2.address]);
+    await jbDirectory
+      .connect(projectOwner)
+      .addTerminalsOf(PROJECT_ID, [terminal2.address, terminal1.address]);
+    await jbDirectory
+      .connect(projectOwner)
+      .addTerminalsOf(PROJECT_ID, [terminal1.address, terminal1.address]);
+    await jbDirectory
+      .connect(projectOwner)
+      .addTerminalsOf(PROJECT_ID, [terminal2.address, terminal2.address]);
+
+    let resultTerminals = [...(await jbDirectory.connect(projectOwner).terminalsOf(PROJECT_ID))];
+    resultTerminals.sort();
+
+    let expectedTerminals = [terminal1.address, terminal2.address];
+    expectedTerminals.sort();
+
+    expect(resultTerminals).to.eql(expectedTerminals);
   });
 });
