@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
-
+import './abstract/ERC721Checkpointable.sol';
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBProjects.sol';
 
@@ -15,7 +14,7 @@ import './libraries/JBOperations.sol';
   @dev
   Projects are represented as ERC-721's.
 */
-contract JBProjects is ERC721, IJBProjects, JBOperatable {
+contract JBProjects is ERC721Checkpointable, IJBProjects, JBOperatable {
   //*********************************************************************//
   // --------------------- private stored constants -------------------- //
   //*********************************************************************//
