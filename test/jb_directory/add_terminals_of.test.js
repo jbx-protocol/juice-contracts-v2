@@ -77,8 +77,7 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
   it('Should add if caller is controller of the project', async function () {
     const { addrs, projectOwner, jbDirectory, mockJbProjects, mockJbOperatorStore, terminal1 } =
       await setup();
-    const controllerOwner = addrs[1];
-
+    // Give the project owner permissions to set the controller.
     await mockJbProjects.mock.count.returns(1);
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(
@@ -89,12 +88,14 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
       )
       .returns(true);
 
-    let controller = await deployMockContract(controllerOwner, jbController.abi);
+    let controller = await deployMockContract(addrs[1], jbController.abi);
     let controllerSigner = await impersonateAccount(controller.address);
 
     await expect(
       jbDirectory.connect(controllerSigner).addTerminalsOf(PROJECT_ID, [terminal1.address]),
     ).to.be.reverted;
+
+    // After the controller has been set, the controller signer should be able to add terminals.
     await jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller.address);
     await expect(
       jbDirectory.connect(controllerSigner).addTerminalsOf(PROJECT_ID, [terminal1.address]),
@@ -105,6 +106,7 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
     const { addrs, projectOwner, jbDirectory, mockJbOperatorStore, terminal1 } = await setup();
     const caller = addrs[1];
 
+    // Give the caller permission to add terminals.
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(caller.address, projectOwner.address, PROJECT_ID, ADD_TERMINALS_PERMISSION_INDEX)
       .returns(true);
@@ -118,6 +120,7 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
       await setup();
     const caller = addrs[1];
 
+    // Ensure the caller does not have permissions to add terminals.
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(caller.address, projectOwner.address, PROJECT_ID, ADD_TERMINALS_PERMISSION_INDEX)
