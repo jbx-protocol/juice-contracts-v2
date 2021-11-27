@@ -6,9 +6,7 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
 
-// TODO(odd-amphora): Permissions.
 describe('JBDirectory::setControllerOf(...)', function () {
   const PROJECT_ID = 1;
 
@@ -22,8 +20,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
   });
 
   async function setup() {
-    let [deployer, ...addrs] = await ethers.getSigners();
-    let caller = addrs[1];
+    let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
     let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
     let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
@@ -34,48 +31,96 @@ describe('JBDirectory::setControllerOf(...)', function () {
       mockJbProjects.address,
     );
 
-    let controller1 = await deployMockContract(caller, jbController.abi);
-    let controller2 = await deployMockContract(caller, jbController.abi);
+    let controller1 = await deployMockContract(projectOwner, jbController.abi);
+    let controller2 = await deployMockContract(projectOwner, jbController.abi);
 
-    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(caller.address);
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(caller.address, caller.address, PROJECT_ID, SET_CONTROLLER_PERMISSION_INDEX)
+      .withArgs(
+        projectOwner.address,
+        projectOwner.address,
+        PROJECT_ID,
+        SET_CONTROLLER_PERMISSION_INDEX,
+      )
       .returns(true);
 
-    return { caller, deployer, addrs, jbDirectory, mockJbProjects, controller1, controller2 };
+    return {
+      projectOwner,
+      deployer,
+      addrs,
+      jbDirectory,
+      mockJbProjects,
+      mockJbOperatorStore,
+      controller1,
+      controller2,
+    };
   }
 
   it(`Can't set zero address`, async function () {
-    const { caller, jbDirectory } = await setup();
+    const { projectOwner, jbDirectory } = await setup();
 
     await expect(
-      jbDirectory.connect(caller).setControllerOf(PROJECT_ID, ethers.constants.AddressZero),
+      jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, ethers.constants.AddressZero),
     ).to.be.revertedWith('0x2b: ZERO_ADDRESS');
   });
 
   it(`Can't set if project id does not exist`, async function () {
-    const { caller, jbDirectory, mockJbProjects, controller1 } = await setup();
+    const { projectOwner, jbDirectory, mockJbProjects, controller1 } = await setup();
 
     await mockJbProjects.mock.count.returns(PROJECT_ID - 1);
 
     await expect(
-      jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller1.address),
+      jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller1.address),
     ).to.be.revertedWith('0x2c: NOT_FOUND');
   });
 
-  it('Should set controller and emit event', async function () {
-    const { caller, jbDirectory, mockJbProjects, controller1 } = await setup();
+  it('Should set controller and emit event if caller is project owner', async function () {
+    const { projectOwner, jbDirectory, mockJbProjects, controller1 } = await setup();
 
     await mockJbProjects.mock.count.returns(PROJECT_ID);
 
-    let tx = await jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller1.address);
+    let tx = await jbDirectory
+      .connect(projectOwner)
+      .setControllerOf(PROJECT_ID, controller1.address);
 
     await expect(tx)
       .to.emit(jbDirectory, 'SetController')
-      .withArgs(PROJECT_ID, controller1.address, caller.address);
+      .withArgs(PROJECT_ID, controller1.address, projectOwner.address);
 
     // The controller should be set.
-    let controller = await jbDirectory.connect(caller).controllerOf(PROJECT_ID);
+    let controller = await jbDirectory.connect(projectOwner).controllerOf(PROJECT_ID);
     expect(controller).to.equal(controller1.address);
   });
+
+  it('Should set controller if caller is not project owner but has permission', async function () {
+    const { projectOwner, addrs, jbDirectory, mockJbProjects, mockJbOperatorStore, controller1 } =
+      await setup();
+    let caller = addrs[1];
+
+    await mockJbProjects.mock.count.returns(PROJECT_ID);
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, projectOwner.address, PROJECT_ID, SET_CONTROLLER_PERMISSION_INDEX)
+      .returns(true);
+
+    await expect(jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller1.address))
+      .to.not.be.reverted;
+  });
+
+  it('Should fail if caller does not have permission', async function () {
+    const { projectOwner, addrs, jbDirectory, mockJbProjects, mockJbOperatorStore, controller1 } =
+      await setup();
+    let caller = addrs[1];
+
+    await mockJbProjects.mock.count.returns(PROJECT_ID);
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, projectOwner.address, PROJECT_ID, SET_CONTROLLER_PERMISSION_INDEX)
+      .returns(false);
+
+    await expect(jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller1.address))
+      .to.be.reverted;
+  });
+
+  it('TODO', async function () {
+    // TODO(odd-amphora): Permission override cases.
+  })
 });
