@@ -23,8 +23,7 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
   });
 
   async function setup() {
-    let [deployer, ...addrs] = await ethers.getSigners();
-    let projectOwner = addrs[1];
+    let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
     let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
     let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
@@ -76,11 +75,10 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
   });
 
   it('Should add if caller is controller of the project', async function () {
-    const { addrs, jbDirectory, mockJbProjects, mockJbOperatorStore, terminal1 } = await setup();
-    const projectOwner = addrs[3];
-    const controllerOwner = addrs[4];
+    const { addrs, projectOwner, jbDirectory, mockJbProjects, mockJbOperatorStore, terminal1 } =
+      await setup();
+    const controllerOwner = addrs[1];
 
-    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
     await mockJbProjects.mock.count.returns(1);
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(
@@ -94,7 +92,6 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
     let controller = await deployMockContract(controllerOwner, jbController.abi);
     let controllerSigner = await impersonateAccount(controller.address);
 
-    // Before setting the controller adding terminals from the controller should fail.
     await expect(
       jbDirectory.connect(controllerSigner).addTerminalsOf(PROJECT_ID, [terminal1.address]),
     ).to.be.reverted;
@@ -105,11 +102,9 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
   });
 
   it('Should add if caller has permission but is not the project owner', async function () {
-    const { addrs, jbDirectory, mockJbProjects, mockJbOperatorStore, terminal1 } = await setup();
-    const projectOwner = addrs[3];
-    const caller = addrs[4];
+    const { addrs, projectOwner, jbDirectory, mockJbOperatorStore, terminal1 } = await setup();
+    const caller = addrs[1];
 
-    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(caller.address, projectOwner.address, PROJECT_ID, ADD_TERMINALS_PERMISSION_INDEX)
       .returns(true);
@@ -119,9 +114,9 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
   });
 
   it('Should reject if caller does not have permission', async function () {
-    const { addrs, jbDirectory, mockJbProjects, mockJbOperatorStore, terminal1 } = await setup();
-    const projectOwner = addrs[3];
-    const caller = addrs[4];
+    const { addrs, projectOwner, jbDirectory, mockJbProjects, mockJbOperatorStore, terminal1 } =
+      await setup();
+    const caller = addrs[1];
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
     await mockJbOperatorStore.mock.hasPermission
