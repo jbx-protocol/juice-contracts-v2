@@ -5,7 +5,6 @@ import jbOperatorStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOpe
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 
-const ZERO_ADDRESS = ethers.constants.AddressZero; // address(0)
 const ONE_DAY = 3600000;
 
 describe.only('JBSplitsStore::set(...)', function () {
@@ -23,55 +22,54 @@ describe.only('JBSplitsStore::set(...)', function () {
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
-    let mockOperatorStore = await deployMockContract(deployer, jbOperatorStore.abi);
-    let mockProjects = await deployMockContract(deployer, jbProjects.abi);
-    let mockDirectory = await deployMockContract(deployer, jbDirectory.abi);
+    let mockJbOperatorStore = await deployMockContract(deployer, jbOperatorStore.abi);
+    let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
+    let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
 
-    await mockOperatorStore.mock.hasPermission
+    await mockJbOperatorStore.mock.hasPermission
       .withArgs(projectOwner.address, projectOwner.address, PROJECT_ID, SET_SPLITS_PERMISSION_INDEX)
       .returns(true);
 
-    await mockProjects.mock.ownerOf
+    await mockJbProjects.mock.ownerOf
       .withArgs(PROJECT_ID)
       .returns(projectOwner.address);
 
-    await mockDirectory.mock.controllerOf
+    await mockJbDirectory.mock.controllerOf
       .withArgs(PROJECT_ID)
       .returns(projectOwner.address);
 
     let jbSplitsStoreFact = await ethers.getContractFactory('JBSplitsStore');
     let jbSplitsStore = await jbSplitsStoreFact.deploy(
-      mockOperatorStore.address,
-      mockProjects.address,
-      mockDirectory.address
+      mockJbOperatorStore.address,
+      mockJbProjects.address,
+      mockJbDirectory.address
     );
 
-    let splits = createSplitArray(addrs[0].address, 4);
+    let splits = makeSplits(addrs[0].address);
 
-    return { deployer, projectOwner, addrs, jbSplitsStore, splits, mockOperatorStore, mockProjects, mockDirectory };
+    return { deployer, projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore, mockJbProjects, mockJbDirectory };
   }
 
-  // Create array of JBSplit struct
-  function createSplitArray(beneficiaryAddress, n) {
+  function makeSplits(beneficiaryAddress, count=4) {
     let splits = []
-    for (let i = 0; i < n; i++) {
+    for (let i = 0; i < count; i++) {
       splits.push({
         preferClaimed: false,
-        percent: Math.floor(10000000 / n),
+        percent: Math.floor(10000000 / count),
         lockedUntil: 0,
         beneficiary: beneficiaryAddress,
-        allocator: ZERO_ADDRESS,
+        allocator: ethers.constants.AddressZero,
         projectId: 0
       });
     }
     return splits;
   }
 
-  it('set(...) and corresponding events', async function () {
-    const { projectOwner, addrs, jbSplitsStore, splits, mockOperatorStore, mockDirectory } = await setup();
+  it.only('set(...) and corresponding events', async function () {
+    const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore, mockJbDirectory } = await setup();
 
-    await mockOperatorStore.mock.hasPermission.returns(false);
-    await mockDirectory.mock.controllerOf.returns(addrs[0].address);
+    await mockJbOperatorStore.mock.hasPermission.returns(false);
+    await mockJbDirectory.mock.controllerOf.returns(addrs[0].address);
 
     const tx = await jbSplitsStore.connect(projectOwner).set(
       PROJECT_ID,
@@ -81,28 +79,26 @@ describe.only('JBSplitsStore::set(...)', function () {
     );
 
     // Expect one event per split in splits[]
-    await expect(tx)
-      .to.emit(jbSplitsStore, 'SetSplit')
-      .withArgs(PROJECT_ID, DOMAIN, GROUP, Object.values(splits[0]), projectOwner.address)
-      .and.to.emit(jbSplitsStore, 'SetSplit')
-      .withArgs(PROJECT_ID, DOMAIN, GROUP, Object.values(splits[1]), projectOwner.address)
-      .and.to.emit(jbSplitsStore, 'SetSplit')
-      .withArgs(PROJECT_ID, DOMAIN, GROUP, Object.values(splits[2]), projectOwner.address)
-      .and.to.emit(jbSplitsStore, 'SetSplit')
-      .withArgs(PROJECT_ID, DOMAIN, GROUP, Object.values(splits[3]), projectOwner.address)
+    await Promise.all(
+      splits.map(async (split, _) => {
+        await expect(tx)
+          .to.emit(jbSplitsStore, 'SetSplit')
+          .withArgs(PROJECT_ID, DOMAIN, GROUP, Object.values(split), projectOwner.address);
+      }),
+    );
 
     // Get the current splits (for this proj/dom/group)
     let splitsStored = await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP);
 
     //compare every currently stored splits to the one we've just sent
     for (let [idx, split] of splitsStored) {
-      for (let split_key of Object.keys(split)) {
-        expect(split.split_key).to.equal(splits[idx].split_key);
+      for (let splitKey of Object.keys(split)) {
+        expect(split.splitKey).to.equal(splits[idx].splitKey);
       }
     }
   })
 
-  it.only('Create and overwrite existing splits with same ID/Domain/Group', async function () {
+  it('Create and overwrite existing splits with same ID/Domain/Group', async function () {
     const { projectOwner, addrs, jbSplitsStore, splits } = await setup();
 
     await jbSplitsStore.connect(projectOwner).set(
@@ -114,7 +110,7 @@ describe.only('JBSplitsStore::set(...)', function () {
 
     // 4 new ones, with a new beneficiary for each,
     let newBeneficiary = addrs[5].address;
-    let newSplits = createSplitArray(newBeneficiary, 4);
+    let newSplits = makeSplits(newBeneficiary);
 
     await jbSplitsStore.connect(projectOwner).set(
       PROJECT_ID,
@@ -126,14 +122,13 @@ describe.only('JBSplitsStore::set(...)', function () {
     // Get the splits[] curently stored
     let splitsStored = await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP);
 
-    //compare every currently stored splits to the one we've just sent
+    // Compare every currently stored splits to the one we've just sent
     for (let [idx, split] of splitsStored) {
       for (let splitKey of Object.keys(split)) {
         expect(split.splitKey).to.equal(splits[idx].splitKey);
       }
     }
   })
-
 
   it('New splits without including a preexisting locked one: revert', async function () {
     const { projectOwner, addrs, jbSplitsStore, splits } = await setup();
@@ -149,7 +144,7 @@ describe.only('JBSplitsStore::set(...)', function () {
 
     // Try to set 4 new ones, with a new beneficiary for each, without the previous locked one
     let newBeneficiary = addrs[5].address;
-    let newSplits = createSplitArray(newBeneficiary, 4);
+    let newSplits = makeSplits(newBeneficiary);
 
     await expect(
       jbSplitsStore.connect(projectOwner).set(
@@ -160,7 +155,6 @@ describe.only('JBSplitsStore::set(...)', function () {
       )
     ).to.be.revertedWith('0x0f: SOME_LOCKED');
   })
-
 
   it('New splits with extension of a preexisting locked one', async function () {
     const { projectOwner, addrs, jbSplitsStore, splits } = await setup();
@@ -175,7 +169,7 @@ describe.only('JBSplitsStore::set(...)', function () {
     );
 
     // Try to set new ones, with lock extension
-    let newSplits = createSplitArray(addrs[5].address, 4);
+    let newSplits = makeSplits(addrs[5].address);
 
     // New lockedUntil = old lockedUntil + 3600 sec
     let newLockedTimestamp = Date.now() + 2 * (ONE_DAY);
@@ -195,7 +189,6 @@ describe.only('JBSplitsStore::set(...)', function () {
     expect(splitsStored[1].lockedUntil).to.equal(newLockedTimestamp);
   })
 
-
   it('One split with a percent at 0: revert', async function () {
     const { projectOwner, jbSplitsStore, splits } = await setup();
 
@@ -211,13 +204,12 @@ describe.only('JBSplitsStore::set(...)', function () {
     ).to.be.revertedWith('0x10: BAD_SPLIT_PERCENT');
   })
 
-
   it('Allocator and beneficiary both equal to address(0): revert', async function () {
     const { projectOwner, jbSplitsStore, splits } = await setup();
 
     // Set both allocator and beneficiary as address(0)
-    splits[1].beneficiary = ZERO_ADDRESS;
-    splits[1].allocator = ZERO_ADDRESS;
+    splits[1].beneficiary = ethers.constants.AddressZero;
+    splits[1].allocator = ethers.constants.AddressZero;
 
     await expect(
       jbSplitsStore.connect(projectOwner).set(
@@ -227,7 +219,6 @@ describe.only('JBSplitsStore::set(...)', function () {
         splits)
     ).to.be.revertedWith('0x11: ZERO_ADDRESS');
   })
-
 
   it('Sum of the splits in percent > 10000000: revert', async function () {
     const { projectOwner, jbSplitsStore, splits } = await setup();
@@ -244,40 +235,36 @@ describe.only('JBSplitsStore::set(...)', function () {
     ).to.be.revertedWith('0x12: BAD_TOTAL_PERCENT');
   })
 
-  // Auth challenges
   it('Not project owner but has permission', async function () {
-    const { projectOwner, addrs, jbSplitsStore, splits, mockOperatorStore, mockProjects, mockDirectory } = await setup();
+    const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore, mockJbProjects, mockJbDirectory } = await setup();
 
     let caller = addrs[0];
 
     // Overriding the default permission from setup()
-    await mockOperatorStore.mock.hasPermission
+    await mockJbOperatorStore.mock.hasPermission
       .withArgs(caller.address, projectOwner.address, PROJECT_ID, SET_SPLITS_PERMISSION_INDEX)
       .returns(true);
 
-    const tx = await jbSplitsStore.connect(caller).set(
+    await expect(jbSplitsStore.connect(caller).set(
       PROJECT_ID,
       DOMAIN,
       GROUP,
       splits
-    );
-
-    await expect(tx)
-      .to.emit(jbSplitsStore, 'SetSplit');
+    )).to.be.not.reverted;
   })
 
   it('Not project owner and has no permission: revert', async function () {
-    const { projectOwner, addrs, jbSplitsStore, splits, mockOperatorStore, mockProjects, mockDirectory } = await setup();
+    const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore, mockJbProjects, mockJbDirectory } = await setup();
 
     let caller = addrs[1];
 
     // Overriding the default permission from setup()
-    await mockOperatorStore.mock.hasPermission
+    await mockJbOperatorStore.mock.hasPermission
       .withArgs(caller.address, projectOwner.address, PROJECT_ID, SET_SPLITS_PERMISSION_INDEX)
       .returns(false);
 
     // Overriding the default permission from setup()
-    await mockOperatorStore.mock.hasPermission
+    await mockJbOperatorStore.mock.hasPermission
       .withArgs(caller.address, projectOwner.address, 0, SET_SPLITS_PERMISSION_INDEX)
       .returns(false);
 
