@@ -7,7 +7,7 @@ import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.j
 
 const ONE_DAY = 3600000;
 
-describe.only('JBSplitsStore::set(...)', function () {
+describe('JBSplitsStore::set(...)', function () {
   const PROJECT_ID = 1;
   const DOMAIN = 2;
   const GROUP = 3;
@@ -65,7 +65,7 @@ describe.only('JBSplitsStore::set(...)', function () {
     return splits;
   }
 
-  it.only('set(...) and corresponding events', async function () {
+  it('set(...) and corresponding events', async function () {
     const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore, mockJbDirectory } = await setup();
 
     await mockJbOperatorStore.mock.hasPermission.returns(false);
