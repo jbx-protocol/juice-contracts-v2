@@ -38,8 +38,6 @@ npx hardhat deploy --network $network
 
 Contract artifacts will be outputted to `./deployments/$network/**` and should be checked in to the repo.
 
-> **_NOTE:_**  Since we make heavy use of the `skipIfAlreadyDeployed` parameter, if new contract(s) are added, their deployment configuration(s) should be added to the `./deploy/deploy.js` script – not a one-off.
-
 ## Verification
 
 To verify the contracts on [Etherscan](https://etherscan.io), make sure you have an `ETHERSCAN_API_KEY` set in your `./.env` file. Then run the following:
