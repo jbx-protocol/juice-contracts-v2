@@ -7,6 +7,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 
+// TODO(odd-amphora): Access control tests with allowlist.
 describe('JBDirectory::setControllerOf(...)', function () {
   const PROJECT_ID = 1;
 
@@ -118,9 +119,5 @@ describe('JBDirectory::setControllerOf(...)', function () {
 
     await expect(jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller1.address)).to.be
       .reverted;
-  });
-
-  it('TODO', async function () {
-    // TODO(odd-amphora): Permission override cases.
   });
 });

@@ -20,8 +20,7 @@ describe('JBDirectory::isTerminalOf(...)', function () {
   });
 
   async function setup() {
-    let [deployer, ...addrs] = await ethers.getSigners();
-    let caller = addrs[1];
+    let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
     let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
     let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
@@ -32,47 +31,54 @@ describe('JBDirectory::isTerminalOf(...)', function () {
       mockJbProjects.address,
     );
 
-    let terminal1 = await deployMockContract(caller, jbTerminal.abi);
-    let terminal2 = await deployMockContract(caller, jbTerminal.abi);
+    let terminal1 = await deployMockContract(projectOwner, jbTerminal.abi);
+    let terminal2 = await deployMockContract(projectOwner, jbTerminal.abi);
 
-    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(caller.address);
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(caller.address, caller.address, PROJECT_ID, ADD_TERMINALS_PERMISSION_INDEX)
+      .withArgs(
+        projectOwner.address,
+        projectOwner.address,
+        PROJECT_ID,
+        ADD_TERMINALS_PERMISSION_INDEX,
+      )
       .returns(true);
 
     // Add a few terminals
     await jbDirectory
-      .connect(caller)
+      .connect(projectOwner)
       .addTerminalsOf(PROJECT_ID, [terminal1.address, terminal2.address]);
 
-    return { caller, deployer, addrs, jbDirectory, terminal1, terminal2 };
+    return { projectOwner, deployer, addrs, jbDirectory, terminal1, terminal2 };
   }
 
   it('Returns true if the terminal belongs to the project', async function () {
-    const { caller, jbDirectory, terminal1, terminal2 } = await setup();
+    const { projectOwner, jbDirectory, terminal1, terminal2 } = await setup();
 
-    expect(await jbDirectory.connect(caller).isTerminalOf(PROJECT_ID, terminal1.address)).to.be
-      .true;
+    expect(await jbDirectory.connect(projectOwner).isTerminalOf(PROJECT_ID, terminal1.address)).to
+      .be.true;
 
-    expect(await jbDirectory.connect(caller).isTerminalOf(PROJECT_ID, terminal2.address)).to.be
-      .true;
+    expect(await jbDirectory.connect(projectOwner).isTerminalOf(PROJECT_ID, terminal2.address)).to
+      .be.true;
   });
 
   it(`Returns false if the terminal doesn't belong to the project`, async function () {
-    const { caller, jbDirectory } = await setup();
+    const { projectOwner, jbDirectory } = await setup();
 
     expect(
       await jbDirectory
-        .connect(caller)
+        .connect(projectOwner)
         .isTerminalOf(PROJECT_ID, ethers.Wallet.createRandom().address),
     ).to.be.false;
   });
 
   it(`Returns false if the project does not exist`, async function () {
-    const { caller, jbDirectory } = await setup();
+    const { projectOwner, jbDirectory } = await setup();
 
     expect(
-      await jbDirectory.connect(caller).isTerminalOf(123, ethers.Wallet.createRandom().address),
+      await jbDirectory
+        .connect(projectOwner)
+        .isTerminalOf(123, ethers.Wallet.createRandom().address),
     ).to.be.false;
   });
 });

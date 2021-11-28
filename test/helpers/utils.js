@@ -1,3 +1,4 @@
+import { BigNumber } from '@ethersproject/bignumber';
 import { ethers, network } from 'hardhat';
 
 export function makePackedPermissions(permissionIndexes) {
@@ -7,16 +8,16 @@ export function makePackedPermissions(permissionIndexes) {
   );
 }
 
-export async function impersonateAccount(address) {
+export async function impersonateAccount(
+  address,
+  balance = BigNumber.from('0x1000000000000000000000'),
+) {
   await network.provider.request({
     method: 'hardhat_impersonateAccount',
     params: [address],
   });
 
-  await network.provider.send('hardhat_setBalance', [
-    address,
-    '0x1000000000000000000000', // TODO(odd-amphora): This could be configurable.
-  ]);
+  await network.provider.send('hardhat_setBalance', [address, balance.toHexString()]);
 
   return await ethers.getSigner(address);
 }

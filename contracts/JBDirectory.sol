@@ -171,6 +171,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     @param _projectId The ID of the project to set a new controller for.
     @param _controller The new controller to set.
   */
+  // TODO(odd-amphora): Revisit access pattern with allowlist.
   function setControllerOf(uint256 _projectId, IJBController _controller)
     external
     override
