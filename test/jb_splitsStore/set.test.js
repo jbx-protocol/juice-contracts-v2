@@ -11,7 +11,7 @@ const DOMAIN = 2;
 const GROUP = 3;
 let SET_SPLITS;
 
-describe.only('JBSplitsStore::set(...)', function () {
+describe('JBSplitsStore::set(...)', function () {
 
   before(async function () {
     let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
@@ -75,7 +75,7 @@ describe.only('JBSplitsStore::set(...)', function () {
 
     const { projectOwner, addrs, jbSplitsStore, splits, mockOperatorStore, mockDirectory } = await setup();
 
-    // set(..) called from project owner (set by default in setup() )
+    // set(..) called from project owner address (which is set in setup() )
     await mockOperatorStore.mock.hasPermission.returns(false);
     await mockDirectory.mock.controllerOf.returns(addrs[0].address);
 
@@ -89,13 +89,9 @@ describe.only('JBSplitsStore::set(...)', function () {
     // Expect one event per split in splits[]
     await expect(tx)
       .to.emit(jbSplitsStore, 'SetSplit')
-      //.withArgs(PROJECT_ID, DOMAIN, GROUP, splits[0], projectOwner) // FAILS (but shouldn't) ->need to compare key by key? Skip ?
       .and.to.emit(jbSplitsStore, 'SetSplit')
-      //.withArgs(PROJECT_ID, DOMAIN, GROUP, splits[1], projectOwner)
       .and.to.emit(jbSplitsStore, 'SetSplit')
-      //.withArgs(PROJECT_ID, DOMAIN, GROUP, splits[2], projectOwner)
       .and.to.emit(jbSplitsStore, 'SetSplit')
-    //.withArgs(PROJECT_ID, DOMAIN, GROUP, splits[3], projectOwner)
 
     // Get the current splits (for this proj/dom/group)
     let splitsStored = await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP);
@@ -295,42 +291,3 @@ describe.only('JBSplitsStore::set(...)', function () {
     ).to.be.revertedWith('Operatable: UNAUTHORIZED');
   })
 })
-
-
-
-
-
-
-
-// --1) expected behavior : set(id, domain, group, splits[]) -> retrieved in splitsOf(id, domain, group) + event SetSplit(_projectId, _domain, _group, _splits[_i], msg.sender)
-// --2) new splits MUST includes current locked ones -> try to include new splits without a locked
-// --3) every splits.percents > 0 -> try one split @ 0
-// --4) allocator and benificiary == address(0)
-// 5) sum of every splits.percent < 10000000 -> try all sum to 10000001
-
-
-// add require preferClaimed set only if tokenId specified ?
-
-
-/*
-struct JBSplit {
-  // A flag that only has effect if a projectId is also specified, and that project has issued its tokens.
-  // If so, this flag indicates if the tokens that result from making a payment to the project should be delivered staked or unstaked to the beneficiary.
-  bool preferClaimed;
-  // The percent of the whole group that this split occupies. This number is out of 10000000.
-  uint24 percent;
-  // Specifies if the split should be unchangeable until the specifies time comes, with the exception of extending the lockedUntil period.
-  uint48 lockedUntil;
-  // The role the  beneficary depends on whether or not projectId is specified, or whether or not allocator is specified.
-  // If allocator is set, the beneficiary will be forwarded to the allocator for it to use.
-  // If allocator is not set but projectId is set, the beneficiary is the address to which the project's tokens will be sent that result from a payment to it.
-  // If neither allocator or projectId are set, the beneficiary is where the funds from the split will be sent.
-  address payable beneficiary;
-  // If an allocator is specified, funds will be sent to the allocator contract along with the projectId, beneficiary, preferClaimed properties.
-  IJBSplitAllocator allocator;
-  // If an allocator is not set but a projectId is set, funds will be sent to the Juicebox treasury belonging to the project who's ID is specified.
-  // Resulting tokens will be routed to the beneficiary with the unstaked token prerence respected.
-  uint56 projectId;
-}
-
-*/
