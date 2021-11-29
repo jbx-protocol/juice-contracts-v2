@@ -171,6 +171,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     @param _projectId The ID of the project to set a new controller for.
     @param _controller The new controller to set.
   */
+  // TODO(odd-amphora): Revisit access pattern with allowlist.
   function setControllerOf(uint256 _projectId, IJBController _controller)
     external
     override
@@ -182,6 +183,9 @@ contract JBDirectory is IJBDirectory, JBOperatable {
         address(controllerOf[_projectId]) == msg.sender
     )
   {
+    // Can't set the zero address.
+    require(_controller != IJBController(address(0)), '0x2b: ZERO_ADDRESS');
+
     // Get a reference to the current controller being used.
     IJBController _currentController = controllerOf[_projectId];
 
@@ -189,10 +193,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     if (_currentController == _controller) return;
 
     // The project must exist.
-    require(projects.count() >= _projectId, '0x2b: NOT_FOUND');
-
-    // Can't set the zero address.
-    require(_controller != IJBController(address(0)), '0x2c: ZERO_ADDRESS');
+    require(projects.count() >= _projectId, '0x2c: NOT_FOUND');
 
     // Set the new controller.
     controllerOf[_projectId] = _controller;
@@ -211,7 +212,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     @param _terminal The terminal to add.
     @param _caller The original caller that added the terminal.
   */
-  function _maybeAddTerminal(
+  function _addTerminalIfNeeded(
     uint256 _projectId,
     IJBTerminal _terminal,
     address _caller
@@ -248,7 +249,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     )
   {
     for (uint256 _i = 0; _i < _terminals.length; _i++) {
-      _maybeAddTerminal(_projectId, _terminals[_i], msg.sender);
+      _addTerminalIfNeeded(_projectId, _terminals[_i], msg.sender);
     }
   }
 
@@ -311,7 +312,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     require(_terminal != _primaryTerminalOf[_projectId][_token], '0x2f: ALREADY_SET');
 
     // Add the terminal to thge project if it hasn't been already.
-    _maybeAddTerminal(_projectId, _terminal, msg.sender);
+    _addTerminalIfNeeded(_projectId, _terminal, msg.sender);
 
     // Store the terminal as the primary for the particular token.
     _primaryTerminalOf[_projectId][_token] = _terminal;
