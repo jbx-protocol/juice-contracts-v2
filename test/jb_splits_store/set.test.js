@@ -278,6 +278,23 @@ describe('JBSplitsStore::set(...)', function () {
     ).to.be.revertedWith('0x12: BAD_TOTAL_PERCENT');
   })
 
+  it('Should set splits if controller', async function () {
+    const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore, mockJbProjects, mockJbDirectory } = await setup();
+
+    let caller = addrs[0];
+
+    await mockJbDirectory.mock.controllerOf
+    .withArgs(PROJECT_ID)
+    .returns(caller.address);
+
+    await expect(jbSplitsStore.connect(caller).set(
+      PROJECT_ID,
+      DOMAIN,
+      GROUP,
+      splits
+    )).to.be.not.reverted;
+  })
+
   it('Should set splits if not the project owner but has permission', async function () {
     const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore, mockJbProjects, mockJbDirectory } = await setup();
 
