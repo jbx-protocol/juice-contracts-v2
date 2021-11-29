@@ -171,9 +171,32 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     _configuration The configuration during which the currency applies.
     _terminal The terminal for which the currency should be used. 
   */
-  mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
-    public
-    override currencyOf;
+  function currencyOf(
+    uint256 _projectId,
+    uint256 _configuration,
+    IJBTerminal _terminal
+  ) external view override returns (uint256) {
+    ConfigurationCurrencyData[] memory _configurationCurrencyData = _currenciesOf[_projectId][
+      _terminal
+    ];
+    for (uint256 _i = _configurationCurrencyData.length; _i > 0; _i--)
+      if (_configurationCurrencyData[_i].configuration <= _configuration)
+        return _configurationCurrencyData[_i].currency;
+
+    return 0;
+  }
+
+  struct ConfigurationCurrencyData {
+    uint56 configuration;
+    uint8 currency;
+  }
+
+  // mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
+  //   public
+  //   override currencyOf;
+
+  // temp
+  mapping(uint256 => mapping(IJBTerminal => ConfigurationCurrencyData[])) public _currenciesOf;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -836,9 +859,32 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
           _constraints.terminal
         ] = _constraints.overflowAllowance;
 
-      if (_constraints.currency > 0)
-        currencyOf[_projectId][_fundingCycle.configuration][_constraints.terminal] = _constraints
-          .currency;
+      // Check if _constrints.currency differs from current value. if so, set value
+      // so that it applies to the _fundingCycle.configuration and beyond.
+
+      // TODO: This doesn't change often, is it necessary to write
+
+      // Note: even if reconfiguration fails, the value will still be accurate since
+      // reconfig uses same as previous.
+
+      // If proposed currency is the same as current currency, don't set it.
+
+      // At any point, any configuration can find the latest by finding the most recently saved value.
+      // There may be another currency for a new reconfiguration.
+      // The correct currency might be from a reconfig in the past, itll never be from a reconfig in the future.
+      // if (_constraints.currency > 0)
+      //   currencyOf[_projectId][_fundingCycle.configuration][_constraints.terminal] = _constraints
+      //     .currency;
+      if (
+        _constraints.currency > 0 &&
+        _currenciesOf[_projectId][_constraints.terminal][
+          _currenciesOf[_projectId][_constraints.terminal].length
+        ].currency !=
+        _constraints.currency
+      )
+        _currenciesOf[_projectId][_constraints.terminal].push(
+          Blah(uint56(_fundingCycle.configuration), uint8(_constraints.currency))
+        );
 
       emit SetFundAccessConstraints(
         _fundingCycle.configuration,

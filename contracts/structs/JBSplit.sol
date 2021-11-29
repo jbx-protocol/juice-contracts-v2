@@ -20,5 +20,5 @@ struct JBSplit {
   IJBSplitAllocator allocator;
   // If an allocator is not set but a projectId is set, funds will be sent to the Juicebox treasury belonging to the project who's ID is specified.
   // Resulting tokens will be routed to the beneficiary with the unstaked token prerence respected.
-  uint56 projectId;
+  uint96 projectId;
 }

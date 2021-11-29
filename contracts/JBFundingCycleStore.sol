@@ -277,7 +277,9 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       _data.discountRate
     );
 
+    //TODO this shit doesn't change often. Is is necessary to write a new version of it to storage each reconfig?
     // Set the metadata if needed.
+    // if (_metadata > 0) _metadataOf[_projectId][_configuration] = _metadata;
     if (_metadata > 0) _metadataOf[_projectId][_configuration] = _metadata;
 
     emit Configure(_configuration, _projectId, _data, _metadata, msg.sender);
@@ -498,6 +500,8 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // If all properties are zero, no need to store anything as the default value will have the same outcome.
     if (_ballot == IJBFundingCycleBallot(address(0)) && _duration == 0 && _discountRate == 0)
       return;
+
+    //TODO this shit doesn't change often. Is is necessary to write a new version of it to storage each reconfig?
 
     // ballot in bits 0-159 bytes.
     uint256 packed = uint160(address(_ballot));
