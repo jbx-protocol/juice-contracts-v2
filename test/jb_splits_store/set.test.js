@@ -5,8 +5,6 @@ import jbOperatorStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOpe
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 
-const ONE_DAY = 3600000;
-
 describe('JBSplitsStore::set(...)', function () {
   const PROJECT_ID = 1;
   const DOMAIN = 2;
@@ -65,7 +63,7 @@ describe('JBSplitsStore::set(...)', function () {
     return splits;
   }
 
-  it('set(...) and corresponding events', async function () {
+  it('Should set splits with beneficiaries and emit events if project owner', async function () {
     const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore, mockJbDirectory } = await setup();
 
     await mockJbOperatorStore.mock.hasPermission.returns(false);
@@ -78,7 +76,7 @@ describe('JBSplitsStore::set(...)', function () {
       splits
     );
 
-    // Expect one event per split in splits[]
+    // Expect one event per split
     await Promise.all(
       splits.map(async (split, _) => {
         await expect(tx)
@@ -87,10 +85,8 @@ describe('JBSplitsStore::set(...)', function () {
       }),
     );
 
-    // Get the current splits (for this proj/dom/group)
     let splitsStored = await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP);
 
-    //compare every currently stored splits to the one we've just sent
     for (let [idx, split] of splitsStored) {
       for (let splitKey of Object.keys(split)) {
         expect(split.splitKey).to.equal(splits[idx].splitKey);
@@ -98,7 +94,63 @@ describe('JBSplitsStore::set(...)', function () {
     }
   })
 
-  it('Create and overwrite existing splits with same ID/Domain/Group', async function () {
+  it('Should set splits with allocators set', async function () {
+    const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore, mockJbDirectory } = await setup();
+
+    await mockJbOperatorStore.mock.hasPermission.returns(false);
+    await mockJbDirectory.mock.controllerOf.returns(addrs[0].address);
+
+    const newSplits = splits.map((elt) => ({
+      ...elt,
+      beneficiary: ethers.constants.AddressZero,
+      allocator: addrs[5].address,
+    }));
+
+    await jbSplitsStore.connect(projectOwner).set(
+      PROJECT_ID,
+      DOMAIN,
+      GROUP,
+      newSplits
+    );
+
+    let splitsStored = await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP);
+
+    for (let [idx, split] of splitsStored) {
+      for (let splitKey of Object.keys(split)) {
+        expect(split.splitKey).to.equal(splits[idx].splitKey);
+      }
+    }
+  })
+
+  it('Should set splits with allocators and beneficiaries set', async function () {
+    const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore, mockJbDirectory } = await setup();
+
+    await mockJbOperatorStore.mock.hasPermission.returns(false);
+    await mockJbDirectory.mock.controllerOf.returns(addrs[0].address);
+
+    const newSplits = splits.map((elt) => ({
+      ...elt,
+      beneficiary: addrs[5].address,
+      allocator: addrs[5].address,
+    }));
+
+    await jbSplitsStore.connect(projectOwner).set(
+      PROJECT_ID,
+      DOMAIN,
+      GROUP,
+      newSplits
+    );
+
+    let splitsStored = await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP);
+
+    for (let [idx, split] of splitsStored) {
+      for (let splitKey of Object.keys(split)) {
+        expect(split.splitKey).to.equal(splits[idx].splitKey);
+      }
+    }
+  })
+
+  it('Should set new splits when overwriting existing splits with the same ID/Domain/Group', async function () {
     const { projectOwner, addrs, jbSplitsStore, splits } = await setup();
 
     await jbSplitsStore.connect(projectOwner).set(
@@ -108,7 +160,6 @@ describe('JBSplitsStore::set(...)', function () {
       splits
     );
 
-    // 4 new ones, with a new beneficiary for each,
     let newBeneficiary = addrs[5].address;
     let newSplits = makeSplits(newBeneficiary);
 
@@ -119,10 +170,8 @@ describe('JBSplitsStore::set(...)', function () {
       newSplits
     );
 
-    // Get the splits[] curently stored
     let splitsStored = await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP);
 
-    // Compare every currently stored splits to the one we've just sent
     for (let [idx, split] of splitsStored) {
       for (let splitKey of Object.keys(split)) {
         expect(split.splitKey).to.equal(splits[idx].splitKey);
@@ -130,19 +179,23 @@ describe('JBSplitsStore::set(...)', function () {
     }
   })
 
-  it('New splits without including a preexisting locked one: revert', async function () {
+  it('Can\'t set new splits without including a preexisting locked one', async function () {
     const { projectOwner, addrs, jbSplitsStore, splits } = await setup();
 
+    let date = new Date();
+    date.setDate(date.getDate() + 1);
+    let dateInSeconds = Math.floor(date.getTime()/1000);
+
     // Set one locked split
-    splits[1].lockedUntil = Date.now() + ONE_DAY;
-    let tx = await jbSplitsStore.connect(projectOwner).set(
+    splits[1].lockedUntil = dateInSeconds;
+    await jbSplitsStore.connect(projectOwner).set(
       PROJECT_ID,
       DOMAIN,
       GROUP,
       splits
     );
 
-    // Try to set 4 new ones, with a new beneficiary for each, without the previous locked one
+    // New splits without the previous locked one
     let newBeneficiary = addrs[5].address;
     let newSplits = makeSplits(newBeneficiary);
 
@@ -156,40 +209,43 @@ describe('JBSplitsStore::set(...)', function () {
     ).to.be.revertedWith('0x0f: SOME_LOCKED');
   })
 
-  it('New splits with extension of a preexisting locked one', async function () {
+  it('Sould set new splits with extension of a preexisting locked one', async function () {
     const { projectOwner, addrs, jbSplitsStore, splits } = await setup();
 
+    let date = new Date();
+    date.setDate(date.getDate() + 1);
+    let dateInSeconds = Math.floor(date.getTime()/1000);
+
     // Set one locked split
-    splits[1].lockedUntil = Date.now() + ONE_DAY;
-    let tx = await jbSplitsStore.connect(projectOwner).set(
+    splits[1].lockedUntil = dateInSeconds;
+    await jbSplitsStore.connect(projectOwner).set(
       PROJECT_ID,
       DOMAIN,
       GROUP,
       splits
     );
 
-    // Try to set new ones, with lock extension
+    // Try to set new ones, with lock extension of one day
     let newSplits = makeSplits(addrs[5].address);
 
-    // New lockedUntil = old lockedUntil + 3600 sec
-    let newLockedTimestamp = Date.now() + 2 * (ONE_DAY);
+    date.setDate(date.getDate() + 2);
+    let newLockedTimestamp = Math.floor(date.getTime()/1000);
     newSplits[1].lockedUntil = newLockedTimestamp;
     newSplits[1].beneficiary = addrs[0].address;
 
-    tx = await jbSplitsStore.connect(projectOwner).set(
+    await jbSplitsStore.connect(projectOwner).set(
       PROJECT_ID,
       DOMAIN,
       GROUP,
       newSplits
     );
 
-    // Get the splits[] curently stored
     let splitsStored = await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP);
 
     expect(splitsStored[1].lockedUntil).to.equal(newLockedTimestamp);
   })
 
-  it('One split with a percent at 0: revert', async function () {
+  it('Can\'t set splits when a split has a percent of 0', async function () {
     const { projectOwner, jbSplitsStore, splits } = await setup();
 
     // Set one 0% split
@@ -204,10 +260,9 @@ describe('JBSplitsStore::set(...)', function () {
     ).to.be.revertedWith('0x10: BAD_SPLIT_PERCENT');
   })
 
-  it('Allocator and beneficiary both equal to address(0): revert', async function () {
+  it('Can\'t set splits when a split has both allocator and beneficiary zero address', async function () {
     const { projectOwner, jbSplitsStore, splits } = await setup();
 
-    // Set both allocator and beneficiary as address(0)
     splits[1].beneficiary = ethers.constants.AddressZero;
     splits[1].allocator = ethers.constants.AddressZero;
 
@@ -220,7 +275,7 @@ describe('JBSplitsStore::set(...)', function () {
     ).to.be.revertedWith('0x11: ZERO_ADDRESS');
   })
 
-  it('Sum of the splits in percent > 10000000: revert', async function () {
+  it('Can\'t set splits if the sum of the percents is greather than 10000000', async function () {
     const { projectOwner, jbSplitsStore, splits } = await setup();
 
     // Set sum at 10000001
@@ -235,12 +290,11 @@ describe('JBSplitsStore::set(...)', function () {
     ).to.be.revertedWith('0x12: BAD_TOTAL_PERCENT');
   })
 
-  it('Not project owner but has permission', async function () {
+  it('Should set splits if not the project owner but has permission', async function () {
     const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore, mockJbProjects, mockJbDirectory } = await setup();
 
     let caller = addrs[0];
 
-    // Overriding the default permission from setup()
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(caller.address, projectOwner.address, PROJECT_ID, SET_SPLITS_PERMISSION_INDEX)
       .returns(true);
@@ -253,17 +307,15 @@ describe('JBSplitsStore::set(...)', function () {
     )).to.be.not.reverted;
   })
 
-  it('Not project owner and has no permission: revert', async function () {
+  it('Can\'t set splits if not project owner and doesn\'t have permission', async function () {
     const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore, mockJbProjects, mockJbDirectory } = await setup();
 
     let caller = addrs[1];
 
-    // Overriding the default permission from setup()
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(caller.address, projectOwner.address, PROJECT_ID, SET_SPLITS_PERMISSION_INDEX)
       .returns(false);
 
-    // Overriding the default permission from setup()
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(caller.address, projectOwner.address, 0, SET_SPLITS_PERMISSION_INDEX)
       .returns(false);
