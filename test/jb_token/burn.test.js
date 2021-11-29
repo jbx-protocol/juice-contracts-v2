@@ -1,14 +1,16 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
-describe('JBToken::mint(...)', function () {
+describe('JBToken::burn(...)', function () {
   const PROJECT_ID = 10;
   const name = 'TestTokenDAO';
   const symbol = 'TEST';
+  const startingBalance = 3000;
 
   async function setup() {
     const [deployer, ...addrs] = await ethers.getSigners();
     const testToken = await deployToken(name, symbol);
+    await testToken.connect(deployer).mint(PROJECT_ID, addrs[1].address, startingBalance);
     return { deployer, addrs, testToken };
   }
 
@@ -21,44 +23,41 @@ describe('JBToken::mint(...)', function () {
 
   // Tests
 
-  it('Should mint token and emit event if caller is owner', async function () {
+  it('Should burn token and emit event if caller is owner', async function () {
     const { deployer, addrs, testToken } = await setup();
     const addr = addrs[1];
-    const numTokens = 3000;
-    const mintTx = await testToken.connect(deployer).mint(PROJECT_ID, addr.address, numTokens);
+    const numTokens = 5;
+    const burnTx = await testToken.connect(deployer).burn(PROJECT_ID, addr.address, numTokens);
 
-    await expect(mintTx).to.emit(testToken, 'Transfer');
+    await expect(burnTx).to.emit(testToken, 'Transfer');
 
     // overloaded functions need to be called using the full function signature
     const balance = await testToken['balanceOf(uint256,address)'](PROJECT_ID, addr.address);
-    expect(balance).to.equal(numTokens);
-
-    const supply = await testToken['totalSupply(uint256)'](PROJECT_ID);
-    expect(supply).to.equal(numTokens);
+    expect(balance).to.equal(startingBalance - numTokens);
   });
 
-  it(`Can't mint tokens if caller isn't owner`, async function () {
+  it(`Can't burn tokens if caller isn't owner`, async function () {
     const { addrs, testToken } = await setup();
     const nonOwner = addrs[1];
     await expect(
-      testToken.connect(nonOwner).mint(PROJECT_ID, nonOwner.address, 3000),
+      testToken.connect(nonOwner).burn(PROJECT_ID, nonOwner.address, 3000),
     ).to.be.revertedWith('Ownable: caller is not the owner');
   });
 
-  it(`Can't mint tokens to zero address`, async function () {
+  it(`Can't burn tokens from zero address`, async function () {
     const { testToken } = await setup();
     const zeroAddr = ethers.constants.AddressZero;
-    await expect(testToken.mint(PROJECT_ID, zeroAddr, 3000)).to.be.revertedWith(
-      'ERC20: mint to the zero address',
+    await expect(testToken.burn(PROJECT_ID, zeroAddr, 3000)).to.be.revertedWith(
+      'ERC20: burn from the zero address',
     );
   });
 
-  it(`Can't mint tokens if the new total exceeds max supply`, async function () {
+  it(`Can't burn tokens if burn amount exceeds balance`, async function () {
     const { addrs, testToken } = await setup();
     const addr = addrs[1];
-    const numTokens = BigInt(2 ** 224); // bigger than max supply of (2^224)-1
-    await expect(testToken.mint(PROJECT_ID, addr.address, numTokens)).to.be.revertedWith(
-      'ERC20Votes: total supply risks overflowing votes',
+    const numTokens = 9001;
+    await expect(testToken.burn(PROJECT_ID, addr.address, numTokens)).to.be.revertedWith(
+      'ERC20: burn amount exceeds balance',
     );
   });
 });
