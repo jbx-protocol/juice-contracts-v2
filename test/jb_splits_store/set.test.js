@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
+import { daysFromNow, daysFromDate, dateInSeconds } from '../helpers/utils';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbOperatorStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
@@ -63,6 +64,21 @@ describe('JBSplitsStore::set(...)', function () {
     return splits;
   }
 
+  function cleanSplits(splits) {
+    let cleanedSplits = []
+    for (let split of splits) {
+      cleanedSplits.push({
+        preferClaimed: split[0],
+        percent: split[1],
+        lockedUntil: split[2],
+        beneficiary: split[3],
+        allocator: split[4],
+        projectId: split[5].toNumber()
+      })
+    }
+    return cleanedSplits;
+  }
+
   it('Should set splits with beneficiaries and emit events if project owner', async function () {
     const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore, mockJbDirectory } = await setup();
 
@@ -85,13 +101,8 @@ describe('JBSplitsStore::set(...)', function () {
       }),
     );
 
-    let splitsStored = await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP);
-
-    for (let [idx, split] of splitsStored) {
-      for (let splitKey of Object.keys(split)) {
-        expect(split.splitKey).to.equal(splits[idx].splitKey);
-      }
-    }
+    let splitsStored = cleanSplits(await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP));
+    expect(splitsStored).to.eql(splits);
   })
 
   it('Should set splits with allocators set', async function () {
@@ -113,13 +124,8 @@ describe('JBSplitsStore::set(...)', function () {
       newSplits
     );
 
-    let splitsStored = await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP);
-
-    for (let [idx, split] of splitsStored) {
-      for (let splitKey of Object.keys(split)) {
-        expect(split.splitKey).to.equal(splits[idx].splitKey);
-      }
-    }
+    let splitsStored = cleanSplits(await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP));
+    expect(splitsStored).to.eql(newSplits);
   })
 
   it('Should set splits with allocators and beneficiaries set', async function () {
@@ -141,13 +147,8 @@ describe('JBSplitsStore::set(...)', function () {
       newSplits
     );
 
-    let splitsStored = await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP);
-
-    for (let [idx, split] of splitsStored) {
-      for (let splitKey of Object.keys(split)) {
-        expect(split.splitKey).to.equal(splits[idx].splitKey);
-      }
-    }
+    let splitsStored = cleanSplits(await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP));
+    expect(splitsStored).to.eql(newSplits);
   })
 
   it('Should set new splits when overwriting existing splits with the same ID/Domain/Group', async function () {
@@ -170,24 +171,15 @@ describe('JBSplitsStore::set(...)', function () {
       newSplits
     );
 
-    let splitsStored = await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP);
-
-    for (let [idx, split] of splitsStored) {
-      for (let splitKey of Object.keys(split)) {
-        expect(split.splitKey).to.equal(splits[idx].splitKey);
-      }
-    }
+    let splitsStored = cleanSplits(await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP));
+    expect(splitsStored).to.eql(newSplits);
   })
 
   it('Can\'t set new splits without including a preexisting locked one', async function () {
     const { projectOwner, addrs, jbSplitsStore, splits } = await setup();
 
-    let date = new Date();
-    date.setDate(date.getDate() + 1);
-    let dateInSeconds = Math.floor(date.getTime()/1000);
-
     // Set one locked split
-    splits[1].lockedUntil = dateInSeconds;
+    splits[1].lockedUntil = dateInSeconds(daysFromNow(1));
     await jbSplitsStore.connect(projectOwner).set(
       PROJECT_ID,
       DOMAIN,
@@ -209,15 +201,13 @@ describe('JBSplitsStore::set(...)', function () {
     ).to.be.revertedWith('0x0f: SOME_LOCKED');
   })
 
-  it('Sould set new splits with extension of a preexisting locked one', async function () {
+  it('Should set new splits with extension of a preexisting locked one', async function () {
     const { projectOwner, addrs, jbSplitsStore, splits } = await setup();
 
-    let date = new Date();
-    date.setDate(date.getDate() + 1);
-    let dateInSeconds = Math.floor(date.getTime()/1000);
+    let lockDate = daysFromNow(1);
 
     // Set one locked split
-    splits[1].lockedUntil = dateInSeconds;
+    splits[1].lockedUntil = dateInSeconds(lockDate);
     await jbSplitsStore.connect(projectOwner).set(
       PROJECT_ID,
       DOMAIN,
@@ -226,11 +216,10 @@ describe('JBSplitsStore::set(...)', function () {
     );
 
     // Try to set new ones, with lock extension of one day
+    let newLockDate = dateInSeconds(daysFromDate(lockDate, 1));
     let newSplits = makeSplits(addrs[5].address);
 
-    date.setDate(date.getDate() + 2);
-    let newLockedTimestamp = Math.floor(date.getTime()/1000);
-    newSplits[1].lockedUntil = newLockedTimestamp;
+    newSplits[1].lockedUntil = newLockDate;
     newSplits[1].beneficiary = addrs[0].address;
 
     await jbSplitsStore.connect(projectOwner).set(
@@ -241,8 +230,7 @@ describe('JBSplitsStore::set(...)', function () {
     );
 
     let splitsStored = await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP);
-
-    expect(splitsStored[1].lockedUntil).to.equal(newLockedTimestamp);
+    expect(splitsStored[1].lockedUntil).to.equal(newLockDate);
   })
 
   it('Can\'t set splits when a split has a percent of 0', async function () {
