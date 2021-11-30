@@ -19,9 +19,15 @@ interface IJBDirectory {
     address caller
   );
 
+  event AddKnownController(IJBController indexed controller, address caller);
+
+  event RemoveKnownController(IJBController indexed controller, address caller);
+
   function projects() external view returns (IJBProjects);
 
   function controllerOf(uint256 _projectId) external view returns (IJBController);
+
+  function knownControllers() external view returns (IJBController[] memory);
 
   function primaryTerminalOf(uint256 _projectId, address _token)
     external
@@ -41,4 +47,8 @@ interface IJBDirectory {
   function setControllerOf(uint256 _projectId, IJBController _controller) external;
 
   function setPrimaryTerminalOf(uint256 _projectId, IJBTerminal _terminal) external;
+
+  function addKnownController(IJBController _controller) external;
+
+  function removeKnownController(IJBController _controller) external;
 }

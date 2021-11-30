@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import '@openzeppelin/contracts/access/Ownable.sol';
+
 import './interfaces/IJBTerminal.sol';
 import './interfaces/IJBDirectory.sol';
 import './abstract/JBOperatable.sol';
@@ -10,7 +12,7 @@ import './libraries/JBOperations.sol';
   @notice
   Keeps a reference of which terminal contracts each project is currently accepting funds through, and which controller contract is managing each project's tokens and funding cycles.
 */
-contract JBDirectory is IJBDirectory, JBOperatable {
+contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//
@@ -31,6 +33,12 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     _token The token to get the project's primary terminal of.
   */
   mapping(uint256 => mapping(address => IJBTerminal)) private _primaryTerminalOf;
+
+  /**
+    @notice
+    JBControllers that have been vetted and verified by Juicebox owners.
+   */
+  IJBController[] private _knownControllers;
 
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
@@ -142,6 +150,10 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     return IJBTerminal(address(0));
   }
 
+  function knownControllers() public view override returns (IJBController[] memory) {
+    return _knownControllers;
+  }
+
   //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
@@ -171,7 +183,6 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     @param _projectId The ID of the project to set a new controller for.
     @param _controller The new controller to set.
   */
-  // TODO(odd-amphora): Revisit access pattern with allowlist.
   function setControllerOf(uint256 _projectId, IJBController _controller)
     external
     override
@@ -183,9 +194,6 @@ contract JBDirectory is IJBDirectory, JBOperatable {
         address(controllerOf[_projectId]) == msg.sender
     )
   {
-    // Can't set the zero address.
-    require(_controller != IJBController(address(0)), '0x2b: ZERO_ADDRESS');
-
     // Get a reference to the current controller being used.
     IJBController _currentController = controllerOf[_projectId];
 
@@ -193,7 +201,10 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     if (_currentController == _controller) return;
 
     // The project must exist.
-    require(projects.count() >= _projectId, '0x2c: NOT_FOUND');
+    require(projects.count() >= _projectId, '0x2b: NOT_FOUND');
+
+    // Can't set the zero address.
+    require(_controller != IJBController(address(0)), '0x2c: ZERO_ADDRESS');
 
     // Set the new controller.
     controllerOf[_projectId] = _controller;
@@ -212,7 +223,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     @param _terminal The terminal to add.
     @param _caller The original caller that added the terminal.
   */
-  function _addTerminalIfNeeded(
+  function _maybeAddTerminal(
     uint256 _projectId,
     IJBTerminal _terminal,
     address _caller
@@ -249,7 +260,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     )
   {
     for (uint256 _i = 0; _i < _terminals.length; _i++) {
-      _addTerminalIfNeeded(_projectId, _terminals[_i], msg.sender);
+      _maybeAddTerminal(_projectId, _terminals[_i], msg.sender);
     }
   }
 
@@ -312,11 +323,63 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     require(_terminal != _primaryTerminalOf[_projectId][_token], '0x2f: ALREADY_SET');
 
     // Add the terminal to thge project if it hasn't been already.
-    _addTerminalIfNeeded(_projectId, _terminal, msg.sender);
+    _maybeAddTerminal(_projectId, _terminal, msg.sender);
 
     // Store the terminal as the primary for the particular token.
     _primaryTerminalOf[_projectId][_token] = _terminal;
 
     emit SetPrimaryTerminal(_projectId, _token, _terminal, msg.sender);
+  }
+
+  /** 
+    @notice
+    The owner (Juicebox multisig) can add known controllers which allow for more optimized
+    access between Juicebox contracts. This is not a requirement for all controllers. However,
+    unknown controllers may require additional transactions to perform certain operations.
+
+    @dev
+    If you would like your JBController allowlisted, please reach out to the Juicebox dev team.
+
+    @param _controller The terminal to be added.
+  */
+  function addKnownController(IJBController _controller) external override onlyOwner {
+    // Can't add zero address.
+    require(_controller != IJBController(address(0)), '0x30: ZERO_ADDRESS');
+
+    // Check that the controller has not already been added.
+    for (uint256 _i; _i < _knownControllers.length; _i++) {
+      require(_knownControllers[_i] != _controller, '0x31: ALREADY_ADDED');
+    }
+
+    // Add the controller to the list of known controllers.
+    _knownControllers.push(_controller);
+
+    emit AddKnownController(_controller, msg.sender);
+  }
+
+  /** 
+    @notice
+    See `addKnownController(...)` for context. Removes a known controller from the allowlist.
+
+    @param _controller The terminal to be added.
+  */
+  function removeKnownController(IJBController _controller) external override onlyOwner {
+    // Can't remove zero address.
+    require(_controller != IJBController(address(0)), '0x32: ZERO_ADDRESS');
+
+    // Find the controller and remove it.
+    for (uint256 _i; _i < _knownControllers.length; _i++) {
+      if (_knownControllers[_i] == _controller) {
+        // No need to preserve order.
+        _knownControllers[_i] = _knownControllers[_knownControllers.length - 1];
+        _knownControllers.pop();
+
+        emit RemoveKnownController(_controller, msg.sender);
+        return;
+      }
+    }
+
+    // Revert if the controller is not found.
+    revert('0x33: NOT_FOUND');
   }
 }
