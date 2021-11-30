@@ -68,6 +68,40 @@ describe('JBTokenStore::changeFor(...)', function () {
       .withArgs(PROJECT_ID, newTokenAddr, newOwner.address, controller.address);
   });
 
+  it('Should change tokens without changing owner of old token', async function () {
+    const { addrs, mockJbDirectory, jbTokenStore } = await setup();
+    let controller = addrs[1];
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Issue the initial token and grab a reference to it.
+    await jbTokenStore.connect(controller).issueFor(PROJECT_ID, 'TestTokenDAO', 'TEST');
+    let initialTokenAddr = await jbTokenStore.connect(controller).tokenOf(PROJECT_ID);
+    let initialToken = new Contract(initialTokenAddr, jbToken.abi);
+    const initialTokenOwner = await initialToken.connect(controller).owner();
+
+    // Change to a new token without a new owner for the old token
+    let newTokenName = 'NewTokenDAO';
+    let newTokenSymbol = 'NEW';
+    let newToken = await deployJbToken(newTokenName, newTokenSymbol);
+    let changeTx = await jbTokenStore
+      .connect(controller)
+      .changeFor(PROJECT_ID, newToken.address, ethers.constants.AddressZero);
+
+    let newTokenAddr = await jbTokenStore.connect(controller).tokenOf(PROJECT_ID);
+    newToken = new Contract(newTokenAddr, jbToken.abi);
+
+    expect(await newToken.connect(controller).name()).to.equal(newTokenName);
+    expect(await newToken.connect(controller).symbol()).to.equal(newTokenSymbol);
+
+    // The ownership of the initial token should not be changed.
+    expect(await initialToken.connect(controller).owner()).to.equal(initialTokenOwner);
+
+    await expect(changeTx)
+      .to.emit(jbTokenStore, 'Change')
+      .withArgs(PROJECT_ID, newTokenAddr, ethers.constants.AddressZero, controller.address);
+  });
+
   it(`Can't change tokens if caller does not have permission`, async function () {
     const { addrs, mockJbDirectory, jbTokenStore } = await setup();
     let caller = addrs[1];
