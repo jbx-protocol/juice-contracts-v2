@@ -8,38 +8,35 @@ describe('JBToken::transferOwnership(...)', function () {
 
   async function setup() {
     const [deployer, ...addrs] = await ethers.getSigners();
-    const testToken = await deployJbToken(name, symbol);
-    return { deployer, addrs, testToken };
+    const jbToken = await deployJbToken(name, symbol);
+    return { deployer, addrs, jbToken };
   }
 
   it('Should transfer ownership to another address if caller is owner', async function () {
-    const { deployer, addrs, testToken } = await setup();
+    const { deployer, addrs, jbToken } = await setup();
     const newAddr = addrs[0];
 
-    const transferOwnershipTx = await testToken
-      .connect(deployer)
-      .transferOwnership(newAddr.address);
+    const transferOwnershipTx = await jbToken.connect(deployer).transferOwnership(newAddr.address);
 
     await expect(transferOwnershipTx)
-      .to.emit(testToken, 'OwnershipTransferred')
+      .to.emit(jbToken, 'OwnershipTransferred')
       .withArgs(deployer.address, newAddr.address);
 
-    const balance = await testToken.owner();
-    expect(balance).to.equal(newAddr.address);
+    expect(await jbToken.owner()).to.equal(newAddr.address);
   });
 
   it(`Can't transfer ownership if caller isn't owner`, async function () {
-    const { addrs, testToken } = await setup();
+    const { addrs, jbToken } = await setup();
     const newAddr = addrs[0];
     const nonOwner = addrs[1];
-    await expect(testToken.connect(nonOwner).transferOwnership(newAddr.address)).to.be.revertedWith(
+    await expect(jbToken.connect(nonOwner).transferOwnership(newAddr.address)).to.be.revertedWith(
       'Ownable: caller is not the owner',
     );
   });
 
   it(`Can't set new owner to zero address`, async function () {
-    const { testToken } = await setup();
-    await expect(testToken.transferOwnership(ethers.constants.AddressZero)).to.be.revertedWith(
+    const { jbToken } = await setup();
+    await expect(jbToken.transferOwnership(ethers.constants.AddressZero)).to.be.revertedWith(
       'Ownable: new owner is the zero address',
     );
   });

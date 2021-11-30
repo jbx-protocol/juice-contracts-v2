@@ -10,46 +10,46 @@ describe('JBToken::burn(...)', function () {
 
   async function setup() {
     const [deployer, ...addrs] = await ethers.getSigners();
-    const testToken = await deployJbToken(name, symbol);
-    await testToken.connect(deployer).mint(PROJECT_ID, addrs[1].address, startingBalance);
-    return { deployer, addrs, testToken };
+    const jbToken = await deployJbToken(name, symbol);
+    await jbToken.connect(deployer).mint(PROJECT_ID, addrs[1].address, startingBalance);
+    return { deployer, addrs, jbToken };
   }
 
   it('Should burn token and emit event if caller is owner', async function () {
-    const { deployer, addrs, testToken } = await setup();
+    const { deployer, addrs, jbToken } = await setup();
     const addr = addrs[1];
     const numTokens = 5;
-    const burnTx = await testToken.connect(deployer).burn(PROJECT_ID, addr.address, numTokens);
+    const burnTx = await jbToken.connect(deployer).burn(PROJECT_ID, addr.address, numTokens);
 
     await expect(burnTx)
-      .to.emit(testToken, 'Transfer')
+      .to.emit(jbToken, 'Transfer')
       .withArgs(addr.address, ethers.constants.AddressZero, numTokens);
 
     // overloaded functions need to be called using the full function signature
-    const balance = await testToken['balanceOf(uint256,address)'](PROJECT_ID, addr.address);
+    const balance = await jbToken['balanceOf(uint256,address)'](PROJECT_ID, addr.address);
     expect(balance).to.equal(startingBalance - numTokens);
   });
 
   it(`Can't burn tokens if caller isn't owner`, async function () {
-    const { addrs, testToken } = await setup();
+    const { addrs, jbToken } = await setup();
     const nonOwner = addrs[1];
     await expect(
-      testToken.connect(nonOwner).burn(PROJECT_ID, nonOwner.address, 3000),
+      jbToken.connect(nonOwner).burn(PROJECT_ID, nonOwner.address, 3000),
     ).to.be.revertedWith('Ownable: caller is not the owner');
   });
 
   it(`Can't burn tokens from zero address`, async function () {
-    const { testToken } = await setup();
-    await expect(testToken.burn(PROJECT_ID, ethers.constants.AddressZero, 3000)).to.be.revertedWith(
+    const { jbToken } = await setup();
+    await expect(jbToken.burn(PROJECT_ID, ethers.constants.AddressZero, 3000)).to.be.revertedWith(
       'ERC20: burn from the zero address',
     );
   });
 
   it(`Can't burn tokens if burn amount exceeds balance`, async function () {
-    const { addrs, testToken } = await setup();
+    const { addrs, jbToken } = await setup();
     const addr = addrs[1];
     const numTokens = 9001;
-    await expect(testToken.burn(PROJECT_ID, addr.address, numTokens)).to.be.revertedWith(
+    await expect(jbToken.burn(PROJECT_ID, addr.address, numTokens)).to.be.revertedWith(
       'ERC20: burn amount exceeds balance',
     );
   });
