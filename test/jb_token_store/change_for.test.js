@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
+import { Contract } from 'ethers';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
@@ -7,7 +8,7 @@ import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.j
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
-import { Contract } from 'ethers';
+import { deployJbToken } from '../helpers/utils';
 
 describe('JBTokenStore::changeFor(...)', function () {
   const PROJECT_ID = 2;
@@ -33,11 +34,6 @@ describe('JBTokenStore::changeFor(...)', function () {
     };
   }
 
-  async function deployToken(name, symbol) {
-    let jbTokenFactory = await ethers.getContractFactory('JBToken');
-    return await jbTokenFactory.deploy(name, symbol);
-  }
-
   it('Should change tokens and emit event if caller is controller', async function () {
     const { addrs, mockJbDirectory, jbTokenStore } = await setup();
     let controller = addrs[1];
@@ -53,7 +49,7 @@ describe('JBTokenStore::changeFor(...)', function () {
     let newOwner = addrs[2];
     let newTokenName = 'NewTokenDAO';
     let newTokenSymbol = 'NEW';
-    let newToken = await deployToken(newTokenName, newTokenSymbol);
+    let newToken = await deployJbToken(newTokenName, newTokenSymbol);
     let changeTx = await jbTokenStore
       .connect(controller)
       .changeFor(PROJECT_ID, newToken.address, newOwner.address);
