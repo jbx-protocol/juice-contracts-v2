@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { BigNumber } from '@ethersproject/bignumber';
 
 describe('JBProjects::setMetadataCidOf(...)', function () {
 
