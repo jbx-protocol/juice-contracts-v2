@@ -1,9 +1,8 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
+import { getTimestampFn } from '../helpers/utils'
 
-import { fastforwardFn } from '../helpers/utils';
-
-describe('JBProjects::claimHandle(...)', function () {
+describe('JBProjects::challengeHandle(...)', function () {
 
   let jbOperatorStoreFactory;
   let jbOperatorStore;
@@ -16,8 +15,8 @@ describe('JBProjects::claimHandle(...)', function () {
   let addrs;
 
   let projectHandle = "PROJECT_1";
-  let projectHandleNotTaken = "PROJECT_2";
-  let projectHandleNotTaken2 = "PROJECT_3";
+  let projectHandleNotTaken = "PROJECT_2"
+  let projectHandleNotTaken2 = "PROJECT_3"
   let metadataCid = "";
 
   beforeEach(async function () {
@@ -32,7 +31,7 @@ describe('JBProjects::claimHandle(...)', function () {
 
   // Working on these now
 
-  it('Should reject with Unauthorized', async function () {
+  it('Challenging an inexistent projectId', async function () {
 
     await jbProjectsStore
       .connect(deployer)
@@ -52,31 +51,21 @@ describe('JBProjects::claimHandle(...)', function () {
 
     await expect(
       jbProjectsStore
-        .connect(projectOwner)
-        .claimHandle(
-          /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken),
-          /*address=*/ projectOwner.address,
-          /*projectId=*/ 1,
+        .connect(deployer)
+        .challengeHandle(
+          /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken2)
         ),
-    ).to.be.revertedWith('0x0c: UNAUTHORIZED');
+    ).to.be.revertedWith('0x0d: HANDLE_NOT_TAKEN');
   });
 
-  it('Claim handle from another project with wrong owner', async function () {
+  it('Challenging a handle that has been challenged before', async function () {
 
     await jbProjectsStore
       .connect(deployer)
       .createFor(
         /*owner=*/ projectOwner.address,
         /*handle=*/ ethers.utils.formatBytes32String(projectHandle),
-        /*metadataCid=*/ "",
-      )
-
-    await jbProjectsStore
-      .connect(deployer)
-      .createFor(
-        /*owner=*/ deployer.address,
-        /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken2),
-        /*metadataCid=*/ "",
+        /*metadataCid=*/ metadataCid,
       )
 
     await jbProjectsStore
@@ -87,63 +76,53 @@ describe('JBProjects::claimHandle(...)', function () {
           /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken)
       )
 
-    await expect(
-      jbProjectsStore
-        .connect(projectOwner)
-        .claimHandle(
-            /*handle=*/ ethers.utils.formatBytes32String(projectHandle),
-            /*address=*/ deployer.address,
-            /*projectId=*/ 2,
-        ),
-    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
-  });
-
-  it('Claim handle from another project after expiration date', async function () {
-
     await jbProjectsStore
       .connect(deployer)
-      .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(projectHandle),
-        /*metadataCid=*/ "",
-      )
-
-    await jbProjectsStore
-      .connect(deployer)
-      .createFor(
-        /*owner=*/ deployer.address,
-        /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken2),
-        /*metadataCid=*/ "",
-      )
-
-    await jbProjectsStore
-      .connect(projectOwner)
-      .transferHandleOf(
-          /*projectId=*/ 1,
-          /*address=*/ deployer.address,
-          /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken)
-      )
-
-    let tx = await jbProjectsStore
-      .connect(projectOwner)
       .challengeHandle(
         /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken)
       )
 
-    await fastforwardFn(tx.blockNumber, ethers.BigNumber.from(12536000))
-
     await expect(
       jbProjectsStore
         .connect(deployer)
-        .claimHandle(
-            /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken),
-            /*address=*/ deployer.address,
-            /*projectId=*/ 2,
+        .challengeHandle(
+          /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken)
         ),
-    ).to.be.revertedWith('0x0c: UNAUTHORIZED');
+    ).to.be.revertedWith('0x0e: CHALLENGE_OPEN');
   });
 
-  it('Should claim handle from another project', async function () {
+  // TODO:  Fix this in the protocol.Currently the Protocol allows the 
+  //        challenge to happen from the owner of the project that has 
+  //        the handle challenged.
+  //
+  // it('Challenging a handle by the owner of the project', async function () {
+
+  //   await jbProjectsStore
+  //     .connect(deployer)
+  //     .createFor(
+  //       /*owner=*/ projectOwner.address,
+  //       /*handle=*/ ethers.utils.formatBytes32String(projectHandle),
+  //       /*metadataCid=*/ metadataCid,
+  //     )
+
+  //   await jbProjectsStore
+  //     .connect(projectOwner)
+  //     .transferHandleOf(
+  //         /*projectId=*/ 1,
+  //         /*address=*/ deployer.address,
+  //         /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken)
+  //     )
+
+  //   await expect(
+  //     jbProjectsStore
+  //       .connect(projectOwner)
+  //       .challengeHandle(
+  //         /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken)
+  //       ),
+  //   ).to.be.revertedWith('0x0e: CHALLENGE_OPEN');
+  // });
+
+  it('Should challenge handle successfully', async function () {
 
     await jbProjectsStore
       .connect(deployer)
@@ -171,15 +150,15 @@ describe('JBProjects::claimHandle(...)', function () {
 
     let tx = await jbProjectsStore
       .connect(deployer)
-      .claimHandle(
-          /*handle=*/ ethers.utils.formatBytes32String(projectHandle),
-          /*address=*/ deployer.address,
-          /*projectId=*/ 2,
+      .challengeHandle(
+          /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken),
       )
 
+    let expectedChallengeExpiry = (await getTimestampFn(tx.blockNumber)).add(31536000)
+
     await expect(tx)
-      .to.emit(jbProjectsStore, 'ClaimHandle')
-      .withArgs(2, deployer.address, ethers.utils.formatBytes32String(projectHandle), deployer.address)
+      .to.emit(jbProjectsStore, 'ChallengeHandle')
+      .withArgs(ethers.utils.formatBytes32String(projectHandleNotTaken), 1, expectedChallengeExpiry, deployer.address)
   });
 
 })
