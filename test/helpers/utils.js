@@ -21,3 +21,8 @@ export async function impersonateAccount(
 
   return await ethers.getSigner(address);
 }
+
+export async function deployJbToken(name, symbol) {
+  const jbTokenFactory = await ethers.getContractFactory('JBToken');
+  return await jbTokenFactory.deploy(name, symbol);
+}

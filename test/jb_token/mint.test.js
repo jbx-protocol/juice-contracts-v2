@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
+import { deployJbToken } from '../helpers/utils';
 
 describe('JBToken::mint(...)', function () {
   const PROJECT_ID = 10;
@@ -8,18 +9,9 @@ describe('JBToken::mint(...)', function () {
 
   async function setup() {
     const [deployer, ...addrs] = await ethers.getSigners();
-    const testToken = await deployToken(name, symbol);
+    const testToken = await deployJbToken(name, symbol);
     return { deployer, addrs, testToken };
   }
-
-  async function deployToken(name, symbol) {
-    const jbTokenFactory = await ethers.getContractFactory('JBToken');
-    const jbToken = await jbTokenFactory.deploy(name, symbol);
-    await jbToken.deployed();
-    return jbToken;
-  }
-
-  // Tests
 
   it('Should mint token and emit event if caller is owner', async function () {
     const { deployer, addrs, testToken } = await setup();
@@ -27,7 +19,9 @@ describe('JBToken::mint(...)', function () {
     const numTokens = 3000;
     const mintTx = await testToken.connect(deployer).mint(PROJECT_ID, addr.address, numTokens);
 
-    await expect(mintTx).to.emit(testToken, 'Transfer');
+    await expect(mintTx)
+      .to.emit(testToken, 'Transfer')
+      .withArgs(ethers.constants.AddressZero, addr.address, numTokens);
 
     // overloaded functions need to be called using the full function signature
     const balance = await testToken['balanceOf(uint256,address)'](PROJECT_ID, addr.address);
@@ -47,8 +41,7 @@ describe('JBToken::mint(...)', function () {
 
   it(`Can't mint tokens to zero address`, async function () {
     const { testToken } = await setup();
-    const zeroAddr = ethers.constants.AddressZero;
-    await expect(testToken.mint(PROJECT_ID, zeroAddr, 3000)).to.be.revertedWith(
+    await expect(testToken.mint(PROJECT_ID, ethers.constants.AddressZero, 3000)).to.be.revertedWith(
       'ERC20: mint to the zero address',
     );
   });
