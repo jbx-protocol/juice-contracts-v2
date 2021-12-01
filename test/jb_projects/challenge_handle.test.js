@@ -1,44 +1,42 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { getTimestampFn } from '../helpers/utils'
+import { getTimestamp } from '../helpers/utils'
+
+import { deployMockContract } from '@ethereum-waffle/mock-contract';
+
+import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 
 describe('JBProjects::challengeHandle(...)', function () {
+  const PROJECT_HANDLE = "PROJECT_1";
+  const PROJECT_HANDLE_NOT_TAKEN = "PROJECT_2";
+  const PROJECT_HANDLE_NOT_TAKEN_2 = "PROJECT_3";
+  const METADATA_CID = "";
 
-  let jbOperatorStoreFactory;
-  let jbOperatorStore;
+  async function setup() {
+    let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
-  let jbProjectsFactory;
-  let jbProjectsStore;
+    let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
 
-  let deployer;
-  let projectOwner;
-  let addrs;
+    let jbProjectsFactory = await ethers.getContractFactory('JBProjects');
+    let jbProjectsStore = await jbProjectsFactory.deploy(mockJbOperatorStore.address);
 
-  let projectHandle = "PROJECT_1";
-  let projectHandleNotTaken = "PROJECT_2"
-  let projectHandleNotTaken2 = "PROJECT_3"
-  let metadataCid = "";
-
-  beforeEach(async function () {
-    [deployer, projectOwner, ...addrs] = await ethers.getSigners();
-
-    jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
-    jbOperatorStore = await jbOperatorStoreFactory.deploy();
-
-    jbProjectsFactory = await ethers.getContractFactory('JBProjects');
-    jbProjectsStore = await jbProjectsFactory.deploy(jbOperatorStore.address);
-  });
-
-  // Working on these now
+    return {
+      projectOwner,
+      deployer,
+      addrs,
+      jbProjectsStore
+    };
+  };
 
   it('Challenging an inexistent projectId', async function () {
+    const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore
       .connect(deployer)
       .createFor(
         /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(projectHandle),
-        /*metadataCid=*/ metadataCid,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*METADATA_CID=*/ METADATA_CID,
       )
 
     await jbProjectsStore
@@ -46,26 +44,27 @@ describe('JBProjects::challengeHandle(...)', function () {
       .transferHandleOf(
           /*projectId=*/ 1,
           /*address=*/ deployer.address,
-          /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken)
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN)
       )
 
     await expect(
       jbProjectsStore
         .connect(deployer)
         .challengeHandle(
-          /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken2)
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN_2)
         ),
     ).to.be.revertedWith('0x0d: HANDLE_NOT_TAKEN');
   });
 
   it('Challenging a handle that has been challenged before', async function () {
+    const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore
       .connect(deployer)
       .createFor(
         /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(projectHandle),
-        /*metadataCid=*/ metadataCid,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*metadataCid=*/ METADATA_CID,
       )
 
     await jbProjectsStore
@@ -73,20 +72,20 @@ describe('JBProjects::challengeHandle(...)', function () {
       .transferHandleOf(
           /*projectId=*/ 1,
           /*address=*/ deployer.address,
-          /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken)
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN)
       )
 
     await jbProjectsStore
       .connect(deployer)
       .challengeHandle(
-        /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken)
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN)
       )
 
     await expect(
       jbProjectsStore
         .connect(deployer)
         .challengeHandle(
-          /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken)
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN)
         ),
     ).to.be.revertedWith('0x0e: CHALLENGE_OPEN');
   });
@@ -96,13 +95,14 @@ describe('JBProjects::challengeHandle(...)', function () {
   //        the handle challenged.
   //
   // it('Challenging a handle by the owner of the project', async function () {
+  //  const { projectOwner, deployer, jbProjectsStore } = await setup();
 
   //   await jbProjectsStore
   //     .connect(deployer)
   //     .createFor(
   //       /*owner=*/ projectOwner.address,
-  //       /*handle=*/ ethers.utils.formatBytes32String(projectHandle),
-  //       /*metadataCid=*/ metadataCid,
+  //       /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+  //       /*metadataCid=*/ METADATA_CID,
   //     )
 
   //   await jbProjectsStore
@@ -110,25 +110,26 @@ describe('JBProjects::challengeHandle(...)', function () {
   //     .transferHandleOf(
   //         /*projectId=*/ 1,
   //         /*address=*/ deployer.address,
-  //         /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken)
+  //         /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN)
   //     )
 
   //   await expect(
   //     jbProjectsStore
   //       .connect(projectOwner)
   //       .challengeHandle(
-  //         /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken)
+  //         /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN)
   //       ),
   //   ).to.be.revertedWith('0x0e: CHALLENGE_OPEN');
   // });
 
   it('Should challenge handle successfully', async function () {
+    const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore
       .connect(deployer)
       .createFor(
         /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(projectHandle),
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
         /*metadataCid=*/ "",
       )
 
@@ -136,7 +137,7 @@ describe('JBProjects::challengeHandle(...)', function () {
       .connect(deployer)
       .createFor(
         /*owner=*/ deployer.address,
-        /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken2),
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN_2),
         /*metadataCid=*/ "",
       )
 
@@ -145,20 +146,20 @@ describe('JBProjects::challengeHandle(...)', function () {
       .transferHandleOf(
           /*projectId=*/ 1,
           /*address=*/ deployer.address,
-          /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken)
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN)
       )
 
     let tx = await jbProjectsStore
       .connect(deployer)
       .challengeHandle(
-          /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken),
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
       )
 
-    let expectedChallengeExpiry = (await getTimestampFn(tx.blockNumber)).add(31536000)
+    let expectedChallengeExpiry = (await getTimestamp(tx.blockNumber)).add(31536000)
 
     await expect(tx)
       .to.emit(jbProjectsStore, 'ChallengeHandle')
-      .withArgs(ethers.utils.formatBytes32String(projectHandleNotTaken), 1, expectedChallengeExpiry, deployer.address)
+      .withArgs(ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN), 1, expectedChallengeExpiry, deployer.address)
   });
 
 })

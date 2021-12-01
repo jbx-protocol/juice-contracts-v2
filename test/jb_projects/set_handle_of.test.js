@@ -3,92 +3,96 @@ import { ethers } from 'hardhat';
 
 describe('JBProjects::setHandleOf(...)', function () {
 
-  let jbOperatorStoreFactory;
+  const PROJECT_HANDLE = "PROJECT_1";
+  const PROJECT_HANDLE_NOT_TAKEN = "PROJECT_2";
+  const PROJECT_HANDLE_EMPTY = "";
+  const METADATA_CID = "";
+
   let jbOperatorStore;
 
-  let jbProjectsFactory;
-  let jbProjectsStore;
-
-  let deployer;
-  let projectOwner;
-  let addrs;
-
-  let projectHandle = "PROJECT_1";
-  let projectHandleNotTaken = "PROJECT_2"
-  let emptyProjectHandle = "";
-  let metadataCid = "";
-
   beforeEach(async function () {
-    [deployer, projectOwner, ...addrs] = await ethers.getSigners();
-
-    jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
+    let jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
     jbOperatorStore = await jbOperatorStoreFactory.deploy();
-
-    jbProjectsFactory = await ethers.getContractFactory('JBProjects');
-    jbProjectsStore = await jbProjectsFactory.deploy(jbOperatorStore.address);
   });
 
-  it('Has an empty handle', async function () {
+  async function setup() {
+    let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
-    const projectId = await jbProjectsStore
+    let jbProjectsFactory = await ethers.getContractFactory('JBProjects');
+    let jbProjectsStore = await jbProjectsFactory.deploy(jbOperatorStore.address);
+
+    return {
+      projectOwner,
+      deployer,
+      addrs,
+      jbProjectsStore
+    };
+  };
+
+  it('Has an empty handle', async function () {
+    const { projectOwner, deployer, jbProjectsStore } = await setup();
+
+    await jbProjectsStore
       .connect(deployer)
       .createFor(
         /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(projectHandle),
-        /*metadataCid=*/ metadataCid,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*metadataCid=*/ METADATA_CID,
       )
 
-    const response = await expect(
+    await expect(
       jbProjectsStore
         .connect(projectOwner)
         .setHandleOf(
           /*projectId=*/ 1,
-          /*handle=*/ ethers.utils.formatBytes32String(emptyProjectHandle)
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY)
         ),
     ).to.be.revertedWith('0x08: EMPTY_HANDLE');
   });
 
 
   it('Handle taken already', async function () {
+    const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore
       .connect(deployer)
       .createFor(
         /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(projectHandle),
-        /*metadataCid=*/ "",
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*metadataCid=*/ METADATA_CID,
       )
 
-    const response = await expect(
+    await expect(
       jbProjectsStore
         .connect(projectOwner)
         .setHandleOf(
           /*projectId=*/ 1,
-          /*handle=*/ ethers.utils.formatBytes32String(projectHandle)
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE)
         ),
     ).to.be.revertedWith('0x09: HANDLE_TAKEN');
   });
 
   it('Should set new handle to project', async function () {
+    const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore
       .connect(deployer)
       .createFor(
         /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(projectHandle),
-        /*metadataCid=*/ "",
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*metadataCid=*/ METADATA_CID,
       )
 
     let tx = await jbProjectsStore
       .connect(projectOwner)
       .setHandleOf(
           /*projectId=*/ 1,
-          /*handle=*/ ethers.utils.formatBytes32String(projectHandleNotTaken)
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN)
       )
 
     await expect(tx)
       .to.emit(jbProjectsStore, 'SetHandle')
-      .withArgs(1, ethers.utils.formatBytes32String(projectHandleNotTaken), projectOwner.address)
+      .withArgs(1, ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN), projectOwner.address)
   });
 
 

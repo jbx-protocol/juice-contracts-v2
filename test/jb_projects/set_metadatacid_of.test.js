@@ -1,51 +1,49 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
+import { deployMockContract } from '@ethereum-waffle/mock-contract';
+
+import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
+
 describe('JBProjects::setMetadataCidOf(...)', function () {
+  const PROJECT_HANDLE = "PROJECT_1";
+  const METADATA_CID = "ipfs://randommetadatacidipsaddress";
 
-  let jbOperatorStoreFactory;
-  let jbOperatorStore;
+  async function setup() {
+    let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
-  let jbProjectsFactory;
-  let jbProjectsStore;
+    let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
+    let jbProjectsFactory = await ethers.getContractFactory('JBProjects');
+    let jbProjectsStore = await jbProjectsFactory.deploy(mockJbOperatorStore.address);
 
-  let deployer;
-  let projectOwner;
-  let addrs;
-
-  let projectHandle = "PROJECT_1";
-  let metadataCid = "ipfs://randommetadatacidipsaddress";
-  let projectId = ethers.BigNumber.from(1);
-
-  beforeEach(async function () {
-    [deployer, projectOwner, ...addrs] = await ethers.getSigners();
-
-    jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
-    jbOperatorStore = await jbOperatorStoreFactory.deploy();
-
-    jbProjectsFactory = await ethers.getContractFactory('JBProjects');
-    jbProjectsStore = await jbProjectsFactory.deploy(jbOperatorStore.address);
-  });
+    return {
+      projectOwner,
+      deployer,
+      addrs,
+      jbProjectsStore
+    };
+  };
 
   it('Set MetadataCid', async function () {
+    const { projectOwner, deployer, jbProjectsStore } = await setup();
 
-    const projectId = await jbProjectsStore
+    await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ deployer.address,
-        /*handle=*/ ethers.utils.formatBytes32String(projectHandle),
-        /*metadataCid=*/ metadataCid,
+        /*owner=*/ projectOwner.address,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*metadataCid=*/ METADATA_CID,
       )
 
     let tx = await jbProjectsStore
-      .connect(deployer)
+      .connect(projectOwner)
       .setMetadataCidOf(
         /*projectId=*/ 1,
-        /*metadataCid=*/ metadataCid,
+        /*metadataCid=*/ METADATA_CID,
       )
 
     await expect(tx)
       .to.emit(jbProjectsStore, 'SetUri')
-      .withArgs(1, metadataCid, deployer.address)
+      .withArgs(1, METADATA_CID, projectOwner.address)
   });
 })

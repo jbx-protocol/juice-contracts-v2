@@ -2,42 +2,44 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
 describe('JBProjects::renewHandle(...)', function () {
+  const PROJECT_HANDLE = "PROJECT_1";
+  const METADATA_CID = "";
 
-  let jbOperatorStoreFactory;
   let jbOperatorStore;
 
-  let jbProjectsFactory;
-  let jbProjectsStore;
-
-  let deployer;
-  let projectOwner;
-  let addrs;
-
-  let projectHandle = "PROJECT_1";
-
   beforeEach(async function () {
-    [deployer, projectOwner, ...addrs] = await ethers.getSigners();
-
-    jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
+    let jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
     jbOperatorStore = await jbOperatorStoreFactory.deploy();
-
-    jbProjectsFactory = await ethers.getContractFactory('JBProjects');
-    jbProjectsStore = await jbProjectsFactory.deploy(jbOperatorStore.address);
   });
 
+  async function setup() {
+    let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
+
+    let jbProjectsFactory = await ethers.getContractFactory('JBProjects');
+    let jbProjectsStore = await jbProjectsFactory.deploy(jbOperatorStore.address);
+
+    return {
+      projectOwner,
+      deployer,
+      addrs,
+      jbProjectsStore
+    };
+  };
+
   it('Renew handle of project from non owner', async function () {
+    const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(projectHandle),
-        /*metadataCid=*/ "",
+        /*owner=*/ deployer.address,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*metadataCid=*/ METADATA_CID,
       )
 
     await expect(
       jbProjectsStore
-        .connect(deployer)
+        .connect(projectOwner)
         .renewHandleOf(
             /*projectId=*/ 1,
         ),
@@ -45,13 +47,14 @@ describe('JBProjects::renewHandle(...)', function () {
   });
 
   it('Should renew handle', async function () {
+    const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore
       .connect(deployer)
       .createFor(
         /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(projectHandle),
-        /*metadataCid=*/ "",
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*metadataCid=*/ METADATA_CID,
       )
 
     let tx = await jbProjectsStore
@@ -62,7 +65,7 @@ describe('JBProjects::renewHandle(...)', function () {
 
     await expect(tx)
       .to.emit(jbProjectsStore, 'RenewHandle')
-      .withArgs(ethers.utils.formatBytes32String(projectHandle), 1, projectOwner.address)
+      .withArgs(ethers.utils.formatBytes32String(PROJECT_HANDLE), 1, projectOwner.address)
   });
 
 })
