@@ -5,6 +5,8 @@ import '@paulrberg/contracts/math/PRBMath.sol';
 
 import './interfaces/IJBFundingCycleStore.sol';
 import './abstract/JBControllerUtility.sol';
+import './structs/JBConfigurationFundingCycleMetadataData.sol';
+import './structs/JBConfigurationFundingCyclePackedUserPropertiesData.sol';
 
 /** 
   @notice 
@@ -17,15 +19,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
   /** 
     @notice
-    Stores the user defined properties of each funding cycle, packed into one storage slot.
-
-    _projectId The ID of the project to get properties of.
-    _configuration The funding cycle configuration to get properties of.
-  */
-  mapping(uint256 => mapping(uint256 => uint256)) private _packedUserPropertiesOf;
-
-  /** 
-    @notice
     Stores the properties added by the mechanism to manage and schedule each funding cycle, packed into one storage slot.
     
     _projectId The ID of the project to get instrinsic properties of.
@@ -34,13 +27,31 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
   mapping(uint256 => mapping(uint256 => uint256)) private _packedIntrinsicPropertiesOf;
 
   /** 
-    @notice
-    Stores the metadata for each funding cycle configuration, packed into one storage slot.
+    @notice 
+    An array of a project's new funding cycle packed user properties.
+
+    @dev
+    This is used to efficiently find the packed user properties of a particular configuration without having to 
+    store redundant data for each new reconfiguration that keeps the packed user properties the same as the previous configuration. 
+
+    _projectId The ID of the project to get packed user properties of.
+    _data The structs that maps updated funding cycle packed user properties to the configuration they were set during.
+  */
+  mapping(uint256 => JBConfigurationFundingCyclePackedUserPropertiesData[])
+    private _packedUserPropertiesDataOf;
+
+  /** 
+    @notice 
+    An array of a project's new funding cycle metadata.
+
+    @dev
+    This is used to efficiently find the metadata of a particular configuration without having to 
+    store redundant data for each new reconfiguration that keeps the metadata the same as the previous configuration. 
 
     _projectId The ID of the project to get metadata of.
-    _configuration The funding cycle configuration to get metadata of.
+    _data The structs that maps updated funding cycle metadata to the configuration they were set during.
   */
-  mapping(uint256 => mapping(uint256 => uint256)) private _metadataOf;
+  mapping(uint256 => JBConfigurationFundingCycleMetadataData[]) private _metadataDataOf;
 
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
@@ -277,10 +288,19 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       _data.discountRate
     );
 
-    //TODO this shit doesn't change often. Is is necessary to write a new version of it to storage each reconfig?
-    // Set the metadata if needed.
-    // if (_metadata > 0) _metadataOf[_projectId][_configuration] = _metadata;
-    if (_metadata > 0) _metadataOf[_projectId][_configuration] = _metadata;
+    // Get a reference to the metadata data for this project and this terminal.
+    JBConfigurationFundingCycleMetadataData[] memory _metadataData = _metadataDataOf[_projectId];
+
+    // Check if _metadata exists and differs from latest value.
+    // If so, push the value into the array.
+    // This prevents needlessly storing metadata for each new reconfiguration if it isn't changing.
+    if (
+      (_metadata > 0 && _metadataData.length == 0) ||
+      _metadataData[_metadataData.length].metadata != _metadata
+    )
+      _metadataDataOf[_projectId].push(
+        JBConfigurationFundingCycleMetadataData(uint56(_configuration), _metadata)
+      );
 
     emit Configure(_configuration, _projectId, _data, _metadata, msg.sender);
 
@@ -497,12 +517,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _duration,
     uint256 _discountRate
   ) private {
-    // If all properties are zero, no need to store anything as the default value will have the same outcome.
-    if (_ballot == IJBFundingCycleBallot(address(0)) && _duration == 0 && _discountRate == 0)
-      return;
-
-    //TODO this shit doesn't change often. Is is necessary to write a new version of it to storage each reconfig?
-
     // ballot in bits 0-159 bytes.
     uint256 packed = uint160(address(_ballot));
     // duration in bits 160-223 bytes.
@@ -510,8 +524,20 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // discountRate in bits 224-255 bytes.
     packed |= _discountRate << 224;
 
-    // Set in storage.
-    _packedUserPropertiesOf[_projectId][_configuration] = packed;
+    // Get a reference to the packed user properties data for this project and this terminal.
+    JBConfigurationFundingCyclePackedUserPropertiesData[]
+      memory _packedUserPropertiesData = _packedUserPropertiesDataOf[_projectId];
+
+    // Check if the value exists and differs from latest value.
+    // If so, push the value into the array.
+    // This prevents needlessly storing packed user properties for each new reconfiguration if it isn't changing.
+    if (
+      (packed > 0 && _packedUserPropertiesData.length == 0) ||
+      _packedUserPropertiesData[_packedUserPropertiesData.length].packedUserProperties != packed
+    )
+      _packedUserPropertiesDataOf[_projectId].push(
+        JBConfigurationFundingCyclePackedUserPropertiesData(uint56(_configuration), packed)
+      );
   }
 
   /**
@@ -656,13 +682,13 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     fundingCycle.start = uint256(uint56(_packedIntrinsicProperties >> 128));
     fundingCycle.number = uint256(uint56(_packedIntrinsicProperties >> 176));
 
-    uint256 _packedUserProperties = _packedUserPropertiesOf[_projectId][_configuration];
+    uint256 _packedUserProperties = _packedUserPropertiesOf(_projectId, _configuration);
 
     fundingCycle.ballot = IJBFundingCycleBallot(address(uint160(_packedUserProperties)));
     fundingCycle.duration = uint256(uint64(_packedUserProperties >> 208));
     fundingCycle.discountRate = uint256(uint32(_packedUserProperties >> 224));
 
-    fundingCycle.metadata = _metadataOf[_projectId][_configuration];
+    fundingCycle.metadata = _metadataOf(_projectId, _configuration);
   }
 
   /** 
@@ -855,5 +881,52 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
     // If the ballot ends in past, return the current timestamp. Otherwise return the ballot's expiration.
     return block.timestamp > _ballotExpiration ? block.timestamp : _ballotExpiration;
+  }
+
+  /** 
+    @notice
+    Stores the metadata for each funding cycle configuration, packed into one storage slot.
+
+    @param _projectId The ID of the project to get metadata of.
+    @param _configuration The funding cycle configuration to get metadata of.
+
+    @return The metadata of the given configuration.
+  */
+  function _metadataOf(uint256 _projectId, uint256 _configuration) private view returns (uint256) {
+    // Get the metadata list for this project and this terminal.
+    JBConfigurationFundingCycleMetadataData[] memory _data = _metadataDataOf[_projectId];
+
+    // Loop through, starting with the latest.
+    for (uint256 _i = _data.length; _i > 0; _i--)
+      // If the configuration being requested is greater than the listed one, return it.
+      if (_data[_i].configuration <= _configuration) return _data[_i].metadata;
+
+    return 0;
+  }
+
+  /** 
+    @notice
+    Stores the user defined properties of each funding cycle, packed into one storage slot.
+
+    @param _projectId The ID of the project to get properties of.
+    @param _configuration The funding cycle configuration to get properties of.
+    
+    @return The packed user properties of the given configuration.
+  */
+  function _packedUserPropertiesOf(uint256 _projectId, uint256 _configuration)
+    private
+    view
+    returns (uint256)
+  {
+    // Get the packed user properties list for this project and this terminal.
+    JBConfigurationFundingCyclePackedUserPropertiesData[]
+      memory _data = _packedUserPropertiesDataOf[_projectId];
+
+    // Loop through, starting with the latest.
+    for (uint256 _i = _data.length; _i > 0; _i--)
+      // If the configuration being requested is greater than the listed one, return it.
+      if (_data[_i].configuration <= _configuration) return _data[_i].packedUserProperties;
+
+    return 0;
   }
 }

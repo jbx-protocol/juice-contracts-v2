@@ -21,6 +21,8 @@ import './structs/JBFundingCycleData.sol';
 import './structs/JBFundingCycleMetadata.sol';
 import './structs/JBFundAccessConstraints.sol';
 import './structs/JBGroupedSplits.sol';
+import './structs/JBConfigurationCurrencyData.sol';
+import './structs/JBConfigurationOverflowAllowanceData.sol';
 
 // Inheritance
 import './interfaces/IJBController.sol';
@@ -107,6 +109,35 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   */
   mapping(uint256 => int256) private _processedTokenTrackerOf;
 
+  /** 
+    @notice 
+    An array of a project's new currencies that have been configured over time for each terminal.
+
+    @dev
+    This is used to efficiently find the currency of a particular configuration without having to 
+    store redundant data for each new reconfiguration that keeps the currency the same as the previous configuration. 
+
+    _projectId The ID of the project to get the currency of.
+    _terminal The terminal for which the currency applies.
+    _data The structs that maps updated currencies to the configuration they were set during.
+  */
+  mapping(uint256 => mapping(IJBTerminal => JBConfigurationCurrencyData[])) private _currencyDataOf;
+
+  /**
+    @notice 
+    An array of a project's new overflow allowances that have been configured over time for each terminal.
+
+    @dev
+    This is used to efficiently find the overflow allowance of a particular configuration without having to 
+    store redundant data for each new reconfiguration that keeps the overflow allowance the same as the previous configuration. 
+
+    _projectId The ID of the project to get the current overflow allowance of.
+    _configuration The configuration during which the allowance applies.
+    _data The structs that maps updated overflow allowances to the configuration they were set during.
+  */
+  mapping(uint256 => mapping(IJBTerminal => JBConfigurationOverflowAllowanceData[]))
+    private _overflowAllowanceDataOf;
+
   //*********************************************************************//
   // --------------- public immutable stored properties ---------------- //
   //*********************************************************************//
@@ -141,62 +172,15 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
   /**
     @notice 
-    The amount of overflow that a project is allowed to tap into on-demand throughout configuration.
-
-    _projectId The ID of the project to get the current overflow allowance of.
-    _configuration The configuration of the during which the allowance applies.
-    _terminal The terminal managing the overflow.
-  */
-  mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
-    public
-    override overflowAllowanceOf;
-
-  /**
-    @notice 
     The amount of that a project can withdraw per funding cycle.
 
     _projectId The ID of the project to get the current distribution limit of.
     _configuration The configuration during which the distribution limit applies.
-    _terminal The terminal from which distributions are being limited. 
+    _terminal The terminal for which distributions are being limited. 
   */
   mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
     public
     override distributionLimitOf;
-
-  /**
-    @notice 
-    The currency that overflow allowances and distribution limits are measured in for a particular funding cycle configuration, applied only to the specified terminal.
-
-    _projectId The ID of the project to get the currency of.
-    _configuration The configuration during which the currency applies.
-    _terminal The terminal for which the currency should be used. 
-  */
-  function currencyOf(
-    uint256 _projectId,
-    uint256 _configuration,
-    IJBTerminal _terminal
-  ) external view override returns (uint256) {
-    ConfigurationCurrencyData[] memory _configurationCurrencyData = _currenciesOf[_projectId][
-      _terminal
-    ];
-    for (uint256 _i = _configurationCurrencyData.length; _i > 0; _i--)
-      if (_configurationCurrencyData[_i].configuration <= _configuration)
-        return _configurationCurrencyData[_i].currency;
-
-    return 0;
-  }
-
-  struct ConfigurationCurrencyData {
-    uint56 configuration;
-    uint8 currency;
-  }
-
-  // mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
-  //   public
-  //   override currencyOf;
-
-  // temp
-  mapping(uint256 => mapping(IJBTerminal => ConfigurationCurrencyData[])) public _currenciesOf;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -223,6 +207,60 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
         _reservedRate,
         tokenStore.totalSupplyOf(_projectId)
       );
+  }
+
+  /**
+    @notice 
+    The currency that overflow allowances and distribution limits are measured in for a particular funding cycle configuration, applied only to the specified terminal.
+
+    @param _projectId The ID of the project to get the currency of.
+    @param _configuration The configuration during which the currency applies.
+    @param _terminal The terminal for which the currency should be used. 
+
+    @return The currency of the given configuration for the provided terminal.
+  */
+  function currencyOf(
+    uint256 _projectId,
+    uint256 _configuration,
+    IJBTerminal _terminal
+  ) external view override returns (uint256) {
+    // Get the currency list for this project and this terminal.
+    JBConfigurationCurrencyData[] memory _data = _currencyDataOf[_projectId][_terminal];
+
+    // Loop through, starting with the latest.
+    for (uint256 _i = _data.length; _i > 0; _i--)
+      // If the configuration being requested is greater than the listed one, return it.
+      if (_data[_i].configuration <= _configuration) return _data[_i].currency;
+
+    return 0;
+  }
+
+  /**
+    @notice 
+    The amount of overflow that a project is allowed to tap into on-demand throughout configuration.
+
+    @param _projectId The ID of the project to get the current overflow allowance of.
+    @param _configuration The configuration during which the allowance applies.
+    @param _terminal The terminal managing the overflow.
+
+    @return The overflow allowance of the given configuration for the provided terminal.
+  */
+  function overflowAllowanceOf(
+    uint256 _projectId,
+    uint256 _configuration,
+    IJBTerminal _terminal
+  ) external view override returns (uint256) {
+    // Get the overflow allowance list for this project and this terminal.
+    JBConfigurationOverflowAllowanceData[] memory _data = _overflowAllowanceDataOf[_projectId][
+      _terminal
+    ];
+
+    // Loop through, starting with the latest.
+    for (uint256 _i = _data.length; _i > 0; _i--)
+      // If the configuration being requested is greater than the listed one, return it.
+      if (_data[_i].configuration <= _configuration) return _data[_i].overflowAllowance;
+
+    return 0;
   }
 
   //*********************************************************************//
@@ -844,6 +882,8 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
         );
 
     // Set overflow allowances if there are any.
+    // The routine makes an assumption that `distributionLimitOf` changes with each reconfiguration
+    // much more frequently than `overflowAllowanceOf` or `currencyOf`. The data structures and storage patterns are thus different.
     for (uint256 _i; _i < _fundAccessConstraints.length; _i++) {
       JBFundAccessConstraints memory _constraints = _fundAccessConstraints[_i];
 
@@ -853,37 +893,42 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
           _constraints.terminal
         ] = _constraints.distributionLimit;
 
-      // Set the overflow allowance if there is one.
-      if (_constraints.overflowAllowance > 0)
-        overflowAllowanceOf[_projectId][_fundingCycle.configuration][
-          _constraints.terminal
-        ] = _constraints.overflowAllowance;
+      // Get a reference to the overflow allowance data for this project and this terminal.
+      JBConfigurationOverflowAllowanceData[]
+        memory _overflowAllowanceData = _overflowAllowanceDataOf[_projectId][_constraints.terminal];
 
-      // Check if _constrints.currency differs from current value. if so, set value
-      // so that it applies to the _fundingCycle.configuration and beyond.
-
-      // TODO: This doesn't change often, is it necessary to write
-
-      // Note: even if reconfiguration fails, the value will still be accurate since
-      // reconfig uses same as previous.
-
-      // If proposed currency is the same as current currency, don't set it.
-
-      // At any point, any configuration can find the latest by finding the most recently saved value.
-      // There may be another currency for a new reconfiguration.
-      // The correct currency might be from a reconfig in the past, itll never be from a reconfig in the future.
-      // if (_constraints.currency > 0)
-      //   currencyOf[_projectId][_fundingCycle.configuration][_constraints.terminal] = _constraints
-      //     .currency;
+      // Check if _constraints.overflowAllowance exists and differs from latest value.
+      // If so, push the value into the array.
+      // This prevents needlessly storing overflow allowances for each new reconfiguration if it isn't changing.
       if (
-        _constraints.currency > 0 &&
-        _currenciesOf[_projectId][_constraints.terminal][
-          _currenciesOf[_projectId][_constraints.terminal].length
-        ].currency !=
-        _constraints.currency
+        (_constraints.overflowAllowance > 0 && _overflowAllowanceData.length == 0) ||
+        _overflowAllowanceData[_overflowAllowanceData.length].overflowAllowance !=
+        _constraints.overflowAllowance
       )
-        _currenciesOf[_projectId][_constraints.terminal].push(
-          Blah(uint56(_fundingCycle.configuration), uint8(_constraints.currency))
+        _overflowAllowanceDataOf[_projectId][_constraints.terminal].push(
+          JBConfigurationOverflowAllowanceData(
+            uint56(_fundingCycle.configuration),
+            _constraints.overflowAllowance
+          )
+        );
+
+      // Get a reference to the currency data for this project and this terminal.
+      JBConfigurationCurrencyData[] memory _currencyData = _currencyDataOf[_projectId][
+        _constraints.terminal
+      ];
+
+      // Check if _constraints.currency exists and differs from latest value.
+      // If so, push the value into the array.
+      // This prevents needlessly storing currencies for each new reconfiguration if it isn't changing.
+      if (
+        (_constraints.currency > 0 && _currencyData.length == 0) ||
+        _currencyData[_currencyData.length].currency != _constraints.currency
+      )
+        _currencyDataOf[_projectId][_constraints.terminal].push(
+          JBConfigurationCurrencyData(
+            uint56(_fundingCycle.configuration),
+            uint8(_constraints.currency)
+          )
         );
 
       emit SetFundAccessConstraints(
