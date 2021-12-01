@@ -50,7 +50,6 @@ describe('JBTokenStore::mintFor(...)', function () {
 
     expect(await jbTokenStore.unclaimedBalanceOf(newHolder.address, PROJECT_ID)).to.equal(0);
     expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(numTokens);
-    expect(await jbTokenStore.totalSupplyOf(PROJECT_ID)).to.equal(numTokens);
 
     await expect(mintForTx)
       .to.emit(jbTokenStore, 'Mint')
@@ -76,7 +75,6 @@ describe('JBTokenStore::mintFor(...)', function () {
       numTokens,
     );
     expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(numTokens);
-    expect(await jbTokenStore.totalSupplyOf(PROJECT_ID)).to.equal(numTokens);
 
     await expect(mintForTx)
       .to.emit(jbTokenStore, 'Mint')
