@@ -2,120 +2,150 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
 describe('JBOperatorStore::hasPermission(...)', function () {
-  let jbOperatorStoreFactory;
-  let jbOperatorStore;
+  const DOMAIN = 1;
+  const DOMAIN_2 = 2;
+  const PERMISSION_INDEXES_1 = [1, 2, 3];
+  const PERMISSION_INDEXES_2 = [4, 5, 6];
+  const PERMISSION_INDEX = 3;
+  const PERMISSION_INDEX_OUT_OF_BOUND = 256;
 
-  let signers;
+  async function setup() {
+    let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
-  beforeEach(async function () {
-    jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
-    jbOperatorStore = await jbOperatorStoreFactory.deploy();
+    let jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
+    let jbOperatorStore = await jbOperatorStoreFactory.deploy();
 
-    signers = await ethers.getSigners();
-  });
+    return {
+      projectOwner,
+      deployer,
+      addrs,
+      jbOperatorStore,
+    };
+  }
 
   it('Permission index out of bounds', async function () {
+    const { deployer, projectOwner, jbOperatorStore } = await setup();
     await expect(
       jbOperatorStore
-        .connect(signers[0])
+        .connect(deployer)
         .hasPermission(
-          /*operator=*/ signers[0].address,
-          /*account=*/ signers[0].address,
-          /*domain=*/ 1,
-          /*permissionIndex=*/ 256,
+          /*operator=*/ projectOwner.address,
+          /*account=*/ deployer.address,
+          /*domain=*/ DOMAIN,
+          /*permissionIndex=*/ PERMISSION_INDEX_OUT_OF_BOUND,
         ),
     ).to.be.revertedWith('0x00: INDEX_OUT_OF_BOUNDS');
   });
 
   it('Has permission if account is caller', async function () {
-    let caller = signers[0];
-    let operator = signers[1];
-    let domain = 1;
-    let permissionIndexes = [1, 2, 3];
-
+    const { deployer, projectOwner, jbOperatorStore } = await setup();
     await jbOperatorStore
-      .connect(caller)
-      .setOperator([operator.address, domain, permissionIndexes]);
+      .connect(deployer)
+      .setOperator([
+        /*operator=*/ projectOwner.address,
+        /*domain=*/ DOMAIN,
+        /*permissionIndexes=*/ PERMISSION_INDEXES_1
+      ]);
 
-    for (let permissionIndex of permissionIndexes) {
+    for (let permissionIndex of PERMISSION_INDEXES_1) {
       expect(
         await jbOperatorStore
-          .connect(caller)
-          .hasPermission(operator.address, /*account=*/ caller.address, domain, permissionIndex),
+          .connect(deployer)
+          .hasPermission(
+            /*operator=*/ projectOwner.address,
+            /*account=*/ deployer.address,
+            /*domain=*/ DOMAIN,
+            /*permissionIndex=*/ permissionIndex
+          ),
       ).to.be.true;
     }
   });
 
   it('Has permission if account is not caller', async function () {
-    let caller1 = signers[0];
-    let caller2 = signers[1];
-
-    let operator = signers[2];
-    let domain = 1;
-    let permissionIndexes = [1, 2, 3];
+    let { deployer, projectOwner, addrs, jbOperatorStore } = await setup();
 
     await jbOperatorStore
-      .connect(caller1)
-      .setOperator([operator.address, domain, permissionIndexes]);
+      .connect(deployer)
+      .setOperator([
+        /*operator=*/ addrs[1].address,
+        /*domain=*/ DOMAIN,
+        /*permissionIndexes=*/ PERMISSION_INDEXES_1
+      ]);
 
-    for (let permissionIndex of permissionIndexes) {
+    for (let permissionIndex of PERMISSION_INDEXES_1) {
       expect(
         await jbOperatorStore
-          .connect(caller2)
-          .hasPermission(operator.address, /*account=*/ caller1.address, domain, permissionIndex),
+          .connect(projectOwner)
+          .hasPermission(
+            /*operator=*/ addrs[1].address,
+            /*account=*/ deployer.address,
+            /*domain=*/ DOMAIN,
+            /*permissionIndex=*/ permissionIndex
+          ),
       ).to.be.true;
     }
   });
 
   it("Doesn't have permission if never set", async function () {
+    const { deployer, projectOwner, jbOperatorStore } = await setup();
     expect(
       await jbOperatorStore
-        .connect(signers[0])
+        .connect(deployer)
         .hasPermission(
-          /*operator=*/ signers[1].address,
-          /*account=*/ signers[0].address,
-          /*domain=*/ 1,
-          /*permissionIndex=*/ 3,
+          /*operator=*/ projectOwner.address,
+          /*account=*/ deployer.address,
+          /*domain=*/ DOMAIN,
+          /*permissionIndex=*/ PERMISSION_INDEX,
         ),
     ).to.be.be.false;
   });
 
   it("Doesn't have permission if indexes differ", async function () {
-    let caller = signers[0];
-    let operator = signers[1];
-    let domain = 1;
+    const { deployer, projectOwner, jbOperatorStore } = await setup();
 
     await jbOperatorStore
-      .connect(caller)
-      .setOperator([operator.address, domain, /*permissionIndexes=*/ [1, 2, 3]]);
+      .connect(deployer)
+      .setOperator([
+        /*operator=*/ projectOwner.address,
+        /*domain=*/ DOMAIN,
+        /*permissionIndexes=*/ PERMISSION_INDEXES_1
+      ]);
 
-    // Test some invalid permission indexes.
-    for (let permissionIndex of [4, 5, 6]) {
+    for (let permissionIndex of PERMISSION_INDEXES_2) {
       expect(
         await jbOperatorStore
-          .connect(caller)
-          .hasPermission(operator.address, /*account=*/ caller.address, domain, permissionIndex),
+          .connect(deployer)
+          .hasPermission(
+            /*operator=*/ projectOwner.address,
+            /*account=*/ deployer.address,
+            /*domain=*/ DOMAIN,
+            /*permissionIndex=*/ permissionIndex
+          ),
       ).to.be.false;
     }
   });
 
   it("Doesn't have permission if domain differs", async function () {
-    let caller = signers[0];
-    let operator = signers[1];
-    let permissionIndexes = [1, 2, 3];
+    const { deployer, projectOwner, jbOperatorStore } = await setup();
 
     await jbOperatorStore
-      .connect(caller)
-      .setOperator([operator.address, /*domain=*/ 1, permissionIndexes]);
+      .connect(deployer)
+      .setOperator([
+        /*operator=*/ projectOwner.address,
+        /*domain=*/ DOMAIN,
+        /*permissionIndex=*/ PERMISSION_INDEXES_1
+      ]);
 
-    for (let permissionIndex of permissionIndexes) {
+    for (let permissionIndex of PERMISSION_INDEXES_1) {
       expect(
-        await jbOperatorStore.connect(caller).hasPermission(
-          operator.address,
-          /*account=*/ caller.address,
-          /*domain=*/ 2, // Test different domain.
-          permissionIndex,
-        ),
+        await jbOperatorStore
+          .connect(deployer)
+          .hasPermission(
+            /*operator=*/ projectOwner.address,
+            /*account=*/ deployer.address,
+            /*domain=*/ DOMAIN_2,
+            /*permissionIndex=*/ permissionIndex,
+          ),
       ).to.be.false;
     }
   });
