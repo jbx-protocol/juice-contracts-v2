@@ -6,8 +6,6 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
-import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
-import { Contract } from 'ethers';
 
 describe('JBTokenStore::mintFor(...)', function () {
   const PROJECT_ID = 2;
@@ -50,12 +48,9 @@ describe('JBTokenStore::mintFor(...)', function () {
       .connect(controller)
       .mintFor(newHolder.address, PROJECT_ID, numTokens, true);
 
-    expect(
-      await jbTokenStore.connect(controller).unclaimedBalanceOf(newHolder.address, PROJECT_ID),
-    ).to.equal(0);
-    expect(
-      await jbTokenStore.connect(controller).balanceOf(newHolder.address, PROJECT_ID),
-    ).to.equal(numTokens);
+    expect(await jbTokenStore.unclaimedBalanceOf(newHolder.address, PROJECT_ID)).to.equal(0);
+    expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(numTokens);
+    expect(await jbTokenStore.totalSupplyOf(PROJECT_ID)).to.equal(numTokens);
 
     await expect(mintForTx)
       .to.emit(jbTokenStore, 'Mint')
@@ -77,12 +72,11 @@ describe('JBTokenStore::mintFor(...)', function () {
       .connect(controller)
       .mintFor(newHolder.address, PROJECT_ID, numTokens, false);
 
-    expect(
-      await jbTokenStore.connect(controller).unclaimedBalanceOf(newHolder.address, PROJECT_ID),
-    ).to.equal(numTokens);
-    expect(
-      await jbTokenStore.connect(controller).balanceOf(newHolder.address, PROJECT_ID),
-    ).to.equal(numTokens);
+    expect(await jbTokenStore.unclaimedBalanceOf(newHolder.address, PROJECT_ID)).to.equal(
+      numTokens,
+    );
+    expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(numTokens);
+    expect(await jbTokenStore.totalSupplyOf(PROJECT_ID)).to.equal(numTokens);
 
     await expect(mintForTx)
       .to.emit(jbTokenStore, 'Mint')
@@ -103,7 +97,7 @@ describe('JBTokenStore::mintFor(...)', function () {
     ).to.be.revertedWith('0x22: NO_OP');
   });
 
-  it(`Can't mint claimed tokens and emit event if caller isn't controller`, async function () {
+  it(`Can't mint tokens if caller does not have permission`, async function () {
     const { addrs, mockJbDirectory, jbTokenStore } = await setup();
 
     // Return a random controller address.

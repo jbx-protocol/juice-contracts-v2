@@ -80,7 +80,7 @@ describe('JBTokenStore::changeFor(...)', function () {
     let initialToken = new Contract(initialTokenAddr, jbToken.abi);
     const initialTokenOwner = await initialToken.connect(controller).owner();
 
-    // Change to a new token without a new owner for the old token
+    // Change to a new token without assigning a new owner for the old token
     let newTokenName = 'NewTokenDAO';
     let newTokenSymbol = 'NEW';
     let newToken = await deployJbToken(newTokenName, newTokenSymbol);
