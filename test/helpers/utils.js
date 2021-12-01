@@ -3,7 +3,7 @@ import { ethers, network } from 'hardhat';
 
 export async function getTimestamp(block) {
   return ethers.BigNumber.from((await ethers.provider.getBlock(block || 'latest')).timestamp);
-};
+}
 
 export async function fastForward(block, seconds) {
   const now = await getTimestamp();
@@ -11,7 +11,7 @@ export async function fastForward(block, seconds) {
   const fastforwardAmount = seconds.toNumber() - timeSinceTimemark;
   await ethers.provider.send('evm_increaseTime', [fastforwardAmount]);
   await ethers.provider.send('evm_mine');
-};
+}
 
 export function makePackedPermissions(permissionIndexes) {
   return permissionIndexes.reduce(

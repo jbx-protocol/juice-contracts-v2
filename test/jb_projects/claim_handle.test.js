@@ -4,10 +4,10 @@ import { ethers } from 'hardhat';
 import { fastForward } from '../helpers/utils';
 
 describe('JBProjects::claimHandle(...)', function () {
-  const PROJECT_HANDLE = "PROJECT_1";
-  const PROJECT_HANDLE_NOT_TAKEN = "PROJECT_2";
-  const PROJECT_HANDLE_NOT_TAKEN_2 = "PROJECT_3";
-  const METADATA_CID = "";
+  const PROJECT_HANDLE = 'PROJECT_1';
+  const PROJECT_HANDLE_NOT_TAKEN = 'PROJECT_2';
+  const PROJECT_HANDLE_NOT_TAKEN_2 = 'PROJECT_3';
+  const METADATA_CID = '';
 
   let jbOperatorStore;
 
@@ -26,11 +26,11 @@ describe('JBProjects::claimHandle(...)', function () {
       projectOwner,
       deployer,
       addrs,
-      jbProjectsStore
+      jbProjectsStore,
     };
-  };
+  }
 
-  it('Should reject with Unauthorized', async function () {
+  it("Doesn't claim if owner of project claims", async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore
@@ -39,15 +39,15 @@ describe('JBProjects::claimHandle(...)', function () {
         /*owner=*/ projectOwner.address,
         /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
         /*metadataCid=*/ METADATA_CID,
-      )
+      );
 
     await jbProjectsStore
       .connect(projectOwner)
       .transferHandleOf(
-          /*projectId=*/ 1,
-          /*address=*/ deployer.address,
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN)
-      )
+        /*projectId=*/ 1,
+        /*address=*/ deployer.address,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
+      );
 
     await expect(
       jbProjectsStore
@@ -60,7 +60,7 @@ describe('JBProjects::claimHandle(...)', function () {
     ).to.be.revertedWith('0x0c: UNAUTHORIZED');
   });
 
-  it('Claim handle from another project with wrong owner', async function () {
+  it("Doesn't claim if it is wrong owner", async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore
@@ -69,7 +69,7 @@ describe('JBProjects::claimHandle(...)', function () {
         /*owner=*/ projectOwner.address,
         /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
         /*metadataCid=*/ METADATA_CID,
-      )
+      );
 
     await jbProjectsStore
       .connect(deployer)
@@ -77,28 +77,28 @@ describe('JBProjects::claimHandle(...)', function () {
         /*owner=*/ deployer.address,
         /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN_2),
         /*metadataCid=*/ METADATA_CID,
-      )
+      );
 
     await jbProjectsStore
       .connect(projectOwner)
       .transferHandleOf(
-          /*projectId=*/ 1,
-          /*address=*/ deployer.address,
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN)
-      )
+        /*projectId=*/ 1,
+        /*address=*/ deployer.address,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
+      );
 
     await expect(
       jbProjectsStore
         .connect(projectOwner)
         .claimHandle(
-            /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-            /*address=*/ deployer.address,
-            /*projectId=*/ 2,
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+          /*address=*/ deployer.address,
+          /*projectId=*/ 2,
         ),
     ).to.be.revertedWith('Operatable: UNAUTHORIZED');
   });
 
-  it('Claim handle from another project after expiration date', async function () {
+  it("Doesn't claim if it is after expiration date", async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore
@@ -107,7 +107,7 @@ describe('JBProjects::claimHandle(...)', function () {
         /*owner=*/ projectOwner.address,
         /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
         /*metadataCid=*/ METADATA_CID,
-      )
+      );
 
     await jbProjectsStore
       .connect(deployer)
@@ -115,31 +115,29 @@ describe('JBProjects::claimHandle(...)', function () {
         /*owner=*/ deployer.address,
         /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN_2),
         /*metadataCid=*/ METADATA_CID,
-      )
+      );
 
     await jbProjectsStore
       .connect(projectOwner)
       .transferHandleOf(
-          /*projectId=*/ 1,
-          /*address=*/ deployer.address,
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN)
-      )
+        /*projectId=*/ 1,
+        /*address=*/ deployer.address,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
+      );
 
     let tx = await jbProjectsStore
       .connect(projectOwner)
-      .challengeHandle(
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN)
-      )
+      .challengeHandle(/*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN));
 
-    await fastForward(tx.blockNumber, ethers.BigNumber.from(12536000))
+    await fastForward(tx.blockNumber, ethers.BigNumber.from(12536000));
 
     await expect(
       jbProjectsStore
         .connect(deployer)
         .claimHandle(
-            /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
-            /*address=*/ deployer.address,
-            /*projectId=*/ 2,
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
+          /*address=*/ deployer.address,
+          /*projectId=*/ 2,
         ),
     ).to.be.revertedWith('0x0c: UNAUTHORIZED');
   });
@@ -153,7 +151,7 @@ describe('JBProjects::claimHandle(...)', function () {
         /*owner=*/ projectOwner.address,
         /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
         /*metadataCid=*/ METADATA_CID,
-      )
+      );
 
     await jbProjectsStore
       .connect(deployer)
@@ -161,27 +159,31 @@ describe('JBProjects::claimHandle(...)', function () {
         /*owner=*/ deployer.address,
         /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN_2),
         /*metadataCid=*/ METADATA_CID,
-      )
+      );
 
     await jbProjectsStore
       .connect(projectOwner)
       .transferHandleOf(
-          /*projectId=*/ 1,
-          /*address=*/ deployer.address,
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN)
-      )
+        /*projectId=*/ 1,
+        /*address=*/ deployer.address,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
+      );
 
     let tx = await jbProjectsStore
       .connect(deployer)
       .claimHandle(
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-          /*address=*/ deployer.address,
-          /*projectId=*/ 2,
-      )
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*address=*/ deployer.address,
+        /*projectId=*/ 2,
+      );
 
     await expect(tx)
       .to.emit(jbProjectsStore, 'ClaimHandle')
-      .withArgs(2, deployer.address, ethers.utils.formatBytes32String(PROJECT_HANDLE), deployer.address)
+      .withArgs(
+        2,
+        deployer.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        deployer.address,
+      );
   });
-
-})
+});

@@ -2,9 +2,9 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
 describe('JBProjects::createFor(...)', function () {
-  const PROJECT_HANDLE = "PROJECT_1";
-  const PROJECT_HANDLE_EMPTY = "";
-  const METADATA_CID = "";
+  const PROJECT_HANDLE = 'PROJECT_1';
+  const PROJECT_HANDLE_EMPTY = '';
+  const METADATA_CID = '';
 
   let jbOperatorStore;
 
@@ -23,11 +23,11 @@ describe('JBProjects::createFor(...)', function () {
       projectOwner,
       deployer,
       addrs,
-      jbProjectsStore
+      jbProjectsStore,
     };
-  };
+  }
 
-  it('Has an empty handle', async function () {
+  it("Doesn't create project if has an empty handle", async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await expect(
@@ -41,7 +41,7 @@ describe('JBProjects::createFor(...)', function () {
     ).to.be.revertedWith('0x06: EMPTY_HANDLE');
   });
 
-  it('Handle taken already', async function () {
+  it("Doesn't create if handle taken already", async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore
@@ -50,7 +50,7 @@ describe('JBProjects::createFor(...)', function () {
         /*owner=*/ projectOwner.address,
         /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
         /*metadataCid=*/ METADATA_CID,
-      )
+      );
 
     await expect(
       jbProjectsStore
@@ -72,12 +72,16 @@ describe('JBProjects::createFor(...)', function () {
         /*owner=*/ projectOwner.address,
         /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
         /*metadataCid=*/ METADATA_CID,
-      )
+      );
 
     await expect(tx)
       .to.emit(jbProjectsStore, 'Create')
-      .withArgs(1, projectOwner.address, ethers.utils.formatBytes32String(PROJECT_HANDLE), METADATA_CID, deployer.address)
+      .withArgs(
+        1,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        METADATA_CID,
+        deployer.address,
+      );
   });
-
-
-})
+});
