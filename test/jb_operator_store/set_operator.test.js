@@ -89,6 +89,6 @@ describe('JBOperatorStore::setOperator(...)', function () {
 
     await expect(
       jbOperatorStore.connect(caller).setOperator([operator.address, domain, permissionIndexes]),
-    ).to.be.revertedWith('0x02: INDEX_OUT_OF_BOUNDS');
+    ).to.be.revertedWith('IndexOutOfBounds()');
   });
 });

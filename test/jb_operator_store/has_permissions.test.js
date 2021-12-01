@@ -24,7 +24,7 @@ describe('JBOperatorStore::hasPermissions(...)', function () {
           /*domain=*/ 1,
           /*permissionIndexes=*/ [256],
         ),
-    ).to.be.revertedWith('0x01: INDEX_OUT_OF_BOUNDS');
+    ).to.be.revertedWith('IndexOutOfBounds()');
   });
 
   it('Account is caller', async function () {
