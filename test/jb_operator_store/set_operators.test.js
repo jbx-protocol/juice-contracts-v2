@@ -64,7 +64,7 @@ describe('JBOperatorStore::setOperators(...)', function () {
 
   async function setOperatorsAndValidateEvents(operators, caller) {
     let tx = await setOperators(operators, caller);
-    validateEvents(tx, operators, caller);
+    await validateEvents(tx, operators, caller);
   }
 
   it('Set with no previous values, then override and clear them', async function () {

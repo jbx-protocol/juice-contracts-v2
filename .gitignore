@@ -9,4 +9,8 @@ deployments/localhost/**
 # Mac OSX
 .DS_Store
 
+# Code coverage reports
+coverage/
+coverage.json
+
 *.txt
