@@ -38,7 +38,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @notice
     JBControllers that have been vetted and verified by Juicebox owners.
    */
-  IJBController[] private _knownControllers;
+  mapping(IJBController => bool) private _knownControllers;
 
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
@@ -150,8 +150,8 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     return IJBTerminal(address(0));
   }
 
-  function knownControllers() public view override returns (IJBController[] memory) {
-    return _knownControllers;
+  function isKnownControllers(IJBController _adr) public view override returns (bool) {
+    return _knownControllers[_adr];
   }
 
   //*********************************************************************//
@@ -347,12 +347,10 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     require(_controller != IJBController(address(0)), '0x30: ZERO_ADDRESS');
 
     // Check that the controller has not already been added.
-    for (uint256 _i; _i < _knownControllers.length; _i++) {
-      require(_knownControllers[_i] != _controller, '0x31: ALREADY_ADDED');
-    }
+    require(!_knownControllers[_controller], '0x31: ALREADY_ADDED');
 
     // Add the controller to the list of known controllers.
-    _knownControllers.push(_controller);
+    _knownControllers[_controller] = true;
 
     emit AddKnownController(_controller, msg.sender);
   }
@@ -364,22 +362,12 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @param _controller The terminal to be added.
   */
   function removeKnownController(IJBController _controller) external override onlyOwner {
-    // Can't remove zero address.
-    require(_controller != IJBController(address(0)), '0x32: ZERO_ADDRESS');
+    // Not in the known controllers list
+    require(_knownControllers[_controller], '0x33: NOT_FOUND');
 
-    // Find the controller and remove it.
-    for (uint256 _i; _i < _knownControllers.length; _i++) {
-      if (_knownControllers[_i] == _controller) {
-        // No need to preserve order.
-        _knownControllers[_i] = _knownControllers[_knownControllers.length - 1];
-        _knownControllers.pop();
+    // Remove the controller from the list of known controllers.
+    delete _knownControllers[_controller];
 
-        emit RemoveKnownController(_controller, msg.sender);
-        return;
-      }
-    }
-
-    // Revert if the controller is not found.
-    revert('0x33: NOT_FOUND');
+    emit RemoveKnownController(_controller, msg.sender);
   }
 }
