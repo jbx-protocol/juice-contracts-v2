@@ -7,7 +7,9 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 
 describe('JBProjects::setMetadataCidOf(...)', function () {
   const PROJECT_HANDLE = 'PROJECT_1';
-  const METADATA_CID = 'ipfs://randommetadatacidipsaddress';
+  const METADATA_CID = '';
+  const METADATA_CID_2 = 'ipfs://randommetadatacidipsaddress';
+  const PROJECT_ID = 1;
 
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
@@ -37,10 +39,14 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
 
     let tx = await jbProjectsStore
       .connect(projectOwner)
-      .setMetadataCidOf(/*projectId=*/ 1, /*metadataCid=*/ METADATA_CID);
+      .setMetadataCidOf(/*projectId=*/ PROJECT_ID, /*metadataCid=*/ METADATA_CID_2);
+
+
+    let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataCidOf(PROJECT_ID);
+    await expect(storedMetadataCid).to.equal(METADATA_CID_2);
 
     await expect(tx)
       .to.emit(jbProjectsStore, 'SetUri')
-      .withArgs(1, METADATA_CID, projectOwner.address);
+      .withArgs(PROJECT_ID, METADATA_CID_2, projectOwner.address);
   });
 });

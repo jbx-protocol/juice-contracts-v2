@@ -6,6 +6,7 @@ describe('JBProjects::setHandleOf(...)', function () {
   const PROJECT_HANDLE_NOT_TAKEN = 'PROJECT_2';
   const PROJECT_HANDLE_EMPTY = '';
   const METADATA_CID = '';
+  const PROJECT_ID = 1;
 
   let jbOperatorStore;
 
@@ -43,7 +44,7 @@ describe('JBProjects::setHandleOf(...)', function () {
       jbProjectsStore
         .connect(projectOwner)
         .setHandleOf(
-          /*projectId=*/ 1,
+          /*projectId=*/ PROJECT_ID,
           /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
         ),
     ).to.be.revertedWith('0x08: EMPTY_HANDLE');
@@ -64,7 +65,7 @@ describe('JBProjects::setHandleOf(...)', function () {
       jbProjectsStore
         .connect(projectOwner)
         .setHandleOf(
-          /*projectId=*/ 1,
+          /*projectId=*/ PROJECT_ID,
           /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
         ),
     ).to.be.revertedWith('0x09: HANDLE_TAKEN');
@@ -84,14 +85,20 @@ describe('JBProjects::setHandleOf(...)', function () {
     let tx = await jbProjectsStore
       .connect(projectOwner)
       .setHandleOf(
-        /*projectId=*/ 1,
+        /*projectId=*/ PROJECT_ID,
         /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
       );
+
+    let storedHandle = await jbProjectsStore.connect(deployer).handleOf(1);
+    let storedProjectId = await jbProjectsStore.connect(deployer).idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN));
+
+    await expect(storedHandle).to.equal(ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN));
+    await expect(storedProjectId).to.equal(PROJECT_ID);
 
     await expect(tx)
       .to.emit(jbProjectsStore, 'SetHandle')
       .withArgs(
-        1,
+        PROJECT_ID,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
         projectOwner.address,
       );

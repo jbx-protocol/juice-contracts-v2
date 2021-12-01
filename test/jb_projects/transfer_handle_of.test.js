@@ -6,6 +6,7 @@ describe('JBProjects::transferHandleOf(...)', function () {
   const PROJECT_HANDLE_NOT_TAKEN = 'PROJECT_2';
   const PROJECT_HANDLE_EMPTY = '';
   const METADATA_CID = '';
+  const PROJECT_ID = 1;
 
   let jbOperatorStore;
 
@@ -90,6 +91,14 @@ describe('JBProjects::transferHandleOf(...)', function () {
         /*address=*/ deployer.address,
         /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
       );
+
+    let storedHandle = await jbProjectsStore.connect(deployer).handleOf(PROJECT_ID);
+    let storedProjectId = await jbProjectsStore.connect(deployer).idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN));
+    let storedOldProjectId = await jbProjectsStore.connect(deployer).idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE));
+
+    await expect(storedHandle).to.equal(ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN));
+    await expect(storedProjectId).to.equal(PROJECT_ID);
+    await expect(storedOldProjectId).to.equal(0);
 
     await expect(tx)
       .to.emit(jbProjectsStore, 'TransferHandle')

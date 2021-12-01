@@ -11,6 +11,7 @@ describe('JBProjects::challengeHandle(...)', function () {
   const PROJECT_HANDLE_NOT_TAKEN = 'PROJECT_2';
   const PROJECT_HANDLE_NOT_TAKEN_2 = 'PROJECT_3';
   const METADATA_CID = '';
+  const PROJECT_ID = 1;
 
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
@@ -42,7 +43,7 @@ describe('JBProjects::challengeHandle(...)', function () {
     await jbProjectsStore
       .connect(projectOwner)
       .transferHandleOf(
-        /*projectId=*/ 1,
+        /*projectId=*/ PROJECT_ID,
         /*address=*/ deployer.address,
         /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
       );
@@ -68,7 +69,7 @@ describe('JBProjects::challengeHandle(...)', function () {
     await jbProjectsStore
       .connect(projectOwner)
       .transferHandleOf(
-        /*projectId=*/ 1,
+        /*projectId=*/ PROJECT_ID,
         /*address=*/ deployer.address,
         /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
       );
@@ -102,7 +103,7 @@ describe('JBProjects::challengeHandle(...)', function () {
   //   await jbProjectsStore
   //     .connect(projectOwner)
   //     .transferHandleOf(
-  //         /*projectId=*/ 1,
+  //         /*projectId=*/ PROJECT_ID,
   //         /*address=*/ deployer.address,
   //         /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN)
   //     )
@@ -138,7 +139,7 @@ describe('JBProjects::challengeHandle(...)', function () {
     await jbProjectsStore
       .connect(projectOwner)
       .transferHandleOf(
-        /*projectId=*/ 1,
+        /*projectId=*/ PROJECT_ID,
         /*address=*/ deployer.address,
         /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
       );
@@ -148,12 +149,14 @@ describe('JBProjects::challengeHandle(...)', function () {
       .challengeHandle(/*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN));
 
     let expectedChallengeExpiry = (await getTimestamp(tx.blockNumber)).add(31536000);
+    let storedChallengeExpiryOf = await jbProjectsStore.connect(deployer).challengeExpiryOf(ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN));
+    await expect(storedChallengeExpiryOf).equal(expectedChallengeExpiry);
 
     await expect(tx)
       .to.emit(jbProjectsStore, 'ChallengeHandle')
       .withArgs(
         ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
-        1,
+        PROJECT_ID,
         expectedChallengeExpiry,
         deployer.address,
       );

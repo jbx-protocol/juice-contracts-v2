@@ -4,6 +4,7 @@ import { ethers } from 'hardhat';
 describe('JBProjects::renewHandle(...)', function () {
   const PROJECT_HANDLE = 'PROJECT_1';
   const METADATA_CID = '';
+  const PROJECT_ID = 1;
 
   let jbOperatorStore;
 
@@ -38,7 +39,7 @@ describe('JBProjects::renewHandle(...)', function () {
       );
 
     await expect(
-      jbProjectsStore.connect(projectOwner).renewHandleOf(/*projectId=*/ 1),
+      jbProjectsStore.connect(projectOwner).renewHandleOf(/*projectId=*/ PROJECT_ID),
     ).to.be.revertedWith('Operatable: UNAUTHORIZED');
   });
 
@@ -53,10 +54,13 @@ describe('JBProjects::renewHandle(...)', function () {
         /*metadataCid=*/ METADATA_CID,
       );
 
-    let tx = await jbProjectsStore.connect(projectOwner).renewHandleOf(/*projectId=*/ 1);
+    let tx = await jbProjectsStore.connect(projectOwner).renewHandleOf(/*projectId=*/ PROJECT_ID);
+
+    let storedChallengeExpiryOf = await jbProjectsStore.connect(deployer).challengeExpiryOf(ethers.utils.formatBytes32String(PROJECT_HANDLE));
+    await expect(storedChallengeExpiryOf).equal(0);
 
     await expect(tx)
       .to.emit(jbProjectsStore, 'RenewHandle')
-      .withArgs(ethers.utils.formatBytes32String(PROJECT_HANDLE), 1, projectOwner.address);
+      .withArgs(ethers.utils.formatBytes32String(PROJECT_HANDLE), PROJECT_ID, projectOwner.address);
   });
 });
