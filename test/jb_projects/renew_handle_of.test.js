@@ -27,22 +27,6 @@ describe('JBProjects::renewHandle(...)', function () {
     };
   }
 
-  it("Doesn't renew handle of project from non owner", async function () {
-    const { projectOwner, deployer, jbProjectsStore } = await setup();
-
-    await jbProjectsStore
-      .connect(deployer)
-      .createFor(
-        /*owner=*/ deployer.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
-      );
-
-    await expect(
-      jbProjectsStore.connect(projectOwner).renewHandleOf(/*projectId=*/ PROJECT_ID),
-    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
-  });
-
   it('Should renew handle', async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
@@ -62,5 +46,21 @@ describe('JBProjects::renewHandle(...)', function () {
     await expect(tx)
       .to.emit(jbProjectsStore, 'RenewHandle')
       .withArgs(ethers.utils.formatBytes32String(PROJECT_HANDLE), PROJECT_ID, projectOwner.address);
+  });
+
+  it("Can't renew handle of project from non owner", async function () {
+    const { projectOwner, deployer, jbProjectsStore } = await setup();
+
+    await jbProjectsStore
+      .connect(deployer)
+      .createFor(
+        /*owner=*/ deployer.address,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*metadataCid=*/ METADATA_CID,
+      );
+
+    await expect(
+      jbProjectsStore.connect(projectOwner).renewHandleOf(/*projectId=*/ PROJECT_ID),
+    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
   });
 });

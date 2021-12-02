@@ -32,118 +32,6 @@ describe('JBProjects::claimHandle(...)', function () {
     };
   }
 
-  it("Doesn't claim if owner of project claims", async function () {
-    const { projectOwner, deployer, jbProjectsStore } = await setup();
-
-    await jbProjectsStore
-      .connect(deployer)
-      .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
-      );
-
-    await jbProjectsStore
-      .connect(projectOwner)
-      .transferHandleOf(
-        /*projectId=*/ PROJECT_ID,
-        /*address=*/ deployer.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
-      );
-
-    await expect(
-      jbProjectsStore
-        .connect(projectOwner)
-        .claimHandle(
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
-          /*address=*/ projectOwner.address,
-          /*projectId=*/ PROJECT_ID,
-        ),
-    ).to.be.revertedWith('0x0c: UNAUTHORIZED');
-  });
-
-  it("Doesn't claim if it is wrong owner", async function () {
-    const { projectOwner, deployer, jbProjectsStore } = await setup();
-
-    await jbProjectsStore
-      .connect(deployer)
-      .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
-      );
-
-    await jbProjectsStore
-      .connect(deployer)
-      .createFor(
-        /*owner=*/ deployer.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN_2),
-        /*metadataCid=*/ METADATA_CID,
-      );
-
-    await jbProjectsStore
-      .connect(projectOwner)
-      .transferHandleOf(
-        /*projectId=*/ PROJECT_ID,
-        /*address=*/ deployer.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
-      );
-
-    await expect(
-      jbProjectsStore
-        .connect(projectOwner)
-        .claimHandle(
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-          /*address=*/ deployer.address,
-          /*projectId=*/ PROJECT_ID_2,
-        ),
-    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
-  });
-
-  it("Doesn't claim if it is after expiration date", async function () {
-    const { projectOwner, deployer, jbProjectsStore } = await setup();
-
-    await jbProjectsStore
-      .connect(deployer)
-      .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
-      );
-
-    await jbProjectsStore
-      .connect(deployer)
-      .createFor(
-        /*owner=*/ deployer.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN_2),
-        /*metadataCid=*/ METADATA_CID,
-      );
-
-    await jbProjectsStore
-      .connect(projectOwner)
-      .transferHandleOf(
-        /*projectId=*/ PROJECT_ID,
-        /*address=*/ deployer.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
-      );
-
-    let tx = await jbProjectsStore
-      .connect(projectOwner)
-      .challengeHandle(/*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN));
-
-    await fastForward(tx.blockNumber, ethers.BigNumber.from(12536000));
-
-    await expect(
-      jbProjectsStore
-        .connect(deployer)
-        .claimHandle(
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
-          /*address=*/ deployer.address,
-          /*projectId=*/ PROJECT_ID_2,
-        ),
-    ).to.be.revertedWith('0x0c: UNAUTHORIZED');
-  });
-
   it('Should claim handle from another project', async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
@@ -193,5 +81,117 @@ describe('JBProjects::claimHandle(...)', function () {
         ethers.utils.formatBytes32String(PROJECT_HANDLE),
         deployer.address,
       );
+  });
+
+  it("Can't claim if owner of project claims", async function () {
+    const { projectOwner, deployer, jbProjectsStore } = await setup();
+
+    await jbProjectsStore
+      .connect(deployer)
+      .createFor(
+        /*owner=*/ projectOwner.address,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*metadataCid=*/ METADATA_CID,
+      );
+
+    await jbProjectsStore
+      .connect(projectOwner)
+      .transferHandleOf(
+        /*projectId=*/ PROJECT_ID,
+        /*address=*/ deployer.address,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
+      );
+
+    await expect(
+      jbProjectsStore
+        .connect(projectOwner)
+        .claimHandle(
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
+          /*address=*/ projectOwner.address,
+          /*projectId=*/ PROJECT_ID,
+        ),
+    ).to.be.revertedWith('0x0c: UNAUTHORIZED');
+  });
+
+  it("Can't claim if it is wrong owner", async function () {
+    const { projectOwner, deployer, jbProjectsStore } = await setup();
+
+    await jbProjectsStore
+      .connect(deployer)
+      .createFor(
+        /*owner=*/ projectOwner.address,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*metadataCid=*/ METADATA_CID,
+      );
+
+    await jbProjectsStore
+      .connect(deployer)
+      .createFor(
+        /*owner=*/ deployer.address,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN_2),
+        /*metadataCid=*/ METADATA_CID,
+      );
+
+    await jbProjectsStore
+      .connect(projectOwner)
+      .transferHandleOf(
+        /*projectId=*/ PROJECT_ID,
+        /*address=*/ deployer.address,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
+      );
+
+    await expect(
+      jbProjectsStore
+        .connect(projectOwner)
+        .claimHandle(
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+          /*address=*/ deployer.address,
+          /*projectId=*/ PROJECT_ID_2,
+        ),
+    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
+  });
+
+  it("Can't claim if it is after expiration date", async function () {
+    const { projectOwner, deployer, jbProjectsStore } = await setup();
+
+    await jbProjectsStore
+      .connect(deployer)
+      .createFor(
+        /*owner=*/ projectOwner.address,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*metadataCid=*/ METADATA_CID,
+      );
+
+    await jbProjectsStore
+      .connect(deployer)
+      .createFor(
+        /*owner=*/ deployer.address,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN_2),
+        /*metadataCid=*/ METADATA_CID,
+      );
+
+    await jbProjectsStore
+      .connect(projectOwner)
+      .transferHandleOf(
+        /*projectId=*/ PROJECT_ID,
+        /*address=*/ deployer.address,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
+      );
+
+    let tx = await jbProjectsStore
+      .connect(projectOwner)
+      .challengeHandle(/*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN));
+
+    await fastForward(tx.blockNumber, ethers.BigNumber.from(12536000));
+
+    await expect(
+      jbProjectsStore
+        .connect(deployer)
+        .claimHandle(
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
+          /*address=*/ deployer.address,
+          /*projectId=*/ PROJECT_ID_2,
+        ),
+    ).to.be.revertedWith('0x0c: UNAUTHORIZED');
   });
 });

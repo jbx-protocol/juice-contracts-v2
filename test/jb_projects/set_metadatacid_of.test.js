@@ -26,7 +26,7 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
     };
   }
 
-  it('Set MetadataCid', async function () {
+  it('Should set MetadataCid on project', async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore

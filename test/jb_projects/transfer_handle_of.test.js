@@ -29,50 +29,6 @@ describe('JBProjects::transferHandleOf(...)', function () {
     };
   }
 
-  it("Doesn't transfer handle if is empty handle", async function () {
-    const { projectOwner, deployer, jbProjectsStore } = await setup();
-
-    await jbProjectsStore
-      .connect(deployer)
-      .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
-      );
-
-    await expect(
-      jbProjectsStore
-        .connect(projectOwner)
-        .transferHandleOf(
-          /*projectId=*/ 1,
-          /*address=*/ deployer.address,
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
-        ),
-    ).to.be.revertedWith('0x0a: EMPTY_HANDLE');
-  });
-
-  it("Doesn't transfer handle if handle taken already", async function () {
-    const { projectOwner, deployer, jbProjectsStore } = await setup();
-
-    await jbProjectsStore
-      .connect(deployer)
-      .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
-      );
-
-    await expect(
-      jbProjectsStore
-        .connect(projectOwner)
-        .transferHandleOf(
-          /*projectId=*/ 1,
-          /*address=*/ deployer.address,
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        ),
-    ).to.be.revertedWith('0x0b: HANDLE_TAKEN');
-  });
-
   it('Should transfer handle to another address', async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
@@ -109,5 +65,49 @@ describe('JBProjects::transferHandleOf(...)', function () {
         ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
         projectOwner.address,
       );
+  });
+
+  it("Can't transfer handle if is empty handle", async function () {
+    const { projectOwner, deployer, jbProjectsStore } = await setup();
+
+    await jbProjectsStore
+      .connect(deployer)
+      .createFor(
+        /*owner=*/ projectOwner.address,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*metadataCid=*/ METADATA_CID,
+      );
+
+    await expect(
+      jbProjectsStore
+        .connect(projectOwner)
+        .transferHandleOf(
+          /*projectId=*/ 1,
+          /*address=*/ deployer.address,
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
+        ),
+    ).to.be.revertedWith('0x0a: EMPTY_HANDLE');
+  });
+
+  it("Can't transfer handle if handle taken already", async function () {
+    const { projectOwner, deployer, jbProjectsStore } = await setup();
+
+    await jbProjectsStore
+      .connect(deployer)
+      .createFor(
+        /*owner=*/ projectOwner.address,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*metadataCid=*/ METADATA_CID,
+      );
+
+    await expect(
+      jbProjectsStore
+        .connect(projectOwner)
+        .transferHandleOf(
+          /*projectId=*/ 1,
+          /*address=*/ deployer.address,
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        ),
+    ).to.be.revertedWith('0x0b: HANDLE_TAKEN');
   });
 });

@@ -30,42 +30,6 @@ describe('JBProjects::createFor(...)', function () {
     };
   }
 
-  it("Doesn't create project if has an empty handle", async function () {
-    const { projectOwner, deployer, jbProjectsStore } = await setup();
-
-    await expect(
-      jbProjectsStore
-        .connect(projectOwner)
-        .createFor(
-          /*owner=*/ projectOwner.address,
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
-          /*metadataCid=*/ METADATA_CID,
-        ),
-    ).to.be.revertedWith('0x06: EMPTY_HANDLE');
-  });
-
-  it("Doesn't create if handle taken already", async function () {
-    const { projectOwner, deployer, jbProjectsStore } = await setup();
-
-    await jbProjectsStore
-      .connect(deployer)
-      .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
-      );
-
-    await expect(
-      jbProjectsStore
-        .connect(deployer)
-        .createFor(
-          /*owner=*/ projectOwner.address,
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-          /*metadataCid=*/ METADATA_CID,
-        ),
-    ).to.be.revertedWith('0x07: HANDLE_TAKEN');
-  });
-
   it('Should create a project', async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
@@ -130,5 +94,41 @@ describe('JBProjects::createFor(...)', function () {
         METADATA_CID,
         deployer.address,
       );
+  });
+
+  it("Can't create project if has an empty handle", async function () {
+    const { projectOwner, deployer, jbProjectsStore } = await setup();
+
+    await expect(
+      jbProjectsStore
+        .connect(projectOwner)
+        .createFor(
+          /*owner=*/ projectOwner.address,
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
+          /*metadataCid=*/ METADATA_CID,
+        ),
+    ).to.be.revertedWith('0x06: EMPTY_HANDLE');
+  });
+
+  it("Can't create if handle taken already", async function () {
+    const { projectOwner, deployer, jbProjectsStore } = await setup();
+
+    await jbProjectsStore
+      .connect(deployer)
+      .createFor(
+        /*owner=*/ projectOwner.address,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*metadataCid=*/ METADATA_CID,
+      );
+
+    await expect(
+      jbProjectsStore
+        .connect(deployer)
+        .createFor(
+          /*owner=*/ projectOwner.address,
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+          /*metadataCid=*/ METADATA_CID,
+        ),
+    ).to.be.revertedWith('0x07: HANDLE_TAKEN');
   });
 });
