@@ -4,17 +4,25 @@ import { ethers } from 'hardhat';
 import { makePackedPermissions } from '../helpers/utils';
 
 describe('JBOperatorStore::setOperators(...)', function () {
-  let jbOperatorStoreFactory;
-  let jbOperatorStore;
+  const DOMAIN = 1;
+  const DOMAIN_2 = 2;
+  const PERMISSION_INDEXES_EMPTY = [];
+  const PERMISSION_INDEXES_1 = [1, 2, 3];
+  const PERMISSION_INDEXES_2 = [4, 5, 6];
 
-  let signers;
+  async function setup() {
+    let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
-  beforeEach(async function () {
-    jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
-    jbOperatorStore = await jbOperatorStoreFactory.deploy();
+    let jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
+    let jbOperatorStore = await jbOperatorStoreFactory.deploy();
 
-    signers = await ethers.getSigners();
-  });
+    return {
+      projectOwner,
+      deployer,
+      addrs,
+      jbOperatorStore,
+    };
+  }
 
   function makeOperator(operator, domain, permissionIndexes) {
     return {
@@ -25,9 +33,9 @@ describe('JBOperatorStore::setOperators(...)', function () {
     };
   }
 
-  async function setOperators(operators, caller) {
-    const tx = await jbOperatorStore
-      .connect(caller)
+  async function setOperators(jbOperatorStore, operators, deployer) {
+    const t = await jbOperatorStore
+      .connect(deployer)
       .setOperators(
         operators.map((operator) => [
           operator.address,
@@ -35,98 +43,81 @@ describe('JBOperatorStore::setOperators(...)', function () {
           operator.permissionIndexes,
         ]),
       );
-    return tx;
+
+    return t;
   }
 
-  async function validateEvents(tx, operators, caller) {
+  async function validateEvents(jbOperatorStore, tx, operators, deployer) {
     await Promise.all(
       operators.map(async (operator, _) => {
         await expect(tx)
           .to.emit(jbOperatorStore, 'SetOperator')
           .withArgs(
-            operator.address,
-            /*account=*/ caller.address,
-            operator.domain,
-            operator.permissionIndexes,
-            operator.packedPermissionIndexes,
+            /*operator=*/ operator.address,
+            /*account=*/ deployer.address,
+            /*operator.domain=*/ operator.domain,
+            /*operator.permissionIndexes=*/ operator.permissionIndexes,
+            /*operator._packed*/ operator.packedPermissionIndexes,
           );
 
         expect(
           await jbOperatorStore.permissionsOf(
-            operator.address,
-            /*account=*/ caller.address,
-            operator.domain,
+            /*operator=*/ operator.address,
+            /*account=*/ deployer.address,
+            /*domain*/ operator.domain,
           ),
         ).to.equal(operator.packedPermissionIndexes);
       }),
     );
   }
 
-  async function setOperatorsAndValidateEvents(operators, caller) {
-    let tx = await setOperators(operators, caller);
-    await validateEvents(tx, operators, caller);
+  async function setOperatorsAndValidateEvents(jbOperatorStore, operators, deployer) {
+    let tx = await setOperators(jbOperatorStore, operators, deployer);
+    await validateEvents(jbOperatorStore, tx, operators, deployer);
   }
 
   it('Set with no previous values, then override and clear them', async function () {
-    let caller = signers[0];
-    let domain = 1;
+    const { projectOwner, deployer, addrs, jbOperatorStore } = await setup();
 
-    // Set operators with the same permission indexes for the domain.
-    let permissionIndexes = [1, 2, 3];
     let operators = [
-      makeOperator(/*operator=*/ signers[1], domain, permissionIndexes),
-      makeOperator(/*operator=*/ signers[2], domain, permissionIndexes),
-      makeOperator(/*operator=*/ signers[3], domain, permissionIndexes),
+      makeOperator(/*operator=*/ addrs[1], DOMAIN, PERMISSION_INDEXES_1),
+      makeOperator(/*operator=*/ addrs[2], DOMAIN, PERMISSION_INDEXES_1),
+      makeOperator(/*operator=*/ addrs[3], DOMAIN, PERMISSION_INDEXES_1),
     ];
-    await setOperatorsAndValidateEvents(operators, caller);
+    await setOperatorsAndValidateEvents(jbOperatorStore, operators, deployer);
 
-    // Override the previously set values.
-    permissionIndexes = [4, 5, 6];
     operators = [
-      makeOperator(/*operator=*/ signers[1], domain, permissionIndexes),
-      makeOperator(/*operator=*/ signers[2], domain, permissionIndexes),
-      makeOperator(/*operator=*/ signers[3], domain, permissionIndexes),
+      makeOperator(/*operator=*/ projectOwner, DOMAIN, PERMISSION_INDEXES_2),
+      makeOperator(/*operator=*/ addrs[1], DOMAIN, PERMISSION_INDEXES_2),
+      makeOperator(/*operator=*/ addrs[2], DOMAIN, PERMISSION_INDEXES_2),
     ];
-    await setOperatorsAndValidateEvents(operators, caller);
+    await setOperatorsAndValidateEvents(jbOperatorStore, operators, deployer);
 
-    // Clear previously set values.
-    permissionIndexes = [];
     operators = [
-      makeOperator(/*operator=*/ signers[1], domain, permissionIndexes),
-      makeOperator(/*operator=*/ signers[2], domain, permissionIndexes),
-      makeOperator(/*operator=*/ signers[3], domain, permissionIndexes),
+      makeOperator(/*operator=*/ projectOwner, DOMAIN, PERMISSION_INDEXES_EMPTY),
+      makeOperator(/*operator=*/ addrs[1], DOMAIN, PERMISSION_INDEXES_EMPTY),
+      makeOperator(/*operator=*/ addrs[2], DOMAIN, PERMISSION_INDEXES_EMPTY),
     ];
-    await setOperatorsAndValidateEvents(operators, caller);
+    await setOperatorsAndValidateEvents(jbOperatorStore, operators, deployer);
   });
 
   it('Same operator used for two different projects', async function () {
-    let caller = signers[0];
-    let domain1 = 1;
-    let domain2 = 2;
+    const { deployer, projectOwner, jbOperatorStore } = await setup();
 
-    // Set operators with the same permission indexes for the domain.
-    let permissionIndexes = [1, 2, 3];
     let operators = [
-      makeOperator(/*operator=*/ signers[1], domain1, permissionIndexes),
-      makeOperator(/*operator=*/ signers[1], domain2, permissionIndexes),
+      makeOperator(/*operator=*/ projectOwner, DOMAIN, PERMISSION_INDEXES_1),
+      makeOperator(/*operator=*/ projectOwner, DOMAIN_2, PERMISSION_INDEXES_1),
     ];
-    await setOperatorsAndValidateEvents(operators, caller);
+    await setOperatorsAndValidateEvents(jbOperatorStore, operators, deployer);
   });
 
   it('Same operator used for the same project', async function () {
-    let caller = signers[0];
-    let domain = 1;
-
-    // Set operators with the same permission indexes for the domain.
-    let permissionIndexes1 = [1, 2, 3];
-    let permissionIndexes2 = [3, 4, 5];
+    const { deployer, projectOwner, jbOperatorStore } = await setup();
     let operators = [
-      makeOperator(/*operator=*/ signers[1], domain, permissionIndexes1),
-      makeOperator(/*operator=*/ signers[1], domain, permissionIndexes2),
+      makeOperator(/*operator=*/ projectOwner, DOMAIN, PERMISSION_INDEXES_1),
+      makeOperator(/*operator=*/ projectOwner, DOMAIN, PERMISSION_INDEXES_2),
     ];
-    let tx = await setOperators(operators, caller);
-
-    // The permission indexes from the first set should be overridden.
-    await validateEvents(tx, operators.slice(1), caller);
+    let tx = await setOperators(jbOperatorStore, operators, deployer);
+    await validateEvents(jbOperatorStore, tx, operators.slice(1), deployer);
   });
 });
