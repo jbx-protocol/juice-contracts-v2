@@ -26,30 +26,6 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
     };
   }
 
-  it('Can\'t set MetadataCid on project if not owner or operator', async function () {
-    const { deployer, projectOwner, addrs, jbProjectsStore } = await setup();
-
-    let noOwnerOrOperator = addrs[0];
-
-    await jbProjectsStore
-      .connect(deployer)
-      .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
-      );
-
-    await expect(
-      jbOperatoreStore
-        .connect(noOwnerOrOperator)
-        .setMetadataCidOf(
-          /*projectId=*/ PROJECT_ID,
-          /*metadataCid=*/ METADATA_CID_2
-        )
-    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
-
-  }
-
   it('Should set MetadataCid on project', async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
@@ -63,10 +39,8 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
 
     let tx = await jbProjectsStore
       .connect(projectOwner)
-      .setMetadataCidOf(
-        /*projectId=*/ PROJECT_ID,
-        /*metadataCid=*/ METADATA_CID_2
-      );
+      .setMetadataCidOf(/*projectId=*/ PROJECT_ID, /*metadataCid=*/ METADATA_CID_2);
+
 
     let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataCidOf(PROJECT_ID);
     await expect(storedMetadataCid).to.equal(METADATA_CID_2);
