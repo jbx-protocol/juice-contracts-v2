@@ -82,7 +82,7 @@ describe('JBProjects::challengeHandle(...)', function () {
       .createFor(
         /*owner=*/ projectOwner.address,
         /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*METADATA_CID=*/ METADATA_CID,
+        /*metadataCid=*/ METADATA_CID,
       );
 
     await jbProjectsStore
