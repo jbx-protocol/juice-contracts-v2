@@ -9,11 +9,11 @@ import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json
 
 describe('JBTokenStore::balanceOf(...)', function () {
   const PROJECT_ID = 2;
-  const name = 'TestTokenDAO';
-  const symbol = 'TEST';
+  const TOKEN_NAME = 'TestTokenDAO';
+  const TOKEN_SYMBOL = 'TEST';
 
   async function setup() {
-    const [deployer, ...addrs] = await ethers.getSigners();
+    const [deployer, controller, newHolder] = await ethers.getSigners();
 
     const mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
     const mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
@@ -27,22 +27,21 @@ describe('JBTokenStore::balanceOf(...)', function () {
     );
 
     return {
-      addrs,
+      newHolder,
+      controller,
       mockJbDirectory,
       jbTokenStore,
     };
   }
 
   it('Should return token balance for holder', async function () {
-    const { addrs, mockJbDirectory, jbTokenStore } = await setup();
-    const controller = addrs[1];
+    const { newHolder, controller, mockJbDirectory, jbTokenStore } = await setup();
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
-    await jbTokenStore.connect(controller).issueFor(PROJECT_ID, name, symbol);
+    await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
 
     // Mint unclaimed tokens
-    const newHolder = addrs[2];
     const numTokens = 20;
     await jbTokenStore.connect(controller).mintFor(newHolder.address, PROJECT_ID, numTokens, false);
 
@@ -53,8 +52,7 @@ describe('JBTokenStore::balanceOf(...)', function () {
   });
 
   it('Should return 0 if a token for projectId is not found', async function () {
-    const { addrs, jbTokenStore } = await setup();
-    const newHolder = addrs[2];
+    const { newHolder, jbTokenStore } = await setup();
 
     expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(0);
   });

@@ -9,8 +9,8 @@ import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json
 
 describe('JBTokenStore::totalySupplyOf(...)', function () {
   const PROJECT_ID = 2;
-  const name = 'TestTokenDAO';
-  const symbol = 'TEST';
+  const TOKEN_NAME = 'TestTokenDAO';
+  const TOKEN_SYMBOL = 'TEST';
 
   async function setup() {
     const [deployer, ...addrs] = await ethers.getSigners();
@@ -35,19 +35,19 @@ describe('JBTokenStore::totalySupplyOf(...)', function () {
 
   it('Should return total supply of tokens for given projectId', async function () {
     const { addrs, mockJbDirectory, jbTokenStore } = await setup();
-    const controller = addrs[1];
+    const controller = addrs[0];
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
-    await jbTokenStore.connect(controller).issueFor(PROJECT_ID, name, symbol);
+    await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
 
     // Mint unclaimed tokens
-    const newHolder = addrs[2];
+    const newHolder = addrs[1];
     const numTokens = 20;
     await jbTokenStore.connect(controller).mintFor(newHolder.address, PROJECT_ID, numTokens, false);
 
     // Mint claimed tokens for another holder
-    const anotherHolder = addrs[3];
+    const anotherHolder = addrs[2];
     await jbTokenStore
       .connect(controller)
       .mintFor(anotherHolder.address, PROJECT_ID, numTokens, true);

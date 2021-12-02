@@ -9,11 +9,11 @@ import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json
 
 describe('JBTokenStore::mintFor(...)', function () {
   const PROJECT_ID = 2;
-  const name = 'TestTokenDAO';
-  const symbol = 'TEST';
+  const TOKEN_NAME = 'TestTokenDAO';
+  const TOKEN_SYMBOL = 'TEST';
 
   async function setup() {
-    const [deployer, ...addrs] = await ethers.getSigners();
+    const [deployer, controller, newHolder] = await ethers.getSigners();
 
     const mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
     const mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
@@ -27,22 +27,21 @@ describe('JBTokenStore::mintFor(...)', function () {
     );
 
     return {
-      addrs,
+      controller,
+      newHolder,
       mockJbDirectory,
       jbTokenStore,
     };
   }
 
   it('Should mint claimed tokens and emit event if caller is controller', async function () {
-    const { addrs, mockJbDirectory, jbTokenStore } = await setup();
-    const controller = addrs[1];
+    const { controller, newHolder, mockJbDirectory, jbTokenStore } = await setup();
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
-    await jbTokenStore.connect(controller).issueFor(PROJECT_ID, name, symbol);
+    await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
 
     // Mint more tokens with _preferClaimedTokens = true
-    const newHolder = addrs[2];
     const numTokens = 20;
     const mintForTx = await jbTokenStore
       .connect(controller)
@@ -57,15 +56,13 @@ describe('JBTokenStore::mintFor(...)', function () {
   });
 
   it('Should mint unclaimed tokens and emit event if caller is controller', async function () {
-    const { addrs, mockJbDirectory, jbTokenStore } = await setup();
-    const controller = addrs[1];
+    const { controller, newHolder, mockJbDirectory, jbTokenStore } = await setup();
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
-    await jbTokenStore.connect(controller).issueFor(PROJECT_ID, name, symbol);
+    await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
 
     // Mint more tokens with _preferClaimedTokens = false
-    const newHolder = addrs[2];
     const numTokens = 20;
     const mintForTx = await jbTokenStore
       .connect(controller)
@@ -82,12 +79,10 @@ describe('JBTokenStore::mintFor(...)', function () {
   });
 
   it(`Can't mint tokens if _amount <= 0`, async function () {
-    const { addrs, mockJbDirectory, jbTokenStore } = await setup();
-    const controller = addrs[1];
+    const { controller, newHolder, mockJbDirectory, jbTokenStore } = await setup();
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
-    const newHolder = addrs[2];
     const numTokens = 0;
 
     await expect(
@@ -96,14 +91,14 @@ describe('JBTokenStore::mintFor(...)', function () {
   });
 
   it(`Can't mint tokens if caller does not have permission`, async function () {
-    const { addrs, mockJbDirectory, jbTokenStore } = await setup();
+    const { newHolder, mockJbDirectory, jbTokenStore } = await setup();
 
     // Return a random controller address.
     await mockJbDirectory.mock.controllerOf
       .withArgs(PROJECT_ID)
       .returns(ethers.Wallet.createRandom().address);
 
-    await expect(jbTokenStore.mintFor(addrs[1].address, PROJECT_ID, 1, true)).to.be.revertedWith(
+    await expect(jbTokenStore.mintFor(newHolder.address, PROJECT_ID, 1, true)).to.be.revertedWith(
       '0x4f: UNAUTHORIZED',
     );
   });
