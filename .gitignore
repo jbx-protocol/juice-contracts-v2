@@ -14,3 +14,5 @@ coverage/
 coverage.json
 
 *.txt
+.env
+workspace.code-workspace
