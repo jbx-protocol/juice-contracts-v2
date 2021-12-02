@@ -7,9 +7,9 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 
 describe('JBProjects::challengeHandle(...)', function () {
-  const PROJECT_HANDLE = 'PROJECT_1';
-  const PROJECT_HANDLE_NOT_TAKEN = 'PROJECT_2';
-  const PROJECT_HANDLE_NOT_TAKEN_2 = 'PROJECT_3';
+  const PROJECT_HANDLE_1 = 'PROJECT_1';
+  const PROJECT_HANDLE_2 = 'PROJECT_2';
+  const PROJECT_HANDLE_3 = 'PROJECT_3';
   const METADATA_CID = '';
   const PROJECT_ID = 1;
 
@@ -29,136 +29,64 @@ describe('JBProjects::challengeHandle(...)', function () {
     };
   }
 
-  it('Should challenge handle successfully', async function () {
-    const { projectOwner, deployer, jbProjectsStore } = await setup();
+  it(`Should challenge handle successfully`, async function () {
+    const { projectOwner, deployer, addrs, jbProjectsStore } = await setup();
 
     await jbProjectsStore
       .connect(deployer)
       .createFor(
         /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         /*metadataCid=*/ '',
-      );
-
-    await jbProjectsStore
-      .connect(deployer)
-      .createFor(
-        /*owner=*/ deployer.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN_2),
-        /*metadataCid=*/ '',
-      );
-
-    await jbProjectsStore
-      .connect(projectOwner)
-      .transferHandleOf(
-        /*projectId=*/ PROJECT_ID,
-        /*address=*/ deployer.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
       );
 
     let tx = await jbProjectsStore
-      .connect(deployer)
-      .challengeHandle(/*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN));
+      .connect(addrs[0])
+      .challengeHandle(/*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
 
     let expectedChallengeExpiry = (await getTimestamp(tx.blockNumber)).add(31536000);
-    let storedChallengeExpiryOf = await jbProjectsStore.connect(deployer).challengeExpiryOf(ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN));
+    let storedChallengeExpiryOf = await jbProjectsStore.connect(addrs[0]).challengeExpiryOf(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
     await expect(storedChallengeExpiryOf).equal(expectedChallengeExpiry);
 
     await expect(tx)
       .to.emit(jbProjectsStore, 'ChallengeHandle')
       .withArgs(
-        ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         PROJECT_ID,
         expectedChallengeExpiry,
-        deployer.address,
+        addrs[0].address,
       );
   });
 
-  it("Can\'t challenge if inexistent projectId", async function () {
+  it(`Can't challenge if inexistent projectId`, async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
-
-    await jbProjectsStore
-      .connect(deployer)
-      .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
-      );
-
-    await jbProjectsStore
-      .connect(projectOwner)
-      .transferHandleOf(
-        /*projectId=*/ PROJECT_ID,
-        /*address=*/ deployer.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
-      );
 
     await expect(
       jbProjectsStore
         .connect(deployer)
-        .challengeHandle(/*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN_2)),
+        .challengeHandle(/*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1)),
     ).to.be.revertedWith('0x0d: HANDLE_NOT_TAKEN');
   });
 
-  it("Can't challenge if a handle that has been challenged before", async function () {
+  it(`Can't challenge if a handle that has been challenged before`, async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore
       .connect(deployer)
       .createFor(
         /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         /*metadataCid=*/ METADATA_CID,
       );
 
     await jbProjectsStore
-      .connect(projectOwner)
-      .transferHandleOf(
-        /*projectId=*/ PROJECT_ID,
-        /*address=*/ deployer.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
-      );
-
-    await jbProjectsStore
       .connect(deployer)
-      .challengeHandle(/*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN));
+      .challengeHandle(/*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
 
     await expect(
       jbProjectsStore
         .connect(deployer)
-        .challengeHandle(/*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN)),
+        .challengeHandle(/*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1)),
     ).to.be.revertedWith('0x0e: CHALLENGE_OPEN');
   });
-
-  // TODO:  Fix this in the protocol.Currently the Protocol allows the
-  //        challenge to happen from the owner of the project that has
-  //        the handle challenged.
-  //
-  // it('Can\'t challenge if it is the owner of the project', async function () {
-  //  const { projectOwner, deployer, jbProjectsStore } = await setup();
-
-  //   await jbProjectsStore
-  //     .connect(deployer)
-  //     .createFor(
-  //       /*owner=*/ projectOwner.address,
-  //       /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-  //       /*metadataCid=*/ METADATA_CID,
-  //     )
-
-  //   await jbProjectsStore
-  //     .connect(projectOwner)
-  //     .transferHandleOf(
-  //         /*projectId=*/ PROJECT_ID,
-  //         /*address=*/ deployer.address,
-  //         /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN)
-  //     )
-
-  //   await expect(
-  //     jbProjectsStore
-  //       .connect(projectOwner)
-  //       .challengeHandle(
-  //         /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN)
-  //       ),
-  //   ).to.be.revertedWith('0x0e: CHALLENGE_OPEN');
-  // });
 });
