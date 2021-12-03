@@ -39,18 +39,11 @@ export async function deployJbToken(name, symbol) {
   return await jbTokenFactory.deploy(name, symbol);
 }
 
-export function daysFromNow(days) {
-  let date = new Date();
-  date.setDate(date.getDate() + days);
-  return date;
+export async function daysFromNow(days) {
+  let date = await getTimestamp();
+  return (date.add(days * 24 * 60 * 60));
 }
   
 export function daysFromDate(date, days) {
-  let newDate = new Date();
-  newDate.setDate(date.getDate() + days)
-  return newDate;
-}
-  
-export function dateInSeconds(date) {
-  return Math.floor(date.getTime() / 1000);
+  return (date.add(days * 24 * 60 * 60));
 }

@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
-import { fastForward } from '../helpers/utils';
+import { fastForward, getTimestamp } from '../helpers/utils';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
