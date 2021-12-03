@@ -57,8 +57,12 @@ describe('JBProjects::transferHandleOf(...)', function () {
       );
 
     let storedHandle = await jbProjectsStore.connect(deployer).handleOf(PROJECT_ID);
-    let storedProjectId = await jbProjectsStore.connect(deployer).idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_2));
-    let storedOldProjectId = await jbProjectsStore.connect(deployer).idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
+    let storedProjectId = await jbProjectsStore
+      .connect(deployer)
+      .idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_2));
+    let storedOldProjectId = await jbProjectsStore
+      .connect(deployer)
+      .idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
 
     await expect(storedHandle).to.equal(ethers.utils.formatBytes32String(PROJECT_HANDLE_2));
     await expect(storedProjectId).to.equal(PROJECT_ID);
@@ -178,7 +182,6 @@ describe('JBProjects::transferHandleOf(...)', function () {
       .withArgs(deployer.address, projectOwner.address, PROJECT_ID, SET_HANDLE_PERMISSION_INDEX)
       .returns(true);
 
-
     await expect(
       jbProjectsStore
         .connect(deployer)
@@ -189,7 +192,4 @@ describe('JBProjects::transferHandleOf(...)', function () {
         ),
     ).to.be.reverted;
   });
-
-
-
 });

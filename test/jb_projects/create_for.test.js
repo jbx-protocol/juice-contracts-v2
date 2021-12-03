@@ -42,7 +42,9 @@ describe('JBProjects::createFor(...)', function () {
       );
 
     let storedHandle = await jbProjectsStore.connect(deployer).handleOf(PROJECT_ID);
-    let storedProjectId = await jbProjectsStore.connect(deployer).idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
+    let storedProjectId = await jbProjectsStore
+      .connect(deployer)
+      .idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
     let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataCidOf(PROJECT_ID);
 
     await expect(storedHandle).to.equal(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
@@ -79,8 +81,12 @@ describe('JBProjects::createFor(...)', function () {
         /*metadataCid=*/ METADATA_CID,
       );
 
-    let storedId1 = await jbProjectsStore.connect(deployer).idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_1))
-    let storedId2 = await jbProjectsStore.connect(deployer).idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_2))
+    let storedId1 = await jbProjectsStore
+      .connect(deployer)
+      .idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
+    let storedId2 = await jbProjectsStore
+      .connect(deployer)
+      .idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_2));
 
     await expect(storedId1).to.equal(PROJECT_ID);
     await expect(storedId2).to.equal(PROJECT_ID_2);

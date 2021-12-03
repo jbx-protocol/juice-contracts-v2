@@ -35,7 +35,7 @@ describe('JBProjects::renewHandle(...)', function () {
       deployer,
       addrs,
       jbProjectsStore,
-      mockJbOperatorStore
+      mockJbOperatorStore,
     };
   }
 
@@ -52,7 +52,9 @@ describe('JBProjects::renewHandle(...)', function () {
 
     let tx = await jbProjectsStore.connect(projectOwner).renewHandleOf(/*projectId=*/ PROJECT_ID);
 
-    let storedChallengeExpiryOf = await jbProjectsStore.connect(deployer).challengeExpiryOf(ethers.utils.formatBytes32String(PROJECT_HANDLE));
+    let storedChallengeExpiryOf = await jbProjectsStore
+      .connect(deployer)
+      .challengeExpiryOf(ethers.utils.formatBytes32String(PROJECT_HANDLE));
     await expect(storedChallengeExpiryOf).equal(0);
 
     await expect(tx)
@@ -122,7 +124,6 @@ describe('JBProjects::renewHandle(...)', function () {
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(addrs[0].address, deployer.address, PROJECT_ID, RENEW_HANDLE_PERMISSION_INDEX)
       .returns(true);
-
 
     await expect(
       jbProjectsStore.connect(addrs[0]).renewHandleOf(/*projectId=*/ PROJECT_ID),

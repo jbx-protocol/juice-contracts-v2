@@ -37,7 +37,7 @@ describe('JBProjects::setHandleOf(...)', function () {
       deployer,
       addrs,
       jbProjectsStore,
-      mockJbOperatorStore
+      mockJbOperatorStore,
     };
   }
 
@@ -60,7 +60,9 @@ describe('JBProjects::setHandleOf(...)', function () {
       );
 
     let storedHandle = await jbProjectsStore.connect(deployer).handleOf(1);
-    let storedProjectId = await jbProjectsStore.connect(deployer).idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN));
+    let storedProjectId = await jbProjectsStore
+      .connect(deployer)
+      .idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN));
 
     await expect(storedHandle).to.equal(ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN));
     await expect(storedProjectId).to.equal(PROJECT_ID);
@@ -131,8 +133,8 @@ describe('JBProjects::setHandleOf(...)', function () {
       jbProjectsStore
         .connect(addrs[0])
         .setHandleOf(
-            /*projectId=*/ PROJECT_ID,
-            /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+          /*projectId=*/ PROJECT_ID,
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
         ),
     ).to.be.reverted;
   });
@@ -148,18 +150,16 @@ describe('JBProjects::setHandleOf(...)', function () {
         /*metadataCid=*/ METADATA_CID,
       );
 
-
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(addrs[0].address, deployer.address, PROJECT_ID, SET_HANDLE_PERMISSION_INDEX)
       .returns(true);
-
 
     await expect(
       jbProjectsStore
         .connect(addrs[0])
         .setHandleOf(
-            /*projectId=*/ PROJECT_ID,
-            /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+          /*projectId=*/ PROJECT_ID,
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
         ),
     ).to.be.reverted;
   });

@@ -43,7 +43,9 @@ describe('JBProjects::challengeHandle(...)', function () {
       .challengeHandle(/*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
 
     let expectedChallengeExpiry = (await getTimestamp(tx.blockNumber)).add(31536000);
-    let storedChallengeExpiryOf = await jbProjectsStore.connect(addrs[0]).challengeExpiryOf(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
+    let storedChallengeExpiryOf = await jbProjectsStore
+      .connect(addrs[0])
+      .challengeExpiryOf(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
     await expect(storedChallengeExpiryOf).equal(expectedChallengeExpiry);
 
     await expect(tx)
