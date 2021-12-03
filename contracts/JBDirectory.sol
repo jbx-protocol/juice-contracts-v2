@@ -150,8 +150,8 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     return IJBTerminal(address(0));
   }
 
-  function isKnownControllers(IJBController _adr) public view override returns (bool) {
-    return _knownControllers[_adr];
+  function isKnownControllers(IJBController _address) public view override returns (bool) {
+    return _knownControllers[_address];
   }
 
   //*********************************************************************//
