@@ -43,10 +43,16 @@ describe('JBTokenStore::balanceOf(...)', function () {
 
     // Mint unclaimed tokens
     const numTokens = 20;
-    await jbTokenStore.connect(controller).mintFor(newHolder.address, PROJECT_ID, numTokens, false);
+    await jbTokenStore
+      .connect(controller)
+      .mintFor(newHolder.address, PROJECT_ID, numTokens, /* preferClaimedTokens= */ false);
+
+    expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(numTokens);
 
     // Mint more claimed tokens
-    await jbTokenStore.connect(controller).mintFor(newHolder.address, PROJECT_ID, numTokens, true);
+    await jbTokenStore
+      .connect(controller)
+      .mintFor(newHolder.address, PROJECT_ID, numTokens, /* preferClaimedTokens= */ true);
 
     expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(numTokens * 2);
   });

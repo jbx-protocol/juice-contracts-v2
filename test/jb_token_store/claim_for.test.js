@@ -43,7 +43,9 @@ describe('JBTokenStore::claimFor(...)', function () {
 
     // Mint more unclaimed tokens
     const numTokens = 20;
-    await jbTokenStore.connect(controller).mintFor(newHolder.address, PROJECT_ID, numTokens, false);
+    await jbTokenStore
+      .connect(controller)
+      .mintFor(newHolder.address, PROJECT_ID, numTokens, /* preferClaimedTokens= */ false);
 
     // Claim the unclaimed tokens
     const claimForTx = await jbTokenStore
@@ -77,7 +79,9 @@ describe('JBTokenStore::claimFor(...)', function () {
 
     // Mint more unclaimed tokens
     const numTokens = 10000;
-    await jbTokenStore.connect(controller).mintFor(newHolder.address, PROJECT_ID, numTokens, false);
+    await jbTokenStore
+      .connect(controller)
+      .mintFor(newHolder.address, PROJECT_ID, numTokens, /* preferClaimedTokens= */ false);
 
     await expect(
       jbTokenStore.claimFor(newHolder.address, PROJECT_ID, numTokens + 1),

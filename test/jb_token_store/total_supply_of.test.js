@@ -44,13 +44,15 @@ describe('JBTokenStore::totalySupplyOf(...)', function () {
     // Mint unclaimed tokens
     const newHolder = addrs[1];
     const numTokens = 20;
-    await jbTokenStore.connect(controller).mintFor(newHolder.address, PROJECT_ID, numTokens, false);
+    await jbTokenStore
+      .connect(controller)
+      .mintFor(newHolder.address, PROJECT_ID, numTokens, /* _preferClaimedTokens= */ false);
 
     // Mint claimed tokens for another holder
     const anotherHolder = addrs[2];
     await jbTokenStore
       .connect(controller)
-      .mintFor(anotherHolder.address, PROJECT_ID, numTokens, true);
+      .mintFor(anotherHolder.address, PROJECT_ID, numTokens, /* preferClaimedTokens= */ true);
 
     expect(await jbTokenStore.totalSupplyOf(PROJECT_ID)).to.equal(numTokens * 2);
   });

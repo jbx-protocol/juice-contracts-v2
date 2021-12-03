@@ -92,7 +92,7 @@ describe('JBTokenStore::shouldRequireClaimingFor(...)', function () {
       .returns(true);
 
     await expect(
-      jbTokenStore.connect(controller).shouldRequireClaimingFor(PROJECT_ID, true),
+      jbTokenStore.connect(controller).shouldRequireClaimingFor(PROJECT_ID, /* flag= */ true),
     ).to.be.revertedWith('0x2a: NOT_FOUND');
   });
 
@@ -111,7 +111,8 @@ describe('JBTokenStore::shouldRequireClaimingFor(...)', function () {
       .withArgs(controller.address, holder.address, PROJECT_ID, REQUIRE_CLAIM_INDEX)
       .returns(false);
 
-    await expect(jbTokenStore.connect(controller).shouldRequireClaimingFor(PROJECT_ID, false)).to.be
-      .reverted;
+    await expect(
+      jbTokenStore.connect(controller).shouldRequireClaimingFor(PROJECT_ID, /* flag= */ false),
+    ).to.be.reverted;
   });
 });

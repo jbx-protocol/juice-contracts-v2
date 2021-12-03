@@ -65,7 +65,7 @@ describe('JBTokenStore::burnFrom(...)', function () {
         newHolder.address,
         PROJECT_ID,
         MAX_TOKENS,
-        0,
+        /* unclaimedBalance= */ 0,
         preferClaimedTokens,
         controller.address,
       );
@@ -87,7 +87,7 @@ describe('JBTokenStore::burnFrom(...)', function () {
     // Mint more unclaimed tokens
     await jbTokenStore
       .connect(controller)
-      .mintFor(newHolder.address, PROJECT_ID, MAX_TOKENS, false);
+      .mintFor(newHolder.address, PROJECT_ID, MAX_TOKENS, /* preferClaimedTokens= */ false);
 
     // Burn all claimed tokens and then some of the unclaimed tokens. Leave 1 unclaimed token.
     const burnAmt = MAX_TOKENS * BigInt(2) - BigInt(1);
@@ -127,13 +127,13 @@ describe('JBTokenStore::burnFrom(...)', function () {
     // Mint more unclaimed tokens
     await jbTokenStore
       .connect(controller)
-      .mintFor(newHolder.address, PROJECT_ID, MAX_TOKENS, false);
+      .mintFor(newHolder.address, PROJECT_ID, MAX_TOKENS, /* preferClaimedTokens= */ false);
 
     // Burn all unclaimed tokens and then some of the claimed tokens. Leave 1 claimed token.
     const burnAmt = MAX_TOKENS * BigInt(2) - BigInt(1);
     const burnFromTx = await jbTokenStore
       .connect(controller)
-      .burnFrom(newHolder.address, PROJECT_ID, burnAmt, false);
+      .burnFrom(newHolder.address, PROJECT_ID, burnAmt, /* preferClaimedTokens= */ false);
 
     expect(await jbTokenStore.unclaimedBalanceOf(newHolder.address, PROJECT_ID)).to.equal(0);
     expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(1);
@@ -141,7 +141,14 @@ describe('JBTokenStore::burnFrom(...)', function () {
 
     await expect(burnFromTx)
       .to.emit(jbTokenStore, 'Burn')
-      .withArgs(newHolder.address, PROJECT_ID, burnAmt, MAX_TOKENS, false, controller.address);
+      .withArgs(
+        newHolder.address,
+        PROJECT_ID,
+        burnAmt,
+        MAX_TOKENS,
+        /* preferClaimedTokens= */ false,
+        controller.address,
+      );
   });
 
   it('Should burn only unclaimed tokens and emit event', async function () {
@@ -189,7 +196,9 @@ describe('JBTokenStore::burnFrom(...)', function () {
       .returns(ethers.Wallet.createRandom().address);
 
     await expect(
-      jbTokenStore.connect(controller).burnFrom(newHolder.address, PROJECT_ID, 1, true),
+      jbTokenStore
+        .connect(controller)
+        .burnFrom(newHolder.address, PROJECT_ID, /* amount= */ 1, /* preferClaimedTokens= */ true),
     ).to.be.revertedWith('0x4f: UNAUTHORIZED');
   });
 
@@ -209,7 +218,7 @@ describe('JBTokenStore::burnFrom(...)', function () {
     // Mint more unclaimed tokens
     await jbTokenStore
       .connect(controller)
-      .mintFor(newHolder.address, PROJECT_ID, MAX_TOKENS, false);
+      .mintFor(newHolder.address, PROJECT_ID, MAX_TOKENS, /* preferClaimedTokens= */ false);
 
     // Burn more than the available balance
     const burnAmt = MAX_TOKENS * BigInt(2) + BigInt(1);

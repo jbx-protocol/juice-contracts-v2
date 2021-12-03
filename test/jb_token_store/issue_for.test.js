@@ -60,8 +60,9 @@ describe('JBTokenStore::issueFor(...)', function () {
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
+    const name = '';
     await expect(
-      jbTokenStore.connect(controller).issueFor(PROJECT_ID, '', TOKEN_SYMBOL),
+      jbTokenStore.connect(controller).issueFor(PROJECT_ID, name, TOKEN_SYMBOL),
     ).to.be.revertedWith('0x1f: EMPTY_NAME');
   });
 
@@ -70,8 +71,9 @@ describe('JBTokenStore::issueFor(...)', function () {
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
+    const symbol = '';
     await expect(
-      jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, ''),
+      jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, symbol),
     ).to.be.revertedWith('0x20: EMPTY_SYMBOL');
   });
 

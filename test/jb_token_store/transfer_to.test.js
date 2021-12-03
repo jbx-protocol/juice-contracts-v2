@@ -90,7 +90,7 @@ describe('JBTokenStore::transferTo(...)', function () {
     await expect(
       jbTokenStore
         .connect(controller)
-        .transferTo(ethers.constants.AddressZero, holder.address, PROJECT_ID, 1),
+        .transferTo(ethers.constants.AddressZero, holder.address, PROJECT_ID, /* amount= */ 1),
     ).to.be.revertedWith('0x26: ZERO_ADDRESS');
   });
 
@@ -102,7 +102,9 @@ describe('JBTokenStore::transferTo(...)', function () {
       .returns(true);
 
     await expect(
-      jbTokenStore.connect(controller).transferTo(holder.address, holder.address, PROJECT_ID, 1),
+      jbTokenStore
+        .connect(controller)
+        .transferTo(holder.address, holder.address, PROJECT_ID, /* amount= */ 1),
     ).to.be.revertedWith('0x27: IDENTITY');
   });
 
@@ -115,7 +117,9 @@ describe('JBTokenStore::transferTo(...)', function () {
       .returns(true);
 
     await expect(
-      jbTokenStore.connect(controller).transferTo(recipient.address, holder.address, PROJECT_ID, 0),
+      jbTokenStore
+        .connect(controller)
+        .transferTo(recipient.address, holder.address, PROJECT_ID, /* amount= */ 0),
     ).to.be.revertedWith('0x28: NO_OP');
   });
 
@@ -129,7 +133,9 @@ describe('JBTokenStore::transferTo(...)', function () {
 
     // 0 unclaimed tokens available, try to transfer 1
     await expect(
-      jbTokenStore.connect(controller).transferTo(recipient.address, holder.address, PROJECT_ID, 1),
+      jbTokenStore
+        .connect(controller)
+        .transferTo(recipient.address, holder.address, PROJECT_ID, /* amount= */ 1),
     ).to.be.revertedWith('0x29: INSUFFICIENT_FUNDS');
   });
 
@@ -142,7 +148,9 @@ describe('JBTokenStore::transferTo(...)', function () {
       .returns(false);
 
     await expect(
-      jbTokenStore.connect(controller).transferTo(recipient.address, holder.address, PROJECT_ID, 1),
+      jbTokenStore
+        .connect(controller)
+        .transferTo(recipient.address, holder.address, PROJECT_ID, /* amount= */ 1),
     ).to.be.reverted;
   });
 });

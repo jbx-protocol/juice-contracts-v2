@@ -41,18 +41,25 @@ describe('JBTokenStore::mintFor(...)', function () {
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
 
-    // Mint more tokens with _preferClaimedTokens = true
+    // Mint more claimed tokens
     const numTokens = 20;
     const mintForTx = await jbTokenStore
       .connect(controller)
-      .mintFor(newHolder.address, PROJECT_ID, numTokens, true);
+      .mintFor(newHolder.address, PROJECT_ID, numTokens, /* preferClaimedTokens= */ true);
 
     expect(await jbTokenStore.unclaimedBalanceOf(newHolder.address, PROJECT_ID)).to.equal(0);
     expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(numTokens);
 
     await expect(mintForTx)
       .to.emit(jbTokenStore, 'Mint')
-      .withArgs(newHolder.address, PROJECT_ID, numTokens, true, true, controller.address);
+      .withArgs(
+        newHolder.address,
+        PROJECT_ID,
+        numTokens,
+        /* shouldClaimTokens= */ true,
+        /* preferClaimedTokens= */ true,
+        controller.address,
+      );
   });
 
   it('Should mint unclaimed tokens and emit event if caller is controller', async function () {
@@ -62,11 +69,11 @@ describe('JBTokenStore::mintFor(...)', function () {
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
 
-    // Mint more tokens with _preferClaimedTokens = false
+    // Mint more unclaimed tokens
     const numTokens = 20;
     const mintForTx = await jbTokenStore
       .connect(controller)
-      .mintFor(newHolder.address, PROJECT_ID, numTokens, false);
+      .mintFor(newHolder.address, PROJECT_ID, numTokens, /* preferClaimedTokens= */ false);
 
     expect(await jbTokenStore.unclaimedBalanceOf(newHolder.address, PROJECT_ID)).to.equal(
       numTokens,
@@ -75,7 +82,14 @@ describe('JBTokenStore::mintFor(...)', function () {
 
     await expect(mintForTx)
       .to.emit(jbTokenStore, 'Mint')
-      .withArgs(newHolder.address, PROJECT_ID, numTokens, false, false, controller.address);
+      .withArgs(
+        newHolder.address,
+        PROJECT_ID,
+        numTokens,
+        /* shouldClaimTokens= */ false,
+        /* preferClaimedTokens= */ false,
+        controller.address,
+      );
   });
 
   it(`Can't mint tokens if _amount <= 0`, async function () {
@@ -86,7 +100,9 @@ describe('JBTokenStore::mintFor(...)', function () {
     const numTokens = 0;
 
     await expect(
-      jbTokenStore.connect(controller).mintFor(newHolder.address, PROJECT_ID, numTokens, true),
+      jbTokenStore
+        .connect(controller)
+        .mintFor(newHolder.address, PROJECT_ID, numTokens, /* preferClaimedTokens= */ true),
     ).to.be.revertedWith('0x22: NO_OP');
   });
 
@@ -98,8 +114,13 @@ describe('JBTokenStore::mintFor(...)', function () {
       .withArgs(PROJECT_ID)
       .returns(ethers.Wallet.createRandom().address);
 
-    await expect(jbTokenStore.mintFor(newHolder.address, PROJECT_ID, 1, true)).to.be.revertedWith(
-      '0x4f: UNAUTHORIZED',
-    );
+    await expect(
+      jbTokenStore.mintFor(
+        newHolder.address,
+        PROJECT_ID,
+        /* amount= */ 1,
+        /* preferClaimedTokens= */ true,
+      ),
+    ).to.be.revertedWith('0x4f: UNAUTHORIZED');
   });
 });
