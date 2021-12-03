@@ -176,6 +176,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     @dev 
     A controller can be set if:
+    - the controller is part of the curated list of known controllers and :
     - the message sender is the project owner or an operator is changing the controller.
     - or, the controller hasn't been set yet and the message sender is the controller being set.
     - or, the current controller is setting a new controller.
@@ -190,8 +191,9 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
       projects.ownerOf(_projectId),
       _projectId,
       JBOperations.SET_CONTROLLER,
-      (address(controllerOf[_projectId]) == address(0) && msg.sender == address(_controller)) ||
-        address(controllerOf[_projectId]) == msg.sender
+      ( (address(controllerOf[_projectId]) == address(0) && msg.sender == address(_controller)) ||
+        address(controllerOf[_projectId]) == msg.sender )
+        && _knownControllers[_controller]
     )
   {
     // Can't set the zero address.
