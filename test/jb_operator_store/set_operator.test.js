@@ -4,19 +4,28 @@ import { ethers } from 'hardhat';
 import { makePackedPermissions } from '../helpers/utils';
 
 describe('JBOperatorStore::setOperator(...)', function () {
-  let jbOperatorStoreFactory;
-  let jbOperatorStore;
+  const DOMAIN = 1;
+  const PERMISSION_INDEXES_EMPTY = [];
+  const PERMISSION_INDEXES_1 = [1, 2, 3];
+  const PERMISSION_INDEXES_2 = [4, 5, 6];
+  const PERMISSION_INDEXES_OUT_OF_BOUND = [1, 2, 256];
 
-  let signers;
+  async function setup() {
+    let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
-  beforeEach(async function () {
-    jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
-    jbOperatorStore = await jbOperatorStoreFactory.deploy();
+    let jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
+    let jbOperatorStore = await jbOperatorStoreFactory.deploy();
 
-    signers = await ethers.getSigners();
-  });
+    return {
+      projectOwner,
+      deployer,
+      addrs,
+      jbOperatorStore,
+    };
+  }
 
   async function setOperatorAndValidateEvent(
+    jbOperatorStore,
     operator,
     account,
     domain,
@@ -25,7 +34,11 @@ describe('JBOperatorStore::setOperator(...)', function () {
   ) {
     const tx = await jbOperatorStore
       .connect(account)
-      .setOperator([operator.address, domain, permissionIndexes]);
+      .setOperator([
+        /*operator=*/ operator.address,
+        /*domain=*/ domain,
+        /*permissionsIndexes=*/ permissionIndexes
+      ]);
 
     await expect(tx)
       .to.emit(jbOperatorStore, 'SetOperator')
@@ -37,58 +50,56 @@ describe('JBOperatorStore::setOperator(...)', function () {
         packedPermissionIndexes,
       );
 
-    expect(await jbOperatorStore.permissionsOf(operator.address, account.address, domain)).to.equal(
-      packedPermissionIndexes,
-    );
+    expect(await jbOperatorStore
+      .permissionsOf(
+        operator.address,
+        account.address,
+        domain))
+      .to.equal(packedPermissionIndexes);
   }
 
   it('Set operator with no previous value, override it, and clear it', async function () {
-    let caller = signers[0];
-    let operator = signers[1];
-    let domain = 1;
-    let permissionIndexes = [1, 2, 3];
-    let packedPermissions = makePackedPermissions(permissionIndexes);
+    const { deployer, projectOwner, jbOperatorStore } = await setup();
 
-    // Set the operator.
     await setOperatorAndValidateEvent(
-      operator,
-      /*account=*/ caller,
-      domain,
-      permissionIndexes,
-      packedPermissions,
+      jbOperatorStore,
+      projectOwner,
+      /*account=*/ deployer,
+      DOMAIN,
+      PERMISSION_INDEXES_1,
+      makePackedPermissions(PERMISSION_INDEXES_1),
     );
 
-    // Override the previously set value.
-    permissionIndexes = [4, 5, 6];
-    packedPermissions = makePackedPermissions(permissionIndexes);
     await setOperatorAndValidateEvent(
-      operator,
-      /*account=*/ caller,
-      domain,
-      permissionIndexes,
-      packedPermissions,
+      jbOperatorStore,
+      projectOwner,
+      /*account=*/ deployer,
+      DOMAIN,
+      PERMISSION_INDEXES_2,
+      makePackedPermissions(PERMISSION_INDEXES_2),
     );
 
-    // Clear previously set values.
-    permissionIndexes = [];
-    packedPermissions = makePackedPermissions(permissionIndexes);
     await setOperatorAndValidateEvent(
-      operator,
-      /*account=*/ caller,
-      domain,
-      permissionIndexes,
-      packedPermissions,
+      jbOperatorStore,
+      projectOwner,
+      /*account=*/ deployer,
+      DOMAIN,
+      PERMISSION_INDEXES_EMPTY,
+      makePackedPermissions(PERMISSION_INDEXES_EMPTY),
     );
   });
 
   it('Index out of bounds', async function () {
-    let caller = signers[0];
-    let operator = signers[1];
-    let domain = 1;
-    let permissionIndexes = [1, 2, 256];
+    const { deployer, projectOwner, jbOperatorStore } = await setup();
 
     await expect(
-      jbOperatorStore.connect(caller).setOperator([operator.address, domain, permissionIndexes]),
+      jbOperatorStore
+        .connect(deployer)
+        .setOperator([
+          /*operator=*/ projectOwner.address,
+          /*domain=*/ DOMAIN,
+          /*permissionsIndexes=*/ PERMISSION_INDEXES_OUT_OF_BOUND
+        ]),
     ).to.be.revertedWith('0x02: INDEX_OUT_OF_BOUNDS');
   });
 });
