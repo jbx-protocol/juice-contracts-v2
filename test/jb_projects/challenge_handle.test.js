@@ -8,8 +8,6 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 
 describe('JBProjects::challengeHandle(...)', function () {
   const PROJECT_HANDLE_1 = 'PROJECT_1';
-  const PROJECT_HANDLE_2 = 'PROJECT_2';
-  const PROJECT_HANDLE_3 = 'PROJECT_3';
   const METADATA_CID = '';
   const PROJECT_ID = 1;
 
@@ -59,7 +57,7 @@ describe('JBProjects::challengeHandle(...)', function () {
   });
 
   it(`Can't challenge if inexistent projectId`, async function () {
-    const { projectOwner, deployer, jbProjectsStore } = await setup();
+    const { deployer, jbProjectsStore } = await setup();
 
     await expect(
       jbProjectsStore

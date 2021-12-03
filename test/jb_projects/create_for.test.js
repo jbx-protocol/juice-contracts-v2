@@ -2,8 +2,8 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
 describe('JBProjects::createFor(...)', function () {
-  const PROJECT_HANDLE = 'PROJECT_1';
-  const PROJECT_HANDLE_NOT_TAKEN = 'PROJECT_2';
+  const PROJECT_HANDLE_1 = 'PROJECT_1';
+  const PROJECT_HANDLE_2 = 'PROJECT_2';
   const PROJECT_HANDLE_EMPTY = '';
   const METADATA_CID = '';
   const PROJECT_ID = 1;
@@ -30,22 +30,22 @@ describe('JBProjects::createFor(...)', function () {
     };
   }
 
-  it('Should create a project', async function () {
+  it(`Should create a project`, async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     let tx = await jbProjectsStore
       .connect(deployer)
       .createFor(
         /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         /*metadataCid=*/ METADATA_CID,
       );
 
     let storedHandle = await jbProjectsStore.connect(deployer).handleOf(PROJECT_ID);
-    let storedProjectId = await jbProjectsStore.connect(deployer).idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE));
+    let storedProjectId = await jbProjectsStore.connect(deployer).idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
     let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataCidOf(PROJECT_ID);
 
-    await expect(storedHandle).to.equal(ethers.utils.formatBytes32String(PROJECT_HANDLE));
+    await expect(storedHandle).to.equal(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
     await expect(storedProjectId).to.equal(PROJECT_ID);
     await expect(storedMetadataCid).to.equal(METADATA_CID);
 
@@ -54,20 +54,20 @@ describe('JBProjects::createFor(...)', function () {
       .withArgs(
         PROJECT_ID,
         projectOwner.address,
-        ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         METADATA_CID,
         deployer.address,
       );
   });
 
-  it('Should create two projects and count to be 2', async function () {
+  it(`Should create two projects and count to be 2`, async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore
       .connect(deployer)
       .createFor(
         /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         /*metadataCid=*/ METADATA_CID,
       );
 
@@ -75,12 +75,12 @@ describe('JBProjects::createFor(...)', function () {
       .connect(deployer)
       .createFor(
         /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
         /*metadataCid=*/ METADATA_CID,
       );
 
-    let storedId1 = await jbProjectsStore.connect(deployer).idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE))
-    let storedId2 = await jbProjectsStore.connect(deployer).idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN))
+    let storedId1 = await jbProjectsStore.connect(deployer).idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_1))
+    let storedId2 = await jbProjectsStore.connect(deployer).idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_2))
 
     await expect(storedId1).to.equal(PROJECT_ID);
     await expect(storedId2).to.equal(PROJECT_ID_2);
@@ -90,18 +90,18 @@ describe('JBProjects::createFor(...)', function () {
       .withArgs(
         2,
         projectOwner.address,
-        ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
         METADATA_CID,
         deployer.address,
       );
   });
 
-  it("Can't create project if has an empty handle", async function () {
+  it(`Can't create project if has an empty handle`, async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await expect(
       jbProjectsStore
-        .connect(projectOwner)
+        .connect(deployer)
         .createFor(
           /*owner=*/ projectOwner.address,
           /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
@@ -110,14 +110,14 @@ describe('JBProjects::createFor(...)', function () {
     ).to.be.revertedWith('0x06: EMPTY_HANDLE');
   });
 
-  it("Can't create if handle taken already", async function () {
+  it(`Can't create if handle taken already`, async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore
       .connect(deployer)
       .createFor(
         /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         /*metadataCid=*/ METADATA_CID,
       );
 
@@ -126,7 +126,7 @@ describe('JBProjects::createFor(...)', function () {
         .connect(deployer)
         .createFor(
           /*owner=*/ projectOwner.address,
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
           /*metadataCid=*/ METADATA_CID,
         ),
     ).to.be.revertedWith('0x07: HANDLE_TAKEN');

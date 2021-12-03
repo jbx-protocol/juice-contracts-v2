@@ -11,6 +11,15 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
   const METADATA_CID_2 = 'ipfs://randommetadatacidipsaddress';
   const PROJECT_ID = 1;
 
+  let SET_METADATA_CID_PERMISSION_INDEX;
+
+  before(async function () {
+    let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
+    let jbOperations = await jbOperationsFactory.deploy();
+
+    SET_METADATA_CID_PERMISSION_INDEX = await jbOperations.SET_METADATA_CID();
+  });
+
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
@@ -23,10 +32,11 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
       deployer,
       addrs,
       jbProjectsStore,
+      mockJbOperatorStore,
     };
   }
 
-  it('Should set MetadataCid on project', async function () {
+  it(`Should set MetadataCid on project by owner`, async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore
@@ -39,8 +49,10 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
 
     let tx = await jbProjectsStore
       .connect(projectOwner)
-      .setMetadataCidOf(/*projectId=*/ PROJECT_ID, /*metadataCid=*/ METADATA_CID_2);
-
+      .setMetadataCidOf(
+        /*projectId=*/ PROJECT_ID,
+        /*metadataCid=*/ METADATA_CID_2
+      );
 
     let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataCidOf(PROJECT_ID);
     await expect(storedMetadataCid).to.equal(METADATA_CID_2);
@@ -48,5 +60,55 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
     await expect(tx)
       .to.emit(jbProjectsStore, 'SetUri')
       .withArgs(PROJECT_ID, METADATA_CID_2, projectOwner.address);
+  });
+
+  it(`Can set MetadataCid on project if caller is not owner but has permission`, async function () {
+    const { projectOwner, deployer, addrs, jbProjectsStore, mockJbOperatorStore } = await setup();
+
+    await jbProjectsStore
+      .connect(deployer)
+      .createFor(
+        /*owner=*/ projectOwner.address,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*metadataCid=*/ METADATA_CID,
+      );
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(addrs[1].address, projectOwner.address, PROJECT_ID, SET_METADATA_CID_PERMISSION_INDEX)
+      .returns(true);
+
+    await expect(
+      jbProjectsStore
+        .connect(addrs[1])
+        .setMetadataCidOf(
+          /*projectId=*/ PROJECT_ID,
+          /*metadataCid=*/ METADATA_CID_2
+        )
+    ).to.not.be.reverted;
+  });
+
+  it(`Can't set MetadataCid on project if caller is not owner and doesn't have permission`, async function () {
+    const { projectOwner, deployer, addrs, jbProjectsStore, mockJbOperatorStore } = await setup();
+
+    await jbProjectsStore
+      .connect(deployer)
+      .createFor(
+        /*owner=*/ projectOwner.address,
+        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        /*metadataCid=*/ METADATA_CID,
+      );
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(addrs[1].address, projectOwner.address, PROJECT_ID, SET_METADATA_CID_PERMISSION_INDEX)
+      .returns(false);
+
+    await expect(
+      jbProjectsStore
+        .connect(addrs[1])
+        .setMetadataCidOf(
+          /*projectId=*/ PROJECT_ID,
+          /*metadataCid=*/ METADATA_CID_2
+        )
+    ).to.be.reverted;
   });
 });
