@@ -2,13 +2,18 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
+import { impersonateAccount } from '../helpers/utils';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 
-// TODO(odd-amphora): Access control tests with allowlist.
-describe('JBDirectory::setControllerOf(...)', function () {
+//TODO: review logic behind 'Should set controller if new controller is a known controller'
+// -> any address can pass the override and change a controller instantaneously? Shouldn't it be
+// only from knownController (and the same known controller which triggers the premigration in the
+// current controller would change it) ?
+
+describe.only('JBDirectory::setControllerOf(...)', function () {
   const PROJECT_ID = 1;
 
   let SET_CONTROLLER_PERMISSION_INDEX;
@@ -107,7 +112,36 @@ describe('JBDirectory::setControllerOf(...)', function () {
       .not.be.reverted;
   });
 
-  it('Should fail if caller does not have permission', async function () {
+  it('Should set controller if new controller is a known controller', async function () {
+    const { deployer,
+      addrs,
+      projectOwner,
+      jbDirectory,
+      mockJbProjects,
+      mockJbOperatorStore,
+      controller1,
+      controller2
+    } = await setup();
+
+    let controllerSigner = await impersonateAccount(controller1.address);
+    await jbDirectory.connect(deployer).addKnownController(controller2.address)
+
+    await mockJbProjects.mock.count.returns(PROJECT_ID);
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(controllerSigner.address, projectOwner.address, PROJECT_ID, SET_CONTROLLER_PERMISSION_INDEX)
+      .returns(false);
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(controllerSigner.address, projectOwner.address, 0, SET_CONTROLLER_PERMISSION_INDEX)
+      .returns(false);
+
+    await expect(jbDirectory.connect(addrs[5]).setControllerOf(PROJECT_ID, controller2.address)).to
+      .not.be.reverted;
+
+    expect(false);
+  });
+
+  it.skip('Can\'t set if caller does not have permission and is not a known controller', async function () {
     const { projectOwner, addrs, jbDirectory, mockJbProjects, mockJbOperatorStore, controller1 } =
       await setup();
     let caller = addrs[1];
@@ -116,8 +150,11 @@ describe('JBDirectory::setControllerOf(...)', function () {
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(caller.address, projectOwner.address, PROJECT_ID, SET_CONTROLLER_PERMISSION_INDEX)
       .returns(false);
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(controllerSigner.address, projectOwner.address, 0, SET_CONTROLLER_PERMISSION_INDEX)
+      .returns(false);
 
     await expect(jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller1.address)).to.be
-      .reverted;
+      .revertedWith('Operatable: UNAUTHORIZED');
   });
 });

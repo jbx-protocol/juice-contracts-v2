@@ -27,7 +27,7 @@ interface IJBDirectory {
 
   function controllerOf(uint256 _projectId) external view returns (IJBController);
 
-  function isKnownControllers(IJBController _address) external view returns (bool);
+  function isKnownController(IJBController _address) external view returns (bool);
 
   function primaryTerminalOf(uint256 _projectId, address _token)
     external

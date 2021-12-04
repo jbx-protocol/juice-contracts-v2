@@ -150,7 +150,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     return IJBTerminal(address(0));
   }
 
-  function isKnownControllers(IJBController _address) public view override returns (bool) {
+  function isKnownController(IJBController _address) public view override returns (bool) {
     return _knownControllers[_address];
   }
 
@@ -191,9 +191,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
       projects.ownerOf(_projectId),
       _projectId,
       JBOperations.SET_CONTROLLER,
-      ( (address(controllerOf[_projectId]) == address(0) && msg.sender == address(_controller)) ||
-        address(controllerOf[_projectId]) == msg.sender )
-        && _knownControllers[_controller]
+      _knownControllers[_controller]
     )
   {
     // Can't set the zero address.
@@ -345,11 +343,8 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @param _controller The terminal to be added.
   */
   function addKnownController(IJBController _controller) external override onlyOwner {
-    // Can't add zero address.
-    require(_controller != IJBController(address(0)), '0x30: ZERO_ADDRESS');
-
     // Check that the controller has not already been added.
-    require(!_knownControllers[_controller], '0x31: ALREADY_ADDED');
+    require(!_knownControllers[_controller], '0x30: ALREADY_ADDED');
 
     // Add the controller to the list of known controllers.
     _knownControllers[_controller] = true;
@@ -365,7 +360,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   */
   function removeKnownController(IJBController _controller) external override onlyOwner {
     // Not in the known controllers list
-    require(_knownControllers[_controller], '0x33: NOT_FOUND');
+    require(_knownControllers[_controller], '0x31: NOT_FOUND');
 
     // Remove the controller from the list of known controllers.
     delete _knownControllers[_controller];
