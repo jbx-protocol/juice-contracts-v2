@@ -90,9 +90,9 @@ describe('JBProjects::claimHandle(...)', function () {
       .to.emit(jbProjectsStore, 'ClaimHandle')
       .withArgs(
         PROJECT_ID_2,
-        deployer.address,
+        /*transferAddress=*/ deployer.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        deployer.address,
+        /*msg.sender=*/ deployer.address,
       );
   });
 
