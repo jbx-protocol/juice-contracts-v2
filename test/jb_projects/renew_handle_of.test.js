@@ -8,7 +8,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 describe('JBProjects::renewHandle(...)', function () {
   const PROJECT_HANDLE = 'PROJECT_1';
   const METADATA_CID = '';
-  const PROJECT_ID = 1;
+  const PROJECT_ID_1 = 1;
 
   let jbOperatorStore;
   let RENEW_HANDLE_PERMISSION_INDEX;
@@ -52,7 +52,7 @@ describe('JBProjects::renewHandle(...)', function () {
         METADATA_CID,
       );
 
-    let tx = await jbProjectsStore.connect(projectOwner).renewHandleOf(/*projectId=*/ PROJECT_ID);
+    let tx = await jbProjectsStore.connect(projectOwner).renewHandleOf(PROJECT_ID_1);
 
     let storedChallengeExpiryOf = await jbProjectsStore
       .connect(deployer)
@@ -61,7 +61,7 @@ describe('JBProjects::renewHandle(...)', function () {
 
     await expect(tx)
       .to.emit(jbProjectsStore, 'RenewHandle')
-      .withArgs(ethers.utils.formatBytes32String(PROJECT_HANDLE), PROJECT_ID, projectOwner.address);
+      .withArgs(ethers.utils.formatBytes32String(PROJECT_HANDLE), PROJECT_ID_1, projectOwner.address);
   });
 
   it(`Can't renew handle of project from non owner`, async function () {
@@ -76,7 +76,7 @@ describe('JBProjects::renewHandle(...)', function () {
       );
 
     await expect(
-      jbProjectsStore.connect(projectOwner).renewHandleOf(/*projectId=*/ PROJECT_ID),
+      jbProjectsStore.connect(projectOwner).renewHandleOf(PROJECT_ID_1),
     ).to.be.revertedWith('Operatable: UNAUTHORIZED');
   });
 
@@ -92,7 +92,7 @@ describe('JBProjects::renewHandle(...)', function () {
       );
 
     await expect(
-      jbProjectsStore.connect(deployer).renewHandleOf(/*projectId=*/ PROJECT_ID),
+      jbProjectsStore.connect(deployer).renewHandleOf(PROJECT_ID_1),
     ).to.be.revertedWith('Operatable: UNAUTHORIZED');
   });
 
@@ -108,7 +108,7 @@ describe('JBProjects::renewHandle(...)', function () {
       );
 
     await expect(
-      jbProjectsStore.connect(addrs[0]).renewHandleOf(/*projectId=*/ PROJECT_ID),
+      jbProjectsStore.connect(addrs[0]).renewHandleOf(PROJECT_ID_1),
     ).to.be.revertedWith('Operatable: UNAUTHORIZED');
   });
 
@@ -124,11 +124,11 @@ describe('JBProjects::renewHandle(...)', function () {
       );
 
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(addrs[0].address, deployer.address, PROJECT_ID, RENEW_HANDLE_PERMISSION_INDEX)
+      .withArgs(addrs[0].address, deployer.address, PROJECT_ID_1, RENEW_HANDLE_PERMISSION_INDEX)
       .returns(true);
 
     await expect(
-      jbProjectsStore.connect(addrs[0]).renewHandleOf(PROJECT_ID),
+      jbProjectsStore.connect(addrs[0]).renewHandleOf(PROJECT_ID_1),
     ).to.be.revertedWith('Operatable: UNAUTHORIZED');
   });
 });

@@ -9,7 +9,7 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
   const PROJECT_HANDLE = 'PROJECT_1';
   const METADATA_CID = '';
   const METADATA_CID_2 = 'ipfs://randommetadatacidipsaddress';
-  const PROJECT_ID = 1;
+  const PROJECT_ID_1 = 1;
 
   let SET_METADATA_CID_PERMISSION_INDEX;
 
@@ -50,16 +50,16 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
     let tx = await jbProjectsStore
       .connect(projectOwner)
       .setMetadataCidOf(
-        PROJECT_ID,
+        PROJECT_ID_1,
         METADATA_CID_2
       );
 
-    let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataCidOf(PROJECT_ID);
+    let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataCidOf(PROJECT_ID_1);
     await expect(storedMetadataCid).to.equal(METADATA_CID_2);
 
     await expect(tx)
       .to.emit(jbProjectsStore, 'SetUri')
-      .withArgs(PROJECT_ID, METADATA_CID_2, projectOwner.address);
+      .withArgs(PROJECT_ID_1, METADATA_CID_2, projectOwner.address);
   });
 
   it(`Can set MetadataCid on project if caller is not owner but has permission`, async function () {
@@ -77,7 +77,7 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
       .withArgs(
         addrs[1].address,
         projectOwner.address,
-        PROJECT_ID,
+        PROJECT_ID_1,
         SET_METADATA_CID_PERMISSION_INDEX,
       )
       .returns(true);
@@ -86,7 +86,7 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
       jbProjectsStore
         .connect(addrs[1])
         .setMetadataCidOf(
-          PROJECT_ID,
+          PROJECT_ID_1,
           METADATA_CID_2
         ),
     ).to.not.be.reverted;
@@ -107,7 +107,7 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
       .withArgs(
         addrs[1].address,
         projectOwner.address,
-        PROJECT_ID,
+        PROJECT_ID_1,
         SET_METADATA_CID_PERMISSION_INDEX,
       )
       .returns(false);
@@ -116,7 +116,7 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
       jbProjectsStore
         .connect(addrs[1])
         .setMetadataCidOf(
-          PROJECT_ID,
+          PROJECT_ID_1,
           METADATA_CID_2
         ),
     ).to.be.reverted;

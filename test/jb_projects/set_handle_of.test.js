@@ -10,7 +10,7 @@ describe('JBProjects::setHandleOf(...)', function () {
   const PROJECT_HANDLE_NOT_TAKEN = 'PROJECT_2';
   const PROJECT_HANDLE_EMPTY = '';
   const METADATA_CID = '';
-  const PROJECT_ID = 1;
+  const PROJECT_ID_1 = 1;
 
   let jbOperatorStore;
   let SET_HANDLE_PERMISSION_INDEX;
@@ -57,7 +57,7 @@ describe('JBProjects::setHandleOf(...)', function () {
     let tx = await jbProjectsStore
       .connect(projectOwner)
       .setHandleOf(
-        PROJECT_ID,
+        PROJECT_ID_1,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
       );
 
@@ -67,12 +67,12 @@ describe('JBProjects::setHandleOf(...)', function () {
       .idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN));
 
     await expect(storedHandle).to.equal(ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN));
-    await expect(storedProjectId).to.equal(PROJECT_ID);
+    await expect(storedProjectId).to.equal(PROJECT_ID_1);
 
     await expect(tx)
       .to.emit(jbProjectsStore, 'SetHandle')
       .withArgs(
-        PROJECT_ID,
+        PROJECT_ID_1,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
         projectOwner.address,
       );
@@ -93,7 +93,7 @@ describe('JBProjects::setHandleOf(...)', function () {
       jbProjectsStore
         .connect(projectOwner)
         .setHandleOf(
-          PROJECT_ID,
+          PROJECT_ID_1,
           ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
         ),
     ).to.be.revertedWith('0x08: EMPTY_HANDLE');
@@ -114,7 +114,7 @@ describe('JBProjects::setHandleOf(...)', function () {
       jbProjectsStore
         .connect(projectOwner)
         .setHandleOf(
-          PROJECT_ID,
+          PROJECT_ID_1,
           ethers.utils.formatBytes32String(PROJECT_HANDLE),
         ),
     ).to.be.revertedWith('0x09: HANDLE_TAKEN');
@@ -135,7 +135,7 @@ describe('JBProjects::setHandleOf(...)', function () {
       jbProjectsStore
         .connect(addrs[0])
         .setHandleOf(
-          PROJECT_ID,
+          PROJECT_ID_1,
           ethers.utils.formatBytes32String(PROJECT_HANDLE),
         ),
     ).to.be.reverted;
@@ -153,14 +153,14 @@ describe('JBProjects::setHandleOf(...)', function () {
       );
 
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(addrs[0].address, deployer.address, PROJECT_ID, SET_HANDLE_PERMISSION_INDEX)
+      .withArgs(addrs[0].address, deployer.address, PROJECT_ID_1, SET_HANDLE_PERMISSION_INDEX)
       .returns(true);
 
     await expect(
       jbProjectsStore
         .connect(addrs[0])
         .setHandleOf(
-          PROJECT_ID,
+          PROJECT_ID_1,
           ethers.utils.formatBytes32String(PROJECT_HANDLE),
         ),
     ).to.be.reverted;

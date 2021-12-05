@@ -6,7 +6,7 @@ describe('JBProjects::createFor(...)', function () {
   const PROJECT_HANDLE_2 = 'PROJECT_2';
   const PROJECT_HANDLE_EMPTY = '';
   const METADATA_CID = '';
-  const PROJECT_ID = 1;
+  const PROJECT_ID_1 = 1;
   const PROJECT_ID_2 = 2;
 
   let jbOperatorStore;
@@ -41,20 +41,20 @@ describe('JBProjects::createFor(...)', function () {
         METADATA_CID,
       );
 
-    let storedHandle = await jbProjectsStore.connect(deployer).handleOf(PROJECT_ID);
+    let storedHandle = await jbProjectsStore.connect(deployer).handleOf(PROJECT_ID_1);
     let storedProjectId = await jbProjectsStore
       .connect(deployer)
       .idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
-    let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataCidOf(PROJECT_ID);
+    let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataCidOf(PROJECT_ID_1);
 
     await expect(storedHandle).to.equal(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
-    await expect(storedProjectId).to.equal(PROJECT_ID);
+    await expect(storedProjectId).to.equal(PROJECT_ID_1);
     await expect(storedMetadataCid).to.equal(METADATA_CID);
 
     await expect(tx)
       .to.emit(jbProjectsStore, 'Create')
       .withArgs(
-        PROJECT_ID,
+        PROJECT_ID_1,
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         METADATA_CID,
@@ -88,7 +88,7 @@ describe('JBProjects::createFor(...)', function () {
       .connect(deployer)
       .idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_2));
 
-    await expect(storedId1).to.equal(PROJECT_ID);
+    await expect(storedId1).to.equal(PROJECT_ID_1);
     await expect(storedId2).to.equal(PROJECT_ID_2);
 
     await expect(tx)

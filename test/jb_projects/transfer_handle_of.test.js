@@ -10,7 +10,7 @@ describe('JBProjects::transferHandleOf(...)', function () {
   const PROJECT_HANDLE_2 = 'PROJECT_2';
   const PROJECT_HANDLE_EMPTY = '';
   const METADATA_CID = '';
-  const PROJECT_ID = 1;
+  const PROJECT_ID_1 = 1;
 
   let SET_HANDLE_PERMISSION_INDEX;
 
@@ -51,12 +51,12 @@ describe('JBProjects::transferHandleOf(...)', function () {
     let tx = await jbProjectsStore
       .connect(projectOwner)
       .transferHandleOf(
-        PROJECT_ID,
+        PROJECT_ID_1,
         /*address=*/ deployer.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
       );
 
-    let storedHandle = await jbProjectsStore.connect(deployer).handleOf(PROJECT_ID);
+    let storedHandle = await jbProjectsStore.connect(deployer).handleOf(PROJECT_ID_1);
     let storedProjectId = await jbProjectsStore
       .connect(deployer)
       .idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_2));
@@ -65,7 +65,7 @@ describe('JBProjects::transferHandleOf(...)', function () {
       .idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
 
     await expect(storedHandle).to.equal(ethers.utils.formatBytes32String(PROJECT_HANDLE_2));
-    await expect(storedProjectId).to.equal(PROJECT_ID);
+    await expect(storedProjectId).to.equal(PROJECT_ID_1);
     await expect(storedOldProjectId).to.equal(0);
 
     await expect(tx)
@@ -94,7 +94,7 @@ describe('JBProjects::transferHandleOf(...)', function () {
       jbProjectsStore
         .connect(projectOwner)
         .transferHandleOf(
-          PROJECT_ID,
+          PROJECT_ID_1,
           deployer.address,
           ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
         ),
@@ -116,7 +116,7 @@ describe('JBProjects::transferHandleOf(...)', function () {
       jbProjectsStore
         .connect(projectOwner)
         .transferHandleOf(
-          PROJECT_ID,
+          PROJECT_ID_1,
           deployer.address,
           ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         ),
@@ -138,7 +138,7 @@ describe('JBProjects::transferHandleOf(...)', function () {
       jbProjectsStore
         .connect(addrs[0])
         .transferHandleOf(
-          PROJECT_ID,
+          PROJECT_ID_1,
           deployer.address,
           ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         ),
@@ -160,7 +160,7 @@ describe('JBProjects::transferHandleOf(...)', function () {
       jbProjectsStore
         .connect(deployer)
         .transferHandleOf(
-          PROJECT_ID,
+          PROJECT_ID_1,
           deployer.address,
           ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         ),
@@ -179,14 +179,14 @@ describe('JBProjects::transferHandleOf(...)', function () {
       );
 
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(deployer.address, projectOwner.address, PROJECT_ID, SET_HANDLE_PERMISSION_INDEX)
+      .withArgs(deployer.address, projectOwner.address, PROJECT_ID_1, SET_HANDLE_PERMISSION_INDEX)
       .returns(true);
 
     await expect(
       jbProjectsStore
         .connect(deployer)
         .transferHandleOf(
-          PROJECT_ID,
+          PROJECT_ID_1,
           deployer.address,
           ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         ),

@@ -9,7 +9,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 describe('JBProjects::challengeHandle(...)', function () {
   const PROJECT_HANDLE_1 = 'PROJECT_1';
   const METADATA_CID = '';
-  const PROJECT_ID = 1;
+  const PROJECT_ID_1 = 1;
 
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
@@ -52,7 +52,7 @@ describe('JBProjects::challengeHandle(...)', function () {
       .to.emit(jbProjectsStore, 'ChallengeHandle')
       .withArgs(
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        PROJECT_ID,
+        PROJECT_ID_1,
         expectedChallengeExpiry,
         addrs[0].address,
       );

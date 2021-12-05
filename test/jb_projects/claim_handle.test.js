@@ -12,7 +12,7 @@ describe('JBProjects::claimHandle(...)', function () {
   const PROJECT_HANDLE_2 = 'PROJECT_2';
   const PROJECT_HANDLE_3 = 'PROJECT_3';
   const METADATA_CID = '';
-  const PROJECT_ID = 1;
+  const PROJECT_ID_1 = 1;
   const PROJECT_ID_2 = 2;
 
   let jbOperatorStore;
@@ -68,7 +68,7 @@ describe('JBProjects::claimHandle(...)', function () {
     await jbProjectsStore
       .connect(projectOwner)
       .transferHandleOf(
-        PROJECT_ID,
+        PROJECT_ID_1,
         deployer.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_3),
       );
@@ -113,7 +113,7 @@ describe('JBProjects::claimHandle(...)', function () {
     await jbProjectsStore
       .connect(projectOwner)
       .transferHandleOf(
-        PROJECT_ID,
+        PROJECT_ID_1,
         deployer.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
       );
@@ -124,7 +124,7 @@ describe('JBProjects::claimHandle(...)', function () {
         .claimHandle(
           ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
           projectOwner.address,
-          PROJECT_ID,
+          PROJECT_ID_1,
         ),
     ).to.be.revertedWith('0x0c: UNAUTHORIZED');
   });
@@ -151,7 +151,7 @@ describe('JBProjects::claimHandle(...)', function () {
     await jbProjectsStore
       .connect(projectOwner)
       .transferHandleOf(
-        PROJECT_ID,
+        PROJECT_ID_1,
         deployer.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_3),
       );
@@ -189,7 +189,7 @@ describe('JBProjects::claimHandle(...)', function () {
     await jbProjectsStore
       .connect(projectOwner)
       .transferHandleOf(
-        PROJECT_ID,
+        PROJECT_ID_1,
         deployer.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_3),
       );
@@ -228,7 +228,7 @@ describe('JBProjects::claimHandle(...)', function () {
         await jbProjectsStore
           .connect(projectOwner)
           .transferHandleOf(
-            PROJECT_ID,
+            PROJECT_ID_1,
             handleReceiver.address,
             ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
           );
@@ -237,7 +237,7 @@ describe('JBProjects::claimHandle(...)', function () {
           .withArgs(
             handleReceiver.address,
             deployer.address,
-            PROJECT_ID,
+            PROJECT_ID_1,
             CLAIM_HANDLE_PERMISSION_INDEX,
           )
           .returns(true);
@@ -271,7 +271,7 @@ describe('JBProjects::claimHandle(...)', function () {
         await jbProjectsStore
           .connect(projectOwner)
           .transferHandleOf(
-            PROJECT_ID,
+            PROJECT_ID_1,
             handleReceiver.address,
             ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
           );
@@ -280,7 +280,7 @@ describe('JBProjects::claimHandle(...)', function () {
           .withArgs(
             handleReceiver.address,
             deployer.address,
-            PROJECT_ID,
+            PROJECT_ID_1,
             CLAIM_HANDLE_PERMISSION_INDEX,
           )
           .returns(false);
