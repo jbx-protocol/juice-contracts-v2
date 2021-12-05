@@ -35,7 +35,7 @@ describe('JBProjects::challengeHandle(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        /*metadataCid=*/ '',
+        /*metadataCid=*/ METADATA_CID,
       );
 
     let tx = await jbProjectsStore
