@@ -10,7 +10,6 @@ describe('JBProjects::renewHandle(...)', function () {
   const METADATA_CID = '';
   const PROJECT_ID_1 = 1;
 
-  let jbOperatorStore;
   let RENEW_HANDLE_PERMISSION_INDEX;
 
   before(async function () {
@@ -20,13 +19,11 @@ describe('JBProjects::renewHandle(...)', function () {
     RENEW_HANDLE_PERMISSION_INDEX = await jbOperations.RENEW_HANDLE();
   })
 
-  beforeEach(async function () {
-    let jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
-    jbOperatorStore = await jbOperatorStoreFactory.deploy();
-  });
-
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
+
+    let jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
+    let jbOperatorStore = await jbOperatorStoreFactory.deploy();
 
     let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
     let jbProjectsFactory = await ethers.getContractFactory('JBProjects');

@@ -9,15 +9,11 @@ describe('JBProjects::createFor(...)', function () {
   const PROJECT_ID_1 = 1;
   const PROJECT_ID_2 = 2;
 
-  let jbOperatorStore;
-
-  beforeEach(async function () {
-    let jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
-    jbOperatorStore = await jbOperatorStoreFactory.deploy();
-  });
-
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
+
+    let jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
+    let jbOperatorStore = await jbOperatorStoreFactory.deploy();
 
     let jbProjectsFactory = await ethers.getContractFactory('JBProjects');
     let jbProjectsStore = await jbProjectsFactory.deploy(jbOperatorStore.address);
