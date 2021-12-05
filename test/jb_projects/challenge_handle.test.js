@@ -33,8 +33,8 @@ describe('JBProjects::challengeHandle(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         /*metadataCid=*/ '',
       );
 
@@ -74,19 +74,19 @@ describe('JBProjects::challengeHandle(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+        METADATA_CID,
       );
 
     await jbProjectsStore
       .connect(deployer)
-      .challengeHandle(/*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
+      .challengeHandle(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
 
     await expect(
       jbProjectsStore
         .connect(deployer)
-        .challengeHandle(/*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1)),
+        .challengeHandle(ethers.utils.formatBytes32String(PROJECT_HANDLE_1)),
     ).to.be.revertedWith('0x0e: CHALLENGE_OPEN');
   });
 });

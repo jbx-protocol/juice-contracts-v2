@@ -15,14 +15,16 @@ describe('JBProjects::setHandleOf(...)', function () {
   let jbOperatorStore;
   let SET_HANDLE_PERMISSION_INDEX;
 
-  beforeEach(async function () {
-    let jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
-    jbOperatorStore = await jbOperatorStoreFactory.deploy();
-
+  before(async function () {
     let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
     let jbOperations = await jbOperationsFactory.deploy();
 
     SET_HANDLE_PERMISSION_INDEX = await jbOperations.SET_HANDLE();
+  })
+
+  beforeEach(async function () {
+    let jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
+    jbOperatorStore = await jbOperatorStoreFactory.deploy();
   });
 
   async function setup() {
@@ -47,16 +49,16 @@ describe('JBProjects::setHandleOf(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        METADATA_CID,
       );
 
     let tx = await jbProjectsStore
       .connect(projectOwner)
       .setHandleOf(
-        /*projectId=*/ PROJECT_ID,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
+        PROJECT_ID,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
       );
 
     let storedHandle = await jbProjectsStore.connect(deployer).handleOf(1);
@@ -82,17 +84,17 @@ describe('JBProjects::setHandleOf(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        METADATA_CID,
       );
 
     await expect(
       jbProjectsStore
         .connect(projectOwner)
         .setHandleOf(
-          /*projectId=*/ PROJECT_ID,
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
+          PROJECT_ID,
+          ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
         ),
     ).to.be.revertedWith('0x08: EMPTY_HANDLE');
   });
@@ -103,17 +105,17 @@ describe('JBProjects::setHandleOf(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        METADATA_CID,
       );
 
     await expect(
       jbProjectsStore
         .connect(projectOwner)
         .setHandleOf(
-          /*projectId=*/ PROJECT_ID,
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+          PROJECT_ID,
+          ethers.utils.formatBytes32String(PROJECT_HANDLE),
         ),
     ).to.be.revertedWith('0x09: HANDLE_TAKEN');
   });
@@ -124,17 +126,17 @@ describe('JBProjects::setHandleOf(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        METADATA_CID,
       );
 
     await expect(
       jbProjectsStore
         .connect(addrs[0])
         .setHandleOf(
-          /*projectId=*/ PROJECT_ID,
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+          PROJECT_ID,
+          ethers.utils.formatBytes32String(PROJECT_HANDLE),
         ),
     ).to.be.reverted;
   });
@@ -145,9 +147,9 @@ describe('JBProjects::setHandleOf(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        METADATA_CID,
       );
 
     await mockJbOperatorStore.mock.hasPermission
@@ -158,8 +160,8 @@ describe('JBProjects::setHandleOf(...)', function () {
       jbProjectsStore
         .connect(addrs[0])
         .setHandleOf(
-          /*projectId=*/ PROJECT_ID,
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
+          PROJECT_ID,
+          ethers.utils.formatBytes32String(PROJECT_HANDLE),
         ),
     ).to.be.reverted;
   });

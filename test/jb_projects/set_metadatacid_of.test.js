@@ -42,14 +42,17 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        METADATA_CID,
       );
 
     let tx = await jbProjectsStore
       .connect(projectOwner)
-      .setMetadataCidOf(/*projectId=*/ PROJECT_ID, /*metadataCid=*/ METADATA_CID_2);
+      .setMetadataCidOf(
+        PROJECT_ID,
+        METADATA_CID_2
+      );
 
     let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataCidOf(PROJECT_ID);
     await expect(storedMetadataCid).to.equal(METADATA_CID_2);
@@ -65,9 +68,9 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        METADATA_CID,
       );
 
     await mockJbOperatorStore.mock.hasPermission
@@ -82,7 +85,10 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
     await expect(
       jbProjectsStore
         .connect(addrs[1])
-        .setMetadataCidOf(/*projectId=*/ PROJECT_ID, /*metadataCid=*/ METADATA_CID_2),
+        .setMetadataCidOf(
+          PROJECT_ID,
+          METADATA_CID_2
+        ),
     ).to.not.be.reverted;
   });
 
@@ -92,9 +98,9 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        METADATA_CID,
       );
 
     await mockJbOperatorStore.mock.hasPermission
@@ -109,7 +115,10 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
     await expect(
       jbProjectsStore
         .connect(addrs[1])
-        .setMetadataCidOf(/*projectId=*/ PROJECT_ID, /*metadataCid=*/ METADATA_CID_2),
+        .setMetadataCidOf(
+          PROJECT_ID,
+          METADATA_CID_2
+        ),
     ).to.be.reverted;
   });
 });

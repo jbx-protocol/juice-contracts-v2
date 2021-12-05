@@ -13,14 +13,16 @@ describe('JBProjects::renewHandle(...)', function () {
   let jbOperatorStore;
   let RENEW_HANDLE_PERMISSION_INDEX;
 
-  beforeEach(async function () {
-    let jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
-    jbOperatorStore = await jbOperatorStoreFactory.deploy();
-
+  before(async function () {
     let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
     let jbOperations = await jbOperationsFactory.deploy();
 
     RENEW_HANDLE_PERMISSION_INDEX = await jbOperations.RENEW_HANDLE();
+  })
+
+  beforeEach(async function () {
+    let jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
+    jbOperatorStore = await jbOperatorStoreFactory.deploy();
   });
 
   async function setup() {
@@ -45,9 +47,9 @@ describe('JBProjects::renewHandle(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        METADATA_CID,
       );
 
     let tx = await jbProjectsStore.connect(projectOwner).renewHandleOf(/*projectId=*/ PROJECT_ID);
@@ -68,9 +70,9 @@ describe('JBProjects::renewHandle(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ deployer.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
+        deployer.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        METADATA_CID,
       );
 
     await expect(
@@ -84,9 +86,9 @@ describe('JBProjects::renewHandle(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        METADATA_CID,
       );
 
     await expect(
@@ -100,9 +102,9 @@ describe('JBProjects::renewHandle(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        METADATA_CID,
       );
 
     await expect(
@@ -116,9 +118,9 @@ describe('JBProjects::renewHandle(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        METADATA_CID,
       );
 
     await mockJbOperatorStore.mock.hasPermission
@@ -126,7 +128,7 @@ describe('JBProjects::renewHandle(...)', function () {
       .returns(true);
 
     await expect(
-      jbProjectsStore.connect(addrs[0]).renewHandleOf(/*projectId=*/ PROJECT_ID),
+      jbProjectsStore.connect(addrs[0]).renewHandleOf(PROJECT_ID),
     ).to.be.revertedWith('Operatable: UNAUTHORIZED');
   });
 });

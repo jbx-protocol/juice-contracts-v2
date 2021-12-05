@@ -43,17 +43,17 @@ describe('JBProjects::transferHandleOf(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+        METADATA_CID,
       );
 
     let tx = await jbProjectsStore
       .connect(projectOwner)
       .transferHandleOf(
-        /*projectId=*/ 1,
+        PROJECT_ID,
         /*address=*/ deployer.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
       );
 
     let storedHandle = await jbProjectsStore.connect(deployer).handleOf(PROJECT_ID);
@@ -85,18 +85,18 @@ describe('JBProjects::transferHandleOf(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+        METADATA_CID,
       );
 
     await expect(
       jbProjectsStore
         .connect(projectOwner)
         .transferHandleOf(
-          /*projectId=*/ 1,
-          /*address=*/ deployer.address,
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
+          PROJECT_ID,
+          deployer.address,
+          ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
         ),
     ).to.be.revertedWith('0x0a: EMPTY_HANDLE');
   });
@@ -107,18 +107,18 @@ describe('JBProjects::transferHandleOf(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+        METADATA_CID,
       );
 
     await expect(
       jbProjectsStore
         .connect(projectOwner)
         .transferHandleOf(
-          /*projectId=*/ 1,
-          /*address=*/ deployer.address,
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+          PROJECT_ID,
+          deployer.address,
+          ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         ),
     ).to.be.revertedWith('0x0b: HANDLE_TAKEN');
   });
@@ -129,18 +129,18 @@ describe('JBProjects::transferHandleOf(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+        METADATA_CID,
       );
 
     await expect(
       jbProjectsStore
         .connect(addrs[0])
         .transferHandleOf(
-          /*projectId=*/ 1,
-          /*address=*/ deployer.address,
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+          PROJECT_ID,
+          deployer.address,
+          ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         ),
     ).to.be.reverted;
   });
@@ -151,18 +151,18 @@ describe('JBProjects::transferHandleOf(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+        METADATA_CID,
       );
 
     await expect(
       jbProjectsStore
         .connect(deployer)
         .transferHandleOf(
-          /*projectId=*/ 1,
-          /*address=*/ deployer.address,
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+          PROJECT_ID,
+          deployer.address,
+          ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         ),
     ).to.be.reverted;
   });
@@ -173,9 +173,9 @@ describe('JBProjects::transferHandleOf(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+        METADATA_CID,
       );
 
     await mockJbOperatorStore.mock.hasPermission
@@ -186,9 +186,9 @@ describe('JBProjects::transferHandleOf(...)', function () {
       jbProjectsStore
         .connect(deployer)
         .transferHandleOf(
-          /*projectId=*/ 1,
-          /*address=*/ deployer.address,
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+          PROJECT_ID,
+          deployer.address,
+          ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         ),
     ).to.be.reverted;
   });

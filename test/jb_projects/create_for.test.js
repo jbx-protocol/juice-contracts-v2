@@ -36,9 +36,9 @@ describe('JBProjects::createFor(...)', function () {
     let tx = await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+        METADATA_CID,
       );
 
     let storedHandle = await jbProjectsStore.connect(deployer).handleOf(PROJECT_ID);
@@ -68,17 +68,17 @@ describe('JBProjects::createFor(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+        METADATA_CID,
       );
 
     let tx = await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
+        METADATA_CID,
       );
 
     let storedId1 = await jbProjectsStore
@@ -109,9 +109,9 @@ describe('JBProjects::createFor(...)', function () {
       jbProjectsStore
         .connect(deployer)
         .createFor(
-          /*owner=*/ projectOwner.address,
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
-          /*metadataCid=*/ METADATA_CID,
+          projectOwner.address,
+          ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
+          METADATA_CID,
         ),
     ).to.be.revertedWith('0x06: EMPTY_HANDLE');
   });
@@ -122,18 +122,18 @@ describe('JBProjects::createFor(...)', function () {
     await jbProjectsStore
       .connect(deployer)
       .createFor(
-        /*owner=*/ projectOwner.address,
-        /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        /*metadataCid=*/ METADATA_CID,
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+        METADATA_CID,
       );
 
     await expect(
       jbProjectsStore
         .connect(deployer)
         .createFor(
-          /*owner=*/ projectOwner.address,
-          /*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-          /*metadataCid=*/ METADATA_CID,
+          projectOwner.address,
+          ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+          METADATA_CID,
         ),
     ).to.be.revertedWith('0x07: HANDLE_TAKEN');
   });
