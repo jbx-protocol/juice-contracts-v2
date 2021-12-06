@@ -19,7 +19,7 @@ interface IJBDirectory {
     address caller
   );
 
-  event AddToSetControllerAllowlist(address indexed _address, msg.sender);
+  event AddToSetControllerAllowlist(address indexed _address, address caller);
 
   event RemoveFromSetControllerAllowlist(address indexed _address, address caller);
 
@@ -27,7 +27,7 @@ interface IJBDirectory {
 
   function controllerOf(uint256 _projectId) external view returns (IJBController);
 
-  function isKnownController(IJBController _address) external view returns (bool);
+  function isAllowedToSetController(address _address) external view returns (bool);
 
   function primaryTerminalOf(uint256 _projectId, address _token)
     external

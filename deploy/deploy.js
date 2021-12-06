@@ -91,7 +91,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   // Add the deployed JBController as a known controller.
   const [signer, ..._] = await ethers.getSigners()
   const jbDirectoryContract = new ethers.Contract(JBDirectory.address, JBDirectory.abi);
-  await jbDirectoryContract.connect(signer).addKnownController(JBController.address)
+  await jbDirectoryContract.connect(signer).addToSetControllerAllowlist(JBController.address)
 
   const JBETHPaymentTerminalStore = await deploy('JBETHPaymentTerminalStore', {
     from: deployer,

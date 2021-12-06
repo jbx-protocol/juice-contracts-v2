@@ -31,20 +31,20 @@ describe('JBDirectory::removeKnownController(...)', function () {
 
   it('Should remove known controller and emit events if caller is JBDirectory owner', async function () {
     const { deployer, jbDirectory, mockJbController } = await setup();
-    await jbDirectory.connect(deployer).addKnownController(mockJbController.address);
+    await jbDirectory.connect(deployer).addToSetControllerAllowlist(mockJbController.address);
 
     await expect(
-      jbDirectory.connect(deployer).removeKnownController(mockJbController.address)
-    ).to.emit(jbDirectory, 'RemoveKnownController')
+      jbDirectory.connect(deployer).removeFromSetControllerAllowlist(mockJbController.address)
+    ).to.emit(jbDirectory, 'RemoveFromSetControllerAllowlist')
       .withArgs(mockJbController.address, deployer.address);
   });
 
   it('Can\'t remove known controller if caller is not JBDirectory owner', async function () {
     const { deployer, addrs, jbDirectory, mockJbController } = await setup();
-    await jbDirectory.connect(deployer).addKnownController(mockJbController.address);
+    await jbDirectory.connect(deployer).addToSetControllerAllowlist(mockJbController.address);
 
     await expect(
-      jbDirectory.connect(addrs[0]).removeKnownController(mockJbController.address)
+      jbDirectory.connect(addrs[0]).removeFromSetControllerAllowlist(mockJbController.address)
     ).to.revertedWith('Ownable: caller is not the owner');
   });
 
@@ -52,7 +52,7 @@ describe('JBDirectory::removeKnownController(...)', function () {
     const { deployer, jbDirectory, mockJbController } = await setup();
 
     await expect(
-      jbDirectory.connect(deployer).removeKnownController(mockJbController.address)
+      jbDirectory.connect(deployer).removeFromSetControllerAllowlist(mockJbController.address)
     ).to.revertedWith('0x31: NOT_FOUND');
   });
 

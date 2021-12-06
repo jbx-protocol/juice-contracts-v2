@@ -195,7 +195,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
       projects.ownerOf(_projectId),
       _projectId,
       JBOperations.SET_CONTROLLER,
-      (setControllerAllowlist[address(_controller)] && setControllerAllowlist[msg.sender])
+      (_setControllerAllowlist[address(_controller)] && _setControllerAllowlist[msg.sender])
     )
   {
     // Can't set the zero address.

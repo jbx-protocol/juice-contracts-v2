@@ -34,12 +34,12 @@ describe('JBDirectory::addKnownController(...)', function () {
     const { deployer, jbDirectory, mockJbController } = await setup();
 
     await expect(
-      jbDirectory.connect(deployer).addKnownController(mockJbController.address)
-    ).to.emit(jbDirectory, 'AddKnownController')
-     .withArgs(mockJbController.address, deployer.address);
-    
+      jbDirectory.connect(deployer).addToSetControllerAllowlist(mockJbController.address)
+    ).to.emit(jbDirectory, 'AddToSetControllerAllowlist')
+      .withArgs(mockJbController.address, deployer.address);
+
     expect(
-      await jbDirectory.isKnownController(mockJbController.address)
+      await jbDirectory.isAllowedToSetController(mockJbController.address)
     ).to.be.true;
   });
 
@@ -47,17 +47,17 @@ describe('JBDirectory::addKnownController(...)', function () {
     const { addrs, jbDirectory, mockJbController } = await setup();
 
     await expect(
-      jbDirectory.connect(addrs[0]).addKnownController(mockJbController.address)
+      jbDirectory.connect(addrs[0]).addToSetControllerAllowlist(mockJbController.address)
     ).to.revertedWith('Ownable: caller is not the owner');
   });
 
   it('Can\'t add the same known controller twice', async function () {
     const { deployer, jbDirectory, mockJbController } = await setup();
 
-    await jbDirectory.connect(deployer).addKnownController(mockJbController.address)
+    await jbDirectory.connect(deployer).addToSetControllerAllowlist(mockJbController.address)
 
     await expect(
-      jbDirectory.connect(deployer).addKnownController(mockJbController.address)
+      jbDirectory.connect(deployer).addToSetControllerAllowlist(mockJbController.address)
     ).to.revertedWith('0x30: ALREADY_ADDED');
   });
 
