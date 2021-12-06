@@ -71,7 +71,7 @@ describe('JBProjects::transferHandleOf(...)', function () {
     await expect(tx)
       .to.emit(jbProjectsStore, 'TransferHandle')
       .withArgs(
-        1,
+        PROJECT_ID_1,
         deployer.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
