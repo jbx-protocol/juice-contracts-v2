@@ -43,7 +43,7 @@ describe('JBProjects::claimHandle(...)', function () {
     };
   }
 
-  it(`Should claim handle of a project`, async function () {
+  it(`Should claim handle of a project and emit ClaimHandle`, async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore
@@ -208,89 +208,83 @@ describe('JBProjects::claimHandle(...)', function () {
     ).to.be.revertedWith('0x0c: UNAUTHORIZED');
   });
 
-  if (
-    (`Can't claim handle and assign to inexistent or not owned projectId`,
-      async function () {
-        const { projectOwner, deployer, addrs, jbProjectsStore, mockJbOperatorStore } = setup();
+  it(`Can't claim handle and assign to inexistent or not owned projectId`, async function () {
+    const { projectOwner, deployer, addrs, jbProjectsStore, mockJbOperatorStore } = await setup();
 
-        await jbProjectsStore
-          .connect(deployer)
-          .createFor(
-            projectOwner.address,
-            ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-            METADATA_CID,
-          );
+    await jbProjectsStore
+      .connect(deployer)
+      .createFor(
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+        METADATA_CID,
+      );
 
-        let handleReceiver = addrs[0];
-        await jbProjectsStore
-          .connect(projectOwner)
-          .transferHandleOf(
-            PROJECT_ID_1,
-            handleReceiver.address,
-            ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
-          );
+    let handleReceiver = addrs[0];
+    await jbProjectsStore
+      .connect(projectOwner)
+      .transferHandleOf(
+        PROJECT_ID_1,
+        handleReceiver.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
+      );
 
-        await mockJbOperatorStore.mock.hasPermission
-          .withArgs(
-            handleReceiver.address,
-            deployer.address,
-            PROJECT_ID_1,
-            CLAIM_HANDLE_PERMISSION_INDEX,
-          )
-          .returns(true);
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(
+        handleReceiver.address,
+        deployer.address,
+        PROJECT_ID_1,
+        CLAIM_HANDLE_PERMISSION_INDEX,
+      )
+      .returns(true);
 
-        await expect(
-          jbProjectsStore
-            .connect(handleReceiver)
-            .claimHandle(
-              ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-              projectOwner.address,
-              PROJECT_ID_2,
-            ),
-        ).to.be.reverted;
-      })
-  );
+    await expect(
+      jbProjectsStore
+        .connect(handleReceiver)
+        .claimHandle(
+          ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+          projectOwner.address,
+          PROJECT_ID_2,
+        ),
+    ).to.be.reverted;
+  });
 
-  if (
-    (`Can't claim handle even if its recipient who does it but without permissions`,
-      async function () {
-        const { projectOwner, deployer, addrs, jbProjectsStore, mockJbOperatorStore } = setup();
+  it(`Can't claim handle even if its recipient who does it but without permissions`, async function () {
+    const { projectOwner, deployer, addrs, jbProjectsStore, mockJbOperatorStore } = await setup();
 
-        await jbProjectsStore
-          .connect(deployer)
-          .createFor(
-            projectOwner.address,
-            ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-            METADATA_CID,
-          );
+    await jbProjectsStore
+      .connect(deployer)
+      .createFor(
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+        METADATA_CID,
+      );
 
-        let handleReceiver = addrs[0];
-        await jbProjectsStore
-          .connect(projectOwner)
-          .transferHandleOf(
-            PROJECT_ID_1,
-            handleReceiver.address,
-            ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
-          );
+    let handleReceiver = addrs[0];
+    await jbProjectsStore
+      .connect(projectOwner)
+      .transferHandleOf(
+        PROJECT_ID_1,
+        handleReceiver.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
+      );
 
-        await mockJbOperatorStore.mock.hasPermission
-          .withArgs(
-            handleReceiver.address,
-            deployer.address,
-            PROJECT_ID_1,
-            CLAIM_HANDLE_PERMISSION_INDEX,
-          )
-          .returns(false);
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(
+        handleReceiver.address,
+        deployer.address,
+        PROJECT_ID_1,
+        CLAIM_HANDLE_PERMISSION_INDEX,
+      )
+      .returns(false);
 
-        await expect(
-          jbProjectsStore
-            .connect(handleReceiver)
-            .claimHandle(
-              ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-              projectOwner.address,
-              PROJECT_ID_2,
-            ),
-        ).to.be.reverted;
-      })
-  );
+    await expect(
+      jbProjectsStore
+        .connect(handleReceiver)
+        .claimHandle(
+          ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+          projectOwner.address,
+          PROJECT_ID_2,
+        ),
+    ).to.be.reverted;
+  });
 });

@@ -37,7 +37,7 @@ describe('JBProjects::transferHandleOf(...)', function () {
     };
   }
 
-  it(`Should transfer handle to another address`, async function () {
+  it(`Should transfer handle to another address and emit TransferHandle`, async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore
@@ -137,28 +137,6 @@ describe('JBProjects::transferHandleOf(...)', function () {
     await expect(
       jbProjectsStore
         .connect(addrs[0])
-        .transferHandleOf(
-          PROJECT_ID_1,
-          deployer.address,
-          ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        ),
-    ).to.be.reverted;
-  });
-
-  it(`Can't transfer handle if operator even with permissions`, async function () {
-    const { projectOwner, deployer, addrs, jbProjectsStore, mockJbOperatorStore } = await setup();
-
-    await jbProjectsStore
-      .connect(deployer)
-      .createFor(
-        projectOwner.address,
-        ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        METADATA_CID,
-      );
-
-    await expect(
-      jbProjectsStore
-        .connect(deployer)
         .transferHandleOf(
           PROJECT_ID_1,
           deployer.address,

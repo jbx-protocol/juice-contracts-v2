@@ -36,7 +36,7 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
     };
   }
 
-  it(`Should set MetadataCid on project by owner`, async function () {
+  it(`Should set MetadataCid on project by owner and emit SetUri`, async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore

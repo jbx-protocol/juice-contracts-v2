@@ -27,7 +27,7 @@ describe('JBProjects::challengeHandle(...)', function () {
     };
   }
 
-  it(`Should challenge handle successfully`, async function () {
+  it(`Should challenge handle successfully and emit ChallengeHandle`, async function () {
     const { projectOwner, deployer, addrs, jbProjectsStore } = await setup();
 
     await jbProjectsStore

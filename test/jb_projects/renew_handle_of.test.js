@@ -38,7 +38,7 @@ describe('JBProjects::renewHandle(...)', function () {
     };
   }
 
-  it(`Should renew handle`, async function () {
+  it(`Should renew handle and emit RenewHandle`, async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore

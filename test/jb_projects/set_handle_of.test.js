@@ -40,7 +40,7 @@ describe('JBProjects::setHandleOf(...)', function () {
     };
   }
 
-  it(`Should set new handle to project`, async function () {
+  it(`Should set new handle to project and emit SetHandle`, async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore

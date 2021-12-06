@@ -26,7 +26,7 @@ describe('JBProjects::createFor(...)', function () {
     };
   }
 
-  it(`Should create a project`, async function () {
+  it(`Should create a project and emit Create`, async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     let tx = await jbProjectsStore
@@ -58,7 +58,7 @@ describe('JBProjects::createFor(...)', function () {
       );
   });
 
-  it(`Should create two projects and count to be 2`, async function () {
+  it(`Should create two projects and count to be 2 and emit Create`, async function () {
     const { projectOwner, deployer, jbProjectsStore } = await setup();
 
     await jbProjectsStore
