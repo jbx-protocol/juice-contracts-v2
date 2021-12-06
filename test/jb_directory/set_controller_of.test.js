@@ -75,7 +75,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
     ).to.be.revertedWith('0x2c: NOT_FOUND');
   });
 
-  it('Should set controller if same controller already set', async function () {
+  it('Should set same controller if controller already set', async function () {
     const { projectOwner, jbDirectory, mockJbProjects, controller1 } = await setup();
 
     await mockJbProjects.mock.count.returns(PROJECT_ID);
@@ -84,7 +84,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
       jbDirectory
       .connect(projectOwner)
       .setControllerOf(PROJECT_ID, controller1.address)
-    ).to.be.not.reverted;
+    ).to.not.be.reverted;
 
     let controller = await jbDirectory.connect(projectOwner).controllerOf(PROJECT_ID);
     expect(controller).to.equal(controller1.address);
@@ -124,7 +124,6 @@ describe('JBDirectory::setControllerOf(...)', function () {
 
   it('Should set controller if both caller and new controller are known controllers', async function () {
     const { deployer,
-      addrs,
       projectOwner,
       jbDirectory,
       mockJbProjects,
