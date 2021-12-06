@@ -2,6 +2,7 @@
 pragma solidity 0.8.6;
 
 import './../interfaces/IJBTerminalUtility.sol';
+import './../libraries/JBErrors.sol';
 
 /** 
   @notice
@@ -9,7 +10,9 @@ import './../interfaces/IJBTerminalUtility.sol';
 */
 abstract contract JBTerminalUtility is IJBTerminalUtility {
   modifier onlyTerminal(uint256 _projectId) {
-    require(directory.isTerminalDelegateOf(_projectId, msg.sender), '0x50: UNAUTHORIZED');
+    if (!(directory.isTerminalDelegateOf(_projectId, msg.sender))) {
+        revert JBErrors.UNAUTHORIZED();
+    }
     _;
   }
 

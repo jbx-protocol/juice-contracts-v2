@@ -5,6 +5,7 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Address.sol';
 
 import './../interfaces/IJBDirectory.sol';
+import './../libraries/JBErrors.sol';
 
 /** 
   @notice A contract that inherits from JuiceboxProject can use Juicebox as a business-model-as-a-service.
@@ -75,20 +76,22 @@ abstract contract JBProject is Ownable {
     address _token
   ) internal {
     _projectId = _projectId > 0 ? _projectId : projectId;
-
-    require(_projectId != 0, 'JuiceboxProject::_fundTreasury: PROJECT_NOT_FOUND');
-
+    
+    if (_projectId == 0) {
+        revert JBErrors.PROJECT_NOT_FOUND();
+    }
     // Find the terminal for this contract's project.
     IJBTerminal _terminal = directory.primaryTerminalOf(_projectId, _token);
 
     // There must be a terminal.
-    require(
-      _terminal != IJBTerminal(address(0)),
-      'JuiceboxProject::_fundTreasury: TERMINAL_NOT_FOUND'
-    );
+    if (_terminal == IJBTerminal(address(0))) {
+        revert JBErrors.TERMINAL_NOT_FOUND();
+    }
 
     // There must be enough funds in the contract to take the fee.
-    require(address(this).balance >= _amount, 'JuiceboxProject::_fundTreasury: INSUFFICIENT_FUNDS');
+    if (address(this).balance < _amount) {
+        revert JBErrors.INSUFFICIENT_FUNDS();
+    }
 
     // Send funds to the terminal.
     _terminal.pay{value: _amount}(
@@ -110,13 +113,17 @@ abstract contract JBProject is Ownable {
     bool _preferClaimedTokens,
     address _token
   ) private {
-    require(projectId != 0, 'JuiceboxProject::_pay: PROJECT_NOT_FOUND');
+    if (projectId == 0) {
+        revert JBErrors.PROJECT_NOT_FOUND();
+    }
 
     // Get the terminal for this contract's project.
     IJBTerminal _terminal = directory.primaryTerminalOf(projectId, _token);
 
     // There must be a terminal.
-    require(_terminal != IJBTerminal(address(0)), 'JuiceboxProject::_pay: TERMINAL_NOT_FOUND');
+    if (_terminal == IJBTerminal(address(0))) {
+        revert JBErrors.TERMINAL_NOT_FOUND();
+    }
 
     _terminal.pay{value: msg.value}(
       projectId,

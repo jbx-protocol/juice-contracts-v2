@@ -2,11 +2,8 @@
 pragma solidity 0.8.6;
 
 import './interfaces/IJBOperatorStore.sol';
+import './libraries/JBErrors.sol';
 
-/**
-@dev Custom Error to replace the require statement and save gas
- */
-error IndexOutOfBounds();
 
 /** 
   @notice
@@ -54,7 +51,7 @@ contract JBOperatorStore is IJBOperatorStore {
     uint256 _permissionIndex
   ) external view override returns (bool) {
     if (_permissionIndex > 255) {
-        revert IndexOutOfBounds();
+        revert JBErrors.IndexOutOfBounds();
     }
     return (((permissionsOf[_operator][_account][_domain] >> _permissionIndex) & 1) == 1);
   }
@@ -79,7 +76,7 @@ contract JBOperatorStore is IJBOperatorStore {
     for (uint256 _i = 0; _i < _permissionIndexes.length; _i++) {
       uint256 _permissionIndex = _permissionIndexes[_i];
       if (_permissionIndex > 255) {
-        revert IndexOutOfBounds();
+        revert JBErrors.IndexOutOfBounds();
       }
       if (((permissionsOf[_operator][_account][_domain] >> _permissionIndex) & 1) == 0)
         return false;
@@ -165,7 +162,7 @@ contract JBOperatorStore is IJBOperatorStore {
     for (uint256 _i = 0; _i < _indexes.length; _i++) {
       uint256 _index = _indexes[_i];
       if (_index > 255) {
-        revert IndexOutOfBounds();
+        revert JBErrors.IndexOutOfBounds();
       }
       // Turn the bit at the index on.
       packed |= 1 << _index;

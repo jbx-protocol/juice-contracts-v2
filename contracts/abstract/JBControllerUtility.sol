@@ -2,6 +2,7 @@
 pragma solidity 0.8.6;
 
 import './../interfaces/IJBControllerUtility.sol';
+import './../libraries/JBErrors.sol';
 
 /** 
   @notice
@@ -9,7 +10,9 @@ import './../interfaces/IJBControllerUtility.sol';
 */
 abstract contract JBControllerUtility is IJBControllerUtility {
   modifier onlyController(uint256 _projectId) {
-    require(address(directory.controllerOf(_projectId)) == msg.sender, '0x4f: UNAUTHORIZED');
+    if (address(directory.controllerOf(_projectId)) != msg.sender) {
+        revert JBErrors.UNAUTHORIZED();
+    }
     _;
   }
 
