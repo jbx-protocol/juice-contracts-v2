@@ -19,9 +19,9 @@ interface IJBDirectory {
     address caller
   );
 
-  event AddKnownController(IJBController indexed controller, address caller);
+  event AddToSetControllerAllowlist(address indexed _address, msg.sender);
 
-  event RemoveKnownController(IJBController indexed controller, address caller);
+  event RemoveFromSetControllerAllowlist(address indexed _address, address caller);
 
   function projects() external view returns (IJBProjects);
 
@@ -48,7 +48,7 @@ interface IJBDirectory {
 
   function setPrimaryTerminalOf(uint256 _projectId, IJBTerminal _terminal) external;
 
-  function addKnownController(IJBController _controller) external;
+  function addToSetControllerAllowlist(address _address) external;
 
-  function removeKnownController(IJBController _controller) external;
+  function removeFromSetControllerAllowlist(address _address) external;
 }
