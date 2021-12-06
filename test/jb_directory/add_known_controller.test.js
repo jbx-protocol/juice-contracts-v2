@@ -35,9 +35,12 @@ describe('JBDirectory::addKnownController(...)', function () {
 
     await expect(
       jbDirectory.connect(deployer).addKnownController(mockJbController.address)
-    )
-      .to.emit(jbDirectory, 'AddKnownController')
-      .withArgs(mockJbController.address, deployer.address);
+    ).to.emit(jbDirectory, 'AddKnownController')
+     .withArgs(mockJbController.address, deployer.address);
+    
+    expect(
+      await jbDirectory.isKnownController(mockJbController.address)
+    ).to.be.true;
   });
 
   it('Can\'t add known controller if caller is not JBDirectory owner', async function () {
@@ -45,8 +48,7 @@ describe('JBDirectory::addKnownController(...)', function () {
 
     await expect(
       jbDirectory.connect(addrs[0]).addKnownController(mockJbController.address)
-    )
-      .to.revertedWith('Ownable: caller is not the owner');
+    ).to.revertedWith('Ownable: caller is not the owner');
   });
 
   it('Can\'t add the same known controller twice', async function () {
@@ -56,8 +58,7 @@ describe('JBDirectory::addKnownController(...)', function () {
 
     await expect(
       jbDirectory.connect(deployer).addKnownController(mockJbController.address)
-    )
-      .to.revertedWith('0x30: ALREADY_ADDED');
+    ).to.revertedWith('0x30: ALREADY_ADDED');
   });
 
 });

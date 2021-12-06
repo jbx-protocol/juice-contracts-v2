@@ -75,6 +75,21 @@ describe('JBDirectory::setControllerOf(...)', function () {
     ).to.be.revertedWith('0x2c: NOT_FOUND');
   });
 
+  it('Should set controller if same controller already set', async function () {
+    const { projectOwner, jbDirectory, mockJbProjects, controller1 } = await setup();
+
+    await mockJbProjects.mock.count.returns(PROJECT_ID);
+
+    await expect(
+      jbDirectory
+      .connect(projectOwner)
+      .setControllerOf(PROJECT_ID, controller1.address)
+    ).to.be.not.reverted;
+
+    let controller = await jbDirectory.connect(projectOwner).controllerOf(PROJECT_ID);
+    expect(controller).to.equal(controller1.address);
+  });
+
   it('Should set controller and emit event if caller is project owner', async function () {
     const { projectOwner, jbDirectory, mockJbProjects, controller1 } = await setup();
 
@@ -88,16 +103,16 @@ describe('JBDirectory::setControllerOf(...)', function () {
       .to.emit(jbDirectory, 'SetController')
       .withArgs(PROJECT_ID, controller1.address, projectOwner.address);
 
-    // The controller should be set.
     let controller = await jbDirectory.connect(projectOwner).controllerOf(PROJECT_ID);
     expect(controller).to.equal(controller1.address);
   });
-
+  
   it('Should set controller if caller is not project owner but has permission', async function () {
     const { projectOwner, addrs, jbDirectory, mockJbProjects, mockJbOperatorStore, controller1 } =
       await setup();
     let caller = addrs[1];
 
+    // Initialize mock methods to give permission to caller
     await mockJbProjects.mock.count.returns(PROJECT_ID);
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(caller.address, projectOwner.address, PROJECT_ID, SET_CONTROLLER_PERMISSION_INDEX)
@@ -122,6 +137,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
     await jbDirectory.connect(deployer).addKnownController(controllerSigner.address)
     await jbDirectory.connect(deployer).addKnownController(controller2.address)
 
+    // Initialize mock methods to reject permission to controllerSigner
     await mockJbProjects.mock.count.returns(PROJECT_ID);
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(controllerSigner.address, projectOwner.address, PROJECT_ID, SET_CONTROLLER_PERMISSION_INDEX)
@@ -140,6 +156,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
       await setup();
     let caller = addrs[1];
 
+    // Initialize mock methods to reject permission to caller
     await mockJbProjects.mock.count.returns(PROJECT_ID);
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(caller.address, projectOwner.address, PROJECT_ID, SET_CONTROLLER_PERMISSION_INDEX)
