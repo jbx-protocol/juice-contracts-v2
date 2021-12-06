@@ -10,7 +10,9 @@ import './libraries/JBOperations.sol';
 
 /**
   @notice
-  Keeps a reference of which terminal contracts each project is currently accepting funds through, and which controller contract is managing each project's tokens and funding cycles.
+  Keeps a reference of which terminal contracts each project is currently
+  accepting funds through, and which controller contract is managing each
+  project's tokens and funding cycles.
 */
 contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   //*********************************************************************//
@@ -36,7 +38,9 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
   /**
     @notice
-    JBControllers that have been vetted and verified by Juicebox owners.
+    Addresses that can change a project's controllers. Those are controllers
+    that have been vetted and verified by Juicebox owners as well as custom
+    launching project contracts
    */
   mapping(address => bool) private _setControllerAllowlist;
 
@@ -150,6 +154,14 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     return IJBTerminal(address(0));
   }
 
+  /*
+    @notice
+    Whether or not a specified address is allowed to set controllers.
+
+    @param _address the address to check
+
+    @return A flag indicating whether or not the specified address can change controllers.
+  */
   function isAllowedToSetController(address _address) public view override returns (bool) {
     return _setControllerAllowlist[_address];
   }
@@ -166,37 +178,34 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     projects = _projects;
   }
 
-  //*********************************************************************//
-  // ---------------------- external transactions ---------------------- //
-  //*********************************************************************//
-
   /**
     @notice
     Update the controller that manages how terminals interact with the ecosystem.
-
     @dev 
     A controller can be set if:
-    - the message sender is the project owner or an operator
-    - or a known controller is setting a new known controller
-
+    - the message sender is the project owner or an operator having the correct authorization.
+    - or an allowed address is setting a new controller.
     @param _projectId The ID of the project to set a new controller for.
     @param _controller The new controller to set.
   */
-  function setControllerOf(uint256 _projectId, IJBController _controller) external override {
-    // Only allowed addresses can set a new controller
-    require(_setControllerAllowlist[msg.sender], '0x2b: NOT_AUTHORIZED');
-
-    // Only allowed addresses can be set as controller
-    require(_setControllerAllowlist[address(_controller)], '0x2c: NOT_VESTED');
-
+  function setControllerOf(uint256 _projectId, IJBController _controller)
+    external
+    override
+    requirePermissionAllowingOverride(
+      projects.ownerOf(_projectId),
+      _projectId,
+      JBOperations.SET_CONTROLLER,
+      (setControllerAllowlist[address(_controller)] && setControllerAllowlist[msg.sender])
+    )
+  {
     // Can't set the zero address.
-    require(_controller != IJBController(address(0)), '0x2d: ZERO_ADDRESS');
+    require(_controller != IJBController(address(0)), '0x2b: ZERO_ADDRESS');
 
     // If the controller is already set, nothing to do.
     if (controllerOf[_projectId] == _controller) return;
 
     // The project must exist.
-    require(projects.count() >= _projectId, '0x2e: NOT_FOUND');
+    require(projects.count() >= _projectId, '0x2c: NOT_FOUND');
 
     // Set the new controller.
     controllerOf[_projectId] = _controller;
@@ -220,7 +229,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     IJBTerminal _terminal,
     address _caller
   ) internal {
-    require(_terminal != IJBTerminal(address(0)), '0x2f: ZERO_ADDRESS');
+    require(_terminal != IJBTerminal(address(0)), '0x2d: ZERO_ADDRESS');
 
     // Check that the terminal has not already been added.
     if (isTerminalOf(_projectId, _terminal)) return;
@@ -306,13 +315,13 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.SET_PRIMARY_TERMINAL)
   {
     // Can't set the zero address.
-    require(_terminal != IJBTerminal(address(0)), '0x30: ZERO_ADDRESS');
+    require(_terminal != IJBTerminal(address(0)), '0x2e: ZERO_ADDRESS');
 
     // Get a reference to the token that the terminal's vault accepts.
     address _token = _terminal.token();
 
     // Can't set this terminal as the primary if it already is.
-    require(_terminal != _primaryTerminalOf[_projectId][_token], '0x31: ALREADY_SET');
+    require(_terminal != _primaryTerminalOf[_projectId][_token], '0x2f: ALREADY_SET');
 
     // Add the terminal to thge project if it hasn't been already.
     _addTerminalIfNeeded(_projectId, _terminal, msg.sender);
@@ -327,8 +336,8 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @notice
     The owner (Juicebox multisig) can add addresses which are allowed to change
     a project's controller. Those addresses are known and vetted controllers as well as
-    factory contracts. This is not a requirement for all controllers. However,
-    unknown controllers may require additional transactions to perform certain operations.
+    contracts designed to launch new projects. This is not a requirement for all controllers.
+    However, unknown controllers may require additional transactions to perform certain operations.
 
     @dev
     If you would like your JBController allowlisted, please reach out to the Juicebox dev team.
@@ -337,7 +346,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   */
   function addToSetControllerAllowlist(address _address) external override onlyOwner {
     // Check that the controller has not already been added.
-    require(!_setControllerAllowlist[_address], '0x32: ALREADY_ADDED');
+    require(!_setControllerAllowlist[_address], '0x30: ALREADY_ADDED');
 
     // Add the controller to the list of known controllers.
     _setControllerAllowlist[_address] = true;
@@ -347,13 +356,13 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
   /** 
     @notice
-    See `addKnownController(...)` for context. Removes a known controller from the allowlist.
+    See `addKnownController(...)` for context. Removes an address from the allowlist.
 
     @param _address The address to be removed.
   */
   function removeFromSetControllerAllowlist(address _address) external override onlyOwner {
     // Not in the known controllers list
-    require(_setControllerAllowlist[_address], '0x33: NOT_FOUND');
+    require(_setControllerAllowlist[_address], '0x31: NOT_FOUND');
 
     // Remove the controller from the list of known controllers.
     delete _setControllerAllowlist[_address];
