@@ -8,12 +8,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 
-//TODO: review logic behind 'Should set controller if new controller is a known controller'
-// -> any address can pass the override and change a controller instantaneously? Shouldn't it be
-// only from knownController (and the same known controller which triggers the premigration in the
-// current controller would change it) ?
-
-describe.only('JBDirectory::setControllerOf(...)', function () {
+describe('JBDirectory::setControllerOf(...)', function () {
   const PROJECT_ID = 1;
 
   let SET_CONTROLLER_PERMISSION_INDEX;
@@ -112,7 +107,7 @@ describe.only('JBDirectory::setControllerOf(...)', function () {
       .not.be.reverted;
   });
 
-  it('Should set controller if new controller is a known controller', async function () {
+  it('Should set controller if both caller and new controller are known controllers', async function () {
     const { deployer,
       addrs,
       projectOwner,
@@ -124,6 +119,7 @@ describe.only('JBDirectory::setControllerOf(...)', function () {
     } = await setup();
 
     let controllerSigner = await impersonateAccount(controller1.address);
+    await jbDirectory.connect(deployer).addKnownController(controllerSigner.address)
     await jbDirectory.connect(deployer).addKnownController(controller2.address)
 
     await mockJbProjects.mock.count.returns(PROJECT_ID);
@@ -135,13 +131,11 @@ describe.only('JBDirectory::setControllerOf(...)', function () {
       .withArgs(controllerSigner.address, projectOwner.address, 0, SET_CONTROLLER_PERMISSION_INDEX)
       .returns(false);
 
-    await expect(jbDirectory.connect(addrs[5]).setControllerOf(PROJECT_ID, controller2.address)).to
+    await expect(jbDirectory.connect(controllerSigner).setControllerOf(PROJECT_ID, controller2.address)).to
       .not.be.reverted;
-
-    expect(false);
   });
 
-  it.skip('Can\'t set if caller does not have permission and is not a known controller', async function () {
+  it('Can\'t set if caller does not have permission and is not a known controller', async function () {
     const { projectOwner, addrs, jbDirectory, mockJbProjects, mockJbOperatorStore, controller1 } =
       await setup();
     let caller = addrs[1];
@@ -151,7 +145,7 @@ describe.only('JBDirectory::setControllerOf(...)', function () {
       .withArgs(caller.address, projectOwner.address, PROJECT_ID, SET_CONTROLLER_PERMISSION_INDEX)
       .returns(false);
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(controllerSigner.address, projectOwner.address, 0, SET_CONTROLLER_PERMISSION_INDEX)
+      .withArgs(caller.address, projectOwner.address, 0, SET_CONTROLLER_PERMISSION_INDEX)
       .returns(false);
 
     await expect(jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller1.address)).to.be
