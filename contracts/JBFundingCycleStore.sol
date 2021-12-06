@@ -5,6 +5,7 @@ import '@paulrberg/contracts/math/PRBMath.sol';
 
 import './interfaces/IJBFundingCycleStore.sol';
 import './abstract/JBControllerUtility.sol';
+import './libraries/JBErrors.sol';
 
 /** 
   @notice 
@@ -203,7 +204,9 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _fundingCycleConfiguration = latestConfigurationOf[_projectId];
 
     // The project must have funding cycles.
-    require(_fundingCycleConfiguration > 0, '0x14: NOT_FOUND');
+    if (_fundingCycleConfiguration == 0) {
+        revert JBErrors.NOT_FOUND();
+    }
 
     // Resolve the funding cycle for the for the latest configuration.
     JBFundingCycle memory _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
@@ -254,13 +257,19 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _metadata
   ) external override onlyController(_projectId) returns (JBFundingCycle memory) {
     // Duration must fit in a uint64, and must be greater than 1000 seconds to prevent manipulative miner behavior.
-    require(_data.duration <= type(uint64).max && _data.duration > 1000, '0x15: BAD_DURATION');
+    if (_data.duration > type(uint64).max && _data.duration <= 1000) {
+        revert JBErrors.BAD_DURATION();
+    }
 
     // Discount rate token must be less than or equal to 100%. A value of 1000000001 means non-recurring.
-    require(_data.discountRate <= 1000000001, '0x16: BAD_DISCOUNT_RATE');
+    if (_data.discountRate > 1000000001) {
+        revert JBErrors.BAD_DISCOUNT_RATE();
+    }
 
     // Weight must fit into a uint88.
-    require(_data.weight <= type(uint88).max, '0x18: BAD_WEIGHT');
+    if (_data.weight > type(uint88).max) {
+        revert JBErrors.BAD_WEIGHT();
+    }
 
     // The configuration timestamp is now.
     uint256 _configuration = block.timestamp;
@@ -349,7 +358,9 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     JBFundingCycle memory _currentFundingCycle = _getStructFor(_projectId, _currentConfiguration);
 
     // Make sure the funding cycle is recurring.
-    require(_currentFundingCycle.discountRate < 1000000001, '0x1c: NON_RECURRING');
+    if (_currentFundingCycle.discountRate >= 1000000001) {
+        revert JBErrors.NON_RECURRING();
+    }
 
     // Determine if the configurable funding cycle can only take effect on or after a certain date.
     // The ballot must have ended.

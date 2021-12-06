@@ -5,6 +5,7 @@ import './interfaces/IJBTerminal.sol';
 import './interfaces/IJBDirectory.sol';
 import './abstract/JBOperatable.sol';
 import './libraries/JBOperations.sol';
+import './libraries/JBErrors.sol';
 
 /**
   @notice
@@ -184,7 +185,9 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     )
   {
     // Can't set the zero address.
-    require(_controller != IJBController(address(0)), '0x2b: ZERO_ADDRESS');
+    if (_controller == IJBController(address(0))) {
+        revert JBErrors.ZERO_ADDRESS();
+    }
 
     // Get a reference to the current controller being used.
     IJBController _currentController = controllerOf[_projectId];
@@ -193,7 +196,9 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     if (_currentController == _controller) return;
 
     // The project must exist.
-    require(projects.count() >= _projectId, '0x2c: NOT_FOUND');
+    if (projects.count() < _projectId) {
+        revert JBErrors.NOT_FOUND();
+    }
 
     // Set the new controller.
     controllerOf[_projectId] = _controller;
@@ -217,7 +222,9 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     IJBTerminal _terminal,
     address _caller
   ) internal {
-    require(_terminal != IJBTerminal(address(0)), '0x2d: ZERO_ADDRESS');
+    if (_terminal == IJBTerminal(address(0))) {
+        revert JBErrors.ZERO_ADDRESS();
+    }
 
     // Check that the terminal has not already been added.
     if (isTerminalOf(_projectId, _terminal)) return;
@@ -303,13 +310,17 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.SET_PRIMARY_TERMINAL)
   {
     // Can't set the zero address.
-    require(_terminal != IJBTerminal(address(0)), '0x2e: ZERO_ADDRESS');
+    if (_terminal == IJBTerminal(address(0))) {
+        revert JBErrors.ZERO_ADDRESS();
+    }
 
     // Get a reference to the token that the terminal's vault accepts.
     address _token = _terminal.token();
 
     // Can't set this terminal as the primary if it already is.
-    require(_terminal != _primaryTerminalOf[_projectId][_token], '0x2f: ALREADY_SET');
+    if (_terminal == _primaryTerminalOf[_projectId][_token]) {
+        revert JBErrors.ALREADY_SET();
+    }
 
     // Add the terminal to thge project if it hasn't been already.
     _addTerminalIfNeeded(_projectId, _terminal, msg.sender);

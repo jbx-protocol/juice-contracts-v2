@@ -7,6 +7,7 @@ import '@paulrberg/contracts/math/PRBMathUD60x18.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
+import './libraries/JBErrors.sol';
 
 import './interfaces/IJBTokenStore.sol';
 import './interfaces/IJBProjects.sol';
@@ -294,13 +295,18 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     IJBTerminal[] memory _terminals
   ) external returns (uint256 projectId) {
     // The reserved project token rate must be less than or equal to 10000.
-    require(_metadata.reservedRate <= 10000, '0x37: BAD_RESERVED_RATE');
-
+    if (_metadata.reservedRate > 10000) {
+        revert JBErrors.BAD_RESERVED_RATE();
+    }
     // The redemption rate must be between 0 and 10000.
-    require(_metadata.redemptionRate <= 10000, '0x38: BAD_REDEMPTION_RATE');
+    if (_metadata.redemptionRate > 10000) {
+        revert JBErrors.BAD_REDEMPTION_RATE();
+    }
 
     // The ballot redemption rate must be less than or equal to 10000.
-    require(_metadata.ballotRedemptionRate <= 10000, '0x39: BAD_BALLOT_REDEMPTION_RATE');
+    if (_metadata.ballotRedemptionRate > 10000) {
+        revert JBErrors.BAD_BALLOT_REDEMPTION_RATE();
+    }
 
     // Create the project for into the wallet of the message sender.
     projectId = projects.createFor(_owner, _handle, _metadataCid);
@@ -373,13 +379,18 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     returns (uint256)
   {
     // The reserved project token rate must be less than or equal to 10000.
-    require(_metadata.reservedRate <= 10000, '0x51: BAD_RESERVED_RATE');
-
+    if (_metadata.reservedRate > 10000) {
+        revert JBErrors.BAD_RESERVED_RATE();
+    }
     // The redemption rate must be between 0 and 10000.
-    require(_metadata.redemptionRate <= 10000, '0x52: BAD_REDEMPTION_RATE');
+    if (_metadata.redemptionRate > 10000) {
+        revert JBErrors.BAD_REDEMPTION_RATE();
+    }
 
     // The ballot redemption rate must be less than or equal to 10000.
-    require(_metadata.ballotRedemptionRate <= 10000, '0x53: BAD_BALLOT_REDEMPTION_RATE');
+    if (_metadata.ballotRedemptionRate > 10000) {
+        revert JBErrors.BAD_BALLOT_REDEMPTION_RATE();
+    }
 
     return _configure(_projectId, _data, _metadata, _groupedSplits, _fundAccessConstraints);
   }
@@ -435,7 +446,9 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // The current funding cycle must not be paused.
-    require(_fundingCycle.changeTokenAllowed(), '0x05: NOT_ALLOWED');
+    if (!(_fundingCycle.changeTokenAllowed())) {
+        revert JBErrors.NOT_ALLOWED();
+    }
 
     // Change the token in the store.
     tokenStore.changeFor(_projectId, _token, _newOwner);
@@ -477,19 +490,22 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     returns (uint256 beneficiaryTokenCount)
   {
     // Can't send to the zero address.
-    require(_reservedRate == 10000 || _beneficiary != address(0), '0x2f: ZERO_ADDRESS');
+    if (_reservedRate != 10000 || _beneficiary == address(0)) {
+        revert JBErrors.ZERO_ADDRESS();
+    }
 
     // There should be tokens to mint.
-    require(_tokenCount > 0, '0x30: NO_OP');
+    if (_tokenCount == 0) {
+        revert JBErrors.NO_OP();
+    }
 
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
-    require(
-      !_fundingCycle.mintPaused() || directory.isTerminalDelegateOf(_projectId, msg.sender),
-      '0x31: PAUSED'
-    );
+    if (_fundingCycle.mintPaused() || !(directory.isTerminalDelegateOf(_projectId, msg.sender))) {
+        revert JBErrors.PAUSED();
+    }
 
     if (_reservedRate == 10000) {
       // Subtract the total weighted amount from the tracker so the full reserved token amount can be printed later.
@@ -544,16 +560,16 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     )
   {
     // There should be tokens to burn
-    require(_tokenCount > 0, '0x32: NO_OP');
-
+    if (_tokenCount == 0) {
+        revert JBErrors.NO_OP();
+    }
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
-    require(
-      !_fundingCycle.burnPaused() || directory.isTerminalDelegateOf(_projectId, msg.sender),
-      '0x33: PAUSED'
-    );
+    if (_fundingCycle.burnPaused() || !(directory.isTerminalDelegateOf(_projectId, msg.sender))) {
+        revert JBErrors.PAUSED();
+    }
 
     // Update the token tracker so that reserved tokens will still be correctly mintable.
     _processedTokenTrackerOf[_projectId] =
@@ -591,7 +607,9 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   */
   function prepForMigrationOf(uint256 _projectId, IJBController) external override {
     // This controller must not be the project's current controller.
-    require(directory.controllerOf(_projectId) != this, '0x34: NO_OP');
+    if (directory.controllerOf(_projectId) == this) {
+        revert JBErrors.NO_OP();
+    }
 
     // Set the tracker as the total supply.
     _processedTokenTrackerOf[_projectId] = int256(tokenStore.totalSupplyOf(_projectId));
@@ -613,13 +631,17 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     nonReentrant
   {
     // This controller must be the project's current controller.
-    require(directory.controllerOf(_projectId) == this, '0x35: NO_OP');
+    if (directory.controllerOf(_projectId) != this) {
+        revert JBErrors.NO_OP();
+    }
 
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Migration must be allowed
-    require(_fundingCycle.controllerMigrationAllowed(), '0x36: NOT_ALLOWED');
+    if (!(_fundingCycle.controllerMigrationAllowed())) {
+        revert JBErrors.NOT_ALLOWED();
+    }
 
     // All reserved tokens must be minted before migrating.
     if (uint256(_processedTokenTrackerOf[_projectId]) != tokenStore.totalSupplyOf(_projectId))

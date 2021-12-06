@@ -4,6 +4,7 @@ pragma solidity 0.8.6;
 import '@openzeppelin/contracts/access/Ownable.sol';
 
 import './interfaces/IJBPrices.sol';
+import './libraries/JBErrors.sol';
 
 /** 
   @notice Manages and normalizes price feeds.
@@ -53,7 +54,9 @@ contract JBPrices is IJBPrices, Ownable {
     AggregatorV3Interface _feed = feedFor[_currency][_base];
 
     // Feed must exist.
-    require(_feed != AggregatorV3Interface(address(0)), '0x03: NOT_FOUND');
+    if (_feed == AggregatorV3Interface(address(0))) {
+        revert JBErrors.NOT_FOUND();
+    }
 
     // Get the latest round information. Only need the price is needed.
     (, int256 _price, , , ) = _feed.latestRoundData();
@@ -104,7 +107,9 @@ contract JBPrices is IJBPrices, Ownable {
     AggregatorV3Interface _feed
   ) external override onlyOwner {
     // There can't already be a feed for the specified currency.
-    require(feedFor[_currency][_base] == AggregatorV3Interface(address(0)), '0x04: ALREADY_EXISTS');
+    if (feedFor[_currency][_base] != AggregatorV3Interface(address(0))) {
+        revert JBErrors.ALREADY_EXISTS();
+    }
 
     // Set the feed.
     feedFor[_currency][_base] = _feed;

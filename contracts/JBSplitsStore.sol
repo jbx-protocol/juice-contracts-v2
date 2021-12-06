@@ -7,6 +7,7 @@ import './libraries/JBOperations.sol';
 import './interfaces/IJBSplitsStore.sol';
 import './interfaces/IJBDirectory.sol';
 import './abstract/JBOperatable.sol';
+import './libraries/JBErrors.sol';
 
 /**
   @notice
@@ -139,7 +140,9 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
           _splits[_j].lockedUntil >= _currentSplits[_i].lockedUntil
         ) _includesLocked = true;
       }
-      require(_includesLocked, '0x0f: SOME_LOCKED');
+      if (!(_includesLocked)) {
+        revert JBErrors.SOME_LOCKED();
+      }
     }
 
     // Delete from storage so splits can be repopulated.
@@ -150,20 +153,23 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
 
     for (uint256 _i = 0; _i < _splits.length; _i++) {
       // The percent should be greater than 0.
-      require(_splits[_i].percent > 0, '0x10: BAD_SPLIT_PERCENT');
+      if (_splits[_i].percent == 0) {
+        revert JBErrors.BAD_SPLIT_PERCENT();
+      }
 
       // The allocator and the beneficiary shouldn't both be the zero address.
-      require(
-        _splits[_i].allocator != IJBSplitAllocator(address(0)) ||
-          _splits[_i].beneficiary != address(0),
-        '0x11: ZERO_ADDRESS'
-      );
+      if (_splits[_i].allocator == IJBSplitAllocator(address(0)) ||
+          _splits[_i].beneficiary == address(0)) {
+        revert JBErrors.ZERO_ADDRESS();
+      }
 
       // Add to the total percents.
       _percentTotal = _percentTotal + _splits[_i].percent;
 
       // The total percent should be at most 10000000.
-      require(_percentTotal <= 10000000, '0x12: BAD_TOTAL_PERCENT');
+      if (_percentTotal > 10000000) {
+        revert JBErrors.BAD_TOTAL_PERCENT();
+      }
 
       // Push the new split into the project's list of splits.
       _splitsOf[_projectId][_domain][_group].push(_splits[_i]);

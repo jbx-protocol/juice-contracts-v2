@@ -6,6 +6,7 @@ import './abstract/JBOperatable.sol';
 import './abstract/JBControllerUtility.sol';
 
 import './libraries/JBOperations.sol';
+import './libraries/JBErrors.sol';
 
 import './JBToken.sol';
 
@@ -160,13 +161,19 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     string calldata _symbol
   ) external override onlyController(_projectId) returns (IJBToken token) {
     // There must be a name.
-    require((bytes(_name).length > 0), '0x1f: EMPTY_NAME');
+    if ((bytes(_name).length == 0)) {
+        revert JBErrors.EMPTY_NAME();
+      }
 
     // There must be a symbol.
-    require((bytes(_symbol).length > 0), '0x20: EMPTY_SYMBOL');
+    if ((bytes(_symbol).length == 0)) {
+        revert JBErrors.EMPTY_SYMBOL();
+      }
 
     // Only one ERC20 token can be issued.
-    require(tokenOf[_projectId] == IJBToken(address(0)), '0x21: ALREADY_ISSUED');
+    if (tokenOf[_projectId] != IJBToken(address(0))) {
+        revert JBErrors.ALREADY_ISSUED();
+      }
 
     // Deploy the token contract.
     token = new JBToken(_name, _symbol);
@@ -225,7 +232,9 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     bool _preferClaimedTokens
   ) external override onlyController(_projectId) {
     // An amount must be specified.
-    require(_amount > 0, '0x22: NO_OP');
+    if (_amount == 0) {
+        revert JBErrors.NO_OP();
+      }
 
     // Get a reference to the project's ERC20 tokens.
     IJBToken _token = tokenOf[_projectId];
@@ -277,12 +286,11 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
     // There must be enough tokens.
     // Prevent potential overflow by not relying on addition.
-    require(
-      (_amount < _claimedBalance && _amount < _unclaimedBalance) ||
-        (_amount >= _claimedBalance && _unclaimedBalance >= _amount - _claimedBalance) ||
-        (_amount >= _unclaimedBalance && _claimedBalance >= _amount - _unclaimedBalance),
-      '0x23: INSUFFICIENT_FUNDS'
-    );
+    if ((_amount >= _claimedBalance && _amount >= _unclaimedBalance) ||
+        (_amount < _claimedBalance && _unclaimedBalance < _amount - _claimedBalance) ||
+        (_amount < _unclaimedBalance && _claimedBalance < _amount - _unclaimedBalance)) {
+        revert JBErrors.INSUFFICIENT_FUNDS();
+      }
 
     // The amount of tokens to burn.
     uint256 _claimedTokensToBurn;
@@ -336,13 +344,17 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     IJBToken _token = tokenOf[_projectId];
 
     // Tokens must have been issued.
-    require(_token != IJBToken(address(0)), '0x24: NOT_FOUND');
+    if (_token == IJBToken(address(0))) {
+        revert JBErrors.NOT_FOUND();
+      }
 
     // Get a reference to the amount of unclaimed tokens.
     uint256 _unclaimedBalance = unclaimedBalanceOf[_holder][_projectId];
 
     // There must be enough unlocked unclaimed tokens to claim.
-    require(_unclaimedBalance >= _amount, '0x25: INSUFFICIENT_FUNDS');
+    if (_unclaimedBalance < _amount) {
+        revert JBErrors.INSUFFICIENT_FUNDS();
+      }
 
     // Subtract the claim amount from the holder's balance.
     unclaimedBalanceOf[_holder][_projectId] = unclaimedBalanceOf[_holder][_projectId] - _amount;
@@ -375,19 +387,27 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     uint256 _amount
   ) external override requirePermission(_holder, _projectId, JBOperations.TRANSFER) {
     // Can't transfer to the zero address.
-    require(_recipient != address(0), '0x26: ZERO_ADDRESS');
+      if (_recipient == address(0)) {
+        revert JBErrors.ZERO_ADDRESS();
+      }
 
     // An address can't transfer to itself.
-    require(_holder != _recipient, '0x27: IDENTITY');
+    if (_holder == _recipient) {
+        revert JBErrors.IDENTITY();
+      }
 
     // There must be an amount to transfer.
-    require(_amount > 0, '0x28: NO_OP');
+    if (_amount == 0) {
+        revert JBErrors.NO_OP();
+      }
 
     // Get a reference to the amount of unclaimed tokens.
     uint256 _unclaimedBalance = unclaimedBalanceOf[_holder][_projectId];
 
     // There must be enough unclaimed tokens to transfer.
-    require(_amount <= _unclaimedBalance, '0x29: INSUFFICIENT_FUNDS');
+    if (_amount > _unclaimedBalance) {
+        revert JBErrors.INSUFFICIENT_FUNDS();
+      }
 
     // Subtract from the holder.
     unclaimedBalanceOf[_holder][_projectId] = unclaimedBalanceOf[_holder][_projectId] - _amount;
@@ -419,7 +439,9 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     IJBToken _token = tokenOf[_projectId];
 
     // Tokens must have been issued.
-    require(_token != IJBToken(address(0)), '0x2a: NOT_FOUND');
+    if (_token == IJBToken(address(0))) {
+        revert JBErrors.NOT_FOUND();
+      }
 
     // Store the flag.
     requireClaimFor[_projectId] = _flag;
