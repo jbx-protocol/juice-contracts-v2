@@ -66,7 +66,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     ).to.be.revertedWith('0x2e: ZERO_ADDRESS');
   });
 
-  it('Setting primary terminal should emit an event and be added to terminals', async function () {
+  it('Should setting primary terminal and emit an event', async function () {
     const { projectOwner, jbDirectory, terminal1 } = await setup();
 
     // Initially no terminals should be set.
@@ -93,7 +93,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     expect(resultTerminals).to.eql(expectedTerminals);
   });
 
-  it('Can set primary terminal if caller is not project owner but has permissions', async function () {
+  it('Can\'t set primary terminal if caller is not project owner but has permissions', async function () {
     const { projectOwner, addrs, jbDirectory, mockJbOperatorStore, terminal1 } = await setup();
     let caller = addrs[1];
 
@@ -141,7 +141,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     ).to.be.revertedWith('0x2f: ALREADY_SET');
   });
 
-  it('Multiple terminals for the same project with the same token', async function () {
+  it('Should set multiple terminals for the same project with the same token', async function () {
     const { projectOwner, jbDirectory, terminal1, terminal2 } = await setup();
 
     let token = ethers.Wallet.createRandom().address;
