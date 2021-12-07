@@ -10,9 +10,7 @@ import './libraries/JBOperations.sol';
 
 /**
   @notice
-  Keeps a reference of which terminal contracts each project is currently
-  accepting funds through, and which controller contract is managing each
-  project's tokens and funding cycles.
+  Keeps a reference of which terminal contracts each project is currently accepting funds through, and which controller contract is managing each project's tokens and funding cycles.
 */
 contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   //*********************************************************************//
@@ -38,9 +36,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
   /**
     @notice
-    Addresses that can change a project's controllers. Those are controllers
-    that have been vetted and verified by Juicebox owners as well as custom
-    launching project contracts
+    Addresses that can set a project's controller. These addresses/contracts have been vetted and verified by Juicebox owners.
    */
   mapping(address => bool) private _setControllerAllowlist;
 
@@ -154,7 +150,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     return IJBTerminal(address(0));
   }
 
-  /*
+  /**
     @notice
     Whether or not a specified address is allowed to set controllers.
 
@@ -184,7 +180,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @dev 
     A controller can be set if:
     - the message sender is the project owner or an operator having the correct authorization.
-    - or an allowed address is setting a new controller.
+    - or, an allowed address is setting a new controller.
     @param _projectId The ID of the project to set a new controller for.
     @param _controller The new controller to set.
   */
@@ -340,7 +336,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     However, unknown controllers may require additional transactions to perform certain operations.
 
     @dev
-    If you would like your JBController allowlisted, please reach out to the Juicebox dev team.
+    If you would like an address/contract allowlisted, please reach out to the Juicebox dev team.
 
     @param _address the allowed address to be added.
   */

@@ -7,8 +7,7 @@ import jbController from '../../artifacts/contracts/interfaces/IJBController.sol
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 
-describe('JBDirectory::addKnownController(...)', function () {
-
+describe('JBDirectory::removeFromSetControllerAllowlist(...)', function () {
   async function setup() {
     let [deployer, ...addrs] = await ethers.getSigners();
 
@@ -30,35 +29,31 @@ describe('JBDirectory::addKnownController(...)', function () {
     };
   }
 
-  it('Should add known controller and emit events if caller is JBDirectory owner', async function () {
+  it('Should remove known controller and emit events if caller is JBDirectory owner', async function () {
     const { deployer, jbDirectory, mockJbController } = await setup();
+    await jbDirectory.connect(deployer).addToSetControllerAllowlist(mockJbController.address);
 
     await expect(
-      jbDirectory.connect(deployer).addToSetControllerAllowlist(mockJbController.address)
-    ).to.emit(jbDirectory, 'AddToSetControllerAllowlist')
+      jbDirectory.connect(deployer).removeFromSetControllerAllowlist(mockJbController.address)
+    ).to.emit(jbDirectory, 'RemoveFromSetControllerAllowlist')
       .withArgs(mockJbController.address, deployer.address);
-
-    expect(
-      await jbDirectory.isAllowedToSetController(mockJbController.address)
-    ).to.be.true;
   });
 
-  it('Can\'t add known controller if caller is not JBDirectory owner', async function () {
-    const { addrs, jbDirectory, mockJbController } = await setup();
+  it('Can\'t remove known controller if caller is not JBDirectory owner', async function () {
+    const { deployer, addrs, jbDirectory, mockJbController } = await setup();
+    await jbDirectory.connect(deployer).addToSetControllerAllowlist(mockJbController.address);
 
     await expect(
-      jbDirectory.connect(addrs[0]).addToSetControllerAllowlist(mockJbController.address)
+      jbDirectory.connect(addrs[0]).removeFromSetControllerAllowlist(mockJbController.address)
     ).to.revertedWith('Ownable: caller is not the owner');
   });
 
-  it('Can\'t add the same known controller twice', async function () {
+  it('Can\'t remove a controller not in the known controller list', async function () {
     const { deployer, jbDirectory, mockJbController } = await setup();
 
-    await jbDirectory.connect(deployer).addToSetControllerAllowlist(mockJbController.address)
-
     await expect(
-      jbDirectory.connect(deployer).addToSetControllerAllowlist(mockJbController.address)
-    ).to.revertedWith('0x30: ALREADY_ADDED');
+      jbDirectory.connect(deployer).removeFromSetControllerAllowlist(mockJbController.address)
+    ).to.revertedWith('0x31: NOT_FOUND');
   });
 
 });
