@@ -14,5 +14,6 @@ coverage/
 coverage.json
 
 *.txt
-.env
+
+#VSCode
 workspace.code-workspace
