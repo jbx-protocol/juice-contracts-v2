@@ -31,6 +31,7 @@ module.exports = {
   networks: {
     localhost: {
       url: 'http://localhost:8545',
+      blockGasLimit: 0x1fffffffffffff,
     },
     rinkeby: {
       url: 'https://rinkeby.infura.io/v3/' + infuraId,

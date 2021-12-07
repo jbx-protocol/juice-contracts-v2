@@ -10,8 +10,8 @@ import './libraries/JBErrors.sol';
 
 import './JBToken.sol';
 
-/** 
-  @notice 
+/**
+  @notice
   Manage Token minting, burning, and account balances.
 
   @dev
@@ -29,8 +29,8 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
 
-  /** 
-    @notice 
+  /**
+    @notice
     The Projects contract which mints ERC-721's that represent project ownership and transfers.
   */
   IJBProjects public immutable override projects;
@@ -39,7 +39,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
 
-  /** 
+  /**
     @notice
     Each project's ERC20 Token tokens.
 
@@ -47,7 +47,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
   */
   mapping(uint256 => IJBToken) public override tokenOf;
 
-  /** 
+  /**
     @notice
     Each holder's balance of unclaimed Tokens for each project.
 
@@ -56,7 +56,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
   */
   mapping(address => mapping(uint256 => uint256)) public override unclaimedBalanceOf;
 
-  /** 
+  /**
     @notice
     The total supply of unclaimed tokens for each project.
 
@@ -64,7 +64,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
   */
   mapping(uint256 => uint256) public override unclaimedTotalSupplyOf;
 
-  /** 
+  /**
     @notice
     A flag indicating if tokens are required to be issued as claimed for a particular project.
 
@@ -76,8 +76,8 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
   // ------------------------- external views -------------------------- //
   //*********************************************************************//
 
-  /** 
-    @notice 
+  /**
+    @notice
     The total supply of tokens for each project, including claimed and unclaimed tokens.
 
     @param _projectId The ID of the project to get the total token supply of.
@@ -95,8 +95,8 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     if (_token != IJBToken(address(0))) supply = supply + _token.totalSupply(_projectId);
   }
 
-  /** 
-    @notice 
+  /**
+    @notice
     The total balance of token a holder has for a specified project, including claimed and unclaimed tokens.
 
     @param _holder The token holder to get a balance for.
@@ -124,7 +124,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
 
-  /** 
+  /**
     @param _operatorStore A contract storing operator assignments.
     @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
     @param _directory A contract storing directories of terminals and controllers for each project.
@@ -142,10 +142,10 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
   //*********************************************************************//
 
   /**
-    @notice 
+    @notice
     Issues an owner's ERC-20 Tokens that'll be used when claiming tokens.
 
-    @dev 
+    @dev
     Deploys a project's ERC-20 token contract.
 
     @dev
@@ -185,7 +185,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
   }
 
   /**
-    @notice 
+    @notice
     Swap the current project's token that is minted and burned for another, and transfer ownership of the current token to another address if needed.
 
     @dev
@@ -213,8 +213,8 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     emit Change(_projectId, _token, _newOwner, msg.sender);
   }
 
-  /** 
-    @notice 
+  /**
+    @notice
     Mint new tokens.
 
     @dev
@@ -255,8 +255,8 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     emit Mint(_holder, _projectId, _amount, _shouldClaimTokens, _preferClaimedTokens, msg.sender);
   }
 
-  /** 
-    @notice 
+  /**
+    @notice
     Burns tokens.
 
     @dev
@@ -273,6 +273,9 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     uint256 _amount,
     bool _preferClaimedTokens
   ) external override onlyController(_projectId) {
+    // An amount must be specified.
+    require(_amount > 0, '0x22: NO_OP');
+
     // Get a reference to the project's ERC20 tokens.
     IJBToken _token = tokenOf[_projectId];
 
@@ -325,7 +328,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
   }
 
   /**
-    @notice 
+    @notice
     Claims internal tokens by minting and distributing ERC20 tokens.
 
     @dev
@@ -368,8 +371,8 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     emit Claim(_holder, _projectId, _amount, msg.sender);
   }
 
-  /** 
-    @notice 
+  /**
+    @notice
     Allows an unclaimed token holder to transfer them to another account, without claiming to ERC-20s.
 
     @dev
@@ -420,8 +423,8 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     emit Transfer(_holder, _projectId, _recipient, _amount, msg.sender);
   }
 
-  /** 
-    @notice 
+  /**
+    @notice
     Allows a project to force all future mints to be claimed into the holder's wallet, or revoke the flag if it's already set.
 
     @dev
