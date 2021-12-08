@@ -7,7 +7,7 @@ import jbController from '../../artifacts/contracts/interfaces/IJBController.sol
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 
-describe('JBDirectory::AddToSetControllerAllowlist(...)', function () {
+describe('JBDirectory::addToSetControllerAllowlist(...)', function () {
 
   async function setup() {
     let [deployer, ...addrs] = await ethers.getSigners();
