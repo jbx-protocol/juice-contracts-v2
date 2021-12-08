@@ -4,11 +4,13 @@ pragma solidity 0.8.6;
 import './interfaces/IJBTokenStore.sol';
 import './abstract/JBOperatable.sol';
 import './abstract/JBControllerUtility.sol';
+import "hardhat/console.sol";
 
 import './libraries/JBOperations.sol';
 import './libraries/JBErrors.sol';
 
 import './JBToken.sol';
+
 
 /**
   @notice
@@ -274,8 +276,9 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     bool _preferClaimedTokens
   ) external override onlyController(_projectId) {
     // An amount must be specified.
-    require(_amount > 0, '0x22: NO_OP');
-
+    if (_amount == 0) {
+              revert JBErrors.NO_OP();
+    }
     // Get a reference to the project's ERC20 tokens.
     IJBToken _token = tokenOf[_projectId];
 
@@ -289,12 +292,19 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
     // There must be enough tokens.
     // Prevent potential overflow by not relying on addition.
-    if ((_amount >= _claimedBalance && _amount >= _unclaimedBalance) ||
-        (_amount < _claimedBalance && _unclaimedBalance < _amount - _claimedBalance) ||
-        (_amount < _unclaimedBalance && _claimedBalance < _amount - _unclaimedBalance)) {
+    // if ((_amount >= _claimedBalance && _amount >= _unclaimedBalance) ||
+    //     (_amount < _claimedBalance && _unclaimedBalance < _amount - _claimedBalance) ||
+    //     (_amount < _unclaimedBalance && _claimedBalance < _amount - _unclaimedBalance)) {
+    //     revert INSUFFICIENT_FUNDS();
+    //   }
+                   console.log('ERROww777777wwR12sss22', _amount);
+                     console.log('ERROR1222', _claimedBalance);
+                     console.log('ERROR1222', _unclaimedBalance);
+    if (!((_amount < _claimedBalance && _amount < _unclaimedBalance) ||
+        (_amount >= _claimedBalance && _unclaimedBalance >= _amount - _claimedBalance) ||
+        (_amount >= _unclaimedBalance && _claimedBalance >= _amount - _unclaimedBalance))) {
         revert JBErrors.INSUFFICIENT_FUNDS();
       }
-
     // The amount of tokens to burn.
     uint256 _claimedTokensToBurn;
 

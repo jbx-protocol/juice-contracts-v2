@@ -91,9 +91,11 @@ describe('JBOperatorStore::setOperator(...)', function () {
 
   it('Index out of bounds', async function () {
     const { deployer, projectOwner, jbOperatorStore } = await setup();
+    let domain = 1;
+    let permissionIndexes = [1, 2, 256];
 
     await expect(
-      jbOperatorStore.connect(caller).setOperator([operator.address, domain, permissionIndexes]),
+      jbOperatorStore.connect(deployer).setOperator([projectOwner.address, domain, permissionIndexes]),
     ).to.be.revertedWith('IndexOutOfBounds()');
   });
 });

@@ -63,7 +63,7 @@ describe('JBTokenStore::issueFor(...)', function () {
     const name = '';
     await expect(
       jbTokenStore.connect(controller).issueFor(PROJECT_ID, name, TOKEN_SYMBOL),
-    ).to.be.revertedWith('0x1f: EMPTY_NAME');
+    ).to.be.revertedWith('EMPTY_NAME()');
   });
 
   it(`Can't issue tokens if symbol is empty`, async function () {
@@ -74,7 +74,7 @@ describe('JBTokenStore::issueFor(...)', function () {
     const symbol = '';
     await expect(
       jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, symbol),
-    ).to.be.revertedWith('0x20: EMPTY_SYMBOL');
+    ).to.be.revertedWith('EMPTY_SYMBOL()');
   });
 
   it(`Can't issue tokens if already issued`, async function () {
@@ -87,7 +87,7 @@ describe('JBTokenStore::issueFor(...)', function () {
       .not.be.reverted;
     await expect(
       jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL),
-    ).to.be.revertedWith('0x21: ALREADY_ISSUED');
+    ).to.be.revertedWith('ALREADY_ISSUED()');
   });
 
   it(`Can't issue tokens if caller does not have permission`, async function () {
@@ -100,6 +100,6 @@ describe('JBTokenStore::issueFor(...)', function () {
 
     await expect(
       jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL),
-    ).to.be.revertedWith('0x4f: UNAUTHORIZED');
+    ).to.be.revertedWith('UNAUTHORIZED()');
   });
 });

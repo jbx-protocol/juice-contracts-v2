@@ -63,7 +63,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
       jbDirectory
         .connect(projectOwner)
         .setPrimaryTerminalOf(PROJECT_ID, ethers.constants.AddressZero),
-    ).to.be.revertedWith('0x2e: ZERO_ADDRESS');
+    ).to.be.revertedWith('ZERO_ADDRESS()');
   });
 
   it('Setting primary terminal should emit an event and be added to terminals', async function () {
@@ -138,7 +138,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, terminal1.address);
     await expect(
       jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, terminal1.address),
-    ).to.be.revertedWith('0x2f: ALREADY_SET');
+    ).to.be.revertedWith('ALREADY_SET()');
   });
 
   it('Multiple terminals for the same project with the same token', async function () {

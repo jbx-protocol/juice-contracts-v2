@@ -62,7 +62,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
 
     await expect(
       jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, ethers.constants.AddressZero),
-    ).to.be.revertedWith('0x2b: ZERO_ADDRESS');
+    ).to.be.revertedWith('ZERO_ADDRESS()');
   });
 
   it(`Can't set if project id does not exist`, async function () {
@@ -72,7 +72,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
 
     await expect(
       jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller1.address),
-    ).to.be.revertedWith('0x2c: NOT_FOUND');
+    ).to.be.revertedWith('NOT_FOUND()');
   });
 
   it('Should set controller and emit event if caller is project owner', async function () {

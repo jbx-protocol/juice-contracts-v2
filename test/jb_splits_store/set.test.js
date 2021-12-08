@@ -198,7 +198,7 @@ describe('JBSplitsStore::set(...)', function () {
         GROUP,
         newSplits
       )
-    ).to.be.revertedWith('0x0f: SOME_LOCKED');
+    ).to.be.revertedWith('SOME_LOCKED()');
   })
 
   it('Should set new splits with extension of a preexisting locked one', async function () {
@@ -245,7 +245,7 @@ describe('JBSplitsStore::set(...)', function () {
         DOMAIN,
         GROUP,
         splits)
-    ).to.be.revertedWith('0x10: BAD_SPLIT_PERCENT');
+    ).to.be.revertedWith('BAD_SPLIT_PERCENT()');
   })
 
   it('Can\'t set splits when a split has both allocator and beneficiary zero address', async function () {
@@ -260,7 +260,7 @@ describe('JBSplitsStore::set(...)', function () {
         DOMAIN,
         GROUP,
         splits)
-    ).to.be.revertedWith('0x11: ZERO_ADDRESS');
+    ).to.be.revertedWith('ZERO_ADDRESS()');
   })
 
   it('Can\'t set splits if the sum of the percents is greather than 10000000', async function () {
@@ -275,7 +275,7 @@ describe('JBSplitsStore::set(...)', function () {
         DOMAIN,
         GROUP,
         splits)
-    ).to.be.revertedWith('0x12: BAD_TOTAL_PERCENT');
+    ).to.be.revertedWith('BAD_TOTAL_PERCENT()');
   })
 
   it('Should set splits if controller', async function () {
@@ -330,6 +330,6 @@ describe('JBSplitsStore::set(...)', function () {
       DOMAIN,
       GROUP,
       splits)
-    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
+    ).to.be.revertedWith('UNAUTHORIZED()');
   })
 })

@@ -91,7 +91,7 @@ describe('JBTokenStore::transferTo(...)', function () {
       jbTokenStore
         .connect(controller)
         .transferTo(ethers.constants.AddressZero, holder.address, PROJECT_ID, /* amount= */ 1),
-    ).to.be.revertedWith('0x26: ZERO_ADDRESS');
+    ).to.be.revertedWith('ZERO_ADDRESS()');
   });
 
   it(`Can't transfer unclaimed tokens when recipient and holder are the same`, async function () {
@@ -105,7 +105,7 @@ describe('JBTokenStore::transferTo(...)', function () {
       jbTokenStore
         .connect(controller)
         .transferTo(holder.address, holder.address, PROJECT_ID, /* amount= */ 1),
-    ).to.be.revertedWith('0x27: IDENTITY');
+    ).to.be.revertedWith('IDENTITY()');
   });
 
   it(`Can't transfer unclaimed tokens if amount is <= 0`, async function () {
@@ -120,7 +120,7 @@ describe('JBTokenStore::transferTo(...)', function () {
       jbTokenStore
         .connect(controller)
         .transferTo(recipient.address, holder.address, PROJECT_ID, /* amount= */ 0),
-    ).to.be.revertedWith('0x28: NO_OP');
+    ).to.be.revertedWith('NO_OP()');
   });
 
   it(`Can't transfer more unclaimed tokens than available balance`, async function () {
@@ -136,7 +136,7 @@ describe('JBTokenStore::transferTo(...)', function () {
       jbTokenStore
         .connect(controller)
         .transferTo(recipient.address, holder.address, PROJECT_ID, /* amount= */ 1),
-    ).to.be.revertedWith('0x29: INSUFFICIENT_FUNDS');
+    ).to.be.revertedWith('INSUFFICIENT_FUNDS()');
   });
 
   it(`Can't transfer unclaimed tokens if caller lacks permission`, async function () {

@@ -67,7 +67,7 @@ describe('JBTokenStore::claimFor(...)', function () {
 
     await expect(
       jbTokenStore.claimFor(newHolder.address, PROJECT_ID, numTokens),
-    ).to.be.revertedWith('0x24: NOT_FOUND');
+    ).to.be.revertedWith('NOT_FOUND()');
   });
 
   it(`Can't claim more tokens than the current _unclaimedBalance`, async function () {
@@ -85,6 +85,6 @@ describe('JBTokenStore::claimFor(...)', function () {
 
     await expect(
       jbTokenStore.claimFor(newHolder.address, PROJECT_ID, numTokens + 1),
-    ).to.be.revertedWith('0x25: INSUFFICIENT_FUNDS');
+    ).to.be.revertedWith('INSUFFICIENT_FUNDS()');
   });
 });

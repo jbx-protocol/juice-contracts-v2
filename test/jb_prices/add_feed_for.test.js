@@ -45,7 +45,7 @@ describe('JBPrices::addFeed(...)', function () {
     // exists.
     await expect(
       jbPrices.connect(deployer).addFeedFor(currency, base, aggregatorV3Contract.address),
-    ).to.be.revertedWith('0x04: ALREADY_EXISTS');
+    ).to.be.revertedWith('ALREADY_EXISTS()');
   });
 
   it('Add feed from address other than owner fails', async function () {

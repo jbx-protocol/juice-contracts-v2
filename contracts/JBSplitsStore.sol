@@ -140,7 +140,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
           _splits[_j].lockedUntil >= _currentSplits[_i].lockedUntil
         ) _includesLocked = true;
       }
-      if (!(_includesLocked)) {
+      if (!_includesLocked) {
         revert JBErrors.SOME_LOCKED();
       }
     }
@@ -158,17 +158,17 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
       }
 
       // The allocator and the beneficiary shouldn't both be the zero address.
-      if (_splits[_i].allocator == IJBSplitAllocator(address(0)) ||
-          _splits[_i].beneficiary == address(0)) {
-        revert JBErrors.ZERO_ADDRESS();
-      }
+      if (!( _splits[_i].allocator != IJBSplitAllocator(address(0)) ||
+          _splits[_i].beneficiary != address(0))) {
+            revert JBErrors.ZERO_ADDRESS();
+          }
 
       // Add to the total percents.
       _percentTotal = _percentTotal + _splits[_i].percent;
 
       // The total percent should be at most 10000000.
-      if (_percentTotal > 10000000) {
-        revert JBErrors.BAD_TOTAL_PERCENT();
+      if (!(_percentTotal <= 10000000)) {
+          revert JBErrors.BAD_TOTAL_PERCENT();
       }
 
       // Push the new split into the project's list of splits.

@@ -137,7 +137,7 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
 
     await expect(
       jbDirectory.connect(projectOwner).addTerminalsOf(PROJECT_ID, terminals),
-    ).to.be.revertedWith('0x2d: ZERO_ADDRESS');
+    ).to.be.revertedWith('ZERO_ADDRESS()');
   });
 
   it('Should not add terminals more than once', async function () {

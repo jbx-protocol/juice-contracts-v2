@@ -28,8 +28,8 @@ describe('JBOperatorStore::hasPermission(...)', function () {
       jbOperatorStore
         .connect(deployer)
         .hasPermission(
-          /*operator=*/ signers[0].address,
-          /*account=*/ signers[0].address,
+          /*operator=*/ projectOwner.address,
+          /*account=*/ deployer.address,
           /*domain=*/ 1,
           /*permissionIndex=*/ 256,
         )

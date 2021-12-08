@@ -93,7 +93,7 @@ describe('JBTokenStore::shouldRequireClaimingFor(...)', function () {
 
     await expect(
       jbTokenStore.connect(controller).shouldRequireClaimingFor(PROJECT_ID, /* flag= */ true),
-    ).to.be.revertedWith('0x2a: NOT_FOUND');
+    ).to.be.revertedWith('NOT_FOUND()');
   });
 
   it(`Can't set flag if caller lacks permission`, async function () {
