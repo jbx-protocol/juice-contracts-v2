@@ -22,7 +22,7 @@ describe('JBProjects::claimHandle(...)', function () {
     let jbOperations = await jbOperationsFactory.deploy();
 
     CLAIM_HANDLE_PERMISSION_INDEX = await jbOperations.CLAIM_HANDLE();
-  })
+  });
 
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
@@ -260,6 +260,14 @@ describe('JBProjects::claimHandle(...)', function () {
       );
 
     let handleReceiver = addrs[0];
+    await jbProjectsStore
+      .connect(deployer)
+      .createFor(
+        handleReceiver.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_3),
+        METADATA_CID,
+      );
+
     await jbProjectsStore
       .connect(projectOwner)
       .transferHandleOf(

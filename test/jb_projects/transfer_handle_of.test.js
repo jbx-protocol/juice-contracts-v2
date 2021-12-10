@@ -140,12 +140,12 @@ describe('JBProjects::transferHandleOf(...)', function () {
         .transferHandleOf(
           PROJECT_ID_1,
           deployer.address,
-          ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+          ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
         ),
     ).to.be.reverted;
   });
 
-  it(`Can't transfer handle if operator even with permissions`, async function () {
+  it(`Can't transfer handle if operator even without permissions`, async function () {
     const { projectOwner, deployer, addrs, jbProjectsStore, mockJbOperatorStore } = await setup();
 
     await jbProjectsStore
@@ -158,7 +158,7 @@ describe('JBProjects::transferHandleOf(...)', function () {
 
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(deployer.address, projectOwner.address, PROJECT_ID_1, SET_HANDLE_PERMISSION_INDEX)
-      .returns(true);
+      .returns(false);
 
     await expect(
       jbProjectsStore
@@ -166,7 +166,7 @@ describe('JBProjects::transferHandleOf(...)', function () {
         .transferHandleOf(
           PROJECT_ID_1,
           deployer.address,
-          ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
+          ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
         ),
     ).to.be.reverted;
   });
