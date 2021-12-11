@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { daysFromNow, daysFromDate, dateInSeconds } from '../helpers/utils';
+import { daysFromNow, daysFromDate } from '../helpers/utils';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbOperatorStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
@@ -179,7 +179,7 @@ describe('JBSplitsStore::set(...)', function () {
     const { projectOwner, addrs, jbSplitsStore, splits } = await setup();
 
     // Set one locked split
-    splits[1].lockedUntil = dateInSeconds(daysFromNow(1));
+    splits[1].lockedUntil = await daysFromNow(1);
     await jbSplitsStore.connect(projectOwner).set(
       PROJECT_ID,
       DOMAIN,
@@ -204,10 +204,10 @@ describe('JBSplitsStore::set(...)', function () {
   it('Should set new splits with extension of a preexisting locked one', async function () {
     const { projectOwner, addrs, jbSplitsStore, splits } = await setup();
 
-    let lockDate = daysFromNow(1);
+    let lockDate = await daysFromNow(1);
 
     // Set one locked split
-    splits[1].lockedUntil = dateInSeconds(lockDate);
+    splits[1].lockedUntil = lockDate;
     await jbSplitsStore.connect(projectOwner).set(
       PROJECT_ID,
       DOMAIN,
@@ -216,7 +216,7 @@ describe('JBSplitsStore::set(...)', function () {
     );
 
     // Try to set new ones, with lock extension of one day
-    let newLockDate = dateInSeconds(daysFromDate(lockDate, 1));
+    let newLockDate = daysFromDate(lockDate, 1);
     let newSplits = makeSplits(addrs[5].address);
 
     newSplits[1].lockedUntil = newLockDate;

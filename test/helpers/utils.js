@@ -2,6 +2,28 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { ethers, network } from 'hardhat';
 
 /**
+ * Grabs timestamp from Block or latest
+ * @param {*} block
+ * @returns
+ */
+export async function getTimestamp(block) {
+  return ethers.BigNumber.from((await ethers.provider.getBlock(block || 'latest')).timestamp);
+}
+
+/**
+ * Fast Forwards EVM timestamp
+ * @param {*} block
+ * @param {number} seconds
+ */
+export async function fastForward(block, seconds) {
+  const now = await getTimestamp();
+  const timeSinceTimemark = now.sub(await getTimestamp(block));
+  const fastforwardAmount = seconds.toNumber() - timeSinceTimemark;
+  await ethers.provider.send('evm_increaseTime', [fastforwardAmount]);
+  await ethers.provider.send('evm_mine');
+}
+
+/**
  * Pack array of permission indexes into BigNumber
  * @param {number[]} permissionIndexes
  * @return {ethers.BigNumber}
@@ -49,10 +71,9 @@ export async function deployJbToken(name, symbol) {
  * @param {number} days
  * @return {date}
  */
-export function daysFromNow(days) {
-  let date = new Date();
-  date.setDate(date.getDate() + days);
-  return date;
+export async function daysFromNow(days) {
+  let date = await getTimestamp();
+  return date.add(days * 24 * 60 * 60);
 }
 
 /**
@@ -62,9 +83,7 @@ export function daysFromNow(days) {
  * @return {date}
  */
 export function daysFromDate(date, days) {
-  let newDate = new Date();
-  newDate.setDate(date.getDate() + days);
-  return newDate;
+  return date.add(days * 24 * 60 * 60);
 }
 
 /**
