@@ -52,7 +52,7 @@ describe('JBDirectory::isTerminalOf(...)', function () {
     return { projectOwner, deployer, addrs, jbDirectory, terminal1, terminal2 };
   }
 
-  it('Returns true if the terminal belongs to the project', async function () {
+  it('Should return true if the terminal belongs to the project', async function () {
     const { projectOwner, jbDirectory, terminal1, terminal2 } = await setup();
 
     expect(await jbDirectory.connect(projectOwner).isTerminalOf(PROJECT_ID, terminal1.address)).to
@@ -62,7 +62,7 @@ describe('JBDirectory::isTerminalOf(...)', function () {
       .be.true;
   });
 
-  it(`Returns false if the terminal doesn't belong to the project`, async function () {
+  it(`Should return false if the terminal doesn't belong to the project`, async function () {
     const { projectOwner, jbDirectory } = await setup();
 
     expect(
@@ -72,7 +72,7 @@ describe('JBDirectory::isTerminalOf(...)', function () {
     ).to.be.false;
   });
 
-  it(`Returns false if the project does not exist`, async function () {
+  it(`Should return false if the project does not exist`, async function () {
     const { projectOwner, jbDirectory } = await setup();
 
     expect(
