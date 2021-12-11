@@ -180,7 +180,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @dev 
     A controller can be set if:
     - the message sender is the project owner or an operator having the correct authorization.
-    - or, an allowed address is setting a new controller.
+    - or, an allowedlisted address is setting an allowlisted controller.
     @param _projectId The ID of the project to set a new controller for.
     @param _controller The new controller to set.
   */
