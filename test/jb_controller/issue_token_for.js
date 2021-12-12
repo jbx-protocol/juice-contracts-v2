@@ -5,15 +5,19 @@ import { ethers, waffle, network } from 'hardhat';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
-import jbController from '../../artifacts/contracts/JBController.sol/JBController.json';
-import jbOperatable from '../../artifacts/contracts/abstract/JBOperatable.sol/JBOperatable.json';
-import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
-import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
+import jbOperatoreStore from '../../artifacts/contracts/abstract/JBOperatorStore.sol/JBOperatorStore.json';
+import jbProjects from '../../artifacts/contracts/jbProjects.sol/jbProjects.json';
+import jbDirectory from '../../artifacts/contracts/jbDirectory.sol/jbDirectory.json';
+import jbFundingCycleStore from '../../artifacts/contracts/jbFundingCycleStore.sol/jbFundingCycleStore.json';
+import jbTokenStore from '../../artifacts/contracts/jbTokenStore.sol/jbTokenStore.json';
+import jbSplitsStore from '../../artifacts/contracts/jbSplitsStore.sol/jbSplitsStore.json';
+import jbTokenStore from '../../artifacts/contracts/jbTokenStore.sol/jbTokenStore.json';
+import jbToken from '../../artifacts/contracts/jbToken.sol/jbToken.json';
 
-import { impersonateAccount } from '../helpers/utils';
+//import { impersonateAccount } from '../helpers/utils';
 
 
-describe('JBController::issueTokenFor(...)', function () {
+describe.only('JBController::issueTokenFor(...)', function () {
   const PROJECT_ID = 1;
   const NAME = 'TestTokenDAO';
   const SYMBOL = 'TEST';
@@ -27,22 +31,25 @@ describe('JBController::issueTokenFor(...)', function () {
     ISSUE_PERMISSION_INDEX = await jbOperations.ISSUE();
   });
 
-
-  // -------------
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
     let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
     let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
+    let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
+    let mockJbFundingCycleStore = await deployMockContract(deployer, jbFundingCycleStore.abi);
+    let mockTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
+    let mockSplitsStore = await deployMockContract(deployer, jbSplitsStore.abi);
 
-    let jbDirectoryFactory = await ethers.getContractFactory('JBDirectory');
-    let jbDirectory = await jbDirectoryFactory.deploy(
+    let jbControllerFactory = await ethers.getContractFactory('JBController');
+    let jbController = await jbControllerFactory.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
+      mockJbDirectory.address,
+      mockJbFundingCycleStore.address,
+      mockTokenStore.address,
+      mockSplitsStore.address
     );
-
-    let terminal1 = await deployMockContract(projectOwner, jbTerminal.abi);
-    let terminal2 = await deployMockContract(projectOwner, jbTerminal.abi);
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
     await mockJbOperatorStore.mock.hasPermission
@@ -58,29 +65,27 @@ describe('JBController::issueTokenFor(...)', function () {
       projectOwner,
       deployer,
       addrs,
-      jbDirectory,
-      terminal1,
-      terminal2,
-      mockJbProjects,
-      mockJbOperatorStore,
+      jbController
     };
   }
 
-  it('Should add terminals and emit events if caller is project owner', async function () {
-    const { projectOwner, jbDirectory, terminal1, terminal2 } = await setup();
 
-    let terminals = [terminal1.address, terminal2.address];
-    let tx = await jbDirectory.connect(projectOwner).addTerminalsOf(PROJECT_ID, terminals);
+  it('Should deploy an ERC-20 token contract if caller is project owner', async function () {
+    const { projectOwner } = await setup();
 
-    await Promise.all(
-      terminals.map(async (terminalAddr, _) => {
-        await expect(tx)
-          .to.emit(jbDirectory, 'AddTerminal')
-          .withArgs(PROJECT_ID, terminalAddr, projectOwner.address);
-      }),
-    );
+    let mockToken = await deployMockContract(deployer, jbToken.abi);
+    let mockTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
+
+    await mockTokenStore.mock.issueFor
+      .withArgs(PROJECT_ID, NAME, SYMBOL)
+      .returns(mockToken.adress);
+
+    let tx = await jbController.connect(projectOwner).callStatic.issueTokenFor(PROJECT_ID, NAME, SYMBOL);
+    expect(tx).to.equal(mockToken.address);
+
   });
 
+  /*
   it('Should add if caller is controller of the project', async function () {
     const { addrs, projectOwner, jbDirectory, mockJbProjects, mockJbOperatorStore, terminal1 } =
       await setup();
@@ -137,38 +142,5 @@ describe('JBController::issueTokenFor(...)', function () {
       .reverted;
   });
 
-  it('Should reject terminals with address(0)', async function () {
-    const { projectOwner, jbDirectory, terminal1, terminal2 } = await setup();
-
-    let terminals = [terminal1.address, ethers.constants.AddressZero, terminal2.address];
-
-    await expect(
-      jbDirectory.connect(projectOwner).addTerminalsOf(PROJECT_ID, terminals),
-    ).to.be.revertedWith('0x2d: ZERO_ADDRESS');
-  });
-
-  it('Should not add terminals more than once', async function () {
-    const { projectOwner, jbDirectory, terminal1, terminal2 } = await setup();
-
-    await jbDirectory
-      .connect(projectOwner)
-      .addTerminalsOf(PROJECT_ID, [terminal1.address, terminal2.address]);
-    await jbDirectory
-      .connect(projectOwner)
-      .addTerminalsOf(PROJECT_ID, [terminal2.address, terminal1.address]);
-    await jbDirectory
-      .connect(projectOwner)
-      .addTerminalsOf(PROJECT_ID, [terminal1.address, terminal1.address]);
-    await jbDirectory
-      .connect(projectOwner)
-      .addTerminalsOf(PROJECT_ID, [terminal2.address, terminal2.address]);
-
-    let resultTerminals = [...(await jbDirectory.connect(projectOwner).terminalsOf(PROJECT_ID))];
-    resultTerminals.sort();
-
-    let expectedTerminals = [terminal1.address, terminal2.address];
-    expectedTerminals.sort();
-
-    expect(resultTerminals).to.eql(expectedTerminals);
-  });
+  */
 });
