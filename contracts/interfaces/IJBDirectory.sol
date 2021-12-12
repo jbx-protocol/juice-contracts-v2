@@ -19,9 +19,15 @@ interface IJBDirectory {
     address caller
   );
 
+  event AddToSetControllerAllowlist(address indexed _address, address caller);
+
+  event RemoveFromSetControllerAllowlist(address indexed _address, address caller);
+
   function projects() external view returns (IJBProjects);
 
   function controllerOf(uint256 _projectId) external view returns (IJBController);
+
+  function isAllowedToSetController(address _address) external view returns (bool);
 
   function primaryTerminalOf(uint256 _projectId, address _token)
     external
@@ -41,4 +47,8 @@ interface IJBDirectory {
   function setControllerOf(uint256 _projectId, IJBController _controller) external;
 
   function setPrimaryTerminalOf(uint256 _projectId, IJBTerminal _terminal) external;
+
+  function addToSetControllerAllowlist(address _address) external;
+
+  function removeFromSetControllerAllowlist(address _address) external;
 }
