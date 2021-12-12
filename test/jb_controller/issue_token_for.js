@@ -36,8 +36,10 @@ describe.only('JBController::issueTokenFor(...)', function () {
     let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
     let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
     let mockJbFundingCycleStore = await deployMockContract(deployer, jbFundingCycleStore.abi);
-    let mockTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
     let mockSplitsStore = await deployMockContract(deployer, jbSplitsStore.abi);
+    let mockTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
+
+    let mockToken = await deployMockContract(deployer, jbToken.abi);
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');
     let jbController = await jbControllerFactory.deploy(
@@ -49,39 +51,33 @@ describe.only('JBController::issueTokenFor(...)', function () {
       mockSplitsStore.address
     );
 
-    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
+    await mockTokenStore.mock.issueFor
+      .withArgs(PROJECT_ID, NAME, SYMBOL)
+      .returns(mockToken.address);
+
+    await mockJbProjects.mock.ownerOf
+      .withArgs(PROJECT_ID)
+      .returns(projectOwner.address);
+
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(
-        projectOwner.address,
-        projectOwner.address,
-        PROJECT_ID,
-        ISSUE_PERMISSION_INDEX,
-      )
+      .withArgs(projectOwner.address, projectOwner.address, PROJECT_ID, ISSUE_PERMISSION_INDEX,)
       .returns(true);
 
     return {
       projectOwner,
       deployer,
       addrs,
-      jbController
+      jbController,
+      mockTokenStore,
+      mockToken
     };
   }
 
 
   it('Should deploy an ERC-20 token contract if caller is project owner', async function () {
-    const { projectOwner, deployer, jbController } = await setup();
-
-    let mockToken = await deployMockContract(deployer, jbToken.abi);
-    let mockTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
-
-    await mockTokenStore.mock.issueFor
-      .withArgs(PROJECT_ID, NAME, SYMBOL)
-      .returns(mockToken.address);
-
-    let tx = await jbController.connect(projectOwner).issueTokenFor(PROJECT_ID, NAME, SYMBOL);
-    console.log(tx);
-    //expect(tx).to.equal(mockToken.address);
-
+    const { projectOwner, jbController, mockToken } = await setup();
+    let tx = await jbController.connect(projectOwner).callStatic.issueTokenFor(PROJECT_ID, NAME, SYMBOL);
+    expect(tx).to.equal(mockToken.address);
   });
 
   /*
