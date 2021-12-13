@@ -25,10 +25,6 @@ describe('JBSplitsStore::set(...)', function () {
     let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
     let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
 
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(projectOwner.address, projectOwner.address, PROJECT_ID, SET_SPLITS_PERMISSION_INDEX)
-      .returns(true);
-
     await mockJbProjects.mock.ownerOf
       .withArgs(PROJECT_ID)
       .returns(projectOwner.address);
