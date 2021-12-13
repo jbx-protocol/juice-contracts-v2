@@ -42,14 +42,6 @@ describe('JBDirectory::removeTerminalOf(...)', function () {
         projectOwner.address,
         projectOwner.address,
         PROJECT_ID,
-        ADD_TERMINALS_PERMISSION_INDEX,
-      )
-      .returns(true);
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(
-        projectOwner.address,
-        projectOwner.address,
-        PROJECT_ID,
         REMOVE_TERMINAL_PERMISSION_INDEX,
       )
       .returns(true);
