@@ -62,7 +62,7 @@ describe('JBDirectory::primaryTerminalOf(...)', function () {
     return { projectOwner, deployer, addrs, jbDirectory, terminal1, terminal2 };
   }
 
-  it('Returns primary terminal if set', async function () {
+  it('Should return primary terminal if set', async function () {
     const { projectOwner, jbDirectory, terminal1 } = await setup();
 
     let token = ethers.Wallet.createRandom().address;
@@ -75,7 +75,7 @@ describe('JBDirectory::primaryTerminalOf(...)', function () {
     );
   });
 
-  it('Returns terminal with matching token if set', async function () {
+  it('Should return terminal with matching token if set', async function () {
     const { projectOwner, jbDirectory, terminal1, terminal2 } = await setup();
 
     await terminal1.mock.token.returns(ethers.Wallet.createRandom().address);

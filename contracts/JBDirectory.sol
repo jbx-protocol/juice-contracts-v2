@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import '@openzeppelin/contracts/access/Ownable.sol';
+
 import './interfaces/IJBTerminal.sol';
 import './interfaces/IJBDirectory.sol';
 import './abstract/JBOperatable.sol';
@@ -11,7 +13,7 @@ import './libraries/JBErrors.sol';
   @notice
   Keeps a reference of which terminal contracts each project is currently accepting funds through, and which controller contract is managing each project's tokens and funding cycles.
 */
-contract JBDirectory is IJBDirectory, JBOperatable {
+contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//
@@ -32,6 +34,12 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     _token The token to get the project's primary terminal of.
   */
   mapping(uint256 => mapping(address => IJBTerminal)) private _primaryTerminalOf;
+
+  /**
+    @notice
+    Addresses that can set a project's controller. These addresses/contracts have been vetted and verified by Juicebox owners.
+   */
+  mapping(address => bool) private _setControllerAllowlist;
 
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
@@ -143,6 +151,18 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     return IJBTerminal(address(0));
   }
 
+  /**
+    @notice
+    Whether or not a specified address is allowed to set controllers.
+
+    @param _address the address to check
+
+    @return A flag indicating whether or not the specified address can change controllers.
+  */
+  function isAllowedToSetController(address _address) public view override returns (bool) {
+    return _setControllerAllowlist[_address];
+  }
+
   //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
@@ -155,24 +175,16 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     projects = _projects;
   }
 
-  //*********************************************************************//
-  // ---------------------- external transactions ---------------------- //
-  //*********************************************************************//
-
   /**
     @notice
     Update the controller that manages how terminals interact with the ecosystem.
-
     @dev 
     A controller can be set if:
-    - the message sender is the project owner or an operator is changing the controller.
-    - or, the controller hasn't been set yet and the message sender is the controller being set.
-    - or, the current controller is setting a new controller.
-
+    - the message sender is the project owner or an operator having the correct authorization.
+    - or, an allowedlisted address is setting an allowlisted controller.
     @param _projectId The ID of the project to set a new controller for.
     @param _controller The new controller to set.
   */
-  // TODO(odd-amphora): Revisit access pattern with allowlist.
   function setControllerOf(uint256 _projectId, IJBController _controller)
     external
     override
@@ -180,8 +192,7 @@ contract JBDirectory is IJBDirectory, JBOperatable {
       projects.ownerOf(_projectId),
       _projectId,
       JBOperations.SET_CONTROLLER,
-      (address(controllerOf[_projectId]) == address(0) && msg.sender == address(_controller)) ||
-        address(controllerOf[_projectId]) == msg.sender
+      (_setControllerAllowlist[address(_controller)] && _setControllerAllowlist[msg.sender])
     )
   {
     // Can't set the zero address.
@@ -189,11 +200,8 @@ contract JBDirectory is IJBDirectory, JBOperatable {
         revert JBErrors.ZERO_ADDRESS();
     }
 
-    // Get a reference to the current controller being used.
-    IJBController _currentController = controllerOf[_projectId];
-
     // If the controller is already set, nothing to do.
-    if (_currentController == _controller) return;
+    if (controllerOf[_projectId] == _controller) return;
 
     // The project must exist.
     if (projects.count() < _projectId) {
@@ -329,5 +337,43 @@ contract JBDirectory is IJBDirectory, JBOperatable {
     _primaryTerminalOf[_projectId][_token] = _terminal;
 
     emit SetPrimaryTerminal(_projectId, _token, _terminal, msg.sender);
+  }
+
+  /** 
+    @notice
+    The owner (Juicebox multisig) can add addresses which are allowed to change
+    a project's controller. Those addresses are known and vetted controllers as well as
+    contracts designed to launch new projects. This is not a requirement for all controllers.
+    However, unknown controllers may require additional transactions to perform certain operations.
+
+    @dev
+    If you would like an address/contract allowlisted, please reach out to the Juicebox dev team.
+
+    @param _address the allowed address to be added.
+  */
+  function addToSetControllerAllowlist(address _address) external override onlyOwner {
+    // Check that the controller has not already been added.
+    require(!_setControllerAllowlist[_address], '0x30: ALREADY_ADDED');
+
+    // Add the controller to the list of known controllers.
+    _setControllerAllowlist[_address] = true;
+
+    emit AddToSetControllerAllowlist(_address, msg.sender);
+  }
+
+  /** 
+    @notice
+    See `addKnownController(...)` for context. Removes an address from the allowlist.
+
+    @param _address The address to be removed.
+  */
+  function removeFromSetControllerAllowlist(address _address) external override onlyOwner {
+    // Not in the known controllers list
+    require(_setControllerAllowlist[_address], '0x31: NOT_FOUND');
+
+    // Remove the controller from the list of known controllers.
+    delete _setControllerAllowlist[_address];
+
+    emit RemoveFromSetControllerAllowlist(_address, msg.sender);
   }
 }
