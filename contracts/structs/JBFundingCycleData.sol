@@ -4,6 +4,10 @@ pragma solidity 0.8.6;
 import './../interfaces/IJBFundingCycleBallot.sol';
 
 struct JBFundingCycleData {
+  // The amount that this funding cycle is targeting in terms of the currency.
+  uint256 target;
+  // The currency of the `target`. 0 for ETH or 1 for USD.
+  uint256 currency;
   // The duration of the funding cycle in days.
   // A duration of 0 is no duration, meaning projects can trigger a new funding cycle on demand by issueing a reconfiguration.
   uint256 duration;
@@ -19,8 +23,6 @@ struct JBFundingCycleData {
   // If the number is 900000000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
   // If the number is 1000000001, an non-recurring funding cycle will get made.
   uint256 discountRate;
-  // The amount that this funding cycle is targeting in terms of the currency.
-  uint256 target;
   // An address of a contract that says whether a proposed reconfiguration should be accepted or rejected.
   IJBFundingCycleBallot ballot;
 }
