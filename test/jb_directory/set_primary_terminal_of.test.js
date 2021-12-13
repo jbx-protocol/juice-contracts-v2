@@ -36,14 +36,6 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     let terminal2 = await deployMockContract(projectOwner, jbTerminal.abi);
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(
-        projectOwner.address,
-        projectOwner.address,
-        PROJECT_ID,
-        ADD_TERMINALS_PERMISSION_INDEX,
-      )
-      .returns(true);
 
     return {
       projectOwner,
