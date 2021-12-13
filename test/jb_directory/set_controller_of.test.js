@@ -36,14 +36,6 @@ describe('JBDirectory::setControllerOf(...)', function () {
     let controller2 = await deployMockContract(projectOwner, jbController.abi);
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(
-        projectOwner.address,
-        projectOwner.address,
-        PROJECT_ID,
-        SET_CONTROLLER_PERMISSION_INDEX,
-      )
-      .returns(true);
 
     return {
       projectOwner,
