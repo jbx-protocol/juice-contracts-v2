@@ -62,7 +62,7 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
       .withArgs(PROJECT_ID_1, METADATA_CID_2, projectOwner.address);
   });
 
-  it(`Can set MetadataCid on project if caller is not owner but has permission`, async function () {
+  it(`Should set MetadataCid on project if caller is not owner but has permission`, async function () {
     const { projectOwner, deployer, addrs, jbProjectsStore, mockJbOperatorStore } = await setup();
 
     await jbProjectsStore
