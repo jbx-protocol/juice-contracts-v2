@@ -16,13 +16,13 @@ describe('JBController::changeTokenOf(...)', function () {
   const NAME = 'TestTokenDAO';
   const SYMBOL = 'TEST';
 
-  let ISSUE_PERMISSION_INDEX;
+  let CHANGE_TOKEN_INDEX;
 
   before(async function () {
     let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
     let jbOperations = await jbOperationsFactory.deploy();
 
-    ISSUE_PERMISSION_INDEX = await jbOperations.ISSUE();
+    CHANGE_TOKEN_INDEX = await jbOperations.CHANGE_TOKEN();
   });
 
   async function setup() {
@@ -54,10 +54,6 @@ describe('JBController::changeTokenOf(...)', function () {
       .withArgs(PROJECT_ID)
       .returns(projectOwner.address);
 
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(projectOwner.address, projectOwner.address, PROJECT_ID, ISSUE_PERMISSION_INDEX,)
-      .returns(true);
-
     return {
       projectOwner,
       deployer,
@@ -85,7 +81,7 @@ describe('JBController::changeTokenOf(...)', function () {
       .withArgs(PROJECT_ID, mockToken.address, newTokenOwner.address)
       .returns();
 
-    expect(jbController.changeTokenOf(PROJECT_ID, mockToken.address, newTokenOwner.address)).to.be.not.reverted();
+    expect(jbController.connect(projectOwner).changeTokenOf(PROJECT_ID, mockToken.address, newTokenOwner.address)).to.be.not.reverted();
   });
 
 });
