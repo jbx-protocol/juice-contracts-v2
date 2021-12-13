@@ -296,16 +296,16 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   ) external returns (uint256 projectId) {
     // The reserved project token rate must be less than or equal to 10000.
     if (_metadata.reservedRate > 10000) {
-        revert JBErrors.BAD_RESERVED_RATE();
+      revert JBErrors.BAD_RESERVED_RATE();
     }
     // The redemption rate must be between 0 and 10000.
     if (_metadata.redemptionRate > 10000) {
-        revert JBErrors.BAD_REDEMPTION_RATE();
+      revert JBErrors.BAD_REDEMPTION_RATE();
     }
 
     // The ballot redemption rate must be less than or equal to 10000.
     if (_metadata.ballotRedemptionRate > 10000) {
-        revert JBErrors.BAD_BALLOT_REDEMPTION_RATE();
+      revert JBErrors.BAD_BALLOT_REDEMPTION_RATE();
     }
 
     // Create the project for into the wallet of the message sender.
@@ -380,16 +380,16 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   {
     // The reserved project token rate must be less than or equal to 10000.
     if (_metadata.reservedRate > 10000) {
-        revert JBErrors.BAD_RESERVED_RATE();
+      revert JBErrors.BAD_RESERVED_RATE();
     }
     // The redemption rate must be between 0 and 10000.
     if (_metadata.redemptionRate > 10000) {
-        revert JBErrors.BAD_REDEMPTION_RATE();
+      revert JBErrors.BAD_REDEMPTION_RATE();
     }
 
     // The ballot redemption rate must be less than or equal to 10000.
     if (_metadata.ballotRedemptionRate > 10000) {
-        revert JBErrors.BAD_BALLOT_REDEMPTION_RATE();
+      revert JBErrors.BAD_BALLOT_REDEMPTION_RATE();
     }
 
     return _configure(_projectId, _data, _metadata, _groupedSplits, _fundAccessConstraints);
@@ -447,7 +447,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
     // The current funding cycle must not be paused.
     if (!(_fundingCycle.changeTokenAllowed())) {
-        revert JBErrors.NOT_ALLOWED();
+      revert JBErrors.NOT_ALLOWED();
     }
 
     // Change the token in the store.
@@ -491,12 +491,12 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   {
     // Can't send to the zero address.
     if (_reservedRate != 10000 || _beneficiary == address(0)) {
-        revert JBErrors.ZERO_ADDRESS();
+      revert JBErrors.ZERO_ADDRESS();
     }
 
     // There should be tokens to mint.
     if (_tokenCount == 0) {
-        revert JBErrors.NO_OP();
+      revert JBErrors.NO_OP();
     }
 
     // Get a reference to the project's current funding cycle.
@@ -504,7 +504,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
     // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
     if (_fundingCycle.mintPaused() || !(directory.isTerminalDelegateOf(_projectId, msg.sender))) {
-        revert JBErrors.PAUSED();
+      revert JBErrors.PAUSED();
     }
 
     if (_reservedRate == 10000) {
@@ -561,14 +561,14 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   {
     // There should be tokens to burn
     if (_tokenCount == 0) {
-        revert JBErrors.NO_OP();
+      revert JBErrors.NO_OP();
     }
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
     if (_fundingCycle.burnPaused() || !(directory.isTerminalDelegateOf(_projectId, msg.sender))) {
-        revert JBErrors.PAUSED();
+      revert JBErrors.PAUSED();
     }
 
     // Update the token tracker so that reserved tokens will still be correctly mintable.
@@ -608,7 +608,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   function prepForMigrationOf(uint256 _projectId, IJBController) external override {
     // This controller must not be the project's current controller.
     if (directory.controllerOf(_projectId) == this) {
-        revert JBErrors.NO_OP();
+      revert JBErrors.NO_OP();
     }
 
     // Set the tracker as the total supply.
@@ -632,7 +632,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   {
     // This controller must be the project's current controller.
     if (directory.controllerOf(_projectId) != this) {
-        revert JBErrors.NO_OP();
+      revert JBErrors.NO_OP();
     }
 
     // Get a reference to the project's current funding cycle.
@@ -640,7 +640,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
     // Migration must be allowed
     if (!(_fundingCycle.controllerMigrationAllowed())) {
-        revert JBErrors.NOT_ALLOWED();
+      revert JBErrors.NOT_ALLOWED();
     }
 
     // All reserved tokens must be minted before migrating.

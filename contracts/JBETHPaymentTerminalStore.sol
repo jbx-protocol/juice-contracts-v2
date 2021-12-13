@@ -34,7 +34,7 @@ contract JBETHPaymentTerminalStore {
   // A modifier only allowing the associated payment terminal to access the function.
   modifier onlyAssociatedPaymentTerminal() {
     if (msg.sender != address(terminal)) {
-        revert JBErrors.UNAUTHORIZED();
+      revert JBErrors.UNAUTHORIZED();
     }
     _;
   }
@@ -247,12 +247,12 @@ contract JBETHPaymentTerminalStore {
 
     // The project must have a funding cycle configured.
     if (fundingCycle.number == 0) {
-        revert JBErrors.NOT_FOUND();
+      revert JBErrors.NOT_FOUND();
     }
 
     // Must not be paused.
     if (fundingCycle.payPaused()) {
-        revert JBErrors.PAUSED();
+      revert JBErrors.PAUSED();
     }
 
     // Save a reference to the delegate to use.
@@ -295,7 +295,7 @@ contract JBETHPaymentTerminalStore {
 
     // The token count for the beneficiary must be greater than or equal to the minimum expected.
     if (tokenCount < _minReturnedTokens) {
-        revert JBErrors.INADEQUATE();
+      revert JBErrors.INADEQUATE();
     }
 
     // If a delegate was returned by the data source, issue a callback to it.
@@ -345,17 +345,19 @@ contract JBETHPaymentTerminalStore {
 
     // The funding cycle must not be configured to have distributions paused.
     if (fundingCycle.distributionsPaused()) {
-        revert JBErrors.PAUSED();
+      revert JBErrors.PAUSED();
     }
 
     // Make sure the currencies match.
-    if (_currency !=
-        directory.controllerOf(_projectId).currencyOf(
-          _projectId,
-          fundingCycle.configuration,
-          terminal
-        )) {
-        revert JBErrors.UNEXPECTED_CURRENCY();
+    if (
+      _currency !=
+      directory.controllerOf(_projectId).currencyOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      )
+    ) {
+      revert JBErrors.UNEXPECTED_CURRENCY();
     }
 
     // The new total amount that has been distributed during this funding cycle.
@@ -363,13 +365,15 @@ contract JBETHPaymentTerminalStore {
       _amount;
 
     // Amount must be within what is still distributable.
-    if (_newUsedDistributionLimitOf >
-        directory.controllerOf(_projectId).distributionLimitOf(
-          _projectId,
-          fundingCycle.configuration,
-          terminal
-        )) {
-        revert JBErrors.LIMIT_REACHED();
+    if (
+      _newUsedDistributionLimitOf >
+      directory.controllerOf(_projectId).distributionLimitOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      )
+    ) {
+      revert JBErrors.LIMIT_REACHED();
     }
 
     // Convert the amount to wei.
@@ -380,12 +384,12 @@ contract JBETHPaymentTerminalStore {
 
     // The amount being distributed must be available.
     if (distributedAmount > balanceOf[_projectId]) {
-        revert JBErrors.INSUFFICIENT_FUNDS();
+      revert JBErrors.INSUFFICIENT_FUNDS();
     }
 
     // The amount being distributed must be at least as much as was expected.
     if (_minReturnedWei > distributedAmount) {
-        revert JBErrors.INADEQUATE();
+      revert JBErrors.INADEQUATE();
     }
 
     // Store the new amount.
@@ -421,13 +425,15 @@ contract JBETHPaymentTerminalStore {
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Make sure the currencies match.
-    if ( _currency !=
-        directory.controllerOf(_projectId).currencyOf(
-          _projectId,
-          fundingCycle.configuration,
-          terminal
-        )) {
-        revert JBErrors.UNEXPECTED_CURRENCY();
+    if (
+      _currency !=
+      directory.controllerOf(_projectId).currencyOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      )
+    ) {
+      revert JBErrors.UNEXPECTED_CURRENCY();
     }
 
     // Convert the amount to wei.
@@ -437,24 +443,26 @@ contract JBETHPaymentTerminalStore {
       : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, JBCurrencies.ETH));
 
     // There must be sufficient allowance available.
-    if ( withdrawnAmount >
-        directory.controllerOf(_projectId).overflowAllowanceOf(
-          _projectId,
-          fundingCycle.configuration,
-          terminal
-        ) -
-          usedOverflowAllowanceOf[_projectId][fundingCycle.configuration]) {
-        revert JBErrors.NOT_ALLOWED();
+    if (
+      withdrawnAmount >
+      directory.controllerOf(_projectId).overflowAllowanceOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      ) -
+        usedOverflowAllowanceOf[_projectId][fundingCycle.configuration]
+    ) {
+      revert JBErrors.NOT_ALLOWED();
     }
-  
+
     // The amount being withdrawn must be available.
     if (withdrawnAmount > balanceOf[_projectId]) {
-        revert JBErrors.INSUFFICIENT_FUNDS();
+      revert JBErrors.INSUFFICIENT_FUNDS();
     }
 
     // The amount being withdrawn must be at least as much as was expected.
     if (_minReturnedWei > withdrawnAmount) {
-        revert JBErrors.INADEQUATE();
+      revert JBErrors.INADEQUATE();
     }
 
     // Store the decremented value.
@@ -504,7 +512,7 @@ contract JBETHPaymentTerminalStore {
   {
     // The holder must have the specified number of the project's tokens.
     if (tokenStore.balanceOf(_holder, _projectId) < _tokenCount) {
-        revert JBErrors.INSUFFICIENT_TOKENS();
+      revert JBErrors.INSUFFICIENT_TOKENS();
     }
 
     // Get a reference to the project's current funding cycle.
@@ -512,7 +520,7 @@ contract JBETHPaymentTerminalStore {
 
     // The current funding cycle must not be paused.
     if (fundingCycle.redeemPaused()) {
-        revert JBErrors.PAUSED();
+      revert JBErrors.PAUSED();
     }
 
     // Save a reference to the delegate to use.
@@ -538,11 +546,11 @@ contract JBETHPaymentTerminalStore {
 
     // The amount being claimed must be within the project's balance.
     if (claimAmount > balanceOf[_projectId]) {
-        revert JBErrors.INSUFFICIENT_FUNDS();
+      revert JBErrors.INSUFFICIENT_FUNDS();
     }
     // The amount being claimed must be at least as much as was expected.
     if (claimAmount < _minReturnedWei) {
-        revert JBErrors.INADEQUATE();
+      revert JBErrors.INADEQUATE();
     }
 
     // Redeem the tokens, which burns them.
@@ -616,7 +624,7 @@ contract JBETHPaymentTerminalStore {
 
     // Migration must be allowed
     if (!(_fundingCycle.terminalMigrationAllowed())) {
-        revert JBErrors.NOT_ALLOWED();
+      revert JBErrors.NOT_ALLOWED();
     }
 
     // Return the current balance.
@@ -633,7 +641,7 @@ contract JBETHPaymentTerminalStore {
   function claimFor(IJBTerminal _terminal) external {
     // This store can only be claimed once.
     if (terminal != IJBTerminal(address(0))) {
-        revert JBErrors.ALREADY_CLAIMED();
+      revert JBErrors.ALREADY_CLAIMED();
     }
     // Set the terminal.
     terminal = _terminal;

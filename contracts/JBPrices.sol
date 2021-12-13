@@ -55,7 +55,7 @@ contract JBPrices is IJBPrices, Ownable {
 
     // Feed must exist.
     if (_feed == AggregatorV3Interface(address(0))) {
-        revert JBErrors.NOT_FOUND();
+      revert JBErrors.NOT_FOUND();
     }
 
     // Get the latest round information. Only need the price is needed.
@@ -108,7 +108,7 @@ contract JBPrices is IJBPrices, Ownable {
   ) external override onlyOwner {
     // There can't already be a feed for the specified currency.
     if (feedFor[_currency][_base] != AggregatorV3Interface(address(0))) {
-        revert JBErrors.ALREADY_EXISTS();
+      revert JBErrors.ALREADY_EXISTS();
     }
 
     // Set the feed.

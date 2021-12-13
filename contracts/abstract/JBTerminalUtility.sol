@@ -11,7 +11,7 @@ import './../libraries/JBErrors.sol';
 abstract contract JBTerminalUtility is IJBTerminalUtility {
   modifier onlyTerminal(uint256 _projectId) {
     if (!(directory.isTerminalDelegateOf(_projectId, msg.sender))) {
-        revert JBErrors.UNAUTHORIZED();
+      revert JBErrors.UNAUTHORIZED();
     }
     _;
   }

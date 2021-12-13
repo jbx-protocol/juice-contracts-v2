@@ -197,7 +197,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   {
     // Can't set the zero address.
     if (_controller == IJBController(address(0))) {
-        revert JBErrors.ZERO_ADDRESS();
+      revert JBErrors.ZERO_ADDRESS();
     }
 
     // If the controller is already set, nothing to do.
@@ -205,7 +205,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     // The project must exist.
     if (projects.count() < _projectId) {
-        revert JBErrors.NOT_FOUND();
+      revert JBErrors.NOT_FOUND();
     }
 
     // Set the new controller.
@@ -231,7 +231,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     address _caller
   ) internal {
     if (_terminal == IJBTerminal(address(0))) {
-        revert JBErrors.ZERO_ADDRESS();
+      revert JBErrors.ZERO_ADDRESS();
     }
 
     // Check that the terminal has not already been added.
@@ -319,7 +319,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   {
     // Can't set the zero address.
     if (_terminal == IJBTerminal(address(0))) {
-        revert JBErrors.ZERO_ADDRESS();
+      revert JBErrors.ZERO_ADDRESS();
     }
 
     // Get a reference to the token that the terminal's vault accepts.
@@ -327,7 +327,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     // Can't set this terminal as the primary if it already is.
     if (_terminal == _primaryTerminalOf[_projectId][_token]) {
-        revert JBErrors.ALREADY_SET();
+      revert JBErrors.ALREADY_SET();
     }
 
     // Add the terminal to thge project if it hasn't been already.

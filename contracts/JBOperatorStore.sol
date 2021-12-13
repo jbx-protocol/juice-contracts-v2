@@ -4,7 +4,6 @@ pragma solidity 0.8.6;
 import './interfaces/IJBOperatorStore.sol';
 import './libraries/JBErrors.sol';
 
-
 /** 
   @notice
   Stores operator permissions for all addresses. Addresses can give permissions to any other address to take specific indexed actions on their behalf.
@@ -51,7 +50,7 @@ contract JBOperatorStore is IJBOperatorStore {
     uint256 _permissionIndex
   ) external view override returns (bool) {
     if (_permissionIndex > 255) {
-        revert JBErrors.IndexOutOfBounds();
+      revert JBErrors.IndexOutOfBounds();
     }
     return (((permissionsOf[_operator][_account][_domain] >> _permissionIndex) & 1) == 1);
   }
@@ -169,4 +168,3 @@ contract JBOperatorStore is IJBOperatorStore {
     }
   }
 }
-
