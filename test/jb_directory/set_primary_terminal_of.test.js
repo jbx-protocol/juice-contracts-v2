@@ -85,7 +85,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     expect(resultTerminals).to.eql(expectedTerminals);
   });
 
-  it('Can\'t set primary terminal if caller is not project owner but has permissions', async function () {
+  it("Can't set primary terminal if caller is not project owner but has permissions", async function () {
     const { projectOwner, addrs, jbDirectory, mockJbOperatorStore, terminal1 } = await setup();
     let caller = addrs[1];
 

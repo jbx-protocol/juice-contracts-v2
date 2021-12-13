@@ -83,7 +83,7 @@ describe('JBDirectory::removeTerminalOf(...)', function () {
     expect(terminals).to.eql([terminal2.address]);
   });
 
-  it('Can\'t remove terminal if caller is not project owner but has permissions', async function () {
+  it("Can't remove terminal if caller is not project owner but has permissions", async function () {
     const { projectOwner, addrs, jbDirectory, mockJbOperatorStore, terminal1 } = await setup();
     let caller = addrs[1];
 

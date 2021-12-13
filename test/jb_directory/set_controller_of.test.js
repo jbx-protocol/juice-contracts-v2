@@ -72,11 +72,8 @@ describe('JBDirectory::setControllerOf(...)', function () {
 
     await mockJbProjects.mock.count.returns(PROJECT_ID);
 
-    await expect(
-      jbDirectory
-        .connect(projectOwner)
-        .setControllerOf(PROJECT_ID, controller1.address)
-    ).to.not.be.reverted;
+    await expect(jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller1.address))
+      .to.not.be.reverted;
 
     let controller = await jbDirectory.connect(projectOwner).controllerOf(PROJECT_ID);
     expect(controller).to.equal(controller1.address);
@@ -115,13 +112,14 @@ describe('JBDirectory::setControllerOf(...)', function () {
   });
 
   it('Should set controller if both caller and new controller are in setControllerAllowlist', async function () {
-    const { deployer,
+    const {
+      deployer,
       projectOwner,
       jbDirectory,
       mockJbProjects,
       mockJbOperatorStore,
       controller1,
-      controller2
+      controller2,
     } = await setup();
 
     let caller = await impersonateAccount(controller1.address);
@@ -137,16 +135,23 @@ describe('JBDirectory::setControllerOf(...)', function () {
       .returns(false);
 
     // Add caller and new controller to SetControllerAllowlist
-    await jbDirectory.connect(deployer).addToSetControllerAllowlist(caller.address)
-    await jbDirectory.connect(deployer).addToSetControllerAllowlist(controller2.address)
+    await jbDirectory.connect(deployer).addToSetControllerAllowlist(caller.address);
+    await jbDirectory.connect(deployer).addToSetControllerAllowlist(controller2.address);
 
     await expect(jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller2.address)).to
       .not.be.reverted;
   });
 
-  it('Can\'t set if new controller is in setControllerAllowlist but caller is not and is not authorized', async function () {
-    const { deployer, projectOwner, jbDirectory, mockJbProjects, mockJbOperatorStore, controller1, controller2 } =
-      await setup();
+  it("Can't set if new controller is in setControllerAllowlist but caller is not and is not authorized", async function () {
+    const {
+      deployer,
+      projectOwner,
+      jbDirectory,
+      mockJbProjects,
+      mockJbOperatorStore,
+      controller1,
+      controller2,
+    } = await setup();
 
     let caller = await impersonateAccount(controller1.address);
 
@@ -160,15 +165,23 @@ describe('JBDirectory::setControllerOf(...)', function () {
       .returns(false);
 
     // Add the new controller but not caller to SetControllerAllowlist
-    await jbDirectory.connect(deployer).addToSetControllerAllowlist(controller2.address)
+    await jbDirectory.connect(deployer).addToSetControllerAllowlist(controller2.address);
 
-    await expect(jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller2.address)).to.be
-      .revertedWith('Operatable: UNAUTHORIZED');
+    await expect(
+      jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller2.address),
+    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
   });
 
-  it('Can\'t set if caller is in setControllerAllowlist but new controller is not', async function () {
-    const { deployer, projectOwner, jbDirectory, mockJbProjects, mockJbOperatorStore, controller1, controller2 } =
-      await setup();
+  it("Can't set if caller is in setControllerAllowlist but new controller is not", async function () {
+    const {
+      deployer,
+      projectOwner,
+      jbDirectory,
+      mockJbProjects,
+      mockJbOperatorStore,
+      controller1,
+      controller2,
+    } = await setup();
 
     let caller = await impersonateAccount(controller1.address);
 
@@ -184,7 +197,8 @@ describe('JBDirectory::setControllerOf(...)', function () {
     // Add caller but not the new controller to SetControllerAllowlist
     await jbDirectory.connect(deployer).addToSetControllerAllowlist(caller.address);
 
-    await expect(jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller2.address)).to.be
-      .revertedWith('Operatable: UNAUTHORIZED');
+    await expect(
+      jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller2.address),
+    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
   });
 });

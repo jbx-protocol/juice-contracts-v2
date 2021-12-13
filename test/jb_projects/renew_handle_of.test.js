@@ -17,7 +17,7 @@ describe('JBProjects::renewHandle(...)', function () {
     let jbOperations = await jbOperationsFactory.deploy();
 
     RENEW_HANDLE_PERMISSION_INDEX = await jbOperations.RENEW_HANDLE();
-  })
+  });
 
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
@@ -58,7 +58,11 @@ describe('JBProjects::renewHandle(...)', function () {
 
     await expect(tx)
       .to.emit(jbProjectsStore, 'RenewHandle')
-      .withArgs(ethers.utils.formatBytes32String(PROJECT_HANDLE), PROJECT_ID_1, projectOwner.address);
+      .withArgs(
+        ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        PROJECT_ID_1,
+        projectOwner.address,
+      );
   });
 
   it(`Can't renew handle of project from non owner`, async function () {
@@ -66,11 +70,7 @@ describe('JBProjects::renewHandle(...)', function () {
 
     await jbProjectsStore
       .connect(deployer)
-      .createFor(
-        deployer.address,
-        ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        METADATA_CID,
-      );
+      .createFor(deployer.address, ethers.utils.formatBytes32String(PROJECT_HANDLE), METADATA_CID);
 
     await expect(
       jbProjectsStore.connect(projectOwner).renewHandleOf(PROJECT_ID_1),
@@ -88,9 +88,9 @@ describe('JBProjects::renewHandle(...)', function () {
         METADATA_CID,
       );
 
-    await expect(
-      jbProjectsStore.connect(deployer).renewHandleOf(PROJECT_ID_1),
-    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
+    await expect(jbProjectsStore.connect(deployer).renewHandleOf(PROJECT_ID_1)).to.be.revertedWith(
+      'Operatable: UNAUTHORIZED',
+    );
   });
 
   it(`Can't renew handle of non owner with no permissions`, async function () {
@@ -104,9 +104,9 @@ describe('JBProjects::renewHandle(...)', function () {
         METADATA_CID,
       );
 
-    await expect(
-      jbProjectsStore.connect(addrs[0]).renewHandleOf(PROJECT_ID_1),
-    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
+    await expect(jbProjectsStore.connect(addrs[0]).renewHandleOf(PROJECT_ID_1)).to.be.revertedWith(
+      'Operatable: UNAUTHORIZED',
+    );
   });
 
   it(`Can't renew handle of non owner even with permissions`, async function () {
@@ -124,8 +124,8 @@ describe('JBProjects::renewHandle(...)', function () {
       .withArgs(addrs[0].address, deployer.address, PROJECT_ID_1, RENEW_HANDLE_PERMISSION_INDEX)
       .returns(true);
 
-    await expect(
-      jbProjectsStore.connect(addrs[0]).renewHandleOf(PROJECT_ID_1),
-    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
+    await expect(jbProjectsStore.connect(addrs[0]).renewHandleOf(PROJECT_ID_1)).to.be.revertedWith(
+      'Operatable: UNAUTHORIZED',
+    );
   });
 });
