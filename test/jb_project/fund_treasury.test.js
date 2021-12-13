@@ -14,13 +14,16 @@ describe('JBProject::fundTreasury(...)', function () {
     let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
 
     let jbFakeProjectFactory = await ethers.getContractFactory('JBFakeProject');
-    let jbFakeProject = await jbFakeProjectFactory.deploy(INITIAL_PROJECT_ID, mockJbDirectory.address);
+    let jbFakeProject = await jbFakeProjectFactory.deploy(
+      INITIAL_PROJECT_ID,
+      mockJbDirectory.address,
+    );
 
     return {
       deployer,
       addrs,
       mockJbDirectory,
-      jbFakeProject
+      jbFakeProject,
     };
   }
 
@@ -29,15 +32,14 @@ describe('JBProject::fundTreasury(...)', function () {
   });
 
   it(`Can't fund if project not found`, async function () {
-    // TODO(odd-amphora): implement.    
+    // TODO(odd-amphora): implement.
   });
 
   it(`Can't fund if terminal not found`, async function () {
-    // TODO(odd-amphora): implement.    
+    // TODO(odd-amphora): implement.
   });
 
   it(`Can't fund if insufficient funds`, async function () {
-    // TODO(odd-amphora): implement.    
+    // TODO(odd-amphora): implement.
   });
-
 });
