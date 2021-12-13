@@ -49,10 +49,7 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
 
     let tx = await jbProjectsStore
       .connect(projectOwner)
-      .setMetadataCidOf(
-        PROJECT_ID_1,
-        METADATA_CID_2
-      );
+      .setMetadataCidOf(PROJECT_ID_1, METADATA_CID_2);
 
     let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataCidOf(PROJECT_ID_1);
     await expect(storedMetadataCid).to.equal(METADATA_CID_2);
@@ -62,7 +59,7 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
       .withArgs(PROJECT_ID_1, METADATA_CID_2, projectOwner.address);
   });
 
-  it(`Can set MetadataCid on project if caller is not owner but has permission`, async function () {
+  it(`Should set MetadataCid on project if caller is not owner but has permission`, async function () {
     const { projectOwner, deployer, addrs, jbProjectsStore, mockJbOperatorStore } = await setup();
 
     await jbProjectsStore
@@ -82,14 +79,8 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
       )
       .returns(true);
 
-    await expect(
-      jbProjectsStore
-        .connect(addrs[1])
-        .setMetadataCidOf(
-          PROJECT_ID_1,
-          METADATA_CID_2
-        ),
-    ).to.not.be.reverted;
+    await expect(jbProjectsStore.connect(addrs[1]).setMetadataCidOf(PROJECT_ID_1, METADATA_CID_2))
+      .to.not.be.reverted;
   });
 
   it(`Can't set MetadataCid on project if caller is not owner and doesn't have permission`, async function () {
@@ -112,13 +103,7 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
       )
       .returns(false);
 
-    await expect(
-      jbProjectsStore
-        .connect(addrs[1])
-        .setMetadataCidOf(
-          PROJECT_ID_1,
-          METADATA_CID_2
-        ),
-    ).to.be.reverted;
+    await expect(jbProjectsStore.connect(addrs[1]).setMetadataCidOf(PROJECT_ID_1, METADATA_CID_2))
+      .to.be.reverted;
   });
 });
