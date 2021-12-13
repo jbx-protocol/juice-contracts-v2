@@ -10,6 +10,11 @@ import './libraries/JBOperations.sol';
 import './libraries/JBErrors.sol';
 
 /**
+@dev Custom Error to replace the require statement and save gas
+*/
+error ALREADY_SET();
+
+/**
   @notice
   Keeps a reference of which terminal contracts each project is currently accepting funds through, and which controller contract is managing each project's tokens and funding cycles.
 */
@@ -327,7 +332,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     // Can't set this terminal as the primary if it already is.
     if (_terminal == _primaryTerminalOf[_projectId][_token]) {
-      revert JBErrors.ALREADY_SET();
+      revert ALREADY_SET();
     }
 
     // Add the terminal to thge project if it hasn't been already.

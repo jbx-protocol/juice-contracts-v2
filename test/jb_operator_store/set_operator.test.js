@@ -92,6 +92,6 @@ describe('JBOperatorStore::setOperator(...)', function () {
 
     await expect(
       jbOperatorStore.connect(deployer).setOperator([projectOwner.address, DOMAIN, PERMISSION_INDEXES_OUT_OF_BOUND]),
-    ).to.be.revertedWith('IndexOutOfBounds()');
+    ).to.be.revertedWith('INDEX_OUT_OF_BOUNDS()');
   });
 });

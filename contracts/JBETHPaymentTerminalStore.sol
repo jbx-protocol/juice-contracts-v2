@@ -15,6 +15,15 @@ import './libraries/JBFundingCycleMetadataResolver.sol';
 import './libraries/JBErrors.sol';
 
 /**
+@dev Custom Errors to replace the require statement and save gas
+*/
+error INADEQUATE();
+error UNEXPECTED_CURRENCY();
+error LIMIT_REACHED();
+error INSUFFICIENT_TOKENS();
+error ALREADY_CLAIMED();
+
+/**
   @notice
   This contract manages all inflows and outflows of funds into the Juicebox ecosystem.
 
@@ -302,7 +311,7 @@ contract JBETHPaymentTerminalStore {
 
     // The token count for the beneficiary must be greater than or equal to the minimum expected.
     if (tokenCount < _minReturnedTokens) {
-      revert JBErrors.INADEQUATE();
+      revert INADEQUATE();
     }
 
     // If a delegate was returned by the data source, issue a callback to it.
@@ -364,7 +373,7 @@ contract JBETHPaymentTerminalStore {
         terminal
       )
     ) {
-      revert JBErrors.UNEXPECTED_CURRENCY();
+      revert UNEXPECTED_CURRENCY();
     }
 
     // The new total amount that has been distributed during this funding cycle.
@@ -380,7 +389,7 @@ contract JBETHPaymentTerminalStore {
         terminal
       )
     ) {
-      revert JBErrors.LIMIT_REACHED();
+      revert LIMIT_REACHED();
     }
 
     // Convert the amount to wei.
@@ -396,7 +405,7 @@ contract JBETHPaymentTerminalStore {
 
     // The amount being distributed must be at least as much as was expected.
     if (_minReturnedWei > distributedAmount) {
-      revert JBErrors.INADEQUATE();
+      revert INADEQUATE();
     }
 
     // Store the new amount.
@@ -440,7 +449,7 @@ contract JBETHPaymentTerminalStore {
         terminal
       )
     ) {
-      revert JBErrors.UNEXPECTED_CURRENCY();
+      revert UNEXPECTED_CURRENCY();
     }
 
     // Convert the amount to wei.
@@ -469,7 +478,7 @@ contract JBETHPaymentTerminalStore {
 
     // The amount being withdrawn must be at least as much as was expected.
     if (_minReturnedWei > withdrawnAmount) {
-      revert JBErrors.INADEQUATE();
+      revert INADEQUATE();
     }
 
     // Store the decremented value.
@@ -519,7 +528,7 @@ contract JBETHPaymentTerminalStore {
   {
     // The holder must have the specified number of the project's tokens.
     if (tokenStore.balanceOf(_holder, _projectId) < _tokenCount) {
-      revert JBErrors.INSUFFICIENT_TOKENS();
+      revert INSUFFICIENT_TOKENS();
     }
 
     // Get a reference to the project's current funding cycle.
@@ -557,7 +566,7 @@ contract JBETHPaymentTerminalStore {
     }
     // The amount being claimed must be at least as much as was expected.
     if (claimAmount < _minReturnedWei) {
-      revert JBErrors.INADEQUATE();
+      revert INADEQUATE();
     }
 
     // Redeem the tokens, which burns them.
@@ -648,7 +657,7 @@ contract JBETHPaymentTerminalStore {
   function claimFor(IJBTerminal _terminal) external {
     // This store can only be claimed once.
     if (terminal != IJBTerminal(address(0))) {
-      revert JBErrors.ALREADY_CLAIMED();
+      revert ALREADY_CLAIMED();
     }
     // Set the terminal.
     terminal = _terminal;

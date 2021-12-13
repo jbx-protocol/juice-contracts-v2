@@ -9,6 +9,13 @@ import './interfaces/IJBProjects.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBErrors.sol';
 
+/**
+@dev Custom Errors to replace the require statement and save gas
+*/
+error EMPTY_HANDLE();
+error HANDLE_TAKEN();
+error HANDLE_NOT_TAKEN();
+error CHALLENGE_OPEN();
 /** 
   @notice 
   Stores project ownership and identifying information.
@@ -126,12 +133,12 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
   ) external override returns (uint256) {
     // Handle must exist.
     if (_handle == bytes32(0)) {
-      revert JBErrors.EMPTY_HANDLE();
+      revert EMPTY_HANDLE();
     }
 
     // Handle must be unique.
     if (idFor[_handle] != 0 && transferAddressFor[_handle] != address(0)) {
-      revert JBErrors.HANDLE_TAKEN();
+      revert HANDLE_TAKEN();
     }
 
     // Increment the count, which will be used as the ID.
@@ -171,11 +178,11 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
   {
     // Handle must exist.
     if (_handle == bytes32(0)) {
-      revert JBErrors.EMPTY_HANDLE();
+      revert EMPTY_HANDLE();
     }
     // Handle must be unique.
     if (idFor[_handle] != 0 && transferAddressFor[_handle] != address(0)) {
-      revert JBErrors.HANDLE_TAKEN();
+      revert HANDLE_TAKEN();
     }
 
     // Register the change in the resolver.
@@ -237,12 +244,12 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
   {
     // A new handle must have been provided.
     if (_newHandle == bytes32(0)) {
-      revert JBErrors.EMPTY_HANDLE();
+      revert EMPTY_HANDLE();
     }
 
     // The new handle must be available.
     if (idFor[_newHandle] != 0 && transferAddressFor[_newHandle] != address(0)) {
-      revert JBErrors.HANDLE_TAKEN();
+      revert HANDLE_TAKEN();
     }
 
     // Get a reference to the project's current handle.
@@ -325,12 +332,12 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
 
     // No need to challenge a handle that's not taken.
     if (_projectId == 0) {
-      revert JBErrors.HANDLE_NOT_TAKEN();
+      revert HANDLE_NOT_TAKEN();
     }
 
     // No need to challenge again if a handle is already being challenged.
     if (challengeExpiryOf[_handle] != 0) {
-      revert JBErrors.CHALLENGE_OPEN();
+      revert CHALLENGE_OPEN();
     }
 
     // The challenge will expire in a year, at which point the handle can be claimed if it has yet to be renewed.

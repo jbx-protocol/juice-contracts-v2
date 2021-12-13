@@ -21,6 +21,13 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
 /**
+@dev Custom Errors to replace the require statement and save gas
+*/
+error INCOMPATIBLE();
+error BAD_FEE();
+error BAD_SPLIT();
+
+/**
   @notice
   This contract manages all inflows and outflows of funds into the Juicebox ecosystem.
 
@@ -463,7 +470,7 @@ contract JBETHPaymentTerminal is
   {
     // The terminal being migrated to must accept the same token as this terminal.
     if (token != _to.token()) {
-      revert JBErrors.INCOMPATIBLE();
+      revert INCOMPATIBLE();
     }
 
     // Record the migration in the store.
@@ -546,7 +553,7 @@ contract JBETHPaymentTerminal is
   function setFee(uint256 _fee) external onlyOwner {
     // The max fee is 5%.
     if (_fee > 10) {
-      revert JBErrors.BAD_FEE();
+      revert BAD_FEE();
     }
 
     // Store the new fee.
@@ -613,7 +620,7 @@ contract JBETHPaymentTerminal is
 
           // The project must have a terminal to send funds to.
           if (_terminal == IJBTerminal(address(0))) {
-            revert JBErrors.BAD_SPLIT();
+            revert BAD_SPLIT();
           }
 
           // Save gas if this contract is being used as the terminal.

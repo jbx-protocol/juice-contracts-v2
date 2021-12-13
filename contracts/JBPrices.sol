@@ -6,6 +6,11 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import './interfaces/IJBPrices.sol';
 import './libraries/JBErrors.sol';
 
+/**
+@dev Custom Errors to replace the require statement and save gas
+*/
+error ALREADY_EXISTS();
+
 /** 
   @notice Manages and normalizes price feeds.
 */
@@ -108,7 +113,7 @@ contract JBPrices is IJBPrices, Ownable {
   ) external override onlyOwner {
     // There can't already be a feed for the specified currency.
     if (feedFor[_currency][_base] != AggregatorV3Interface(address(0))) {
-      revert JBErrors.ALREADY_EXISTS();
+      revert ALREADY_EXISTS();
     }
 
     // Set the feed.

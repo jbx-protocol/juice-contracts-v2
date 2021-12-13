@@ -31,6 +31,13 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
 /**
+@dev Custom Errors to replace the require statement and save gas
+*/
+error BAD_RESERVED_RATE();
+error BAD_REDEMPTION_RATE();
+error BAD_BALLOT_REDEMPTION_RATE();
+
+/**
   @notice
   Stitches together funding cycles and community tokens, making sure all activity is accounted for and correct.
 
@@ -302,16 +309,16 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   ) external returns (uint256 projectId) {
     // The reserved project token rate must be less than or equal to 10000.
     if (_metadata.reservedRate > RATE) {
-      revert JBErrors.BAD_RESERVED_RATE();
+      revert BAD_RESERVED_RATE();
     }
     // The redemption rate must be between 0 and 10000.
     if (_metadata.redemptionRate > RATE) {
-      revert JBErrors.BAD_REDEMPTION_RATE();
+      revert BAD_REDEMPTION_RATE();
     }
 
     // The ballot redemption rate must be less than or equal to 10000.
     if (_metadata.ballotRedemptionRate > RATE) {
-      revert JBErrors.BAD_BALLOT_REDEMPTION_RATE();
+      revert BAD_BALLOT_REDEMPTION_RATE();
     }
 
     // Create the project for into the wallet of the message sender.
@@ -386,16 +393,16 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   {
     // The reserved project token rate must be less than or equal to 10000.
     if (_metadata.reservedRate > RATE) {
-      revert JBErrors.BAD_RESERVED_RATE();
+      revert BAD_RESERVED_RATE();
     }
     // The redemption rate must be between 0 and 10000.
     if (_metadata.redemptionRate > RATE) {
-      revert JBErrors.BAD_REDEMPTION_RATE();
+      revert BAD_REDEMPTION_RATE();
     }
 
     // The ballot redemption rate must be less than or equal to 10000.
     if (_metadata.ballotRedemptionRate > RATE) {
-      revert JBErrors.BAD_BALLOT_REDEMPTION_RATE();
+      revert BAD_BALLOT_REDEMPTION_RATE();
     }
 
     return _configure(_projectId, _data, _metadata, _groupedSplits, _fundAccessConstraints);

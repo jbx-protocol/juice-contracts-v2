@@ -8,8 +8,15 @@ import 'hardhat/console.sol';
 
 import './libraries/JBOperations.sol';
 import './libraries/JBErrors.sol';
-
 import './JBToken.sol';
+
+/**
+@dev Custom Errors to replace the require statement and save gas
+ */
+error EMPTY_NAME();
+error EMPTY_SYMBOL();
+error ALREADY_ISSUED();
+error IDENTITY();
 
 /**
   @notice
@@ -163,17 +170,17 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
   ) external override onlyController(_projectId) returns (IJBToken token) {
     // There must be a name.
     if ((bytes(_name).length == 0)) {
-      revert JBErrors.EMPTY_NAME();
+      revert EMPTY_NAME();
     }
 
     // There must be a symbol.
     if ((bytes(_symbol).length == 0)) {
-      revert JBErrors.EMPTY_SYMBOL();
+      revert EMPTY_SYMBOL();
     }
 
     // Only one ERC20 token can be issued.
     if (tokenOf[_projectId] != IJBToken(address(0))) {
-      revert JBErrors.ALREADY_ISSUED();
+      revert ALREADY_ISSUED();
     }
 
     // Deploy the token contract.
@@ -397,7 +404,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
     // An address can't transfer to itself.
     if (_holder == _recipient) {
-      revert JBErrors.IDENTITY();
+      revert IDENTITY();
     }
 
     // There must be an amount to transfer.

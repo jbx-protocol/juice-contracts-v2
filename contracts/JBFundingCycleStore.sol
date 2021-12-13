@@ -7,6 +7,14 @@ import './interfaces/IJBFundingCycleStore.sol';
 import './abstract/JBControllerUtility.sol';
 import './libraries/JBErrors.sol';
 
+/**
+@dev Custom Errors to replace the require statement and save gas
+*/
+error BAD_DURATION();
+error BAD_DISCOUNT_RATE();
+error BAD_WEIGHT();
+error NON_RECURRING();
+
 /** 
   @notice 
   Manages funding cycle scheduling.
@@ -258,17 +266,17 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
   ) external override onlyController(_projectId) returns (JBFundingCycle memory) {
     // Duration must fit in a uint64, and must be greater than 1000 seconds to prevent manipulative miner behavior.
     if (_data.duration > type(uint64).max && _data.duration <= 1000) {
-      revert JBErrors.BAD_DURATION();
+      revert BAD_DURATION();
     }
 
     // Discount rate token must be less than or equal to 100%. A value of 1000000001 means non-recurring.
     if (_data.discountRate > 1000000001) {
-      revert JBErrors.BAD_DISCOUNT_RATE();
+      revert BAD_DISCOUNT_RATE();
     }
 
     // Weight must fit into a uint88.
     if (_data.weight > type(uint88).max) {
-      revert JBErrors.BAD_WEIGHT();
+      revert BAD_WEIGHT();
     }
 
     // The configuration timestamp is now.
@@ -359,7 +367,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
     // Make sure the funding cycle is recurring.
     if (_currentFundingCycle.discountRate >= 1000000001) {
-      revert JBErrors.NON_RECURRING();
+      revert NON_RECURRING();
     }
 
     // Determine if the configurable funding cycle can only take effect on or after a certain date.

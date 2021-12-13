@@ -7,6 +7,12 @@ import '@openzeppelin/contracts/utils/Address.sol';
 import './../interfaces/IJBDirectory.sol';
 import './../libraries/JBErrors.sol';
 
+/**
+@dev Custom Errors to replace the require statement and save gas
+ */
+error PROJECT_NOT_FOUND();
+error TERMINAL_NOT_FOUND();
+
 /** 
   @notice A contract that inherits from JuiceboxProject can use Juicebox as a business-model-as-a-service.
   @dev The owner of the contract makes admin decisions such as:
@@ -78,14 +84,14 @@ abstract contract JBProject is Ownable {
     _projectId = _projectId > 0 ? _projectId : projectId;
 
     if (_projectId == 0) {
-      revert JBErrors.PROJECT_NOT_FOUND();
+      revert PROJECT_NOT_FOUND();
     }
     // Find the terminal for this contract's project.
     IJBTerminal _terminal = directory.primaryTerminalOf(_projectId, _token);
 
     // There must be a terminal.
     if (_terminal == IJBTerminal(address(0))) {
-      revert JBErrors.TERMINAL_NOT_FOUND();
+      revert TERMINAL_NOT_FOUND();
     }
 
     // There must be enough funds in the contract to take the fee.
@@ -114,7 +120,7 @@ abstract contract JBProject is Ownable {
     address _token
   ) private {
     if (projectId == 0) {
-      revert JBErrors.PROJECT_NOT_FOUND();
+      revert PROJECT_NOT_FOUND();
     }
 
     // Get the terminal for this contract's project.
@@ -122,7 +128,7 @@ abstract contract JBProject is Ownable {
 
     // There must be a terminal.
     if (_terminal == IJBTerminal(address(0))) {
-      revert JBErrors.TERMINAL_NOT_FOUND();
+      revert TERMINAL_NOT_FOUND();
     }
 
     _terminal.pay{value: msg.value}(

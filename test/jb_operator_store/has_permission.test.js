@@ -33,7 +33,7 @@ describe('JBOperatorStore::hasPermission(...)', function () {
           /*domain=*/ 1,
           /*permissionIndex=*/ 256,
         )
-    ).to.be.revertedWith('IndexOutOfBounds()');
+    ).to.be.revertedWith('INDEX_OUT_OF_BOUNDS()');
   });
 
   it('Has permission if account is caller', async function () {
