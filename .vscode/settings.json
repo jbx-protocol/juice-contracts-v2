@@ -3,5 +3,18 @@
   "editor.formatOnSave": true,
   "[javascript]": {
     "editor.tabSize": 2
-  }
+  },
+  "eslint.options": {
+      "extensions": [
+          ".js",
+          ".jsx",
+          ".ts",
+          ".tsx"
+      ]
+  },
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": true
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 }
