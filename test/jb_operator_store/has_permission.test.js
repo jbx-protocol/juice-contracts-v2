@@ -43,7 +43,7 @@ describe('JBOperatorStore::hasPermission(...)', function () {
       .setOperator([
         /*operator=*/ projectOwner.address,
         /*domain=*/ DOMAIN,
-        /*permissionIndexes=*/ PERMISSION_INDEXES_1
+        /*permissionIndexes=*/ PERMISSION_INDEXES_1,
       ]);
 
     for (let permissionIndex of PERMISSION_INDEXES_1) {
@@ -54,7 +54,7 @@ describe('JBOperatorStore::hasPermission(...)', function () {
             /*operator=*/ projectOwner.address,
             /*account=*/ deployer.address,
             /*domain=*/ DOMAIN,
-            /*permissionIndex=*/ permissionIndex
+            /*permissionIndex=*/ permissionIndex,
           ),
       ).to.be.true;
     }
@@ -68,7 +68,7 @@ describe('JBOperatorStore::hasPermission(...)', function () {
       .setOperator([
         /*operator=*/ addrs[1].address,
         /*domain=*/ DOMAIN,
-        /*permissionIndexes=*/ PERMISSION_INDEXES_1
+        /*permissionIndexes=*/ PERMISSION_INDEXES_1,
       ]);
 
     for (let permissionIndex of PERMISSION_INDEXES_1) {
@@ -79,7 +79,7 @@ describe('JBOperatorStore::hasPermission(...)', function () {
             /*operator=*/ addrs[1].address,
             /*account=*/ deployer.address,
             /*domain=*/ DOMAIN,
-            /*permissionIndex=*/ permissionIndex
+            /*permissionIndex=*/ permissionIndex,
           ),
       ).to.be.true;
     }
@@ -107,7 +107,7 @@ describe('JBOperatorStore::hasPermission(...)', function () {
       .setOperator([
         /*operator=*/ projectOwner.address,
         /*domain=*/ DOMAIN,
-        /*permissionIndexes=*/ PERMISSION_INDEXES_1
+        /*permissionIndexes=*/ PERMISSION_INDEXES_1,
       ]);
 
     for (let permissionIndex of PERMISSION_INDEXES_2) {
@@ -118,7 +118,7 @@ describe('JBOperatorStore::hasPermission(...)', function () {
             /*operator=*/ projectOwner.address,
             /*account=*/ deployer.address,
             /*domain=*/ DOMAIN,
-            /*permissionIndex=*/ permissionIndex
+            /*permissionIndex=*/ permissionIndex,
           ),
       ).to.be.false;
     }
@@ -132,7 +132,7 @@ describe('JBOperatorStore::hasPermission(...)', function () {
       .setOperator([
         /*operator=*/ projectOwner.address,
         /*domain=*/ DOMAIN,
-        /*permissionIndex=*/ PERMISSION_INDEXES_1
+        /*permissionIndex=*/ PERMISSION_INDEXES_1,
       ]);
 
     for (let permissionIndex of PERMISSION_INDEXES_1) {

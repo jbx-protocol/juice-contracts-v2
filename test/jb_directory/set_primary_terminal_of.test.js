@@ -36,14 +36,6 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     let terminal2 = await deployMockContract(projectOwner, jbTerminal.abi);
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(
-        projectOwner.address,
-        projectOwner.address,
-        PROJECT_ID,
-        ADD_TERMINALS_PERMISSION_INDEX,
-      )
-      .returns(true);
 
     return {
       projectOwner,
@@ -93,7 +85,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     expect(resultTerminals).to.eql(expectedTerminals);
   });
 
-  it('Can\'t set primary terminal if caller is not project owner but has permissions', async function () {
+  it("Can't set primary terminal if caller is not project owner but has permissions", async function () {
     const { projectOwner, addrs, jbDirectory, mockJbOperatorStore, terminal1 } = await setup();
     let caller = addrs[1];
 
