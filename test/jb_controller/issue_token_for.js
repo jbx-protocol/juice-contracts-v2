@@ -1,8 +1,5 @@
 import { expect } from 'chai';
-import { ethers, waffle, network } from 'hardhat';
-
-
-
+import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
@@ -13,9 +10,7 @@ import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStor
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 
-//import { impersonateAccount } from '../helpers/utils';
-
-describe.only('JBController::issueTokenFor(...)', function () {
+describe('JBController::issueTokenFor(...)', function () {
   const PROJECT_ID = 1;
   const NAME = 'TestTokenDAO';
   const SYMBOL = 'TEST';
@@ -69,73 +64,43 @@ describe.only('JBController::issueTokenFor(...)', function () {
       addrs,
       jbController,
       mockTokenStore,
-      mockToken
+      mockToken,
+      mockJbOperatorStore
     };
   }
 
-
-  it('Should deploy an ERC-20 token contract if caller is project owner', async function () {
+  it(`Should deploy an ERC-20 token contract if caller is project owner`, async function () {
     const { projectOwner, jbController, mockToken } = await setup();
-    let tx = await jbController.connect(projectOwner).callStatic.issueTokenFor(PROJECT_ID, NAME, SYMBOL);
-    expect(tx).to.equal(mockToken.address);
+    let returnedAddress = await jbController.connect(projectOwner).callStatic.issueTokenFor(PROJECT_ID, NAME, SYMBOL);
+    expect(returnedAddress).to.equal(mockToken.address);
   });
 
-  /*
-  it('Should add if caller is controller of the project', async function () {
-    const { addrs, projectOwner, jbDirectory, mockJbProjects, mockJbOperatorStore, terminal1 } =
-      await setup();
-    // Give the project owner permissions to set the controller.
-    await mockJbProjects.mock.count.returns(1);
+  it(`Should deploy an ERC-20 token contract if caller is authorized`, async function () {
+    const { addrs, projectOwner, jbController, mockToken, mockJbOperatorStore } = await setup();
+    let caller = addrs[0];
+
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(
-        projectOwner.address,
-        projectOwner.address,
-        PROJECT_ID,
-        SET_CONTROLLER_PERMISSION_INDEX,
-      )
+      .withArgs(caller.address, projectOwner.address, PROJECT_ID, ISSUE_PERMISSION_INDEX,)
       .returns(true);
 
-    let controller = await deployMockContract(addrs[1], jbController.abi);
-    let controllerSigner = await impersonateAccount(controller.address);
-
-    await expect(
-      jbDirectory.connect(controllerSigner).addTerminalsOf(PROJECT_ID, [terminal1.address]),
-    ).to.be.reverted;
-
-    // After the controller has been set, the controller signer should be able to add terminals.
-    await jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller.address);
-    await expect(
-      jbDirectory.connect(controllerSigner).addTerminalsOf(PROJECT_ID, [terminal1.address]),
-    ).to.not.be.reverted;
+    let returnedAddress = await jbController.connect(caller).callStatic.issueTokenFor(PROJECT_ID, NAME, SYMBOL);
+    expect(returnedAddress).to.equal(mockToken.address);
   });
 
-  it('Should add if caller has permission but is not the project owner', async function () {
-    const { addrs, projectOwner, jbDirectory, mockJbOperatorStore, terminal1 } = await setup();
-    const caller = addrs[1];
+  it(`Can't deploy an ERC-20 token contract if caller is not authorized`, async function () {
+    const { addrs, projectOwner, jbController, mockToken, mockJbOperatorStore } = await setup();
+    let caller = addrs[0];
 
-    // Give the caller permission to add terminals.
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(caller.address, projectOwner.address, PROJECT_ID, ADD_TERMINALS_PERMISSION_INDEX)
-      .returns(true);
-
-    await expect(jbDirectory.connect(caller).addTerminalsOf(PROJECT_ID, [terminal1.address])).to.not
-      .be.reverted;
-  });
-
-  it('Should reject if caller does not have permission', async function () {
-    const { addrs, projectOwner, jbDirectory, mockJbProjects, mockJbOperatorStore, terminal1 } =
-      await setup();
-    const caller = addrs[1];
-
-    // Ensure the caller does not have permissions to add terminals.
-    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(caller.address, projectOwner.address, PROJECT_ID, ADD_TERMINALS_PERMISSION_INDEX)
+      .withArgs(caller.address, projectOwner.address, PROJECT_ID, ISSUE_PERMISSION_INDEX,)
       .returns(false);
 
-    await expect(jbDirectory.connect(caller).addTerminalsOf(PROJECT_ID, [terminal1.address])).to.be
-      .reverted;
-  });
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, projectOwner.address, 0, ISSUE_PERMISSION_INDEX,)
+      .returns(false);
 
-  */
+    await expect(
+      jbController.connect(caller).callStatic.issueTokenFor(PROJECT_ID, NAME, SYMBOL)
+    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
+  });
 });
