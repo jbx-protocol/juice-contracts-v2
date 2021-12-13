@@ -65,7 +65,7 @@ describe('JBProjects::challengeHandle(...)', function () {
       jbProjectsStore
         .connect(deployer)
         .challengeHandle(/*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1)),
-    ).to.be.revertedWith('0x0d: HANDLE_NOT_TAKEN');
+    ).to.be.revertedWith('HANDLE_NOT_TAKEN()');
   });
 
   it(`Can't challenge if a handle that has been challenged before`, async function () {
@@ -87,6 +87,6 @@ describe('JBProjects::challengeHandle(...)', function () {
       jbProjectsStore
         .connect(deployer)
         .challengeHandle(ethers.utils.formatBytes32String(PROJECT_HANDLE_1)),
-    ).to.be.revertedWith('0x0e: CHALLENGE_OPEN');
+    ).to.be.revertedWith('CHALLENGE_OPEN()');
   });
 });

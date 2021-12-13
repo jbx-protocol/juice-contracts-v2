@@ -169,7 +169,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
 
     await expect(
       jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller2.address),
-    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
+    ).to.be.revertedWith('UNAUTHORIZED()');
   });
 
   it("Can't set if caller is in setControllerAllowlist but new controller is not", async function () {
@@ -199,6 +199,6 @@ describe('JBDirectory::setControllerOf(...)', function () {
 
     await expect(
       jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller2.address),
-    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
+    ).to.be.revertedWith('UNAUTHORIZED()');
   });
 });

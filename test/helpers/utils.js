@@ -141,3 +141,9 @@ export function packFundingCycleMetadata({
   if (useDataSourceForRedeem) packed = packed.or(one.shl(67));
   return packed.or(ethers.BigNumber.from(dataSource).shl(68));
 }
+
+export function Errors() {
+  return {
+    
+  }
+}

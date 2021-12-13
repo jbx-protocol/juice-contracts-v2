@@ -177,7 +177,7 @@ describe('JBProjects::claimHandle(...)', function () {
           projectOwner.address,
           PROJECT_ID_1,
         ),
-    ).to.be.revertedWith('0x0c: UNAUTHORIZED');
+    ).to.be.revertedWith('UNAUTHORIZED()');
   });
 
   it(`Can't claim if it is after expiration date`, async function () {
@@ -221,7 +221,7 @@ describe('JBProjects::claimHandle(...)', function () {
           deployer.address,
           PROJECT_ID_2,
         ),
-    ).to.be.revertedWith('0x0c: UNAUTHORIZED');
+    ).to.be.revertedWith('UNAUTHORIZED()');
   });
 
   it(`Can't claim handle and assign to inexistent or not owned projectId`, async function () {

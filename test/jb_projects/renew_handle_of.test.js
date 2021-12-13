@@ -74,7 +74,7 @@ describe('JBProjects::renewHandle(...)', function () {
 
     await expect(
       jbProjectsStore.connect(projectOwner).renewHandleOf(PROJECT_ID_1),
-    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
+    ).to.be.revertedWith('UNAUTHORIZED()');
   });
 
   it(`Can't renew handle of project operator with no permissions`, async function () {
@@ -89,7 +89,7 @@ describe('JBProjects::renewHandle(...)', function () {
       );
 
     await expect(jbProjectsStore.connect(deployer).renewHandleOf(PROJECT_ID_1)).to.be.revertedWith(
-      'Operatable: UNAUTHORIZED',
+      'UNAUTHORIZED()',
     );
   });
 
@@ -105,7 +105,7 @@ describe('JBProjects::renewHandle(...)', function () {
       );
 
     await expect(jbProjectsStore.connect(addrs[0]).renewHandleOf(PROJECT_ID_1)).to.be.revertedWith(
-      'Operatable: UNAUTHORIZED',
+      'UNAUTHORIZED()',
     );
   });
 
@@ -125,7 +125,7 @@ describe('JBProjects::renewHandle(...)', function () {
       .returns(true);
 
     await expect(jbProjectsStore.connect(addrs[0]).renewHandleOf(PROJECT_ID_1)).to.be.revertedWith(
-      'Operatable: UNAUTHORIZED',
+      'UNAUTHORIZED()',
     );
   });
 });
