@@ -236,13 +236,14 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
     @param _projectId The ID of the project being configured.
     @param _data The funding cycle configuration.
-      @dev _data.target The amount that the project wants to receive in each funding cycle. 18 decimals.
+      @dev _data.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
       @dev _data.duration The duration of the funding cycle for which the `_target` amount is needed. Measured in days. 
         Set to 0 for no expiry and to be able to reconfigure anytime.
       @dev _data.discountRate A number from 0-1000000000 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
         If it's 0, each funding cycle will have equal weight.
-        If the number is 900000000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
-        If the number is 1000000001, an non-recurring funding cycle will get made.
+        If the number is 900000000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amount during the current funding cycle.
+        If the number is 1000000001, a non-recurring funding cycle will get made.
+      @dev _data.weight A number determining the amount of redistribution shares this funding cycle will issue to each sustainer.
       @dev _data.ballot The new ballot that will be used to approve subsequent reconfigurations.
     @param _metadata Data to associate with this funding cycle configuration.
 
