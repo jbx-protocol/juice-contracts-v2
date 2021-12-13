@@ -5,12 +5,13 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
+import jbFundingCycle from '../../artifacts/contracts/JBFundingCycle.sol/JBFundingCycle.json';
 import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
 import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 
-describe('JBController::issueTokenFor(...)', function () {
+describe('JBController::changeTokenOf(...)', function () {
   const PROJECT_ID = 1;
   const NAME = 'TestTokenDAO';
   const SYMBOL = 'TEST';
@@ -33,7 +34,6 @@ describe('JBController::issueTokenFor(...)', function () {
     let mockJbFundingCycleStore = await deployMockContract(deployer, jbFundingCycleStore.abi);
     let mockSplitsStore = await deployMockContract(deployer, jbSplitsStore.abi);
     let mockTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
-
     let mockToken = await deployMockContract(deployer, jbToken.abi);
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');
@@ -54,6 +54,10 @@ describe('JBController::issueTokenFor(...)', function () {
       .withArgs(PROJECT_ID)
       .returns(projectOwner.address);
 
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(projectOwner.address, projectOwner.address, PROJECT_ID, ISSUE_PERMISSION_INDEX,)
+      .returns(true);
+
     return {
       projectOwner,
       deployer,
@@ -65,38 +69,23 @@ describe('JBController::issueTokenFor(...)', function () {
     };
   }
 
-  it(`Should deploy an ERC-20 token contract if caller is project owner`, async function () {
-    const { projectOwner, jbController, mockToken } = await setup();
-    let returnedAddress = await jbController.connect(projectOwner).callStatic.issueTokenFor(PROJECT_ID, NAME, SYMBOL);
-    expect(returnedAddress).to.equal(mockToken.address);
-  });
+  it(`Should change current token if caller is project owner and funding cycle not paused`, async function () {
+    const { projectOwner, addrs, jbController, mockToken, mockJbFundingCycleStore } = await setup();
+    let newTokenOwner = addrs[O];
+    let mockFundingCycle = await deployMockContract(deployer, jbFundingCycle.abi);
 
-  it(`Should deploy an ERC-20 token contract if caller is authorized`, async function () {
-    const { addrs, projectOwner, jbController, mockToken, mockJbOperatorStore } = await setup();
-    let caller = addrs[0];
+    await mockJbFundingCycleStore.mock.currentOf
+      .withArgs(PROJECT_ID)
+      .returns(mockFundingCycle.address);
 
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(caller.address, projectOwner.address, PROJECT_ID, ISSUE_PERMISSION_INDEX,)
+    await mockFundingCycle.mock.changeTokenAllowed
       .returns(true);
 
-    let returnedAddress = await jbController.connect(caller).callStatic.issueTokenFor(PROJECT_ID, NAME, SYMBOL);
-    expect(returnedAddress).to.equal(mockToken.address);
+    await mockTokenStore.mock.changeFor
+      .withArgs(PROJECT_ID, mockToken.address, newTokenOwner.address)
+      .returns();
+
+    expect(jbController.changeTokenOf(PROJECT_ID, mockToken.address, newTokenOwner.address)).to.be.not.reverted();
   });
 
-  it(`Can't deploy an ERC-20 token contract if caller is not authorized`, async function () {
-    const { addrs, projectOwner, jbController, mockToken, mockJbOperatorStore } = await setup();
-    let caller = addrs[0];
-
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(caller.address, projectOwner.address, PROJECT_ID, ISSUE_PERMISSION_INDEX,)
-      .returns(false);
-
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(caller.address, projectOwner.address, 0, ISSUE_PERMISSION_INDEX,)
-      .returns(false);
-
-    await expect(
-      jbController.connect(caller).callStatic.issueTokenFor(PROJECT_ID, NAME, SYMBOL)
-    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
-  });
 });

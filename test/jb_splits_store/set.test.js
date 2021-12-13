@@ -49,7 +49,7 @@ describe('JBSplitsStore::set(...)', function () {
     return { deployer, projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore, mockJbProjects, mockJbDirectory };
   }
 
-  function makeSplits(beneficiaryAddress, count=4) {
+  function makeSplits(beneficiaryAddress, count = 4) {
     let splits = []
     for (let i = 0; i < count; i++) {
       splits.push({
@@ -284,8 +284,8 @@ describe('JBSplitsStore::set(...)', function () {
     let caller = addrs[0];
 
     await mockJbDirectory.mock.controllerOf
-    .withArgs(PROJECT_ID)
-    .returns(caller.address);
+      .withArgs(PROJECT_ID)
+      .returns(caller.address);
 
     await expect(jbSplitsStore.connect(caller).set(
       PROJECT_ID,
