@@ -42,14 +42,6 @@ describe('JBDirectory::removeTerminalOf(...)', function () {
         projectOwner.address,
         projectOwner.address,
         PROJECT_ID,
-        ADD_TERMINALS_PERMISSION_INDEX,
-      )
-      .returns(true);
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(
-        projectOwner.address,
-        projectOwner.address,
-        PROJECT_ID,
         REMOVE_TERMINAL_PERMISSION_INDEX,
       )
       .returns(true);
@@ -91,7 +83,7 @@ describe('JBDirectory::removeTerminalOf(...)', function () {
     expect(terminals).to.eql([terminal2.address]);
   });
 
-  it('Can\'t remove terminal if caller is not project owner but has permissions', async function () {
+  it("Can't remove terminal if caller is not project owner but has permissions", async function () {
     const { projectOwner, addrs, jbDirectory, mockJbOperatorStore, terminal1 } = await setup();
     let caller = addrs[1];
 
