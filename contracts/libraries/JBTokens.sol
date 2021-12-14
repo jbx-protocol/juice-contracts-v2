@@ -4,7 +4,7 @@ pragma solidity 0.8.6;
 library JBTokens {
   /** 
     @notice 
-    The ETH token address in Juicebox is represented by 0x000000000000000000000000000000000000ffff.
+    The ETH token address in Juicebox is represented by 0x000000000000000000000000000000000000eeee.
   */
-  address public constant ETH = address(0xffff);
+  address public constant ETH = address(0xeeee);
 }
