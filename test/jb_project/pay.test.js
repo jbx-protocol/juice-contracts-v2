@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json'
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
 
 describe('JBProject::pay(...)', function () {
   const PROJECT_ID = 1;
@@ -20,10 +20,7 @@ describe('JBProject::pay(...)', function () {
     let mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
 
     let jbFakeProjectFactory = await ethers.getContractFactory('JBFakeProject');
-    let jbFakeProject = await jbFakeProjectFactory.deploy(
-      PROJECT_ID,
-      mockJbDirectory.address,
-    );
+    let jbFakeProject = await jbFakeProjectFactory.deploy(PROJECT_ID, mockJbDirectory.address);
 
     return {
       deployer,
@@ -38,31 +35,18 @@ describe('JBProject::pay(...)', function () {
     const { jbFakeProject, mockJbDirectory, mockJbTerminal } = await setup();
 
     await mockJbDirectory.mock.primaryTerminalOf
-      .withArgs(
-        PROJECT_ID,
-        TOKEN
-      )
+      .withArgs(PROJECT_ID, TOKEN)
       .returns(mockJbTerminal.address);
 
     await mockJbTerminal.mock.pay
-      .withArgs(
-        PROJECT_ID,
-        BENEFICIARY,
-        0,
-        PREFER_CLAIMED_TOKENS,
-        MEMO,
-        []
-      ).returns();
+      .withArgs(PROJECT_ID, BENEFICIARY, 0, PREFER_CLAIMED_TOKENS, MEMO, [])
+      .returns();
 
-    await expect(jbFakeProject.pay(
-      BENEFICIARY,
-      MEMO,
-      PREFER_CLAIMED_TOKENS,
-      TOKEN,
-      {
-        value: ethers.utils.parseEther("1.0")
-      }
-    )).to.not.be.reverted;
+    await expect(
+      jbFakeProject.pay(BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, {
+        value: ethers.utils.parseEther('1.0'),
+      }),
+    ).to.not.be.reverted;
   });
 
   it(`Fallback function should pay funds towards project`, async function () {
@@ -71,26 +55,19 @@ describe('JBProject::pay(...)', function () {
     let caller = addrs[0];
 
     await mockJbDirectory.mock.primaryTerminalOf
-      .withArgs(
-        PROJECT_ID,
-        ethers.constants.AddressZero
-      )
+      .withArgs(PROJECT_ID, ethers.constants.AddressZero)
       .returns(mockJbTerminal.address);
 
     await mockJbTerminal.mock.pay
-      .withArgs(
-        PROJECT_ID,
-        caller.address,
-        0,
-        /*preferClaimedTokens=*/false,
-        /*memo=*/'',
-        []
-      ).returns();
+      .withArgs(PROJECT_ID, caller.address, 0, /*preferClaimedTokens=*/ false, /*memo=*/ '', [])
+      .returns();
 
-    await expect(caller.sendTransaction({
-      to: jbFakeProject.address,
-      value: ethers.utils.parseEther("1.0"),
-    })).to.not.be.reverted;
+    await expect(
+      caller.sendTransaction({
+        to: jbFakeProject.address,
+        value: ethers.utils.parseEther('1.0'),
+      }),
+    ).to.not.be.reverted;
   });
 
   it(`Can't pay if project not found`, async function () {
@@ -100,12 +77,7 @@ describe('JBProject::pay(...)', function () {
     await jbFakeProject.setProjectId(0);
 
     await expect(
-      jbFakeProject.pay(
-        BENEFICIARY,
-        MEMO,
-        PREFER_CLAIMED_TOKENS,
-        TOKEN,
-      ),
+      jbFakeProject.pay(BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN),
     ).to.be.revertedWith('JuiceboxProject::_pay: PROJECT_NOT_FOUND');
   });
 
@@ -113,19 +85,11 @@ describe('JBProject::pay(...)', function () {
     const { jbFakeProject, mockJbDirectory } = await setup();
 
     await mockJbDirectory.mock.primaryTerminalOf
-      .withArgs(
-        PROJECT_ID,
-        TOKEN
-      )
+      .withArgs(PROJECT_ID, TOKEN)
       .returns(ethers.constants.AddressZero);
 
     await expect(
-      jbFakeProject.pay(
-        BENEFICIARY,
-        MEMO,
-        PREFER_CLAIMED_TOKENS,
-        TOKEN,
-      ),
+      jbFakeProject.pay(BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN),
     ).to.be.revertedWith('JuiceboxProject::_pay: TERMINAL_NOT_FOUND');
   });
 });
