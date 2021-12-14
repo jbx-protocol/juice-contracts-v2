@@ -13,6 +13,7 @@ import './libraries/JBErrors.sol';
 @dev Custom Error to replace the require statement and save gas
 */
 error ALREADY_SET();
+error ALREADY_ADDED();
 
 /**
   @notice
@@ -358,7 +359,9 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   */
   function addToSetControllerAllowlist(address _address) external override onlyOwner {
     // Check that the controller has not already been added.
-    require(!_setControllerAllowlist[_address], '0x30: ALREADY_ADDED');
+    if (_setControllerAllowlist[_address]) {
+      revert ALREADY_ADDED();
+    }
 
     // Add the controller to the list of known controllers.
     _setControllerAllowlist[_address] = true;
@@ -374,8 +377,9 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   */
   function removeFromSetControllerAllowlist(address _address) external override onlyOwner {
     // Not in the known controllers list
-    require(_setControllerAllowlist[_address], '0x31: NOT_FOUND');
-
+    if (!_setControllerAllowlist[_address]) {
+      revert JBErrors.NOT_FOUND();
+    }
     // Remove the controller from the list of known controllers.
     delete _setControllerAllowlist[_address];
 

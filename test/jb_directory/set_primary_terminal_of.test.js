@@ -6,6 +6,7 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
+import errors from "../helpers/errors.json"
 
 describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
   const PROJECT_ID = 13;
@@ -55,7 +56,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
       jbDirectory
         .connect(projectOwner)
         .setPrimaryTerminalOf(PROJECT_ID, ethers.constants.AddressZero),
-    ).to.be.revertedWith('ZERO_ADDRESS()');
+    ).to.be.revertedWith(errors.ZERO_ADDRESS);
   });
 
   it('Should setting primary terminal and emit an event', async function () {
@@ -130,7 +131,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, terminal1.address);
     await expect(
       jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, terminal1.address),
-    ).to.be.revertedWith('ALREADY_SET()');
+    ).to.be.revertedWith(errors.ALREADY_SET);
   });
 
   it('Should set multiple terminals for the same project with the same token', async function () {

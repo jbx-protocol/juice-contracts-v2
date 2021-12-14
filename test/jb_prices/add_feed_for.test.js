@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { compilerOutput } from '@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
+import errors from "../helpers/errors.json"
 
 describe('JBPrices::addFeed(...)', function () {
   let deployer;
@@ -45,7 +46,7 @@ describe('JBPrices::addFeed(...)', function () {
     // exists.
     await expect(
       jbPrices.connect(deployer).addFeedFor(currency, base, aggregatorV3Contract.address),
-    ).to.be.revertedWith('ALREADY_EXISTS()');
+    ).to.be.revertedWith(errors.ALREADY_EXISTS);
   });
 
   it('Add feed from address other than owner fails', async function () {

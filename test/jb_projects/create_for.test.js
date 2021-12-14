@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
+import errors from "../helpers/errors.json"
 
 describe('JBProjects::createFor(...)', function () {
   const PROJECT_HANDLE_1 = 'PROJECT_1';
@@ -109,7 +110,7 @@ describe('JBProjects::createFor(...)', function () {
           ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
           METADATA_CID,
         ),
-    ).to.be.revertedWith('EMPTY_HANDLE()');
+    ).to.be.revertedWith(errors.EMPTY_HANDLE);
   });
 
   // it(`Can't create if handle taken already`, async function () {

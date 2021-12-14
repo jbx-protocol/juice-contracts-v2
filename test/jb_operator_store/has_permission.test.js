@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
+import errors from "../helpers/errors.json"
 
 describe('JBOperatorStore::hasPermission(...)', function () {
   const DOMAIN = 1;
@@ -33,7 +34,7 @@ describe('JBOperatorStore::hasPermission(...)', function () {
           /*domain=*/ 1,
           /*permissionIndex=*/ 256,
         )
-    ).to.be.revertedWith('INDEX_OUT_OF_BOUNDS()');
+    ).to.be.revertedWith(errors.INDEX_OUT_OF_BOUNDS);
   });
 
   it('Has permission if account is caller', async function () {

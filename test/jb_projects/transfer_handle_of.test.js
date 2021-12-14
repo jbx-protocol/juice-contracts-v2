@@ -4,6 +4,7 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
+import errors from "../helpers/errors.json"
 
 describe('JBProjects::transferHandleOf(...)', function () {
   const PROJECT_HANDLE_1 = 'PROJECT_1';
@@ -98,7 +99,7 @@ describe('JBProjects::transferHandleOf(...)', function () {
           deployer.address,
           ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
         ),
-    ).to.be.revertedWith('EMPTY_HANDLE()');
+    ).to.be.revertedWith(errors.EMPTY_HANDLE);
   });
 
   // it(`Can't transfer handle if handle taken already`, async function () {

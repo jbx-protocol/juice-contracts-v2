@@ -5,6 +5,7 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbOperatorStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
+import errors from "../helpers/errors.json"
 
 describe('JBSplitsStore::set(...)', function () {
   const PROJECT_ID = 1;
@@ -172,7 +173,7 @@ describe('JBSplitsStore::set(...)', function () {
         GROUP,
         newSplits
       )
-    ).to.be.revertedWith('SOME_LOCKED()');
+    ).to.be.revertedWith(errors.SOME_LOCKED);
   })
 
   it('Should set new splits with extension of a preexisting locked one', async function () {
@@ -209,7 +210,7 @@ describe('JBSplitsStore::set(...)', function () {
         DOMAIN,
         GROUP,
         splits)
-    ).to.be.revertedWith('BAD_SPLIT_PERCENT()');
+    ).to.be.revertedWith(errors.BAD_SPLIT_PERCENT);
   })
 
   it("Can't set splits when a split has both allocator and beneficiary zero address", async function () {
@@ -224,7 +225,7 @@ describe('JBSplitsStore::set(...)', function () {
         DOMAIN,
         GROUP,
         splits)
-    ).to.be.revertedWith('ZERO_ADDRESS()');
+    ).to.be.revertedWith(errors.ZERO_ADDRESS);
   })
 
   it("Can't set splits if the sum of the percents is greather than 10000000", async function () {
@@ -239,7 +240,7 @@ describe('JBSplitsStore::set(...)', function () {
         DOMAIN,
         GROUP,
         splits)
-    ).to.be.revertedWith('BAD_TOTAL_PERCENT()');
+    ).to.be.revertedWith(errors.BAD_TOTAL_PERCENT);
   })
 
   it('Should set splits if controller', async function () {
@@ -308,6 +309,6 @@ describe('JBSplitsStore::set(...)', function () {
       DOMAIN,
       GROUP,
       splits)
-    ).to.be.revertedWith('UNAUTHORIZED()');
+    ).to.be.revertedWith(errors.UNAUTHORIZED);
   })
 })

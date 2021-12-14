@@ -6,6 +6,7 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
+import errors from "../helpers/errors.json"
 
 describe('JBTokenStore::mintFor(...)', function () {
   const PROJECT_ID = 2;
@@ -103,7 +104,7 @@ describe('JBTokenStore::mintFor(...)', function () {
       jbTokenStore
         .connect(controller)
         .mintFor(newHolder.address, PROJECT_ID, numTokens, /* preferClaimedTokens= */ true),
-    ).to.be.revertedWith('NO_OP()');
+    ).to.be.revertedWith(errors.NO_OP);
   });
 
   it(`Can't mint tokens if caller does not have permission`, async function () {
@@ -121,6 +122,6 @@ describe('JBTokenStore::mintFor(...)', function () {
         /* amount= */ 1,
         /* preferClaimedTokens= */ true,
       ),
-    ).to.be.revertedWith('UNAUTHORIZED()');
+    ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 });

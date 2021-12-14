@@ -6,6 +6,7 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
+import errors from "../helpers/errors.json"
 
 describe('JBDirectory::removeFromSetControllerAllowlist(...)', function () {
   async function setup() {
@@ -54,6 +55,6 @@ describe('JBDirectory::removeFromSetControllerAllowlist(...)', function () {
 
     await expect(
       jbDirectory.connect(deployer).removeFromSetControllerAllowlist(mockJbController.address),
-    ).to.revertedWith('0x31: NOT_FOUND');
+    ).to.revertedWith(errors.NOT_FOUND);
   });
 });

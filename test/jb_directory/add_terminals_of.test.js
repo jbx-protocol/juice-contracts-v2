@@ -8,6 +8,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
 import { impersonateAccount } from '../helpers/utils';
+import errors from "../helpers/errors.json"
 
 describe('JBDirectory::addTerminalsOf(...)', function () {
   const PROJECT_ID = 1;
@@ -137,7 +138,7 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
 
     await expect(
       jbDirectory.connect(projectOwner).addTerminalsOf(PROJECT_ID, terminals),
-    ).to.be.revertedWith('ZERO_ADDRESS()');
+    ).to.be.revertedWith(errors.ZERO_ADDRESS);
   });
 
   it("Can't add terminals more than once", async function () {
