@@ -14,6 +14,15 @@ describe('JBProject::pay(...)', function () {
   const MEMO = 'memo';
   const AMOUNT = ethers.utils.parseEther('1.0');
 
+  let JBTOKENS_ETH;
+
+  this.beforeAll(async function () {
+    let jbTokensFactory = await ethers.getContractFactory('JBTokens');
+    let jbTokens = await jbTokensFactory.deploy();
+
+    JBTOKENS_ETH = await jbTokens.ETH();
+  })
+
   async function setup() {
     let [deployer, ...addrs] = await ethers.getSigners();
 
@@ -56,7 +65,7 @@ describe('JBProject::pay(...)', function () {
     let caller = addrs[0];
 
     await mockJbDirectory.mock.primaryTerminalOf
-      .withArgs(PROJECT_ID, ethers.constants.AddressZero)
+      .withArgs(PROJECT_ID, JBTOKENS_ETH)
       .returns(mockJbTerminal.address);
 
     await mockJbTerminal.mock.pay
