@@ -7,6 +7,13 @@ import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.j
 
 describe('JBProject::fundTreasury(...)', function () {
   const INITIAL_PROJECT_ID = 1;
+  const MISC_PROJECT_ID = 7;
+  const AMOUNT = ethers.utils.parseEther('1.0');
+  const BENEFICIARY = ethers.Wallet.createRandom().address;
+  const MEMO = 'hello world';
+  const PREFER_CLAIMED_TOKENS = true;
+  const TOKEN = ethers.Wallet.createRandom().address;
+  const TERMINAL = ethers.Wallet.createRandom().address;
 
   async function setup() {
     let [deployer, ...addrs] = await ethers.getSigners();
@@ -32,14 +39,39 @@ describe('JBProject::fundTreasury(...)', function () {
   });
 
   it(`Can't fund if project not found`, async function () {
-    // TODO(odd-amphora): implement.
+    const { jbFakeProject, addrs } = await setup();
+
+    await expect(
+      jbFakeProject
+        .connect(addrs[0])
+        .fundTreasury(/*projectId=*/ 0, AMOUNT, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN),
+    ).to.be.revertedWith('0x01: PROJECT_NOT_FOUND');
   });
 
   it(`Can't fund if terminal not found`, async function () {
-    // TODO(odd-amphora): implement.
+    const { jbFakeProject, addrs, mockJbDirectory } = await setup();
+
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(MISC_PROJECT_ID, TOKEN)
+      .returns(ethers.constants.AddressZero);
+
+    await expect(
+      jbFakeProject
+        .connect(addrs[0])
+        .fundTreasury(MISC_PROJECT_ID, AMOUNT, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN),
+    ).to.be.revertedWith('0x02: TERMINAL_NOT_FOUND');
   });
 
   it(`Can't fund if insufficient funds`, async function () {
-    // TODO(odd-amphora): implement.
+    const { jbFakeProject, addrs, mockJbDirectory } = await setup();
+
+    await mockJbDirectory.mock.primaryTerminalOf.withArgs(MISC_PROJECT_ID, TOKEN).returns(TERMINAL);
+
+    // No funds have been sent to the contract so this should fail.
+    await expect(
+      jbFakeProject
+        .connect(addrs[0])
+        .fundTreasury(MISC_PROJECT_ID, AMOUNT, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN),
+    ).to.be.revertedWith('0x03: INSUFFICIENT_FUNDS');
   });
 });

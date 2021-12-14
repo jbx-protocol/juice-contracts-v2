@@ -78,7 +78,7 @@ describe('JBProject::pay(...)', function () {
 
     await expect(
       jbFakeProject.pay(BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN),
-    ).to.be.revertedWith('JuiceboxProject::_pay: PROJECT_NOT_FOUND');
+    ).to.be.revertedWith('0x04: PROJECT_NOT_FOUND');
   });
 
   it(`Can't pay if terminal not found`, async function () {
@@ -90,6 +90,6 @@ describe('JBProject::pay(...)', function () {
 
     await expect(
       jbFakeProject.pay(BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN),
-    ).to.be.revertedWith('JuiceboxProject::_pay: TERMINAL_NOT_FOUND');
+    ).to.be.revertedWith('0x05: TERMINAL_NOT_FOUND');
   });
 });
