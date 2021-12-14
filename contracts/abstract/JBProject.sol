@@ -5,6 +5,7 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Address.sol';
 
 import './../interfaces/IJBDirectory.sol';
+import './../libraries/JBTokens.sol';
 
 /** 
   @notice A contract that inherits from JuiceboxProject can use Juicebox as a business-model-as-a-service.
@@ -32,7 +33,7 @@ abstract contract JBProject is Ownable {
       Received funds go straight to the project.
     */
   receive() external payable {
-    _pay(msg.sender, '', false, address(0));
+    _pay(msg.sender, '', false, JBTokens.ETH);
   }
 
   /** 
