@@ -8,6 +8,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 
 describe('JBDirectory::addToSetControllerAllowlist(...)', function () {
+
   async function setup() {
     let [deployer, ...addrs] = await ethers.getSigners();
 
@@ -25,7 +26,7 @@ describe('JBDirectory::addToSetControllerAllowlist(...)', function () {
       deployer,
       addrs,
       jbDirectory,
-      mockJbController,
+      mockJbController
     };
   }
 
@@ -33,29 +34,31 @@ describe('JBDirectory::addToSetControllerAllowlist(...)', function () {
     const { deployer, jbDirectory, mockJbController } = await setup();
 
     await expect(
-      jbDirectory.connect(deployer).addToSetControllerAllowlist(mockJbController.address),
-    )
-      .to.emit(jbDirectory, 'AddToSetControllerAllowlist')
+      jbDirectory.connect(deployer).addToSetControllerAllowlist(mockJbController.address)
+    ).to.emit(jbDirectory, 'AddToSetControllerAllowlist')
       .withArgs(mockJbController.address, deployer.address);
 
-    expect(await jbDirectory.isAllowedToSetController(mockJbController.address)).to.be.true;
+    expect(
+      await jbDirectory.isAllowedToSetController(mockJbController.address)
+    ).to.be.true;
   });
 
-  it("Can't add known controller if caller is not JBDirectory owner", async function () {
+  it('Can\'t add known controller if caller is not JBDirectory owner', async function () {
     const { addrs, jbDirectory, mockJbController } = await setup();
 
     await expect(
-      jbDirectory.connect(addrs[0]).addToSetControllerAllowlist(mockJbController.address),
+      jbDirectory.connect(addrs[0]).addToSetControllerAllowlist(mockJbController.address)
     ).to.revertedWith('Ownable: caller is not the owner');
   });
 
-  it("Can't add the same known controller twice", async function () {
+  it('Can\'t add the same known controller twice', async function () {
     const { deployer, jbDirectory, mockJbController } = await setup();
 
-    await jbDirectory.connect(deployer).addToSetControllerAllowlist(mockJbController.address);
+    await jbDirectory.connect(deployer).addToSetControllerAllowlist(mockJbController.address)
 
     await expect(
-      jbDirectory.connect(deployer).addToSetControllerAllowlist(mockJbController.address),
+      jbDirectory.connect(deployer).addToSetControllerAllowlist(mockJbController.address)
     ).to.revertedWith('0x30: ALREADY_ADDED');
   });
+
 });

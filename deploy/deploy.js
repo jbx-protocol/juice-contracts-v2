@@ -1,4 +1,4 @@
-const { ethers } = require('hardhat');
+const { ethers } = require("hardhat");
 
 /**
  * Deploys the Juice V2 contracts.
@@ -89,9 +89,9 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   });
 
   // Add the deployed JBController as a known controller.
-  const [signer, ..._] = await ethers.getSigners();
+  const [signer, ..._] = await ethers.getSigners()
   const jbDirectoryContract = new ethers.Contract(JBDirectory.address, JBDirectory.abi);
-  await jbDirectoryContract.connect(signer).addToSetControllerAllowlist(JBController.address);
+  await jbDirectoryContract.connect(signer).addToSetControllerAllowlist(JBController.address)
 
   const JBETHPaymentTerminalStore = await deploy('JBETHPaymentTerminalStore', {
     from: deployer,

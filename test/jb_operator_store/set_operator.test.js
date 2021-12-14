@@ -37,7 +37,7 @@ describe('JBOperatorStore::setOperator(...)', function () {
       .setOperator([
         /*operator=*/ operator.address,
         /*domain=*/ domain,
-        /*permissionsIndexes=*/ permissionIndexes,
+        /*permissionsIndexes=*/ permissionIndexes
       ]);
 
     await expect(tx)
@@ -50,9 +50,12 @@ describe('JBOperatorStore::setOperator(...)', function () {
         packedPermissionIndexes,
       );
 
-    expect(await jbOperatorStore.permissionsOf(operator.address, account.address, domain)).to.equal(
-      packedPermissionIndexes,
-    );
+    expect(await jbOperatorStore
+      .permissionsOf(
+        operator.address,
+        account.address,
+        domain))
+      .to.equal(packedPermissionIndexes);
   }
 
   it('Set operator with no previous value, override it, and clear it', async function () {
@@ -95,7 +98,7 @@ describe('JBOperatorStore::setOperator(...)', function () {
         .setOperator([
           /*operator=*/ projectOwner.address,
           /*domain=*/ DOMAIN,
-          /*permissionsIndexes=*/ PERMISSION_INDEXES_OUT_OF_BOUND,
+          /*permissionsIndexes=*/ PERMISSION_INDEXES_OUT_OF_BOUND
         ]),
     ).to.be.revertedWith('0x02: INDEX_OUT_OF_BOUNDS');
   });

@@ -19,7 +19,7 @@ describe('JBProjects::setHandleOf(...)', function () {
     let jbOperations = await jbOperationsFactory.deploy();
 
     SET_HANDLE_PERMISSION_INDEX = await jbOperations.SET_HANDLE();
-  });
+  })
 
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
@@ -53,7 +53,10 @@ describe('JBProjects::setHandleOf(...)', function () {
 
     let tx = await jbProjectsStore
       .connect(projectOwner)
-      .setHandleOf(PROJECT_ID_1, ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN));
+      .setHandleOf(
+        PROJECT_ID_1,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE_NOT_TAKEN),
+      );
 
     let storedHandle = await jbProjectsStore.connect(deployer).handleOf(1);
     let storedProjectId = await jbProjectsStore
@@ -86,7 +89,10 @@ describe('JBProjects::setHandleOf(...)', function () {
     await expect(
       jbProjectsStore
         .connect(projectOwner)
-        .setHandleOf(PROJECT_ID_1, ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY)),
+        .setHandleOf(
+          PROJECT_ID_1,
+          ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
+        ),
     ).to.be.revertedWith('0x08: EMPTY_HANDLE');
   });
 
@@ -104,7 +110,10 @@ describe('JBProjects::setHandleOf(...)', function () {
     await expect(
       jbProjectsStore
         .connect(projectOwner)
-        .setHandleOf(PROJECT_ID_1, ethers.utils.formatBytes32String(PROJECT_HANDLE)),
+        .setHandleOf(
+          PROJECT_ID_1,
+          ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        ),
     ).to.be.revertedWith('0x09: HANDLE_TAKEN');
   });
 
@@ -122,7 +131,10 @@ describe('JBProjects::setHandleOf(...)', function () {
     await expect(
       jbProjectsStore
         .connect(addrs[0])
-        .setHandleOf(PROJECT_ID_1, ethers.utils.formatBytes32String(PROJECT_HANDLE)),
+        .setHandleOf(
+          PROJECT_ID_1,
+          ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        ),
     ).to.be.reverted;
   });
 
@@ -144,7 +156,10 @@ describe('JBProjects::setHandleOf(...)', function () {
     await expect(
       jbProjectsStore
         .connect(addrs[0])
-        .setHandleOf(PROJECT_ID_1, ethers.utils.formatBytes32String(PROJECT_HANDLE)),
+        .setHandleOf(
+          PROJECT_ID_1,
+          ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        ),
     ).to.be.reverted;
   });
 });

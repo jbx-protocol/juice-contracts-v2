@@ -43,7 +43,7 @@ describe('JBOperatorStore::hasPermissions(...)', function () {
       .setOperator([
         /*operator=*/ projectOwner.address,
         /*domain=*/ DOMAIN,
-        /*permissionIndexes=*/ PERMISSION_INDEXES_1,
+        /*permissionIndexes=*/ PERMISSION_INDEXES_1
       ]);
 
     expect(
@@ -53,7 +53,7 @@ describe('JBOperatorStore::hasPermissions(...)', function () {
           /*operator=*/ projectOwner.address,
           /*account=*/ deployer.address,
           /*domain=*/ DOMAIN,
-          /*permissionIndexes=*/ PERMISSION_INDEXES_1,
+          /*permissionIndexes=*/ PERMISSION_INDEXES_1
         ),
     ).to.be.true;
   });
@@ -66,7 +66,7 @@ describe('JBOperatorStore::hasPermissions(...)', function () {
       .setOperator([
         /*operator=*/ addrs[0].address,
         /*domain=*/ DOMAIN,
-        /*permissionIndexes=*/ PERMISSION_INDEXES_1,
+        /*permissionIndexes=*/ PERMISSION_INDEXES_1
       ]);
 
     expect(
@@ -76,7 +76,7 @@ describe('JBOperatorStore::hasPermissions(...)', function () {
           /*operator=*/ addrs[0].address,
           /*account=*/ deployer.address,
           /*domain=*/ DOMAIN,
-          /*permissionIndexes=*/ PERMISSION_INDEXES_1,
+          /*permissionIndexes=*/ PERMISSION_INDEXES_1
         ),
     ).to.be.true;
   });
@@ -103,7 +103,7 @@ describe('JBOperatorStore::hasPermissions(...)', function () {
       .setOperator([
         /*operator=*/ projectOwner.address,
         /*domain=*/ DOMAIN,
-        /*permissionIndexes=*/ PERMISSION_INDEXES_1,
+        /*permissionIndexes=*/ PERMISSION_INDEXES_1
       ]);
 
     expect(
@@ -113,7 +113,7 @@ describe('JBOperatorStore::hasPermissions(...)', function () {
           /*operator=*/ projectOwner.address,
           /*account=*/ deployer.address,
           /*domain=*/ DOMAIN,
-          /*permissionIndexes=*/ PERMISSION_INDEXES_2,
+          /*permissionIndexes=*/ PERMISSION_INDEXES_2
         ),
     ).to.be.false;
   });
@@ -126,7 +126,7 @@ describe('JBOperatorStore::hasPermissions(...)', function () {
       .setOperator([
         /*operator=*/ projectOwner.address,
         /*domain=*/ DOMAIN,
-        /*permissionIndexes=*/ PERMISSION_INDEXES_1,
+        /*permissionIndexes=*/ PERMISSION_INDEXES_1
       ]);
 
     expect(
