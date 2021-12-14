@@ -91,23 +91,23 @@ describe('JBProjects::setHandleOf(...)', function () {
     ).to.be.revertedWith(errors.EMPTY_HANDLE);
   });
 
-  // it(`Can't set if handle taken already`, async function () {
-  //   const { projectOwner, deployer, jbProjectsStore } = await setup();
+  it(`Can't set if handle taken already`, async function () {
+    const { projectOwner, deployer, jbProjectsStore } = await setup();
 
-  //   await jbProjectsStore
-  //     .connect(deployer)
-  //     .createFor(
-  //       projectOwner.address,
-  //       ethers.utils.formatBytes32String(PROJECT_HANDLE),
-  //       METADATA_CID,
-  //     );
+    await jbProjectsStore
+      .connect(deployer)
+      .createFor(
+        projectOwner.address,
+        ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        METADATA_CID,
+      );
 
-  //   await expect(
-  //     jbProjectsStore
-  //       .connect(projectOwner)
-  //       .setHandleOf(PROJECT_ID_1, ethers.utils.formatBytes32String(PROJECT_HANDLE)),
-  //   ).to.be.revertedWith('HANDLE_TAKEN()');
-  // });
+    await expect(
+      jbProjectsStore
+        .connect(projectOwner)
+        .setHandleOf(PROJECT_ID_1, ethers.utils.formatBytes32String(PROJECT_HANDLE)),
+    ).to.be.revertedWith('HANDLE_TAKEN()');
+  });
 
   it(`Can't set handle if not owner of project`, async function () {
     const { projectOwner, deployer, addrs, jbProjectsStore } = await setup();

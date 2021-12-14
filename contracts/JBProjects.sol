@@ -137,7 +137,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     }
 
     // Handle must be unique.
-    if (idFor[_handle] != 0 && transferAddressFor[_handle] != address(0)) {
+    if (!(idFor[_handle] == 0 && transferAddressFor[_handle] == address(0))) {
       revert HANDLE_TAKEN();
     }
 
@@ -181,7 +181,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
       revert EMPTY_HANDLE();
     }
     // Handle must be unique.
-    if (idFor[_handle] != 0 && transferAddressFor[_handle] != address(0)) {
+    if (!(idFor[_handle] == 0 && transferAddressFor[_handle] == address(0))) {
       revert HANDLE_TAKEN();
     }
 
@@ -248,7 +248,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     }
 
     // The new handle must be available.
-    if (idFor[_newHandle] != 0 && transferAddressFor[_newHandle] != address(0)) {
+    if (!(idFor[_newHandle] == 0 && transferAddressFor[_newHandle] == address(0))) {
       revert HANDLE_TAKEN();
     }
 
