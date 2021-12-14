@@ -12,6 +12,7 @@ describe('JBProject::pay(...)', function () {
   const TOKEN = ethers.Wallet.createRandom().address;
   const PREFER_CLAIMED_TOKENS = true;
   const MEMO = 'memo';
+  const AMOUNT = ethers.utils.parseEther('1.0');
 
   async function setup() {
     let [deployer, ...addrs] = await ethers.getSigners();
@@ -44,7 +45,7 @@ describe('JBProject::pay(...)', function () {
 
     await expect(
       jbFakeProject.pay(BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, {
-        value: ethers.utils.parseEther('1.0'),
+        value: AMOUNT,
       }),
     ).to.not.be.reverted;
   });
@@ -65,7 +66,7 @@ describe('JBProject::pay(...)', function () {
     await expect(
       caller.sendTransaction({
         to: jbFakeProject.address,
-        value: ethers.utils.parseEther('1.0'),
+        value: AMOUNT,
       }),
     ).to.not.be.reverted;
   });
