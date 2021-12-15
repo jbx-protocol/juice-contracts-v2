@@ -5,14 +5,14 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import { packFundingCycleMetadata } from '../helpers/utils';
 
-import jbController from '../../artifacts/contracts/JBController.sol/JBController.json';
-import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import jBFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
-import jbFundingCycleDataSource from '../../artifacts/contracts/mocks/JBFundingCycleDataSourceMock.sol/JBFundingCycleDataSourceMock.json';
-import jbPayDelegate from '../../artifacts/contracts/mocks/JBPayDelegateMock.sol/JBPayDelegateMock.json';
-import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
-import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
-import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
+import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
+import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
+import jBFundingCycleStore from '../../artifacts/contracts/interfaces/IJBFundingCycleStore.sol/IJBFundingCycleStore.json';
+import jbFundingCycleDataSource from '../../artifacts/contracts/interfaces/IJBFundingCycleDataSource.sol/IJBFundingCycleDataSource.json';
+import jbPayDelegate from '../../artifacts/contracts/interfaces/IJBPayDelegate.sol/IJBPayDelegate.json';
+import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
+import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
+import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
 describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
   const PROJECT_ID = 2;
@@ -82,7 +82,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
     await jbEthPaymentTerminalStore.claimFor(terminal.address);
 
     const reservedRate = 0;
-    const packedFCM = packFundingCycleMetadata({ pausePay: 0, reservedRate: reservedRate });
+    const packedMetadata = packFundingCycleMetadata({ pausePay: 0, reservedRate: reservedRate });
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
@@ -94,7 +94,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
       weight: WEIGHT,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packedFCM,
+      metadata: packedMetadata,
     });
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
@@ -150,7 +150,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
     const memo = 'test';
     const reservedRate = 0;
-    const packedFCM = packFundingCycleMetadata({
+    const packedMetadata = packFundingCycleMetadata({
       pausePay: 0,
       reservedRate: reservedRate,
       useDataSourceForPay: 1,
@@ -167,7 +167,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
       weight: WEIGHT,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packedFCM,
+      metadata: packedMetadata,
     });
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
@@ -263,7 +263,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
     const memo = 'test';
     const reservedRate = 0;
-    const packedFCM = packFundingCycleMetadata({
+    const packedMetadata = packFundingCycleMetadata({
       pausePay: 0,
       reservedRate: reservedRate,
       useDataSourceForPay: 1,
@@ -280,7 +280,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
       weight: WEIGHT,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packedFCM,
+      metadata: packedMetadata,
     });
 
     const delegateMetadata = [0];
@@ -414,7 +414,6 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
     });
 
     // Record the payment
-    const amt = 8000;
     const preferClaimedTokensBigNum = ethers.BigNumber.from(0); // false
     const beneficiaryBigNum = ethers.BigNumber.from(beneficiary.address).shl(1); // addr shifted left by 1
     await expect(
@@ -439,7 +438,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
     // Set terminal address
     await jbEthPaymentTerminalStore.claimFor(terminal.address);
 
-    const packedFCM = packFundingCycleMetadata({ pausePay: 1 }); // Paused in the metadata
+    const packedMetadata = packFundingCycleMetadata({ pausePay: 1 }); // Paused in the metadata
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
@@ -451,7 +450,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packedFCM,
+      metadata: packedMetadata,
     });
 
     // Record the payment
@@ -489,7 +488,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
     const reservedRate = 0;
     const minReturnedAmt = WEIGHTED_AMOUNT.addUnsafe(ethers.FixedNumber.from(1));
-    const packedFCM = packFundingCycleMetadata({ pausePay: 0, reservedRate: reservedRate });
+    const packedMetadata = packFundingCycleMetadata({ pausePay: 0, reservedRate: reservedRate });
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
@@ -501,7 +500,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
       weight: WEIGHT,
       discountRate: 0,
       ballot: payer.address,
-      metadata: packedFCM,
+      metadata: packedMetadata,
     });
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
