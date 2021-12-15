@@ -7,9 +7,8 @@ import '@openzeppelin/contracts/utils/Address.sol';
 import './../interfaces/IJBDirectory.sol';
 import './../libraries/JBErrors.sol';
 
-/**
-@dev Custom Errors to replace the require statement and save gas
- */
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
 error PROJECT_NOT_FOUND();
 error TERMINAL_NOT_FOUND();
 

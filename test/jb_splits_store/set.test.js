@@ -210,7 +210,7 @@ describe('JBSplitsStore::set(...)', function () {
         DOMAIN,
         GROUP,
         splits)
-    ).to.be.revertedWith(errors.BAD_SPLIT_PERCENT);
+    ).to.be.revertedWith(errors.INVALID_SPLIT_PERCENT);
   })
 
   it("Can't set splits when a split has both allocator and beneficiary zero address", async function () {
@@ -240,7 +240,7 @@ describe('JBSplitsStore::set(...)', function () {
         DOMAIN,
         GROUP,
         splits)
-    ).to.be.revertedWith(errors.BAD_TOTAL_PERCENT);
+    ).to.be.revertedWith(errors.INVALID_TOTAL_PERCENT);
   })
 
   it('Should set splits if controller', async function () {

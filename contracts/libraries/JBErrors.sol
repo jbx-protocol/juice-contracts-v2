@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
 library JBErrors {
   error UNAUTHORIZED();
   error INSUFFICIENT_FUNDS();

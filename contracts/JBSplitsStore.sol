@@ -9,12 +9,11 @@ import './interfaces/IJBDirectory.sol';
 import './abstract/JBOperatable.sol';
 import './libraries/JBErrors.sol';
 
-/**
-@dev Custom Errors to replace the require statement and save gas
-*/
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
 error SOME_LOCKED();
-error BAD_SPLIT_PERCENT();
-error BAD_TOTAL_PERCENT();
+error INVALID_SPLIT_PERCENT();
+error INVALID_TOTAL_PERCENT();
 /**
   @notice
   Stores splits for each project.
@@ -160,7 +159,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     for (uint256 _i = 0; _i < _splits.length; _i++) {
       // The percent should be greater than 0.
       if (_splits[_i].percent == 0) {
-        revert BAD_SPLIT_PERCENT();
+        revert INVALID_SPLIT_PERCENT();
       }
 
       // The allocator and the beneficiary shouldn't both be the zero address.
@@ -176,7 +175,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
 
       // The total percent should be at most 10000000.
       if (!(_percentTotal <= 10000000)) {
-        revert BAD_TOTAL_PERCENT();
+        revert INVALID_TOTAL_PERCENT();
       }
 
       // Push the new split into the project's list of splits.

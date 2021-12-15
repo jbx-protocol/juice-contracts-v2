@@ -14,11 +14,10 @@ import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 import './libraries/JBErrors.sol';
 
-/**
-@dev Custom Errors to replace the require statement and save gas
-*/
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
 error INADEQUATE();
-error UNEXPECTED_CURRENCY();
+error UNKNOWN_CURRENCY();
 error LIMIT_REACHED();
 error INSUFFICIENT_TOKENS();
 error ALREADY_CLAIMED();
@@ -373,7 +372,7 @@ contract JBETHPaymentTerminalStore {
         terminal
       )
     ) {
-      revert UNEXPECTED_CURRENCY();
+      revert UNKNOWN_CURRENCY();
     }
 
     // The new total amount that has been distributed during this funding cycle.
@@ -449,7 +448,7 @@ contract JBETHPaymentTerminalStore {
         terminal
       )
     ) {
-      revert UNEXPECTED_CURRENCY();
+      revert UNKNOWN_CURRENCY();
     }
 
     // Convert the amount to wei.

@@ -9,9 +9,8 @@ import './interfaces/IJBProjects.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBErrors.sol';
 
-/**
-@dev Custom Errors to replace the require statement and save gas
-*/
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
 error EMPTY_HANDLE();
 error HANDLE_TAKEN();
 error HANDLE_NOT_TAKEN();

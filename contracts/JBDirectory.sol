@@ -9,9 +9,8 @@ import './abstract/JBOperatable.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBErrors.sol';
 
-/**
-@dev Custom Error to replace the require statement and save gas
-*/
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
 error ALREADY_SET();
 error ALREADY_ADDED();
 

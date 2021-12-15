@@ -7,12 +7,11 @@ import './interfaces/IJBFundingCycleStore.sol';
 import './abstract/JBControllerUtility.sol';
 import './libraries/JBErrors.sol';
 
-/**
-@dev Custom Errors to replace the require statement and save gas
-*/
-error BAD_DURATION();
-error BAD_DISCOUNT_RATE();
-error BAD_WEIGHT();
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+error INVALID_DURATION();
+error INVALID_DISCOUNT_RATE();
+error INVALID_WEIGHT();
 error NON_RECURRING();
 
 /** 
@@ -266,17 +265,17 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
   ) external override onlyController(_projectId) returns (JBFundingCycle memory) {
     // Duration must fit in a uint64, and must be greater than 1000 seconds to prevent manipulative miner behavior.
     if (_data.duration > type(uint64).max && _data.duration <= 1000) {
-      revert BAD_DURATION();
+      revert INVALID_DURATION();
     }
 
     // Discount rate token must be less than or equal to 100%. A value of 1000000001 means non-recurring.
     if (_data.discountRate > 1000000001) {
-      revert BAD_DISCOUNT_RATE();
+      revert INVALID_DISCOUNT_RATE();
     }
 
     // Weight must fit into a uint88.
     if (_data.weight > type(uint88).max) {
-      revert BAD_WEIGHT();
+      revert INVALID_WEIGHT();
     }
 
     // The configuration timestamp is now.

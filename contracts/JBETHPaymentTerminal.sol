@@ -20,12 +20,11 @@ import './abstract/JBOperatable.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
-/**
-@dev Custom Errors to replace the require statement and save gas
-*/
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
 error INCOMPATIBLE();
-error BAD_FEE();
-error BAD_SPLIT();
+error INVALID_FEE();
+error INVALID_SPLIT();
 
 /**
   @notice
@@ -553,7 +552,7 @@ contract JBETHPaymentTerminal is
   function setFee(uint256 _fee) external onlyOwner {
     // The max fee is 5%.
     if (_fee > 10) {
-      revert BAD_FEE();
+      revert INVALID_FEE();
     }
 
     // Store the new fee.
@@ -620,7 +619,7 @@ contract JBETHPaymentTerminal is
 
           // The project must have a terminal to send funds to.
           if (_terminal == IJBTerminal(address(0))) {
-            revert BAD_SPLIT();
+            revert INVALID_SPLIT();
           }
 
           // Save gas if this contract is being used as the terminal.

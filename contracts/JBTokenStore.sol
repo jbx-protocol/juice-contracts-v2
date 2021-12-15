@@ -10,9 +10,8 @@ import './libraries/JBOperations.sol';
 import './libraries/JBErrors.sol';
 import './JBToken.sol';
 
-/**
-@dev Custom Errors to replace the require statement and save gas
- */
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
 error EMPTY_NAME();
 error EMPTY_SYMBOL();
 error ALREADY_ISSUED();

@@ -6,9 +6,8 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import './interfaces/IJBPrices.sol';
 import './libraries/JBErrors.sol';
 
-/**
-@dev Custom Errors to replace the require statement and save gas
-*/
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
 error ALREADY_EXISTS();
 
 /** 

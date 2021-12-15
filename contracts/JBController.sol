@@ -30,12 +30,11 @@ import './abstract/JBTerminalUtility.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
-/**
-@dev Custom Errors to replace the require statement and save gas
-*/
-error BAD_RESERVED_RATE();
-error BAD_REDEMPTION_RATE();
-error BAD_BALLOT_REDEMPTION_RATE();
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+error INVALID_RESERVED_RATE();
+error INVALID_REDEMPTION_RATE();
+error INVALID_BALLOT_REDEMPTION_RATE();
 
 /**
   @notice
@@ -309,16 +308,16 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   ) external returns (uint256 projectId) {
     // The reserved project token rate must be less than or equal to 10000.
     if (_metadata.reservedRate > RATE) {
-      revert BAD_RESERVED_RATE();
+      revert INVALID_RESERVED_RATE();
     }
     // The redemption rate must be between 0 and 10000.
     if (_metadata.redemptionRate > RATE) {
-      revert BAD_REDEMPTION_RATE();
+      revert INVALID_REDEMPTION_RATE();
     }
 
     // The ballot redemption rate must be less than or equal to 10000.
     if (_metadata.ballotRedemptionRate > RATE) {
-      revert BAD_BALLOT_REDEMPTION_RATE();
+      revert INVALID_BALLOT_REDEMPTION_RATE();
     }
 
     // Create the project for into the wallet of the message sender.
@@ -393,16 +392,16 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   {
     // The reserved project token rate must be less than or equal to 10000.
     if (_metadata.reservedRate > RATE) {
-      revert BAD_RESERVED_RATE();
+      revert INVALID_RESERVED_RATE();
     }
     // The redemption rate must be between 0 and 10000.
     if (_metadata.redemptionRate > RATE) {
-      revert BAD_REDEMPTION_RATE();
+      revert INVALID_REDEMPTION_RATE();
     }
 
     // The ballot redemption rate must be less than or equal to 10000.
     if (_metadata.ballotRedemptionRate > RATE) {
-      revert BAD_BALLOT_REDEMPTION_RATE();
+      revert INVALID_BALLOT_REDEMPTION_RATE();
     }
 
     return _configure(_projectId, _data, _metadata, _groupedSplits, _fundAccessConstraints);
