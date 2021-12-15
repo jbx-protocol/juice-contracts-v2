@@ -37,22 +37,6 @@ describe('JBDirectory::primaryTerminalOf(...)', function () {
     let terminal2 = await deployMockContract(projectOwner, jbTerminal.abi);
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(
-        projectOwner.address,
-        projectOwner.address,
-        PROJECT_ID,
-        ADD_TERMINALS_PERMISSION_INDEX,
-      )
-      .returns(true);
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(
-        projectOwner.address,
-        projectOwner.address,
-        PROJECT_ID,
-        SET_PRIMARY_TERMINAL_PERMISSION_INDEX,
-      )
-      .returns(true);
 
     // Add a few terminals
     await jbDirectory
@@ -62,7 +46,7 @@ describe('JBDirectory::primaryTerminalOf(...)', function () {
     return { projectOwner, deployer, addrs, jbDirectory, terminal1, terminal2 };
   }
 
-  it('Returns primary terminal if set', async function () {
+  it('Should return primary terminal if set', async function () {
     const { projectOwner, jbDirectory, terminal1 } = await setup();
 
     let token = ethers.Wallet.createRandom().address;
@@ -75,7 +59,7 @@ describe('JBDirectory::primaryTerminalOf(...)', function () {
     );
   });
 
-  it('Returns terminal with matching token if set', async function () {
+  it('Should return terminal with matching token if set', async function () {
     const { projectOwner, jbDirectory, terminal1, terminal2 } = await setup();
 
     await terminal1.mock.token.returns(ethers.Wallet.createRandom().address);
