@@ -1,18 +1,19 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
+import { packFundingCycleMetadata } from '../helpers/utils';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
-import iJbFundingCycleDataSource from '../../artifacts/contracts/interfaces/IJBFundingCycleDataSource.sol/IJBFundingCycleDataSource.json';
 import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 
 describe('JBController::changeTokenOf(...)', function () {
   const PROJECT_ID = 1;
+  const DOMAIN = 1;
   const NAME = 'TestTokenDAO';
   const SYMBOL = 'TEST';
 
@@ -28,13 +29,16 @@ describe('JBController::changeTokenOf(...)', function () {
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
+    const blockNum = await ethers.provider.getBlockNumber();
+    const block = await ethers.provider.getBlock(blockNum);
+    const timestamp = block.timestamp;
+
     let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
     let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
     let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
     let mockJbFundingCycleStore = await deployMockContract(deployer, jbFundingCycleStore.abi);
-    let mockJbFundingCycleDataSource = await deployMockContract(deployer, iJbFundingCycleDataSource);
-    let mockSplitsStore = await deployMockContract(deployer, jbSplitsStore.abi);
     let mockTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
+    let mockSplitsStore = await deployMockContract(deployer, jbSplitsStore.abi);
     let mockToken = await deployMockContract(deployer, jbToken.abi);
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');
@@ -57,33 +61,136 @@ describe('JBController::changeTokenOf(...)', function () {
 
     return {
       projectOwner,
-      deployer,
       addrs,
       jbController,
+      mockJbOperatorStore,
+      mockJbFundingCycleStore,
       mockTokenStore,
       mockToken,
-      mockJbOperatorStore
+      timestamp
     };
   }
 
   it(`Should change current token if caller is project owner and funding cycle not paused`, async function () {
-    const { projectOwner, addrs, jbController, mockToken, mockJbFundingCycleStore } = await setup();
-    let newTokenOwner = addrs[O];
+    const { projectOwner, addrs, jbController, mockJbFundingCycleStore, mockTokenStore, mockToken, timestamp } = await setup();
+    let newTokenOwner = addrs[0];
 
-
-
-    await mockJbFundingCycleStore.mock.currentOf
-      .withArgs(PROJECT_ID)
-      .returns(mockFundingCycle.address);
-
-    await mockJbFundingCycleStore.mock.changeTokenAllowed
-      .returns(true);
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      // mock JBFundingCycle obj
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: 0,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({ allowChangeToken: 1 })
+    });
 
     await mockTokenStore.mock.changeFor
       .withArgs(PROJECT_ID, mockToken.address, newTokenOwner.address)
       .returns();
 
-    expect(jbController.connect(projectOwner).changeTokenOf(PROJECT_ID, mockToken.address, newTokenOwner.address)).to.be.not.reverted();
+    expect(
+      jbController.connect(projectOwner).changeTokenOf(PROJECT_ID, mockToken.address, newTokenOwner.address)
+    ).to.be.not.reverted;
+  });
+
+  it(`Should change current token if caller is not project owner and but is authorized`, async function () {
+    const { projectOwner, addrs, jbController, mockJbOperatorStore, mockJbFundingCycleStore, mockTokenStore, mockToken, timestamp } = await setup();
+    let newTokenOwner = addrs[0];
+    let caller = addrs[1];
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, projectOwner.address, DOMAIN, CHANGE_TOKEN_INDEX)
+      .returns(true);
+
+    await mockJbFundingCycleStore.mock.currentOf
+      .withArgs(PROJECT_ID)
+      .returns({
+        // mock JBFundingCycle obj
+        number: 1,
+        configuration: timestamp,
+        basedOn: timestamp,
+        start: timestamp,
+        duration: 0,
+        weight: 0,
+        discountRate: 0,
+        ballot: ethers.constants.AddressZero,
+        metadata: packFundingCycleMetadata({ allowChangeToken: 1 })
+      });
+
+    await mockTokenStore.mock.changeFor
+      .withArgs(PROJECT_ID, mockToken.address, newTokenOwner.address)
+      .returns();
+
+    expect(
+      jbController.connect(caller).changeTokenOf(PROJECT_ID, mockToken.address, newTokenOwner.address)
+    ).to.be.not.reverted;
+  });
+
+  it(`Can't change current token if caller is not authorized`, async function () {
+    const { projectOwner, addrs, jbController, mockJbOperatorStore, mockJbFundingCycleStore, mockTokenStore, mockToken, timestamp } = await setup();
+    let newTokenOwner = addrs[0];
+    let caller = addrs[1];
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, projectOwner.address, DOMAIN, CHANGE_TOKEN_INDEX)
+      .returns(false);
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, projectOwner.address, 0, CHANGE_TOKEN_INDEX)
+      .returns(false);
+
+    await mockJbFundingCycleStore.mock.currentOf
+      .withArgs(PROJECT_ID)
+      .returns({
+        // mock JBFundingCycle obj
+        number: 1,
+        configuration: timestamp,
+        basedOn: timestamp,
+        start: timestamp,
+        duration: 0,
+        weight: 0,
+        discountRate: 0,
+        ballot: ethers.constants.AddressZero,
+        metadata: packFundingCycleMetadata({ allowChangeToken: 1 })
+      });
+
+    await mockTokenStore.mock.changeFor
+      .withArgs(PROJECT_ID, mockToken.address, newTokenOwner.address)
+      .returns();
+
+    expect(
+      jbController.connect(caller).changeTokenOf(PROJECT_ID, mockToken.address, newTokenOwner.address)
+    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
+  });
+
+  it(`Can't change current token if funding cycle is paused`, async function () {
+    const { projectOwner, addrs, jbController, mockJbOperatorStore, mockJbFundingCycleStore, mockTokenStore, mockToken, timestamp } = await setup();
+    let newTokenOwner = addrs[0];
+
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      // mock JBFundingCycle obj
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: 0,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({ allowChangeToken: 0 })
+    });
+
+    await mockTokenStore.mock.changeFor
+      .withArgs(PROJECT_ID, mockToken.address, newTokenOwner.address)
+      .returns();
+
+    expect(
+      jbController.connect(projectOwner).changeTokenOf(PROJECT_ID, mockToken.address, newTokenOwner.address)
+    ).to.revertedWith('0x05: NOT_ALLOWED');
   });
 
 });
