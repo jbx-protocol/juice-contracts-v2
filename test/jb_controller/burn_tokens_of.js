@@ -106,7 +106,7 @@ describe('JBController::mintTokenOf(...)', function () {
     };
   }
 
-  it(`Should mint token if caller is project owner and funding cycle not paused`, async function () {
+  it(`Should burn token if caller is project owner and funding cycle not paused`, async function () {
     const { projectOwner, beneficiary, jbController } = await setup();
 
     await expect(jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
