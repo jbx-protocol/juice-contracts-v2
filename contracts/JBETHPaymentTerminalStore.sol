@@ -205,7 +205,7 @@ contract JBETHPaymentTerminalStore {
     Only the associated payment terminal can record a payment.
 
     @param _payer The original address that sent the payment to the terminal.
-    @param _amount The amount that is being paid.
+    @param _amount The amount that is being paid in wei.
     @param _projectId The ID of the project being paid.
     @param _preferClaimedTokensAndBeneficiary Two properties are included in this packed uint256:
       The first bit contains the flag indicating whether the request prefers to issue tokens claimed as ERC-20s.
