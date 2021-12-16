@@ -92,12 +92,12 @@ describe('JBController::changeTokenOf(...)', function () {
       .withArgs(PROJECT_ID, mockToken.address, newTokenOwner.address)
       .returns();
 
-    expect(
+    await expect(
       jbController.connect(projectOwner).changeTokenOf(PROJECT_ID, mockToken.address, newTokenOwner.address)
     ).to.be.not.reverted;
   });
 
-  it(`Should change current token if caller is not project owner and but is authorized`, async function () {
+  it(`Should change current token if caller is not project owner but is authorized`, async function () {
     const { projectOwner, addrs, jbController, mockJbOperatorStore, mockJbFundingCycleStore, mockTokenStore, mockToken, timestamp } = await setup();
     let newTokenOwner = addrs[0];
     let caller = addrs[1];
@@ -125,7 +125,7 @@ describe('JBController::changeTokenOf(...)', function () {
       .withArgs(PROJECT_ID, mockToken.address, newTokenOwner.address)
       .returns();
 
-    expect(
+    await expect(
       jbController.connect(caller).changeTokenOf(PROJECT_ID, mockToken.address, newTokenOwner.address)
     ).to.be.not.reverted;
   });
@@ -162,7 +162,7 @@ describe('JBController::changeTokenOf(...)', function () {
       .withArgs(PROJECT_ID, mockToken.address, newTokenOwner.address)
       .returns();
 
-    expect(
+    await expect(
       jbController.connect(caller).changeTokenOf(PROJECT_ID, mockToken.address, newTokenOwner.address)
     ).to.be.revertedWith('Operatable: UNAUTHORIZED');
   });
@@ -188,7 +188,7 @@ describe('JBController::changeTokenOf(...)', function () {
       .withArgs(PROJECT_ID, mockToken.address, newTokenOwner.address)
       .returns();
 
-    expect(
+    await expect(
       jbController.connect(projectOwner).changeTokenOf(PROJECT_ID, mockToken.address, newTokenOwner.address)
     ).to.revertedWith('0x05: NOT_ALLOWED');
   });
