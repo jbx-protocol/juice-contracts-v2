@@ -106,7 +106,7 @@ describe('JBTokenStore::transferTo(...)', function () {
       jbTokenStore
         .connect(controller)
         .transferTo(holder.address, holder.address, PROJECT_ID, /* amount= */ 1),
-    ).to.be.revertedWith(errors.IDENTITY);
+    ).to.be.revertedWith(errors.INVALID_RECIPIENT);
   });
 
   it(`Can't transfer unclaimed tokens if amount is <= 0`, async function () {

@@ -16,10 +16,13 @@ import './libraries/JBErrors.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
-error ALREADY_CLAIMED();
-error INADEQUATE();
+error DISTRIBUTION_AMOUNT_LIMIT_REACHED();
+error INADEQUATE_CLAIM_AMOUNT();
+error INADEQUATE_DISTRIBUTE_AMOUNT();
+error INADEQUATE_TOKEN_COUNT();
+error INADEQUATE_WITHDRAW_AMOUNT();
 error INSUFFICIENT_TOKENS();
-error LIMIT_REACHED();
+error STORE_ALREADY_CLAIMED();
 error UNKNOWN_CURRENCY();
 
 /**
@@ -310,7 +313,7 @@ contract JBETHPaymentTerminalStore {
 
     // The token count for the beneficiary must be greater than or equal to the minimum expected.
     if (tokenCount < _minReturnedTokens) {
-      revert INADEQUATE();
+      revert INADEQUATE_TOKEN_COUNT();
     }
 
     // If a delegate was returned by the data source, issue a callback to it.
@@ -388,7 +391,7 @@ contract JBETHPaymentTerminalStore {
         terminal
       )
     ) {
-      revert LIMIT_REACHED();
+      revert DISTRIBUTION_AMOUNT_LIMIT_REACHED();
     }
 
     // Convert the amount to wei.
@@ -404,7 +407,7 @@ contract JBETHPaymentTerminalStore {
 
     // The amount being distributed must be at least as much as was expected.
     if (_minReturnedWei > distributedAmount) {
-      revert INADEQUATE();
+      revert INADEQUATE_DISTRIBUTE_AMOUNT();
     }
 
     // Store the new amount.
@@ -477,7 +480,7 @@ contract JBETHPaymentTerminalStore {
 
     // The amount being withdrawn must be at least as much as was expected.
     if (_minReturnedWei > withdrawnAmount) {
-      revert INADEQUATE();
+      revert INADEQUATE_WITHDRAW_AMOUNT();
     }
 
     // Store the decremented value.
@@ -565,7 +568,7 @@ contract JBETHPaymentTerminalStore {
     }
     // The amount being claimed must be at least as much as was expected.
     if (claimAmount < _minReturnedWei) {
-      revert INADEQUATE();
+      revert INADEQUATE_CLAIM_AMOUNT();
     }
 
     // Redeem the tokens, which burns them.
@@ -656,7 +659,7 @@ contract JBETHPaymentTerminalStore {
   function claimFor(IJBTerminal _terminal) external {
     // This store can only be claimed once.
     if (terminal != IJBTerminal(address(0))) {
-      revert ALREADY_CLAIMED();
+      revert STORE_ALREADY_CLAIMED();
     }
     // Set the terminal.
     terminal = _terminal;

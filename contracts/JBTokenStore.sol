@@ -12,10 +12,10 @@ import './JBToken.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
-error ALREADY_ISSUED();
 error EMPTY_NAME();
 error EMPTY_SYMBOL();
-error IDENTITY();
+error INVALID_RECIPIENT();
+error TOKEN_ALREADY_ISSUED();
 
 /**
   @notice
@@ -179,7 +179,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
     // Only one ERC20 token can be issued.
     if (tokenOf[_projectId] != IJBToken(address(0))) {
-      revert ALREADY_ISSUED();
+      revert TOKEN_ALREADY_ISSUED();
     }
 
     // Deploy the token contract.
@@ -403,7 +403,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
     // An address can't transfer to itself.
     if (_holder == _recipient) {
-      revert IDENTITY();
+      revert INVALID_RECIPIENT();
     }
 
     // There must be an amount to transfer.

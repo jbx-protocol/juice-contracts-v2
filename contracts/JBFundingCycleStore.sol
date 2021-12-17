@@ -12,7 +12,7 @@ import './libraries/JBErrors.sol';
 error INVALID_DURATION();
 error INVALID_DISCOUNT_RATE();
 error INVALID_WEIGHT();
-error NON_RECURRING();
+error NON_RECURRING_FUNDING_CYCLE();
 
 /** 
   @notice 
@@ -366,7 +366,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
     // Make sure the funding cycle is recurring.
     if (_currentFundingCycle.discountRate >= 1000000001) {
-      revert NON_RECURRING();
+      revert NON_RECURRING_FUNDING_CYCLE();
     }
 
     // Determine if the configurable funding cycle can only take effect on or after a certain date.

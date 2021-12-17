@@ -13,7 +13,7 @@ import './libraries/JBErrors.sol';
 //*********************************************************************//
 error INVALID_SPLIT_PERCENT();
 error INVALID_TOTAL_PERCENT();
-error SOME_LOCKED();
+error SET_SPLITS_LOCKED();
 
 /**
   @notice
@@ -147,7 +147,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
         ) _includesLocked = true;
       }
       if (!_includesLocked) {
-        revert SOME_LOCKED();
+        revert SET_SPLITS_LOCKED();
       }
     }
 

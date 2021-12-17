@@ -173,7 +173,7 @@ describe('JBSplitsStore::set(...)', function () {
         GROUP,
         newSplits
       )
-    ).to.be.revertedWith(errors.SOME_LOCKED);
+    ).to.be.revertedWith(errors.SET_SPLITS_LOCKED);
   })
 
   it('Should set new splits with extension of a preexisting locked one', async function () {

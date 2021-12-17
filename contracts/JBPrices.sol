@@ -8,7 +8,7 @@ import './libraries/JBErrors.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
-error ALREADY_EXISTS();
+error PRICE_FEED_ALREADY_EXISTS();
 
 /** 
   @notice Manages and normalizes price feeds.
@@ -112,7 +112,7 @@ contract JBPrices is IJBPrices, Ownable {
   ) external override onlyOwner {
     // There can't already be a feed for the specified currency.
     if (feedFor[_currency][_base] != AggregatorV3Interface(address(0))) {
-      revert ALREADY_EXISTS();
+      revert PRICE_FEED_ALREADY_EXISTS();
     }
 
     // Set the feed.

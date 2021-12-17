@@ -88,7 +88,7 @@ describe('JBTokenStore::issueFor(...)', function () {
       .not.be.reverted;
     await expect(
       jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL),
-    ).to.be.revertedWith(errors.ALREADY_ISSUED);
+    ).to.be.revertedWith(errors.TOKEN_ALREADY_ISSUED);
   });
 
   it(`Can't issue tokens if caller does not have permission`, async function () {
