@@ -32,9 +32,9 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
+error INVALID_BALLOT_REDEMPTION_RATE();
 error INVALID_RESERVED_RATE();
 error INVALID_REDEMPTION_RATE();
-error INVALID_BALLOT_REDEMPTION_RATE();
 
 /**
   @notice

@@ -16,11 +16,11 @@ import './libraries/JBErrors.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
-error INADEQUATE();
-error UNKNOWN_CURRENCY();
-error LIMIT_REACHED();
-error INSUFFICIENT_TOKENS();
 error ALREADY_CLAIMED();
+error INADEQUATE();
+error INSUFFICIENT_TOKENS();
+error LIMIT_REACHED();
+error UNKNOWN_CURRENCY();
 
 /**
   @notice

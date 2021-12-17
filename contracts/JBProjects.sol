@@ -10,10 +10,11 @@ import './libraries/JBErrors.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
+error CHALLENGE_OPEN();
 error EMPTY_HANDLE();
 error HANDLE_TAKEN();
 error HANDLE_NOT_TAKEN();
-error CHALLENGE_OPEN();
+
 /** 
   @notice 
   Stores project ownership and identifying information.

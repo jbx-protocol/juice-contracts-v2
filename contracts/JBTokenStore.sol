@@ -12,9 +12,9 @@ import './JBToken.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
+error ALREADY_ISSUED();
 error EMPTY_NAME();
 error EMPTY_SYMBOL();
-error ALREADY_ISSUED();
 error IDENTITY();
 
 /**

@@ -11,9 +11,10 @@ import './libraries/JBErrors.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
-error SOME_LOCKED();
 error INVALID_SPLIT_PERCENT();
 error INVALID_TOTAL_PERCENT();
+error SOME_LOCKED();
+
 /**
   @notice
   Stores splits for each project.
