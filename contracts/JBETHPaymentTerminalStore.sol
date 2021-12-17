@@ -273,7 +273,7 @@ contract JBETHPaymentTerminalStore {
     // Multiply the amount by the weight to determine the amount of tokens to mint.
     uint256 _weightedAmount = PRBMathUD60x18.mul(_amount, weight);
 
-    // Add the amount to the balance of the project if needed.
+    // Add the amount to the ETH balance of the project if needed.
     if (_amount > 0) balanceOf[_projectId] = balanceOf[_projectId] + _amount;
 
     if (_weightedAmount > 0)
@@ -314,12 +314,12 @@ contract JBETHPaymentTerminalStore {
     Only the associated payment terminal can record a distribution.
 
     @param _projectId The ID of the project that is having funds distributed.
-    @param _amount The amount being distributed. Send as wei (18 decimals).
+    @param _amount The amount being distributed as a fixed point number.
     @param _currency The expected currency of the `_amount` being tapped. This must match the project's current funding cycle's currency.
     @param _minReturnedWei The minimum number of wei that should be distributed.
 
     @return fundingCycle The funding cycle during which the withdrawal was made.
-    @return distributedAmount The amount distribution.
+    @return distributedAmount The amount distribution in wei.
   */
   function recordDistributionFor(
     uint256 _projectId,
@@ -349,8 +349,9 @@ contract JBETHPaymentTerminalStore {
     );
 
     // The new total amount that has been distributed during this funding cycle.
-    uint256 _newUsedDistributionLimitOf = usedDistributionLimitOf[_projectId][fundingCycle.number] +
-      _amount;
+    uint256 _newUsedDistributionLimitOf = usedDistributionLimitOf[_projectId][
+      fundingCycle.configuration
+    ] + _amount;
 
     // Amount must be within what is still distributable.
     require(
@@ -364,8 +365,7 @@ contract JBETHPaymentTerminalStore {
     );
 
     // Convert the amount to wei.
-    // A currency of 0 should be interpreted as whatever the currency being distributed is.
-    distributedAmount = _currency == 0
+    distributedAmount = (_currency == JBCurrencies.ETH)
       ? _amount
       : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, JBCurrencies.ETH));
 
@@ -376,9 +376,9 @@ contract JBETHPaymentTerminalStore {
     require(_minReturnedWei <= distributedAmount, '0x41: INADEQUATE');
 
     // Store the new amount.
-    usedDistributionLimitOf[_projectId][fundingCycle.number] = _newUsedDistributionLimitOf;
+    usedDistributionLimitOf[_projectId][fundingCycle.configuration] = _newUsedDistributionLimitOf;
 
-    // Removed the distributed funds from the project's balance.
+    // Removed the distributed funds from the project's ETH balance.
     balanceOf[_projectId] = balanceOf[_projectId] - distributedAmount;
   }
 
@@ -387,12 +387,12 @@ contract JBETHPaymentTerminalStore {
     Records newly used allowance funds of a project.
 
     @param _projectId The ID of the project to use the allowance of.
-    @param _amount The amount of the allowance to use.
+    @param _amount The amount of the allowance to use as a fixed point number.
     @param _currency The currency of the `_amount` value. Must match the funding cycle's currency.
     @param _minReturnedWei The amount of wei that is expected to be withdrawn.
 
     @return fundingCycle The funding cycle during which the withdrawal is being made.
-    @return withdrawnAmount The amount withdrawn.
+    @return withdrawnAmount The amount withdrawn in wei.
   */
   function recordUsedAllowanceOf(
     uint256 _projectId,
@@ -418,23 +418,25 @@ contract JBETHPaymentTerminalStore {
       '0x42: UNEXPECTED_CURRENCY'
     );
 
-    // Convert the amount to wei.
-    // A currency of 0 should be interpreted as whatever the currency being withdrawn is.
-    withdrawnAmount = _currency == 0
-      ? _amount
-      : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, JBCurrencies.ETH));
+    uint256 _newOverflowAllowanceOf = usedOverflowAllowanceOf[_projectId][
+      fundingCycle.configuration
+    ] + _amount;
 
     // There must be sufficient allowance available.
     require(
-      withdrawnAmount <=
+      _newOverflowAllowanceOf <=
         directory.controllerOf(_projectId).overflowAllowanceOf(
           _projectId,
           fundingCycle.configuration,
           terminal
-        ) -
-          usedOverflowAllowanceOf[_projectId][fundingCycle.configuration],
+        ),
       '0x43: NOT_ALLOWED'
     );
+
+    // Convert the amount to wei.
+    withdrawnAmount = (_currency == JBCurrencies.ETH)
+      ? _amount
+      : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, JBCurrencies.ETH));
 
     // The amount being withdrawn must be available.
     require(withdrawnAmount <= balanceOf[_projectId], '0x44: INSUFFICIENT_FUNDS');
@@ -442,12 +444,10 @@ contract JBETHPaymentTerminalStore {
     // The amount being withdrawn must be at least as much as was expected.
     require(_minReturnedWei <= withdrawnAmount, '0x45: INADEQUATE');
 
-    // Store the decremented value.
-    usedOverflowAllowanceOf[_projectId][fundingCycle.configuration] =
-      usedOverflowAllowanceOf[_projectId][fundingCycle.configuration] +
-      withdrawnAmount;
+    // Store the incremented value.
+    usedOverflowAllowanceOf[_projectId][fundingCycle.configuration] = _newOverflowAllowanceOf;
 
-    // Update the project's balance.
+    // Update the project's ETH balance.
     balanceOf[_projectId] = balanceOf[_projectId] - withdrawnAmount;
   }
 

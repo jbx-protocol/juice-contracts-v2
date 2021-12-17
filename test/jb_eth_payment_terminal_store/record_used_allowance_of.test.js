@@ -14,7 +14,7 @@ import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPric
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
+describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
   const PROJECT_ID = 2;
   const AMOUNT = ethers.FixedNumber.fromString('4398541.345');
   const WEIGHT = ethers.FixedNumber.fromString('900000000.23411');
@@ -59,6 +59,19 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
+    const packedMetadata = packFundingCycleMetadata();
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: WEIGHT,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packedMetadata,
+    });
+
     return {
       terminal,
       addr,
@@ -75,32 +88,16 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
     };
   }
 
-  it('Should record distribution with terminal access', async function () {
+  it('Should record used allowance with terminal access', async function () {
     const {
       terminal,
       mockJbController,
-      mockJbFundingCycleStore,
       mockJbPrices,
       jbEthPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
       CURRENCY_USD,
     } = await setup();
-
-    const packedMetadata = packFundingCycleMetadata({ pauseDistributions: 0 });
-
-    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      // mock JBFundingCycle obj
-      number: 1,
-      configuration: timestamp,
-      basedOn: timestamp,
-      start: timestamp,
-      duration: 0,
-      weight: WEIGHT,
-      discountRate: 0,
-      ballot: ethers.constants.AddressZero,
-      metadata: packedMetadata,
-    });
 
     const usdToEthPrice = ethers.FixedNumber.from(10000);
     const amountInWei = AMOUNT.divUnsafe(usdToEthPrice);
@@ -114,25 +111,25 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_USD);
 
-    await mockJbController.mock.distributionLimitOf
+    await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(AMOUNT);
 
     await mockJbPrices.mock.priceFor.withArgs(CURRENCY_USD, CURRENCY_ETH).returns(usdToEthPrice);
 
-    // pre-checks
-    expect(await jbEthPaymentTerminalStore.usedDistributionLimitOf(PROJECT_ID, timestamp)).to.equal(
+    // Pre-checks
+    expect(await jbEthPaymentTerminalStore.usedOverflowAllowanceOf(PROJECT_ID, timestamp)).to.equal(
       0,
     );
     expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(amountInWei);
 
-    // Record the distributions
+    // Record the used allowance
     await jbEthPaymentTerminalStore
       .connect(terminal)
-      .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_USD, /* minReturnedWei */ amountInWei);
+      .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD, /* minReturnedWei */ amountInWei);
 
-    // post-checks
-    expect(await jbEthPaymentTerminalStore.usedDistributionLimitOf(PROJECT_ID, timestamp)).to.equal(
+    // Post-checks
+    expect(await jbEthPaymentTerminalStore.usedOverflowAllowanceOf(PROJECT_ID, timestamp)).to.equal(
       AMOUNT,
     );
     expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(0);
@@ -140,42 +137,26 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
 
   /* Sad path tests */
 
-  it(`Can't record distribution without terminal access`, async function () {
+  it(`Can't record allowance without terminal access`, async function () {
     const { addr, jbEthPaymentTerminalStore, CURRENCY_ETH } = await setup();
 
-    // Record the distributions
+    // Record the used allowance
     await expect(
       jbEthPaymentTerminalStore
         .connect(addr)
-        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
+        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
     ).to.be.revertedWith('0x3a: UNAUTHORIZED');
   });
 
-  it(`Can't record distribution if distributedAmount < minReturnedWei`, async function () {
+  it(`Can't record allowance if withdrawnAmount < minReturnedWei`, async function () {
     const {
       terminal,
       mockJbController,
-      mockJbFundingCycleStore,
       mockJbPrices,
       jbEthPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     } = await setup();
-
-    const packedMetadata = packFundingCycleMetadata({ pauseDistributions: 0 });
-
-    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      // mock JBFundingCycle obj
-      number: 1,
-      configuration: timestamp,
-      basedOn: timestamp,
-      start: timestamp,
-      duration: 0,
-      weight: WEIGHT,
-      discountRate: 0,
-      ballot: ethers.constants.AddressZero,
-      metadata: packedMetadata,
-    });
 
     // Add to balance beforehand
     await jbEthPaymentTerminalStore.connect(terminal).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
@@ -184,7 +165,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_ETH);
 
-    await mockJbController.mock.distributionLimitOf
+    await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(AMOUNT);
 
@@ -192,45 +173,29 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       .withArgs(CURRENCY_ETH, CURRENCY_ETH)
       .returns(ethers.FixedNumber.from(1));
 
-    // Record the distributions
+    // Record the used allowance
     const minReturnedWei = AMOUNT.addUnsafe(ethers.FixedNumber.from(1));
     await expect(
       jbEthPaymentTerminalStore
         .connect(terminal)
-        .recordDistributionFor(
+        .recordUsedAllowanceOf(
           PROJECT_ID,
           AMOUNT,
           CURRENCY_ETH,
           /* minReturnedWei */ minReturnedWei,
         ),
-    ).to.be.revertedWith('0x41: INADEQUATE');
+    ).to.be.revertedWith('0x45: INADEQUATE');
   });
 
-  it(`Can't record distribution if distributedAmount > project's total balance`, async function () {
+  it(`Can't record allowance if withdrawnAmount > project's total balance`, async function () {
     const {
       terminal,
       mockJbController,
-      mockJbFundingCycleStore,
       mockJbPrices,
       jbEthPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     } = await setup();
-
-    const packedMetadata = packFundingCycleMetadata({ pauseDistributions: 0 });
-
-    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      // mock JBFundingCycle obj
-      number: 1,
-      configuration: timestamp,
-      basedOn: timestamp,
-      start: timestamp,
-      duration: 0,
-      weight: WEIGHT,
-      discountRate: 0,
-      ballot: ethers.constants.AddressZero,
-      metadata: packedMetadata,
-    });
 
     // Add to balance beforehand
     const smallBalance = AMOUNT.subUnsafe(ethers.FixedNumber.from(1));
@@ -242,7 +207,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_ETH);
 
-    await mockJbController.mock.distributionLimitOf
+    await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(AMOUNT);
 
@@ -250,39 +215,23 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       .withArgs(CURRENCY_ETH, CURRENCY_ETH)
       .returns(ethers.FixedNumber.from(1));
 
-    // Record the distributions
+    // Record the used allowance
     await expect(
       jbEthPaymentTerminalStore
         .connect(terminal)
-        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
-    ).to.be.revertedWith('0x40: INSUFFICIENT_FUNDS');
+        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
+    ).to.be.revertedWith('0x44: INSUFFICIENT_FUNDS');
   });
 
-  it(`Can't record distribution if distributionLimit is exceeded`, async function () {
+  it(`Can't record allowance if overflowAllowanceOf is exceeded`, async function () {
     const {
       terminal,
       mockJbController,
-      mockJbFundingCycleStore,
       mockJbPrices,
       jbEthPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     } = await setup();
-
-    const packedMetadata = packFundingCycleMetadata({ pauseDistributions: 0 });
-
-    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      // mock JBFundingCycle obj
-      number: 1,
-      configuration: timestamp,
-      basedOn: timestamp,
-      start: timestamp,
-      duration: 0,
-      weight: WEIGHT,
-      discountRate: 0,
-      ballot: ethers.constants.AddressZero,
-      metadata: packedMetadata,
-    });
 
     // Add to balance beforehand
     await jbEthPaymentTerminalStore.connect(terminal).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
@@ -291,90 +240,42 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_ETH);
 
-    const smallDistributionLimit = AMOUNT.subUnsafe(ethers.FixedNumber.from(1));
-    await mockJbController.mock.distributionLimitOf
+    const smallTotalAllowance = AMOUNT.subUnsafe(ethers.FixedNumber.from(1));
+    await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
-      .returns(smallDistributionLimit);
+      .returns(smallTotalAllowance);
 
     await mockJbPrices.mock.priceFor
       .withArgs(CURRENCY_ETH, CURRENCY_ETH)
       .returns(ethers.FixedNumber.from(1));
 
-    // Record the distributions
+    // Record the used allowance
     await expect(
       jbEthPaymentTerminalStore
         .connect(terminal)
-        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
-    ).to.be.revertedWith('0x1b: LIMIT_REACHED');
+        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
+    ).to.be.revertedWith('0x43: NOT_ALLOWED');
   });
 
-  it(`Can't record distribution if currency param doesn't match controller's currency`, async function () {
+  it(`Can't record allowance if currency param doesn't match controller's currency`, async function () {
     const {
       terminal,
       mockJbController,
-      mockJbFundingCycleStore,
       jbEthPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
       CURRENCY_USD,
     } = await setup();
 
-    const packedMetadata = packFundingCycleMetadata({ pauseDistributions: 0 });
-
-    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      // mock JBFundingCycle obj
-      number: 1,
-      configuration: timestamp,
-      basedOn: timestamp,
-      start: timestamp,
-      duration: 0,
-      weight: WEIGHT,
-      discountRate: 0,
-      ballot: ethers.constants.AddressZero,
-      metadata: packedMetadata,
-    });
-
     await mockJbController.mock.currencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_USD);
 
-    // Record the distributions
+    // Record the used allowance
     await expect(
       jbEthPaymentTerminalStore
         .connect(terminal)
-        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
-    ).to.be.revertedWith('0x3f: UNEXPECTED_CURRENCY');
-  });
-
-  it(`Can't record distribution if distributions are paused`, async function () {
-    const {
-      terminal,
-      mockJbFundingCycleStore,
-      jbEthPaymentTerminalStore,
-      timestamp,
-      CURRENCY_ETH,
-    } = await setup();
-
-    const packedMetadata = packFundingCycleMetadata({ pauseDistributions: 1 });
-
-    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      // mock JBFundingCycle obj
-      number: 1,
-      configuration: timestamp,
-      basedOn: timestamp,
-      start: timestamp,
-      duration: 0,
-      weight: WEIGHT,
-      discountRate: 0,
-      ballot: ethers.constants.AddressZero,
-      metadata: packedMetadata,
-    });
-
-    // Record the distributions
-    await expect(
-      jbEthPaymentTerminalStore
-        .connect(terminal)
-        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
-    ).to.be.revertedWith('0x3e: PAUSED');
+        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
+    ).to.be.revertedWith('0x42: UNEXPECTED_CURRENCY');
   });
 });
