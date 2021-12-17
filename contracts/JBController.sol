@@ -107,9 +107,9 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
   /** 
     @notice
-    Rate constant.
+    Max. Token Rate.
   */
-  uint constant RATE = 10000;
+  uint constant MAX_TOKEN_RATE = 10000;
 
   /** 
     @notice
@@ -307,16 +307,16 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     IJBTerminal[] memory _terminals
   ) external returns (uint256 projectId) {
     // The reserved project token rate must be less than or equal to 10000.
-    if (_metadata.reservedRate > RATE) {
+    if (_metadata.reservedRate > MAX_TOKEN_RATE) {
       revert INVALID_RESERVED_RATE();
     }
     // The redemption rate must be between 0 and 10000.
-    if (_metadata.redemptionRate > RATE) {
+    if (_metadata.redemptionRate > MAX_TOKEN_RATE) {
       revert INVALID_REDEMPTION_RATE();
     }
 
     // The ballot redemption rate must be less than or equal to 10000.
-    if (_metadata.ballotRedemptionRate > RATE) {
+    if (_metadata.ballotRedemptionRate > MAX_TOKEN_RATE) {
       revert INVALID_BALLOT_REDEMPTION_RATE();
     }
 
@@ -391,16 +391,16 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     returns (uint256)
   {
     // The reserved project token rate must be less than or equal to 10000.
-    if (_metadata.reservedRate > RATE) {
+    if (_metadata.reservedRate > MAX_TOKEN_RATE) {
       revert INVALID_RESERVED_RATE();
     }
     // The redemption rate must be between 0 and 10000.
-    if (_metadata.redemptionRate > RATE) {
+    if (_metadata.redemptionRate > MAX_TOKEN_RATE) {
       revert INVALID_REDEMPTION_RATE();
     }
 
     // The ballot redemption rate must be less than or equal to 10000.
-    if (_metadata.ballotRedemptionRate > RATE) {
+    if (_metadata.ballotRedemptionRate > MAX_TOKEN_RATE) {
       revert INVALID_BALLOT_REDEMPTION_RATE();
     }
 
@@ -502,7 +502,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     returns (uint256 beneficiaryTokenCount)
   {
     // Can't send to the zero address.
-    if (_reservedRate != RATE || _beneficiary == address(0)) {
+    if (_reservedRate != MAX_TOKEN_RATE || _beneficiary == address(0)) {
       revert JBErrors.ZERO_ADDRESS();
     }
 
@@ -519,14 +519,14 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       revert JBErrors.PAUSED();
     }
 
-    if (_reservedRate == RATE) {
+    if (_reservedRate == MAX_TOKEN_RATE) {
       // Subtract the total weighted amount from the tracker so the full reserved token amount can be printed later.
       _processedTokenTrackerOf[_projectId] =
         _processedTokenTrackerOf[_projectId] -
         int256(_tokenCount);
     } else {
       // The unreserved token count that will be minted for the beneficiary.
-      beneficiaryTokenCount = PRBMath.mulDiv(_tokenCount, RATE - _reservedRate, RATE);
+      beneficiaryTokenCount = PRBMath.mulDiv(_tokenCount, MAX_TOKEN_RATE - _reservedRate, MAX_TOKEN_RATE);
 
       // Mint the tokens.
       tokenStore.mintFor(_beneficiary, _projectId, beneficiaryTokenCount, _preferClaimedTokens);
@@ -816,10 +816,10 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     if (_unprocessedTokenBalanceOf == 0) return 0;
 
     // If all tokens are reserved, return the full unprocessed amount.
-    if (_reservedRate == RATE) return _unprocessedTokenBalanceOf;
+    if (_reservedRate == MAX_TOKEN_RATE) return _unprocessedTokenBalanceOf;
 
     return
-      PRBMath.mulDiv(_unprocessedTokenBalanceOf, RATE, RATE - _reservedRate) -
+      PRBMath.mulDiv(_unprocessedTokenBalanceOf, MAX_TOKEN_RATE, MAX_TOKEN_RATE - _reservedRate) -
       _unprocessedTokenBalanceOf;
   }
 

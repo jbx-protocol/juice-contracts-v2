@@ -94,7 +94,7 @@ contract JBETHPaymentTerminalStore {
 
   /** 
     @notice
-    Rate constant.
+    Redemption Rate.
   */
   uint constant REDEMPTION_RATE = 10000;
 
