@@ -3,8 +3,8 @@ pragma solidity 0.8.6;
 
 import '@paulrberg/contracts/math/PRBMath.sol';
 
-import './interfaces/IJBFundingCycleStore.sol';
 import './abstract/JBControllerUtility.sol';
+import './interfaces/IJBFundingCycleStore.sol';
 import './libraries/JBErrors.sol';
 
 // --------------------------- custom errors -------------------------- //

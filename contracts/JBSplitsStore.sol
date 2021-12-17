@@ -4,9 +4,9 @@ pragma solidity 0.8.6;
 import './libraries/JBOperations.sol';
 
 // Inheritance
+import './abstract/JBOperatable.sol';
 import './interfaces/IJBSplitsStore.sol';
 import './interfaces/IJBDirectory.sol';
-import './abstract/JBOperatable.sol';
 import './libraries/JBErrors.sol';
 
 // --------------------------- custom errors -------------------------- //

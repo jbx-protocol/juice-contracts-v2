@@ -5,7 +5,6 @@ import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBProjects.sol';
-
 import './libraries/JBOperations.sol';
 import './libraries/JBErrors.sol';
 
