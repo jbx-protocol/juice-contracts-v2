@@ -17,9 +17,8 @@ describe('JBController::mintTokenOf(...)', function () {
   const NAME = 'TestTokenDAO';
   const SYMBOL = 'TEST';
   const MEMO = 'Test Memo'
-  const AMOUNT_TO_MINT = 20000;
+  const AMOUNT_TO_BURN = 20000;
   const RESERVED_RATE = 5000; // 50%
-  const AMOUNT_TO_RECEIVE = AMOUNT_TO_MINT - (AMOUNT_TO_MINT * RESERVED_RATE / 10000);
 
   let MINT_INDEX;
 
@@ -31,7 +30,7 @@ describe('JBController::mintTokenOf(...)', function () {
   });
 
   async function setup() {
-    let [deployer, projectOwner, beneficiary, ...addrs] = await ethers.getSigners();
+    let [deployer, projectOwner, holder, ...addrs] = await ethers.getSigners();
 
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);
@@ -80,21 +79,21 @@ describe('JBController::mintTokenOf(...)', function () {
       metadata: packFundingCycleMetadata({ pauseMint: 0, reservedRate: RESERVED_RATE })
     });
 
-    await mockTokenStore.mock.mintFor
-      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_RECEIVE, /*_preferClaimedTokens=*/true)
+    await mockTokenStore.mock.burnFrom
+      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, /*_preferClaimedTokens=*/true)
       .returns();
 
     await mockTokenStore.mock.totalSupplyOf
       .withArgs(PROJECT_ID)
-      .returns(AMOUNT_TO_RECEIVE);
+      .returns(AMOUNT_TO_BURN);
 
     await mockToken.mock.mint
-      .withArgs(PROJECT_ID, beneficiary.address, AMOUNT_TO_RECEIVE)
+      .withArgs(PROJECT_ID, holder.address, AMOUNT_TO_BURN)
       .returns();
 
     return {
       projectOwner,
-      beneficiary,
+      holder,
       addrs,
       jbController,
       mockJbOperatorStore,
@@ -106,19 +105,28 @@ describe('JBController::mintTokenOf(...)', function () {
     };
   }
 
-  it(`Should burn token if caller is project owner and funding cycle not paused`, async function () {
-    const { projectOwner, beneficiary, jbController } = await setup();
+  it.only(`Should burn holder token if caller is project owner`, async function () {
+    const { projectOwner, holder, jbController } = await setup();
 
-    await expect(jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
-      .to.emit(jbController, 'MintTokens')
-      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, MEMO, RESERVED_RATE, projectOwner.address);
+    let initReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, RESERVED_RATE);
+
+    await expect(
+      jbController.connect(projectOwner).burnTokensOf(
+        holder.address,
+        PROJECT_ID,
+        AMOUNT_TO_BURN,
+        MEMO,
+        /*_preferClaimedTokens=*/true
+      )
+    ).to.emit(jbController, 'BurnTokens')
+      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, projectOwner.address);
 
     let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, RESERVED_RATE);
-    expect(newReservedTokenBalance).to.equal(AMOUNT_TO_MINT - AMOUNT_TO_RECEIVE);
+    expect(newReservedTokenBalance).to.equal(initReservedTokenBalance - AMOUNT_TO_BURN);
   });
 
-  it(`Should mint token if caller is not project owner but is authorized`, async function () {
-    const { projectOwner, beneficiary, addrs, jbController, mockJbOperatorStore, mockJbDirectory } = await setup();
+  it(`Should burn token if caller is not project owner but is authorized`, async function () {
+    const { projectOwner, holder, addrs, jbController, mockJbOperatorStore, mockJbDirectory } = await setup();
 
     let caller = addrs[0];
 
@@ -130,16 +138,16 @@ describe('JBController::mintTokenOf(...)', function () {
       .withArgs(PROJECT_ID, caller.address)
       .returns(false);
 
-    await expect(jbController.connect(caller).mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
+    await expect(jbController.connect(caller).mintTokensOf(PROJECT_ID, AMOUNT_TO_BURN, holder.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
       .to.emit(jbController, 'MintTokens')
-      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, MEMO, RESERVED_RATE, caller.address);
+      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, RESERVED_RATE, caller.address);
 
     let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, RESERVED_RATE);
-    expect(newReservedTokenBalance).to.equal(AMOUNT_TO_MINT - AMOUNT_TO_RECEIVE);
+    expect(newReservedTokenBalance).to.equal(AMOUNT_TO_BURN - AMOUNT_TO_BURN);
   });
 
-  it(`Should mint token if caller is a terminal of the corresponding project`, async function () {
-    const { projectOwner, beneficiary, jbController, mockJbOperatorStore, mockJbDirectory } = await setup();
+  it(`Should burn token if caller is a terminal of the corresponding project`, async function () {
+    const { projectOwner, holder, jbController, mockJbOperatorStore, mockJbDirectory } = await setup();
     const terminal = await deployMockContract(projectOwner, jbTerminal.abi);
     const terminalSigner = await impersonateAccount(terminal.address);
 
@@ -155,30 +163,23 @@ describe('JBController::mintTokenOf(...)', function () {
       .withArgs(PROJECT_ID, terminalSigner.address)
       .returns(true);
 
-    await expect(jbController.connect(terminalSigner).mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
+    await expect(jbController.connect(terminalSigner).mintTokensOf(PROJECT_ID, AMOUNT_TO_BURN, holder.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
       .to.emit(jbController, 'MintTokens')
-      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, MEMO, RESERVED_RATE, terminalSigner.address);
+      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, RESERVED_RATE, terminalSigner.address);
 
     let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, RESERVED_RATE);
-    expect(newReservedTokenBalance).to.equal(AMOUNT_TO_MINT - AMOUNT_TO_RECEIVE);
+    expect(newReservedTokenBalance).to.equal(AMOUNT_TO_BURN - AMOUNT_TO_BURN);
   });
 
-  it(`Can't mint token if beneficiary is zero address and reserved rate is not 100%`, async function () {
-    const { projectOwner, jbController } = await setup();
+  it(`Can't burn 0 token`, async function () {
+    const { projectOwner, holder, jbController } = await setup();
 
-    await expect(jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, ethers.constants.AddressZero, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
-      .to.be.revertedWith('0x2f: ZERO_ADDRESS');
-  });
-
-  it(`Can't mint 0 token`, async function () {
-    const { projectOwner, beneficiary, jbController } = await setup();
-
-    await expect(jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, 0, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
+    await expect(jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, 0, holder.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
       .to.be.revertedWith('0x30: NO_OP');
   });
 
-  it(`Can't mint token if funding cycle is paused and caller is not a terminal delegate`, async function () {
-    const { projectOwner, beneficiary, jbController, mockJbFundingCycleStore, timestamp } = await setup();
+  it(`Can't burn token if funding cycle is paused and caller is not a terminal delegate`, async function () {
+    const { projectOwner, holder, jbController, mockJbFundingCycleStore, timestamp } = await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
@@ -193,12 +194,12 @@ describe('JBController::mintTokenOf(...)', function () {
       metadata: packFundingCycleMetadata({ pauseMint: 1, reservedRate: RESERVED_RATE })
     });
 
-    await expect(jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
+    await expect(jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, AMOUNT_TO_BURN, holder.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
       .to.be.revertedWith('0x31: PAUSED');
   });
 
-  it(`Should mint token if funding cycle is paused and caller is a terminal delegate`, async function () {
-    const { projectOwner, beneficiary, jbController, mockJbFundingCycleStore, mockJbOperatorStore, mockJbDirectory, timestamp } = await setup();
+  it(`Should burn token if funding cycle is paused and caller is a terminal delegate`, async function () {
+    const { projectOwner, holder, jbController, mockJbFundingCycleStore, mockJbOperatorStore, mockJbDirectory, timestamp } = await setup();
     const terminal = await deployMockContract(projectOwner, jbTerminal.abi);
     const terminalSigner = await impersonateAccount(terminal.address);
 
@@ -227,11 +228,12 @@ describe('JBController::mintTokenOf(...)', function () {
       metadata: packFundingCycleMetadata({ pauseMint: 1, reservedRate: RESERVED_RATE })
     });
 
-    await expect(jbController.connect(terminalSigner).mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
+    await expect(jbController.connect(terminalSigner).mintTokensOf(PROJECT_ID, AMOUNT_TO_BURN, holder.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
       .to.emit(jbController, 'MintTokens')
-      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, MEMO, RESERVED_RATE, terminalSigner.address);
+      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, RESERVED_RATE, terminalSigner.address);
 
     let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, RESERVED_RATE);
-    expect(newReservedTokenBalance).to.equal(AMOUNT_TO_MINT - AMOUNT_TO_RECEIVE);
+    expect(newReservedTokenBalance).to.equal(AMOUNT_TO_BURN - AMOUNT_TO_BURN);
   });
+
 });
