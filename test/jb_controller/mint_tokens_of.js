@@ -226,4 +226,71 @@ describe('JBController::mintTokenOf(...)', function () {
     let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, RESERVED_RATE);
     expect(newReservedTokenBalance).to.equal(AMOUNT_TO_MINT - AMOUNT_TO_RECEIVE);
   });
+
+  it(`Should add the minted amount to the reserved tokens if reserved rate is 100%`, async function () {
+    const { projectOwner, beneficiary, jbController, mockJbFundingCycleStore, mockTokenStore, timestamp } = await setup();
+
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      // mock JBFundingCycle obj
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: 0,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({ reservedRate: 10000 })
+    });
+
+    await mockTokenStore.mock.totalSupplyOf
+      .withArgs(PROJECT_ID)
+      .returns(0);
+
+    let previousReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, /*reservedRate=*/10000);
+
+    await expect(jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true, 10000))
+      .to.emit(jbController, 'MintTokens')
+      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, MEMO, 10000, projectOwner.address);
+
+    let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, 10000);
+
+    expect(newReservedTokenBalance).to.equal(previousReservedTokenBalance.add(AMOUNT_TO_MINT));
+  });
+
+  it(`Should substract the received amount to the reserved tokens if reserved rate is 0%`, async function () {
+    const { projectOwner, beneficiary, jbController, mockJbFundingCycleStore, mockTokenStore, timestamp } = await setup();
+
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      // mock JBFundingCycle obj
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: 0,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({ reservedRate: 0 })
+    });
+
+    await mockTokenStore.mock.totalSupplyOf
+      .withArgs(PROJECT_ID)
+      .returns(AMOUNT_TO_MINT); // to mint == to receive <=> reserve rate = 0
+
+    await mockTokenStore.mock.mintFor
+      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, true)
+      .returns(); // to mint == to receive (reserve rate = 0)
+
+    let previousReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, /*reservedRate=*/0);
+
+    await expect(jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true, 0))
+      .to.emit(jbController, 'MintTokens')
+      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, MEMO, 0, projectOwner.address);
+
+    let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, 0);
+
+    // reserved token cannot be < 0
+    expect(newReservedTokenBalance).to.equal(Math.max(previousReservedTokenBalance.sub(AMOUNT_TO_MINT), 0));
+  });
 });

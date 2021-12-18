@@ -12,10 +12,8 @@ import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsS
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
 
-describe('JBController::mintTokenOf(...)', function () {
+describe('JBController::burnTokenOf(...)', function () {
   const PROJECT_ID = 1;
-  const NAME = 'TestTokenDAO';
-  const SYMBOL = 'TEST';
   const MEMO = 'Test Memo'
   const TOTAL_SUPPLY = 100000;
   const AMOUNT_TO_BURN = 20000;
@@ -37,13 +35,23 @@ describe('JBController::mintTokenOf(...)', function () {
     const block = await ethers.provider.getBlock(blockNum);
     const timestamp = block.timestamp;
 
-    let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
-    let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
-    let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
-    let mockJbFundingCycleStore = await deployMockContract(deployer, jbFundingCycleStore.abi);
-    let mockTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
-    let mockSplitsStore = await deployMockContract(deployer, jbSplitsStore.abi);
-    let mockToken = await deployMockContract(deployer, jbToken.abi);
+    let promises = [];
+
+    promises.push(deployMockContract(deployer, jbOperatoreStore.abi));
+    promises.push(deployMockContract(deployer, jbProjects.abi));
+    promises.push(deployMockContract(deployer, jbDirectory.abi));
+    promises.push(deployMockContract(deployer, jbFundingCycleStore.abi));
+    promises.push(deployMockContract(deployer, jbTokenStore.abi));
+    promises.push(deployMockContract(deployer, jbSplitsStore.abi));
+    promises.push(deployMockContract(deployer, jbToken.abi));
+
+    let [mockJbOperatorStore,
+      mockJbProjects,
+      mockJbDirectory,
+      mockJbFundingCycleStore,
+      mockTokenStore,
+      mockSplitsStore,
+      mockToken] = await Promise.all(promises);
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');
     let jbController = await jbControllerFactory.deploy(
@@ -54,8 +62,26 @@ describe('JBController::mintTokenOf(...)', function () {
       mockTokenStore.address,
       mockSplitsStore.address
     );
+    /*
+        let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
+        let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
+        let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
+        let mockJbFundingCycleStore = await deployMockContract(deployer, jbFundingCycleStore.abi);
+        let mockTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
+        let mockSplitsStore = await deployMockContract(deployer, jbSplitsStore.abi);
+        let mockToken = await deployMockContract(deployer, jbToken.abi);
+    
+        let jbControllerFactory = await ethers.getContractFactory('JBController');
+        let jbController = await jbControllerFactory.deploy(
+          mockJbOperatorStore.address,
+          mockJbProjects.address,
+          mockJbDirectory.address,
+          mockJbFundingCycleStore.address,
+          mockTokenStore.address,
+          mockSplitsStore.address
+        );
 
-    await mockJbProjects.mock.ownerOf
+            await mockJbProjects.mock.ownerOf
       .withArgs(PROJECT_ID)
       .returns(projectOwner.address);
 
@@ -82,16 +108,62 @@ describe('JBController::mintTokenOf(...)', function () {
 
     // only non-reserved are minted, minting total supply in holder account
     await mockTokenStore.mock.mintFor
-      .withArgs(holder.address, PROJECT_ID, (TOTAL_SUPPLY * (10000 - RESERVED_RATE) / 10000), /*_preferClaimedTokens=*/true)
+      .withArgs(holder.address, PROJECT_ID, (TOTAL_SUPPLY * (10000 - RESERVED_RATE) / 10000), true)
       .returns();
 
-    await mockTokenStore.mock.burnFrom
-      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, /*_preferClaimedTokens=*/true)
-      .returns();
+      await mockTokenStore.mock.burnFrom
+        .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, true)
+        .returns();
+  
+      await mockTokenStore.mock.totalSupplyOf
+        .withArgs(PROJECT_ID)
+        .returns(TOTAL_SUPPLY * (10000 - RESERVED_RATE) / 10000); // rest is in reserved
+  
+      await jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, TOTAL_SUPPLY, holder.address, MEMO, true, RESERVED_RATE);
 
-    await mockTokenStore.mock.totalSupplyOf
+    */
+
+    promises = [];
+
+    promises.push(mockJbProjects.mock.ownerOf
       .withArgs(PROJECT_ID)
-      .returns(TOTAL_SUPPLY * (10000 - RESERVED_RATE) / 10000); // rest is in reserved
+      .returns(projectOwner.address));
+
+    promises.push(mockJbDirectory.mock.isTerminalDelegateOf
+      .withArgs(PROJECT_ID, holder.address)
+      .returns(false));
+
+    promises.push(mockJbDirectory.mock.isTerminalDelegateOf
+      .withArgs(PROJECT_ID, projectOwner.address)
+      .returns(false));
+
+    promises.push(mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      // mock JBFundingCycle obj
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: 0,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({ pauseBurn: 0, pauseMint: 0, reservedRate: RESERVED_RATE })
+    }));
+
+    // only non-reserved are minted, minting total supply in holder account
+    promises.push(mockTokenStore.mock.mintFor
+      .withArgs(holder.address, PROJECT_ID, (TOTAL_SUPPLY * (10000 - RESERVED_RATE) / 10000), /*_preferClaimedTokens=*/true)
+      .returns());
+
+    promises.push(mockTokenStore.mock.burnFrom
+      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, /*_preferClaimedTokens=*/true)
+      .returns());
+
+    promises.push(mockTokenStore.mock.totalSupplyOf
+      .withArgs(PROJECT_ID)
+      .returns(TOTAL_SUPPLY * (10000 - RESERVED_RATE) / 10000)); // rest is in reserved
+
+    await Promise.all(promises);
 
     await jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, TOTAL_SUPPLY, holder.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE);
 
@@ -124,9 +196,10 @@ describe('JBController::mintTokenOf(...)', function () {
     ).to.emit(jbController, 'BurnTokens')
       .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, holder.address);
 
+    // New total supply = previous total supply minus amount burned
     await mockTokenStore.mock.totalSupplyOf
       .withArgs(PROJECT_ID)
-      .returns((TOTAL_SUPPLY * (10000 - RESERVED_RATE) / 10000) - AMOUNT_TO_BURN); // previous total supply minus burned
+      .returns((TOTAL_SUPPLY * (10000 - RESERVED_RATE) / 10000) - AMOUNT_TO_BURN);
 
     // mint 100k with 50% reserve -> _processedTokenTrackerOf(id) = 0, holder balance = 50k, totSup = 50k
     // reservedTokenBalance(id, reservedRate) = _reserveTokenAmountFor(_processedTracker=0, RR=50%, totalSupply=50k)
@@ -141,7 +214,7 @@ describe('JBController::mintTokenOf(...)', function () {
     expect(newReservedTokenBalance).to.equal(initReservedTokenBalance);
   });
 
-  it.only(`Should burn token if caller is not project owner but is authorized`, async function () {
+  it(`Should burn token if caller is not project owner but is authorized`, async function () {
 
     const { holder, addrs, jbController, mockTokenStore, mockJbOperatorStore, mockJbDirectory } = await setup();
 
@@ -164,19 +237,11 @@ describe('JBController::mintTokenOf(...)', function () {
         MEMO,
           /*_preferClaimedTokens=*/true
       )
-    ).to.emit(jbController, 'BurnTokens')
-      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, caller.address);
-
-    await mockTokenStore.mock.totalSupplyOf
-      .withArgs(PROJECT_ID)
-      .returns((TOTAL_SUPPLY * (10000 - RESERVED_RATE) / 10000) - AMOUNT_TO_BURN);
-
-    let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, RESERVED_RATE);
-    expect(newReservedTokenBalance).to.equal(initReservedTokenBalance);
+    ).to.be.not.reverted;
   });
 
   it(`Should burn token if caller is a terminal of the corresponding project`, async function () {
-    const { projectOwner, holder, jbController, mockJbOperatorStore, mockJbDirectory } = await setup();
+    const { projectOwner, holder, jbController, mockJbOperatorStore, mockJbDirectory, mockTokenStore } = await setup();
     const terminal = await deployMockContract(projectOwner, jbTerminal.abi);
     const terminalSigner = await impersonateAccount(terminal.address);
 
@@ -192,23 +257,33 @@ describe('JBController::mintTokenOf(...)', function () {
       .withArgs(PROJECT_ID, terminalSigner.address)
       .returns(true);
 
-    await expect(jbController.connect(terminalSigner).mintTokensOf(PROJECT_ID, AMOUNT_TO_BURN, holder.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
-      .to.emit(jbController, 'MintTokens')
-      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, RESERVED_RATE, terminalSigner.address);
-
-    let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, RESERVED_RATE);
-    expect(newReservedTokenBalance).to.equal(AMOUNT_TO_BURN - AMOUNT_TO_BURN);
+    let initReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, RESERVED_RATE);
+    await expect(
+      jbController.connect(terminalSigner).burnTokensOf(
+        holder.address,
+        PROJECT_ID,
+        AMOUNT_TO_BURN,
+        MEMO,
+            /*_preferClaimedTokens=*/true
+      )
+    ).to.be.not.reverted;
   });
 
   it(`Can't burn 0 token`, async function () {
-    const { projectOwner, holder, jbController } = await setup();
-
-    await expect(jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, 0, holder.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
-      .to.be.revertedWith('0x30: NO_OP');
+    const { holder, jbController } = await setup();
+    await expect(
+      jbController.connect(holder).burnTokensOf(
+        holder.address,
+        PROJECT_ID,
+        /*_tokenCount=*/0,
+        MEMO,
+        /*_preferClaimedTokens=*/true
+      )
+    ).to.be.revertedWith('0x32: NO_OP');
   });
 
   it(`Can't burn token if funding cycle is paused and caller is not a terminal delegate`, async function () {
-    const { projectOwner, holder, jbController, mockJbFundingCycleStore, timestamp } = await setup();
+    const { holder, jbController, mockJbFundingCycleStore, timestamp } = await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
@@ -220,11 +295,18 @@ describe('JBController::mintTokenOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ pauseMint: 1, reservedRate: RESERVED_RATE })
+      metadata: packFundingCycleMetadata({ pauseBurn: 1, reservedRate: RESERVED_RATE })
     });
 
-    await expect(jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, AMOUNT_TO_BURN, holder.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
-      .to.be.revertedWith('0x31: PAUSED');
+    await expect(
+      jbController.connect(holder).burnTokensOf(
+        holder.address,
+        PROJECT_ID,
+        AMOUNT_TO_BURN,
+        MEMO,
+        /*_preferClaimedTokens=*/true
+      )
+    ).to.be.revertedWith('0x33: PAUSED');
   });
 
   it(`Should burn token if funding cycle is paused and caller is a terminal delegate`, async function () {
@@ -254,15 +336,18 @@ describe('JBController::mintTokenOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ pauseMint: 1, reservedRate: RESERVED_RATE })
+      metadata: packFundingCycleMetadata({ pauseBurn: 1, reservedRate: RESERVED_RATE })
     });
 
-    await expect(jbController.connect(terminalSigner).mintTokensOf(PROJECT_ID, AMOUNT_TO_BURN, holder.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
-      .to.emit(jbController, 'MintTokens')
-      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, RESERVED_RATE, terminalSigner.address);
-
-    let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, RESERVED_RATE);
-    expect(newReservedTokenBalance).to.equal(AMOUNT_TO_BURN - AMOUNT_TO_BURN);
+    await expect(
+      jbController.connect(terminalSigner).burnTokensOf(
+        holder.address,
+        PROJECT_ID,
+        AMOUNT_TO_BURN,
+        MEMO,
+        /*_preferClaimedTokens=*/true
+      )
+    ).to.be.not.reverted;
   });
 
 });
