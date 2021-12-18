@@ -55,10 +55,6 @@ describe('JBController::mintTokenOf(...)', function () {
       mockSplitsStore.address
     );
 
-    await mockTokenStore.mock.issueFor
-      .withArgs(PROJECT_ID, NAME, SYMBOL)
-      .returns(mockToken.address);
-
     await mockJbProjects.mock.ownerOf
       .withArgs(PROJECT_ID)
       .returns(projectOwner.address);
