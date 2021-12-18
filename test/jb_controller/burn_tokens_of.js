@@ -17,16 +17,18 @@ describe('JBController::mintTokenOf(...)', function () {
   const NAME = 'TestTokenDAO';
   const SYMBOL = 'TEST';
   const MEMO = 'Test Memo'
+  const TOTAL_SUPPLY = 100000;
   const AMOUNT_TO_BURN = 20000;
   const RESERVED_RATE = 5000; // 50%
 
-  let MINT_INDEX;
+
+  let BURN_INDEX;
 
   before(async function () {
     let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
     let jbOperations = await jbOperationsFactory.deploy();
 
-    MINT_INDEX = await jbOperations.MINT();
+    BURN_INDEX = await jbOperations.BURN();
   });
 
   async function setup() {
@@ -54,13 +56,13 @@ describe('JBController::mintTokenOf(...)', function () {
       mockSplitsStore.address
     );
 
-    await mockTokenStore.mock.issueFor
-      .withArgs(PROJECT_ID, NAME, SYMBOL)
-      .returns(mockToken.address);
-
     await mockJbProjects.mock.ownerOf
       .withArgs(PROJECT_ID)
       .returns(projectOwner.address);
+
+    await mockJbDirectory.mock.isTerminalDelegateOf
+      .withArgs(PROJECT_ID, holder.address)
+      .returns(false);
 
     await mockJbDirectory.mock.isTerminalDelegateOf
       .withArgs(PROJECT_ID, projectOwner.address)
@@ -76,8 +78,13 @@ describe('JBController::mintTokenOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ pauseMint: 0, reservedRate: RESERVED_RATE })
+      metadata: packFundingCycleMetadata({ pauseBurn: 0, pauseMint: 0, reservedRate: RESERVED_RATE })
     });
+
+    // only non-reserved are minted, minting total supply in holder account
+    await mockTokenStore.mock.mintFor
+      .withArgs(holder.address, PROJECT_ID, (TOTAL_SUPPLY * (10000 - RESERVED_RATE) / 10000), /*_preferClaimedTokens=*/true)
+      .returns();
 
     await mockTokenStore.mock.burnFrom
       .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, /*_preferClaimedTokens=*/true)
@@ -85,11 +92,13 @@ describe('JBController::mintTokenOf(...)', function () {
 
     await mockTokenStore.mock.totalSupplyOf
       .withArgs(PROJECT_ID)
-      .returns(AMOUNT_TO_BURN);
+      .returns(TOTAL_SUPPLY * (10000 - RESERVED_RATE) / 10000); // rest is in reserved
 
-    await mockToken.mock.mint
-      .withArgs(PROJECT_ID, holder.address, AMOUNT_TO_BURN)
-      .returns();
+    console.log("jbController " + jbController.address);
+    console.log("mockTokenStore " + mockTokenStore.address);
+    console.log("holder " + holder.address);
+
+    await jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, TOTAL_SUPPLY, holder.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE);
 
     return {
       projectOwner,
@@ -105,13 +114,12 @@ describe('JBController::mintTokenOf(...)', function () {
     };
   }
 
-  it.only(`Should burn holder token if caller is project owner`, async function () {
-    const { projectOwner, holder, jbController } = await setup();
+  it.only(`Should burn if caller is token owner and update the reserved token balance of the project accordingly`, async function () {
+    const { holder, jbController, mockTokenStore } = await setup();
 
     let initReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, RESERVED_RATE);
-
     await expect(
-      jbController.connect(projectOwner).burnTokensOf(
+      jbController.connect(holder).burnTokensOf(
         holder.address,
         PROJECT_ID,
         AMOUNT_TO_BURN,
@@ -119,10 +127,25 @@ describe('JBController::mintTokenOf(...)', function () {
         /*_preferClaimedTokens=*/true
       )
     ).to.emit(jbController, 'BurnTokens')
-      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, projectOwner.address);
+      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, holder.address);
 
+    await mockTokenStore.mock.totalSupplyOf
+      .withArgs(PROJECT_ID)
+      .returns((TOTAL_SUPPLY * (10000 - RESERVED_RATE) / 10000) - AMOUNT_TO_BURN); // previous total supply minus burned
+
+
+    // mint 100k with 50% reserve -> _processedTokenTrackerOf(id) = 0, holder balance = 50k, totSup = 50k
+    // reservedTokenBalance(id, reservedRate) = _reserveTokenAmountFor(_processedTracker=0, RR=50%, totalSupply=50k)
+    // unprocessed = 50k - 0 = 50k -> reservedTokenBalance returns (50k * 10000 / (10000 - 5000)) - 50k = 50k
+
+    // burn 20k from holder (same reserve rate) -> _processedTokenTrackerOf(id) = -20k, holder balance = 30k, totSup = 30k
+    // reservedTokenBalance(id, reservedRate) = _reserveTokenAmountFor(_processedTracker=-20, RR=50%, totalSupply=30k)
+    // unprocessed = 30k + 20k = 50k -> reservedTokenBalance returns (50k * 10000 / (10000 - 5000)) - 50k = 50k
+    // 
+    // should 50k -> 50k
     let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, RESERVED_RATE);
-    expect(newReservedTokenBalance).to.equal(initReservedTokenBalance - AMOUNT_TO_BURN);
+
+    expect(newReservedTokenBalance).to.equal(initReservedTokenBalance);
   });
 
   it(`Should burn token if caller is not project owner but is authorized`, async function () {
@@ -131,7 +154,7 @@ describe('JBController::mintTokenOf(...)', function () {
     let caller = addrs[0];
 
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(caller.address, projectOwner.address, PROJECT_ID, MINT_INDEX)
+      .withArgs(caller.address, projectOwner.address, PROJECT_ID, BURN_INDEX)
       .returns(true);
 
     await mockJbDirectory.mock.isTerminalDelegateOf
@@ -152,11 +175,11 @@ describe('JBController::mintTokenOf(...)', function () {
     const terminalSigner = await impersonateAccount(terminal.address);
 
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(terminalSigner.address, projectOwner.address, PROJECT_ID, MINT_INDEX)
+      .withArgs(terminalSigner.address, projectOwner.address, PROJECT_ID, BURN_INDEX)
       .returns(false);
 
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(terminalSigner.address, projectOwner.address, 0, MINT_INDEX)
+      .withArgs(terminalSigner.address, projectOwner.address, 0, BURN_INDEX)
       .returns(false);
 
     await mockJbDirectory.mock.isTerminalDelegateOf
@@ -204,11 +227,11 @@ describe('JBController::mintTokenOf(...)', function () {
     const terminalSigner = await impersonateAccount(terminal.address);
 
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(terminalSigner.address, projectOwner.address, PROJECT_ID, MINT_INDEX)
+      .withArgs(terminalSigner.address, projectOwner.address, PROJECT_ID, BURN_INDEX)
       .returns(false);
 
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(terminalSigner.address, projectOwner.address, 0, MINT_INDEX)
+      .withArgs(terminalSigner.address, projectOwner.address, 0, BURN_INDEX)
       .returns(false);
 
     await mockJbDirectory.mock.isTerminalDelegateOf
