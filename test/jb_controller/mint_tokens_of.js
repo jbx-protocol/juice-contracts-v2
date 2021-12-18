@@ -88,10 +88,6 @@ describe('JBController::mintTokenOf(...)', function () {
       .withArgs(PROJECT_ID)
       .returns(AMOUNT_TO_RECEIVE);
 
-    await mockToken.mock.mint
-      .withArgs(PROJECT_ID, beneficiary.address, AMOUNT_TO_RECEIVE)
-      .returns();
-
     return {
       projectOwner,
       beneficiary,
