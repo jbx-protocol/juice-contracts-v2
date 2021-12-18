@@ -21,7 +21,6 @@ describe('JBController::mintTokenOf(...)', function () {
   const AMOUNT_TO_BURN = 20000;
   const RESERVED_RATE = 5000; // 50%
 
-
   let BURN_INDEX;
 
   before(async function () {
@@ -94,10 +93,6 @@ describe('JBController::mintTokenOf(...)', function () {
       .withArgs(PROJECT_ID)
       .returns(TOTAL_SUPPLY * (10000 - RESERVED_RATE) / 10000); // rest is in reserved
 
-    console.log("jbController " + jbController.address);
-    console.log("mockTokenStore " + mockTokenStore.address);
-    console.log("holder " + holder.address);
-
     await jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, TOTAL_SUPPLY, holder.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE);
 
     return {
@@ -114,7 +109,7 @@ describe('JBController::mintTokenOf(...)', function () {
     };
   }
 
-  it.only(`Should burn if caller is token owner and update the reserved token balance of the project accordingly`, async function () {
+  it(`Should burn if caller is token owner and update the reserved token balance of the project accordingly`, async function () {
     const { holder, jbController, mockTokenStore } = await setup();
 
     let initReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, RESERVED_RATE);
@@ -133,7 +128,6 @@ describe('JBController::mintTokenOf(...)', function () {
       .withArgs(PROJECT_ID)
       .returns((TOTAL_SUPPLY * (10000 - RESERVED_RATE) / 10000) - AMOUNT_TO_BURN); // previous total supply minus burned
 
-
     // mint 100k with 50% reserve -> _processedTokenTrackerOf(id) = 0, holder balance = 50k, totSup = 50k
     // reservedTokenBalance(id, reservedRate) = _reserveTokenAmountFor(_processedTracker=0, RR=50%, totalSupply=50k)
     // unprocessed = 50k - 0 = 50k -> reservedTokenBalance returns (50k * 10000 / (10000 - 5000)) - 50k = 50k
@@ -142,31 +136,43 @@ describe('JBController::mintTokenOf(...)', function () {
     // reservedTokenBalance(id, reservedRate) = _reserveTokenAmountFor(_processedTracker=-20, RR=50%, totalSupply=30k)
     // unprocessed = 30k + 20k = 50k -> reservedTokenBalance returns (50k * 10000 / (10000 - 5000)) - 50k = 50k
     // 
-    // should 50k -> 50k
+    // reservedTokenBalance should stay at 50k
     let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, RESERVED_RATE);
-
     expect(newReservedTokenBalance).to.equal(initReservedTokenBalance);
   });
 
-  it(`Should burn token if caller is not project owner but is authorized`, async function () {
-    const { projectOwner, holder, addrs, jbController, mockJbOperatorStore, mockJbDirectory } = await setup();
+  it.only(`Should burn token if caller is not project owner but is authorized`, async function () {
+
+    const { holder, addrs, jbController, mockTokenStore, mockJbOperatorStore, mockJbDirectory } = await setup();
 
     let caller = addrs[0];
 
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(caller.address, projectOwner.address, PROJECT_ID, BURN_INDEX)
+      .withArgs(caller.address, holder.address, PROJECT_ID, BURN_INDEX)
       .returns(true);
 
     await mockJbDirectory.mock.isTerminalDelegateOf
       .withArgs(PROJECT_ID, caller.address)
       .returns(false);
 
-    await expect(jbController.connect(caller).mintTokensOf(PROJECT_ID, AMOUNT_TO_BURN, holder.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
-      .to.emit(jbController, 'MintTokens')
-      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, RESERVED_RATE, caller.address);
+    let initReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, RESERVED_RATE);
+    await expect(
+      jbController.connect(caller).burnTokensOf(
+        holder.address,
+        PROJECT_ID,
+        AMOUNT_TO_BURN,
+        MEMO,
+          /*_preferClaimedTokens=*/true
+      )
+    ).to.emit(jbController, 'BurnTokens')
+      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, caller.address);
+
+    await mockTokenStore.mock.totalSupplyOf
+      .withArgs(PROJECT_ID)
+      .returns((TOTAL_SUPPLY * (10000 - RESERVED_RATE) / 10000) - AMOUNT_TO_BURN);
 
     let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, RESERVED_RATE);
-    expect(newReservedTokenBalance).to.equal(AMOUNT_TO_BURN - AMOUNT_TO_BURN);
+    expect(newReservedTokenBalance).to.equal(initReservedTokenBalance);
   });
 
   it(`Should burn token if caller is a terminal of the corresponding project`, async function () {
