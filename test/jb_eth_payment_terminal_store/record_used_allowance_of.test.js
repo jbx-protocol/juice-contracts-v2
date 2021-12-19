@@ -8,8 +8,6 @@ import { packFundingCycleMetadata } from '../helpers/utils';
 import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
 import jBFundingCycleStore from '../../artifacts/contracts/interfaces/IJBFundingCycleStore.sol/IJBFundingCycleStore.json';
-import jbFundingCycleDataSource from '../../artifacts/contracts/interfaces/IJBFundingCycleDataSource.sol/IJBFundingCycleDataSource.json';
-import jbPayDelegate from '../../artifacts/contracts/interfaces/IJBPayDelegate.sol/IJBPayDelegate.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
@@ -26,11 +24,6 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     const mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
     const mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
     const mockJbFundingCycleStore = await deployMockContract(deployer, jBFundingCycleStore.abi);
-    const mockJbFundingCycleDataSource = await deployMockContract(
-      deployer,
-      jbFundingCycleDataSource.abi,
-    );
-    const mockJbPayDelegate = await deployMockContract(deployer, jbPayDelegate.abi);
     const mockJbTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
     const mockJbController = await deployMockContract(deployer, jbController.abi);
 
@@ -78,8 +71,6 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       mockJbController,
       mockJbDirectory,
       mockJbFundingCycleStore,
-      mockJbFundingCycleDataSource,
-      mockJbPayDelegate,
       mockJbPrices,
       jbEthPaymentTerminalStore,
       timestamp,
