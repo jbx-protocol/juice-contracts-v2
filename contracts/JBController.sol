@@ -192,7 +192,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     uint256 _configuration,
     IJBTerminal _terminal
   ) external view override returns (uint256) {
-    return _packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal] >> 248;
+    return _packedDistributionLimitDataOf[_projectId][_configuration][_terminal] >> 248;
   }
 
   /**
