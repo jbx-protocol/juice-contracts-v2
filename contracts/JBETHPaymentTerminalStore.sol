@@ -340,7 +340,7 @@ contract JBETHPaymentTerminalStore {
     // Make sure the currencies match.
     require(
       _currency ==
-        directory.controllerOf(_projectId).currencyOf(
+        directory.controllerOf(_projectId).distributionLimitCurrencyOf(
           _projectId,
           fundingCycle.configuration,
           terminal
@@ -410,7 +410,7 @@ contract JBETHPaymentTerminalStore {
     // Make sure the currencies match.
     require(
       _currency ==
-        directory.controllerOf(_projectId).currencyOf(
+        directory.controllerOf(_projectId).overflowAllowanceCurrencyOf(
           _projectId,
           fundingCycle.configuration,
           terminal
@@ -704,7 +704,7 @@ contract JBETHPaymentTerminalStore {
     ) - usedDistributionLimitOf[_projectId][_fundingCycle.number];
 
     // Get a reference to the current funding cycle's currency for this terminal.
-    uint256 _currency = directory.controllerOf(_projectId).currencyOf(
+    uint256 _currency = directory.controllerOf(_projectId).distributionLimitCurrencyOf(
       _projectId,
       _fundingCycle.configuration,
       terminal
@@ -756,7 +756,7 @@ contract JBETHPaymentTerminalStore {
       );
 
       // Get a reference to the current funding cycle's currency for this terminal.
-      uint256 _currency = directory.controllerOf(_projectId).currencyOf(
+      uint256 _currency = directory.controllerOf(_projectId).distributionLimitCurrencyOf(
         _projectId,
         _fundingCycle.configuration,
         _terminals[_i]

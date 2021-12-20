@@ -10,6 +10,8 @@ struct JBFundAccessConstraints {
   uint256 distributionLimit;
   // The amount of the allowance.
   uint256 overflowAllowance;
-  // The currency that the contraints are denoted in.
-  uint256 currency;
+  // The currency that the distribution limit are denoted in.
+  uint256 distributionLimitCurrency;
+  // The currency that the overflow allowance are denoted in.
+  uint256 overflowAllowanceCurrency;
 }

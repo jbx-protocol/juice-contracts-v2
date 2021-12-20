@@ -107,6 +107,30 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   */
   mapping(uint256 => int256) private _processedTokenTrackerOf;
 
+  /**
+    @notice 
+    bits 0-248: The amount of that a project can withdraw per funding cycle.
+    bits 248-255: The currency of amount that a project can withdraw.
+
+    _projectId The ID of the project to get the current distribution limit of.
+    _configuration The configuration during which the distribution limit applies.
+    _terminal The terminal from which distributions are being limited. 
+  */
+  mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
+    public _packedDistributionLimitDataOf;
+
+  /**
+    @notice 
+    bits 0-247: The amount of overflow that a project is allowed to tap into on-demand throughout configuration.
+    bits 248-255: The currency of the amount of overflow that a project is allowed to tap.
+
+    _projectId The ID of the project to get the current overflow allowance of.
+    _configuration The configuration of the during which the allowance applies.
+    _terminal The terminal managing the overflow.
+  */
+  mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
+    public _packedOverflowAllowanceDataOf;
+
   //*********************************************************************//
   // --------------- public immutable stored properties ---------------- //
   //*********************************************************************//
@@ -136,48 +160,72 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   IJBSplitsStore public immutable splitsStore;
 
   //*********************************************************************//
-  // --------------------- public stored properties -------------------- //
+  // ------------------------- external views -------------------------- //
   //*********************************************************************//
-
-  /**
-    @notice 
-    The amount of overflow that a project is allowed to tap into on-demand throughout configuration.
-
-    _projectId The ID of the project to get the current overflow allowance of.
-    _configuration The configuration of the during which the allowance applies.
-    _terminal The terminal managing the overflow.
-  */
-  mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
-    public
-    override overflowAllowanceOf;
 
   /**
     @notice 
     The amount of that a project can withdraw per funding cycle.
 
-    _projectId The ID of the project to get the current distribution limit of.
-    _configuration The configuration during which the distribution limit applies.
-    _terminal The terminal from which distributions are being limited. 
+    @param _projectId The ID of the project to get the current distribution limit of.
+    @param _configuration The configuration during which the distribution limit applies.
+    @param _terminal The terminal from which distributions are being limited. 
   */
-  mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
-    public
-    override distributionLimitOf;
+  function distributionLimitOf(
+    uint256 _projectId,
+    uint256 _configuration,
+    IJBTerminal _terminal
+  ) external view override returns (uint256) {
+    return uint256(uint248(_packedDistributionLimitDataOf[_projectId][_configuration][_terminal]));
+  }
 
   /**
     @notice 
-    The currency that overflow allowances and distribution limits are measured in for a particular funding cycle configuration, applied only to the specified terminal.
+    The currency of the amount of that a project can withdraw per funding cycle.
 
-    _projectId The ID of the project to get the currency of.
-    _configuration The configuration during which the currency applies.
-    _terminal The terminal for which the currency should be used. 
+    @param _projectId The ID of the project to get the current distribution limit currency of.
+    @param _configuration The configuration during which the distribution limit currency applies.
+    @param _terminal The terminal from which distributions are being limited. 
   */
-  mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
-    public
-    override currencyOf;
+  function distributionLimitCurrencyOf(
+    uint256 _projectId,
+    uint256 _configuration,
+    IJBTerminal _terminal
+  ) external view override returns (uint256) {
+    return _packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal] >> 248;
+  }
 
-  //*********************************************************************//
-  // ------------------------- external views -------------------------- //
-  //*********************************************************************//
+  /**
+    @notice 
+    The amount of overflow that a project is allowed to tap into on-demand throughout configuration.
+
+    @param _projectId The ID of the project to get the current overflow allowance of.
+    @param _configuration The configuration of the during which the allowance applies.
+    @param _terminal The terminal managing the overflow.
+  */
+  function overflowAllowanceOf(
+    uint256 _projectId,
+    uint256 _configuration,
+    IJBTerminal _terminal
+  ) external view override returns (uint256) {
+    return uint256(uint248(_packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal]));
+  }
+
+  /**
+    @notice 
+    The currency of the amount of overflow that a project is allowed to tap into.
+
+    @param _projectId The ID of the project to get the current overflow allowance currency of.
+    @param _configuration The configuration of the during which the allowance currency applies.
+    @param _terminal The terminal managing the overflow.
+  */
+  function overflowAllowanceCurrencyOf(
+    uint256 _projectId,
+    uint256 _configuration,
+    IJBTerminal _terminal
+  ) external view override returns (uint256) {
+    return _packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal] >> 248;
+  }
 
   /**
     @notice
@@ -825,20 +873,36 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       JBFundAccessConstraints memory _constraints = _fundAccessConstraints[_i];
 
       // Set the distribution limit if there is one.
-      if (_constraints.distributionLimit > 0)
-        distributionLimitOf[_projectId][_fundingCycle.configuration][
+      if (_constraints.distributionLimit > 0) {
+        // The distribution limit should fit in a uint248.
+        require(_constraints.distributionLimit < type(uint248).max, '0x00: BAD_DISTRIBUTION_LIMIT');
+
+        // The currency of the distribution limit should fit in a uint8.
+        require(
+          _constraints.distributionLimitCurrency < type(uint8).max,
+          '0x00: BAD_DISTRIBUTION_LIMIT_CURRENCY'
+        );
+
+        _packedDistributionLimitDataOf[_projectId][_fundingCycle.configuration][
           _constraints.terminal
-        ] = _constraints.distributionLimit;
+        ] = _constraints.distributionLimit | (_constraints.distributionLimitCurrency << 248);
+      }
 
       // Set the overflow allowance if there is one.
-      if (_constraints.overflowAllowance > 0)
-        overflowAllowanceOf[_projectId][_fundingCycle.configuration][
-          _constraints.terminal
-        ] = _constraints.overflowAllowance;
+      if (_constraints.overflowAllowance > 0) {
+        // The currency of the overflow allowance should fit in a uint248.
+        require(_constraints.overflowAllowance < type(uint248).max, '0x00: BAD_OVERFLOW_ALLOWANCE');
 
-      if (_constraints.currency > 0)
-        currencyOf[_projectId][_fundingCycle.configuration][_constraints.terminal] = _constraints
-          .currency;
+        // The currency of the overflow allowance should fit in a uint8.
+        require(
+          _constraints.overflowAllowanceCurrency < type(uint8).max,
+          'BAD_OVERFLOW_ALLOWANCE_CURRENCY'
+        );
+
+        _packedOverflowAllowanceDataOf[_projectId][_fundingCycle.configuration][
+          _constraints.terminal
+        ] = _constraints.overflowAllowance | (_constraints.overflowAllowanceCurrency << 248);
+      }
 
       emit SetFundAccessConstraints(
         _fundingCycle.configuration,
