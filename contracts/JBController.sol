@@ -896,7 +896,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
         // The currency of the overflow allowance should fit in a uint8.
         require(
           _constraints.overflowAllowanceCurrency < type(uint8).max,
-          'BAD_OVERFLOW_ALLOWANCE_CURRENCY'
+          '0x00: BAD_OVERFLOW_ALLOWANCE_CURRENCY'
         );
 
         _packedOverflowAllowanceDataOf[_projectId][_fundingCycle.configuration][
