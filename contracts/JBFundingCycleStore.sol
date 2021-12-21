@@ -12,6 +12,16 @@ import './abstract/JBControllerUtility.sol';
 */
 contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
   //*********************************************************************//
+  // ------------------------- private constants ----------------------- //
+  //*********************************************************************//
+
+  /** 
+    @notice
+    A funding cycle's discount rate is expressed as a percentage out of 100000000.
+  */
+  uint256 private constant _MAX_DISCOUNT_RATE = 100000000;
+
+  //*********************************************************************//
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//
 
@@ -250,7 +260,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     require(_data.duration <= type(uint64).max && _data.duration > 1000, '0x15: BAD_DURATION');
 
     // Discount rate token must be less than or equal to 100%.
-    require(_data.discountRate <= 100000000, '0x16: BAD_DISCOUNT_RATE');
+    require(_data.discountRate <= _MAX_DISCOUNT_RATE, '0x16: BAD_DISCOUNT_RATE');
 
     // Weight must fit into a uint88.
     require(_data.weight <= type(uint88).max, '0x18: BAD_WEIGHT');
@@ -701,8 +711,8 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       return
         PRBMath.mulDiv(
           _baseFundingCycle.weight,
-          1000000000 - _baseFundingCycle.discountRate,
-          1000000000
+          _MAX_DISCOUNT_RATE - _baseFundingCycle.discountRate,
+          _MAX_DISCOUNT_RATE
         );
 
     // The weight should be based off the base funding cycle's weight.
@@ -720,7 +730,11 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     for (uint256 i = 0; i < _discountMultiple; i++)
       // The number of times to apply the discount rate.
       // Base the new weight on the specified funding cycle's weight.
-      weight = PRBMath.mulDiv(weight, 1000000000 - _baseFundingCycle.discountRate, 1000000000);
+      weight = PRBMath.mulDiv(
+        weight,
+        _MAX_DISCOUNT_RATE - _baseFundingCycle.discountRate,
+        _MAX_DISCOUNT_RATE
+      );
   }
 
   /** 
