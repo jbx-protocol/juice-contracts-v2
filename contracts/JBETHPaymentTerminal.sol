@@ -23,7 +23,7 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
   @notice
   This contract manages all inflows and outflows of funds into the Juicebox ecosystem.
 
-  @dev 
+  @dev
   A project can transfer its funds, along with the power to reconfigure and mint/burn their tokens, from this contract to another allowed terminal contract at any time.
 
   Inherits from:
@@ -47,7 +47,7 @@ contract JBETHPaymentTerminal is
   //*********************************************************************//
 
   /**
-    @notice 
+    @notice
     Fees that are being held to be processed later.
 
     _projectId The ID of the project for which fees are being held.
@@ -58,44 +58,44 @@ contract JBETHPaymentTerminal is
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
 
-  /** 
+  /**
     @notice
     The Projects contract which mints ERC-721's that represent project ownership and transfers.
   */
   IJBProjects public immutable override projects;
 
-  /** 
+  /**
     @notice
     The directory of terminals and controllers for projects.
   */
   IJBDirectory public immutable override directory;
 
-  /** 
+  /**
     @notice
     The contract that stores splits for each project.
   */
   IJBSplitsStore public immutable override splitsStore;
 
   /**
-    @notice 
+    @notice
     The contract that stores and manages the terminal's data.
   */
   JBETHPaymentTerminalStore public immutable store;
 
-  /** 
-    @notice 
-    The token that this terminal accepts. 
+  /**
+    @notice
+    The token that this terminal accepts.
 
     @dev
     ETH is represented as address 0x0000000000000000000000000000000000069420.
   */
   address public immutable override token = 0x0000000000000000000000000000000000069420;
 
-  /** 
-    @notice 
+  /**
+    @notice
     The platform fee percent.
 
-    @dev 
+    @dev
     Out of 200.
   */
   uint256 public fee = 10;
@@ -104,8 +104,8 @@ contract JBETHPaymentTerminal is
   // ------------------------- external views -------------------------- //
   //*********************************************************************//
 
-  /** 
-    @notice 
+  /**
+    @notice
     The ETH balance that this terminal holds for each project.
 
     @param _projectId The ID of the project to which the balance belongs.
@@ -117,13 +117,13 @@ contract JBETHPaymentTerminal is
     return store.balanceOf(_projectId);
   }
 
-  /** 
-    @notice 
+  /**
+    @notice
     The amount of funds that can still be distributed within the preconfigured limit.
 
     @param _projectId The ID of the project to which the remaining limit belongs.
-    @param _fundingCycleConfiguration The funding cycle configuration during which the limit remaining is being calculated. 
-    @param _fundingCycleNumber The number of the funding cycle during which the limit remaining is being calculated. 
+    @param _fundingCycleConfiguration The funding cycle configuration during which the limit remaining is being calculated.
+    @param _fundingCycleNumber The number of the funding cycle during which the limit remaining is being calculated.
 
     @return The remaining distribution limit for this terminal.
   */
@@ -141,8 +141,8 @@ contract JBETHPaymentTerminal is
       ) - store.usedDistributionLimitOf(_projectId, _fundingCycleNumber);
   }
 
-  /** 
-    @notice 
+  /**
+    @notice
     The fees that are currently being held to be processed later for each project.
 
     @param _projectId The ID of the project for which fees are being held.
@@ -153,7 +153,7 @@ contract JBETHPaymentTerminal is
     return _heldFeesOf[_projectId];
   }
 
-  /** 
+  /**
     @notice
     An address that serves as this terminal's delegate when making requests to juicebox ecosystem contracts.
 
@@ -168,7 +168,7 @@ contract JBETHPaymentTerminal is
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
 
-  /** 
+  /**
     @param _operatorStore A contract storing operator assignments.
     @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
     @param _directory A contract storing directories of terminals and controllers for each project.
@@ -235,11 +235,11 @@ contract JBETHPaymentTerminal is
   }
 
   /**
-    @notice 
+    @notice
     Distributes payouts for a project according to the constraints of its current funding cycle.
 
     @dev
-    Payouts are sent to the preprogrammed splits. 
+    Payouts are sent to the preprogrammed splits.
 
     @dev
     Anyone can distribute payouts on a project's behalf.
@@ -312,10 +312,10 @@ contract JBETHPaymentTerminal is
   }
 
   /**
-    @notice 
+    @notice
     Allows a project to send funds from its overflow up to the preconfigured allowance.
-    
-    @dev 
+
+    @dev
     Only a project's owner or a designated operator can migrate it.
 
     @param _projectId The ID of the project to use the allowance of.
@@ -527,7 +527,7 @@ contract JBETHPaymentTerminal is
     emit ProcessFees(_projectId, _heldFees, msg.sender);
   }
 
-  /** 
+  /**
     @notice
     Allows the fee to be updated for subsequent funding cycle configurations.
 
@@ -550,7 +550,7 @@ contract JBETHPaymentTerminal is
   // --------------------- private helper functions -------------------- //
   //*********************************************************************//
 
-  /** 
+  /**
     @notice
     Pays out splits for a project's funding cycle configuration.
 
@@ -646,12 +646,12 @@ contract JBETHPaymentTerminal is
     }
   }
 
-  /** 
-    @notice 
+  /**
+    @notice
     Takes a fee into the platform's project, which has an id of 1.
 
     @param _projectId The ID of the project having fees taken from.
-    @param _fundingCycle The funding cycle during which the fee is being taken. 
+    @param _fundingCycle The funding cycle during which the fee is being taken.
     @param _amount The amount to take a fee from.
     @param _beneficiary The address to print the platforms tokens for.
     @param _memo A memo to pass along to the emitted event.
@@ -676,8 +676,8 @@ contract JBETHPaymentTerminal is
       : _takeFee(feeAmount, _beneficiary, _memo);
   }
 
-  /** 
-    @notice 
+  /**
+    @notice
     Take a fee of the specified amount.
 
     @param _amount The fee amount.
@@ -742,7 +742,7 @@ contract JBETHPaymentTerminal is
     );
   }
 
-  /** 
+  /**
     @notice
     Refund fees based on the specified amount.
 
