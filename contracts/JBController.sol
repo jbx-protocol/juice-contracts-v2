@@ -109,7 +109,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
   /**
     @notice 
-    bits 0-248: The amount of that a project can withdraw per funding cycle.
+    bits 0-248: The amount of token that a project can withdraw per funding cycle.
     bits 248-255: The currency of amount that a project can withdraw.
 
     _projectId The ID of the project to get the current distribution limit of.
@@ -125,7 +125,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     bits 248-255: The currency of the amount of overflow that a project is allowed to tap.
 
     _projectId The ID of the project to get the current overflow allowance of.
-    _configuration The configuration of the during which the allowance applies.
+    _configuration The configuration during which the allowance applies.
     _terminal The terminal managing the overflow.
   */
   mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
@@ -165,7 +165,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
   /**
     @notice 
-    The amount of that a project can withdraw per funding cycle.
+    The amount of token that a project can withdraw per funding cycle.
 
     @param _projectId The ID of the project to get the current distribution limit of.
     @param _configuration The configuration during which the distribution limit applies.
