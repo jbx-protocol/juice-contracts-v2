@@ -115,7 +115,7 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
       .be.reverted;
   });
 
-  it('Can\'t add if caller does not have permission', async function () {
+  it("Can't add if caller does not have permission", async function () {
     const { addrs, projectOwner, jbDirectory, mockJbProjects, mockJbOperatorStore, terminal1 } =
       await setup();
     const caller = addrs[1];
@@ -130,7 +130,7 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
       .reverted;
   });
 
-  it('Can\'t add terminals with address(0)', async function () {
+  it("Can't add terminals with address(0)", async function () {
     const { projectOwner, jbDirectory, terminal1, terminal2 } = await setup();
 
     let terminals = [terminal1.address, ethers.constants.AddressZero, terminal2.address];
@@ -140,7 +140,7 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
     ).to.be.revertedWith('0x2d: ZERO_ADDRESS');
   });
 
-  it('Can\'t add terminals more than once', async function () {
+  it("Can't add terminals more than once", async function () {
     const { projectOwner, jbDirectory, terminal1, terminal2 } = await setup();
 
     await jbDirectory
