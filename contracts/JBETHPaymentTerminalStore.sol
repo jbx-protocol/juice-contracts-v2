@@ -487,6 +487,8 @@ contract JBETHPaymentTerminalStore {
       string memory memo
     )
   {
+    require(_tokenCount > 0, '0x22: NO_OP');
+
     // The holder must have the specified number of the project's tokens.
     require(tokenStore.balanceOf(_holder, _projectId) >= _tokenCount, '0x46: INSUFFICIENT_TOKENS');
 
@@ -517,6 +519,8 @@ contract JBETHPaymentTerminalStore {
       memo = _memo;
     }
 
+    require(claimAmount > 0, '0x22: NO_OP');
+
     // The amount being claimed must be within the project's balance.
     require(claimAmount <= balanceOf[_projectId], '0x48: INSUFFICIENT_FUNDS');
 
@@ -524,17 +528,16 @@ contract JBETHPaymentTerminalStore {
     require(claimAmount >= _minReturnedWei, '0x49: INADEQUATE');
 
     // Redeem the tokens, which burns them.
-    if (_tokenCount > 0)
-      directory.controllerOf(_projectId).burnTokensOf(
-        _holder,
-        _projectId,
-        _tokenCount,
-        'Redeem for ETH',
-        true
-      );
+    directory.controllerOf(_projectId).burnTokensOf(
+      _holder,
+      _projectId,
+      _tokenCount,
+      'Redeem for ETH',
+      true
+    );
 
     // Remove the redeemed funds from the project's balance.
-    if (claimAmount > 0) balanceOf[_projectId] = balanceOf[_projectId] - claimAmount;
+    balanceOf[_projectId] = balanceOf[_projectId] - claimAmount;
 
     // If a delegate was returned by the data source, issue a callback to it.
     if (_delegate != IJBRedemptionDelegate(address(0))) {
@@ -648,7 +651,7 @@ contract JBETHPaymentTerminalStore {
     // If there are reserved tokens, add them to the total supply.
     if (_reservedTokenAmount > 0) _totalSupply = _totalSupply + _reservedTokenAmount;
 
-    // If the amount being redeemed is the the total supply, return the rest of the overflow.
+    // If the amount being redeemed is the total supply, return the rest of the overflow.
     if (_tokenCount == _totalSupply) return _currentOverflow;
 
     // Use the ballot redemption rate if the queued cycle is pending approval according to the previous funding cycle's ballot.
@@ -712,13 +715,13 @@ contract JBETHPaymentTerminalStore {
 
     // Convert the _distributionRemaining to ETH.
     uint256 _ethDistributionRemaining = _distributionRemaining == 0
-      ? 0 // Get the current price of ETH. // A currency of 0 should be interpreted as whatever the currency being withdrawn is.
-      : _currency == 0
+      ? 0
+      : (_currency == JBCurrencies.ETH)
       ? _distributionRemaining
       : PRBMathUD60x18.div(_distributionRemaining, prices.priceFor(_currency, JBCurrencies.ETH));
 
     // Overflow is the balance of this project minus the amount that can still be distributed.
-    return _balanceOf < _ethDistributionRemaining ? 0 : _balanceOf - _ethDistributionRemaining;
+    return _balanceOf <= _ethDistributionRemaining ? 0 : _balanceOf - _ethDistributionRemaining;
   }
 
   /**
@@ -766,9 +769,7 @@ contract JBETHPaymentTerminalStore {
       _ethDistributionLimitRemaining =
         _ethDistributionLimitRemaining +
         (
-          _distributionRemaining == 0
-            ? 0 // Get the current price of ETH. // A currency of 0 should be interpreted as whatever the currency being withdrawn is.
-            : _currency == 0
+          _distributionRemaining == 0 ? 0 : (_currency == JBCurrencies.ETH)
             ? _distributionRemaining
             : PRBMathUD60x18.div(
               _distributionRemaining,
@@ -779,7 +780,7 @@ contract JBETHPaymentTerminalStore {
 
     // Overflow is the balance of this project minus the amount that can still be distributed.
     return
-      _ethBalanceOf < _ethDistributionLimitRemaining
+      _ethBalanceOf <= _ethDistributionLimitRemaining
         ? 0
         : _ethBalanceOf - _ethDistributionLimitRemaining;
   }
