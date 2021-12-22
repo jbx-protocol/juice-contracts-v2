@@ -59,9 +59,9 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     uint256 indexed fundingCycleConfiguration,
     uint256 indexed fundingCycleNumber,
     uint256 indexed projectId,
-    address beneficiary,
+    address projectOwner,
     uint256 count,
-    uint256 beneficiaryTokenCount,
+    uint256 leftOverTokenCount,
     string memo,
     address caller
   );
