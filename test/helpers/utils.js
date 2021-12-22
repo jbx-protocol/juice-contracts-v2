@@ -141,3 +141,52 @@ export function packFundingCycleMetadata({
   if (useDataSourceForRedeem) packed = packed.or(one.shl(67));
   return packed.or(ethers.BigNumber.from(dataSource).shl(68));
 }
+
+/**
+ * Returns an array of JBSplits
+ * @param {custom obj} count being the number of splits in the returned array, rest of the
+ * object is a JBSplit
+ * @return a JBSplit array of count objects
+ */
+export function makeSplits({
+  count = 4,
+  beneficiary = Array(count).fill(ethers.constants.AddressZero),
+  preferClaimed = false,
+  percent = Math.floor(10000000 / count),
+  lockedUntil = 0,
+  allocator = ethers.constants.AddressZero,
+  projectId = 0,
+}) {
+  let splits = [];
+  for (let i = 0; i < count; i++) {
+    splits.push({
+      preferClaimed,
+      percent,
+      lockedUntil,
+      beneficiary: beneficiary[i],
+      allocator,
+      projectId,
+    });
+  }
+  return splits;
+}
+
+/**
+ * Transform the Result object returned by ethers to an array of objects
+ * @param {ethers Result} splits the split returned by ethers
+ * @return the splits 
+ */
+export function cleanSplits(splits) {
+  let cleanedSplits = [];
+  for (let split of splits) {
+    cleanedSplits.push({
+      preferClaimed: split[0],
+      percent: split[1],
+      lockedUntil: split[2],
+      beneficiary: split[3],
+      allocator: split[4],
+      projectId: split[5].toNumber(),
+    });
+  }
+  return cleanedSplits;
+}
