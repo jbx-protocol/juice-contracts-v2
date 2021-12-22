@@ -170,23 +170,3 @@ export function makeSplits({
   }
   return splits;
 }
-
-/**
- * Transform the Result object returned by ethers to an array of objects
- * @param {ethers Result} splits the split returned by ethers
- * @return the splits 
- */
-export function cleanSplits(splits) {
-  let cleanedSplits = [];
-  for (let split of splits) {
-    cleanedSplits.push({
-      preferClaimed: split[0],
-      percent: split[1],
-      lockedUntil: split[2],
-      beneficiary: split[3],
-      allocator: split[4],
-      projectId: split[5].toNumber(),
-    });
-  }
-  return cleanedSplits;
-}
