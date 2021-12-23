@@ -331,7 +331,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
     ]);
   });
 
-  it(`Should send left-over token to the project owner`, async function () {
+  it(`Should send all left-over tokens to the project owner`, async function () {
     const { addrs, projectOwner, jbController, mockTokenStore, mockSplitsStore, timestamp } = await setup();
 
     const caller = addrs[0];
@@ -401,12 +401,45 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
     ]);
   });
 
-  it(`Should send to the project owner if project if is set`, async function () {
-  });
+  it.only(`Should not revert if called with 0 tokens in reserve`, async function () {
+    const { addrs, projectOwner, jbController, mockTokenStore, mockSplitsStore, timestamp } = await setup();
 
-  it(`Should send according to the splits if project if is set`, async function () {
-  });
+    const caller = addrs[0];
+    const splitsBeneficiariesAddresses = [addrs[1], addrs[2]].map((signer) => signer.address);
 
+    const splits = makeSplits({
+      count: 2,
+      beneficiary: splitsBeneficiariesAddresses,
+      preferClaimed: true,
+    })
+
+    await mockSplitsStore.mock.splitsOf
+      .withArgs(PROJECT_ID, timestamp, RESERVED_SPLITS_GROUP)
+      .returns(splits);
+
+    await mockTokenStore.mock.totalSupplyOf
+      .withArgs(PROJECT_ID)
+      .returns(RESERVED_AMOUNT);
+
+    await Promise.all(
+      splitsBeneficiariesAddresses.map(async (beneficiary) => {
+        await mockTokenStore.mock.mintFor
+          .withArgs(beneficiary, PROJECT_ID, Math.floor(RESERVED_AMOUNT / splitsBeneficiariesAddresses.length), /*_preferClaimedTokens=*/true)
+          .returns();
+        await mockTokenStore.mock.mintFor
+          .withArgs(beneficiary, PROJECT_ID, 0, /*_preferClaimedTokens=*/true)
+          .returns()
+      })
+    );
+
+    await jbController.connect(caller).distributeReservedTokensOf(PROJECT_ID, MEMO);
+
+    //expect(await jbController.reservedTokenBalanceOf(PROJECT_ID, /*RESERVED_RATE=*/10000))
+    //  .to.equal(0);
+
+    expect(await jbController.connect(caller).distributeReservedTokensOf(PROJECT_ID, MEMO))
+      .to.be.not.reverted;
+  });
 
   // allocator
 
