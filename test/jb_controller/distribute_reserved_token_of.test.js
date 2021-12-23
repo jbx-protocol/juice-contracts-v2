@@ -331,8 +331,74 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
     ]);
   });
 
+  it(`Should send left-over token to the project owner`, async function () {
+    const { addrs, projectOwner, jbController, mockTokenStore, mockSplitsStore, timestamp } = await setup();
 
-  it(`Should substract the received amount to the reserved tokens if reserved rate is 0%`, async function () {
+    const caller = addrs[0];
+    const splitsBeneficiariesAddresses = [addrs[1], addrs[2]].map((signer) => signer.address);
+
+    const splits = makeSplits({
+      count: 2,
+      beneficiary: splitsBeneficiariesAddresses,
+      preferClaimed: true,
+      redemptionRate: 0,
+    })
+
+    splits[1].percent = 0; // A total of 50% is now allocated
+
+    await mockSplitsStore.mock.splitsOf
+      .withArgs(PROJECT_ID, timestamp, RESERVED_SPLITS_GROUP)
+      .returns(splits);
+
+    await mockTokenStore.mock.mintFor
+      .withArgs(splitsBeneficiariesAddresses[0], PROJECT_ID, Math.floor(RESERVED_AMOUNT / splitsBeneficiariesAddresses.length), /*_preferClaimedTokens=*/true)
+      .returns();
+
+    await mockTokenStore.mock.mintFor
+      .withArgs(splitsBeneficiariesAddresses[1], PROJECT_ID, 0, /*_preferClaimedTokens=*/true)
+      .returns();
+
+    await mockTokenStore.mock.mintFor
+      .withArgs(projectOwner.address, PROJECT_ID, Math.floor(RESERVED_AMOUNT / splitsBeneficiariesAddresses.length), /*_preferClaimedTokens=*/false)
+      .returns();
+
+    expect(await jbController.connect(caller).callStatic.distributeReservedTokensOf(PROJECT_ID, MEMO))
+      .to.equal(RESERVED_AMOUNT);
+
+    const tx = await jbController.connect(caller).distributeReservedTokensOf(PROJECT_ID, MEMO);
+
+    //Still not fixed in 12/2021: https://github.com/EthWorks/Waffle/issues/245
+    // Expect one event per non-null split + one event for the whole transaction
+    await Promise.all([
+      expect(tx)
+        .to.emit(jbController, 'DistributeToReservedTokenSplit')
+        .withArgs(
+          timestamp,
+          1,
+          PROJECT_ID,
+          [
+            splits[0].preferClaimed,
+            splits[0].percent,
+            splits[0].lockedUntil,
+            splits[0].beneficiary,
+            splits[0].allocator,
+            splits[0].projectId
+          ],
+          RESERVED_AMOUNT / splitsBeneficiariesAddresses.length,
+          caller.address),
+      expect(tx)
+        .to.emit(jbController, 'DistributeReservedTokens')
+        .withArgs(
+            /*fundingCycleConfiguration=*/timestamp,
+            /*fundingCycleNumber=*/1,
+            /*projectId=*/PROJECT_ID,
+            /*projectOwner=*/projectOwner.address,
+            /*count=*/RESERVED_AMOUNT,
+            /*leftoverTokenCount=*/RESERVED_AMOUNT / splitsBeneficiariesAddresses.length,
+            /*memo=*/MEMO,
+            /*caller=*/caller.address
+        )
+    ]);
   });
 
   it(`Should send to the project owner if project if is set`, async function () {
