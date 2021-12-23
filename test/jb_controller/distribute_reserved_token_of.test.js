@@ -118,7 +118,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
     };
   }
 
-  it(`Should send the splits without allocator or project id set`, async function () {
+  it(`Should send to beneficiaries if no allocator or project id is set in splits`, async function () {
     const { addrs, projectOwner, jbController, mockTokenStore, mockSplitsStore, timestamp } = await setup();
 
     const caller = addrs[0];
@@ -183,17 +183,89 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
     ]);
   });
 
-  it(`Should send the splits to allocators`, async function () {
-    const { addrs, projectOwner, jbController, mockTokenStore, mockSplitsStore, mockAllocator, timestamp } = await setup();
+  it(`Should send to the project owner if project id is set but not allocator in splits`, async function () {
+    const { addrs, projectOwner, jbController, mockTokenStore, mockSplitsStore, mockJbProjects, timestamp } = await setup();
 
     const caller = addrs[0];
     const splitsBeneficiariesAddresses = [addrs[1], addrs[2]].map((signer) => signer.address);
+
+    const otherProjectId = 2;
+    const otherProjectOwner = addrs[3];
 
     const splits = makeSplits({
       count: 2,
       beneficiary: splitsBeneficiariesAddresses,
       preferClaimed: true,
-      allocator: mockAllocator.address
+      projectId: otherProjectId
+    })
+
+    await mockJbProjects.mock.ownerOf
+      .withArgs(otherProjectId)
+      .returns(otherProjectOwner.address)
+
+    await mockSplitsStore.mock.splitsOf
+      .withArgs(PROJECT_ID, timestamp, RESERVED_SPLITS_GROUP)
+      .returns(splits);
+
+    await mockTokenStore.mock.mintFor
+      .withArgs(otherProjectOwner.address, PROJECT_ID, Math.floor(RESERVED_AMOUNT / splitsBeneficiariesAddresses.length), true)
+      .returns();
+
+
+    expect(await jbController.connect(caller).callStatic.distributeReservedTokensOf(PROJECT_ID, MEMO))
+      .to.equal(RESERVED_AMOUNT);
+
+    const tx = await jbController.connect(caller).distributeReservedTokensOf(PROJECT_ID, MEMO);
+
+    //Still not fixed in 12/2021: https://github.com/EthWorks/Waffle/issues/245
+    // Expect one event per split + one event for the whole transaction
+    await Promise.all([
+      splits.map(async (split, _) => {
+        expect(tx)
+          .to.emit(jbController, 'DistributeToReservedTokenSplit')
+          .withArgs(
+            timestamp,
+            1,
+            PROJECT_ID,
+            [
+              split.preferClaimed,
+              split.percent,
+              split.lockedUntil,
+              split.beneficiary,
+              split.allocator,
+              split.projectId
+            ],
+            RESERVED_AMOUNT / splits.length,
+            caller.address)
+      }),
+      expect(tx)
+        .to.emit(jbController, 'DistributeReservedTokens')
+        .withArgs(
+                /*fundingCycleConfiguration=*/timestamp,
+                /*fundingCycleNumber=*/1,
+                /*projectId=*/PROJECT_ID,
+                /*projectOwner=*/projectOwner.address,
+                /*count=*/RESERVED_AMOUNT,
+                /*leftoverTokenCount=*/0,
+                /*memo=*/MEMO,
+                /*caller=*/caller.address
+        )
+    ]);
+  });
+
+  it(`Should send to the allocators if set in splits`, async function () {
+    const { addrs, projectOwner, jbController, mockTokenStore, mockSplitsStore, mockAllocator, timestamp } = await setup();
+
+    const caller = addrs[0];
+    const splitsBeneficiariesAddresses = [addrs[1], addrs[2]].map((signer) => signer.address);
+    const otherProjectId = 2;
+
+    const splits = makeSplits({
+      count: 2,
+      beneficiary: splitsBeneficiariesAddresses,
+      preferClaimed: true,
+      allocator: mockAllocator.address,
+      projectId: otherProjectId
     })
 
     await mockSplitsStore.mock.splitsOf
@@ -211,7 +283,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
             Math.floor(RESERVED_AMOUNT / splitsBeneficiariesAddresses.length),
             RESERVED_SPLITS_GROUP,
             PROJECT_ID,
-            0,
+            otherProjectId,
             beneficiary,
             true)
           .returns();
@@ -259,8 +331,6 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
     ]);
   });
 
-  it(`Should send to the project owner if the project id is set`, async function () {
-  });
 
   it(`Should substract the received amount to the reserved tokens if reserved rate is 0%`, async function () {
   });
