@@ -401,8 +401,8 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
     ]);
   });
 
-  it.only(`Should not revert if called with 0 tokens in reserve`, async function () {
-    const { addrs, projectOwner, jbController, mockTokenStore, mockSplitsStore, timestamp } = await setup();
+  it(`Should not revert if called with 0 tokens in reserve`, async function () {
+    const { addrs, jbController, mockTokenStore, mockSplitsStore, timestamp } = await setup();
 
     const caller = addrs[0];
     const splitsBeneficiariesAddresses = [addrs[1], addrs[2]].map((signer) => signer.address);
@@ -437,14 +437,5 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
     await expect(jbController.connect(caller).distributeReservedTokensOf(PROJECT_ID, MEMO))
       .to.be.not.reverted;
   });
-
-  // allocator
-
-  // projtectId
-
-  // splits: everything distributed in splits
-
-  // splits with leftover -> send to project owner
-
 
 });
