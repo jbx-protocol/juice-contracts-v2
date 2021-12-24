@@ -417,27 +417,24 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       .withArgs(PROJECT_ID, timestamp, RESERVED_SPLITS_GROUP)
       .returns(splits);
 
-    await mockTokenStore.mock.totalSupplyOf
-      .withArgs(PROJECT_ID)
-      .returns(RESERVED_AMOUNT);
-
     await Promise.all(
       splitsBeneficiariesAddresses.map(async (beneficiary) => {
         await mockTokenStore.mock.mintFor
           .withArgs(beneficiary, PROJECT_ID, Math.floor(RESERVED_AMOUNT / splitsBeneficiariesAddresses.length), /*_preferClaimedTokens=*/true)
           .returns();
-        await mockTokenStore.mock.mintFor
-          .withArgs(beneficiary, PROJECT_ID, 0, /*_preferClaimedTokens=*/true)
-          .returns()
       })
     );
 
     await jbController.connect(caller).distributeReservedTokensOf(PROJECT_ID, MEMO);
 
-    //expect(await jbController.reservedTokenBalanceOf(PROJECT_ID, /*RESERVED_RATE=*/10000))
-    //  .to.equal(0);
+    await mockTokenStore.mock.totalSupplyOf
+      .withArgs(PROJECT_ID)
+      .returns(RESERVED_AMOUNT);
 
-    expect(await jbController.connect(caller).distributeReservedTokensOf(PROJECT_ID, MEMO))
+    expect(await jbController.reservedTokenBalanceOf(PROJECT_ID, /*RESERVED_RATE=*/10000))
+      .to.equal(0);
+
+    await expect(jbController.connect(caller).distributeReservedTokensOf(PROJECT_ID, MEMO))
       .to.be.not.reverted;
   });
 
