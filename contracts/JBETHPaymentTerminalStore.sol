@@ -270,22 +270,20 @@ contract JBETHPaymentTerminalStore {
       memo = _memo;
     }
 
-    // Multiply the amount by the weight to determine the amount of tokens to mint.
-    uint256 _weightedAmount = PRBMathUD60x18.mul(_amount, weight);
-
+    
     // Add the amount to the balance of the project if needed.
     if (_amount > 0) balanceOf[_projectId] = balanceOf[_projectId] + _amount;
 
-    if (_weightedAmount > 0)
+    if (PRBMathUD60x18.mul(_amount, weight) > 0)
       tokenCount = directory.controllerOf(_projectId).mintTokensOf(
         _projectId,
-        _weightedAmount,
+        PRBMathUD60x18.mul(_amount, weight),
         address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
         'ETH received',
         (_preferClaimedTokensAndBeneficiary & 1) == 0,
         fundingCycle.reservedRate()
       );
-
+  
     // The token count for the beneficiary must be greater than or equal to the minimum expected.
     require(tokenCount >= _minReturnedTokens, '0x3c: INADEQUATE');
 
