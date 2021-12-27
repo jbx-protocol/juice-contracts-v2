@@ -23,7 +23,7 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
-error INCOMPATIBLE();
+error TOKEN_INCOMPATIBLE();
 error INVALID_FEE();
 error INVALID_SPLIT();
 
@@ -467,7 +467,7 @@ contract JBETHPaymentTerminal is
   {
     // The terminal being migrated to must accept the same token as this terminal.
     if (token != _to.token()) {
-      revert INCOMPATIBLE();
+      revert TOKEN_INCOMPATIBLE();
     }
 
     // Record the migration in the store.
