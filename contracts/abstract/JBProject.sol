@@ -6,6 +6,7 @@ import '@openzeppelin/contracts/utils/Address.sol';
 
 import './../interfaces/IJBDirectory.sol';
 import './../libraries/JBErrors.sol';
+import './../libraries/JBTokens.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
@@ -20,7 +21,7 @@ error TERMINAL_NOT_FOUND();
 */
 abstract contract JBProject is Ownable {
   /// @notice The direct deposit terminals.
-  IJBDirectory immutable directory;
+  IJBDirectory public immutable directory;
 
   /// @notice The ID of the project that should be used to forward this contract's received payments.
   uint256 public projectId;
@@ -35,10 +36,10 @@ abstract contract JBProject is Ownable {
   }
 
   /** 
-      Received funds go streight to the project.
+      Received funds go straight to the project.
     */
   receive() external payable {
-    _pay(msg.sender, '', false, address(0));
+    _pay(msg.sender, '', false, JBTokens.ETH);
   }
 
   /** 
@@ -80,11 +81,11 @@ abstract contract JBProject is Ownable {
     bool _preferClaimedTokens,
     address _token
   ) internal {
-    _projectId = _projectId > 0 ? _projectId : projectId;
-
     if (_projectId == 0) {
       revert PROJECT_NOT_FOUND();
     }
+    require(_projectId != 0, '0x01: PROJECT_NOT_FOUND');
+
     // Find the terminal for this contract's project.
     IJBTerminal _terminal = directory.primaryTerminalOf(_projectId, _token);
 

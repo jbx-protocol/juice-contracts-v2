@@ -29,7 +29,7 @@ error UNKNOWN_CURRENCY();
   @notice
   This contract manages all inflows and outflows of funds into the Juicebox ecosystem.
 
-  @dev 
+  @dev
   A project can transfer its funds, along with the power to reconfigure and mint/burn their tokens, from this contract to another allowed terminal contract at any time.
 
   Inherits from:
@@ -54,37 +54,37 @@ contract JBETHPaymentTerminalStore {
 
   event DelegateDidRedeem(IJBRedemptionDelegate indexed delegate, JBDidRedeemData data);
 
-  /** 
+  /**
     @notice
     The Projects contract which mints ERC-721's that represent project ownership and transfers.
   */
   IJBProjects public immutable projects;
 
-  /** 
+  /**
     @notice
     The directory of terminals and controllers for projects.
   */
   IJBDirectory public immutable directory;
 
-  /** 
-    @notice 
+  /**
+    @notice
     The contract storing all funding cycle configurations.
   */
   IJBFundingCycleStore public immutable fundingCycleStore;
 
-  /** 
-    @notice 
+  /**
+    @notice
     The contract that manages token minting and burning.
   */
   IJBTokenStore public immutable tokenStore;
 
-  /** 
-    @notice 
+  /**
+    @notice
     The contract that exposes price feeds.
   */
   IJBPrices public immutable prices;
 
-  /** 
+  /**
     @notice
     The associated payment terminal for which this contract stores data.
   */
@@ -103,6 +103,8 @@ contract JBETHPaymentTerminalStore {
 
   /** 
     @notice 
+  /**
+    @notice
     The amount of ETH that each project has.
 
     _projectId The ID of the project to get the balance of.
@@ -110,10 +112,10 @@ contract JBETHPaymentTerminalStore {
   mapping(uint256 => uint256) public balanceOf;
 
   /**
-    @notice 
-    The amount of overflow that a project has used from its allowance during the current funding cycle configuration. 
+    @notice
+    The amount of overflow that a project has used from its allowance during the current funding cycle configuration.
 
-    @dev 
+    @dev
     Increases as projects use their allowance.
 
     _projectId The ID of the project to get the used overflow allowance of.
@@ -122,10 +124,10 @@ contract JBETHPaymentTerminalStore {
   mapping(uint256 => mapping(uint256 => uint256)) public usedOverflowAllowanceOf;
 
   /**
-    @notice 
-    The amount that a project has distributed from its limit during the current funding cycle. 
+    @notice
+    The amount that a project has distributed from its limit during the current funding cycle.
 
-    @dev 
+    @dev
     Increases as projects use their distribution limit.
 
     _projectId The ID of the project to get the used distribution limit of.
@@ -174,7 +176,7 @@ contract JBETHPaymentTerminalStore {
     @dev If the project has an active funding cycle reconfiguration ballot, the project's ballot redemption rate is used.
 
     @param _projectId The ID of the project to get a claimable amount for.
-    @param _tokenCount The number of tokens to make the calculation with. 
+    @param _tokenCount The number of tokens to make the calculation with.
 
     @return The amount of overflowed ETH that can be claimed.
   */
@@ -190,7 +192,7 @@ contract JBETHPaymentTerminalStore {
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
 
-  /** 
+  /**
     @param _prices A contract that exposes price feeds.
     @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
     @param _directory A contract storing directories of terminals and controllers for each project.
@@ -222,7 +224,7 @@ contract JBETHPaymentTerminalStore {
     @dev
     Mint's the project's tokens according to values provided by a configured data source. If no data source is configured, mints tokens proportional to the amount of the contribution.
 
-    @dev 
+    @dev
     Only the associated payment terminal can record a payment.
 
     @param _payer The original address that sent the payment to the terminal.
@@ -417,8 +419,8 @@ contract JBETHPaymentTerminalStore {
     balanceOf[_projectId] = balanceOf[_projectId] - distributedAmount;
   }
 
-  /** 
-    @notice 
+  /**
+    @notice
     Records newly used allowance funds of a project.
 
     @param _projectId The ID of the project to use the allowance of.
@@ -496,7 +498,7 @@ contract JBETHPaymentTerminalStore {
     @notice
     Records newly redeemed tokens of a project.
 
-    @dev 
+    @dev
     Only the associated payment terminal can record a redemption.
 
     @param _holder The account that is having its tokens redeemed.
@@ -624,7 +626,7 @@ contract JBETHPaymentTerminalStore {
     balanceOf[_projectId] = balanceOf[_projectId] + _amount;
   }
 
-  /** 
+  /**
     @notice
     Records the migration of this terminal to another.
 
@@ -652,7 +654,7 @@ contract JBETHPaymentTerminalStore {
     balanceOf[_projectId] = 0;
   }
 
-  /** 
+  /**
     @notice
     Allows this store to be claimed by an address so that it recognized the address as its terminal.
   */
