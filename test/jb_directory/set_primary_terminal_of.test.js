@@ -131,7 +131,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, terminal1.address);
     await expect(
       jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, terminal1.address),
-    ).to.be.revertedWith(errors.ALREADY_SET);
+    ).to.be.revertedWith(errors.TERMINAL_ALREADY_SET);
   });
 
   it('Should set multiple terminals for the same project with the same token', async function () {

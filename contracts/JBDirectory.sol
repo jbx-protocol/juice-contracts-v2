@@ -12,8 +12,8 @@ import './libraries/JBErrors.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
-error ALREADY_SET();
-error ALREADY_ADDED();
+error TERMINAL_ALREADY_SET();
+error CONTROLLER_ALREADY_ADDED();
 
 /**
   @notice
@@ -333,7 +333,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     // Can't set this terminal as the primary if it already is.
     if (_terminal == _primaryTerminalOf[_projectId][_token]) {
-      revert ALREADY_SET();
+      revert TERMINAL_ALREADY_SET();
     }
 
     // Add the terminal to thge project if it hasn't been already.
@@ -360,7 +360,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   function addToSetControllerAllowlist(address _address) external override onlyOwner {
     // Check that the controller has not already been added.
     if (_setControllerAllowlist[_address]) {
-      revert ALREADY_ADDED();
+      revert CONTROLLER_ALREADY_ADDED();
     }
 
     // Add the controller to the list of known controllers.

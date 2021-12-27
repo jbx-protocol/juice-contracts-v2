@@ -264,7 +264,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _metadata
   ) external override onlyController(_projectId) returns (JBFundingCycle memory) {
     // Duration must fit in a uint64, and must be greater than 1000 seconds to prevent manipulative miner behavior.
-    if (_data.duration > type(uint64).max && _data.duration <= 1000) {
+    if (_data.duration > type(uint64).max || _data.duration <= 1000) {
       revert INVALID_DURATION();
     }
 

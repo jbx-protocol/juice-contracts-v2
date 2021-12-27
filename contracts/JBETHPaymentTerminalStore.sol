@@ -643,7 +643,7 @@ contract JBETHPaymentTerminalStore {
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Migration must be allowed
-    if (!(_fundingCycle.terminalMigrationAllowed())) {
+    if (!_fundingCycle.terminalMigrationAllowed()) {
       revert JBErrors.NOT_ALLOWED();
     }
 

@@ -296,9 +296,9 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
       : _token.balanceOf(_projectId, _holder);
 
     if (
-      !((_amount < _claimedBalance && _amount < _unclaimedBalance) ||
-        (_amount >= _claimedBalance && _unclaimedBalance >= _amount - _claimedBalance) ||
-        (_amount >= _unclaimedBalance && _claimedBalance >= _amount - _unclaimedBalance))
+      (_amount >= _claimedBalance || _amount >= _unclaimedBalance) &&
+        (_amount < _claimedBalance || _unclaimedBalance < _amount - _claimedBalance) &&
+        (_amount < _unclaimedBalance || _claimedBalance < _amount - _unclaimedBalance)
     ) {
       revert JBErrors.INSUFFICIENT_FUNDS();
     }

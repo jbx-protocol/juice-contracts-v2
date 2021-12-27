@@ -56,6 +56,6 @@ describe('JBDirectory::addToSetControllerAllowlist(...)', function () {
 
     await expect(
       jbDirectory.connect(deployer).addToSetControllerAllowlist(mockJbController.address),
-    ).to.revertedWith(errors.ALREADY_ADDED);
+    ).to.revertedWith(errors.CONTROLLER_ALREADY_ADDED);
   });
 });

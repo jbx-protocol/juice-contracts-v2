@@ -502,7 +502,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     returns (uint256 beneficiaryTokenCount)
   {
     // Can't send to the zero address.
-    if (_reservedRate != MAX_TOKEN_RATE || _beneficiary == address(0)) {
+    if (_reservedRate != MAX_TOKEN_RATE && _beneficiary == address(0)) {
       revert JBErrors.ZERO_ADDRESS();
     }
 
@@ -515,7 +515,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
-    if (_fundingCycle.mintPaused() || !(directory.isTerminalDelegateOf(_projectId, msg.sender))) {
+    if (_fundingCycle.mintPaused() && !(directory.isTerminalDelegateOf(_projectId, msg.sender))) {
       revert JBErrors.PAUSED();
     }
 
@@ -579,7 +579,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
-    if (_fundingCycle.burnPaused() || !(directory.isTerminalDelegateOf(_projectId, msg.sender))) {
+    if (_fundingCycle.burnPaused() && !(directory.isTerminalDelegateOf(_projectId, msg.sender))) {
       revert JBErrors.PAUSED();
     }
 
@@ -651,7 +651,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Migration must be allowed
-    if (!(_fundingCycle.controllerMigrationAllowed())) {
+    if (!_fundingCycle.controllerMigrationAllowed()) {
       revert JBErrors.NOT_ALLOWED();
     }
 

@@ -165,8 +165,8 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
 
       // The allocator and the beneficiary shouldn't both be the zero address.
       if (
-        !(_splits[_i].allocator != IJBSplitAllocator(address(0)) ||
-          _splits[_i].beneficiary != address(0))
+        _splits[_i].allocator == IJBSplitAllocator(address(0)) &&
+          _splits[_i].beneficiary == address(0)
       ) {
         revert JBErrors.ZERO_ADDRESS();
       }
@@ -175,7 +175,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
       _percentTotal = _percentTotal + _splits[_i].percent;
 
       // The total percent should be at most 10000000.
-      if (!(_percentTotal <= 10000000)) {
+      if (_percentTotal > 10000000) {
         revert INVALID_TOTAL_PERCENT();
       }
 

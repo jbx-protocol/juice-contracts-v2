@@ -15,9 +15,9 @@ abstract contract JBOperatable is IJBOperatable {
     uint256 _permissionIndex
   ) {
     if (
-      !(msg.sender == _account ||
-        operatorStore.hasPermission(msg.sender, _account, _domain, _permissionIndex) ||
-        operatorStore.hasPermission(msg.sender, _account, 0, _permissionIndex))
+      msg.sender != _account &&
+        !operatorStore.hasPermission(msg.sender, _account, _domain, _permissionIndex) &&
+        !operatorStore.hasPermission(msg.sender, _account, 0, _permissionIndex)
     ) {
       revert JBErrors.UNAUTHORIZED();
     }
@@ -31,10 +31,10 @@ abstract contract JBOperatable is IJBOperatable {
     bool _override
   ) {
     if (
-      !(_override ||
-        msg.sender == _account ||
-        operatorStore.hasPermission(msg.sender, _account, _domain, _permissionIndex) ||
-        operatorStore.hasPermission(msg.sender, _account, 0, _permissionIndex))
+      !_override &&
+        msg.sender != _account &&
+        !operatorStore.hasPermission(msg.sender, _account, _domain, _permissionIndex) &&
+        !operatorStore.hasPermission(msg.sender, _account, 0, _permissionIndex)
     ) {
       revert JBErrors.UNAUTHORIZED();
     }
