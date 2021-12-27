@@ -99,7 +99,7 @@ contract JBETHPaymentTerminalStore {
     @notice
     Max. Redemption Rate.
   */
-  uint constant MAX_MAX_REDEMPTION_RATE = 10000;
+  uint constant MAX_REDEMPTION_RATE = 10000;
 
   /** 
     @notice 

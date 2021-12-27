@@ -5,6 +5,7 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
+import errors from "../helpers/errors.json"
 
 describe('JBProject::pay(...)', function () {
   const PROJECT_ID = 1;
@@ -88,7 +89,7 @@ describe('JBProject::pay(...)', function () {
 
     await expect(
       jbFakeProject.pay(BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN),
-    ).to.be.revertedWith('0x04: PROJECT_NOT_FOUND');
+    ).to.be.revertedWith(errors.PROJECT_NOT_FOUND);
   });
 
   it(`Can't pay if terminal not found`, async function () {
@@ -100,6 +101,6 @@ describe('JBProject::pay(...)', function () {
 
     await expect(
       jbFakeProject.pay(BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN),
-    ).to.be.revertedWith('0x05: TERMINAL_NOT_FOUND');
+    ).to.be.revertedWith(errors.TERMINAL_NOT_FOUND);
   });
 });
