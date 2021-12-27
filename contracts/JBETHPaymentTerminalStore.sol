@@ -97,9 +97,9 @@ contract JBETHPaymentTerminalStore {
 
   /** 
     @notice
-    Redemption Rate.
+    Max. Redemption Rate.
   */
-  uint constant REDEMPTION_RATE = 10000;
+  uint constant MAX_MAX_REDEMPTION_RATE = 10000;
 
   /** 
     @notice 
@@ -717,12 +717,12 @@ contract JBETHPaymentTerminalStore {
     uint256 _base = PRBMath.mulDiv(_currentOverflow, _tokenCount, _totalSupply);
 
     // These conditions are all part of the same curve. Edge conditions are separated because fewer operation are necessary.
-    if (_redemptionRate == REDEMPTION_RATE) return _base;
+    if (_redemptionRate == MAX_REDEMPTION_RATE) return _base;
     return
       PRBMath.mulDiv(
         _base,
-        _redemptionRate + PRBMath.mulDiv(_tokenCount, REDEMPTION_RATE - _redemptionRate, _totalSupply),
-        REDEMPTION_RATE
+        _redemptionRate + PRBMath.mulDiv(_tokenCount, MAX_REDEMPTION_RATE - _redemptionRate, _totalSupply),
+        MAX_REDEMPTION_RATE
       );
   }
 
