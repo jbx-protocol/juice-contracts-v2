@@ -11,7 +11,7 @@ import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStor
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import IJbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 
-describe('JBController::prepForMigrationOf(...)', function () {
+describe('JBController::migrate(...)', function () {
   const PROJECT_ID = 1;
   const TOTAL_SUPPLY = 20000;
   const MINTED = 10000;
