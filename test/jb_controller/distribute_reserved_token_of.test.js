@@ -150,8 +150,8 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
     //Still not fixed in 12/2021: https://github.com/EthWorks/Waffle/issues/245
     // Expect one event per split + one event for the whole transaction
     await Promise.all([
-      splits.map((split) => {
-        expect(tx)
+      splits.map(async (split) => {
+        await expect(tx)
           .to.emit(jbController, 'DistributeToReservedTokenSplit')
           .withArgs(
             timestamp,
@@ -168,7 +168,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
             RESERVED_AMOUNT / splits.length,
             caller.address)
       }),
-      expect(tx)
+      await expect(tx)
         .to.emit(jbController, 'DistributeReservedTokens')
         .withArgs(
               /*fundingCycleConfiguration=*/timestamp,
@@ -221,7 +221,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
     // Expect one event per split + one event for the whole transaction
     await Promise.all([
       splits.map(async (split, _) => {
-        expect(tx)
+        await expect(tx)
           .to.emit(jbController, 'DistributeToReservedTokenSplit')
           .withArgs(
             timestamp,
@@ -238,7 +238,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
             RESERVED_AMOUNT / splits.length,
             caller.address)
       }),
-      expect(tx)
+      await expect(tx)
         .to.emit(jbController, 'DistributeReservedTokens')
         .withArgs(
                 /*fundingCycleConfiguration=*/timestamp,
@@ -299,7 +299,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
     // Expect one event per split + one event for the whole transaction
     await Promise.all([
       splits.map(async (split, _) => {
-        expect(tx)
+        await expect(tx)
           .to.emit(jbController, 'DistributeToReservedTokenSplit')
           .withArgs(
             timestamp,
@@ -316,7 +316,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
             RESERVED_AMOUNT / splits.length,
             caller.address)
       }),
-      expect(tx)
+      await expect(tx)
         .to.emit(jbController, 'DistributeReservedTokens')
         .withArgs(
               /*fundingCycleConfiguration=*/timestamp,
@@ -367,10 +367,9 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
 
     const tx = await jbController.connect(caller).distributeReservedTokensOf(PROJECT_ID, MEMO);
 
-    //Still not fixed in 12/2021: https://github.com/EthWorks/Waffle/issues/245
     // Expect one event per non-null split + one event for the whole transaction
     await Promise.all([
-      expect(tx)
+      await expect(tx)
         .to.emit(jbController, 'DistributeToReservedTokenSplit')
         .withArgs(
           timestamp,
@@ -386,7 +385,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
           ],
           RESERVED_AMOUNT / splitsBeneficiariesAddresses.length,
           caller.address),
-      expect(tx)
+      await expect(tx)
         .to.emit(jbController, 'DistributeReservedTokens')
         .withArgs(
             /*fundingCycleConfiguration=*/timestamp,
