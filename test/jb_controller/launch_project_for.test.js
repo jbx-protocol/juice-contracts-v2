@@ -44,6 +44,18 @@ describe('JBController::migrate(...)', function () {
     let mockTerminal1 = await deployMockContract(deployer, jbTerminal.abi);
     let mockTerminal2 = await deployMockContract(deployer, jbTerminal.abi);
 
+    console.log("mockJbOperatorStore", mockJbOperatorStore.address);
+    console.log("mockJbProjects", mockJbProjects.address);
+    console.log("mockJbDirectory", mockJbDirectory.address);
+    console.log("mockJbFundingCycleStore", mockJbFundingCycleStore.address);
+    console.log("mockTokenStore", mockTokenStore.address);
+    console.log("mockSplitsStore", mockSplitsStore.address);
+    console.log("mockController", mockController.address);
+    console.log("mockTerminal1", mockTerminal1.address);
+    console.log("mockTerminal2", mockTerminal2.address);
+
+
+
     let jbControllerFactory = await ethers.getContractFactory('JBController');
     let jbController = await jbControllerFactory.deploy(
       mockJbOperatorStore.address,
@@ -60,11 +72,12 @@ describe('JBController::migrate(...)', function () {
       .returns(PROJECT_ID);
 
     await mockJbDirectory.mock.setControllerOf
-      .withArgs(PROJECT_ID, mockController.address)
+      .withArgs(PROJECT_ID, jbController.address)
       .returns();
 
     await mockJbDirectory.mock.addTerminalsOf
-      .withArgs(PROJECT_ID, [mockTerminal1.address, mockTerminal2.address]);
+      .withArgs(PROJECT_ID, [mockTerminal1.address, mockTerminal2.address])
+      .returns();
 
     // _configure
 
@@ -72,7 +85,7 @@ describe('JBController::migrate(...)', function () {
     const fundingCycleMetadata = makeFundingCycleMetadata();
     const splits = makeSplits();
 
-    await mockJbFundingCycleStore.configureFor
+    await mockJbFundingCycleStore.mock.configureFor
       .withArgs(PROJECT_ID, fundingCycleData, fundingCycleMetadata.packed)
       .returns(
         Object.assign({
@@ -89,41 +102,6 @@ describe('JBController::migrate(...)', function () {
       .withArgs(PROJECT_ID, /*configuration=*/timestamp, /*group=*/1, splits)
       .returns();
 
-
-
-    // ----------------------
-
-
-
-    await mockJbProjects.mock.ownerOf
-      .withArgs(PROJECT_ID)
-      .returns(projectOwner.address);
-
-    await mockJbDirectory.mock.controllerOf
-      .withArgs(PROJECT_ID)
-      .returns(jbController.address);
-
-    await mockTokenStore.mock.totalSupplyOf
-      .withArgs(PROJECT_ID)
-      .returns(TOTAL_SUPPLY);
-
-    await mockController.mock.prepForMigrationOf
-      .withArgs(PROJECT_ID, jbController.address)
-      .returns();
-
-    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      // mock JBFundingCycle obj
-      number: 1,
-      configuration: timestamp,
-      basedOn: timestamp,
-      start: timestamp,
-      duration: 0,
-      weight: 0,
-      discountRate: 0,
-      ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowControllerMigration: 1 })
-    });
-
     return {
       deployer,
       projectOwner,
@@ -135,6 +113,8 @@ describe('JBController::migrate(...)', function () {
       mockController,
       mockJbOperatorStore,
       mockJbFundingCycleStore,
+      mockTerminal1,
+      mockTerminal2,
       timestamp,
       fundingCycleData,
       fundingCycleMetadata,
@@ -159,8 +139,9 @@ describe('JBController::migrate(...)', function () {
     useDataSourceForPay = false,
     useDataSourceForRedeem = false,
     dataSource = ethers.constants.AddressZero
-  }) {
+  } = {}) {
     const unpackedMetadata = {
+      reservedRate,
       redemptionRate,
       ballotRedemptionRate,
       pausePay,
@@ -183,10 +164,10 @@ describe('JBController::migrate(...)', function () {
 
   function makeFundingCycleDataStruct({
     duration = 0,
-    weight = 10 ** 18,
+    weight = ethers.BigNumber.from('1' + '0'.repeat(18)),
     discountRate = 900000000,
     ballot = ethers.constants.AddressZero
-  }) {
+  } = {}) {
     return { duration, weight, discountRate, ballot }
   }
 
@@ -196,7 +177,7 @@ describe('JBController::migrate(...)', function () {
     overflowAllowance = 0,
     currency = 0,
     count = 2
-  }) {
+  } = {}) {
     let constraints = [];
     for (let i = 0; i < count; i++) {
       constraints.push({
@@ -210,12 +191,11 @@ describe('JBController::migrate(...)', function () {
   }
 
   it(`Should launch project`, async function () {
-    const { jbController, projectOwner, mockController, timestamp, fundingCycleData,
-      fundingCycleMetadata,
-      splits } = await setup();
+    const { jbController, projectOwner, fundingCycleData, fundingCycleMetadata, splits, mockTerminal1, mockTerminal2 } = await setup();
 
-    const groupedSplits = { group: 1, splits };
+    const groupedSplits = [{ group: 1, splits }];
     const fundAccessConstraints = makeFundAccessConstraints();
+    const terminals = [mockTerminal1.address, mockTerminal2.address];
 
     let tx = jbController.connect(projectOwner).launchProjectFor(
       projectOwner.address,
@@ -225,10 +205,10 @@ describe('JBController::migrate(...)', function () {
       fundingCycleMetadata.unpacked,
       groupedSplits,
       fundAccessConstraints,
-      []
+      terminals
     );
 
-    expect(await tx).to.be.not.reverted;
+    await expect(tx).to.be.not.reverted;
 
   });
 

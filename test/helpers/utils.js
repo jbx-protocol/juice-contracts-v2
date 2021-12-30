@@ -156,7 +156,7 @@ export function makeSplits({
   lockedUntil = 0,
   allocator = ethers.constants.AddressZero,
   projectId = 0,
-}) {
+} = {}) {
   let splits = [];
   for (let i = 0; i < count; i++) {
     splits.push({
