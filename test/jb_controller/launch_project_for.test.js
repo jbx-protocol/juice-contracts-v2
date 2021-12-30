@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
-import { impersonateAccount, packFundingCycleMetadata } from '../helpers/utils';
+import { impersonateAccount, makeSplits, packFundingCycleMetadata } from '../helpers/utils';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
@@ -9,29 +9,26 @@ import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.j
 import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
 import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
-import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
+import IJbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
 
-describe('JBController::mintTokenOf(...)', function () {
+describe('JBController::migrate(...)', function () {
   const PROJECT_ID = 1;
-  const NAME = 'TestTokenDAO';
-  const SYMBOL = 'TEST';
-  const MEMO = 'Test Memo'
-  const AMOUNT_TO_MINT = 20000;
-  const RESERVED_RATE = 5000; // 50%
-  const AMOUNT_TO_RECEIVE = AMOUNT_TO_MINT - (AMOUNT_TO_MINT * RESERVED_RATE / 10000);
-
-  let MINT_INDEX;
+  const TOTAL_SUPPLY = 20000;
+  const MINTED = 10000;
+  const PROJECT_HANDLE = ethers.utils.formatBytes32String('PROJECT_1');
+  const METADATA_CID = '';
+  let MIGRATE_CONTROLLER_INDEX;
 
   before(async function () {
     let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
     let jbOperations = await jbOperationsFactory.deploy();
 
-    MINT_INDEX = await jbOperations.MINT();
+    MIGRATE_CONTROLLER_INDEX = await jbOperations.MIGRATE_CONTROLLER();
   });
 
   async function setup() {
-    let [deployer, projectOwner, beneficiary, ...addrs] = await ethers.getSigners();
+    let [deployer, projectOwner, caller, ...addrs] = await ethers.getSigners();
 
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);
@@ -43,7 +40,9 @@ describe('JBController::mintTokenOf(...)', function () {
     let mockJbFundingCycleStore = await deployMockContract(deployer, jbFundingCycleStore.abi);
     let mockTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
     let mockSplitsStore = await deployMockContract(deployer, jbSplitsStore.abi);
-    let mockToken = await deployMockContract(deployer, jbToken.abi);
+    let mockController = await deployMockContract(deployer, IJbController.abi);
+    let mockTerminal1 = await deployMockContract(deployer, jbTerminal.abi);
+    let mockTerminal2 = await deployMockContract(deployer, jbTerminal.abi);
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');
     let jbController = await jbControllerFactory.deploy(
@@ -55,13 +54,62 @@ describe('JBController::mintTokenOf(...)', function () {
       mockSplitsStore.address
     );
 
+    // launch
+    await mockJbProjects.mock.createFor
+      .withArgs(projectOwner.address, PROJECT_HANDLE, METADATA_CID)
+      .returns(PROJECT_ID);
+
+    await mockJbDirectory.mock.setControllerOf
+      .withArgs(PROJECT_ID, mockController.address)
+      .returns();
+
+    await mockJbDirectory.mock.addTerminalsOf
+      .withArgs(PROJECT_ID, [mockTerminal1.address, mockTerminal2.address]);
+
+    // _configure
+
+    const fundingCycleData = makeFundingCycleDataStruct();
+    const fundingCycleMetadata = makeFundingCycleMetadata();
+    const splits = makeSplits();
+
+    await mockJbFundingCycleStore.configureFor
+      .withArgs(PROJECT_ID, fundingCycleData, fundingCycleMetadata.packed)
+      .returns(
+        Object.assign({
+          number: 1,
+          configuration: timestamp,
+          basedOn: timestamp,
+          start: timestamp,
+          metadata: fundingCycleMetadata.packed
+        },
+          fundingCycleData)
+      );
+
+    await mockSplitsStore.mock.set
+      .withArgs(PROJECT_ID, /*configuration=*/timestamp, /*group=*/1, splits)
+      .returns();
+
+
+
+    // ----------------------
+
+
+
     await mockJbProjects.mock.ownerOf
       .withArgs(PROJECT_ID)
       .returns(projectOwner.address);
 
-    await mockJbDirectory.mock.isTerminalDelegateOf
-      .withArgs(PROJECT_ID, projectOwner.address)
-      .returns(false);
+    await mockJbDirectory.mock.controllerOf
+      .withArgs(PROJECT_ID)
+      .returns(jbController.address);
+
+    await mockTokenStore.mock.totalSupplyOf
+      .withArgs(PROJECT_ID)
+      .returns(TOTAL_SUPPLY);
+
+    await mockController.mock.prepForMigrationOf
+      .withArgs(PROJECT_ID, jbController.address)
+      .returns();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
@@ -73,224 +121,115 @@ describe('JBController::mintTokenOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ pauseMint: 0, reservedRate: RESERVED_RATE })
+      metadata: packFundingCycleMetadata({ allowControllerMigration: 1 })
     });
 
-    await mockTokenStore.mock.mintFor
-      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_RECEIVE, /*_preferClaimedTokens=*/true)
-      .returns();
-
-    await mockTokenStore.mock.totalSupplyOf
-      .withArgs(PROJECT_ID)
-      .returns(AMOUNT_TO_RECEIVE);
-
     return {
+      deployer,
       projectOwner,
-      beneficiary,
+      caller,
       addrs,
       jbController,
-      mockJbOperatorStore,
       mockJbDirectory,
-      mockJbFundingCycleStore,
       mockTokenStore,
-      mockToken,
-      timestamp
+      mockController,
+      mockJbOperatorStore,
+      mockJbFundingCycleStore,
+      timestamp,
+      fundingCycleData,
+      fundingCycleMetadata,
+      splits
     };
   }
 
-  it(`Should mint token if caller is project owner and funding cycle not paused`, async function () {
-    const { projectOwner, beneficiary, jbController } = await setup();
+  function makeFundingCycleMetadata({
+    reservedRate = 0,
+    redemptionRate = 10000,
+    ballotRedemptionRate = 10000,
+    pausePay = false,
+    pauseDistributions = false,
+    pauseRedeem = false,
+    pauseMint = false,
+    pauseBurn = false,
+    allowChangeToken = false,
+    allowTerminalMigration = false,
+    allowControllerMigration = false,
+    holdFees = false,
+    useLocalBalanceForRedemptions = false,
+    useDataSourceForPay = false,
+    useDataSourceForRedeem = false,
+    dataSource = ethers.constants.AddressZero
+  }) {
+    const unpackedMetadata = {
+      redemptionRate,
+      ballotRedemptionRate,
+      pausePay,
+      pauseDistributions,
+      pauseRedeem,
+      pauseMint,
+      pauseBurn,
+      allowChangeToken,
+      allowTerminalMigration,
+      allowControllerMigration,
+      holdFees,
+      useLocalBalanceForRedemptions,
+      useDataSourceForPay,
+      useDataSourceForRedeem,
+      dataSource
+    };
 
-    await expect(jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
-      .to.emit(jbController, 'MintTokens')
-      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, MEMO, RESERVED_RATE, projectOwner.address);
+    return { unpacked: unpackedMetadata, packed: packFundingCycleMetadata(unpackedMetadata) }
+  };
 
-    let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, RESERVED_RATE);
-    expect(newReservedTokenBalance).to.equal(AMOUNT_TO_MINT - AMOUNT_TO_RECEIVE);
+  function makeFundingCycleDataStruct({
+    duration = 0,
+    weight = 10 ** 18,
+    discountRate = 900000000,
+    ballot = ethers.constants.AddressZero
+  }) {
+    return { duration, weight, discountRate, ballot }
+  }
+
+  function makeFundAccessConstraints({
+    terminal = ethers.constants.AddressZero,
+    distributionLimit = 0,
+    overflowAllowance = 0,
+    currency = 0,
+    count = 2
+  }) {
+    let constraints = [];
+    for (let i = 0; i < count; i++) {
+      constraints.push({
+        terminal,
+        distributionLimit,
+        overflowAllowance,
+        currency
+      })
+    }
+    return constraints;
+  }
+
+  it(`Should launch project`, async function () {
+    const { jbController, projectOwner, mockController, timestamp, fundingCycleData,
+      fundingCycleMetadata,
+      splits } = await setup();
+
+    const groupedSplits = { group: 1, splits };
+    const fundAccessConstraints = makeFundAccessConstraints();
+
+    let tx = jbController.connect(projectOwner).launchProjectFor(
+      projectOwner.address,
+      PROJECT_HANDLE,
+      METADATA_CID,
+      fundingCycleData,
+      fundingCycleMetadata.unpacked,
+      groupedSplits,
+      fundAccessConstraints,
+      []
+    );
+
+    expect(await tx).to.be.not.reverted;
+
   });
 
-  it(`Should mint token if caller is not project owner but is authorized`, async function () {
-    const { projectOwner, beneficiary, addrs, jbController, mockJbOperatorStore, mockJbDirectory } = await setup();
-
-    let caller = addrs[0];
-
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(caller.address, projectOwner.address, PROJECT_ID, MINT_INDEX)
-      .returns(true);
-
-    await mockJbDirectory.mock.isTerminalDelegateOf
-      .withArgs(PROJECT_ID, caller.address)
-      .returns(false);
-
-    await expect(jbController.connect(caller).mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
-      .to.emit(jbController, 'MintTokens')
-      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, MEMO, RESERVED_RATE, caller.address);
-
-    let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, RESERVED_RATE);
-    expect(newReservedTokenBalance).to.equal(AMOUNT_TO_MINT - AMOUNT_TO_RECEIVE);
-  });
-
-  it(`Should mint token if caller is a terminal of the corresponding project`, async function () {
-    const { projectOwner, beneficiary, jbController, mockJbOperatorStore, mockJbDirectory } = await setup();
-    const terminal = await deployMockContract(projectOwner, jbTerminal.abi);
-    const terminalSigner = await impersonateAccount(terminal.address);
-
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(terminalSigner.address, projectOwner.address, PROJECT_ID, MINT_INDEX)
-      .returns(false);
-
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(terminalSigner.address, projectOwner.address, 0, MINT_INDEX)
-      .returns(false);
-
-    await mockJbDirectory.mock.isTerminalDelegateOf
-      .withArgs(PROJECT_ID, terminalSigner.address)
-      .returns(true);
-
-    await expect(jbController.connect(terminalSigner).mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
-      .to.emit(jbController, 'MintTokens')
-      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, MEMO, RESERVED_RATE, terminalSigner.address);
-
-    let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, RESERVED_RATE);
-    expect(newReservedTokenBalance).to.equal(AMOUNT_TO_MINT - AMOUNT_TO_RECEIVE);
-  });
-
-  it(`Can't mint token if beneficiary is zero address and reserved rate is not 100%`, async function () {
-    const { projectOwner, jbController } = await setup();
-
-    await expect(jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, ethers.constants.AddressZero, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
-      .to.be.revertedWith('0x2f: ZERO_ADDRESS');
-  });
-
-  it(`Can't mint 0 token`, async function () {
-    const { projectOwner, beneficiary, jbController } = await setup();
-
-    await expect(jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, 0, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
-      .to.be.revertedWith('0x30: NO_OP');
-  });
-
-  it(`Can't mint token if funding cycle is paused and caller is not a terminal delegate`, async function () {
-    const { projectOwner, beneficiary, jbController, mockJbFundingCycleStore, timestamp } = await setup();
-
-    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      // mock JBFundingCycle obj
-      number: 1,
-      configuration: timestamp,
-      basedOn: timestamp,
-      start: timestamp,
-      duration: 0,
-      weight: 0,
-      discountRate: 0,
-      ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ pauseMint: 1, reservedRate: RESERVED_RATE })
-    });
-
-    await expect(jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
-      .to.be.revertedWith('0x31: PAUSED');
-  });
-
-  it(`Should mint token if funding cycle is paused and caller is a terminal delegate`, async function () {
-    const { projectOwner, beneficiary, jbController, mockJbFundingCycleStore, mockJbOperatorStore, mockJbDirectory, timestamp } = await setup();
-    const terminal = await deployMockContract(projectOwner, jbTerminal.abi);
-    const terminalSigner = await impersonateAccount(terminal.address);
-
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(terminalSigner.address, projectOwner.address, PROJECT_ID, MINT_INDEX)
-      .returns(false);
-
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(terminalSigner.address, projectOwner.address, 0, MINT_INDEX)
-      .returns(false);
-
-    await mockJbDirectory.mock.isTerminalDelegateOf
-      .withArgs(PROJECT_ID, terminalSigner.address)
-      .returns(true);
-
-    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      // mock JBFundingCycle obj
-      number: 1,
-      configuration: timestamp,
-      basedOn: timestamp,
-      start: timestamp,
-      duration: 0,
-      weight: 0,
-      discountRate: 0,
-      ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ pauseMint: 1, reservedRate: RESERVED_RATE })
-    });
-
-    await expect(jbController.connect(terminalSigner).mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true, RESERVED_RATE))
-      .to.emit(jbController, 'MintTokens')
-      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, MEMO, RESERVED_RATE, terminalSigner.address);
-
-    let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, RESERVED_RATE);
-    expect(newReservedTokenBalance).to.equal(AMOUNT_TO_MINT - AMOUNT_TO_RECEIVE);
-  });
-
-  it(`Should add the minted amount to the reserved tokens if reserved rate is 100%`, async function () {
-    const { projectOwner, beneficiary, jbController, mockJbFundingCycleStore, mockTokenStore, timestamp } = await setup();
-
-    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      // mock JBFundingCycle obj
-      number: 1,
-      configuration: timestamp,
-      basedOn: timestamp,
-      start: timestamp,
-      duration: 0,
-      weight: 0,
-      discountRate: 0,
-      ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ reservedRate: 10000 })
-    });
-
-    await mockTokenStore.mock.totalSupplyOf
-      .withArgs(PROJECT_ID)
-      .returns(0);
-
-    let previousReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, /*reservedRate=*/10000);
-
-    await expect(jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true, 10000))
-      .to.emit(jbController, 'MintTokens')
-      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, MEMO, 10000, projectOwner.address);
-
-    let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, 10000);
-
-    expect(newReservedTokenBalance).to.equal(previousReservedTokenBalance.add(AMOUNT_TO_MINT));
-  });
-
-  it(`Should substract the received amount to the reserved tokens if reserved rate is 0%`, async function () {
-    const { projectOwner, beneficiary, jbController, mockJbFundingCycleStore, mockTokenStore, timestamp } = await setup();
-
-    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      // mock JBFundingCycle obj
-      number: 1,
-      configuration: timestamp,
-      basedOn: timestamp,
-      start: timestamp,
-      duration: 0,
-      weight: 0,
-      discountRate: 0,
-      ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ reservedRate: 0 })
-    });
-
-    await mockTokenStore.mock.totalSupplyOf
-      .withArgs(PROJECT_ID)
-      .returns(AMOUNT_TO_MINT); // to mint == to receive <=> reserve rate = 0
-
-    await mockTokenStore.mock.mintFor
-      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, true)
-      .returns(); // to mint == to receive (reserve rate = 0)
-
-    let previousReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, /*reservedRate=*/0);
-
-    await expect(jbController.connect(projectOwner).mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true, 0))
-      .to.emit(jbController, 'MintTokens')
-      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, MEMO, 0, projectOwner.address);
-
-    let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, 0);
-
-    // reserved token cannot be < 0
-    expect(newReservedTokenBalance).to.equal(Math.max(previousReservedTokenBalance.sub(AMOUNT_TO_MINT), 0));
-  });
 });
