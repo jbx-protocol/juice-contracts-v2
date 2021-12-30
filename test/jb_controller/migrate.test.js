@@ -14,7 +14,6 @@ import IJbController from '../../artifacts/contracts/interfaces/IJBController.so
 describe('JBController::migrate(...)', function () {
   const PROJECT_ID = 1;
   const TOTAL_SUPPLY = 20000;
-  const MINTED = 10000;
   let MIGRATE_CONTROLLER_INDEX;
 
   before(async function () {
@@ -31,13 +30,25 @@ describe('JBController::migrate(...)', function () {
     const block = await ethers.provider.getBlock(blockNum);
     const timestamp = block.timestamp;
 
-    let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
-    let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
-    let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
-    let mockJbFundingCycleStore = await deployMockContract(deployer, jbFundingCycleStore.abi);
-    let mockTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
-    let mockSplitsStore = await deployMockContract(deployer, jbSplitsStore.abi);
-    let mockController = await deployMockContract(deployer, IJbController.abi);
+    let promises = [];
+
+    promises.push(deployMockContract(deployer, jbOperatoreStore.abi));
+    promises.push(deployMockContract(deployer, jbProjects.abi));
+    promises.push(deployMockContract(deployer, jbDirectory.abi));
+    promises.push(deployMockContract(deployer, jbFundingCycleStore.abi));
+    promises.push(deployMockContract(deployer, jbTokenStore.abi));
+    promises.push(deployMockContract(deployer, jbSplitsStore.abi));
+    promises.push(deployMockContract(deployer, IJbController.abi));
+
+    let [
+      mockJbOperatorStore,
+      mockJbProjects,
+      mockJbDirectory,
+      mockJbFundingCycleStore,
+      mockTokenStore,
+      mockSplitsStore,
+      mockController,
+    ] = await Promise.all(promises);
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');
     let jbController = await jbControllerFactory.deploy(
@@ -46,24 +57,18 @@ describe('JBController::migrate(...)', function () {
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
       mockTokenStore.address,
-      mockSplitsStore.address
+      mockSplitsStore.address,
     );
 
-    await mockJbProjects.mock.ownerOf
-      .withArgs(PROJECT_ID)
-      .returns(projectOwner.address);
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
-    await mockJbDirectory.mock.controllerOf
-      .withArgs(PROJECT_ID)
-      .returns(jbController.address);
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(jbController.address);
 
     await mockJbDirectory.mock.setControllerOf
       .withArgs(PROJECT_ID, mockController.address)
       .returns();
 
-    await mockTokenStore.mock.totalSupplyOf
-      .withArgs(PROJECT_ID)
-      .returns(TOTAL_SUPPLY);
+    await mockTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(TOTAL_SUPPLY);
 
     await mockController.mock.prepForMigrationOf
       .withArgs(PROJECT_ID, jbController.address)
@@ -79,7 +84,7 @@ describe('JBController::migrate(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowControllerMigration: 1 })
+      metadata: packFundingCycleMetadata({ allowControllerMigration: 1 }),
     });
 
     return {
@@ -93,7 +98,7 @@ describe('JBController::migrate(...)', function () {
       mockController,
       mockJbOperatorStore,
       mockJbFundingCycleStore,
-      timestamp
+      timestamp,
     };
   }
 
@@ -105,26 +110,24 @@ describe('JBController::migrate(...)', function () {
     await expect(tx)
       .to.emit(jbController, 'DistributeReservedTokens')
       .withArgs(
-          /*fundingCycleConfiguration=*/timestamp,
-          /*fundingCycleNumber=*/1,
-          /*projectId=*/PROJECT_ID,
-          /*projectOwner=*/projectOwner.address,
-          /*count=*/0,
-          /*leftoverTokenCount=*/0,
-          /*memo=*/"",
-          /*caller=*/projectOwner.address
-      ).and.to.emit(jbController, 'Migrate')
-      .withArgs(
-        PROJECT_ID,
-        mockController.address,
-        projectOwner.address
+        /*fundingCycleConfiguration=*/ timestamp,
+        /*fundingCycleNumber=*/ 1,
+        /*projectId=*/ PROJECT_ID,
+        /*projectOwner=*/ projectOwner.address,
+        /*count=*/ 0,
+        /*leftoverTokenCount=*/ 0,
+        /*memo=*/ '',
+        /*caller=*/ projectOwner.address,
       )
+      .and.to.emit(jbController, 'Migrate')
+      .withArgs(PROJECT_ID, mockController.address, projectOwner.address);
 
     expect(await jbController.reservedTokenBalanceOf(PROJECT_ID, 10000)).to.equal(0);
   });
 
   it(`Should mint all reserved token and migrate controller if caller is authorized`, async function () {
-    const { jbController, projectOwner, caller, mockController, mockJbOperatorStore, timestamp } = await setup();
+    const { jbController, projectOwner, caller, mockController, mockJbOperatorStore, timestamp } =
+      await setup();
 
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(caller.address, projectOwner.address, PROJECT_ID, MIGRATE_CONTROLLER_INDEX)
@@ -134,27 +137,16 @@ describe('JBController::migrate(...)', function () {
 
     await expect(tx)
       .to.emit(jbController, 'DistributeReservedTokens')
-      .withArgs(
-          /*fundingCycleConfiguration=*/timestamp,
-          /*fundingCycleNumber=*/1,
-          /*projectId=*/PROJECT_ID,
-          /*projectOwner=*/projectOwner.address,
-          /*count=*/0,
-          /*leftoverTokenCount=*/0,
-          /*memo=*/"",
-          /*caller=*/caller.address
-      ).and.to.emit(jbController, 'Migrate')
-      .withArgs(
-        PROJECT_ID,
-        mockController.address,
-        caller.address
-      )
+      .withArgs(timestamp, 1, PROJECT_ID, projectOwner.address, 0, 0, '', caller.address)
+      .and.to.emit(jbController, 'Migrate')
+      .withArgs(PROJECT_ID, mockController.address, caller.address);
 
     expect(await jbController.reservedTokenBalanceOf(PROJECT_ID, 10000)).to.equal(0);
   });
 
   it(`Can't migrate controller if caller is not the owner nor is authorized`, async function () {
-    const { jbController, projectOwner, caller, mockController, mockJbOperatorStore, timestamp } = await setup();
+    const { jbController, projectOwner, caller, mockController, mockJbOperatorStore, timestamp } =
+      await setup();
 
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(caller.address, projectOwner.address, PROJECT_ID, MIGRATE_CONTROLLER_INDEX)
@@ -164,8 +156,9 @@ describe('JBController::migrate(...)', function () {
       .withArgs(caller.address, projectOwner.address, 0, MIGRATE_CONTROLLER_INDEX)
       .returns(false);
 
-    await expect(jbController.connect(caller).migrate(PROJECT_ID, mockController.address))
-      .to.be.revertedWith('Operatable: UNAUTHORIZED')
+    await expect(
+      jbController.connect(caller).migrate(PROJECT_ID, mockController.address),
+    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
   });
 
   it(`Can't migrate if migration is not initiated via the current controller`, async function () {
@@ -177,15 +170,16 @@ describe('JBController::migrate(...)', function () {
       .withArgs(PROJECT_ID)
       .returns(mockCurrentController.address);
 
-    await expect(jbController.connect(projectOwner).migrate(PROJECT_ID, mockController.address))
-      .to.be.revertedWith('0x35: NO_OP');
+    await expect(
+      jbController.connect(projectOwner).migrate(PROJECT_ID, mockController.address),
+    ).to.be.revertedWith('0x35: NO_OP');
   });
 
   it(`Can't migrate if migration is not allowed in funding cycle`, async function () {
-    const { jbController, projectOwner, mockJbFundingCycleStore, mockController, timestamp } = await setup();
+    const { jbController, projectOwner, mockJbFundingCycleStore, mockController, timestamp } =
+      await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      // mock JBFundingCycle obj
       number: 1,
       configuration: timestamp,
       basedOn: timestamp,
@@ -194,10 +188,11 @@ describe('JBController::migrate(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowControllerMigration: 0 })
+      metadata: packFundingCycleMetadata({ allowControllerMigration: 0 }),
     });
 
-    await expect(jbController.connect(projectOwner).migrate(PROJECT_ID, mockController.address))
-      .to.be.revertedWith('0x36: NOT_ALLOWED');
+    await expect(
+      jbController.connect(projectOwner).migrate(PROJECT_ID, mockController.address),
+    ).to.be.revertedWith('0x36: NOT_ALLOWED');
   });
 });

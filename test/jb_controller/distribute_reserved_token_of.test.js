@@ -16,7 +16,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
   const PROJECT_ID = 1;
   const NAME = 'TestTokenDAO';
   const SYMBOL = 'TEST';
-  const MEMO = 'Test Memo'
+  const MEMO = 'Test Memo';
   const RESERVED_AMOUNT = 20000;
 
   let MINT_INDEX;
@@ -50,14 +50,16 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
     promises.push(deployMockContract(deployer, jbToken.abi));
     promises.push(deployMockContract(deployer, jbAllocator.abi));
 
-    let [mockJbOperatorStore,
+    let [
+      mockJbOperatorStore,
       mockJbProjects,
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockTokenStore,
       mockSplitsStore,
       mockToken,
-      mockAllocator] = await Promise.all(promises);
+      mockAllocator,
+    ] = await Promise.all(promises);
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');
     let jbController = await jbControllerFactory.deploy(
@@ -66,41 +68,42 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
       mockTokenStore.address,
-      mockSplitsStore.address
+      mockSplitsStore.address,
     );
 
     promises = [];
 
-    promises.push(mockJbProjects.mock.ownerOf
-      .withArgs(PROJECT_ID)
-      .returns(projectOwner.address));
+    promises.push(mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address));
 
-    promises.push(mockJbDirectory.mock.isTerminalDelegateOf
-      .withArgs(PROJECT_ID, projectOwner.address)
-      .returns(false));
+    promises.push(
+      mockJbDirectory.mock.isTerminalDelegateOf
+        .withArgs(PROJECT_ID, projectOwner.address)
+        .returns(false),
+    );
 
-    promises.push(mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      number: 1,
-      configuration: timestamp,
-      basedOn: timestamp,
-      start: timestamp,
-      duration: 0,
-      weight: 0,
-      discountRate: 0,
-      ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ reservedRate: 10000 })
-    }));
+    promises.push(
+      mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+        number: 1,
+        configuration: timestamp,
+        basedOn: timestamp,
+        start: timestamp,
+        duration: 0,
+        weight: 0,
+        discountRate: 0,
+        ballot: ethers.constants.AddressZero,
+        metadata: packFundingCycleMetadata({ reservedRate: 10000 }),
+      }),
+    );
 
     // No token has been distributed/minted since the reserved rate is 100
-    promises.push(mockTokenStore.mock.totalSupplyOf
-      .withArgs(PROJECT_ID)
-      .returns(0));
+    promises.push(mockTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(0));
 
     await Promise.all(promises);
 
     // Minting the reserved token
-    await jbController.connect(projectOwner)
-      .mintTokensOf(PROJECT_ID, RESERVED_AMOUNT, ethers.constants.AddressZero, MEMO, /*_preferClaimedTokens=*/true, 10000);
+    await jbController
+      .connect(projectOwner)
+      .mintTokensOf(PROJECT_ID, RESERVED_AMOUNT, ethers.constants.AddressZero, MEMO, true, 10000);
 
     return {
       projectOwner,
@@ -114,13 +117,13 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       mockToken,
       mockSplitsStore,
       mockJbProjects,
-      timestamp
+      timestamp,
     };
   }
 
   it(`Should send to beneficiaries if no allocator or project id is set in splits`, async function () {
-    const { addrs, projectOwner, jbController, mockTokenStore, mockSplitsStore, timestamp } = await setup();
-
+    const { addrs, projectOwner, jbController, mockTokenStore, mockSplitsStore, timestamp } =
+      await setup();
     const caller = addrs[0];
     const splitsBeneficiariesAddresses = [addrs[1], addrs[2]].map((signer) => signer.address);
 
@@ -128,7 +131,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       count: 2,
       beneficiary: splitsBeneficiariesAddresses,
       preferClaimed: true,
-    })
+    });
 
     await mockSplitsStore.mock.splitsOf
       .withArgs(PROJECT_ID, timestamp, RESERVED_SPLITS_GROUP)
@@ -137,58 +140,70 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
     await Promise.all(
       splitsBeneficiariesAddresses.map(async (beneficiary) => {
         await mockTokenStore.mock.mintFor
-          .withArgs(beneficiary, PROJECT_ID, Math.floor(RESERVED_AMOUNT / splitsBeneficiariesAddresses.length), /*_preferClaimedTokens=*/true)
+          .withArgs(
+            beneficiary,
+            PROJECT_ID,
+            Math.floor(RESERVED_AMOUNT / splitsBeneficiariesAddresses.length),
+            true,
+          )
           .returns();
-      })
+      }),
     );
 
-    expect(await jbController.connect(caller).callStatic.distributeReservedTokensOf(PROJECT_ID, MEMO))
-      .to.equal(RESERVED_AMOUNT);
+    expect(
+      await jbController.connect(caller).callStatic.distributeReservedTokensOf(PROJECT_ID, MEMO),
+    ).to.equal(RESERVED_AMOUNT);
 
     const tx = await jbController.connect(caller).distributeReservedTokensOf(PROJECT_ID, MEMO);
 
-    //Still not fixed in 12/2021: https://github.com/EthWorks/Waffle/issues/245
     // Expect one event per split + one event for the whole transaction
     await Promise.all([
       splits.map(async (split) => {
         await expect(tx)
           .to.emit(jbController, 'DistributeToReservedTokenSplit')
           .withArgs(
-            timestamp,
-            1,
-            PROJECT_ID,
+            /*fundingCycleConfiguration=*/ timestamp,
+            /*fundingCycleNumber=*/ 1,
+            /*projectId=*/ PROJECT_ID,
             [
               split.preferClaimed,
               split.percent,
               split.lockedUntil,
               split.beneficiary,
               split.allocator,
-              split.projectId
+              split.projectId,
             ],
-            RESERVED_AMOUNT / splits.length,
-            caller.address)
+            /*count=*/ RESERVED_AMOUNT / splits.length,
+            /*caller=*/ caller.address,
+          );
       }),
       await expect(tx)
         .to.emit(jbController, 'DistributeReservedTokens')
         .withArgs(
-              /*fundingCycleConfiguration=*/timestamp,
-              /*fundingCycleNumber=*/1,
-              /*projectId=*/PROJECT_ID,
-              /*projectOwner=*/projectOwner.address,
-              /*count=*/RESERVED_AMOUNT,
-              /*leftoverTokenCount=*/0,
-              /*memo=*/MEMO,
-              /*caller=*/caller.address
-        )
+          /*fundingCycleConfiguration=*/ timestamp,
+          /*fundingCycleNumber=*/ 1,
+          /*projectId=*/ PROJECT_ID,
+          /*projectOwner=*/ projectOwner.address,
+          /*count=*/ RESERVED_AMOUNT,
+          /*leftoverTokenCount=*/ 0,
+          /*memo=*/ MEMO,
+          /*caller=*/ caller.address,
+        ),
     ]);
   });
 
-  it(`Should send to the project owner if project id is set but not allocator in splits`, async function () {
-    const { addrs, projectOwner, jbController, mockTokenStore, mockSplitsStore, mockJbProjects, timestamp } = await setup();
-
+  it(`Should send to the project owner if project id is set in split, but not allocator`, async function () {
+    const {
+      addrs,
+      projectOwner,
+      jbController,
+      mockTokenStore,
+      mockSplitsStore,
+      mockJbProjects,
+      timestamp,
+    } = await setup();
     const caller = addrs[0];
     const splitsBeneficiariesAddresses = [addrs[1], addrs[2]].map((signer) => signer.address);
-
     const otherProjectId = 2;
     const otherProjectOwner = addrs[3];
 
@@ -196,29 +211,30 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       count: 2,
       beneficiary: splitsBeneficiariesAddresses,
       preferClaimed: true,
-      projectId: otherProjectId
-    })
+      projectId: otherProjectId,
+    });
 
-    await mockJbProjects.mock.ownerOf
-      .withArgs(otherProjectId)
-      .returns(otherProjectOwner.address)
+    await mockJbProjects.mock.ownerOf.withArgs(otherProjectId).returns(otherProjectOwner.address);
 
     await mockSplitsStore.mock.splitsOf
       .withArgs(PROJECT_ID, timestamp, RESERVED_SPLITS_GROUP)
       .returns(splits);
 
     await mockTokenStore.mock.mintFor
-      .withArgs(otherProjectOwner.address, PROJECT_ID, Math.floor(RESERVED_AMOUNT / splitsBeneficiariesAddresses.length), true)
+      .withArgs(
+        otherProjectOwner.address,
+        PROJECT_ID,
+        Math.floor(RESERVED_AMOUNT / splitsBeneficiariesAddresses.length),
+        true,
+      )
       .returns();
 
-
-    expect(await jbController.connect(caller).callStatic.distributeReservedTokensOf(PROJECT_ID, MEMO))
-      .to.equal(RESERVED_AMOUNT);
+    expect(
+      await jbController.connect(caller).callStatic.distributeReservedTokensOf(PROJECT_ID, MEMO),
+    ).to.equal(RESERVED_AMOUNT);
 
     const tx = await jbController.connect(caller).distributeReservedTokensOf(PROJECT_ID, MEMO);
 
-    //Still not fixed in 12/2021: https://github.com/EthWorks/Waffle/issues/245
-    // Expect one event per split + one event for the whole transaction
     await Promise.all([
       splits.map(async (split, _) => {
         await expect(tx)
@@ -233,29 +249,37 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
               split.lockedUntil,
               split.beneficiary,
               split.allocator,
-              split.projectId
+              split.projectId,
             ],
             RESERVED_AMOUNT / splits.length,
-            caller.address)
+            caller.address,
+          );
       }),
       await expect(tx)
         .to.emit(jbController, 'DistributeReservedTokens')
         .withArgs(
-                /*fundingCycleConfiguration=*/timestamp,
-                /*fundingCycleNumber=*/1,
-                /*projectId=*/PROJECT_ID,
-                /*projectOwner=*/projectOwner.address,
-                /*count=*/RESERVED_AMOUNT,
-                /*leftoverTokenCount=*/0,
-                /*memo=*/MEMO,
-                /*caller=*/caller.address
-        )
+          timestamp,
+          1,
+          PROJECT_ID,
+          projectOwner.address,
+          RESERVED_AMOUNT,
+          0,
+          MEMO,
+          caller.address,
+        ),
     ]);
   });
 
-  it(`Should send to the allocators if set in splits`, async function () {
-    const { addrs, projectOwner, jbController, mockTokenStore, mockSplitsStore, mockAllocator, timestamp } = await setup();
-
+  it(`Should send to the allocators if they are set in splits`, async function () {
+    const {
+      addrs,
+      projectOwner,
+      jbController,
+      mockTokenStore,
+      mockSplitsStore,
+      mockAllocator,
+      timestamp,
+    } = await setup();
     const caller = addrs[0];
     const splitsBeneficiariesAddresses = [addrs[1], addrs[2]].map((signer) => signer.address);
     const otherProjectId = 2;
@@ -265,15 +289,20 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       beneficiary: splitsBeneficiariesAddresses,
       preferClaimed: true,
       allocator: mockAllocator.address,
-      projectId: otherProjectId
-    })
+      projectId: otherProjectId,
+    });
 
     await mockSplitsStore.mock.splitsOf
       .withArgs(PROJECT_ID, timestamp, RESERVED_SPLITS_GROUP)
       .returns(splits);
 
     await mockTokenStore.mock.mintFor
-      .withArgs(mockAllocator.address, PROJECT_ID, Math.floor(RESERVED_AMOUNT / splitsBeneficiariesAddresses.length), true)
+      .withArgs(
+        mockAllocator.address,
+        PROJECT_ID,
+        Math.floor(RESERVED_AMOUNT / splitsBeneficiariesAddresses.length),
+        true,
+      )
       .returns();
 
     await Promise.all(
@@ -285,18 +314,18 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
             PROJECT_ID,
             otherProjectId,
             beneficiary,
-            true)
+            true,
+          )
           .returns();
-      })
+      }),
     );
 
-    expect(await jbController.connect(caller).callStatic.distributeReservedTokensOf(PROJECT_ID, MEMO))
-      .to.equal(RESERVED_AMOUNT);
+    expect(
+      await jbController.connect(caller).callStatic.distributeReservedTokensOf(PROJECT_ID, MEMO),
+    ).to.equal(RESERVED_AMOUNT);
 
     const tx = await jbController.connect(caller).distributeReservedTokensOf(PROJECT_ID, MEMO);
 
-    //Still not fixed in 12/2021: https://github.com/EthWorks/Waffle/issues/245
-    // Expect one event per split + one event for the whole transaction
     await Promise.all([
       splits.map(async (split, _) => {
         await expect(tx)
@@ -311,29 +340,30 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
               split.lockedUntil,
               split.beneficiary,
               split.allocator,
-              split.projectId
+              split.projectId,
             ],
             RESERVED_AMOUNT / splits.length,
-            caller.address)
+            caller.address,
+          );
       }),
       await expect(tx)
         .to.emit(jbController, 'DistributeReservedTokens')
         .withArgs(
-              /*fundingCycleConfiguration=*/timestamp,
-              /*fundingCycleNumber=*/1,
-              /*projectId=*/PROJECT_ID,
-              /*projectOwner=*/projectOwner.address,
-              /*count=*/RESERVED_AMOUNT,
-              /*leftoverTokenCount=*/0,
-              /*memo=*/MEMO,
-              /*caller=*/caller.address
-        )
+          timestamp,
+          1,
+          PROJECT_ID,
+          projectOwner.address,
+          RESERVED_AMOUNT,
+          0,
+          MEMO,
+          caller.address,
+        ),
     ]);
   });
 
   it(`Should send all left-over tokens to the project owner`, async function () {
-    const { addrs, projectOwner, jbController, mockTokenStore, mockSplitsStore, timestamp } = await setup();
-
+    const { addrs, projectOwner, jbController, mockTokenStore, mockSplitsStore, timestamp } =
+      await setup();
     const caller = addrs[0];
     const splitsBeneficiariesAddresses = [addrs[1], addrs[2]].map((signer) => signer.address);
 
@@ -342,7 +372,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       beneficiary: splitsBeneficiariesAddresses,
       preferClaimed: true,
       redemptionRate: 0,
-    })
+    });
 
     splits[1].percent = 0; // A total of 50% is now allocated
 
@@ -351,19 +381,30 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       .returns(splits);
 
     await mockTokenStore.mock.mintFor
-      .withArgs(splitsBeneficiariesAddresses[0], PROJECT_ID, Math.floor(RESERVED_AMOUNT / splitsBeneficiariesAddresses.length), /*_preferClaimedTokens=*/true)
+      .withArgs(
+        splitsBeneficiariesAddresses[0],
+        PROJECT_ID,
+        Math.floor(RESERVED_AMOUNT / splitsBeneficiariesAddresses.length),
+        true,
+      )
       .returns();
 
     await mockTokenStore.mock.mintFor
-      .withArgs(splitsBeneficiariesAddresses[1], PROJECT_ID, 0, /*_preferClaimedTokens=*/true)
+      .withArgs(splitsBeneficiariesAddresses[1], PROJECT_ID, 0, true)
       .returns();
 
     await mockTokenStore.mock.mintFor
-      .withArgs(projectOwner.address, PROJECT_ID, Math.floor(RESERVED_AMOUNT / splitsBeneficiariesAddresses.length), /*_preferClaimedTokens=*/false)
+      .withArgs(
+        projectOwner.address,
+        PROJECT_ID,
+        Math.floor(RESERVED_AMOUNT / splitsBeneficiariesAddresses.length),
+        false,
+      )
       .returns();
 
-    expect(await jbController.connect(caller).callStatic.distributeReservedTokensOf(PROJECT_ID, MEMO))
-      .to.equal(RESERVED_AMOUNT);
+    expect(
+      await jbController.connect(caller).callStatic.distributeReservedTokensOf(PROJECT_ID, MEMO),
+    ).to.equal(RESERVED_AMOUNT);
 
     const tx = await jbController.connect(caller).distributeReservedTokensOf(PROJECT_ID, MEMO);
 
@@ -381,22 +422,23 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
             splits[0].lockedUntil,
             splits[0].beneficiary,
             splits[0].allocator,
-            splits[0].projectId
+            splits[0].projectId,
           ],
           RESERVED_AMOUNT / splitsBeneficiariesAddresses.length,
-          caller.address),
+          caller.address,
+        ),
       await expect(tx)
         .to.emit(jbController, 'DistributeReservedTokens')
         .withArgs(
-            /*fundingCycleConfiguration=*/timestamp,
-            /*fundingCycleNumber=*/1,
-            /*projectId=*/PROJECT_ID,
-            /*projectOwner=*/projectOwner.address,
-            /*count=*/RESERVED_AMOUNT,
-            /*leftoverTokenCount=*/RESERVED_AMOUNT / splitsBeneficiariesAddresses.length,
-            /*memo=*/MEMO,
-            /*caller=*/caller.address
-        )
+          timestamp,
+          1,
+          PROJECT_ID,
+          projectOwner.address,
+          RESERVED_AMOUNT,
+          RESERVED_AMOUNT / splitsBeneficiariesAddresses.length,
+          MEMO,
+          caller.address,
+        ),
     ]);
   });
 
@@ -410,7 +452,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       count: 2,
       beneficiary: splitsBeneficiariesAddresses,
       preferClaimed: true,
-    })
+    });
 
     await mockSplitsStore.mock.splitsOf
       .withArgs(PROJECT_ID, timestamp, RESERVED_SPLITS_GROUP)
@@ -419,22 +461,25 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
     await Promise.all(
       splitsBeneficiariesAddresses.map(async (beneficiary) => {
         await mockTokenStore.mock.mintFor
-          .withArgs(beneficiary, PROJECT_ID, Math.floor(RESERVED_AMOUNT / splitsBeneficiariesAddresses.length), /*_preferClaimedTokens=*/true)
+          .withArgs(
+            beneficiary,
+            PROJECT_ID,
+            Math.floor(RESERVED_AMOUNT / splitsBeneficiariesAddresses.length),
+            true,
+          )
           .returns();
-      })
+      }),
     );
 
     await jbController.connect(caller).distributeReservedTokensOf(PROJECT_ID, MEMO);
 
-    await mockTokenStore.mock.totalSupplyOf
-      .withArgs(PROJECT_ID)
-      .returns(RESERVED_AMOUNT);
+    await mockTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(RESERVED_AMOUNT);
 
-    expect(await jbController.reservedTokenBalanceOf(PROJECT_ID, /*RESERVED_RATE=*/10000))
-      .to.equal(0);
+    expect(
+      await jbController.reservedTokenBalanceOf(PROJECT_ID, /*RESERVED_RATE=*/ 10000),
+    ).to.equal(0);
 
-    await expect(jbController.connect(caller).distributeReservedTokensOf(PROJECT_ID, MEMO))
-      .to.be.not.reverted;
+    await expect(jbController.connect(caller).distributeReservedTokensOf(PROJECT_ID, MEMO)).to.be
+      .not.reverted;
   });
-
 });

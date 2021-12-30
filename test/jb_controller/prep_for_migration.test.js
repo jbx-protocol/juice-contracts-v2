@@ -18,17 +18,25 @@ describe('JBController::prepForMigrationOf(...)', function () {
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
-    const blockNum = await ethers.provider.getBlockNumber();
-    const block = await ethers.provider.getBlock(blockNum);
-    const timestamp = block.timestamp;
+    let promises = [];
 
-    let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
-    let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
-    let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
-    let mockJbFundingCycleStore = await deployMockContract(deployer, jbFundingCycleStore.abi);
-    let mockTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
-    let mockSplitsStore = await deployMockContract(deployer, jbSplitsStore.abi);
-    let mockController = await deployMockContract(deployer, IJbController.abi);
+    promises.push(deployMockContract(deployer, jbOperatoreStore.abi));
+    promises.push(deployMockContract(deployer, jbProjects.abi));
+    promises.push(deployMockContract(deployer, jbDirectory.abi));
+    promises.push(deployMockContract(deployer, jbFundingCycleStore.abi));
+    promises.push(deployMockContract(deployer, jbTokenStore.abi));
+    promises.push(deployMockContract(deployer, jbSplitsStore.abi));
+    promises.push(deployMockContract(deployer, IJbController.abi));
+
+    let [
+      mockJbOperatorStore,
+      mockJbProjects,
+      mockJbDirectory,
+      mockJbFundingCycleStore,
+      mockTokenStore,
+      mockSplitsStore,
+      mockController,
+    ] = await Promise.all(promises);
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');
     let jbController = await jbControllerFactory.deploy(
@@ -37,20 +45,14 @@ describe('JBController::prepForMigrationOf(...)', function () {
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
       mockTokenStore.address,
-      mockSplitsStore.address
+      mockSplitsStore.address,
     );
 
-    await mockJbProjects.mock.ownerOf
-      .withArgs(PROJECT_ID)
-      .returns(projectOwner.address);
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
-    await mockJbDirectory.mock.controllerOf
-      .withArgs(PROJECT_ID)
-      .returns(mockController.address);
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockController.address);
 
-    await mockTokenStore.mock.totalSupplyOf
-      .withArgs(PROJECT_ID)
-      .returns(TOTAL_SUPPLY);
+    await mockTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(TOTAL_SUPPLY);
 
     return {
       projectOwner,
@@ -59,17 +61,18 @@ describe('JBController::prepForMigrationOf(...)', function () {
       mockJbDirectory,
       mockTokenStore,
       mockController,
-      timestamp
     };
   }
 
   it(`Should set the processed token tracker as the total supply if caller is not project's current controller`, async function () {
     const { jbController, mockController, mockTokenStore } = await setup();
-
     let controllerSigner = await impersonateAccount(jbController.address);
 
-    await expect(jbController.connect(controllerSigner).prepForMigrationOf(PROJECT_ID, ethers.constants.AddressZero))
-      .to.be.not.reverted;
+    await expect(
+      jbController
+        .connect(controllerSigner)
+        .prepForMigrationOf(PROJECT_ID, ethers.constants.AddressZero),
+    ).to.be.not.reverted;
 
     // reserved token balance should be at 0 if processed token = total supply
     expect(await jbController.reservedTokenBalanceOf(PROJECT_ID, 10000)).to.equal(0);
@@ -77,16 +80,14 @@ describe('JBController::prepForMigrationOf(...)', function () {
 
   it(`Can't prep for migration if the caller is the current controller`, async function () {
     const { jbController, mockController, mockJbDirectory } = await setup();
-
     let controllerSigner = await impersonateAccount(mockController.address);
 
-    await mockJbDirectory.mock.controllerOf
-      .withArgs(PROJECT_ID)
-      .returns(jbController.address);
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(jbController.address);
 
-    await expect(jbController.connect(controllerSigner).prepForMigrationOf(PROJECT_ID, ethers.constants.AddressZero))
-      .to.be.revertedWith('0x34: NO_OP');
+    await expect(
+      jbController
+        .connect(controllerSigner)
+        .prepForMigrationOf(PROJECT_ID, ethers.constants.AddressZero),
+    ).to.be.revertedWith('0x34: NO_OP');
   });
-
-
 });
