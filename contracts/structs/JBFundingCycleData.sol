@@ -14,10 +14,8 @@ struct JBFundingCycleData {
   // A value of 1 means that no tokens should be minted regardless of how many ETH was paid. The protocol will set the stored weight value to 0.
   // A value of 1 X 10^18 means that one token should be minted per ETH received.
   uint256 weight;
-  // A number from 0-1000000001 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
   // If it's 0, each funding cycle will have equal weight.
   // If the number is 900000000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
-  // If the number is 1000000001, an non-recurring funding cycle will get made.
   uint256 discountRate;
   // An address of a contract that says whether a proposed reconfiguration should be accepted or rejected.
   IJBFundingCycleBallot ballot;

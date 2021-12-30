@@ -28,7 +28,6 @@ struct JBFundingCycle {
   // A number from 0-1000000000 indicating by how much the `weight` of the subsequent funding cycle should be reduced, if the project owner hasn't configured the subsequent funding cycle with an explicit `weight`.
   // If it's 0, each funding cycle will have equal weight.
   // If the number is 900000000, the next funding cycle will have a 10% smaller weight.
-  // If the number is 1000000001, the funding cycle is non-recurrin so there cannot be a next cycle.
   uint256 discountRate;
   // An address of a contract that says whether a proposed reconfiguration should be accepted or rejected.
   // It can be used to create rules around how a project owner can change funding cycle parameters over time.
