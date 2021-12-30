@@ -8,6 +8,7 @@ import '@paulrberg/contracts/math/PRBMath.sol';
 import './libraries/JBCurrencies.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
+import './libraries/JBTokens.sol';
 
 import './JBETHPaymentTerminalStore.sol';
 
@@ -82,14 +83,11 @@ contract JBETHPaymentTerminal is
   */
   JBETHPaymentTerminalStore public immutable store;
 
-  /**
-    @notice
-    The token that this terminal accepts.
-
-    @dev
-    ETH is represented as address 0x0000000000000000000000000000000000069420.
+  /** 
+    @notice 
+    The token that this terminal accepts. 
   */
-  address public immutable override token = 0x0000000000000000000000000000000000069420;
+  address public immutable override token = JBTokens.ETH;
 
   /**
     @notice
