@@ -171,11 +171,11 @@ describe('JBController::migrate(...)', function () {
     return { duration, weight, discountRate, ballot }
   }
 
-  function makeFundAccessConstraints({
+  function makeFundingAccessConstraints({
     terminals,
-    distributionLimit = 0,
-    overflowAllowance = 0,
-    currency = 0,
+    distributionLimit = 10,
+    overflowAllowance = 10,
+    currency = 1,
   } = {}) {
     let constraints = [];
     for (let terminal of terminals) {
@@ -194,7 +194,7 @@ describe('JBController::migrate(...)', function () {
 
     const groupedSplits = [{ group: 1, splits }];
     const terminals = [mockTerminal1.address, mockTerminal2.address];
-    const fundAccessConstraints = makeFundAccessConstraints({ terminals });
+    const fundAccessConstraints = makeFundingAccessConstraints({ terminals });
 
     expect(await jbController.connect(projectOwner).callStatic.launchProjectFor(
       projectOwner.address,
@@ -242,7 +242,7 @@ describe('JBController::migrate(...)', function () {
 
     const groupedSplits = [{ group: 1, splits }];
     const terminals = [mockTerminal1.address, mockTerminal2.address];
-    const fundAccessConstraints = makeFundAccessConstraints({ terminals });
+    const fundAccessConstraints = makeFundingAccessConstraints({ terminals });
 
     const fundingCycleMetadata = makeFundingCycleMetadata({ reservedRate: 10001 })
 
@@ -265,7 +265,7 @@ describe('JBController::migrate(...)', function () {
 
     const groupedSplits = [{ group: 1, splits }];
     const terminals = [mockTerminal1.address, mockTerminal2.address];
-    const fundAccessConstraints = makeFundAccessConstraints({ terminals });
+    const fundAccessConstraints = makeFundingAccessConstraints({ terminals });
 
     fundingCycleMetadata.unpacked.redemptionRate = 10001; //not possible in packed metadata (shl of a negative value)
 
@@ -288,7 +288,7 @@ describe('JBController::migrate(...)', function () {
 
     const groupedSplits = [{ group: 1, splits }];
     const terminals = [mockTerminal1.address, mockTerminal2.address];
-    const fundAccessConstraints = makeFundAccessConstraints({ terminals });
+    const fundAccessConstraints = makeFundingAccessConstraints({ terminals });
 
     fundingCycleMetadata.unpacked.ballotRedemptionRate = 10001; //not possible in packed metadata (shl of a negative value)
 
