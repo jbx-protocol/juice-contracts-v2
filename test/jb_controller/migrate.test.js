@@ -10,14 +10,11 @@ import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.s
 import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import IJbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
 
 describe('JBController::migrate(...)', function () {
   const PROJECT_ID = 1;
   const TOTAL_SUPPLY = 20000;
   const MINTED = 10000;
-  const PROJECT_HANDLE = ethers.utils.formatBytes32String('PROJECT_1');
-  const METADATA_CID = '';
   let MIGRATE_CONTROLLER_INDEX;
 
   before(async function () {
@@ -41,8 +38,6 @@ describe('JBController::migrate(...)', function () {
     let mockTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
     let mockSplitsStore = await deployMockContract(deployer, jbSplitsStore.abi);
     let mockController = await deployMockContract(deployer, IJbController.abi);
-    let mockTerminal1 = await deployMockContract(deployer, jbTerminal.abi);
-    let mockTerminal2 = await deployMockContract(deployer, jbTerminal.abi);
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');
     let jbController = await jbControllerFactory.deploy(
@@ -54,40 +49,6 @@ describe('JBController::migrate(...)', function () {
       mockSplitsStore.address
     );
 
-    // launch
-    await mockJbProjects.mock.createFor
-      .withArgs(projectOwner.address, PROJECT_HANDLE, METADATA_CID)
-      .returns(PROJECT_ID);
-
-    await mockJbDirectory.mock.setControllerOf
-      .withArgs(PROJECT_ID, mockController.address)
-      .returns();
-
-    await mockJbDirectory.mock.addTerminalsOf
-      .withArgs(PROJECT_ID, [mockTerminal1.address, mockTerminal2.address]);
-
-    // _configure
-
-    const fundingCycleData = makeFundingCycleDataStruct();
-    const packedFundingCycleMetadata = packFundingCycleMetadata();
-
-    await mockJbFundingCycleStore.configureFor
-      .withArgs(PROJECT_ID, fundingCycleData, packedFundingCycleMetadata)
-      .returns(
-        Object.assign({
-          number: 1,
-          configuration: timestamp,
-          basedOn: timestamp,
-          start: timestamp,
-          metadata: packedFundingCycleMetadata
-        },
-          fundingCycleData)
-      );
-
-    // ----------------------
-
-
-
     await mockJbProjects.mock.ownerOf
       .withArgs(PROJECT_ID)
       .returns(projectOwner.address);
@@ -95,6 +56,10 @@ describe('JBController::migrate(...)', function () {
     await mockJbDirectory.mock.controllerOf
       .withArgs(PROJECT_ID)
       .returns(jbController.address);
+
+    await mockJbDirectory.mock.setControllerOf
+      .withArgs(PROJECT_ID, mockController.address)
+      .returns();
 
     await mockTokenStore.mock.totalSupplyOf
       .withArgs(PROJECT_ID)
@@ -130,15 +95,6 @@ describe('JBController::migrate(...)', function () {
       mockJbFundingCycleStore,
       timestamp
     };
-  }
-
-  function makeFundingCycleDataStruct({
-    duration = 0,
-    weight = 10 ** 18,
-    discountRate = 900000000,
-    ballot = ethers.constants.AddressZero
-  }) {
-    return { duration, weight, discountRate, ballot }
   }
 
   it(`Should mint all reserved token and migrate controller if caller is project's current controller`, async function () {
