@@ -50,6 +50,11 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
     const block = await ethers.provider.getBlock(blockNum);
     const timestamp = block.timestamp;
 
+    /* Common mocks */
+
+    // Set terminal address
+    await jbEthPaymentTerminalStore.claimFor(terminal.address);
+
     return {
       terminal,
       payer,
@@ -78,11 +83,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
       timestamp,
     } = await setup();
 
-    // Set terminal address
-    await jbEthPaymentTerminalStore.claimFor(terminal.address);
-
     const reservedRate = 0;
-    const packedMetadata = packFundingCycleMetadata({ pausePay: 0, reservedRate: reservedRate });
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
@@ -94,7 +95,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
       weight: WEIGHT,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packedMetadata,
+      metadata: packFundingCycleMetadata({ pausePay: 0, reservedRate: reservedRate }),
     });
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
@@ -144,9 +145,6 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
       jbEthPaymentTerminalStore,
       timestamp,
     } = await setup();
-
-    // Set terminal address
-    await jbEthPaymentTerminalStore.claimFor(terminal.address);
 
     const memo = 'test';
     const reservedRate = 0;
@@ -226,7 +224,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
         /* preferClaimedTokensAndBeneficiary */ preferClaimedTokensBigNum.or(beneficiaryBigNum),
         /* minReturnedTokens */ 0,
         /* memo */ memo,
-        /* delegateMetadata */ [0],
+        /* delegateMetadata */ delegateMetadata,
       );
 
     await expect(tx)
@@ -239,7 +237,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
         /* tokenCount */ WEIGHTED_AMOUNT,
         /* beneficiary */ beneficiary.address,
         /* memo */ newMemo,
-        /* delegateMetadata */ ethers.BigNumber.from(delegateMetadata[0]),
+        /* delegateMetadata */ ethers.BigNumber.from(delegateMetadata),
       ]);
 
     // Expect recorded balance to change
@@ -257,9 +255,6 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
       jbEthPaymentTerminalStore,
       timestamp,
     } = await setup();
-
-    // Set terminal address
-    await jbEthPaymentTerminalStore.claimFor(terminal.address);
 
     const memo = 'test';
     const reservedRate = 0;
@@ -326,7 +321,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
         /* preferClaimedTokensAndBeneficiary */ preferClaimedTokensBigNum.or(beneficiaryBigNum),
         /* minReturnedTokens */ 0,
         /* memo */ memo,
-        /* delegateMetadata */ [0],
+        /* delegateMetadata */ delegateMetadata,
       );
 
     // Recorded balance should not have changed
@@ -342,7 +337,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
         /* tokenCount */ 0,
         /* beneficiary */ beneficiary.address,
         /* memo */ newMemo,
-        /* delegateMetadata */ ethers.BigNumber.from(delegateMetadata[0]),
+        /* delegateMetadata */ ethers.BigNumber.from(delegateMetadata),
       ]);
   });
 
@@ -350,9 +345,6 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
   it(`Can't record payment without terminal access`, async function () {
     const { terminal, payer, beneficiary, jbEthPaymentTerminalStore } = await setup();
-
-    // Set terminal address
-    await jbEthPaymentTerminalStore.claimFor(terminal.address);
 
     // Record the payment
     const preferClaimedTokensBigNum = ethers.BigNumber.from(0); // false
@@ -372,33 +364,9 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
     ).to.be.revertedWith('0x3a: UNAUTHORIZED');
   });
 
-  it(`Can't record payment if terminal hasn't been set`, async function () {
-    const { terminal, payer, beneficiary, jbEthPaymentTerminalStore } = await setup();
-
-    // Record the payment
-    const preferClaimedTokensBigNum = ethers.BigNumber.from(0); // false
-    const beneficiaryBigNum = ethers.BigNumber.from(beneficiary.address).shl(1); // addr shifted left by 1
-    await expect(
-      jbEthPaymentTerminalStore
-        .connect(terminal)
-        .recordPaymentFrom(
-          /* payer */ payer.address,
-          AMOUNT,
-          PROJECT_ID,
-          /* preferClaimedTokensAndBeneficiary */ preferClaimedTokensBigNum.or(beneficiaryBigNum),
-          /* minReturnedTokens */ 0,
-          /* memo */ 'test',
-          /* delegateMetadata */ 0,
-        ),
-    ).to.be.revertedWith('0x3a: UNAUTHORIZED');
-  });
-
   it(`Can't record payment if fundingCycle hasn't been configured`, async function () {
     const { terminal, payer, beneficiary, mockJbFundingCycleStore, jbEthPaymentTerminalStore } =
       await setup();
-
-    // Set terminal address
-    await jbEthPaymentTerminalStore.claimFor(terminal.address);
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // empty JBFundingCycle obj
@@ -435,11 +403,6 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
     const { terminal, payer, beneficiary, mockJbFundingCycleStore, jbEthPaymentTerminalStore } =
       await setup();
 
-    // Set terminal address
-    await jbEthPaymentTerminalStore.claimFor(terminal.address);
-
-    const packedMetadata = packFundingCycleMetadata({ pausePay: 1 }); // Paused in the metadata
-
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
       number: 1,
@@ -450,7 +413,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packedMetadata,
+      metadata: packFundingCycleMetadata({ pausePay: 1 }), // Payments paused
     });
 
     // Record the payment
@@ -483,12 +446,8 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
       timestamp,
     } = await setup();
 
-    // Set terminal address
-    await jbEthPaymentTerminalStore.claimFor(terminal.address);
-
     const reservedRate = 0;
     const minReturnedAmt = WEIGHTED_AMOUNT.addUnsafe(ethers.FixedNumber.from(1));
-    const packedMetadata = packFundingCycleMetadata({ pausePay: 0, reservedRate: reservedRate });
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
@@ -500,7 +459,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
       weight: WEIGHT,
       discountRate: 0,
       ballot: payer.address,
-      metadata: packedMetadata,
+      metadata: packFundingCycleMetadata({ pausePay: 0, reservedRate: reservedRate }),
     });
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);

@@ -47,16 +47,18 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
     const block = await ethers.provider.getBlock(blockNum);
     const timestamp = block.timestamp;
 
+    /* Common mocks */
+
     // Set terminal address
     await jbEthPaymentTerminalStore.claimFor(terminal.address);
 
+    // Set controller address
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
     return {
       terminal,
       addr,
       mockJbController,
-      mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbPrices,
       jbEthPaymentTerminalStore,
@@ -78,8 +80,6 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       CURRENCY_USD,
     } = await setup();
 
-    const packedMetadata = packFundingCycleMetadata({ pauseDistributions: 0 });
-
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
       number: 1,
@@ -90,7 +90,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       weight: WEIGHT,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packedMetadata,
+      metadata: packFundingCycleMetadata({ pauseDistributions: 0 }),
     });
 
     const usdToEthPrice = ethers.FixedNumber.from(10000);
@@ -111,7 +111,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
 
     await mockJbPrices.mock.priceFor.withArgs(CURRENCY_USD, CURRENCY_ETH).returns(usdToEthPrice);
 
-    // pre-checks
+    // Pre-checks
     expect(await jbEthPaymentTerminalStore.usedDistributionLimitOf(PROJECT_ID, timestamp)).to.equal(
       0,
     );
@@ -122,7 +122,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       .connect(terminal)
       .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_USD, /* minReturnedWei */ amountInWei);
 
-    // post-checks
+    // Post-checks
     expect(await jbEthPaymentTerminalStore.usedDistributionLimitOf(PROJECT_ID, timestamp)).to.equal(
       AMOUNT,
     );
@@ -153,8 +153,6 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       CURRENCY_ETH,
     } = await setup();
 
-    const packedMetadata = packFundingCycleMetadata({ pauseDistributions: 0 });
-
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
       number: 1,
@@ -165,7 +163,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       weight: WEIGHT,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packedMetadata,
+      metadata: packFundingCycleMetadata({ pauseDistributions: 0 }),
     });
 
     // Add to balance beforehand
@@ -208,8 +206,6 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       CURRENCY_ETH,
     } = await setup();
 
-    const packedMetadata = packFundingCycleMetadata({ pauseDistributions: 0 });
-
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
       number: 1,
@@ -220,7 +216,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       weight: WEIGHT,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packedMetadata,
+      metadata: packFundingCycleMetadata({ pauseDistributions: 0 }),
     });
 
     // Add to balance beforehand
@@ -260,8 +256,6 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       CURRENCY_ETH,
     } = await setup();
 
-    const packedMetadata = packFundingCycleMetadata({ pauseDistributions: 0 });
-
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
       number: 1,
@@ -272,7 +266,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       weight: WEIGHT,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packedMetadata,
+      metadata: packFundingCycleMetadata({ pauseDistributions: 0 }),
     });
 
     // Add to balance beforehand
@@ -310,8 +304,6 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       CURRENCY_USD,
     } = await setup();
 
-    const packedMetadata = packFundingCycleMetadata({ pauseDistributions: 0 });
-
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
       number: 1,
@@ -322,7 +314,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       weight: WEIGHT,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packedMetadata,
+      metadata: packFundingCycleMetadata({ pauseDistributions: 0 }),
     });
 
     await mockJbController.mock.currencyOf
@@ -346,8 +338,6 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       CURRENCY_ETH,
     } = await setup();
 
-    const packedMetadata = packFundingCycleMetadata({ pauseDistributions: 1 });
-
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
       number: 1,
@@ -358,7 +348,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       weight: WEIGHT,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packedMetadata,
+      metadata: packFundingCycleMetadata({ pauseDistributions: 1 }),
     });
 
     // Record the distributions

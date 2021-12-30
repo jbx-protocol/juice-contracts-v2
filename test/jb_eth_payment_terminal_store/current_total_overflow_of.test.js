@@ -121,8 +121,10 @@ describe('JBETHPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
       .withArgs(CURRENCY_USD, CURRENCY_ETH)
       .returns(ethers.FixedNumber.from(1));
 
-    // Get total overflow across both terminals
-    expect(await jbEthPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID)).to.equal(balance);
+    // Get total overflow across both terminals; should equal AMOUNT + AMOUNT
+    expect(await jbEthPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID)).to.equal(
+      AMOUNT.addUnsafe(AMOUNT),
+    );
   });
 
   it(`Should return 0 total overflow if there's insufficient total ETH balance`, async function () {

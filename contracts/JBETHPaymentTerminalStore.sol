@@ -15,19 +15,13 @@ import './libraries/JBFundingCycleMetadataResolver.sol';
 
 /**
   @notice
-  This contract manages all inflows and outflows of funds into the Juicebox ecosystem.
+  This contract manages all bookkeeping for inflows and outflows of funds for a terminal.
 
   @dev
-  A project can transfer its funds, along with the power to reconfigure and mint/burn their tokens, from this contract to another allowed terminal contract at any time.
-
-  Inherits from:
-
-  IJBPaymentTerminal - general interface for the methods in this contract that send and receive funds according to the Juicebox protocol's rules.
-  JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
-  ReentrencyGuard - several function in this contract shouldn't be accessible recursively.
+  Aside from the public view methods, the external methods should be called by the associated terminal.
 */
 contract JBETHPaymentTerminalStore {
-  // A library that parses the packed funding cycle metadata into a more friendly format.
+  // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
   // A modifier only allowing the associated payment terminal to access the function.
@@ -90,7 +84,7 @@ contract JBETHPaymentTerminalStore {
 
   /**
     @notice
-    The amount of overflow that a project has used from its allowance during the current funding cycle configuration.
+    The amount of overflow (in the terminal's currency) that a project has used from its allowance during the current funding cycle configuration.
 
     @dev
     Increases as projects use their allowance.
@@ -102,7 +96,7 @@ contract JBETHPaymentTerminalStore {
 
   /**
     @notice
-    The amount that a project has distributed from its limit during the current funding cycle.
+    The amount (in the terminal's currency) that a project has distributed from its limit during the current funding cycle.
 
     @dev
     Increases as projects use their distribution limit.
@@ -118,7 +112,7 @@ contract JBETHPaymentTerminalStore {
 
   /**
     @notice
-    Gets the current overflowed amount in this terminal for a specified project.
+    Gets the current overflowed amount (in the terminal's currency) in this terminal for a specified project.
 
     @param _projectId The ID of the project to get overflow for.
 
@@ -133,7 +127,7 @@ contract JBETHPaymentTerminalStore {
 
   /**
     @notice
-    Gets the current overflowed amount for a specified project across all terminals.
+    Gets the current overflowed amount (in the terminal's currency) for a specified project across all terminals.
 
     @param _projectId The ID of the project to get total overflow for.
 
@@ -519,7 +513,7 @@ contract JBETHPaymentTerminalStore {
       memo = _memo;
     }
 
-    require(claimAmount > 0, '0x22: NO_OP');
+    require(claimAmount > 0, '0x50: NOTHING_TO_CLAIM');
 
     // The amount being claimed must be within the project's balance.
     require(claimAmount <= balanceOf[_projectId], '0x48: INSUFFICIENT_FUNDS');

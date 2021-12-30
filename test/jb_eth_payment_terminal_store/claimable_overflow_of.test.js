@@ -60,7 +60,7 @@ describe('JBETHPaymentTerminalStore::claimableOverflowOf(...)', function () {
     };
   }
 
-  it('Should return the claimable overflow amount after doing a curve calculation', async function () {
+  it('Should return claimable overflow with rate from active ballot', async function () {
     /*
       Calculator params for https://www.desmos.com/calculator/sp9ru6zbpk:
       o (available overflow) = 100 ETH
@@ -119,7 +119,8 @@ describe('JBETHPaymentTerminalStore::claimableOverflowOf(...)', function () {
       .withArgs(PROJECT_ID, reservedRate)
       .returns(0);
 
-    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(1); // JBBallotState.Active enum
+    // Use active ballot
+    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(1);
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));
@@ -233,7 +234,8 @@ describe('JBETHPaymentTerminalStore::claimableOverflowOf(...)', function () {
       .withArgs(PROJECT_ID, reservedRate)
       .returns(0);
 
-    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(1); // JBBallotState.Active enum
+    // Use active ballot
+    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(1);
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));
@@ -247,7 +249,7 @@ describe('JBETHPaymentTerminalStore::claimableOverflowOf(...)', function () {
     ).to.equal(0);
   });
 
-  it('Should return the claimable overflow amount without calculating curve if redemption rate is 100%', async function () {
+  it('Should return claimable overflow amount if redemption rate is 100%', async function () {
     /*
       Calculator params for https://www.desmos.com/calculator/sp9ru6zbpk:
       o (available overflow) = 100 ETH
@@ -274,7 +276,7 @@ describe('JBETHPaymentTerminalStore::claimableOverflowOf(...)', function () {
     const fundingCycleMetadata = packFundingCycleMetadata({
       reservedRate: reservedRate,
       useLocalBalanceForRedemptions: 1,
-      ballotRedemptionRate: 10000, // 100% redemption rate
+      redemptionRate: 10000, // 100% redemption rate
     });
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
@@ -305,7 +307,8 @@ describe('JBETHPaymentTerminalStore::claimableOverflowOf(...)', function () {
       .withArgs(PROJECT_ID, reservedRate)
       .returns(ethers.FixedNumber.from(50)); // added to tokenSupply
 
-    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(1); // JBBallotState.Active enum
+    // Use regular redemption rate
+    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(0);
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));

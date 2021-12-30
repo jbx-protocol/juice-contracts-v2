@@ -47,9 +47,12 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     const block = await ethers.provider.getBlock(blockNum);
     const timestamp = block.timestamp;
 
+    /* Common mocks */
+
     // Set terminal address
     await jbEthPaymentTerminalStore.claimFor(terminal.address);
 
+    // Set controller address
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
     const packedMetadata = packFundingCycleMetadata();
@@ -69,8 +72,6 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       terminal,
       addr,
       mockJbController,
-      mockJbDirectory,
-      mockJbFundingCycleStore,
       mockJbPrices,
       jbEthPaymentTerminalStore,
       timestamp,

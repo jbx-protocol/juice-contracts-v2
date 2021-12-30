@@ -53,6 +53,8 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
     const block = await ethers.provider.getBlock(blockNum);
     const timestamp = block.timestamp;
 
+    /* Common mocks */
+
     // Set terminal address
     await jbEthPaymentTerminalStore.claimFor(terminal.address);
 
@@ -160,7 +162,9 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
       );
 
     // Expect recorded balance to decrease by redeemed amount
-    expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(AMOUNT);
+    expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(
+      startingBalance.subUnsafe(AMOUNT),
+    );
   });
 
   it('Should record redemption with a datasource and emit event', async function () {
@@ -276,11 +280,13 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* claimAmount */ AMOUNT,
         /* beneficiary */ beneficiary.address,
         /* memo */ newMemo,
-        /* delegateMetadata */ ethers.BigNumber.from(delegateMetadata[0]),
+        /* delegateMetadata */ ethers.BigNumber.from(delegateMetadata),
       ]);
 
     // Expect recorded balance to decrease by redeemed amount
-    expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(AMOUNT);
+    expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(
+      startingBalance.subUnsafe(AMOUNT),
+    );
   });
 
   /* Sad path tests */
@@ -476,10 +482,10 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
           /* memo */ 'test',
           /* delegateMetadata */ 0,
         ),
-    ).to.be.revertedWith('0x22: NO_OP');
+    ).to.be.revertedWith('0x50: NOTHING_TO_CLAIM');
   });
 
-  it(`Can't record redemption with insufficient balance`, async function () {
+  it(`Can't record redemption with if claim amount > balance`, async function () {
     const {
       terminal,
       holder,
@@ -535,6 +541,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
       })
       .returns(AMOUNT, newMemo, mockJbRedemptionDelegate.address, delegateMetadata);
 
+    // Note: The store has 0 balance because we haven't added anything to it
     // Record redemption
     await expect(
       jbEthPaymentTerminalStore
@@ -546,7 +553,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
           /* minReturnedWei */ AMOUNT,
           /* beneficiary */ beneficiary.address,
           /* memo */ 'test',
-          /* delegateMetadata */ 0,
+          /* delegateMetadata */ delegateMetadata,
         ),
     ).to.be.revertedWith('0x48: INSUFFICIENT_FUNDS');
   });
@@ -615,17 +622,15 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     // Record redemption
     await expect(
-      jbEthPaymentTerminalStore
-        .connect(terminal)
-        .recordRedemptionFor(
-          /* holder */ holder.address,
-          /* projectId */ PROJECT_ID,
-          /* tokenCount */ AMOUNT,
-          /* minReturnedWei */ startingBalance,
-          /* beneficiary */ beneficiary.address,
-          /* memo */ 'test',
-          /* delegateMetadata */ 0,
-        ),
+      jbEthPaymentTerminalStore.connect(terminal).recordRedemptionFor(
+        /* holder */ holder.address,
+        /* projectId */ PROJECT_ID,
+        /* tokenCount */ AMOUNT,
+        /* minReturnedWei */ AMOUNT.addUnsafe(AMOUNT), // We've set this higher than the claim amount
+        /* beneficiary */ beneficiary.address,
+        /* memo */ 'test',
+        /* delegateMetadata */ 0,
+      ),
     ).to.be.revertedWith('0x49: INADEQUATE');
   });
 });
