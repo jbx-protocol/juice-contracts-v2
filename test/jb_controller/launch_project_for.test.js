@@ -43,17 +43,17 @@ describe('JBController::migrate(...)', function () {
     let mockController = await deployMockContract(deployer, IJbController.abi);
     let mockTerminal1 = await deployMockContract(deployer, jbTerminal.abi);
     let mockTerminal2 = await deployMockContract(deployer, jbTerminal.abi);
-
-    console.log("mockJbOperatorStore", mockJbOperatorStore.address);
-    console.log("mockJbProjects", mockJbProjects.address);
-    console.log("mockJbDirectory", mockJbDirectory.address);
-    console.log("mockJbFundingCycleStore", mockJbFundingCycleStore.address);
-    console.log("mockTokenStore", mockTokenStore.address);
-    console.log("mockSplitsStore", mockSplitsStore.address);
-    console.log("mockController", mockController.address);
-    console.log("mockTerminal1", mockTerminal1.address);
-    console.log("mockTerminal2", mockTerminal2.address);
-
+    /*
+        console.log("mockJbOperatorStore", mockJbOperatorStore.address);
+        console.log("mockJbProjects", mockJbProjects.address);
+        console.log("mockJbDirectory", mockJbDirectory.address);
+        console.log("mockJbFundingCycleStore", mockJbFundingCycleStore.address);
+        console.log("mockTokenStore", mockTokenStore.address);
+        console.log("mockSplitsStore", mockSplitsStore.address);
+        console.log("mockController", mockController.address);
+        console.log("mockTerminal1", mockTerminal1.address);
+        console.log("mockTerminal2", mockTerminal2.address);
+    */
 
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');
@@ -172,14 +172,13 @@ describe('JBController::migrate(...)', function () {
   }
 
   function makeFundAccessConstraints({
-    terminal = ethers.constants.AddressZero,
+    terminals,
     distributionLimit = 0,
     overflowAllowance = 0,
     currency = 0,
-    count = 2
   } = {}) {
     let constraints = [];
-    for (let i = 0; i < count; i++) {
+    for (let terminal of terminals) {
       constraints.push({
         terminal,
         distributionLimit,
@@ -190,12 +189,23 @@ describe('JBController::migrate(...)', function () {
     return constraints;
   }
 
-  it(`Should launch project`, async function () {
-    const { jbController, projectOwner, fundingCycleData, fundingCycleMetadata, splits, mockTerminal1, mockTerminal2 } = await setup();
+  it(`Should launch project and emit events`, async function () {
+    const { jbController, projectOwner, timestamp, fundingCycleData, fundingCycleMetadata, splits, mockTerminal1, mockTerminal2 } = await setup();
 
     const groupedSplits = [{ group: 1, splits }];
-    const fundAccessConstraints = makeFundAccessConstraints();
     const terminals = [mockTerminal1.address, mockTerminal2.address];
+    const fundAccessConstraints = makeFundAccessConstraints({ terminals });
+
+    expect(await jbController.connect(projectOwner).callStatic.launchProjectFor(
+      projectOwner.address,
+      PROJECT_HANDLE,
+      METADATA_CID,
+      fundingCycleData,
+      fundingCycleMetadata.unpacked,
+      groupedSplits,
+      fundAccessConstraints,
+      terminals
+    )).to.equal(PROJECT_ID);
 
     let tx = jbController.connect(projectOwner).launchProjectFor(
       projectOwner.address,
@@ -208,8 +218,93 @@ describe('JBController::migrate(...)', function () {
       terminals
     );
 
-    await expect(tx).to.be.not.reverted;
-
+    await Promise.all(
+      fundAccessConstraints.map(async (constraints) => {
+        await expect(tx).to.emit(jbController, 'SetFundAccessConstraints')
+          .withArgs(
+            /*fundingCycleData.configuration=*/timestamp,
+            /*fundingCycleData.number=*/1,
+            PROJECT_ID,
+            [
+              constraints.terminal,
+              constraints.distributionLimit,
+              constraints.overflowAllowance,
+              constraints.currency
+            ],
+            projectOwner.address);
+      })
+    )
   });
+
+
+  it(`Can't set a reserved rate superior to 10000`, async function () {
+    const { jbController, projectOwner, timestamp, fundingCycleData, splits, mockTerminal1, mockTerminal2 } = await setup();
+
+    const groupedSplits = [{ group: 1, splits }];
+    const terminals = [mockTerminal1.address, mockTerminal2.address];
+    const fundAccessConstraints = makeFundAccessConstraints({ terminals });
+
+    const fundingCycleMetadata = makeFundingCycleMetadata({ reservedRate: 10001 })
+
+    let tx = jbController.connect(projectOwner).launchProjectFor(
+      projectOwner.address,
+      PROJECT_HANDLE,
+      METADATA_CID,
+      fundingCycleData,
+      fundingCycleMetadata.unpacked,
+      groupedSplits,
+      fundAccessConstraints,
+      terminals
+    );
+
+    await expect(tx).to.be.revertedWith('0x37: BAD_RESERVED_RATE');
+  });
+
+  it(`Can't set a redemption rate superior to 10000`, async function () {
+    const { jbController, projectOwner, timestamp, fundingCycleData, fundingCycleMetadata, splits, mockTerminal1, mockTerminal2 } = await setup();
+
+    const groupedSplits = [{ group: 1, splits }];
+    const terminals = [mockTerminal1.address, mockTerminal2.address];
+    const fundAccessConstraints = makeFundAccessConstraints({ terminals });
+
+    fundingCycleMetadata.unpacked.redemptionRate = 10001; //not possible in packed metadata (shl of a negative value)
+
+    let tx = jbController.connect(projectOwner).launchProjectFor(
+      projectOwner.address,
+      PROJECT_HANDLE,
+      METADATA_CID,
+      fundingCycleData,
+      fundingCycleMetadata.unpacked,
+      groupedSplits,
+      fundAccessConstraints,
+      terminals
+    );
+
+    await expect(tx).to.be.revertedWith('0x38: BAD_REDEMPTION_RATE');
+  });
+
+  it(`Can't set a ballot redemption rate superior to 10000`, async function () {
+    const { jbController, projectOwner, timestamp, fundingCycleData, fundingCycleMetadata, splits, mockTerminal1, mockTerminal2 } = await setup();
+
+    const groupedSplits = [{ group: 1, splits }];
+    const terminals = [mockTerminal1.address, mockTerminal2.address];
+    const fundAccessConstraints = makeFundAccessConstraints({ terminals });
+
+    fundingCycleMetadata.unpacked.ballotRedemptionRate = 10001; //not possible in packed metadata (shl of a negative value)
+
+    let tx = jbController.connect(projectOwner).launchProjectFor(
+      projectOwner.address,
+      PROJECT_HANDLE,
+      METADATA_CID,
+      fundingCycleData,
+      fundingCycleMetadata.unpacked,
+      groupedSplits,
+      fundAccessConstraints,
+      terminals
+    );
+
+    await expect(tx).to.be.revertedWith('0x39: BAD_BALLOT_REDEMPTION_RATE');
+  });
+
 
 });
