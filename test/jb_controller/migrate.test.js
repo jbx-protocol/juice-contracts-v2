@@ -144,6 +144,21 @@ describe('JBController::migrate(...)', function () {
     expect(await jbController.reservedTokenBalanceOf(PROJECT_ID, 10000)).to.equal(0);
   });
 
+  it(`Should migrate controller without minting if there is no reserved token`, async function () {
+    const { jbController, projectOwner, mockController, mockTokenStore } = await setup();
+
+    await mockTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(0);
+
+    let tx = jbController.connect(projectOwner).migrate(PROJECT_ID, mockController.address);
+
+    await expect(tx)
+      .to.emit(jbController, 'Migrate')
+      .withArgs(PROJECT_ID, mockController.address, projectOwner.address)
+      .and.to.not.emit(jbController, 'DistributeReservedTokens');
+
+    expect(await jbController.reservedTokenBalanceOf(PROJECT_ID, 10000)).to.equal(0);
+  });
+
   it(`Can't migrate controller if caller is not the owner nor is authorized`, async function () {
     const { jbController, projectOwner, caller, mockController, mockJbOperatorStore, timestamp } =
       await setup();

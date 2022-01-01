@@ -341,6 +341,125 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
     await expect(tx).to.be.revertedWith('Operatable: UNAUTHORIZED');
   });
 
+  it(`Should reconfigure funding cycle without grouped splits`, async function () {
+    const {
+      jbController,
+      projectOwner,
+      timestamp,
+      fundingCycleData,
+      fundingCycleMetadata,
+      splits,
+      mockTerminal1,
+      mockTerminal2,
+    } = await setup();
+
+    const terminals = [mockTerminal1.address, mockTerminal2.address];
+    const fundAccessConstraints = makeFundingAccessConstraints({ terminals });
+
+    expect(
+      await jbController
+        .connect(projectOwner)
+        .callStatic.reconfigureFundingCyclesOf(
+          PROJECT_ID,
+          fundingCycleData,
+          fundingCycleMetadata.unpacked,
+          [],
+          fundAccessConstraints,
+        ),
+    ).to.equal(timestamp);
+
+    let tx = jbController
+      .connect(projectOwner)
+      .reconfigureFundingCyclesOf(
+        PROJECT_ID,
+        fundingCycleData,
+        fundingCycleMetadata.unpacked,
+        [],
+        fundAccessConstraints,
+      );
+
+    await Promise.all(
+      fundAccessConstraints.map(async (constraints) => {
+        await expect(tx)
+          .to.emit(jbController, 'SetFundAccessConstraints')
+          .withArgs(
+            /*fundingCycleData.configuration=*/ timestamp,
+            /*fundingCycleData.number=*/ 1,
+            PROJECT_ID,
+            [
+              constraints.terminal,
+              constraints.distributionLimit,
+              constraints.overflowAllowance,
+              constraints.currency,
+            ],
+            projectOwner.address,
+          );
+      }),
+    );
+  });
+
+  it(`Should reconfigure funding cycle with empty grouped split and without defined funding cycle constraints`, async function () {
+    const {
+      jbController,
+      projectOwner,
+      timestamp,
+      fundingCycleData,
+      fundingCycleMetadata,
+      mockTerminal1,
+      mockTerminal2,
+    } = await setup();
+
+    const groupedSplits = [{ group: 1, splits: [] }];
+    const terminals = [mockTerminal1.address, mockTerminal2.address];
+    const fundAccessConstraints = makeFundingAccessConstraints({
+      terminals,
+      distributionLimit: 0,
+      overflowAllowance: 0,
+      currency: 0
+    });
+
+    expect(
+      await jbController
+        .connect(projectOwner)
+        .callStatic.reconfigureFundingCyclesOf(
+          PROJECT_ID,
+          fundingCycleData,
+          fundingCycleMetadata.unpacked,
+          groupedSplits,
+          fundAccessConstraints,
+        ),
+    ).to.equal(timestamp);
+
+    let tx = jbController
+      .connect(projectOwner)
+      .reconfigureFundingCyclesOf(
+        PROJECT_ID,
+        fundingCycleData,
+        fundingCycleMetadata.unpacked,
+        groupedSplits,
+        fundAccessConstraints,
+      );
+
+    await Promise.all(
+      fundAccessConstraints.map(async (constraints) => {
+        await expect(tx)
+          .to.emit(jbController, 'SetFundAccessConstraints')
+          .withArgs(
+            /*fundingCycleData.configuration=*/ timestamp,
+            /*fundingCycleData.number=*/ 1,
+            PROJECT_ID,
+            [
+              constraints.terminal,
+              constraints.distributionLimit,
+              constraints.overflowAllowance,
+              constraints.currency,
+            ],
+            projectOwner.address,
+          );
+      }),
+    );
+  });
+
   it(`Can't set a reserved rate superior to 10000`, async function () {
     const { jbController, projectOwner, fundingCycleData, splits, mockTerminal1, mockTerminal2 } =
       await setup();

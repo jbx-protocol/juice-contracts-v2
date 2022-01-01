@@ -247,6 +247,49 @@ describe('JBController::launchProjectOf(...)', function () {
     );
   });
 
+  it(`Should launch a project without payment terminals and funding cycle constraints`, async function () {
+    const {
+      jbController,
+      projectOwner,
+      timestamp,
+      fundingCycleData,
+      fundingCycleMetadata,
+      splits,
+    } = await setup();
+    const groupedSplits = [{ group: 1, splits }];
+    const fundAccessConstraints = [];
+
+    expect(
+      await jbController
+        .connect(projectOwner)
+        .callStatic.launchProjectFor(
+          projectOwner.address,
+          PROJECT_HANDLE,
+          METADATA_CID,
+          fundingCycleData,
+          fundingCycleMetadata.unpacked,
+          groupedSplits,
+          fundAccessConstraints,
+          [],
+        ),
+    ).to.equal(PROJECT_ID);
+
+    // No constraint => no event
+    await expect(jbController
+      .connect(projectOwner)
+      .launchProjectFor(
+        projectOwner.address,
+        PROJECT_HANDLE,
+        METADATA_CID,
+        fundingCycleData,
+        fundingCycleMetadata.unpacked,
+        groupedSplits,
+        fundAccessConstraints,
+        [],
+      )
+    ).to.not.emit(jbController, 'SetFundAccessConstraints');
+  });
+
   it(`Can't launch a project with a reserved rate superior to 10000`, async function () {
     const {
       jbController,
