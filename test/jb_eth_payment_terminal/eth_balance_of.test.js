@@ -3,58 +3,69 @@ import { ethers } from 'hardhat';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
+
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
+import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
+import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
+import jbEthPaymentTerminalStore from '../../artifacts/contracts/JBETHPaymentTerminalStore.sol/JBETHPaymentTerminalStore.json';
+
 
 describe('JBETHPaymentTerminal::ethBalanceOf(...)', function () {
-
-  //------------------------------------------
   const PROJECT_ID = 13;
-
-  let ADD_TERMINALS_PERMISSION_INDEX;
-
-  before(async function () {
-    let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
-    let jbOperations = await jbOperationsFactory.deploy();
-
-    ADD_TERMINALS_PERMISSION_INDEX = await jbOperations.ADD_TERMINALS();
-  });
+  const BALANCE = 100;
 
   async function setup() {
-    let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
+    let [deployer, terminalOwner, ...addrs] = await ethers.getSigners();
 
-    let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
-    let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
+    let promises = [];
 
-    let jbDirectoryFactory = await ethers.getContractFactory('JBDirectory');
-    let jbDirectory = await jbDirectoryFactory.deploy(
+    promises.push(deployMockContract(deployer, jbOperatoreStore.abi));
+    promises.push(deployMockContract(deployer, jbProjects.abi));
+    promises.push(deployMockContract(deployer, jbDirectory.abi));
+    promises.push(deployMockContract(deployer, jbSplitsStore.abi));
+    promises.push(deployMockContract(deployer, jbEthPaymentTerminalStore.abi));
+
+    let [
+      mockJbOperatorStore,
+      mockJbProjects,
+      mockJbDirectory,
+      mockSplitsStore,
+      mockJbEthPaymentTerminalStore,
+    ] = await Promise.all(promises);
+
+    let jbTerminalFactory = await ethers.getContractFactory("JBETHPaymentTerminal", deployer);
+
+    const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
+    const futureTerminalAddress = ethers.utils.getContractAddress({ from: deployer.address, nonce: currentNonce + 1 });
+
+    await mockJbEthPaymentTerminalStore.mock.claimFor
+      .withArgs(futureTerminalAddress)
+      .returns();
+
+    let jbEthPaymentTerminal = await jbTerminalFactory.connect(deployer).deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
-    );
+      mockJbDirectory.address,
+      mockSplitsStore.address,
+      mockJbEthPaymentTerminalStore.address,
+      terminalOwner.address);
 
-    let terminal1 = await deployMockContract(projectOwner, jbTerminal.abi);
-    let terminal2 = await deployMockContract(projectOwner, jbTerminal.abi);
-
-    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
-
-    // Add a few terminals
-    await jbDirectory
-      .connect(projectOwner)
-      .addTerminalsOf(PROJECT_ID, [terminal1.address, terminal2.address]);
-
-    return { projectOwner, deployer, addrs, jbDirectory, terminal1, terminal2 };
+    return {
+      terminalOwner,
+      addrs,
+      jbEthPaymentTerminal,
+      mockJbEthPaymentTerminalStore
+    }
   }
 
-  it('Should return terminals belonging to the project', async function () {
-    const { projectOwner, jbDirectory, terminal1, terminal2 } = await setup();
+  it('Should return the balance of the project', async function () {
+    const { jbEthPaymentTerminal, mockJbEthPaymentTerminalStore } = await setup();
 
-    let terminals = [...(await jbDirectory.connect(projectOwner).terminalsOf(PROJECT_ID))];
-    terminals.sort();
+    await mockJbEthPaymentTerminalStore.mock.balanceOf
+      .withArgs(PROJECT_ID)
+      .returns(BALANCE)
 
-    let expectedTerminals = [terminal1.address, terminal2.address];
-    expectedTerminals.sort();
-
-    expect(terminals).to.eql(expectedTerminals);
+    expect(await jbEthPaymentTerminal.ethBalanceOf(PROJECT_ID)).to.equal(BALANCE);
   });
 });
