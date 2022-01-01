@@ -72,6 +72,8 @@ describe('JBDirectory::setControllerOf(...)', function () {
 
     await mockJbProjects.mock.count.returns(PROJECT_ID);
 
+    await jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller1.address)
+
     await expect(jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller1.address))
       .to.not.be.reverted;
 

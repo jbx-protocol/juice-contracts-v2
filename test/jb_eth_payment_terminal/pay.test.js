@@ -1,21 +1,24 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
-
+import { packFundingCycleMetadata } from '../helpers/utils.js';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbEthPaymentTerminalStore from '../../artifacts/contracts/JBETHPaymentTerminalStore.sol/JBETHPaymentTerminalStore.json';
-import jbController from '../../artifacts/contracts/JBController.sol/JBController.json';
 
-describe('JBETHPaymentTerminal::remainingDistributionLimitOf(...)', function () {
-  const PROJECT_ID = 13;
-  const FUNDING_CYCLE_NUMBER = 1;
-  const BALANCE = 100;
+describe('JBETHPaymentTerminal::pay(...)', function () {
+  const PROJECT_ID = 1;
+  const MEMO = 'Memo Test';
+  const DELEGATE_METADATA = ethers.utils.randomBytes(32);
+  const WEIGHT = 10;
+  const MIN_TOKEN_REQUESTED = 90;
+  const TOKEN_RECEIVED = 100;
+  const ETH_TO_PAY = ethers.utils.parseEther('1');
 
   async function setup() {
-    let [deployer, terminalOwner, ...addrs] = await ethers.getSigners();
+    let [deployer, terminalOwner, caller, beneficiary, ...addrs] = await ethers.getSigners();
 
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);
@@ -27,7 +30,6 @@ describe('JBETHPaymentTerminal::remainingDistributionLimitOf(...)', function () 
     promises.push(deployMockContract(deployer, jbDirectory.abi));
     promises.push(deployMockContract(deployer, jbSplitsStore.abi));
     promises.push(deployMockContract(deployer, jbEthPaymentTerminalStore.abi));
-    promises.push(deployMockContract(deployer, jbController.abi));
 
     let [
       mockJbOperatorStore,
@@ -35,7 +37,6 @@ describe('JBETHPaymentTerminal::remainingDistributionLimitOf(...)', function () 
       mockJbDirectory,
       mockSplitsStore,
       mockJbEthPaymentTerminalStore,
-      mockJbController,
     ] = await Promise.all(promises);
 
     let jbTerminalFactory = await ethers.getContractFactory("JBETHPaymentTerminal", deployer);
@@ -55,38 +56,73 @@ describe('JBETHPaymentTerminal::remainingDistributionLimitOf(...)', function () 
       mockJbEthPaymentTerminalStore.address,
       terminalOwner.address);
 
+    await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
+      .withArgs(
+        caller.address,
+        ETH_TO_PAY,
+        PROJECT_ID,
+        //preferedCLaimed | uint160(beneficiary)<<1
+        ethers.BigNumber.from(1).or(ethers.BigNumber.from(caller.address).shl(1)),
+
+        MIN_TOKEN_REQUESTED,
+        MEMO,
+        DELEGATE_METADATA
+      )
+      .returns(
+        { // mock JBFundingCycle obj
+          number: 1,
+          configuration: timestamp,
+          basedOn: timestamp,
+          start: timestamp,
+          duration: 0,
+          weight: 0,
+          discountRate: 0,
+          ballot: ethers.constants.AddressZero,
+          metadata: packFundingCycleMetadata(),
+        },
+        WEIGHT,
+        TOKEN_RECEIVED,
+        MEMO
+      )
+
     return {
       terminalOwner,
+      caller,
+      beneficiary,
       addrs,
       jbEthPaymentTerminal,
-      mockJbDirectory,
       mockJbEthPaymentTerminalStore,
-      mockJbController,
-      timestamp
+      timestamp,
     }
   }
 
-  it('Should return the remaining distribution limit of the project', async function () {
-    const { deployer, jbEthPaymentTerminal, mockJbDirectory, mockJbController, mockJbEthPaymentTerminalStore, timestamp } = await setup();
+  it('Should record payment and emit event', async function () {
+    const { beneficiary, caller, jbEthPaymentTerminal, mockJbEthPaymentTerminalStore, timestamp } = await setup();
 
-    await mockJbDirectory.mock.controllerOf
-      .withArgs(PROJECT_ID)
-      .returns(mockJbController.address);
+    console.log((ethers.BigNumber.from(1).or(ethers.BigNumber.from(caller.address).shl(1))).toString())
 
-    await mockJbController.mock.distributionLimitOf
-      .withArgs(PROJECT_ID, timestamp, jbEthPaymentTerminal.address)
-      .returns(BALANCE);
-
-    await mockJbEthPaymentTerminalStore.mock.usedDistributionLimitOf
-      .withArgs(PROJECT_ID, FUNDING_CYCLE_NUMBER)
-      .returns(BALANCE)
 
     expect(
-      await jbEthPaymentTerminal.remainingDistributionLimitOf(
+      await jbEthPaymentTerminal.connect(caller).pay(
         PROJECT_ID,
-        timestamp,
-        FUNDING_CYCLE_NUMBER
+        caller.address,
+        MIN_TOKEN_REQUESTED,
+        /*preferClaimedToken=*/true,
+        MEMO,
+        DELEGATE_METADATA,
+        { value: ETH_TO_PAY }
+      )).to.emit('JBETHPaymentTerminal')
+      .withArgs(
+        /*fundingCycle.configuration=*/timestamp,
+        FUNDING_CYCLE_NUMBER,
+        PROJECT_ID,
+        caller.address,
+        WEIGHT,
+        TOKEN_RECEIVED,
+        MEMO,
+        caller.address
       )
-    ).to.equal(0);
   });
+
+  //can't have beneficiary 0 address
 });
