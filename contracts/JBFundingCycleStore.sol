@@ -6,6 +6,8 @@ import '@paulrberg/contracts/math/PRBMath.sol';
 import './interfaces/IJBFundingCycleStore.sol';
 import './abstract/JBControllerUtility.sol';
 
+import 'hardhat/console.sol';
+
 /** 
   @notice 
   Manages funding cycle scheduling.
@@ -20,6 +22,8 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     A funding cycle's discount rate is expressed as a percentage out of 100000000.
   */
   uint256 private constant _MAX_DISCOUNT_RATE = 100000000;
+
+  uint256 private constant _MIN_DURATION = 1000;
 
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
@@ -164,9 +168,12 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       // Resolve the funding cycle for the eligible configuration.
       _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
 
+      console.log('a');
       // Check to see if this funding cycle's ballot is approved.
       // If so, return it.
       if (_isApproved(_projectId, _fundingCycle)) return _fundingCycle;
+
+      console.log('b');
 
       // If it hasn't been approved, set the funding cycle configuration to be the configuration of the funding cycle that it's based on,
       // which carries the last approved configuration.
@@ -179,11 +186,14 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       // Get the funding cycle for the latest ID.
       _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
 
+      console.log('c');
       // If it's not approved or if it hasn't yet started, get a reference to the funding cycle that the latest is based on, which has the latest approved configuration.
       if (!_isApproved(_projectId, _fundingCycle) || block.timestamp < _fundingCycle.start)
         _fundingCycleConfiguration = _fundingCycle.basedOn;
+      console.log('d');
     }
 
+    console.log('e');
     // The funding cycle cant be 0.
     if (_fundingCycleConfiguration == 0) return _getStructFor(0, 0);
 
@@ -242,7 +252,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @param _data The funding cycle configuration.
       @dev _data.duration The duration of the funding cycle. Measured in days. 
         Set to 0 for no expiry and to be able to reconfigure anytime.
-      @dev _data.discountRate A number from 0-1000000000 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
+      @dev _data.discountRate A number from 0-100000000 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
         If it's 0, each funding cycle will have equal weight.
         If the number is 900000000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
       @dev _data.ballot The new ballot that will be used to approve subsequent reconfigurations.
@@ -255,8 +265,11 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     JBFundingCycleData calldata _data,
     uint256 _metadata
   ) external override onlyController(_projectId) returns (JBFundingCycle memory) {
-    // Duration must fit in a uint64, and must be greater than 1000 seconds to prevent manipulative miner behavior.
-    require(_data.duration <= type(uint64).max && _data.duration > 1000, '0x15: BAD_DURATION');
+    // Duration must fit in a uint64, and must be greater than the minimum duration of seconds to ensure no manipulative miner behavior.
+    require(
+      _data.duration <= type(uint64).max && _data.duration > _MIN_DURATION,
+      '0x15: BAD_DURATION'
+    );
 
     // Discount rate token must be less than or equal to 100%.
     require(_data.discountRate <= _MAX_DISCOUNT_RATE, '0x16: BAD_DISCOUNT_RATE');
@@ -552,7 +565,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // If there isn't one, theres also no eligible funding cycle.
     if (configuration == 0) return 0;
 
-    // Get the necessary properties for the latest funding cycle.
+    // Get the latest funding cycle.
     JBFundingCycle memory _fundingCycle = _getStructFor(_projectId, configuration);
 
     // If the latest is expired, return an empty funding cycle.
@@ -560,6 +573,11 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     if (
       _fundingCycle.duration > 0 && block.timestamp >= _fundingCycle.start + _fundingCycle.duration
     ) return 0;
+
+    // The first funding cycle when running on local can be in the future for some reason.
+    // This will have no effect in production.
+    // Return the funding cycle's configuration if it has started.
+    if (block.timestamp >= _fundingCycle.start) return _fundingCycle.configuration;
 
     // The base cant be expired.
     JBFundingCycle memory _baseFundingCycle = _getStructFor(_projectId, _fundingCycle.basedOn);

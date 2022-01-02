@@ -54,6 +54,7 @@ describe('JBProjects::renewHandle(...)', function () {
     let storedChallengeExpiryOf = await jbProjectsStore
       .connect(deployer)
       .challengeExpiryOf(ethers.utils.formatBytes32String(PROJECT_HANDLE));
+
     await expect(storedChallengeExpiryOf).equal(0);
 
     await expect(tx)
