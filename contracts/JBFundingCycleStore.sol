@@ -240,8 +240,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
     @param _projectId The ID of the project being configured.
     @param _data The funding cycle configuration.
-      @dev _data.target The amount that the project wants to receive in each funding cycle. 18 decimals.
-      @dev _data.duration The duration of the funding cycle for which the `_target` amount is needed. Measured in days. 
+      @dev _data.duration The duration of the funding cycle. Measured in days. 
         Set to 0 for no expiry and to be able to reconfigure anytime.
       @dev _data.discountRate A number from 0-1000000000 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
         If it's 0, each funding cycle will have equal weight.
@@ -645,14 +644,14 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _packedIntrinsicProperties = _packedIntrinsicPropertiesOf[_projectId][_configuration];
 
     fundingCycle.weight = uint256(uint88(_packedIntrinsicProperties));
-    fundingCycle.basedOn = uint256(uint56(_packedIntrinsicProperties >> 136));
-    fundingCycle.start = uint256(uint56(_packedIntrinsicProperties >> 128));
-    fundingCycle.number = uint256(uint56(_packedIntrinsicProperties >> 176));
+    fundingCycle.basedOn = uint256(uint56(_packedIntrinsicProperties >> 88));
+    fundingCycle.start = uint256(uint56(_packedIntrinsicProperties >> 144));
+    fundingCycle.number = uint256(uint56(_packedIntrinsicProperties >> 200));
 
     uint256 _packedUserProperties = _packedUserPropertiesOf[_projectId][_configuration];
 
     fundingCycle.ballot = IJBFundingCycleBallot(address(uint160(_packedUserProperties)));
-    fundingCycle.duration = uint256(uint64(_packedUserProperties >> 208));
+    fundingCycle.duration = uint256(uint64(_packedUserProperties >> 160));
     fundingCycle.discountRate = uint256(uint32(_packedUserProperties >> 224));
 
     fundingCycle.metadata = _metadataOf[_projectId][_configuration];
