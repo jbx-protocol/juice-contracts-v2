@@ -9,7 +9,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import { deployJbToken } from '../helpers/utils';
-import errors from "../helpers/errors.json"
+import errors from '../helpers/errors.json';
 
 describe('JBTokenStore::changeFor(...)', function () {
   const PROJECT_ID = 2;

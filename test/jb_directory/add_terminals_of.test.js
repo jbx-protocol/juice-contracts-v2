@@ -8,7 +8,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
 import { impersonateAccount } from '../helpers/utils';
-import errors from "../helpers/errors.json"
+import errors from '../helpers/errors.json';
 
 describe('JBDirectory::addTerminalsOf(...)', function () {
   const PROJECT_ID = 1;

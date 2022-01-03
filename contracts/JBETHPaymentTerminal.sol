@@ -23,9 +23,9 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
-error TOKEN_INCOMPATIBLE();
 error INVALID_FEE();
 error INVALID_SPLIT();
+error TOKEN_INCOMPATIBLE();
 
 /**
   @notice

@@ -4,7 +4,7 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
-import errors from "../helpers/errors.json"
+import errors from '../helpers/errors.json';
 
 describe('JBProjects::setHandleOf(...)', function () {
   const PROJECT_HANDLE = 'PROJECT_1';

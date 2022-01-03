@@ -34,6 +34,12 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
   */
   mapping(uint256 => mapping(uint256 => mapping(uint256 => JBSplit[]))) private _splitsOf;
 
+  /** 
+    @notice 
+    Threshold for maximum total percentage
+  */
+  uint maxTotalPercent = 10000000;
+
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
@@ -175,7 +181,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
       _percentTotal = _percentTotal + _splits[_i].percent;
 
       // The total percent should be at most 10000000.
-      if (_percentTotal > 10000000) {
+      if (_percentTotal > maxTotalPercent) {
         revert INVALID_TOTAL_PERCENT();
       }
 

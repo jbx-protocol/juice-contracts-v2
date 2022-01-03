@@ -6,7 +6,7 @@ import { fastForward, getTimestamp } from '../helpers/utils';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
-import errors from "../helpers/errors.json"
+import errors from '../helpers/errors.json';
 
 describe('JBProjects::claimHandle(...)', function () {
   const PROJECT_HANDLE_1 = 'PROJECT_1';

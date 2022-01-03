@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { compilerOutput } from '@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
-import errors from "../helpers/errors.json"
+import errors from '../helpers/errors.json';
 
 describe('JBPrices::addFeed(...)', function () {
   let deployer;

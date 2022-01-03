@@ -3,7 +3,7 @@ import { ethers } from 'hardhat';
 import { compilerOutput } from '@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { BigNumber } from '@ethersproject/bignumber';
-import errors from "../helpers/errors.json"
+import errors from '../helpers/errors.json';
 
 describe('JBPrices::priceFor(...)', function () {
   let deployer;

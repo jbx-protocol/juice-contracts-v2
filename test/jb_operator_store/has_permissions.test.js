@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import errors from "../helpers/errors.json"
+import errors from '../helpers/errors.json';
 
 describe('JBOperatorStore::hasPermissions(...)', function () {
   const DOMAIN = 1;
@@ -34,7 +34,7 @@ describe('JBOperatorStore::hasPermissions(...)', function () {
           /*domain=*/ DOMAIN,
           /*permissionIndexes=*/ PERMISSION_INDEXES_OUT_OF_BOUND,
         ),
-    ).to.be.revertedWith(errors.INDEX_OUT_OF_BOUNDS);
+    ).to.be.revertedWith(errors.PERMISSION_INDEX_OUT_OF_BOUNDS);
   });
 
   it('Account is caller', async function () {

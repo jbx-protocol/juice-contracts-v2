@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import errors from "../helpers/errors.json"
+import errors from '../helpers/errors.json';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';

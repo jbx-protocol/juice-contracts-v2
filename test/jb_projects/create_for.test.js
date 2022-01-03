@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import errors from "../helpers/errors.json"
+import errors from '../helpers/errors.json';
 
 describe('JBProjects::createFor(...)', function () {
   const PROJECT_HANDLE_1 = 'PROJECT_1';

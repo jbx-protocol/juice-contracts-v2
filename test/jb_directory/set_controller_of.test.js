@@ -7,7 +7,7 @@ import { impersonateAccount } from '../helpers/utils';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
-import errors from "../helpers/errors.json"
+import errors from '../helpers/errors.json';
 
 describe('JBDirectory::setControllerOf(...)', function () {
   const PROJECT_ID = 1;

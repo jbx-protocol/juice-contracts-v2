@@ -5,7 +5,7 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
-import errors from "../helpers/errors.json"
+import errors from '../helpers/errors.json';
 
 describe('JBProject::pay(...)', function () {
   const PROJECT_ID = 1;
@@ -22,7 +22,7 @@ describe('JBProject::pay(...)', function () {
     let jbTokens = await jbTokensFactory.deploy();
 
     JBTOKENS_ETH = await jbTokens.ETH();
-  })
+  });
 
   async function setup() {
     let [deployer, ...addrs] = await ethers.getSigners();

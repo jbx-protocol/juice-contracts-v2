@@ -6,7 +6,7 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
-import errors from "../helpers/errors.json"
+import errors from '../helpers/errors.json';
 
 describe('JBTokenStore::shouldRequireClaimingFor(...)', function () {
   const PROJECT_ID = 2;

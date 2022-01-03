@@ -9,8 +9,8 @@ import './libraries/JBErrors.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
-error INVALID_DURATION();
 error INVALID_DISCOUNT_RATE();
+error INVALID_DURATION();
 error INVALID_WEIGHT();
 error NON_RECURRING_FUNDING_CYCLE();
 
@@ -271,15 +271,10 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       revert INVALID_DURATION();
     }
 
-<<<<<<< HEAD
     // Discount rate token must be less than or equal to 100%. A value of 1000000001 means non-recurring.
-    if (_data.discountRate > 1000000001) {
+    if (_data.discountRate > _MAX_DISCOUNT_RATE) {
       revert INVALID_DISCOUNT_RATE();
     }
-=======
-    // Discount rate token must be less than or equal to 100%.
-    require(_data.discountRate <= _MAX_DISCOUNT_RATE, '0x16: BAD_DISCOUNT_RATE');
->>>>>>> 711ee619cf268e4101601da8b4695dfdf3daec06
 
     // Weight must fit into a uint88.
     if (_data.weight > type(uint88).max) {

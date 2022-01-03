@@ -12,8 +12,8 @@ import './libraries/JBErrors.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
-error TERMINAL_ALREADY_SET();
 error CONTROLLER_ALREADY_ADDED();
+error TERMINAL_ALREADY_SET();
 
 /**
   @notice

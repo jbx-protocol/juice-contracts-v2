@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
 import { makePackedPermissions } from '../helpers/utils';
-import errors from "../helpers/errors.json"
+import errors from '../helpers/errors.json';
 
 describe('JBOperatorStore::setOperator(...)', function () {
   const DOMAIN = 1;
@@ -92,7 +92,9 @@ describe('JBOperatorStore::setOperator(...)', function () {
     let permissionIndexes = [1, 2, 256];
 
     await expect(
-      jbOperatorStore.connect(deployer).setOperator([projectOwner.address, DOMAIN, PERMISSION_INDEXES_OUT_OF_BOUND]),
-      ).to.be.revertedWith(errors.INDEX_OUT_OF_BOUNDS);
-    });
+      jbOperatorStore
+        .connect(deployer)
+        .setOperator([projectOwner.address, DOMAIN, PERMISSION_INDEXES_OUT_OF_BOUND]),
+    ).to.be.revertedWith(errors.PERMISSION_INDEX_OUT_OF_BOUNDS);
+  });
 });

@@ -168,12 +168,12 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     string calldata _symbol
   ) external override onlyController(_projectId) returns (IJBToken token) {
     // There must be a name.
-    if ((bytes(_name).length == 0)) {
+    if (bytes(_name).length == 0) {
       revert EMPTY_NAME();
     }
 
     // There must be a symbol.
-    if ((bytes(_symbol).length == 0)) {
+    if (bytes(_symbol).length == 0) {
       revert EMPTY_SYMBOL();
     }
 

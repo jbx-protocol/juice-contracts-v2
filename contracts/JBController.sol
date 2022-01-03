@@ -456,7 +456,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // The current funding cycle must not be paused.
-    if (!(_fundingCycle.changeTokenAllowed())) {
+    if (!_fundingCycle.changeTokenAllowed()) {
       revert JBErrors.NOT_ALLOWED();
     }
 
@@ -513,7 +513,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
-    if (_fundingCycle.mintPaused() && !(directory.isTerminalDelegateOf(_projectId, msg.sender))) {
+    if (_fundingCycle.mintPaused() && !directory.isTerminalDelegateOf(_projectId, msg.sender)) {
       revert JBErrors.PAUSED();
     }
 
@@ -577,7 +577,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
-    if (_fundingCycle.burnPaused() && !(directory.isTerminalDelegateOf(_projectId, msg.sender))) {
+    if (_fundingCycle.burnPaused() && !directory.isTerminalDelegateOf(_projectId, msg.sender)) {
       revert JBErrors.PAUSED();
     }
 
