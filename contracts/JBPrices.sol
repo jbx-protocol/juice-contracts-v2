@@ -4,11 +4,11 @@ pragma solidity 0.8.6;
 import '@openzeppelin/contracts/access/Ownable.sol';
 
 import './interfaces/IJBPrices.sol';
-import './libraries/JBErrors.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
 error PRICE_FEED_ALREADY_EXISTS();
+error PRICE_FEED_NOT_FOUND();
 
 /** 
   @notice Manages and normalizes price feeds.
@@ -59,7 +59,7 @@ contract JBPrices is IJBPrices, Ownable {
 
     // Feed must exist.
     if (_feed == AggregatorV3Interface(address(0))) {
-      revert JBErrors.NOT_FOUND();
+      revert PRICE_FEED_NOT_FOUND();
     }
 
     // Get the latest round information. Only need the price is needed.

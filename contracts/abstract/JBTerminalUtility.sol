@@ -2,7 +2,10 @@
 pragma solidity 0.8.6;
 
 import './../interfaces/IJBTerminalUtility.sol';
-import './../libraries/JBErrors.sol';
+
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+error UNAUTHORIZED_TERMINAL();
 
 /** 
   @notice
@@ -11,7 +14,7 @@ import './../libraries/JBErrors.sol';
 abstract contract JBTerminalUtility is IJBTerminalUtility {
   modifier onlyTerminal(uint256 _projectId) {
     if (!directory.isTerminalDelegateOf(_projectId, msg.sender)) {
-      revert JBErrors.UNAUTHORIZED();
+      revert UNAUTHORIZED_TERMINAL();
     }
     _;
   }

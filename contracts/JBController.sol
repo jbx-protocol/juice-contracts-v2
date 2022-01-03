@@ -7,7 +7,6 @@ import '@paulrberg/contracts/math/PRBMathUD60x18.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
-import './libraries/JBErrors.sol';
 
 import './interfaces/IJBTokenStore.sol';
 import './interfaces/IJBProjects.sol';
@@ -32,9 +31,18 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
+error BENEFICIARY_ZERO_ADDRESS();
+error BURN_PAUSED();
+error CALLER_NOT_CURRENT_CONTROLLER();
+error CHANGE_TOKEN_NOT_ALLOWED();
 error INVALID_BALLOT_REDEMPTION_RATE();
 error INVALID_RESERVED_RATE();
 error INVALID_REDEMPTION_RATE();
+error MIGRATION_NOT_ALLOWED();
+error MINT_PAUSED();
+error NO_CONTROLLER_CHANGE();
+error ZERO_TOKEN_TO_BURN();
+error ZERO_TOKEN_TO_MINT();
 
 /**
   @notice
@@ -457,7 +465,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
     // The current funding cycle must not be paused.
     if (!_fundingCycle.changeTokenAllowed()) {
-      revert JBErrors.NOT_ALLOWED();
+      revert CHANGE_TOKEN_NOT_ALLOWED();
     }
 
     // Change the token in the store.
@@ -501,12 +509,12 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   {
     // Can't send to the zero address.
     if (_reservedRate != MAX_TOKEN_RATE && _beneficiary == address(0)) {
-      revert JBErrors.ZERO_ADDRESS();
+      revert BENEFICIARY_ZERO_ADDRESS();
     }
 
     // There should be tokens to mint.
     if (_tokenCount == 0) {
-      revert JBErrors.NO_OP();
+      revert ZERO_TOKEN_TO_MINT();
     }
 
     // Get a reference to the project's current funding cycle.
@@ -514,7 +522,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
     // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
     if (_fundingCycle.mintPaused() && !directory.isTerminalDelegateOf(_projectId, msg.sender)) {
-      revert JBErrors.PAUSED();
+      revert MINT_PAUSED();
     }
 
     if (_reservedRate == MAX_TOKEN_RATE) {
@@ -571,14 +579,14 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   {
     // There should be tokens to burn
     if (_tokenCount == 0) {
-      revert JBErrors.NO_OP();
+      revert ZERO_TOKEN_TO_BURN();
     }
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
     if (_fundingCycle.burnPaused() && !directory.isTerminalDelegateOf(_projectId, msg.sender)) {
-      revert JBErrors.PAUSED();
+      revert BURN_PAUSED();
     }
 
     // Update the token tracker so that reserved tokens will still be correctly mintable.
@@ -618,7 +626,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   function prepForMigrationOf(uint256 _projectId, IJBController) external override {
     // This controller must not be the project's current controller.
     if (directory.controllerOf(_projectId) == this) {
-      revert JBErrors.NO_OP();
+      revert NO_CONTROLLER_CHANGE();
     }
 
     // Set the tracker as the total supply.
@@ -642,7 +650,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   {
     // This controller must be the project's current controller.
     if (directory.controllerOf(_projectId) != this) {
-      revert JBErrors.NO_OP();
+      revert CALLER_NOT_CURRENT_CONTROLLER();
     }
 
     // Get a reference to the project's current funding cycle.
@@ -650,7 +658,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
     // Migration must be allowed
     if (!_fundingCycle.controllerMigrationAllowed()) {
-      revert JBErrors.NOT_ALLOWED();
+      revert MIGRATION_NOT_ALLOWED();
     }
 
     // All reserved tokens must be minted before migrating.

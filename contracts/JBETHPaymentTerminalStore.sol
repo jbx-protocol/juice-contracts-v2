@@ -12,17 +12,24 @@ import './libraries/JBCurrencies.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
-import './libraries/JBErrors.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
 error DISTRIBUTION_AMOUNT_LIMIT_REACHED();
+error FUNDING_CYCLE_PAYMENT_PAUSED();
+error FUNDING_CYCLE_DISTRIBUTION_PAUSED();
+error FUNDING_CYCLE_REDEEM_PAUSED();
 error INADEQUATE_CLAIM_AMOUNT();
-error INADEQUATE_DISTRIBUTE_AMOUNT();
+error INADEQUATE_CONTROLLER_ALLOWANCE();
+error INADEQUATE_DISTRIBUTION_AMOUNT();
 error INADEQUATE_TOKEN_COUNT();
 error INADEQUATE_WITHDRAW_AMOUNT();
+error INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
 error INSUFFICIENT_TOKENS();
+error INVALID_FUNDING_CYCLE();
 error STORE_ALREADY_CLAIMED();
+error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
+error UNAUTHORIZED_PAYMENT_TERMINAL();
 error UNKNOWN_CURRENCY();
 
 /**
@@ -45,7 +52,7 @@ contract JBETHPaymentTerminalStore {
   // A modifier only allowing the associated payment terminal to access the function.
   modifier onlyAssociatedPaymentTerminal() {
     if (msg.sender != address(terminal)) {
-      revert JBErrors.UNAUTHORIZED();
+      revert UNAUTHORIZED_PAYMENT_TERMINAL();
     }
     _;
   }
@@ -90,7 +97,6 @@ contract JBETHPaymentTerminalStore {
   */
   IJBTerminal public terminal;
 
-
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
@@ -99,7 +105,7 @@ contract JBETHPaymentTerminalStore {
     @notice
     Max. Redemption Rate.
   */
-  uint constant MAX_REDEMPTION_RATE = 10000;
+  uint256 constant MAX_REDEMPTION_RATE = 10000;
 
   /** 
     @notice 
@@ -267,12 +273,12 @@ contract JBETHPaymentTerminalStore {
 
     // The project must have a funding cycle configured.
     if (fundingCycle.number == 0) {
-      revert JBErrors.NOT_FOUND();
+      revert INVALID_FUNDING_CYCLE();
     }
 
     // Must not be paused.
     if (fundingCycle.payPaused()) {
-      revert JBErrors.PAUSED();
+      revert FUNDING_CYCLE_PAYMENT_PAUSED();
     }
 
     // Save a reference to the delegate to use.
@@ -365,7 +371,7 @@ contract JBETHPaymentTerminalStore {
 
     // The funding cycle must not be configured to have distributions paused.
     if (fundingCycle.distributionsPaused()) {
-      revert JBErrors.PAUSED();
+      revert FUNDING_CYCLE_DISTRIBUTION_PAUSED();
     }
 
     // Make sure the currencies match.
@@ -404,12 +410,12 @@ contract JBETHPaymentTerminalStore {
 
     // The amount being distributed must be available.
     if (distributedAmount > balanceOf[_projectId]) {
-      revert JBErrors.INSUFFICIENT_FUNDS();
+      revert INADEQUATE_DISTRIBUTION_AMOUNT();
     }
 
     // The amount being distributed must be at least as much as was expected.
     if (_minReturnedWei > distributedAmount) {
-      revert INADEQUATE_DISTRIBUTE_AMOUNT();
+      revert INADEQUATE_DISTRIBUTION_AMOUNT();
     }
 
     // Store the new amount.
@@ -472,12 +478,12 @@ contract JBETHPaymentTerminalStore {
       ) -
         usedOverflowAllowanceOf[_projectId][fundingCycle.configuration]
     ) {
-      revert JBErrors.NOT_ALLOWED();
+      revert INADEQUATE_CONTROLLER_ALLOWANCE();
     }
 
     // The amount being withdrawn must be available.
     if (withdrawnAmount > balanceOf[_projectId]) {
-      revert JBErrors.INSUFFICIENT_FUNDS();
+      revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
     }
 
     // The amount being withdrawn must be at least as much as was expected.
@@ -540,7 +546,7 @@ contract JBETHPaymentTerminalStore {
 
     // The current funding cycle must not be paused.
     if (fundingCycle.redeemPaused()) {
-      revert JBErrors.PAUSED();
+      revert FUNDING_CYCLE_REDEEM_PAUSED();
     }
 
     // Save a reference to the delegate to use.
@@ -566,7 +572,7 @@ contract JBETHPaymentTerminalStore {
 
     // The amount being claimed must be within the project's balance.
     if (claimAmount > balanceOf[_projectId]) {
-      revert JBErrors.INSUFFICIENT_FUNDS();
+      revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
     }
     // The amount being claimed must be at least as much as was expected.
     if (claimAmount < _minReturnedWei) {
@@ -644,7 +650,7 @@ contract JBETHPaymentTerminalStore {
 
     // Migration must be allowed
     if (!_fundingCycle.terminalMigrationAllowed()) {
-      revert JBErrors.NOT_ALLOWED();
+      revert PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
     }
 
     // Return the current balance.
@@ -721,7 +727,8 @@ contract JBETHPaymentTerminalStore {
     return
       PRBMath.mulDiv(
         _base,
-        _redemptionRate + PRBMath.mulDiv(_tokenCount, MAX_REDEMPTION_RATE - _redemptionRate, _totalSupply),
+        _redemptionRate +
+          PRBMath.mulDiv(_tokenCount, MAX_REDEMPTION_RATE - _redemptionRate, _totalSupply),
         MAX_REDEMPTION_RATE
       );
   }

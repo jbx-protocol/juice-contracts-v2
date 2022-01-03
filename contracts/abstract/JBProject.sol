@@ -5,11 +5,11 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Address.sol';
 
 import './../interfaces/IJBDirectory.sol';
-import './../libraries/JBErrors.sol';
 import './../libraries/JBTokens.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
+error INSUFFICIENT_JB_PROJECT_ETH_BALANCE();
 error PROJECT_NOT_FOUND();
 error TERMINAL_NOT_FOUND();
 
@@ -96,7 +96,7 @@ abstract contract JBProject is Ownable {
 
     // There must be enough funds in the contract to take the fee.
     if (address(this).balance < _amount) {
-      revert JBErrors.INSUFFICIENT_FUNDS();
+      revert INSUFFICIENT_JB_PROJECT_ETH_BALANCE();
     }
 
     // Send funds to the terminal.

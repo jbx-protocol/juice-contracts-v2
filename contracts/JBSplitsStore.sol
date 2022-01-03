@@ -7,13 +7,13 @@ import './libraries/JBOperations.sol';
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBSplitsStore.sol';
 import './interfaces/IJBDirectory.sol';
-import './libraries/JBErrors.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
 error INVALID_SPLIT_PERCENT();
 error INVALID_TOTAL_PERCENT();
 error SET_SPLITS_LOCKED();
+error ZERO_SPLIT_ADDRESS();
 
 /**
   @notice
@@ -38,7 +38,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     @notice 
     Threshold for maximum total percentage
   */
-  uint maxTotalPercent = 10000000;
+  uint256 maxTotalPercent = 10000000;
 
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
@@ -172,9 +172,9 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
       // The allocator and the beneficiary shouldn't both be the zero address.
       if (
         _splits[_i].allocator == IJBSplitAllocator(address(0)) &&
-          _splits[_i].beneficiary == address(0)
+        _splits[_i].beneficiary == address(0)
       ) {
-        revert JBErrors.ZERO_ADDRESS();
+        revert ZERO_SPLIT_ADDRESS();
       }
 
       // Add to the total percents.

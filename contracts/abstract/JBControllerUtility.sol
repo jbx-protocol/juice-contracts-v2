@@ -2,7 +2,10 @@
 pragma solidity 0.8.6;
 
 import './../interfaces/IJBControllerUtility.sol';
-import './../libraries/JBErrors.sol';
+
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+error UNAUTHORIZED_CONTROLLER();
 
 /** 
   @notice
@@ -11,7 +14,7 @@ import './../libraries/JBErrors.sol';
 abstract contract JBControllerUtility is IJBControllerUtility {
   modifier onlyController(uint256 _projectId) {
     if (address(directory.controllerOf(_projectId)) != msg.sender) {
-      revert JBErrors.UNAUTHORIZED();
+      revert UNAUTHORIZED_CONTROLLER();
     }
     _;
   }

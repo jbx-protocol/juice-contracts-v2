@@ -2,7 +2,10 @@
 pragma solidity 0.8.6;
 
 import './../interfaces/IJBOperatable.sol';
-import './../libraries/JBErrors.sol';
+
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+error UNAUTHORIZED_OPERATOR_STORE();
 
 /** 
   @notice
@@ -19,7 +22,7 @@ abstract contract JBOperatable is IJBOperatable {
         !operatorStore.hasPermission(msg.sender, _account, _domain, _permissionIndex) &&
         !operatorStore.hasPermission(msg.sender, _account, 0, _permissionIndex)
     ) {
-      revert JBErrors.UNAUTHORIZED();
+      revert UNAUTHORIZED_OPERATOR_STORE();
     }
     _;
   }
@@ -36,7 +39,7 @@ abstract contract JBOperatable is IJBOperatable {
         !operatorStore.hasPermission(msg.sender, _account, _domain, _permissionIndex) &&
         !operatorStore.hasPermission(msg.sender, _account, 0, _permissionIndex)
     ) {
-      revert JBErrors.UNAUTHORIZED();
+      revert UNAUTHORIZED_OPERATOR_STORE();
     }
     _;
   }

@@ -8,7 +8,6 @@ import '@paulrberg/contracts/math/PRBMath.sol';
 import './libraries/JBCurrencies.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
-import './libraries/JBErrors.sol';
 import './libraries/JBTokens.sol';
 
 import './JBETHPaymentTerminalStore.sol';
@@ -23,9 +22,12 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
-error INVALID_FEE();
-error INVALID_SPLIT();
-error TOKEN_INCOMPATIBLE();
+error FEE_TOO_HIGH();
+error PAY_TO_ZERO_ADDRESS();
+error REDEEM_TO_ZERO_ADDRESS();
+error TERMINAL_TOKENS_INCOMPATIBLE();
+error ZERO_ADDRESS_TERMINAL_IN_SPLIT();
+error ZERO_VALUE_SENT();
 
 /**
   @notice
@@ -416,7 +418,7 @@ contract JBETHPaymentTerminal is
   {
     // Can't send claimed funds to the zero address.
     if (_beneficiary == address(0)) {
-      revert JBErrors.ZERO_ADDRESS();
+      revert REDEEM_TO_ZERO_ADDRESS();
     }
 
     // Keep a reference to the funding cycles during which the redemption is being made.
@@ -467,7 +469,7 @@ contract JBETHPaymentTerminal is
   {
     // The terminal being migrated to must accept the same token as this terminal.
     if (token != _to.token()) {
-      revert TOKEN_INCOMPATIBLE();
+      revert TERMINAL_TOKENS_INCOMPATIBLE();
     }
 
     // Record the migration in the store.
@@ -490,7 +492,7 @@ contract JBETHPaymentTerminal is
   function addToBalanceOf(uint256 _projectId, string memory _memo) external payable override {
     // Amount must be greater than 0.
     if (msg.value == 0) {
-      revert JBErrors.NO_OP();
+      revert ZERO_VALUE_SENT();
     }
 
     // Record the added funds.
@@ -550,7 +552,7 @@ contract JBETHPaymentTerminal is
   function setFee(uint256 _fee) external onlyOwner {
     // The max fee is 5%.
     if (_fee > 10) {
-      revert INVALID_FEE();
+      revert FEE_TOO_HIGH();
     }
 
     // Store the new fee.
@@ -617,7 +619,7 @@ contract JBETHPaymentTerminal is
 
           // The project must have a terminal to send funds to.
           if (_terminal == IJBTerminal(address(0))) {
-            revert INVALID_SPLIT();
+            revert ZERO_ADDRESS_TERMINAL_IN_SPLIT();
           }
 
           // Save gas if this contract is being used as the terminal.
@@ -728,7 +730,7 @@ contract JBETHPaymentTerminal is
   ) private {
     // Cant send tokens to the zero address.
     if (_beneficiary == address(0)) {
-      revert JBErrors.ZERO_ADDRESS();
+      revert PAY_TO_ZERO_ADDRESS();
     }
 
     JBFundingCycle memory _fundingCycle;

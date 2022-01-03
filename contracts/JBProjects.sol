@@ -6,7 +6,6 @@ import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBProjects.sol';
 import './libraries/JBOperations.sol';
-import './libraries/JBErrors.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
@@ -14,6 +13,7 @@ error CHALLENGE_OPEN();
 error EMPTY_HANDLE();
 error HANDLE_TAKEN();
 error HANDLE_NOT_TAKEN();
+error HANDLE_TRANSFER_ADDRESS_INVALID();
 
 /** 
   @notice 
@@ -297,7 +297,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
       transferAddressFor[_handle] != _transferAddress &&
       (challengeExpiryOf[_handle] <= 0 || block.timestamp <= challengeExpiryOf[_handle])
     ) {
-      revert JBErrors.UNAUTHORIZED();
+      revert HANDLE_TRANSFER_ADDRESS_INVALID();
     }
 
     // Remove the project ID for the current handle of the specified project.

@@ -5,10 +5,10 @@ import '@paulrberg/contracts/math/PRBMath.sol';
 
 import './abstract/JBControllerUtility.sol';
 import './interfaces/IJBFundingCycleStore.sol';
-import './libraries/JBErrors.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
+error FUNDING_CYCLE_CONFIGURATION_NOT_FOUND();
 error INVALID_DISCOUNT_RATE();
 error INVALID_DURATION();
 error INVALID_WEIGHT();
@@ -216,7 +216,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
     // The project must have funding cycles.
     if (_fundingCycleConfiguration == 0) {
-      revert JBErrors.NOT_FOUND();
+      revert FUNDING_CYCLE_CONFIGURATION_NOT_FOUND();
     }
 
     // Resolve the funding cycle for the for the latest configuration.
