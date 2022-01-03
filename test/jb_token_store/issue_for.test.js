@@ -101,6 +101,6 @@ describe('JBTokenStore::issueFor(...)', function () {
 
     await expect(
       jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL),
-    ).to.be.revertedWith(errors.UNAUTHORIZED);
+    ).to.be.revertedWith(errors.UNAUTHORIZED_CONTROLLER);
   });
 });

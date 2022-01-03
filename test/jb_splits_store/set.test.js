@@ -212,7 +212,7 @@ describe('JBSplitsStore::set(...)', function () {
 
     await expect(
       jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits),
-    ).to.be.revertedWith(errors.ZERO_ADDRESS);
+    ).to.be.revertedWith(errors.ZERO_SPLIT_ADDRESS);
   });
 
   it("Can't set splits if the sum of the percents is greather than 10000000", async function () {
@@ -289,6 +289,6 @@ describe('JBSplitsStore::set(...)', function () {
 
     await expect(
       jbSplitsStore.connect(caller).set(PROJECT_ID, DOMAIN, GROUP, splits),
-    ).to.be.revertedWith(errors.UNAUTHORIZED);
+    ).to.be.revertedWith(errors.UNAUTHORIZED_OPERATOR_STORE);
   });
 });

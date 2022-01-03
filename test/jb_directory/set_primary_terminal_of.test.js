@@ -56,7 +56,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
       jbDirectory
         .connect(projectOwner)
         .setPrimaryTerminalOf(PROJECT_ID, ethers.constants.AddressZero),
-    ).to.be.revertedWith(errors.ZERO_ADDRESS);
+    ).to.be.revertedWith(errors.SET_PRIMARY_TERMINAL_ZERO_ADDRESS);
   });
 
   it('Should setting primary terminal and emit an event', async function () {

@@ -117,6 +117,6 @@ describe('JBTokenStore::changeFor(...)', function () {
           ethers.Wallet.createRandom().address,
           ethers.Wallet.createRandom().address,
         ),
-    ).to.be.revertedWith(errors.UNAUTHORIZED);
+    ).to.be.revertedWith(errors.UNAUTHORIZED_CONTROLLER);
   });
 });

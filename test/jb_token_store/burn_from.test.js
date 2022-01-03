@@ -200,7 +200,7 @@ describe('JBTokenStore::burnFrom(...)', function () {
       jbTokenStore
         .connect(controller)
         .burnFrom(newHolder.address, PROJECT_ID, /* amount= */ 1, /* preferClaimedTokens= */ true),
-    ).to.be.revertedWith(errors.UNAUTHORIZED);
+    ).to.be.revertedWith(errors.UNAUTHORIZED_CONTROLLER);
   });
 
   it(`Can't burn more tokens than the available balance`, async function () {
@@ -228,7 +228,7 @@ describe('JBTokenStore::burnFrom(...)', function () {
       jbTokenStore
         .connect(controller)
         .burnFrom(newHolder.address, PROJECT_ID, burnAmt, preferClaimedTokens),
-    ).to.be.revertedWith(errors.INSUFFICIENT_FUNDS);
+    ).to.be.revertedWith(errors.INADEQUATE_TOKEN_STORE_UNCLAIMED_BALANCE);
   });
 
   it(`Can't burn any tokens if none have been issued or allocated'`, async function () {
@@ -243,7 +243,7 @@ describe('JBTokenStore::burnFrom(...)', function () {
       jbTokenStore
         .connect(controller)
         .burnFrom(newHolder.address, PROJECT_ID, numTokens, preferClaimedTokens),
-    ).to.be.revertedWith(errors.INSUFFICIENT_FUNDS);
+    ).to.be.revertedWith(errors.INADEQUATE_TOKEN_STORE_UNCLAIMED_BALANCE);
   });
 
   it(`Can't burn any tokens if burn amount <= 0'`, async function () {
@@ -258,6 +258,6 @@ describe('JBTokenStore::burnFrom(...)', function () {
       jbTokenStore
         .connect(controller)
         .burnFrom(newHolder.address, PROJECT_ID, numTokens, preferClaimedTokens),
-    ).to.be.revertedWith(errors.NO_OP);
+    ).to.be.revertedWith(errors.INVALID_AMOUNT);
   });
 });
