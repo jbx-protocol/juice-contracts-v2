@@ -134,9 +134,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // If it hasn't been approved, set the configuration to be that of its base funding cycle, which carries the last approved configuration.
     _fundingCycleConfiguration = _fundingCycle.basedOn;
 
-    // A funding cycle must exist.
-    if (_fundingCycleConfiguration == 0) return _getStructFor(0, 0);
-
     // Get the funding cycle.
     _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
 
@@ -198,9 +195,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
         _fundingCycleConfiguration = _fundingCycle.basedOn;
     }
 
-    // The funding cycle cant be 0.
-    if (_fundingCycleConfiguration == 0) return _getStructFor(0, 0);
-
     // The funding cycle to base a current one on.
     _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
 
@@ -219,9 +213,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
   function currentBallotStateOf(uint256 _projectId) external view override returns (JBBallotState) {
     // Get a reference to the latest funding cycle configuration.
     uint256 _fundingCycleConfiguration = latestConfigurationOf[_projectId];
-
-    // The project must have funding cycles.
-    require(_fundingCycleConfiguration > 0, '0x14: NOT_FOUND');
 
     // Resolve the funding cycle for the for the latest configuration.
     JBFundingCycle memory _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
@@ -502,6 +493,9 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
     @dev
     A value of 0 is returned if no funding cycle was found.
+
+    @dev
+    Assumes the project has a latest configuration.
     
     @param _projectId The ID of a project to look through for a standby cycle.
 
@@ -510,9 +504,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
   function _standbyOf(uint256 _projectId) private view returns (uint256 configuration) {
     // Get a reference to the project's latest funding cycle.
     configuration = latestConfigurationOf[_projectId];
-
-    // If there isn't one, theres also no standby funding cycle.
-    if (configuration == 0) return 0;
 
     // Get the necessary properties for the latest funding cycle.
     JBFundingCycle memory _fundingCycle = _getStructFor(_projectId, configuration);
@@ -528,6 +519,9 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @dev
     A value of 0 is returned if no funding cycle was found.
 
+    @dev
+    Assumes the project has a latest configuration.
+
     @param _projectId The ID of the project to look through.
 
     @return configuration The configuration of the active funding cycle.
@@ -535,9 +529,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
   function _eligibleOf(uint256 _projectId) private view returns (uint256 configuration) {
     // Get a reference to the project's latest funding cycle.
     configuration = latestConfigurationOf[_projectId];
-
-    // If there isn't one, theres also no eligible funding cycle.
-    if (configuration == 0) return 0;
 
     // Get the latest funding cycle.
     JBFundingCycle memory _fundingCycle = _getStructFor(_projectId, configuration);
