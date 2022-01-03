@@ -6,7 +6,7 @@ describe('JBProjects::createFor(...)', function () {
   const PROJECT_HANDLE_1 = 'PROJECT_1';
   const PROJECT_HANDLE_2 = 'PROJECT_2';
   const PROJECT_HANDLE_EMPTY = '';
-  const METADATA_CID = '';
+  const METADATA_CID = 'QmThsKQpFBQicz3t3SU9rRz3GV81cwjnWsBBLxzznRNvpa';
   const PROJECT_ID_1 = 1;
   const PROJECT_ID_2 = 2;
 
