@@ -107,7 +107,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
   /** 
     @notice
-    Max. Token Rate.
+    Maximum Threshold value for token reserved, redemption, ballotRedemption rate.
   */
   uint constant MAX_TOKEN_RATE = 10000;
 
