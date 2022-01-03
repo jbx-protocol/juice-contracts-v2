@@ -100,7 +100,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @return _fundingCycle The queued funding cycle.
   */
   function queuedOf(uint256 _projectId)
-    public
+    external
     view
     override
     returns (JBFundingCycle memory _fundingCycle)
@@ -134,6 +134,9 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // If it hasn't been approved, set the configuration to be that of its base funding cycle, which carries the last approved configuration.
     _fundingCycleConfiguration = _fundingCycle.basedOn;
 
+    // A funding cycle must exist.
+    if (_fundingCycleConfiguration == 0) return _getStructFor(0, 0);
+
     // Get the funding cycle.
     _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
 
@@ -156,7 +159,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @return fundingCycle The current funding cycle.
   */
   function currentOf(uint256 _projectId)
-    public
+    external
     view
     override
     returns (JBFundingCycle memory fundingCycle)
@@ -194,6 +197,9 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       if (!_isApproved(_projectId, _fundingCycle) || block.timestamp < _fundingCycle.start)
         _fundingCycleConfiguration = _fundingCycle.basedOn;
     }
+
+    // The funding cycle cant be 0.
+    if (_fundingCycleConfiguration == 0) return _getStructFor(0, 0);
 
     // The funding cycle to base a current one on.
     _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
@@ -249,13 +255,15 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
         If the number is 900000000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
       @dev _data.ballot The new ballot that will be used to approve subsequent reconfigurations.
     @param _metadata Data to associate with this funding cycle configuration.
+    @param _mustStartOnOrAfter The time before which the initialized funding cycle can't start.
 
     @return The funding cycle that the configuration will take effect during.
   */
   function configureFor(
     uint256 _projectId,
     JBFundingCycleData calldata _data,
-    uint256 _metadata
+    uint256 _metadata,
+    uint256 _mustStartOnOrAfter
   ) external override onlyController(_projectId) returns (JBFundingCycle memory) {
     // Duration must fit in a uint64, and must be greater than the minimum duration of seconds to ensure no manipulative miner behavior.
     // Duration of 0 is also allowed.
@@ -274,7 +282,13 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _configuration = block.timestamp;
 
     // Set up a reconfiguration by configuring intrinsic properties.
-    _configureIntrinsicProperiesFor(_projectId, _configuration, _data.weight);
+    _configureIntrinsicProperiesFor(
+      _projectId,
+      _configuration,
+      _data.weight,
+      // Must start on or after the current timestamp.
+      _mustStartOnOrAfter > block.timestamp ? _mustStartOnOrAfter : block.timestamp
+    );
 
     // Store the configuration.
     _packAndStoreUserPropertiesOf(
@@ -288,7 +302,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // Set the metadata if needed.
     if (_metadata > 0) _metadataOf[_projectId][_configuration] = _metadata;
 
-    emit Configure(_configuration, _projectId, _data, _metadata, msg.sender);
+    emit Configure(_configuration, _projectId, _data, _metadata, _mustStartOnOrAfter, msg.sender);
 
     // Return the funding cycle for the new configuration.
     return _getStructFor(_projectId, _configuration);
@@ -305,42 +319,22 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @param _projectId The ID of the project to find a configurable funding cycle for.
     @param _configuration The time at which the configuration is occurring.
     @param _weight The weight to store in the configured funding cycle.
+    @param _mustStartOnOrAfter The time before which the initialized funding cycle can't start.
   */
   function _configureIntrinsicProperiesFor(
     uint256 _projectId,
     uint256 _configuration,
-    uint256 _weight
+    uint256 _weight,
+    uint256 _mustStartOnOrAfter
   ) private {
     // If there's not yet a funding cycle for the project, initialize one.
     if (latestConfigurationOf[_projectId] == 0) {
-      _initFor(_projectId, _getStructFor(0, 0), _configuration, block.timestamp, _weight);
-      return;
-    }
-
-    // Get the standby funding cycle's configuration.
-    uint256 _currentConfiguration = _standbyOf(_projectId);
-
-    // If a standby exists, make a new one to override it.
-    if (_currentConfiguration > 0) {
-      // Get the funding cycle that the specified one is based on.
-      JBFundingCycle memory _baseFundingCycle = _getStructFor(
-        _projectId,
-        _getStructFor(_projectId, _currentConfiguration).basedOn
-      );
-
-      _initFor(
-        _projectId,
-        _baseFundingCycle,
-        _configuration,
-        _getLatestTimeAfterBallotOf(_baseFundingCycle, _configuration),
-        _weight
-      );
-
+      _initFor(_projectId, _getStructFor(0, 0), _configuration, _mustStartOnOrAfter, _weight);
       return;
     }
 
     // Get the active funding cycle's configuration.
-    _currentConfiguration = _eligibleOf(_projectId);
+    uint256 _currentConfiguration = _eligibleOf(_projectId);
 
     // If an eligible funding cycle does not exist, get a reference to the latest funding cycle configuration for the project.
     if (_currentConfiguration == 0)
@@ -352,15 +346,20 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       // which carries the last approved configuration.
       _currentConfiguration = _getStructFor(_projectId, _currentConfiguration).basedOn;
 
-    // Get the funding cycle for the configuration.
-    JBFundingCycle memory _currentFundingCycle = _getStructFor(_projectId, _currentConfiguration);
+    // Determine the funding cycle to use as the base.
+    JBFundingCycle memory _baseFundingCycle = _getStructFor(_projectId, _currentConfiguration);
 
-    // Determine if the configurable funding cycle can only take effect on or after a certain date.
-    // The ballot must have ended.
-    uint256 _mustStartOnOrAfter = _getLatestTimeAfterBallotOf(_currentFundingCycle, _configuration);
+    // The timestamp after the base funding cycle ballot's duration is up.
+    uint256 _timestampAfterBallot = _getTimestampAfterBallotOf(_baseFundingCycle, _configuration);
 
-    // Initialize a funding cycle.
-    _initFor(_projectId, _currentFundingCycle, _configuration, _mustStartOnOrAfter, _weight);
+    _initFor(
+      _projectId,
+      _baseFundingCycle,
+      _configuration,
+      // Can only start after the ballot.
+      _timestampAfterBallot > _mustStartOnOrAfter ? _timestampAfterBallot : _mustStartOnOrAfter,
+      _weight
+    );
   }
 
   /**
@@ -392,7 +391,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
         _number,
         _weight,
         _baseFundingCycle.configuration,
-        block.timestamp
+        _mustStartOnOrAfter
       );
     } else {
       // Derive the correct next start time from the base.
@@ -816,25 +815,22 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     The time after the ballot of the provided funding cycle has expired.
 
     @dev
-    If the ballot ends in the past, the current block timestamp will be returned.
+    If the ballot ends in the past, 0 will be returned.
 
     @param _fundingCycle The ID funding cycle to make the caluclation from.
     @param _from The time from which the ballot duration should be calculated.
 
     @return The time when the ballot has officially ended.
   */
-  function _getLatestTimeAfterBallotOf(JBFundingCycle memory _fundingCycle, uint256 _from)
+  function _getTimestampAfterBallotOf(JBFundingCycle memory _fundingCycle, uint256 _from)
     private
     view
     returns (uint256)
   {
     // If the provided funding cycle has no ballot, return the current timestamp.
-    if (_fundingCycle.ballot == IJBFundingCycleBallot(address(0))) return block.timestamp;
-
-    // Get a reference to the time the ballot ends.
-    uint256 _ballotExpiration = _from + _fundingCycle.ballot.duration();
-
-    // If the ballot ends in past, return the current timestamp. Otherwise return the ballot's expiration.
-    return block.timestamp > _ballotExpiration ? block.timestamp : _ballotExpiration;
+    return
+      _fundingCycle.ballot == IJBFundingCycleBallot(address(0))
+        ? 0
+        : _from + _fundingCycle.ballot.duration();
   }
 }

@@ -158,6 +158,6 @@ export function createFundingCycleData({
     duration,
     weight,
     discountRate,
-    ballot,
+    ballot
   };
 }

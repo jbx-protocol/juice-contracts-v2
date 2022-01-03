@@ -61,6 +61,8 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     metadata: fc[8]
   });
 
+  const fundingCycleMustStartOnOrAfterZero = ethers.BigNumber.from(0);
+
   it("Should have no current or queued funding cycle before configuring", async function () {
     const { jbFundingCycleStore } = await setup();
 
@@ -82,14 +84,14 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure funding cycle
     const configureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, fundingCycleData, fundingCycleMetadata);
+      .configureFor(PROJECT_ID, fundingCycleData, fundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the configuration was made during.
     const configurationTimestamp = await getTimestamp(configureForTx.blockNumber);
 
     await expect(configureForTx)
       .to.emit(jbFundingCycleStore, 'Configure')
-      .withArgs(configurationTimestamp, PROJECT_ID, [fundingCycleData.duration, fundingCycleData.weight, fundingCycleData.discountRate, fundingCycleData.ballot], fundingCycleMetadata, controller.address);
+      .withArgs(configurationTimestamp, PROJECT_ID, [fundingCycleData.duration, fundingCycleData.weight, fundingCycleData.discountRate, fundingCycleData.ballot], fundingCycleMetadata, fundingCycleMustStartOnOrAfterZero, controller.address);
 
     await expect(configureForTx).to.emit(jbFundingCycleStore, `Init`)
       .withArgs(configurationTimestamp, PROJECT_ID, /*basedOn=*/0);
@@ -162,6 +164,62 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     });
   });
 
+  it("Should create current funding cycle that starts in the future", async function () {
+    const { controller, mockJbDirectory, jbFundingCycleStore } = await setup();
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    const timestamp = await getTimestamp();
+
+    // Starts in 1000 seconds;
+    const startsIn = BigNumber.from(1000);
+
+    const fundingCycleMustStartOnOrAfter = timestamp.add(startsIn);
+
+    const fundingCycleData = createFundingCycleData();
+
+    // The metadata value doesn't affect the test.
+    const fundingCycleMetadata = ethers.BigNumber.from(0);
+
+    // Configure funding cycle
+    const configureForTx = await jbFundingCycleStore
+      .connect(controller)
+      .configureFor(PROJECT_ID, fundingCycleData, fundingCycleMetadata, fundingCycleMustStartOnOrAfter);
+
+    // The timestamp the configuration was made during.
+    const configurationTimestamp = await getTimestamp(configureForTx.blockNumber);
+
+    await expect(configureForTx)
+      .to.emit(jbFundingCycleStore, 'Configure')
+      .withArgs(configurationTimestamp, PROJECT_ID, [fundingCycleData.duration, fundingCycleData.weight, fundingCycleData.discountRate, fundingCycleData.ballot], fundingCycleMetadata, fundingCycleMustStartOnOrAfter, controller.address);
+
+    await expect(configureForTx).to.emit(jbFundingCycleStore, `Init`)
+      .withArgs(configurationTimestamp, PROJECT_ID, /*basedOn=*/0);
+
+    const expectedUpcomingFundingCycle = {
+      number: ethers.BigNumber.from(1),
+      configuration: configurationTimestamp,
+      basedOn: ethers.BigNumber.from(0),
+      start: timestamp.add(startsIn),
+      duration: fundingCycleData.duration,
+      weight: fundingCycleData.weight,
+      discountRate: fundingCycleData.discountRate,
+      ballot: fundingCycleData.ballot,
+      metadata: fundingCycleMetadata
+    };
+
+    // Ballot status should be approved since there is no ballot.
+    expect(await jbFundingCycleStore.currentBallotStateOf(PROJECT_ID)).to.eql(0);
+
+    expect(cleanFundingCycle(await jbFundingCycleStore.get(PROJECT_ID, configurationTimestamp))).to.eql(expectedUpcomingFundingCycle);
+    expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(EMPTY_FUNDING_CYCLE);
+    expect(cleanFundingCycle(await jbFundingCycleStore.queuedOf(PROJECT_ID))).to.eql(expectedUpcomingFundingCycle);
+
+    // Fast forward to when the cycle starts.
+    await fastForward(configureForTx.blockNumber, startsIn);
+
+    expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(expectedUpcomingFundingCycle);
+  });
+
   it("Should configure subsequent cycle during a funding cycle", async function () {
     const { controller, mockJbDirectory, jbFundingCycleStore, addrs } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
@@ -174,7 +232,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata);
+      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the first configuration was made during.
     const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
@@ -203,7 +261,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure second funding cycle
     const secondConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata);
+      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the second configuration was made during.
     const secondConfigurationTimestamp = await getTimestamp(secondConfigureForTx.blockNumber);
@@ -228,6 +286,87 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     expect(cleanFundingCycle(await jbFundingCycleStore.queuedOf(PROJECT_ID))).to.eql(expectedSecondFundingCycle);
   });
 
+  it("Should configure subsequent cycle that starts in the future", async function () {
+    const { controller, mockJbDirectory, jbFundingCycleStore } = await setup();
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    const firstFundingCycleData = createFundingCycleData();
+
+    // The metadata value doesn't affect the test.
+    const firstFundingCycleMetadata = ethers.BigNumber.from(123);
+
+    // Configure first funding cycle
+    const firstConfigureForTx = await jbFundingCycleStore
+      .connect(controller)
+      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
+
+    // The timestamp the first configuration was made during.
+    const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
+
+    const expectedFirstFundingCycle = {
+      number: ethers.BigNumber.from(1),
+      configuration: firstConfigurationTimestamp,
+      basedOn: ethers.BigNumber.from(0),
+      start: firstConfigurationTimestamp,
+      duration: firstFundingCycleData.duration,
+      weight: firstFundingCycleData.weight,
+      discountRate: firstFundingCycleData.discountRate,
+      ballot: firstFundingCycleData.ballot,
+      metadata: firstFundingCycleMetadata
+    };
+
+    // Must start in two funding cycles.
+    const secondFundingCycleData = createFundingCycleData({ duration: firstFundingCycleData.duration.add(1), discountRate: firstFundingCycleData.discountRate.add(1), weight: firstFundingCycleData.weight.add(1) });
+
+    // The metadata value doesn't affect the test.
+    const secondFundingCycleMetadata = ethers.BigNumber.from(234);
+
+    //fast forward to within the cycle.
+    //keep 5 seconds before the end of the cycle so make all necessary checks before the cycle ends.
+    await fastForward(firstConfigureForTx.blockNumber, firstFundingCycleData.duration.sub(5));
+
+    const reconfiguredFundingCycleMustStartOnOrAfter = firstConfigurationTimestamp.add(firstFundingCycleData.duration.mul(2));
+
+    // Configure second funding cycle
+    const secondConfigureForTx = await jbFundingCycleStore
+      .connect(controller)
+      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata, reconfiguredFundingCycleMustStartOnOrAfter);
+
+    // The timestamp the second configuration was made during.
+    const secondConfigurationTimestamp = await getTimestamp(secondConfigureForTx.blockNumber);
+
+    await expect(secondConfigureForTx).to.emit(jbFundingCycleStore, `Init`)
+      .withArgs(secondConfigurationTimestamp, PROJECT_ID, /*basedOn=*/firstConfigurationTimestamp);
+
+    const expectedSecondFundingCycle = {
+      number: ethers.BigNumber.from(3), // third cycle
+      configuration: secondConfigurationTimestamp,
+      basedOn: firstConfigurationTimestamp, // based on the first cycle
+      start: firstConfigurationTimestamp.add(firstFundingCycleData.duration.mul(2)), // starts at the end of the second cycle
+      duration: secondFundingCycleData.duration,
+      weight: secondFundingCycleData.weight,
+      discountRate: secondFundingCycleData.discountRate,
+      ballot: secondFundingCycleData.ballot,
+      metadata: secondFundingCycleMetadata
+    };
+
+    expect(cleanFundingCycle(await jbFundingCycleStore.get(PROJECT_ID, secondConfigurationTimestamp))).to.eql(expectedSecondFundingCycle);
+    expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(expectedFirstFundingCycle);
+
+    // Queued shows the reconfiguration despite it not starting until after one rolled over fc.
+    expect(cleanFundingCycle(await jbFundingCycleStore.queuedOf(PROJECT_ID))).to.eql(expectedSecondFundingCycle);
+
+    //fast forward to within the cycle.
+    await fastForward(firstConfigureForTx.blockNumber, firstFundingCycleData.duration);
+
+    expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql({
+      ...expectedFirstFundingCycle,
+      number: expectedFirstFundingCycle.number.add(1),
+      start: expectedFirstFundingCycle.start.add(expectedFirstFundingCycle.duration)
+    });
+    expect(cleanFundingCycle(await jbFundingCycleStore.queuedOf(PROJECT_ID))).to.eql(expectedSecondFundingCycle);
+  });
+
   it("Should configure subsequent cycle during a rolled over funding cycle", async function () {
     const { controller, mockJbDirectory, jbFundingCycleStore, addrs } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
@@ -240,7 +379,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata);
+      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the first configuration was made during.
     const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
@@ -270,7 +409,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure second funding cycle
     const secondConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata);
+      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the second configuration was made during.
     const secondConfigurationTimestamp = await getTimestamp(secondConfigureForTx.blockNumber);
@@ -314,7 +453,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata);
+      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the first configuration was made during.
     const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
@@ -339,7 +478,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure a bogus failed funding cycle. Use the same metadata for convinience. 
     const failedConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata);
+      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the second configuration was made during.
     const failedConfigurationTimestamp = await getTimestamp(failedConfigureForTx.blockNumber);
@@ -355,7 +494,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure second funding cycle
     const secondConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata);
+      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the second configuration was made during.
     const secondConfigurationTimestamp = await getTimestamp(secondConfigureForTx.blockNumber);
@@ -401,7 +540,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata);
+      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the first configuration was made during.
     const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
@@ -431,7 +570,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure a bogus failed funding cycle. Use the same metadata for convinience. 
     const failedConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata);
+      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the second configuration was made during.
     const failedConfigurationTimestamp = await getTimestamp(failedConfigureForTx.blockNumber);
@@ -445,7 +584,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure second funding cycle
     const secondConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata);
+      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the second configuration was made during.
     const secondConfigurationTimestamp = await getTimestamp(secondConfigureForTx.blockNumber);
@@ -489,7 +628,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata);
+      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the first configuration was made during.
     const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
@@ -524,7 +663,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure second funding cycle
     const secondConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata);
+      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the second configuration was made during.
     const secondConfigurationTimestamp = await getTimestamp(secondConfigureForTx.blockNumber);
@@ -559,7 +698,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata);
+      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the first configuration was made during.
     const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
@@ -591,7 +730,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure second funding cycle
     const secondConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata);
+      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the second configuration was made during.
     const secondConfigurationTimestamp = await getTimestamp(secondConfigureForTx.blockNumber);
@@ -633,7 +772,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata);
+      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the first configuration was made during.
     const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
@@ -664,7 +803,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure second funding cycle
     const secondConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata);
+      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the second configuration was made during.
     const secondConfigurationTimestamp = await getTimestamp(secondConfigureForTx.blockNumber);
@@ -733,12 +872,12 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata);
+      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the first configuration was made during.
     const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
 
-    const secondFundingCycleData = createFundingCycleData({ ballot: addrs[0].address, duration: firstFundingCycleData.duration.add(1), discountRate: firstFundingCycleData.discountRate.add(1), weight: firstFundingCycleData.weight.add(1) });
+    const secondFundingCycleData = createFundingCycleData({ duration: firstFundingCycleData.duration.add(1), discountRate: firstFundingCycleData.discountRate.add(1), weight: firstFundingCycleData.weight.add(1) });
 
     // The metadata value doesn't affect the test.
     const secondFundingCycleMetadata = ethers.BigNumber.from(234);
@@ -746,7 +885,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure second funding cycle
     const secondConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata);
+      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the second configuration was made during.
     const secondConfigurationTimestamp = await getTimestamp(secondConfigureForTx.blockNumber);
@@ -762,7 +901,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure second funding cycle
     const thirdConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, thirdFundingCycleData, thirdFundingCycleMetadata);
+      .configureFor(PROJECT_ID, thirdFundingCycleData, thirdFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the third configuration was made during.
     const thirdConfigurationTimestamp = await getTimestamp(thirdConfigureForTx.blockNumber);
@@ -801,7 +940,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata);
+      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the first configuration was made during.
     const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
@@ -832,7 +971,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure second funding cycle
     const secondConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata);
+      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the second configuration was made during.
     const secondConfigurationTimestamp = await getTimestamp(secondConfigureForTx.blockNumber);
@@ -879,7 +1018,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata);
+      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the first configuration was made during.
     const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
@@ -897,7 +1036,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure second funding cycle
     const secondConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata);
+      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the second configuration was made during.
     const secondConfigurationTimestamp = await getTimestamp(secondConfigureForTx.blockNumber);
@@ -930,7 +1069,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata);
+      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the first configuration was made during.
     const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
@@ -948,7 +1087,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure second funding cycle
     const secondConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata);
+      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the second configuration was made during.
     const secondConfigurationTimestamp = await getTimestamp(secondConfigureForTx.blockNumber);
@@ -984,7 +1123,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata);
+      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the first configuration was made during.
     const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
@@ -1002,7 +1141,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure second funding cycle
     const secondConfigureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata);
+      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the second configuration was made during.
     const secondConfigurationTimestamp = await getTimestamp(secondConfigureForTx.blockNumber);
@@ -1039,7 +1178,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Configure funding cycle
     const configureForTx = await jbFundingCycleStore
       .connect(controller)
-      .configureFor(PROJECT_ID, fundingCycleData, fundingCycleMetadata);
+      .configureFor(PROJECT_ID, fundingCycleData, fundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
 
     // The timestamp the configuration was made during.
     const configurationTimestamp = await getTimestamp(configureForTx.blockNumber);
@@ -1078,7 +1217,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     const fundingCycleData = createFundingCycleData();
 
     await expect(
-      jbFundingCycleStore.connect(nonController).configureFor(PROJECT_ID, fundingCycleData, 0),
+      jbFundingCycleStore.connect(nonController).configureFor(PROJECT_ID, fundingCycleData, 0, fundingCycleMustStartOnOrAfterZero),
     ).to.be.revertedWith('0x4f: UNAUTHORIZED');
   });
 
@@ -1089,7 +1228,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     const fundingCycleData = createFundingCycleData({ duration: 999 });
 
     await expect(
-      jbFundingCycleStore.connect(controller).configureFor(PROJECT_ID, fundingCycleData, 0),
+      jbFundingCycleStore.connect(controller).configureFor(PROJECT_ID, fundingCycleData, 0, fundingCycleMustStartOnOrAfterZero),
     ).to.be.revertedWith('0x15: BAD_DURATION');
   });
 
@@ -1100,7 +1239,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     const fundingCycleData = createFundingCycleData({ discountRate: 1000000001 });
 
     await expect(
-      jbFundingCycleStore.connect(controller).configureFor(PROJECT_ID, fundingCycleData, 0),
+      jbFundingCycleStore.connect(controller).configureFor(PROJECT_ID, fundingCycleData, 0, fundingCycleMustStartOnOrAfterZero),
     ).to.be.revertedWith('0x16: BAD_DISCOUNT_RATE');
   });
 
@@ -1113,7 +1252,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     const fundingCycleData = createFundingCycleData({ weight: badWeight });
 
     await expect(
-      jbFundingCycleStore.connect(controller).configureFor(PROJECT_ID, fundingCycleData, 0),
+      jbFundingCycleStore.connect(controller).configureFor(PROJECT_ID, fundingCycleData, 0, fundingCycleMustStartOnOrAfterZero),
     ).to.be.revertedWith('0x18: BAD_WEIGHT');
   });
 });
