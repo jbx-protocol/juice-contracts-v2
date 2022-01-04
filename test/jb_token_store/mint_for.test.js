@@ -104,7 +104,7 @@ describe('JBTokenStore::mintFor(...)', function () {
       jbTokenStore
         .connect(controller)
         .mintFor(newHolder.address, PROJECT_ID, numTokens, /* preferClaimedTokens= */ true),
-    ).to.be.revertedWith(errors.INVALID_AMOUNT);
+    ).to.be.revertedWith(errors.TOKEN_AMOUNT_ZERO);
   });
 
   it(`Can't mint tokens if caller does not have permission`, async function () {
@@ -122,6 +122,6 @@ describe('JBTokenStore::mintFor(...)', function () {
         /* amount= */ 1,
         /* preferClaimedTokens= */ true,
       ),
-    ).to.be.revertedWith(errors.INVLAID_CONTROLLER);
+    ).to.be.revertedWith(errors.CONTROLLER_UNAUTHORIZED);
   });
 });

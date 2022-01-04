@@ -5,7 +5,7 @@ import './../interfaces/IJBTerminalUtility.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
-error UNAUTHORIZED_TERMINAL();
+error TERMINAL_UNAUTHORIZED();
 
 /** 
   @notice
@@ -14,7 +14,7 @@ error UNAUTHORIZED_TERMINAL();
 abstract contract JBTerminalUtility is IJBTerminalUtility {
   modifier onlyTerminal(uint256 _projectId) {
     if (!directory.isTerminalDelegateOf(_projectId, msg.sender)) {
-      revert UNAUTHORIZED_TERMINAL();
+      revert TERMINAL_UNAUTHORIZED();
     }
     _;
   }

@@ -9,11 +9,11 @@ import './libraries/JBOperations.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
-error CHALLENGE_OPEN();
-error EMPTY_HANDLE();
+error HANDLE_ALREADY_CHALLENGED();
+error HANDLE_EMPTY();
 error HANDLE_TAKEN();
 error HANDLE_NOT_TAKEN();
-error HANDLE_TRANSFER_ADDRESS_INVALID();
+error TRANSFER_HANDLE_UNAUTHORIZED();
 
 /** 
   @notice 
@@ -132,7 +132,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
   ) external override returns (uint256) {
     // Handle must exist.
     if (_handle == bytes32(0)) {
-      revert EMPTY_HANDLE();
+      revert HANDLE_EMPTY();
     }
 
     // Handle must be unique.
@@ -177,7 +177,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
   {
     // Handle must exist.
     if (_handle == bytes32(0)) {
-      revert EMPTY_HANDLE();
+      revert HANDLE_EMPTY();
     }
     // Handle must be unique.
     if (idFor[_handle] != 0 || transferAddressFor[_handle] != address(0)) {
@@ -243,7 +243,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
   {
     // A new handle must have been provided.
     if (_newHandle == bytes32(0)) {
-      revert EMPTY_HANDLE();
+      revert HANDLE_EMPTY();
     }
 
     // The new handle must be available.
@@ -297,7 +297,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
       transferAddressFor[_handle] != _transferAddress &&
       (challengeExpiryOf[_handle] <= 0 || block.timestamp <= challengeExpiryOf[_handle])
     ) {
-      revert HANDLE_TRANSFER_ADDRESS_INVALID();
+      revert TRANSFER_HANDLE_UNAUTHORIZED();
     }
 
     // Remove the project ID for the current handle of the specified project.
@@ -336,7 +336,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
 
     // No need to challenge again if a handle is already being challenged.
     if (challengeExpiryOf[_handle] != 0) {
-      revert CHALLENGE_OPEN();
+      revert HANDLE_ALREADY_CHALLENGED();
     }
 
     // The challenge will expire in a year, at which point the handle can be claimed if it has yet to be renewed.

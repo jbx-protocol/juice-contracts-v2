@@ -10,10 +10,10 @@ import './interfaces/IJBDirectory.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
+error ALLOCATOR_AND_BENEFICIARY_ZERO_ADDRESS();
 error INVALID_SPLIT_PERCENT();
 error INVALID_TOTAL_PERCENT();
-error SET_SPLITS_LOCKED();
-error ZERO_SPLIT_ADDRESS();
+error PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();
 
 /**
   @notice
@@ -153,7 +153,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
         ) _includesLocked = true;
       }
       if (!_includesLocked) {
-        revert SET_SPLITS_LOCKED();
+        revert PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();
       }
     }
 
@@ -174,7 +174,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
         _splits[_i].allocator == IJBSplitAllocator(address(0)) &&
         _splits[_i].beneficiary == address(0)
       ) {
-        revert ZERO_SPLIT_ADDRESS();
+        revert ALLOCATOR_AND_BENEFICIARY_ZERO_ADDRESS();
       }
 
       // Add to the total percents.

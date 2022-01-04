@@ -178,7 +178,7 @@ describe('JBProjects::claimHandle(...)', function () {
           projectOwner.address,
           PROJECT_ID_1,
         ),
-    ).to.be.revertedWith(errors.HANDLE_TRANSFER_ADDRESS_INVALID);
+    ).to.be.revertedWith(errors.TRANSFER_HANDLE_UNAUTHORIZED);
   });
 
   it(`Can't claim if it is after expiration date`, async function () {
@@ -222,7 +222,7 @@ describe('JBProjects::claimHandle(...)', function () {
           deployer.address,
           PROJECT_ID_2,
         ),
-    ).to.be.revertedWith(errors.HANDLE_TRANSFER_ADDRESS_INVALID);
+    ).to.be.revertedWith(errors.TRANSFER_HANDLE_UNAUTHORIZED);
   });
 
   it(`Can't claim handle and assign to inexistent or not owned projectId`, async function () {

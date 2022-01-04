@@ -168,7 +168,7 @@ describe('JBSplitsStore::set(...)', function () {
 
     await expect(
       jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, newSplits),
-    ).to.be.revertedWith(errors.SET_SPLITS_LOCKED);
+    ).to.be.revertedWith(errors.PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED);
   });
 
   it('Should set new splits with extension of a preexisting locked one', async function () {
@@ -212,7 +212,7 @@ describe('JBSplitsStore::set(...)', function () {
 
     await expect(
       jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits),
-    ).to.be.revertedWith(errors.ZERO_SPLIT_ADDRESS);
+    ).to.be.revertedWith(errors.ALLOCATOR_AND_BENEFICIARY_ZERO_ADDRESS);
   });
 
   it("Can't set splits if the sum of the percents is greather than 10000000", async function () {
@@ -289,6 +289,6 @@ describe('JBSplitsStore::set(...)', function () {
 
     await expect(
       jbSplitsStore.connect(caller).set(PROJECT_ID, DOMAIN, GROUP, splits),
-    ).to.be.revertedWith(errors.NO_PERMISSION);
+    ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 });

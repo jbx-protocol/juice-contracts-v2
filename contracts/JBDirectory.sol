@@ -10,13 +10,13 @@ import './libraries/JBOperations.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
-error ADDING_TERMINAL_ZERO_ADDRESS();
-error CONTROLLER_ALREADY_IN_ALLOW_LIST();
-error CONTROLLER_NOT_IN_ALLOW_LIST();
+error ADD_TERMINAL_ZERO_ADDRESS();
+error CONTROLLER_ALREADY_IN_ALLOWLIST();
+error CONTROLLER_NOT_IN_ALLOWLIST();
 error INVALID_PROJECT_ID();
-error SETTING_CONTROLLER_ZERO_ADDRESS();
-error SET_PRIMARY_TERMINAL_ZERO_ADDRESS();
 error PRIMARY_TERMINAL_ALREADY_SET();
+error SET_CONTROLLER_ZERO_ADDRESS();
+error SET_PRIMARY_TERMINAL_ZERO_ADDRESS();
 
 /**
   @notice
@@ -206,7 +206,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   {
     // Can't set the zero address.
     if (_controller == IJBController(address(0))) {
-      revert SETTING_CONTROLLER_ZERO_ADDRESS();
+      revert SET_CONTROLLER_ZERO_ADDRESS();
     }
 
     // If the controller is already set, nothing to do.
@@ -240,7 +240,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     address _caller
   ) internal {
     if (_terminal == IJBTerminal(address(0))) {
-      revert ADDING_TERMINAL_ZERO_ADDRESS();
+      revert ADD_TERMINAL_ZERO_ADDRESS();
     }
 
     // Check that the terminal has not already been added.
@@ -363,7 +363,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   function addToSetControllerAllowlist(address _address) external override onlyOwner {
     // Check that the controller has not already been added.
     if (_setControllerAllowlist[_address]) {
-      revert CONTROLLER_ALREADY_IN_ALLOW_LIST();
+      revert CONTROLLER_ALREADY_IN_ALLOWLIST();
     }
 
     // Add the controller to the list of known controllers.
@@ -381,7 +381,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   function removeFromSetControllerAllowlist(address _address) external override onlyOwner {
     // Not in the known controllers list
     if (!_setControllerAllowlist[_address]) {
-      revert CONTROLLER_NOT_IN_ALLOW_LIST();
+      revert CONTROLLER_NOT_IN_ALLOWLIST();
     }
     // Remove the controller from the list of known controllers.
     delete _setControllerAllowlist[_address];

@@ -5,7 +5,7 @@ import './../interfaces/IJBControllerUtility.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
-error INVLAID_CONTROLLER();
+error CONTROLLER_UNAUTHORIZED();
 
 /** 
   @notice
@@ -14,7 +14,7 @@ error INVLAID_CONTROLLER();
 abstract contract JBControllerUtility is IJBControllerUtility {
   modifier onlyController(uint256 _projectId) {
     if (address(directory.controllerOf(_projectId)) != msg.sender) {
-      revert INVLAID_CONTROLLER();
+      revert CONTROLLER_UNAUTHORIZED();
     }
     _;
   }

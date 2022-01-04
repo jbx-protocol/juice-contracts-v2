@@ -26,7 +26,7 @@ error FEE_TOO_HIGH();
 error PAY_TO_ZERO_ADDRESS();
 error REDEEM_TO_ZERO_ADDRESS();
 error TERMINAL_TOKENS_INCOMPATIBLE();
-error ZERO_ADDRESS_TERMINAL_IN_SPLIT();
+error TERMINAL_IN_SPLIT_ZERO_ADDRESS();
 error ZERO_VALUE_SENT();
 
 /**
@@ -619,7 +619,7 @@ contract JBETHPaymentTerminal is
 
           // The project must have a terminal to send funds to.
           if (_terminal == IJBTerminal(address(0))) {
-            revert ZERO_ADDRESS_TERMINAL_IN_SPLIT();
+            revert TERMINAL_IN_SPLIT_ZERO_ADDRESS();
           }
 
           // Save gas if this contract is being used as the terminal.

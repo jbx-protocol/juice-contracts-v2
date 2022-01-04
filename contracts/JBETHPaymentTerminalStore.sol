@@ -21,15 +21,15 @@ error FUNDING_CYCLE_DISTRIBUTION_PAUSED();
 error FUNDING_CYCLE_REDEEM_PAUSED();
 error INADEQUATE_CLAIM_AMOUNT();
 error INADEQUATE_CONTROLLER_ALLOWANCE();
-error INADEQUATE_DISTRIBUTION_AMOUNT();
+error INSUFFICIENT_FUND_FOR_DISTRIBUTION();
 error INADEQUATE_TOKEN_COUNT();
 error INADEQUATE_WITHDRAW_AMOUNT();
 error INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
 error INSUFFICIENT_TOKENS();
 error INVALID_FUNDING_CYCLE();
-error STORE_ALREADY_CLAIMED();
 error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
-error UNAUTHORIZED_PAYMENT_TERMINAL();
+error PAYMENT_TERMINAL_UNAUTHORIZED();
+error STORE_ALREADY_CLAIMED();
 error UNKNOWN_CURRENCY();
 
 /**
@@ -52,7 +52,7 @@ contract JBETHPaymentTerminalStore {
   // A modifier only allowing the associated payment terminal to access the function.
   modifier onlyAssociatedPaymentTerminal() {
     if (msg.sender != address(terminal)) {
-      revert UNAUTHORIZED_PAYMENT_TERMINAL();
+      revert PAYMENT_TERMINAL_UNAUTHORIZED();
     }
     _;
   }
@@ -410,12 +410,12 @@ contract JBETHPaymentTerminalStore {
 
     // The amount being distributed must be available.
     if (distributedAmount > balanceOf[_projectId]) {
-      revert INADEQUATE_DISTRIBUTION_AMOUNT();
+      revert INSUFFICIENT_FUND_FOR_DISTRIBUTION();
     }
 
     // The amount being distributed must be at least as much as was expected.
     if (_minReturnedWei > distributedAmount) {
-      revert INADEQUATE_DISTRIBUTION_AMOUNT();
+      revert INSUFFICIENT_FUND_FOR_DISTRIBUTION();
     }
 
     // Store the new amount.

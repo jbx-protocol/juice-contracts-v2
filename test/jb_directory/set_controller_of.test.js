@@ -55,7 +55,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
 
     await expect(
       jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, ethers.constants.AddressZero),
-    ).to.be.revertedWith(errors.SETTING_CONTROLLER_ZERO_ADDRESS);
+    ).to.be.revertedWith(errors.SET_CONTROLLER_ZERO_ADDRESS);
   });
 
   it(`Can't set if project id does not exist`, async function () {
@@ -171,7 +171,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
 
     await expect(
       jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller2.address),
-    ).to.be.revertedWith(errors.NO_PERMISSION);
+    ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 
   it("Can't set if caller is in setControllerAllowlist but new controller is not", async function () {
@@ -201,6 +201,6 @@ describe('JBDirectory::setControllerOf(...)', function () {
 
     await expect(
       jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller2.address),
-    ).to.be.revertedWith(errors.NO_PERMISSION);
+    ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 });

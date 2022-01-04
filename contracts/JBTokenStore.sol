@@ -13,12 +13,13 @@ import './JBToken.sol';
 //*********************************************************************//
 error EMPTY_NAME();
 error EMPTY_SYMBOL();
-error INADEQUATE_TOKEN_STORE_UNCLAIMED_BALANCE();
-error INVALID_AMOUNT();
-error INVALID_JBTOKEN_ADDRESS();
+error INSUFFICIENT_FUNDS();
 error INVALID_RECIPIENT();
+error INSUFFICIENT_UNCLAIMED_TOKENS();
+error RECIPIENT_ZERO_ADDRESS();
+error TOKEN_AMOUNT_ZERO();
+error TOKEN_NOT_FOUND();
 error TOKEN_ALREADY_ISSUED();
-error ZERO_RECIPIENT_ADDRESS();
 
 /**
   @notice
@@ -243,7 +244,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
   ) external override onlyController(_projectId) {
     // An amount must be specified.
     if (_amount == 0) {
-      revert INVALID_AMOUNT();
+      revert TOKEN_AMOUNT_ZERO();
     }
 
     // Get a reference to the project's ERC20 tokens.
@@ -285,7 +286,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
   ) external override onlyController(_projectId) {
     // An amount must be specified.
     if (_amount == 0) {
-      revert INVALID_AMOUNT();
+      revert TOKEN_AMOUNT_ZERO();
     }
     // Get a reference to the project's ERC20 tokens.
     IJBToken _token = tokenOf[_projectId];
@@ -303,7 +304,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
       (_amount < _claimedBalance || _unclaimedBalance < _amount - _claimedBalance) &&
       (_amount < _unclaimedBalance || _claimedBalance < _amount - _unclaimedBalance)
     ) {
-      revert INADEQUATE_TOKEN_STORE_UNCLAIMED_BALANCE();
+      revert INSUFFICIENT_FUNDS();
     }
     // The amount of tokens to burn.
     uint256 _claimedTokensToBurn;
@@ -358,7 +359,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
     // Tokens must have been issued.
     if (_token == IJBToken(address(0))) {
-      revert INVALID_JBTOKEN_ADDRESS();
+      revert TOKEN_NOT_FOUND();
     }
 
     // Get a reference to the amount of unclaimed tokens.
@@ -366,7 +367,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
     // There must be enough unlocked unclaimed tokens to claim.
     if (_unclaimedBalance < _amount) {
-      revert INADEQUATE_TOKEN_STORE_UNCLAIMED_BALANCE();
+      revert INSUFFICIENT_UNCLAIMED_TOKENS();
     }
 
     // Subtract the claim amount from the holder's balance.
@@ -401,7 +402,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
   ) external override requirePermission(_holder, _projectId, JBOperations.TRANSFER) {
     // Can't transfer to the zero address.
     if (_recipient == address(0)) {
-      revert ZERO_RECIPIENT_ADDRESS();
+      revert RECIPIENT_ZERO_ADDRESS();
     }
 
     // An address can't transfer to itself.
@@ -411,14 +412,14 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
     // There must be an amount to transfer.
     if (_amount == 0) {
-      revert INVALID_AMOUNT();
+      revert TOKEN_AMOUNT_ZERO();
     }
     // Get a reference to the amount of unclaimed tokens.
     uint256 _unclaimedBalance = unclaimedBalanceOf[_holder][_projectId];
 
     // There must be enough unclaimed tokens to transfer.
     if (_amount > _unclaimedBalance) {
-      revert INADEQUATE_TOKEN_STORE_UNCLAIMED_BALANCE();
+      revert INSUFFICIENT_UNCLAIMED_TOKENS();
     }
 
     // Subtract from the holder.
@@ -452,7 +453,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
     // Tokens must have been issued.
     if (_token == IJBToken(address(0))) {
-      revert INVALID_JBTOKEN_ADDRESS();
+      revert TOKEN_NOT_FOUND();
     }
 
     // Store the flag.

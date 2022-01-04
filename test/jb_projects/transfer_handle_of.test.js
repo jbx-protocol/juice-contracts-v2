@@ -99,7 +99,7 @@ describe('JBProjects::transferHandleOf(...)', function () {
           deployer.address,
           ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
         ),
-    ).to.be.revertedWith(errors.EMPTY_HANDLE);
+    ).to.be.revertedWith(errors.HANDLE_EMPTY);
   });
 
   it(`Can't transfer handle if handle taken already`, async function () {

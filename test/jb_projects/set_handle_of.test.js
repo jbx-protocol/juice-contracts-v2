@@ -88,7 +88,7 @@ describe('JBProjects::setHandleOf(...)', function () {
       jbProjectsStore
         .connect(projectOwner)
         .setHandleOf(PROJECT_ID_1, ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY)),
-    ).to.be.revertedWith(errors.EMPTY_HANDLE);
+    ).to.be.revertedWith(errors.HANDLE_EMPTY);
   });
 
   it(`Can't set if handle taken already`, async function () {

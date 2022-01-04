@@ -94,6 +94,6 @@ describe('JBProject::fundTreasury(...)', function () {
       jbFakeProject
         .connect(addrs[0])
         .mint(MISC_PROJECT_ID, AMOUNT, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN),
-    ).to.be.revertedWith(errors.INSUFFICIENT_JB_PROJECT_ETH_BALANCE);
+    ).to.be.revertedWith(errors.INSUFFICIENT_BALANCE);
   });
 });

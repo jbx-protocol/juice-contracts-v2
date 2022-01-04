@@ -55,6 +55,6 @@ describe('JBDirectory::removeFromSetControllerAllowlist(...)', function () {
 
     await expect(
       jbDirectory.connect(deployer).removeFromSetControllerAllowlist(mockJbController.address),
-    ).to.revertedWith(errors.CONTROLLER_NOT_IN_ALLOW_LIST);
+    ).to.revertedWith(errors.CONTROLLER_NOT_IN_ALLOWLIST);
   });
 });

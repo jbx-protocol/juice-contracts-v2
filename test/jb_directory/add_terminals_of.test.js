@@ -138,7 +138,7 @@ describe('JBDirectory::addTerminalsOf(...)', function () {
 
     await expect(
       jbDirectory.connect(projectOwner).addTerminalsOf(PROJECT_ID, terminals),
-    ).to.be.revertedWith(errors.ADDING_TERMINAL_ZERO_ADDRESS);
+    ).to.be.revertedWith(errors.ADD_TERMINAL_ZERO_ADDRESS);
   });
 
   it("Can't add terminals more than once", async function () {

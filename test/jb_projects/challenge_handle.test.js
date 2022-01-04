@@ -88,6 +88,6 @@ describe('JBProjects::challengeHandle(...)', function () {
       jbProjectsStore
         .connect(deployer)
         .challengeHandle(ethers.utils.formatBytes32String(PROJECT_HANDLE_1)),
-    ).to.be.revertedWith(errors.CHALLENGE_OPEN);
+    ).to.be.revertedWith(errors.HANDLE_ALREADY_CHALLENGED);
   });
 });

@@ -110,7 +110,7 @@ describe('JBProjects::createFor(...)', function () {
           ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
           METADATA_CID,
         ),
-    ).to.be.revertedWith(errors.EMPTY_HANDLE);
+    ).to.be.revertedWith(errors.HANDLE_EMPTY);
   });
 
   it(`Can't create if handle taken already`, async function () {

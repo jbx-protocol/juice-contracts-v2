@@ -34,14 +34,14 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 error BENEFICIARY_ZERO_ADDRESS();
 error BURN_PAUSED();
 error CALLER_NOT_CURRENT_CONTROLLER();
+error CANT_MIGRATE_TO_CURRENT_CONTROLLER();
 error CHANGE_TOKEN_NOT_ALLOWED();
 error INVALID_BALLOT_REDEMPTION_RATE();
 error INVALID_RESERVED_RATE();
 error INVALID_REDEMPTION_RATE();
 error MIGRATION_NOT_ALLOWED();
-error MINT_PAUSED();
-error NO_CONTROLLER_CHANGE();
-error ZERO_TOKEN_TO_BURN();
+error MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE();
+error NO_BURNABLE_TOKENS();
 error ZERO_TOKEN_TO_MINT();
 
 /**
@@ -117,7 +117,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     @notice
     Maximum value for token reserved, redemption, ballotRedemption rate.
   */
-  uint private constant MAX_TOKEN_RATE = 10000;
+  uint256 private constant MAX_TOKEN_RATE = 10000;
 
   /** 
     @notice
@@ -508,7 +508,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     returns (uint256 beneficiaryTokenCount)
   {
     // Can't send to the zero address.
-    if (_reservedRate != MAX_TOKEN_RATE && _beneficiary == address(0)) {
+    if (_beneficiary == address(0) && _reservedRate != MAX_TOKEN_RATE) {
       revert BENEFICIARY_ZERO_ADDRESS();
     }
 
@@ -522,7 +522,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
     // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
     if (_fundingCycle.mintPaused() && !directory.isTerminalDelegateOf(_projectId, msg.sender)) {
-      revert MINT_PAUSED();
+      revert MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE();
     }
 
     if (_reservedRate == MAX_TOKEN_RATE) {
@@ -532,7 +532,11 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
         int256(_tokenCount);
     } else {
       // The unreserved token count that will be minted for the beneficiary.
-      beneficiaryTokenCount = PRBMath.mulDiv(_tokenCount, MAX_TOKEN_RATE - _reservedRate, MAX_TOKEN_RATE);
+      beneficiaryTokenCount = PRBMath.mulDiv(
+        _tokenCount,
+        MAX_TOKEN_RATE - _reservedRate,
+        MAX_TOKEN_RATE
+      );
 
       // Mint the tokens.
       tokenStore.mintFor(_beneficiary, _projectId, beneficiaryTokenCount, _preferClaimedTokens);
@@ -579,7 +583,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   {
     // There should be tokens to burn
     if (_tokenCount == 0) {
-      revert ZERO_TOKEN_TO_BURN();
+      revert NO_BURNABLE_TOKENS();
     }
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
@@ -626,7 +630,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   function prepForMigrationOf(uint256 _projectId, IJBController) external override {
     // This controller must not be the project's current controller.
     if (directory.controllerOf(_projectId) == this) {
-      revert NO_CONTROLLER_CHANGE();
+      revert CANT_MIGRATE_TO_CURRENT_CONTROLLER();
     }
 
     // Set the tracker as the total supply.
