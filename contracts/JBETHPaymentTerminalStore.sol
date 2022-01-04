@@ -103,7 +103,7 @@ contract JBETHPaymentTerminalStore {
 
   /** 
     @notice
-    Max. Redemption Rate.
+    Maximum Redemption Rate.
   */
   uint256 constant MAX_REDEMPTION_RATE = 10000;
 

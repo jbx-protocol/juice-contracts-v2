@@ -9,7 +9,7 @@ library JBFundingCycleMetadataResolver {
 
   /** 
     @notice
-    Maximum threshold value used to determine redemption, ballotRedemotion rate.
+    Maximum value for token redemption, ballotRedemption rate.
   */
   uint private constant MAX_TOKEN_RATE = 10000;
   function reservedRate(JBFundingCycle memory _fundingCycle) internal pure returns (uint256) {
