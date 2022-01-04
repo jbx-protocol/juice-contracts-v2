@@ -33,7 +33,7 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
 error BENEFICIARY_ZERO_ADDRESS();
-error BURN_PAUSED();
+error BURN_PAUSED_AND_INVALID_TERMINAL_DELEGATE();
 error CALLER_NOT_CURRENT_CONTROLLER();
 error CANT_MIGRATE_TO_CURRENT_CONTROLLER();
 error CHANGE_TOKEN_NOT_ALLOWED();
@@ -503,8 +503,12 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     returns (uint256 beneficiaryTokenCount)
   {
     // Can't send to the zero address.
-    if (_beneficiary == address(0) && _reservedRate != JBConstants.MAX_TOKEN_RATE) {
+    if (_beneficiary == address(0)) {
       revert BENEFICIARY_ZERO_ADDRESS();
+    }
+
+    if (_reservedRate > JBConstants.MAX_TOKEN_RATE) {
+      revert INVALID_REDEMPTION_RATE();
     }
 
     // There should be tokens to mint.
@@ -585,7 +589,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
     // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
     if (_fundingCycle.burnPaused() && !directory.isTerminalDelegateOf(_projectId, msg.sender)) {
-      revert BURN_PAUSED();
+      revert BURN_PAUSED_AND_INVALID_TERMINAL_DELEGATE();
     }
 
     // Update the token tracker so that reserved tokens will still be correctly mintable.
@@ -824,8 +828,11 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     if (_reservedRate == JBConstants.MAX_TOKEN_RATE) return _unprocessedTokenBalanceOf;
 
     return
-      PRBMath.mulDiv(_unprocessedTokenBalanceOf, JBConstants.MAX_TOKEN_RATE, JBConstants.MAX_TOKEN_RATE - _reservedRate) -
-      _unprocessedTokenBalanceOf;
+      PRBMath.mulDiv(
+        _unprocessedTokenBalanceOf,
+        JBConstants.MAX_TOKEN_RATE,
+        JBConstants.MAX_TOKEN_RATE - _reservedRate
+      ) - _unprocessedTokenBalanceOf;
   }
 
   /** 
