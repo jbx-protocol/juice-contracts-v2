@@ -200,7 +200,7 @@ describe('JBTokenStore::burnFrom(...)', function () {
       jbTokenStore
         .connect(controller)
         .burnFrom(newHolder.address, PROJECT_ID, /* amount= */ 1, /* preferClaimedTokens= */ true),
-    ).to.be.revertedWith(errors.UNAUTHORIZED_CONTROLLER);
+    ).to.be.revertedWith(errors.INVLAID_CONTROLLER);
   });
 
   it(`Can't burn more tokens than the available balance`, async function () {

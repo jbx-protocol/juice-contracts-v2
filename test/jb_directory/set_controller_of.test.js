@@ -72,7 +72,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
     const { projectOwner, jbDirectory, mockJbProjects, controller1 } = await setup();
 
     await mockJbProjects.mock.count.returns(PROJECT_ID);
-    
+
     await jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller1.address);
     await expect(jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller1.address))
       .to.not.be.reverted;
@@ -171,7 +171,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
 
     await expect(
       jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller2.address),
-    ).to.be.revertedWith(errors.UNAUTHORIZED_OPERATOR_STORE);
+    ).to.be.revertedWith(errors.NO_PERMISSION);
   });
 
   it("Can't set if caller is in setControllerAllowlist but new controller is not", async function () {
@@ -201,6 +201,6 @@ describe('JBDirectory::setControllerOf(...)', function () {
 
     await expect(
       jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller2.address),
-    ).to.be.revertedWith(errors.UNAUTHORIZED_OPERATOR_STORE);
+    ).to.be.revertedWith(errors.NO_PERMISSION);
   });
 });

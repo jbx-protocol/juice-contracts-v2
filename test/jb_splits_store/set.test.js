@@ -289,6 +289,6 @@ describe('JBSplitsStore::set(...)', function () {
 
     await expect(
       jbSplitsStore.connect(caller).set(PROJECT_ID, DOMAIN, GROUP, splits),
-    ).to.be.revertedWith(errors.UNAUTHORIZED_OPERATOR_STORE);
+    ).to.be.revertedWith(errors.NO_PERMISSION);
   });
 });

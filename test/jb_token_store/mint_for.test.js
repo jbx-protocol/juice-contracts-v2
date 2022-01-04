@@ -122,6 +122,6 @@ describe('JBTokenStore::mintFor(...)', function () {
         /* amount= */ 1,
         /* preferClaimedTokens= */ true,
       ),
-    ).to.be.revertedWith(errors.UNAUTHORIZED_CONTROLLER);
+    ).to.be.revertedWith(errors.INVLAID_CONTROLLER);
   });
 });

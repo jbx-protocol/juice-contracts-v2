@@ -5,7 +5,7 @@ import './../interfaces/IJBOperatable.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
-error UNAUTHORIZED_OPERATOR_STORE();
+error NO_PERMISSION();
 
 /** 
   @notice
@@ -19,10 +19,10 @@ abstract contract JBOperatable is IJBOperatable {
   ) {
     if (
       msg.sender != _account &&
-        !operatorStore.hasPermission(msg.sender, _account, _domain, _permissionIndex) &&
-        !operatorStore.hasPermission(msg.sender, _account, 0, _permissionIndex)
+      !operatorStore.hasPermission(msg.sender, _account, _domain, _permissionIndex) &&
+      !operatorStore.hasPermission(msg.sender, _account, 0, _permissionIndex)
     ) {
-      revert UNAUTHORIZED_OPERATOR_STORE();
+      revert NO_PERMISSION();
     }
     _;
   }
@@ -35,11 +35,11 @@ abstract contract JBOperatable is IJBOperatable {
   ) {
     if (
       !_override &&
-        msg.sender != _account &&
-        !operatorStore.hasPermission(msg.sender, _account, _domain, _permissionIndex) &&
-        !operatorStore.hasPermission(msg.sender, _account, 0, _permissionIndex)
+      msg.sender != _account &&
+      !operatorStore.hasPermission(msg.sender, _account, _domain, _permissionIndex) &&
+      !operatorStore.hasPermission(msg.sender, _account, 0, _permissionIndex)
     ) {
-      revert UNAUTHORIZED_OPERATOR_STORE();
+      revert NO_PERMISSION();
     }
     _;
   }
