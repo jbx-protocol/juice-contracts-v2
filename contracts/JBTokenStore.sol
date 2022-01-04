@@ -11,11 +11,11 @@ import './JBToken.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
+error EMPTY_NAME();
+error EMPTY_SYMBOL();
 error INADEQUATE_TOKEN_STORE_UNCLAIMED_BALANCE();
 error INVALID_AMOUNT();
 error INVALID_JBTOKEN_ADDRESS();
-error EMPTY_NAME();
-error EMPTY_SYMBOL();
 error INVALID_RECIPIENT();
 error TOKEN_ALREADY_ISSUED();
 error ZERO_RECIPIENT_ADDRESS();
