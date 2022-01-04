@@ -58,6 +58,13 @@ contract JBETHPaymentTerminal is
 
   /**
     @notice
+    Maximum fee that can be set for funding cycle configuration
+
+  */
+  uint private MAX_FEE = 10;
+
+  /**
+    @notice
     Fees that are being held to be processed later.
 
     _projectId The ID of the project for which fees are being held.
@@ -551,7 +558,7 @@ contract JBETHPaymentTerminal is
   */
   function setFee(uint256 _fee) external onlyOwner {
     // The max fee is 5%.
-    if (_fee > 10) {
+    if (_fee > MAX_FEE) {
       revert FEE_TOO_HIGH();
     }
 
