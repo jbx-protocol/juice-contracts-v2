@@ -115,20 +115,20 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     if (_fundingCycleConfiguration > 0) {
       _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
       if (_isApproved(_projectId, _fundingCycle)) return _fundingCycle;
-    }
-
-    // Get a reference to the latest stored funding cycle configuration for the project.
-    _fundingCycleConfiguration = latestConfigurationOf[_projectId];
-
-    // Resolve the funding cycle for the for the latest configured funding cycle.
-    _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
-
-    // If the latest funding cycle starts in the future, it must be not approved or
-    // start in the distant future since its not in standby.
-    // In either case, base the queued cycles on the base cycle.
-    if (_fundingCycle.start > block.timestamp) {
       _fundingCycleConfiguration = _fundingCycle.basedOn;
+      // Resolve the funding cycle for the for the latest configured funding cycle.
       _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
+    } else {
+      // Get a reference to the latest stored funding cycle configuration for the project.
+      _fundingCycleConfiguration = latestConfigurationOf[_projectId];
+      // Resolve the funding cycle for the for the latest configured funding cycle.
+      _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
+      // If the latest funding cycle starts in the future, it must start in the distant future
+      // since its not in standby. In this case base the queued cycles on the base cycle.
+      if (_fundingCycle.start > block.timestamp) {
+        _fundingCycleConfiguration = _fundingCycle.basedOn;
+        _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
+      }
     }
 
     // There's no queued if the current has a duration of 0.

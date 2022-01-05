@@ -363,6 +363,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       @dev _metadata.useDataSourceForPay Whether or not the data source should be used when processing a payment.
       @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
       @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
+    @param _mustStartOnOrAfter The time before which the configured funding cycle can't start.
     @param _groupedSplits An array of splits to set for any number of group.
     @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
 
@@ -372,6 +373,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     uint256 _projectId,
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
+    uint256 _mustStartOnOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints
   )
@@ -388,8 +390,15 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     // The ballot redemption rate must be less than or equal to 10000.
     require(_metadata.ballotRedemptionRate <= 10000, '0x53: BAD_BALLOT_REDEMPTION_RATE');
 
-    // Send 0 for `_mustStartOnOrAfter` for the reconfiguration to take effect as soon as possible.
-    return _configure(_projectId, _data, _metadata, 0, _groupedSplits, _fundAccessConstraints);
+    return
+      _configure(
+        _projectId,
+        _data,
+        _metadata,
+        _mustStartOnOrAfter,
+        _groupedSplits,
+        _fundAccessConstraints
+      );
   }
 
   /**
