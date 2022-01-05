@@ -145,9 +145,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // Get the funding cycle.
     _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
 
-    // There's no queued cycle if the cyrrent cycle has a duration of 0.
-    if (_fundingCycle.duration == 0) return _getStructFor(0, 0);
-
     // Return a mock of the next up funding cycle.
     return _mockFundingCycleBasedOn(_fundingCycle, false);
   }
@@ -295,14 +292,23 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       _mustStartOnOrAfter > block.timestamp ? _mustStartOnOrAfter : block.timestamp
     );
 
-    // Store the configuration.
-    _packAndStoreUserPropertiesOf(
-      _configuration,
-      _projectId,
-      _data.ballot,
-      _data.duration,
-      _data.discountRate
-    );
+    // Efficiently stores a funding cycles provided user defined properties.
+    // If all user config properties are zero, no need to store anything as the default value will have the same outcome.
+    if (
+      _data.ballot != IJBFundingCycleBallot(address(0)) ||
+      _data.duration > 0 ||
+      _data.discountRate > 0
+    ) {
+      // ballot in bits 0-159 bytes.
+      uint256 packed = uint160(address(_data.ballot));
+      // duration in bits 160-223 bytes.
+      packed |= _data.duration << 160;
+      // discountRate in bits 224-255 bytes.
+      packed |= _data.discountRate << 224;
+
+      // Set in storage.
+      _packedUserPropertiesOf[_projectId][_configuration] = packed;
+    }
 
     // Set the metadata if needed.
     if (_metadata > 0) _metadataOf[_projectId][_configuration] = _metadata;
@@ -346,7 +352,10 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       // Get the latest funding cycle's configuration.
       _currentConfiguration = latestConfigurationOf[_projectId];
 
-    if (!_isConfigurationApproved(_projectId, _currentConfiguration))
+    // Get a reference to the funding cycle.
+    JBFundingCycle memory _fundingCycle = _getStructFor(_projectId, _currentConfiguration);
+
+    if (!_isApproved(_projectId, _fundingCycle))
       // If it hasn't been approved, set the ID to be the based funding cycle,
       // which carries the last approved configuration.
       _currentConfiguration = _getStructFor(_projectId, _currentConfiguration).basedOn;
@@ -354,8 +363,11 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // Determine the funding cycle to use as the base.
     JBFundingCycle memory _baseFundingCycle = _getStructFor(_projectId, _currentConfiguration);
 
-    // The timestamp after the base funding cycle ballot's duration is up.
-    uint256 _timestampAfterBallot = _getTimestampAfterBallotOf(_baseFundingCycle, _configuration);
+    // The time after the ballot of the provided funding cycle has expired.
+    // If the provided funding cycle has no ballot, return the current timestamp.
+    uint256 _timestampAfterBallot = _baseFundingCycle.ballot == IJBFundingCycleBallot(address(0))
+      ? 0
+      : _configuration + _baseFundingCycle.ballot.duration();
 
     _initFor(
       _projectId,
@@ -457,38 +469,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
     // Set in storage.
     _packedIntrinsicPropertiesOf[_projectId][_configuration] = packed;
-  }
-
-  /**
-    @notice 
-    Efficiently stores a funding cycles provided user defined properties.
-
-    @param _configuration The configuration of the funding cycle to pack and store.
-    @param _projectId The ID of the project to which the funding cycle being packed and stored belongs.
-    @param _ballot The ballot to use for future reconfiguration approvals. 
-    @param _duration The duration of the funding cycle.
-    @param _discountRate The discount rate of the base funding cycle.
-  */
-  function _packAndStoreUserPropertiesOf(
-    uint256 _configuration,
-    uint256 _projectId,
-    IJBFundingCycleBallot _ballot,
-    uint256 _duration,
-    uint256 _discountRate
-  ) private {
-    // If all properties are zero, no need to store anything as the default value will have the same outcome.
-    if (_ballot == IJBFundingCycleBallot(address(0)) && _duration == 0 && _discountRate == 0)
-      return;
-
-    // ballot in bits 0-159 bytes.
-    uint256 packed = uint160(address(_ballot));
-    // duration in bits 160-223 bytes.
-    packed |= _duration << 160;
-    // discountRate in bits 224-255 bytes.
-    packed |= _discountRate << 224;
-
-    // Set in storage.
-    _packedUserPropertiesOf[_projectId][_configuration] = packed;
   }
 
   /**
@@ -757,24 +737,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
   /** 
     @notice 
-    Checks to see if the funding cycle of the provided configuration is approved according to the correct ballot.
-
-    @param _projectId The ID of the project to which the funding cycle belongs.
-    @param _configuration The configuration of the funding cycle to get an approval flag for.
-
-    @return The approval flag.
-  */
-  function _isConfigurationApproved(uint256 _projectId, uint256 _configuration)
-    private
-    view
-    returns (bool)
-  {
-    JBFundingCycle memory _fundingCycle = _getStructFor(_projectId, _configuration);
-    return _isApproved(_projectId, _fundingCycle);
-  }
-
-  /** 
-    @notice 
     Checks to see if the provided funding cycle is approved according to the correct ballot.
 
     @param _projectId The ID of the project to which the funding cycle belongs. 
@@ -824,29 +786,5 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     else if (_ballotFundingCycle.ballot.duration() >= block.timestamp - _configuration)
       return JBBallotState.Active;
     else return _ballotFundingCycle.ballot.stateOf(_configuration);
-  }
-
-  /** 
-    @notice
-    The time after the ballot of the provided funding cycle has expired.
-
-    @dev
-    If the ballot ends in the past, 0 will be returned.
-
-    @param _fundingCycle The ID funding cycle to make the caluclation from.
-    @param _from The time from which the ballot duration should be calculated.
-
-    @return The time when the ballot has officially ended.
-  */
-  function _getTimestampAfterBallotOf(JBFundingCycle memory _fundingCycle, uint256 _from)
-    private
-    view
-    returns (uint256)
-  {
-    // If the provided funding cycle has no ballot, return the current timestamp.
-    return
-      _fundingCycle.ballot == IJBFundingCycleBallot(address(0))
-        ? 0
-        : _from + _fundingCycle.ballot.duration();
   }
 }

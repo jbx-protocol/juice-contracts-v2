@@ -974,7 +974,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     });
 
     // Fast forward to the moment the ballot duration has passed.
-    await fastForward('latest', secondConfigurationTimestamp.sub(firstConfigurationTimestamp));
+    await fastForward('latest', secondConfigurationTimestamp.sub(firstConfigurationTimestamp).add(1));
 
     // Mock the ballot on the first funding cycle as approved.
     await mockBallot.mock.stateOf.withArgs(secondConfigurationTimestamp).returns(ballotStatus.APPROVED);
