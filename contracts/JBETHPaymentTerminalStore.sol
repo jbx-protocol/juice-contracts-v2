@@ -30,7 +30,7 @@ error INVALID_FUNDING_CYCLE();
 error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
 error PAYMENT_TERMINAL_UNAUTHORIZED();
 error STORE_ALREADY_CLAIMED();
-error UNKNOWN_CURRENCY();
+error CURRENCY_MISMATCH();
 
 /**
   @notice
@@ -383,7 +383,7 @@ contract JBETHPaymentTerminalStore {
         terminal
       )
     ) {
-      revert UNKNOWN_CURRENCY();
+      revert CURRENCY_MISMATCH();
     }
 
     // The new total amount that has been distributed during this funding cycle.
@@ -459,7 +459,7 @@ contract JBETHPaymentTerminalStore {
         terminal
       )
     ) {
-      revert UNKNOWN_CURRENCY();
+      revert CURRENCY_MISMATCH();
     }
 
     // Convert the amount to wei.

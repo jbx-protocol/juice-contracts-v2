@@ -33,7 +33,7 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
 error BENEFICIARY_ZERO_ADDRESS();
-error BURN_PAUSED_AND_INVALID_TERMINAL_DELEGATE();
+error BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE();
 error CALLER_NOT_CURRENT_CONTROLLER();
 error CANT_MIGRATE_TO_CURRENT_CONTROLLER();
 error CHANGE_TOKEN_NOT_ALLOWED();
@@ -589,7 +589,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
     // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
     if (_fundingCycle.burnPaused() && !directory.isTerminalDelegateOf(_projectId, msg.sender)) {
-      revert BURN_PAUSED_AND_INVALID_TERMINAL_DELEGATE();
+      revert BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE();
     }
 
     // Update the token tracker so that reserved tokens will still be correctly mintable.

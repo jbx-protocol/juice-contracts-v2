@@ -61,7 +61,7 @@ contract JBETHPaymentTerminal is
     Maximum fee that can be set for funding cycle configuration
 
   */
-  uint private MAX_FEE = 10;
+  uint256 private constant MAX_FEE = 10;
 
   /**
     @notice
