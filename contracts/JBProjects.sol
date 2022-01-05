@@ -295,7 +295,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     // or the handle challenge must have expired before being renewed.
     if (
       transferAddressFor[_handle] != _transferAddress &&
-      (challengeExpiryOf[_handle] <= 0 || block.timestamp <= challengeExpiryOf[_handle])
+      (challengeExpiryOf[_handle] == 0 || block.timestamp <= challengeExpiryOf[_handle])
     ) {
       revert TRANSFER_HANDLE_UNAUTHORIZED();
     }

@@ -84,7 +84,6 @@ abstract contract JBProject is Ownable {
     if (_projectId == 0) {
       revert PROJECT_NOT_FOUND();
     }
-    require(_projectId != 0, '0x01: PROJECT_NOT_FOUND');
 
     // Find the terminal for this contract's project.
     IJBTerminal _terminal = directory.primaryTerminalOf(_projectId, _token);
