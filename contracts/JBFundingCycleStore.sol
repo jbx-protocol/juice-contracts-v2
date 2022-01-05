@@ -560,10 +560,9 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // Return the funding cycle's configuration if it has started.
     if (block.timestamp >= _fundingCycle.start) return _fundingCycle.configuration;
 
-    // The base cant be expired.
+    // If the base isn't expired, it must be eligible.
     JBFundingCycle memory _baseFundingCycle = _getStructFor(_projectId, _fundingCycle.basedOn);
 
-    // If the current time is past the end of the base, return 0.
     // A duration of 0 is always eligible.
     if (
       _baseFundingCycle.duration > 0 &&
