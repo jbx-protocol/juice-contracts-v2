@@ -123,6 +123,14 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // Resolve the funding cycle for the for the latest configured funding cycle.
     _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
 
+    // If the latest funding cycle starts in the future, it must be not approved or
+    // start in the distant future since its not in standby.
+    // In either case, base the queued cycles on the base cycle.
+    if (_fundingCycle.start > block.timestamp) {
+      _fundingCycleConfiguration = _fundingCycle.basedOn;
+      _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
+    }
+
     // There's no queued if the current has a duration of 0.
     if (_fundingCycle.duration == 0) return _getStructFor(0, 0);
 
@@ -133,9 +141,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
     // If it hasn't been approved, set the configuration to be that of its base funding cycle, which carries the last approved configuration.
     _fundingCycleConfiguration = _fundingCycle.basedOn;
-
-    // A funding cycle must exist.
-    if (_fundingCycleConfiguration == 0) return _getStructFor(0, 0);
 
     // Get the funding cycle.
     _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
@@ -488,7 +493,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
   /**
     @notice 
-    The project's stored funding cycle that hasn't yet started, if one exists.
+    The project's stored funding cycle that hasn't yet started and should be used next, if one exists.
 
     @dev
     A value of 0 is returned if no funding cycle was found.
@@ -509,6 +514,18 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
     // There is no upcoming funding cycle if the latest funding cycle has already started.
     if (block.timestamp >= _fundingCycle.start) return 0;
+
+    // If this is the first funding cycle, it is queued.
+    if (_fundingCycle.number == 1) return configuration;
+
+    // Get the necessary properties for the base funding cycle.
+    JBFundingCycle memory _baseFundingCycle = _getStructFor(_projectId, _fundingCycle.basedOn);
+
+    // If the latest configuration doesn't start until after another base cycle, return 0.
+    if (
+      _baseFundingCycle.duration > 0 &&
+      block.timestamp < _fundingCycle.start - _baseFundingCycle.duration
+    ) return 0;
   }
 
   /**
