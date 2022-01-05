@@ -372,6 +372,74 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     expect(cleanFundingCycle(await jbFundingCycleStore.queuedOf(PROJECT_ID))).to.eql(expectedSecondFundingCycle);
   });
 
+  it("Should configure subsequent cycle that starts in the future if current cycle has no duration", async function () {
+    const { controller, mockJbDirectory, jbFundingCycleStore } = await setup();
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // No duration.
+    const firstFundingCycleData = createFundingCycleData({ duration: BigNumber.from(0) });
+
+    // The metadata value doesn't affect the test.
+    const firstFundingCycleMetadata = ethers.BigNumber.from(123);
+
+    // Configure first funding cycle
+    const firstConfigureForTx = await jbFundingCycleStore
+      .connect(controller)
+      .configureFor(PROJECT_ID, firstFundingCycleData, firstFundingCycleMetadata, fundingCycleMustStartOnOrAfterZero);
+
+    // The timestamp the first configuration was made during.
+    const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
+
+    const expectedFirstFundingCycle = {
+      number: ethers.BigNumber.from(1),
+      configuration: firstConfigurationTimestamp,
+      basedOn: ethers.BigNumber.from(0),
+      start: firstConfigurationTimestamp,
+      duration: firstFundingCycleData.duration,
+      weight: firstFundingCycleData.weight,
+      discountRate: firstFundingCycleData.discountRate,
+      ballot: firstFundingCycleData.ballot,
+      metadata: firstFundingCycleMetadata
+    };
+
+    // Must start in two funding cycles.
+    const secondFundingCycleData = createFundingCycleData({ discountRate: firstFundingCycleData.discountRate.add(1), weight: firstFundingCycleData.weight.add(1) });
+
+    // The metadata value doesn't affect the test.
+    const secondFundingCycleMetadata = ethers.BigNumber.from(234);
+
+    // Start the configured cycle in 10000 seconds.
+    const reconfiguredFundingCycleStartsIn = BigNumber.from(10000);
+    const reconfiguredFundingCycleMustStartOnOrAfter = firstConfigurationTimestamp.add(reconfiguredFundingCycleStartsIn);
+
+    // Configure second funding cycle
+    const secondConfigureForTx = await jbFundingCycleStore
+      .connect(controller)
+      .configureFor(PROJECT_ID, secondFundingCycleData, secondFundingCycleMetadata, reconfiguredFundingCycleMustStartOnOrAfter);
+
+    // The timestamp the second configuration was made during.
+    const secondConfigurationTimestamp = await getTimestamp(secondConfigureForTx.blockNumber);
+
+    await expect(secondConfigureForTx).to.emit(jbFundingCycleStore, `Init`)
+      .withArgs(secondConfigurationTimestamp, PROJECT_ID, /*basedOn=*/firstConfigurationTimestamp);
+
+    const expectedSecondFundingCycle = {
+      number: ethers.BigNumber.from(2), // second cycle
+      configuration: secondConfigurationTimestamp,
+      basedOn: firstConfigurationTimestamp, // based on the first cycle
+      start: reconfiguredFundingCycleMustStartOnOrAfter, // starts at the minimum time
+      duration: secondFundingCycleData.duration,
+      weight: secondFundingCycleData.weight,
+      discountRate: secondFundingCycleData.discountRate,
+      ballot: secondFundingCycleData.ballot,
+      metadata: secondFundingCycleMetadata
+    };
+
+    expect(cleanFundingCycle(await jbFundingCycleStore.get(PROJECT_ID, secondConfigurationTimestamp))).to.eql(expectedSecondFundingCycle);
+    expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(expectedFirstFundingCycle);
+    expect(cleanFundingCycle(await jbFundingCycleStore.queuedOf(PROJECT_ID))).to.eql(expectedSecondFundingCycle);
+  });
+
   it("Should configure subsequent cycle during a rolled over funding cycle", async function () {
     const { controller, mockJbDirectory, jbFundingCycleStore, addrs } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
