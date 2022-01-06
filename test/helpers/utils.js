@@ -152,12 +152,12 @@ export function createFundingCycleData({
   duration = ethers.BigNumber.from(604800), // 1 week
   weight = ethers.BigNumber.from(10).pow(24), // 1 million with 18 decimals
   discountRate = ethers.BigNumber.from(0),
-  ballot = ethers.constants.AddressZero
+  ballot = ethers.constants.AddressZero,
 } = {}) {
   return {
     duration,
     weight,
     discountRate,
-    ballot
+    ballot,
   };
 }

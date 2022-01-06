@@ -21,7 +21,7 @@ describe('JBProject::pay(...)', function () {
     let jbTokens = await jbTokensFactory.deploy();
 
     JBTOKENS_ETH = await jbTokens.ETH();
-  })
+  });
 
   async function setup() {
     let [deployer, ...addrs] = await ethers.getSigners();
