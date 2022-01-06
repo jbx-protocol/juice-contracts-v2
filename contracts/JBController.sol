@@ -32,13 +32,13 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
-error BENEFICIARY_ZERO_ADDRESS();
 error BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE();
 error CALLER_NOT_CURRENT_CONTROLLER();
 error CANT_MIGRATE_TO_CURRENT_CONTROLLER();
 error CHANGE_TOKEN_NOT_ALLOWED();
 error INVALID_BALLOT_REDEMPTION_RATE();
 error INVALID_RESERVED_RATE();
+error INVALID_RESERVED_RATE_AND_BENEFICIARY_ZERO_ADDRESS();
 error INVALID_REDEMPTION_RATE();
 error MIGRATION_NOT_ALLOWED();
 error MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE();
@@ -503,12 +503,8 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     returns (uint256 beneficiaryTokenCount)
   {
     // Can't send to the zero address.
-    if (_beneficiary == address(0)) {
-      revert BENEFICIARY_ZERO_ADDRESS();
-    }
-
-    if (_reservedRate > JBConstants.MAX_TOKEN_RATE) {
-      revert INVALID_REDEMPTION_RATE();
+    if (_reservedRate != JBConstants.MAX_TOKEN_RATE && _beneficiary == address(0)) {
+      revert INVALID_RESERVED_RATE_AND_BENEFICIARY_ZERO_ADDRESS();
     }
 
     // There should be tokens to mint.
