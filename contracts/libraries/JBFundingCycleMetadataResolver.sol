@@ -146,6 +146,6 @@ library JBFundingCycleMetadataResolver {
     // use redeem data source in bit 67.
     if (_metadata.useDataSourceForRedeem) packed |= 1 << 67;
     // data source address in bits 68-227.
-    packed |= uint160(address(_metadata.dataSource)) << 68;
+    packed |= uint256(uint160(address(_metadata.dataSource))) << 68;
   }
 }
