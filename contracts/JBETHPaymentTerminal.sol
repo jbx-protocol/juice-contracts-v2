@@ -20,6 +20,15 @@ import './abstract/JBOperatable.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+error FEE_TOO_HIGH();
+error PAY_TO_ZERO_ADDRESS();
+error REDEEM_TO_ZERO_ADDRESS();
+error TERMINAL_IN_SPLIT_ZERO_ADDRESS();
+error TERMINAL_TOKENS_INCOMPATIBLE();
+error ZERO_VALUE_SENT();
+
 /**
   @notice
   This contract manages all inflows and outflows of funds into the Juicebox ecosystem.
@@ -46,6 +55,12 @@ contract JBETHPaymentTerminal is
   //*********************************************************************//
   // --------------------- private stored constants -------------------- //
   //*********************************************************************//
+
+  /**
+    @notice
+    Maximum fee that can be set for a funding cycle configuration.
+  */
+  uint256 private constant _MAX_FEE = 10;
 
   /**
     @notice
@@ -408,7 +423,9 @@ contract JBETHPaymentTerminal is
     returns (uint256 claimAmount)
   {
     // Can't send claimed funds to the zero address.
-    require(_beneficiary != address(0), '0x4c: ZERO_ADDRESS');
+    if (_beneficiary == address(0)) {
+      revert REDEEM_TO_ZERO_ADDRESS();
+    }
 
     // Keep a reference to the funding cycles during which the redemption is being made.
     JBFundingCycle memory _fundingCycle;
@@ -457,7 +474,9 @@ contract JBETHPaymentTerminal is
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_TERMINAL)
   {
     // The terminal being migrated to must accept the same token as this terminal.
-    require(token == _to.token(), '0x4d: INCOMPATIBLE');
+    if (token != _to.token()) {
+      revert TERMINAL_TOKENS_INCOMPATIBLE();
+    }
 
     // Record the migration in the store.
     uint256 _balance = store.recordMigration(_projectId);
@@ -478,7 +497,9 @@ contract JBETHPaymentTerminal is
   */
   function addToBalanceOf(uint256 _projectId, string memory _memo) external payable override {
     // Amount must be greater than 0.
-    require(msg.value > 0, '0x4c: NO_OP');
+    if (msg.value == 0) {
+      revert ZERO_VALUE_SENT();
+    }
 
     // Record the added funds.
     store.recordAddedBalanceFor(_projectId, msg.value);
@@ -536,7 +557,9 @@ contract JBETHPaymentTerminal is
   */
   function setFee(uint256 _fee) external onlyOwner {
     // The max fee is 5%.
-    require(_fee <= 10, '0x36: BAD_FEE');
+    if (_fee > _MAX_FEE) {
+      revert FEE_TOO_HIGH();
+    }
 
     // Store the new fee.
     fee = _fee;
@@ -601,7 +624,9 @@ contract JBETHPaymentTerminal is
           IJBTerminal _terminal = directory.primaryTerminalOf(_split.projectId, token);
 
           // The project must have a terminal to send funds to.
-          require(_terminal != IJBTerminal(address(0)), '0x4d: BAD_SPLIT');
+          if (_terminal == IJBTerminal(address(0))) {
+            revert TERMINAL_IN_SPLIT_ZERO_ADDRESS();
+          }
 
           // Save gas if this contract is being used as the terminal.
           if (_terminal == this) {
@@ -710,7 +735,9 @@ contract JBETHPaymentTerminal is
     bytes memory _delegateMetadata
   ) private {
     // Cant send tokens to the zero address.
-    require(_beneficiary != address(0), '0x4e: ZERO_ADDRESS');
+    if (_beneficiary == address(0)) {
+      revert PAY_TO_ZERO_ADDRESS();
+    }
 
     JBFundingCycle memory _fundingCycle;
     uint256 _weight;

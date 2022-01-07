@@ -8,6 +8,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import { Contract } from 'ethers';
+import errors from '../helpers/errors.json';
 
 describe('JBTokenStore::issueFor(...)', function () {
   const PROJECT_ID = 2;
@@ -63,7 +64,7 @@ describe('JBTokenStore::issueFor(...)', function () {
     const name = '';
     await expect(
       jbTokenStore.connect(controller).issueFor(PROJECT_ID, name, TOKEN_SYMBOL),
-    ).to.be.revertedWith('0x1f: EMPTY_NAME');
+    ).to.be.revertedWith(errors.EMPTY_NAME);
   });
 
   it(`Can't issue tokens if symbol is empty`, async function () {
@@ -74,7 +75,7 @@ describe('JBTokenStore::issueFor(...)', function () {
     const symbol = '';
     await expect(
       jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, symbol),
-    ).to.be.revertedWith('0x20: EMPTY_SYMBOL');
+    ).to.be.revertedWith(errors.EMPTY_SYMBOL);
   });
 
   it(`Can't issue tokens if already issued`, async function () {
@@ -87,7 +88,7 @@ describe('JBTokenStore::issueFor(...)', function () {
       .not.be.reverted;
     await expect(
       jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL),
-    ).to.be.revertedWith('0x21: ALREADY_ISSUED');
+    ).to.be.revertedWith(errors.TOKEN_ALREADY_ISSUED);
   });
 
   it(`Can't issue tokens if caller does not have permission`, async function () {
@@ -100,6 +101,6 @@ describe('JBTokenStore::issueFor(...)', function () {
 
     await expect(
       jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL),
-    ).to.be.revertedWith('0x4f: UNAUTHORIZED');
+    ).to.be.revertedWith(errors.CONTROLLER_UNAUTHORIZED);
   });
 });

@@ -3,10 +3,20 @@ pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 
+import './abstract/JBOperatable.sol';
 import './interfaces/IJBTerminal.sol';
 import './interfaces/IJBDirectory.sol';
-import './abstract/JBOperatable.sol';
 import './libraries/JBOperations.sol';
+
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+error ADD_TERMINAL_ZERO_ADDRESS();
+error CONTROLLER_ALREADY_IN_ALLOWLIST();
+error CONTROLLER_NOT_IN_ALLOWLIST();
+error INVALID_PROJECT_ID();
+error PRIMARY_TERMINAL_ALREADY_SET();
+error SET_CONTROLLER_ZERO_ADDRESS();
+error SET_PRIMARY_TERMINAL_ZERO_ADDRESS();
 
 /**
   @notice
@@ -195,13 +205,17 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     )
   {
     // Can't set the zero address.
-    require(_controller != IJBController(address(0)), '0x2b: ZERO_ADDRESS');
+    if (_controller == IJBController(address(0))) {
+      revert SET_CONTROLLER_ZERO_ADDRESS();
+    }
 
     // If the controller is already set, nothing to do.
     if (controllerOf[_projectId] == _controller) return;
 
     // The project must exist.
-    require(projects.count() >= _projectId, '0x2c: NOT_FOUND');
+    if (projects.count() < _projectId) {
+      revert INVALID_PROJECT_ID();
+    }
 
     // Set the new controller.
     controllerOf[_projectId] = _controller;
@@ -225,7 +239,9 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     IJBTerminal _terminal,
     address _caller
   ) internal {
-    require(_terminal != IJBTerminal(address(0)), '0x2d: ZERO_ADDRESS');
+    if (_terminal == IJBTerminal(address(0))) {
+      revert ADD_TERMINAL_ZERO_ADDRESS();
+    }
 
     // Check that the terminal has not already been added.
     if (isTerminalOf(_projectId, _terminal)) return;
@@ -311,13 +327,17 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.SET_PRIMARY_TERMINAL)
   {
     // Can't set the zero address.
-    require(_terminal != IJBTerminal(address(0)), '0x2e: ZERO_ADDRESS');
+    if (_terminal == IJBTerminal(address(0))) {
+      revert SET_PRIMARY_TERMINAL_ZERO_ADDRESS();
+    }
 
     // Get a reference to the token that the terminal's vault accepts.
     address _token = _terminal.token();
 
     // Can't set this terminal as the primary if it already is.
-    require(_terminal != _primaryTerminalOf[_projectId][_token], '0x2f: ALREADY_SET');
+    if (_terminal == _primaryTerminalOf[_projectId][_token]) {
+      revert PRIMARY_TERMINAL_ALREADY_SET();
+    }
 
     // Add the terminal to thge project if it hasn't been already.
     _addTerminalIfNeeded(_projectId, _terminal, msg.sender);
@@ -342,7 +362,9 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   */
   function addToSetControllerAllowlist(address _address) external override onlyOwner {
     // Check that the controller has not already been added.
-    require(!_setControllerAllowlist[_address], '0x30: ALREADY_ADDED');
+    if (_setControllerAllowlist[_address]) {
+      revert CONTROLLER_ALREADY_IN_ALLOWLIST();
+    }
 
     // Add the controller to the list of known controllers.
     _setControllerAllowlist[_address] = true;
@@ -358,7 +380,9 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   */
   function removeFromSetControllerAllowlist(address _address) external override onlyOwner {
     // Not in the known controllers list
-    require(_setControllerAllowlist[_address], '0x31: NOT_FOUND');
+    if (!_setControllerAllowlist[_address]) {
+      revert CONTROLLER_NOT_IN_ALLOWLIST();
+    }
 
     // Remove the controller from the list of known controllers.
     delete _setControllerAllowlist[_address];

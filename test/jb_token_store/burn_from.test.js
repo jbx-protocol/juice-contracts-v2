@@ -6,6 +6,7 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
+import errors from '../helpers/errors.json';
 
 describe('JBTokenStore::burnFrom(...)', function () {
   const PROJECT_ID = 2;
@@ -199,7 +200,7 @@ describe('JBTokenStore::burnFrom(...)', function () {
       jbTokenStore
         .connect(controller)
         .burnFrom(newHolder.address, PROJECT_ID, /* amount= */ 1, /* preferClaimedTokens= */ true),
-    ).to.be.revertedWith('0x4f: UNAUTHORIZED');
+    ).to.be.revertedWith(errors.CONTROLLER_UNAUTHORIZED);
   });
 
   it(`Can't burn more tokens than the available balance`, async function () {
@@ -227,7 +228,7 @@ describe('JBTokenStore::burnFrom(...)', function () {
       jbTokenStore
         .connect(controller)
         .burnFrom(newHolder.address, PROJECT_ID, burnAmt, preferClaimedTokens),
-    ).to.be.revertedWith('0x23: INSUFFICIENT_FUNDS');
+    ).to.be.revertedWith(errors.INSUFFICIENT_FUNDS);
   });
 
   it(`Can't burn any tokens if none have been issued or allocated'`, async function () {
@@ -242,7 +243,7 @@ describe('JBTokenStore::burnFrom(...)', function () {
       jbTokenStore
         .connect(controller)
         .burnFrom(newHolder.address, PROJECT_ID, numTokens, preferClaimedTokens),
-    ).to.be.revertedWith('0x23: INSUFFICIENT_FUNDS');
+    ).to.be.revertedWith(errors.INSUFFICIENT_FUNDS);
   });
 
   it(`Can't burn any tokens if burn amount <= 0'`, async function () {
@@ -257,6 +258,6 @@ describe('JBTokenStore::burnFrom(...)', function () {
       jbTokenStore
         .connect(controller)
         .burnFrom(newHolder.address, PROJECT_ID, numTokens, preferClaimedTokens),
-    ).to.be.revertedWith('0x22: NO_OP');
+    ).to.be.revertedWith(errors.TOKEN_AMOUNT_ZERO);
   });
 });

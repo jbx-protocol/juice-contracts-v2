@@ -13,6 +13,25 @@ import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+error CURRENCY_MISMATCH();
+error DISTRIBUTION_AMOUNT_LIMIT_REACHED();
+error FUNDING_CYCLE_PAYMENT_PAUSED();
+error FUNDING_CYCLE_DISTRIBUTION_PAUSED();
+error FUNDING_CYCLE_REDEEM_PAUSED();
+error INADEQUATE_CLAIM_AMOUNT();
+error INADEQUATE_CONTROLLER_ALLOWANCE();
+error INSUFFICIENT_FUND_FOR_DISTRIBUTION();
+error INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
+error INADEQUATE_TOKEN_COUNT();
+error INADEQUATE_WITHDRAW_AMOUNT();
+error INSUFFICIENT_TOKENS();
+error INVALID_FUNDING_CYCLE();
+error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
+error PAYMENT_TERMINAL_UNAUTHORIZED();
+error STORE_ALREADY_CLAIMED();
+
 /**
   @notice
   This contract manages all bookkeeping for inflows and outflows of funds for a terminal.
@@ -26,7 +45,9 @@ contract JBETHPaymentTerminalStore {
 
   // A modifier only allowing the associated payment terminal to access the function.
   modifier onlyAssociatedPaymentTerminal() {
-    require(msg.sender == address(terminal), '0x3a: UNAUTHORIZED');
+    if (msg.sender != address(terminal)) {
+      revert PAYMENT_TERMINAL_UNAUTHORIZED();
+    }
     _;
   }
 
@@ -74,6 +95,14 @@ contract JBETHPaymentTerminalStore {
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
 
+  /**
+    @notice
+    Maximum redemption rate for a given funding cycle.
+  */
+  uint256 constant _MAX_REDEMPTION_RATE = 10000;
+
+  /**
+    @notice
   /**
     @notice
     The amount of ETH that each project has.
@@ -237,10 +266,14 @@ contract JBETHPaymentTerminalStore {
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // The project must have a funding cycle configured.
-    require(fundingCycle.number > 0, '0x3a: NOT_FOUND');
+    if (fundingCycle.number == 0) {
+      revert INVALID_FUNDING_CYCLE();
+    }
 
     // Must not be paused.
-    require(!fundingCycle.payPaused(), '0x3b: PAUSED');
+    if (fundingCycle.payPaused()) {
+      revert FUNDING_CYCLE_PAYMENT_PAUSED();
+    }
 
     // Save a reference to the delegate to use.
     IJBPayDelegate _delegate;
@@ -281,7 +314,9 @@ contract JBETHPaymentTerminalStore {
       );
 
     // The token count for the beneficiary must be greater than or equal to the minimum expected.
-    require(tokenCount >= _minReturnedTokens, '0x3c: INADEQUATE');
+    if (tokenCount < _minReturnedTokens) {
+      revert INADEQUATE_TOKEN_COUNT();
+    }
 
     // If a delegate was returned by the data source, issue a callback to it.
     if (_delegate != IJBPayDelegate(address(0))) {
@@ -329,18 +364,21 @@ contract JBETHPaymentTerminalStore {
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // The funding cycle must not be configured to have distributions paused.
-    require(!fundingCycle.distributionsPaused(), '0x3e: PAUSED');
+    if (fundingCycle.distributionsPaused()) {
+      revert FUNDING_CYCLE_DISTRIBUTION_PAUSED();
+    }
 
     // Make sure the currencies match.
-    require(
-      _currency ==
-        directory.controllerOf(_projectId).currencyOf(
-          _projectId,
-          fundingCycle.configuration,
-          terminal
-        ),
-      '0x3f: UNEXPECTED_CURRENCY'
-    );
+    if (
+      _currency !=
+      directory.controllerOf(_projectId).currencyOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      )
+    ) {
+      revert CURRENCY_MISMATCH();
+    }
 
     // The new total amount that has been distributed during this funding cycle.
     uint256 _newUsedDistributionLimitOf = usedDistributionLimitOf[_projectId][
@@ -348,15 +386,16 @@ contract JBETHPaymentTerminalStore {
     ] + _amount;
 
     // Amount must be within what is still distributable.
-    require(
-      _newUsedDistributionLimitOf <=
-        directory.controllerOf(_projectId).distributionLimitOf(
-          _projectId,
-          fundingCycle.configuration,
-          terminal
-        ),
-      '0x1b: LIMIT_REACHED'
-    );
+    if (
+      _newUsedDistributionLimitOf >
+      directory.controllerOf(_projectId).distributionLimitOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      )
+    ) {
+      revert DISTRIBUTION_AMOUNT_LIMIT_REACHED();
+    }
 
     // Convert the amount to wei.
     distributedAmount = (_currency == JBCurrencies.ETH)
@@ -364,10 +403,14 @@ contract JBETHPaymentTerminalStore {
       : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, JBCurrencies.ETH));
 
     // The amount being distributed must be available.
-    require(distributedAmount <= balanceOf[_projectId], '0x40: INSUFFICIENT_FUNDS');
+    if (distributedAmount > balanceOf[_projectId]) {
+      revert INSUFFICIENT_FUND_FOR_DISTRIBUTION();
+    }
 
     // The amount being distributed must be at least as much as was expected.
-    require(_minReturnedWei <= distributedAmount, '0x41: INADEQUATE');
+    if (_minReturnedWei > distributedAmount) {
+      revert INSUFFICIENT_FUND_FOR_DISTRIBUTION();
+    }
 
     // Store the new amount.
     usedDistributionLimitOf[_projectId][fundingCycle.configuration] = _newUsedDistributionLimitOf;
@@ -402,30 +445,32 @@ contract JBETHPaymentTerminalStore {
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Make sure the currencies match.
-    require(
-      _currency ==
-        directory.controllerOf(_projectId).currencyOf(
-          _projectId,
-          fundingCycle.configuration,
-          terminal
-        ),
-      '0x42: UNEXPECTED_CURRENCY'
-    );
+    if (
+      _currency !=
+      directory.controllerOf(_projectId).currencyOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      )
+    ) {
+      revert CURRENCY_MISMATCH();
+    }
 
     uint256 _newOverflowAllowanceOf = usedOverflowAllowanceOf[_projectId][
       fundingCycle.configuration
     ] + _amount;
 
     // There must be sufficient allowance available.
-    require(
+    if (
       _newOverflowAllowanceOf <=
-        directory.controllerOf(_projectId).overflowAllowanceOf(
-          _projectId,
-          fundingCycle.configuration,
-          terminal
-        ),
-      '0x43: NOT_ALLOWED'
-    );
+      directory.controllerOf(_projectId).overflowAllowanceOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      )
+    ) {
+      revert INADEQUATE_CONTROLLER_ALLOWANCE();
+    }
 
     // Convert the amount to wei.
     withdrawnAmount = (_currency == JBCurrencies.ETH)
@@ -433,10 +478,14 @@ contract JBETHPaymentTerminalStore {
       : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, JBCurrencies.ETH));
 
     // The amount being withdrawn must be available.
-    require(withdrawnAmount <= balanceOf[_projectId], '0x44: INSUFFICIENT_FUNDS');
+    if (withdrawnAmount > balanceOf[_projectId]) {
+      revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
+    }
 
     // The amount being withdrawn must be at least as much as was expected.
-    require(_minReturnedWei <= withdrawnAmount, '0x45: INADEQUATE');
+    if (_minReturnedWei > withdrawnAmount) {
+      revert INADEQUATE_WITHDRAW_AMOUNT();
+    }
 
     // Store the incremented value.
     usedOverflowAllowanceOf[_projectId][fundingCycle.configuration] = _newOverflowAllowanceOf;
@@ -484,13 +533,17 @@ contract JBETHPaymentTerminalStore {
     require(_tokenCount > 0, '0x22: NO_OP');
 
     // The holder must have the specified number of the project's tokens.
-    require(tokenStore.balanceOf(_holder, _projectId) >= _tokenCount, '0x46: INSUFFICIENT_TOKENS');
+    if (tokenStore.balanceOf(_holder, _projectId) < _tokenCount) {
+      revert INSUFFICIENT_TOKENS();
+    }
 
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // The current funding cycle must not be paused.
-    require(!fundingCycle.redeemPaused(), '0x47: PAUSED');
+    if (fundingCycle.redeemPaused()) {
+      revert FUNDING_CYCLE_REDEEM_PAUSED();
+    }
 
     // Save a reference to the delegate to use.
     IJBRedemptionDelegate _delegate;
@@ -516,10 +569,13 @@ contract JBETHPaymentTerminalStore {
     require(claimAmount > 0, '0x50: NOTHING_TO_CLAIM');
 
     // The amount being claimed must be within the project's balance.
-    require(claimAmount <= balanceOf[_projectId], '0x48: INSUFFICIENT_FUNDS');
-
+    if (claimAmount > balanceOf[_projectId]) {
+      revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
+    }
     // The amount being claimed must be at least as much as was expected.
-    require(claimAmount >= _minReturnedWei, '0x49: INADEQUATE');
+    if (claimAmount < _minReturnedWei) {
+      revert INADEQUATE_CLAIM_AMOUNT();
+    }
 
     // Redeem the tokens, which burns them.
     directory.controllerOf(_projectId).burnTokensOf(
@@ -590,7 +646,9 @@ contract JBETHPaymentTerminalStore {
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Migration must be allowed
-    require(_fundingCycle.terminalMigrationAllowed(), '0x4a: NOT_ALLOWED');
+    if (!_fundingCycle.terminalMigrationAllowed()) {
+      revert PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
+    }
 
     // Return the current balance.
     balance = balanceOf[_projectId];
@@ -605,8 +663,9 @@ contract JBETHPaymentTerminalStore {
   */
   function claimFor(IJBTerminal _terminal) external {
     // This store can only be claimed once.
-    require(terminal == IJBTerminal(address(0)), '0x4b: ALREADY_CLAIMED');
-
+    if (terminal != IJBTerminal(address(0))) {
+      revert STORE_ALREADY_CLAIMED();
+    }
     // Set the terminal.
     terminal = _terminal;
   }
@@ -661,12 +720,13 @@ contract JBETHPaymentTerminalStore {
     uint256 _base = PRBMath.mulDiv(_currentOverflow, _tokenCount, _totalSupply);
 
     // These conditions are all part of the same curve. Edge conditions are separated because fewer operation are necessary.
-    if (_redemptionRate == 10000) return _base;
+    if (_redemptionRate == _MAX_REDEMPTION_RATE) return _base;
     return
       PRBMath.mulDiv(
         _base,
-        _redemptionRate + PRBMath.mulDiv(_tokenCount, 10000 - _redemptionRate, _totalSupply),
-        10000
+        _redemptionRate +
+          PRBMath.mulDiv(_tokenCount, _MAX_REDEMPTION_RATE - _redemptionRate, _totalSupply),
+        _MAX_REDEMPTION_RATE
       );
   }
 
