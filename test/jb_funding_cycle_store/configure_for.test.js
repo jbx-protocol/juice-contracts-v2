@@ -8,6 +8,7 @@ import { fastForward, getTimestamp, createFundingCycleData } from '../helpers/ut
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import ijbFundingCycleBallot from '../../artifacts/contracts/interfaces/IJBFundingCycleBallot.sol/IJBFundingCycleBallot.json';
 import { BigNumber } from 'ethers';
+import errors from '../helpers/errors.json';
 
 describe.only('JBFundingCycleStore::configureFor(...)', function () {
   const PROJECT_ID = 2;
@@ -1276,7 +1277,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Fast forward to the moment the ballot duration has passed.
     await fastForward(
       'latest',
-      secondConfigurationTimestamp.sub(firstConfigurationTimestamp).add(1),
+      secondConfigurationTimestamp.sub(firstConfigurationTimestamp).add(2),
     );
 
     // Mock the ballot on the first funding cycle as approved.
@@ -1757,7 +1758,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       jbFundingCycleStore
         .connect(nonController)
         .configureFor(PROJECT_ID, fundingCycleData, 0, fundingCycleMustStartOnOrAfterZero),
-    ).to.be.revertedWith('0x4f: UNAUTHORIZED');
+    ).to.be.revertedWith(errors.CONTROLLER_UNAUTHORIZED);
   });
 
   it(`Can't configure if funding cycle duration is shorter than 1000 seconds`, async function () {
@@ -1770,7 +1771,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       jbFundingCycleStore
         .connect(controller)
         .configureFor(PROJECT_ID, fundingCycleData, 0, fundingCycleMustStartOnOrAfterZero),
-    ).to.be.revertedWith('0x15: BAD_DURATION');
+    ).to.be.revertedWith(errors.INVALID_DURATION);
   });
 
   it(`Can't configure if funding cycle discount rate is above 100%`, async function () {
@@ -1783,7 +1784,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       jbFundingCycleStore
         .connect(controller)
         .configureFor(PROJECT_ID, fundingCycleData, 0, fundingCycleMustStartOnOrAfterZero),
-    ).to.be.revertedWith('0x16: BAD_DISCOUNT_RATE');
+    ).to.be.revertedWith(errors.INVALID_DISCOUNT_RATE);
   });
 
   it(`Can't configure if funding cycle weight larger than uint88_max`, async function () {
@@ -1798,6 +1799,6 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       jbFundingCycleStore
         .connect(controller)
         .configureFor(PROJECT_ID, fundingCycleData, 0, fundingCycleMustStartOnOrAfterZero),
-    ).to.be.revertedWith('0x18: BAD_WEIGHT');
+    ).to.be.revertedWith(errors.INVALID_WEIGHT);
   });
 });
