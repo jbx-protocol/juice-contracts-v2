@@ -4,6 +4,7 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
+import errors from '../helpers/errors.json';
 
 describe('JBProjects::renewHandle(...)', function () {
   const PROJECT_HANDLE = 'PROJECT_1';
@@ -74,7 +75,7 @@ describe('JBProjects::renewHandle(...)', function () {
 
     await expect(
       jbProjectsStore.connect(projectOwner).renewHandleOf(PROJECT_ID_1),
-    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
+    ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 
   it(`Can't renew handle of project operator with no permissions`, async function () {
@@ -89,7 +90,7 @@ describe('JBProjects::renewHandle(...)', function () {
       );
 
     await expect(jbProjectsStore.connect(deployer).renewHandleOf(PROJECT_ID_1)).to.be.revertedWith(
-      'Operatable: UNAUTHORIZED',
+      errors.UNAUTHORIZED,
     );
   });
 
@@ -105,7 +106,7 @@ describe('JBProjects::renewHandle(...)', function () {
       );
 
     await expect(jbProjectsStore.connect(addrs[0]).renewHandleOf(PROJECT_ID_1)).to.be.revertedWith(
-      'Operatable: UNAUTHORIZED',
+      errors.UNAUTHORIZED,
     );
   });
 
@@ -125,7 +126,7 @@ describe('JBProjects::renewHandle(...)', function () {
       .returns(true);
 
     await expect(jbProjectsStore.connect(addrs[0]).renewHandleOf(PROJECT_ID_1)).to.be.revertedWith(
-      'Operatable: UNAUTHORIZED',
+      errors.UNAUTHORIZED,
     );
   });
 });

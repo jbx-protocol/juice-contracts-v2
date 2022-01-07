@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
+import errors from '../helpers/errors.json';
 
 describe('JBOperatorStore::hasPermission(...)', function () {
   const DOMAIN = 1;
@@ -7,7 +8,6 @@ describe('JBOperatorStore::hasPermission(...)', function () {
   const PERMISSION_INDEXES_1 = [1, 2, 3];
   const PERMISSION_INDEXES_2 = [4, 5, 6];
   const PERMISSION_INDEX = 3;
-  const PERMISSION_INDEX_OUT_OF_BOUND = 256;
 
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
@@ -31,10 +31,10 @@ describe('JBOperatorStore::hasPermission(...)', function () {
         .hasPermission(
           /*operator=*/ projectOwner.address,
           /*account=*/ deployer.address,
-          /*domain=*/ DOMAIN,
-          /*permissionIndex=*/ PERMISSION_INDEX_OUT_OF_BOUND,
+          /*domain=*/ 1,
+          /*permissionIndex=*/ 256,
         ),
-    ).to.be.revertedWith('0x00: INDEX_OUT_OF_BOUNDS');
+    ).to.be.revertedWith(errors.PERMISSION_INDEX_OUT_OF_BOUNDS);
   });
 
   it('Has permission if account is caller', async function () {

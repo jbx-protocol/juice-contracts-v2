@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-
+import errors from '../helpers/errors.json';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
@@ -56,6 +56,6 @@ describe('JBDirectory::addToSetControllerAllowlist(...)', function () {
 
     await expect(
       jbDirectory.connect(deployer).addToSetControllerAllowlist(mockJbController.address),
-    ).to.revertedWith('0x30: ALREADY_ADDED');
+    ).to.revertedWith(errors.CONTROLLER_ALREADY_IN_ALLOWLIST);
   });
 });
