@@ -43,7 +43,7 @@ error INVALID_REDEMPTION_RATE();
 error MIGRATION_NOT_ALLOWED();
 error MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE();
 error NO_BURNABLE_TOKENS();
-error ZERO_TOKEN_TO_MINT();
+error ZERO_TOKENS_TO_MINT();
 
 /**
   @notice
@@ -509,7 +509,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
     // There should be tokens to mint.
     if (_tokenCount == 0) {
-      revert ZERO_TOKEN_TO_MINT();
+      revert ZERO_TOKENS_TO_MINT();
     }
 
     // Get a reference to the project's current funding cycle.
@@ -580,6 +580,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     if (_tokenCount == 0) {
       revert NO_BURNABLE_TOKENS();
     }
+
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 

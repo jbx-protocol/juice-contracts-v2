@@ -383,6 +383,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     if (!_setControllerAllowlist[_address]) {
       revert CONTROLLER_NOT_IN_ALLOWLIST();
     }
+
     // Remove the controller from the list of known controllers.
     delete _setControllerAllowlist[_address];
 

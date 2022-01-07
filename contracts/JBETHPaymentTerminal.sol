@@ -25,8 +25,8 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 error FEE_TOO_HIGH();
 error PAY_TO_ZERO_ADDRESS();
 error REDEEM_TO_ZERO_ADDRESS();
-error TERMINAL_TOKENS_INCOMPATIBLE();
 error TERMINAL_IN_SPLIT_ZERO_ADDRESS();
+error TERMINAL_TOKENS_INCOMPATIBLE();
 error ZERO_VALUE_SENT();
 
 /**
@@ -58,10 +58,9 @@ contract JBETHPaymentTerminal is
 
   /**
     @notice
-    Maximum fee that can be set for funding cycle configuration
-
+    Maximum fee that can be set for a funding cycle configuration.
   */
-  uint256 private constant MAX_FEE = 10;
+  uint256 private constant _MAX_FEE = 10;
 
   /**
     @notice
@@ -558,7 +557,7 @@ contract JBETHPaymentTerminal is
   */
   function setFee(uint256 _fee) external onlyOwner {
     // The max fee is 5%.
-    if (_fee > MAX_FEE) {
+    if (_fee > _MAX_FEE) {
       revert FEE_TOO_HIGH();
     }
 

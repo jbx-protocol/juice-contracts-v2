@@ -15,6 +15,7 @@ import './libraries/JBFundingCycleMetadataResolver.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
+error CURRENCY_MISMATCH();
 error DISTRIBUTION_AMOUNT_LIMIT_REACHED();
 error FUNDING_CYCLE_PAYMENT_PAUSED();
 error FUNDING_CYCLE_DISTRIBUTION_PAUSED();
@@ -22,15 +23,14 @@ error FUNDING_CYCLE_REDEEM_PAUSED();
 error INADEQUATE_CLAIM_AMOUNT();
 error INADEQUATE_CONTROLLER_ALLOWANCE();
 error INSUFFICIENT_FUND_FOR_DISTRIBUTION();
+error INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
 error INADEQUATE_TOKEN_COUNT();
 error INADEQUATE_WITHDRAW_AMOUNT();
-error INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
 error INSUFFICIENT_TOKENS();
 error INVALID_FUNDING_CYCLE();
 error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
 error PAYMENT_TERMINAL_UNAUTHORIZED();
 error STORE_ALREADY_CLAIMED();
-error CURRENCY_MISMATCH();
 
 /**
   @notice
@@ -103,9 +103,9 @@ contract JBETHPaymentTerminalStore {
 
   /** 
     @notice
-    Maximum redemption rate of the funding cycle.
+    Maximum redemption rate for a given funding cycle.
   */
-  uint256 constant MAX_REDEMPTION_RATE = 10000;
+  uint256 constant _MAX_REDEMPTION_RATE = 10000;
 
   /** 
     @notice 
@@ -723,13 +723,13 @@ contract JBETHPaymentTerminalStore {
     uint256 _base = PRBMath.mulDiv(_currentOverflow, _tokenCount, _totalSupply);
 
     // These conditions are all part of the same curve. Edge conditions are separated because fewer operation are necessary.
-    if (_redemptionRate == MAX_REDEMPTION_RATE) return _base;
+    if (_redemptionRate == _MAX_REDEMPTION_RATE) return _base;
     return
       PRBMath.mulDiv(
         _base,
         _redemptionRate +
-          PRBMath.mulDiv(_tokenCount, MAX_REDEMPTION_RATE - _redemptionRate, _totalSupply),
-        MAX_REDEMPTION_RATE
+          PRBMath.mulDiv(_tokenCount, _MAX_REDEMPTION_RATE - _redemptionRate, _totalSupply),
+        _MAX_REDEMPTION_RATE
       );
   }
 
