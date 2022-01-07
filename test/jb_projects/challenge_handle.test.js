@@ -5,6 +5,7 @@ import { getTimestamp } from '../helpers/utils';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
+import errors from '../helpers/errors.json';
 
 describe('JBProjects::challengeHandle(...)', function () {
   const PROJECT_HANDLE_1 = 'PROJECT_1';
@@ -65,7 +66,7 @@ describe('JBProjects::challengeHandle(...)', function () {
       jbProjectsStore
         .connect(deployer)
         .challengeHandle(/*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1)),
-    ).to.be.revertedWith('0x0d: HANDLE_NOT_TAKEN');
+    ).to.be.revertedWith(errors.HANDLE_NOT_TAKEN);
   });
 
   it(`Can't challenge if a handle that has been challenged before`, async function () {
@@ -87,6 +88,6 @@ describe('JBProjects::challengeHandle(...)', function () {
       jbProjectsStore
         .connect(deployer)
         .challengeHandle(ethers.utils.formatBytes32String(PROJECT_HANDLE_1)),
-    ).to.be.revertedWith('0x0e: CHALLENGE_OPEN');
+    ).to.be.revertedWith(errors.HANDLE_ALREADY_CHALLENGED);
   });
 });

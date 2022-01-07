@@ -7,6 +7,7 @@ import { impersonateAccount } from '../helpers/utils';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
+import errors from '../helpers/errors.json';
 
 describe('JBDirectory::setControllerOf(...)', function () {
   const PROJECT_ID = 1;
@@ -54,7 +55,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
 
     await expect(
       jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, ethers.constants.AddressZero),
-    ).to.be.revertedWith('0x2b: ZERO_ADDRESS');
+    ).to.be.revertedWith(errors.SET_CONTROLLER_ZERO_ADDRESS);
   });
 
   it(`Can't set if project id does not exist`, async function () {
@@ -64,7 +65,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
 
     await expect(
       jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller1.address),
-    ).to.be.revertedWith('0x2c: NOT_FOUND');
+    ).to.be.revertedWith(errors.INVALID_PROJECT_ID);
   });
 
   it('Should set same controller if controller already set', async function () {
@@ -72,6 +73,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
 
     await mockJbProjects.mock.count.returns(PROJECT_ID);
 
+    await jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller1.address);
     await expect(jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller1.address))
       .to.not.be.reverted;
 
@@ -169,7 +171,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
 
     await expect(
       jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller2.address),
-    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
+    ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 
   it("Can't set if caller is in setControllerAllowlist but new controller is not", async function () {
@@ -199,6 +201,6 @@ describe('JBDirectory::setControllerOf(...)', function () {
 
     await expect(
       jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller2.address),
-    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
+    ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 });

@@ -3,8 +3,16 @@ pragma solidity 0.8.6;
 
 import '@paulrberg/contracts/math/PRBMath.sol';
 
-import './interfaces/IJBFundingCycleStore.sol';
 import './abstract/JBControllerUtility.sol';
+import './interfaces/IJBFundingCycleStore.sol';
+
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+error FUNDING_CYCLE_CONFIGURATION_NOT_FOUND();
+error INVALID_DISCOUNT_RATE();
+error INVALID_DURATION();
+error INVALID_WEIGHT();
+error NON_RECURRING_FUNDING_CYCLE();
 
 /** 
   @notice 
@@ -267,18 +275,15 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _metadata,
     uint256 _mustStartOnOrAfter
   ) external override onlyController(_projectId) returns (JBFundingCycle memory) {
-    // Duration must fit in a uint64, and must be greater than the minimum duration of seconds to ensure no manipulative miner behavior.
-    // Duration of 0 is also allowed.
-    require(
-      _data.duration <= type(uint64).max && (_data.duration == 0 || _data.duration > _MIN_DURATION),
-      '0x15: BAD_DURATION'
-    );
+    // Duration must fit in a uint64, and must be greater than 1000 seconds to prevent manipulative miner behavior.
+    if (_data.duration > type(uint64).max || (_data.duration > 0 && _data.duration <= 1000))
+      revert INVALID_DURATION();
 
-    // Discount rate token must be less than or equal to 100%.
-    require(_data.discountRate <= _MAX_DISCOUNT_RATE, '0x16: BAD_DISCOUNT_RATE');
+    // Discount rate token must be less than or equal to 100%. A value of 1000000001 means non-recurring.
+    if (_data.discountRate > _MAX_DISCOUNT_RATE) revert INVALID_DISCOUNT_RATE();
 
     // Weight must fit into a uint88.
-    require(_data.weight <= type(uint88).max, '0x18: BAD_WEIGHT');
+    if (_data.weight > type(uint88).max) revert INVALID_WEIGHT();
 
     // The configuration timestamp is now.
     uint256 _configuration = block.timestamp;
