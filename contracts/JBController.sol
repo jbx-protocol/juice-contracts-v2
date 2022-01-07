@@ -391,16 +391,14 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
     returns (uint256)
   {
-    // The reserved project token rate must be less than or equal to 10000.
     if (_metadata.reservedRate > JBConstants.MAX_TOKEN_RATE) {
       revert INVALID_RESERVED_RATE();
     }
-    // The redemption rate must be between 0 and 10000.
+
     if (_metadata.redemptionRate > JBConstants.MAX_TOKEN_RATE) {
       revert INVALID_REDEMPTION_RATE();
     }
 
-    // The ballot redemption rate must be less than or equal to 10000.
     if (_metadata.ballotRedemptionRate > JBConstants.MAX_TOKEN_RATE) {
       revert INVALID_BALLOT_REDEMPTION_RATE();
     }
