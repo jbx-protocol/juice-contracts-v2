@@ -3,14 +3,32 @@ pragma solidity 0.8.6;
 
 import '@paulrberg/contracts/math/PRBMath.sol';
 
-import './interfaces/IJBFundingCycleStore.sol';
 import './abstract/JBControllerUtility.sol';
+import './interfaces/IJBFundingCycleStore.sol';
+
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+error FUNDING_CYCLE_CONFIGURATION_NOT_FOUND();
+error INVALID_DISCOUNT_RATE();
+error INVALID_DURATION();
+error INVALID_WEIGHT();
+error NON_RECURRING_FUNDING_CYCLE();
 
 /** 
   @notice 
   Manages funding cycle scheduling.
 */
 contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
+  //*********************************************************************//
+  // ------------------------- private constants ----------------------- //
+  //*********************************************************************//
+
+  /** 
+    @notice
+    A funding cycle's discount rate is expressed as a percentage out of 100000000.
+  */
+  uint256 private constant _MAX_DISCOUNT_RATE = 100000000;
+
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//
@@ -107,9 +125,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // There's no queued if the current has a duration of 0.
     if (_fundingCycle.duration == 0) return _getStructFor(0, 0);
 
-    // There's no queued if the current is non recurring, represented by a discount rate of 1000000001.
-    if (_fundingCycle.discountRate == 1000000001) return _getStructFor(0, 0);
-
     // Check to see if this funding cycle's ballot is approved.
     // If so, return a funding cycle based on it.
     if (_isApproved(_projectId, _fundingCycle))
@@ -172,9 +187,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       // Get the funding cycle for the latest ID.
       _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
 
-      // There's no current if the latest is non recurring, represented by a discount rate of 1000000001.
-      if (_fundingCycle.discountRate == 1000000001) return _getStructFor(0, 0);
-
       // If it's not approved or if it hasn't yet started, get a reference to the funding cycle that the latest is based on, which has the latest approved configuration.
       if (!_isApproved(_projectId, _fundingCycle) || block.timestamp < _fundingCycle.start)
         _fundingCycleConfiguration = _fundingCycle.basedOn;
@@ -203,7 +215,9 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _fundingCycleConfiguration = latestConfigurationOf[_projectId];
 
     // The project must have funding cycles.
-    require(_fundingCycleConfiguration > 0, '0x14: NOT_FOUND');
+    if (_fundingCycleConfiguration == 0) {
+      revert FUNDING_CYCLE_CONFIGURATION_NOT_FOUND();
+    }
 
     // Resolve the funding cycle for the for the latest configuration.
     JBFundingCycle memory _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
@@ -242,7 +256,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       @dev _data.discountRate A number from 0-1000000000 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
         If it's 0, each funding cycle will have equal weight.
         If the number is 900000000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
-        If the number is 1000000001, an non-recurring funding cycle will get made.
       @dev _data.ballot The new ballot that will be used to approve subsequent reconfigurations.
     @param _metadata Data to associate with this funding cycle configuration.
 
@@ -254,13 +267,19 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _metadata
   ) external override onlyController(_projectId) returns (JBFundingCycle memory) {
     // Duration must fit in a uint64, and must be greater than 1000 seconds to prevent manipulative miner behavior.
-    require(_data.duration <= type(uint64).max && _data.duration > 1000, '0x15: BAD_DURATION');
+    if (_data.duration > type(uint64).max || _data.duration <= 1000) {
+      revert INVALID_DURATION();
+    }
 
     // Discount rate token must be less than or equal to 100%. A value of 1000000001 means non-recurring.
-    require(_data.discountRate <= 1000000001, '0x16: BAD_DISCOUNT_RATE');
+    if (_data.discountRate > _MAX_DISCOUNT_RATE) {
+      revert INVALID_DISCOUNT_RATE();
+    }
 
     // Weight must fit into a uint88.
-    require(_data.weight <= type(uint88).max, '0x18: BAD_WEIGHT');
+    if (_data.weight > type(uint88).max) {
+      revert INVALID_WEIGHT();
+    }
 
     // The configuration timestamp is now.
     uint256 _configuration = block.timestamp;
@@ -349,7 +368,9 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     JBFundingCycle memory _currentFundingCycle = _getStructFor(_projectId, _currentConfiguration);
 
     // Make sure the funding cycle is recurring.
-    require(_currentFundingCycle.discountRate < 1000000001, '0x1c: NON_RECURRING');
+    if (_currentFundingCycle.discountRate >= 1000000001) {
+      revert NON_RECURRING_FUNDING_CYCLE();
+    }
 
     // Determine if the configurable funding cycle can only take effect on or after a certain date.
     // The ballot must have ended.
@@ -593,9 +614,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     view
     returns (JBFundingCycle memory)
   {
-    // Can't mock a non recurring funding cycle.
-    if (_baseFundingCycle.discountRate == 1000000001) return _getStructFor(0, 0);
-
     // The distance of the current time to the start of the next possible funding cycle.
     // If the returned mock cycle must not yet have started, the start time of the mock must be in the future so no need to adjust backwards.
     // If the base funding cycle doesn't have a duration, no adjustment is necessary because the next cycle can start immediately.
@@ -714,8 +732,8 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       return
         PRBMath.mulDiv(
           _baseFundingCycle.weight,
-          1000000000 - _baseFundingCycle.discountRate,
-          1000000000
+          _MAX_DISCOUNT_RATE - _baseFundingCycle.discountRate,
+          _MAX_DISCOUNT_RATE
         );
 
     // The weight should be based off the base funding cycle's weight.
@@ -733,7 +751,11 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     for (uint256 i = 0; i < _discountMultiple; i++)
       // The number of times to apply the discount rate.
       // Base the new weight on the specified funding cycle's weight.
-      weight = PRBMath.mulDiv(weight, 1000000000 - _baseFundingCycle.discountRate, 1000000000);
+      weight = PRBMath.mulDiv(
+        weight,
+        _MAX_DISCOUNT_RATE - _baseFundingCycle.discountRate,
+        _MAX_DISCOUNT_RATE
+      );
   }
 
   /** 

@@ -4,9 +4,16 @@ pragma solidity 0.8.6;
 import './libraries/JBOperations.sol';
 
 // Inheritance
+import './abstract/JBOperatable.sol';
 import './interfaces/IJBSplitsStore.sol';
 import './interfaces/IJBDirectory.sol';
-import './abstract/JBOperatable.sol';
+
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+error ALLOCATOR_AND_BENEFICIARY_ZERO_ADDRESS();
+error INVALID_SPLIT_PERCENT();
+error INVALID_TOTAL_PERCENT();
+error PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();
 
 /**
   @notice
@@ -26,6 +33,12 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     _group The identifying group of the splits.
   */
   mapping(uint256 => mapping(uint256 => mapping(uint256 => JBSplit[]))) private _splitsOf;
+
+  /** 
+    @notice 
+    Maximum total split percentage.
+  */
+  uint256 _MAX_TOTAL_PERCENT = 10000000;
 
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
@@ -139,7 +152,9 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
           _splits[_j].lockedUntil >= _currentSplits[_i].lockedUntil
         ) _includesLocked = true;
       }
-      require(_includesLocked, '0x0f: SOME_LOCKED');
+      if (!_includesLocked) {
+        revert PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();
+      }
     }
 
     // Delete from storage so splits can be repopulated.
@@ -150,20 +165,25 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
 
     for (uint256 _i = 0; _i < _splits.length; _i++) {
       // The percent should be greater than 0.
-      require(_splits[_i].percent > 0, '0x10: BAD_SPLIT_PERCENT');
+      if (_splits[_i].percent == 0) {
+        revert INVALID_SPLIT_PERCENT();
+      }
 
       // The allocator and the beneficiary shouldn't both be the zero address.
-      require(
-        _splits[_i].allocator != IJBSplitAllocator(address(0)) ||
-          _splits[_i].beneficiary != address(0),
-        '0x11: ZERO_ADDRESS'
-      );
+      if (
+        _splits[_i].allocator == IJBSplitAllocator(address(0)) &&
+        _splits[_i].beneficiary == address(0)
+      ) {
+        revert ALLOCATOR_AND_BENEFICIARY_ZERO_ADDRESS();
+      }
 
       // Add to the total percents.
       _percentTotal = _percentTotal + _splits[_i].percent;
 
       // The total percent should be at most 10000000.
-      require(_percentTotal <= 10000000, '0x12: BAD_TOTAL_PERCENT');
+      if (_percentTotal > _MAX_TOTAL_PERCENT) {
+        revert INVALID_TOTAL_PERCENT();
+      }
 
       // Push the new split into the project's list of splits.
       _splitsOf[_projectId][_domain][_group].push(_splits[_i]);

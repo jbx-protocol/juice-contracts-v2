@@ -1,11 +1,12 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
+import errors from '../helpers/errors.json';
 
 describe('JBProjects::createFor(...)', function () {
   const PROJECT_HANDLE_1 = 'PROJECT_1';
   const PROJECT_HANDLE_2 = 'PROJECT_2';
   const PROJECT_HANDLE_EMPTY = '';
-  const METADATA_CID = '';
+  const METADATA_CID = 'QmThsKQpFBQicz3t3SU9rRz3GV81cwjnWsBBLxzznRNvpa';
   const PROJECT_ID_1 = 1;
   const PROJECT_ID_2 = 2;
 
@@ -109,7 +110,7 @@ describe('JBProjects::createFor(...)', function () {
           ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
           METADATA_CID,
         ),
-    ).to.be.revertedWith('0x06: EMPTY_HANDLE');
+    ).to.be.revertedWith(errors.HANDLE_EMPTY);
   });
 
   it(`Can't create if handle taken already`, async function () {
@@ -131,6 +132,6 @@ describe('JBProjects::createFor(...)', function () {
           ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
           METADATA_CID,
         ),
-    ).to.be.revertedWith('0x07: HANDLE_TAKEN');
+    ).to.be.revertedWith(errors.HANDLE_TAKEN);
   });
 });
