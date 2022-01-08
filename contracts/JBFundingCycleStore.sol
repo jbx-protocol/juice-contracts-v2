@@ -29,6 +29,10 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
   */
   uint256 private constant _MAX_DISCOUNT_RATE = 100000000;
 
+  /** 
+    @notice
+    The minimum duration of a funding cycle, in seconds. 
+  */
   uint256 private constant _MIN_DURATION = 1000;
 
   //*********************************************************************//
@@ -117,26 +121,21 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     if (latestConfigurationOf[_projectId] == 0) return _getStructFor(0, 0);
 
     // Get a reference to the configuration of the standby funding cycle.
-    uint256 _fundingCycleConfiguration = _standbyOf(_projectId);
+    uint256 _standbyFundingCycleConfiguration = _standbyOf(_projectId);
 
     // If it exists, return it's funding cycle.
-    if (_fundingCycleConfiguration > 0) {
-      _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
+    if (_standbyFundingCycleConfiguration > 0) {
+      _fundingCycle = _getStructFor(_projectId, _standbyFundingCycleConfiguration);
       if (_isApproved(_projectId, _fundingCycle)) return _fundingCycle;
-      _fundingCycleConfiguration = _fundingCycle.basedOn;
       // Resolve the funding cycle for the for the latest configured funding cycle.
-      _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
+      _fundingCycle = _getStructFor(_projectId, _fundingCycle.basedOn);
     } else {
-      // Get a reference to the latest stored funding cycle configuration for the project.
-      _fundingCycleConfiguration = latestConfigurationOf[_projectId];
       // Resolve the funding cycle for the for the latest configured funding cycle.
-      _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
+      _fundingCycle = _getStructFor(_projectId, latestConfigurationOf[_projectId]);
       // If the latest funding cycle starts in the future, it must start in the distant future
       // since its not in standby. In this case base the queued cycles on the base cycle.
-      if (_fundingCycle.start > block.timestamp) {
-        _fundingCycleConfiguration = _fundingCycle.basedOn;
-        _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
-      }
+      if (_fundingCycle.start > block.timestamp)
+        _fundingCycle = _getStructFor(_projectId, _fundingCycle.basedOn);
     }
 
     // There's no queued if the current has a duration of 0.
@@ -147,11 +146,9 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     if (_isApproved(_projectId, _fundingCycle))
       return _mockFundingCycleBasedOn(_fundingCycle, false);
 
-    // If it hasn't been approved, set the configuration to be that of its base funding cycle, which carries the last approved configuration.
-    _fundingCycleConfiguration = _fundingCycle.basedOn;
-
     // Get the funding cycle.
-    _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
+    // If it hasn't been approved, get the configuration of its base funding cycle, which carries the last approved configuration.
+    _fundingCycle = _getStructFor(_projectId, _fundingCycle.basedOn);
 
     // Return a mock of the next up funding cycle.
     return _mockFundingCycleBasedOn(_fundingCycle, false);
@@ -265,7 +262,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
         If the number is 900000000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
       @dev _data.ballot The new ballot that will be used to approve subsequent reconfigurations.
     @param _metadata Data to associate with this funding cycle configuration.
-    @param _mustStartOnOrAfter The time before which the initialized funding cycle can't start.
+    @param _mustStartAtOrAfter The time before which the initialized funding cycle can't start.
 
     @return The funding cycle that the configuration will take effect during.
   */
@@ -273,17 +270,22 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _projectId,
     JBFundingCycleData calldata _data,
     uint256 _metadata,
-    uint256 _mustStartOnOrAfter
+    uint256 _mustStartAtOrAfter
   ) external override onlyController(_projectId) returns (JBFundingCycle memory) {
     // Duration must fit in a uint64, and must be greater than 1000 seconds to prevent manipulative miner behavior.
-    if (_data.duration > type(uint64).max || (_data.duration > 0 && _data.duration <= 1000))
+    if (_data.duration > type(uint64).max || (_data.duration > 0 && _data.duration <= 1000)) {
       revert INVALID_DURATION();
+    }
 
     // Discount rate token must be less than or equal to 100%. A value of 1000000001 means non-recurring.
-    if (_data.discountRate > _MAX_DISCOUNT_RATE) revert INVALID_DISCOUNT_RATE();
+    if (_data.discountRate > _MAX_DISCOUNT_RATE) {
+      revert INVALID_DISCOUNT_RATE();
+    }
 
     // Weight must fit into a uint88.
-    if (_data.weight > type(uint88).max) revert INVALID_WEIGHT();
+    if (_data.weight > type(uint88).max) {
+      revert INVALID_WEIGHT();
+    }
 
     // The configuration timestamp is now.
     uint256 _configuration = block.timestamp;
@@ -294,7 +296,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       _configuration,
       _data.weight,
       // Must start on or after the current timestamp.
-      _mustStartOnOrAfter > block.timestamp ? _mustStartOnOrAfter : block.timestamp
+      _mustStartAtOrAfter > block.timestamp ? _mustStartAtOrAfter : block.timestamp
     );
 
     // Efficiently stores a funding cycles provided user defined properties.
@@ -318,7 +320,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // Set the metadata if needed.
     if (_metadata > 0) _metadataOf[_projectId][_configuration] = _metadata;
 
-    emit Configure(_configuration, _projectId, _data, _metadata, _mustStartOnOrAfter, msg.sender);
+    emit Configure(_configuration, _projectId, _data, _metadata, _mustStartAtOrAfter, msg.sender);
 
     // Return the funding cycle for the new configuration.
     return _getStructFor(_projectId, _configuration);
@@ -335,17 +337,17 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @param _projectId The ID of the project to find a configurable funding cycle for.
     @param _configuration The time at which the configuration is occurring.
     @param _weight The weight to store in the configured funding cycle.
-    @param _mustStartOnOrAfter The time before which the initialized funding cycle can't start.
+    @param _mustStartAtOrAfter The time before which the initialized funding cycle can't start.
   */
   function _configureIntrinsicProperiesFor(
     uint256 _projectId,
     uint256 _configuration,
     uint256 _weight,
-    uint256 _mustStartOnOrAfter
+    uint256 _mustStartAtOrAfter
   ) private {
     // If there's not yet a funding cycle for the project, initialize one.
     if (latestConfigurationOf[_projectId] == 0) {
-      _initFor(_projectId, _getStructFor(0, 0), _configuration, _mustStartOnOrAfter, _weight);
+      _initFor(_projectId, _getStructFor(0, 0), _configuration, _mustStartAtOrAfter, _weight);
       return;
     }
 
@@ -379,7 +381,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       _baseFundingCycle,
       _configuration,
       // Can only start after the ballot.
-      _timestampAfterBallot > _mustStartOnOrAfter ? _timestampAfterBallot : _mustStartOnOrAfter,
+      _timestampAfterBallot > _mustStartAtOrAfter ? _timestampAfterBallot : _mustStartAtOrAfter,
       _weight
     );
   }
@@ -391,14 +393,14 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @param _projectId The ID of the project to which the funding cycle being initialized belongs.
     @param _baseFundingCycle The funding cycle to base the initialized one on.
     @param _configuration The configuration of the funding cycle being initialized.
-    @param _mustStartOnOrAfter The time before which the initialized funding cycle can't start.
+    @param _mustStartAtOrAfter The time before which the initialized funding cycle can't start.
     @param _weight The weight to give the newly initialized funding cycle.
   */
   function _initFor(
     uint256 _projectId,
     JBFundingCycle memory _baseFundingCycle,
     uint256 _configuration,
-    uint256 _mustStartOnOrAfter,
+    uint256 _mustStartAtOrAfter,
     uint256 _weight
   ) private {
     // If there is no base, initialize a first cycle.
@@ -413,13 +415,14 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
         _number,
         _weight,
         _baseFundingCycle.configuration,
-        _mustStartOnOrAfter
+        _mustStartAtOrAfter
       );
     } else {
       // Derive the correct next start time from the base.
-      uint256 _start = _deriveStartFrom(_baseFundingCycle, _mustStartOnOrAfter);
+      uint256 _start = _deriveStartFrom(_baseFundingCycle, _mustStartAtOrAfter);
 
       // A weight of 1 is treated as a weight of 0.
+      // This is to allow a weight of 0 (default) to represent inheriting the discounted weight of the previous funding cycle.
       _weight = _weight > 0
         ? (_weight == 1 ? 0 : _weight)
         : _deriveWeightFrom(_baseFundingCycle, _start);
@@ -578,12 +581,12 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // The distance of the current time to the start of the next possible funding cycle.
     // If the returned mock cycle must not yet have started, the start time of the mock must be in the future.
     // If the base funding cycle doesn't have a duration, no adjustment is necessary because the next cycle can start immediately.
-    uint256 _mustStartOnOrAfter = !_allowMidCycle || _baseFundingCycle.duration == 0
+    uint256 _mustStartAtOrAfter = !_allowMidCycle || _baseFundingCycle.duration == 0
       ? block.timestamp + 1
       : block.timestamp - _baseFundingCycle.duration + 1;
 
     // Derive what the start time should be.
-    uint256 _start = _deriveStartFrom(_baseFundingCycle, _mustStartOnOrAfter);
+    uint256 _start = _deriveStartFrom(_baseFundingCycle, _mustStartAtOrAfter);
 
     // Derive what the number should be.
     uint256 _number = _deriveNumberFrom(_baseFundingCycle, _start);
@@ -642,33 +645,33 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     The date that is the nearest multiple of the specified funding cycle's duration from its end.
 
     @param _baseFundingCycle The funding cycle to make the calculation for.
-    @param _mustStartOnOrAfter A date that the derived start must be on or come after.
+    @param _mustStartAtOrAfter A date that the derived start must be on or come after.
 
     @return start The next start time.
   */
-  function _deriveStartFrom(JBFundingCycle memory _baseFundingCycle, uint256 _mustStartOnOrAfter)
+  function _deriveStartFrom(JBFundingCycle memory _baseFundingCycle, uint256 _mustStartAtOrAfter)
     private
     pure
     returns (uint256 start)
   {
     // A subsequent cycle to one with a duration of 0 should start as soon as possible.
-    if (_baseFundingCycle.duration == 0) return _mustStartOnOrAfter;
+    if (_baseFundingCycle.duration == 0) return _mustStartAtOrAfter;
 
     // The time when the funding cycle immediately after the specified funding cycle starts.
     uint256 _nextImmediateStart = _baseFundingCycle.start + _baseFundingCycle.duration;
 
     // If the next immediate start is now or in the future, return it.
-    if (_nextImmediateStart >= _mustStartOnOrAfter) return _nextImmediateStart;
+    if (_nextImmediateStart >= _mustStartAtOrAfter) return _nextImmediateStart;
 
-    // The amount of seconds since the `_mustStartOnOrAfter` time that results in a start time that might satisfy the specified constraints.
-    uint256 _timeFromImmediateStartMultiple = (_mustStartOnOrAfter - _nextImmediateStart) %
+    // The amount of seconds since the `_mustStartAtOrAfter` time that results in a start time that might satisfy the specified constraints.
+    uint256 _timeFromImmediateStartMultiple = (_mustStartAtOrAfter - _nextImmediateStart) %
       _baseFundingCycle.duration;
 
     // A reference to the first possible start timestamp.
-    start = _mustStartOnOrAfter - _timeFromImmediateStartMultiple;
+    start = _mustStartAtOrAfter - _timeFromImmediateStartMultiple;
 
     // Add increments of duration as necessary to satisfy the threshold.
-    while (_mustStartOnOrAfter > start) start = start + _baseFundingCycle.duration;
+    while (_mustStartAtOrAfter > start) start = start + _baseFundingCycle.duration;
   }
 
   /** 

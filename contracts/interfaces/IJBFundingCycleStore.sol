@@ -34,6 +34,6 @@ interface IJBFundingCycleStore {
     uint256 _projectId,
     JBFundingCycleData calldata _data,
     uint256 _metadata,
-    uint256 _mustStartOnOrAfter
+    uint256 _mustStartAtOrAfter
   ) external returns (JBFundingCycle memory fundingCycle);
 }

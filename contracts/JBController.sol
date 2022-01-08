@@ -292,7 +292,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       @dev _metadata.useDataSourceForPay Whether or not the data source should be used when processing a payment.
       @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
       @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
-    @param _mustStartOnOrAfter The time before which the configured funding cycle can't start.
+    @param _mustStartAtOrAfter The time before which the configured funding cycle can't start.
     @param _groupedSplits An array of splits to set for any number of group.
     @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
     @param _terminals Payment terminals to add for the project.
@@ -305,7 +305,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     string calldata _metadataCid,
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
-    uint256 _mustStartOnOrAfter,
+    uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
     IJBTerminal[] memory _terminals
@@ -334,7 +334,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       projectId,
       _data,
       _metadata,
-      _mustStartOnOrAfter,
+      _mustStartAtOrAfter,
       _groupedSplits,
       _fundAccessConstraints
     );
@@ -384,7 +384,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       @dev _metadata.useDataSourceForPay Whether or not the data source should be used when processing a payment.
       @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
       @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
-    @param _mustStartOnOrAfter The time before which the configured funding cycle can't start.
+    @param _mustStartAtOrAfter The time before which the configured funding cycle can't start.
     @param _groupedSplits An array of splits to set for any number of group.
     @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
 
@@ -394,7 +394,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     uint256 _projectId,
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
-    uint256 _mustStartOnOrAfter,
+    uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints
   )
@@ -421,7 +421,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
         _projectId,
         _data,
         _metadata,
-        _mustStartOnOrAfter,
+        _mustStartAtOrAfter,
         _groupedSplits,
         _fundAccessConstraints
       );
@@ -862,7 +862,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     uint256 _projectId,
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
-    uint256 _mustStartOnOrAfter,
+    uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints
   ) private returns (uint256) {
@@ -871,7 +871,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       _projectId,
       _data,
       JBFundingCycleMetadataResolver.packFundingCycleMetadata(_metadata),
-      _mustStartOnOrAfter
+      _mustStartAtOrAfter
     );
 
     for (uint256 _i; _i < _groupedSplits.length; _i++)
