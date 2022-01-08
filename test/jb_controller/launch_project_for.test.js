@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { makeSplits, packFundingCycleMetadata } from '../helpers/utils';
+import errors from '../helpers/errors.json';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
@@ -349,7 +350,7 @@ describe('JBController::launchProjectFor(...)', function () {
         terminals,
       );
 
-    await expect(tx).to.be.revertedWith('INVALID_REDEMPTION_RATE()');
+    await expect(tx).to.be.revertedWith(errors.INVALID_REDEMPTION_RATE);
   });
 
   it(`Can't launch a project with a ballot redemption rate superior to 10000`, async function () {
@@ -382,6 +383,6 @@ describe('JBController::launchProjectFor(...)', function () {
         terminals,
       );
 
-    await expect(tx).to.be.revertedWith('INVALID_BALLOT_REDEMPTION_RATE()');
+    await expect(tx).to.be.revertedWith(errors.INVALID_BALLOT_REDEMPTION_RATE);
   });
 });

@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
+import errors from '../helpers/errors.json';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
@@ -110,6 +111,6 @@ describe('JBController::issueTokenFor(...)', function () {
 
     await expect(
       jbController.connect(caller).callStatic.issueTokenFor(PROJECT_ID, NAME, SYMBOL),
-    ).to.be.revertedWith('UNAUTHORIZED()');
+    ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 });

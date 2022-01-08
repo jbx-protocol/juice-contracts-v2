@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { impersonateAccount, packFundingCycleMetadata } from '../helpers/utils';
+import errors from '../helpers/errors.json';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
@@ -235,7 +236,7 @@ describe('JBController::mintTokensOf(...)', function () {
       jbController
         .connect(projectOwner)
         .mintTokensOf(PROJECT_ID, 0, beneficiary.address, MEMO, true, RESERVED_RATE),
-    ).to.be.revertedWith('ZERO_TOKENS_TO_MINT()');
+    ).to.be.revertedWith(errors.ZERO_TOKENS_TO_MINT);
   });
 
   it(`Can't mint token if funding cycle is paused and caller is not a terminal delegate`, async function () {
@@ -259,7 +260,7 @@ describe('JBController::mintTokensOf(...)', function () {
       jbController
         .connect(projectOwner)
         .mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, true, RESERVED_RATE),
-    ).to.be.revertedWith('MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE()');
+    ).to.be.revertedWith(errors.MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE);
   });
 
   it(`Should mint token if funding cycle is paused and caller is a terminal delegate`, async function () {

@@ -1,7 +1,8 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
-import { impersonateAccount, makeSplits, packFundingCycleMetadata } from '../helpers/utils';
+import { makeSplits, packFundingCycleMetadata } from '../helpers/utils';
+import errors from '../helpers/errors.json';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
@@ -14,10 +15,6 @@ import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJB
 
 describe('JBController::reconfigureFundingCycleOf(...)', function () {
   const PROJECT_ID = 1;
-  const TOTAL_SUPPLY = 20000;
-  const MINTED = 10000;
-  const PROJECT_HANDLE = ethers.utils.formatBytes32String('PROJECT_1');
-  const METADATA_CID = '';
   let RECONFIGURE_INDEX;
 
   before(async function () {
@@ -338,7 +335,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         fundAccessConstraints,
       );
 
-    await expect(tx).to.be.revertedWith('UNAUTHORIZED()');
+    await expect(tx).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 
   it(`Should reconfigure funding cycle without grouped splits`, async function () {
@@ -506,7 +503,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         fundAccessConstraints,
       );
 
-    await expect(tx).to.be.revertedWith('INVALID_REDEMPTION_RATE()');
+    await expect(tx).to.be.revertedWith(errors.INVALID_REDEMPTION_RATE);
   });
 
   it(`Can't set a ballot redemption rate superior to 10000`, async function () {
@@ -535,6 +532,6 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         fundAccessConstraints,
       );
 
-    await expect(tx).to.be.revertedWith('INVALID_BALLOT_REDEMPTION_RATE()');
+    await expect(tx).to.be.revertedWith(errors.INVALID_BALLOT_REDEMPTION_RATE);
   });
 });

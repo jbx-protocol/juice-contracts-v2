@@ -14,8 +14,6 @@ import jbAllocator from '../../artifacts/contracts/interfaces/IJBSplitAllocator.
 
 describe('JBController::distributeReservedTokensOf(...)', function () {
   const PROJECT_ID = 1;
-  const NAME = 'TestTokenDAO';
-  const SYMBOL = 'TEST';
   const MEMO = 'Test Memo';
   const RESERVED_AMOUNT = 20000;
 

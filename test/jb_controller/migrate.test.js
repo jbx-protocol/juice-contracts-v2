@@ -1,7 +1,8 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
-import { impersonateAccount, packFundingCycleMetadata } from '../helpers/utils';
+import { packFundingCycleMetadata } from '../helpers/utils';
+import errors from '../helpers/errors.json';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
@@ -187,7 +188,7 @@ describe('JBController::migrate(...)', function () {
 
     await expect(
       jbController.connect(projectOwner).migrate(PROJECT_ID, mockController.address),
-    ).to.be.revertedWith('CALLER_NOT_CURRENT_CONTROLLER()');
+    ).to.be.revertedWith(errors.CALLER_NOT_CURRENT_CONTROLLER);
   });
 
   it(`Can't migrate if migration is not allowed in funding cycle`, async function () {
@@ -208,6 +209,6 @@ describe('JBController::migrate(...)', function () {
 
     await expect(
       jbController.connect(projectOwner).migrate(PROJECT_ID, mockController.address),
-    ).to.be.revertedWith('MIGRATION_NOT_ALLOWED()');
+    ).to.be.revertedWith(errors.MIGRATION_NOT_ALLOWED);
   });
 });

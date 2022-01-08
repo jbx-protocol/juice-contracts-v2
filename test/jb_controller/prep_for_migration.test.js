@@ -1,7 +1,8 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
-import { impersonateAccount, packFundingCycleMetadata } from '../helpers/utils';
+import { impersonateAccount } from '../helpers/utils';
+import errors from '../helpers/errors.json';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
@@ -88,6 +89,6 @@ describe('JBController::prepForMigrationOf(...)', function () {
       jbController
         .connect(controllerSigner)
         .prepForMigrationOf(PROJECT_ID, ethers.constants.AddressZero),
-    ).to.be.revertedWith('CANT_MIGRATE_TO_CURRENT_CONTROLLER()');
+    ).to.be.revertedWith(errors.CANT_MIGRATE_TO_CURRENT_CONTROLLER);
   });
 });

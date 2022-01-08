@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { impersonateAccount, packFundingCycleMetadata } from '../helpers/utils';
+import errors from '../helpers/errors.json';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
@@ -257,7 +258,7 @@ describe('JBController::burnTokenOf(...)', function () {
           MEMO,
           /*_preferClaimedTokens=*/ true,
         ),
-    ).to.be.revertedWith('NO_BURNABLE_TOKENS()');
+    ).to.be.revertedWith(errors.NO_BURNABLE_TOKENS);
   });
 
   it(`Can't burn token if funding cycle is paused and caller is not a terminal delegate`, async function () {
@@ -286,7 +287,7 @@ describe('JBController::burnTokenOf(...)', function () {
           MEMO,
           /*_preferClaimedTokens=*/ true,
         ),
-    ).to.be.revertedWith('BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE()');
+    ).to.be.revertedWith(errors.BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE);
   });
 
   it(`Should burn token if funding cycle is paused and caller is a terminal delegate`, async function () {

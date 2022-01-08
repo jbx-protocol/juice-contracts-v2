@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { packFundingCycleMetadata } from '../helpers/utils';
+import errors from '../helpers/errors.json';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
@@ -201,7 +202,7 @@ describe('JBController::changeTokenOf(...)', function () {
       jbController
         .connect(caller)
         .changeTokenOf(PROJECT_ID, mockToken.address, newTokenOwner.address),
-    ).to.be.revertedWith('UNAUTHORIZED()');
+    ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 
   it(`Can't change current token if funding cycle is paused`, async function () {
@@ -238,6 +239,6 @@ describe('JBController::changeTokenOf(...)', function () {
       jbController
         .connect(projectOwner)
         .changeTokenOf(PROJECT_ID, mockToken.address, newTokenOwner.address),
-    ).to.revertedWith('CHANGE_TOKEN_NOT_ALLOWED()');
+    ).to.revertedWith(errors.CHANGE_TOKEN_NOT_ALLOWED);
   });
 });
