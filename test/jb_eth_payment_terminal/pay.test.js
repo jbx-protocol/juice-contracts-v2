@@ -12,6 +12,7 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
   const PROJECT_ID = 1;
   const MEMO = 'Memo Test';
   const DELEGATE_METADATA = ethers.utils.randomBytes(32);
+  const FUNDING_CYCLE_NUMBER = 1;
   const WEIGHT = 10;
   const MIN_TOKEN_REQUESTED = 90;
   const TOKEN_RECEIVED = 100;
@@ -99,9 +100,6 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
   it('Should record payment and emit event', async function () {
     const { beneficiary, caller, jbEthPaymentTerminal, mockJbEthPaymentTerminalStore, timestamp } = await setup();
 
-    console.log((ethers.BigNumber.from(1).or(ethers.BigNumber.from(caller.address).shl(1))).toString())
-
-
     expect(
       await jbEthPaymentTerminal.connect(caller).pay(
         PROJECT_ID,
@@ -125,4 +123,19 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
   });
 
   //can't have beneficiary 0 address
+  it('Can\'t send payment to the zero address', async function () {
+    const { beneficiary, caller, jbEthPaymentTerminal, mockJbEthPaymentTerminalStore, timestamp } = await setup();
+
+    await expect(
+      jbEthPaymentTerminal.connect(caller).pay(
+        PROJECT_ID,
+        ethers.constants.AddressZero,
+        MIN_TOKEN_REQUESTED,
+        /*preferClaimedToken=*/true,
+        MEMO,
+        DELEGATE_METADATA,
+        { value: ETH_TO_PAY }
+      )).to.be.revertedWith();
+  });
+
 });
