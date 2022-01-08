@@ -10,7 +10,19 @@ library JBConstants {
     @notice
     Maximum value for reserved, redemption, and ballot redemption rates. Does not include discount rate.
   */
-  uint256 public constant MAX_TOKEN_RATE = 10000;
+  uint256 public constant MAX_RESERVED_RATE = 10000;
+
+  /**
+    @notice
+    Maximum token redemption rate to apply when there is an active ballot.
+   */
+  uint256 public constant MAX_BALLOT_REDEMPTION_RATE = 10000;
+
+  /**
+    @notice
+    Maximum token redemption rate.  
+    */
+  uint256 public constant MAX_REDEMPTION_RATE = 10000;
 
   /** 
     @notice
