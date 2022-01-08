@@ -3,6 +3,7 @@ import { ethers } from 'hardhat';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
+import errors from '../helpers/errors.json';
 import { packFundingCycleMetadata } from '../helpers/utils';
 
 import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
@@ -94,7 +95,7 @@ describe('JBETHPaymentTerminalStore::recordMigration(...)', function () {
 
     // Record migration
     await expect(jbEthPaymentTerminalStore.recordMigration(PROJECT_ID)).to.be.revertedWith(
-      '0x3a: UNAUTHORIZED',
+      errors.UNAUTHORIZED,
     );
   });
 
@@ -117,6 +118,6 @@ describe('JBETHPaymentTerminalStore::recordMigration(...)', function () {
     // Record migration
     await expect(
       jbEthPaymentTerminalStore.connect(terminal).recordMigration(PROJECT_ID),
-    ).to.be.revertedWith('0x4a: NOT_ALLOWED');
+    ).to.be.revertedWith(errors.PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED);
   });
 });

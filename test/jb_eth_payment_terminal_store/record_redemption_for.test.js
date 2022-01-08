@@ -3,6 +3,7 @@ import { ethers } from 'hardhat';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
+import errors from '../helpers/errors.json';
 import { packFundingCycleMetadata } from '../helpers/utils';
 
 import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
@@ -268,7 +269,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* minReturnedWei */ AMOUNT,
         /* beneficiary */ beneficiary.address,
         /* memo */ 'test',
-        /* delegateMetadata */ 0,
+        /* delegateMetadata */ delegateMetadata,
       );
 
     await expect(tx)
@@ -307,33 +308,31 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
           /* memo */ 'test',
           /* delegateMetadata */ 0,
         ),
-    ).to.be.revertedWith('0x3a: UNAUTHORIZED');
+    ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 
-  it(`Can't record redemption if tokenCount <= 0`, async function () {
+  it(`Can't record redemption if tokenCount is 0`, async function () {
     const { terminal, holder, beneficiary, jbEthPaymentTerminalStore } = await setup();
 
     // Record redemption
     await expect(
-      jbEthPaymentTerminalStore
-        .connect(terminal)
-        .recordRedemptionFor(
-          /* holder */ holder.address,
-          /* projectId */ PROJECT_ID,
-          /* tokenCount */ 0,
-          /* minReturnedWei */ AMOUNT,
-          /* beneficiary */ beneficiary.address,
-          /* memo */ 'test',
-          /* delegateMetadata */ 0,
-        ),
-    ).to.be.revertedWith('0x22: NO_OP');
+      jbEthPaymentTerminalStore.connect(terminal).recordRedemptionFor(
+        /* holder */ holder.address,
+        /* projectId */ PROJECT_ID,
+        /* tokenCount */ 0, // Set to 0
+        /* minReturnedWei */ AMOUNT,
+        /* beneficiary */ beneficiary.address,
+        /* memo */ 'test',
+        /* delegateMetadata */ 0,
+      ),
+    ).to.be.revertedWith(errors.TOKEN_AMOUNT_ZERO);
   });
 
   it(`Can't record redemption if token total balance < tokenCount`, async function () {
     const { terminal, holder, beneficiary, mockJbTokenStore, jbEthPaymentTerminalStore } =
       await setup();
 
-    await mockJbTokenStore.mock.balanceOf.withArgs(holder.address, PROJECT_ID).returns(0);
+    await mockJbTokenStore.mock.balanceOf.withArgs(holder.address, PROJECT_ID).returns(0); // Token total balance set to 0
 
     // Record redemption
     await expect(
@@ -348,7 +347,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
           /* memo */ 'test',
           /* delegateMetadata */ 0,
         ),
-    ).to.be.revertedWith('0x46: INSUFFICIENT_TOKENS');
+    ).to.be.revertedWith(errors.INSUFFICIENT_TOKENS);
   });
 
   it(`Can't record redemption if redemptions are paused`, async function () {
@@ -369,7 +368,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
     const redemptionRate = 10000;
     const ballotRedemptionRate = 10000;
     const packedMetadata = packFundingCycleMetadata({
-      pauseRedeem: 1,
+      pauseRedeem: 1, // Redemptions paused
       reservedRate: reservedRate,
       redemptionRate: redemptionRate,
       ballotRedemptionRate: ballotRedemptionRate,
@@ -404,10 +403,10 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
           /* memo */ 'test',
           /* delegateMetadata */ 0,
         ),
-    ).to.be.revertedWith('0x47: PAUSED');
+    ).to.be.revertedWith(errors.FUNDING_CYCLE_REDEEM_PAUSED);
   });
 
-  it(`Can't record redemption if claimAmount <= 0`, async function () {
+  it(`Can't record redemption if there are no claimable tokens`, async function () {
     const {
       terminal,
       holder,
@@ -461,7 +460,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
         memo: 'test',
         delegateMetadata: delegateMetadata,
       })
-      .returns(0, newMemo, mockJbRedemptionDelegate.address, delegateMetadata);
+      .returns(/* claimAmount */ 0, newMemo, mockJbRedemptionDelegate.address, delegateMetadata); // Delegate will return 0 as the claimable amount
 
     // Add to balance beforehand to have sufficient overflow
     const startingBalance = AMOUNT.mulUnsafe(ethers.FixedNumber.from(2));
@@ -480,12 +479,12 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
           /* minReturnedWei */ startingBalance,
           /* beneficiary */ beneficiary.address,
           /* memo */ 'test',
-          /* delegateMetadata */ 0,
+          /* delegateMetadata */ delegateMetadata,
         ),
-    ).to.be.revertedWith('0x50: NOTHING_TO_CLAIM');
+    ).to.be.revertedWith(errors.NO_CLAIMABLE_TOKENS);
   });
 
-  it(`Can't record redemption with if claim amount > balance`, async function () {
+  it(`Can't record redemption with if claim amount > project's total balance`, async function () {
     const {
       terminal,
       holder,
@@ -555,7 +554,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
           /* memo */ 'test',
           /* delegateMetadata */ delegateMetadata,
         ),
-    ).to.be.revertedWith('0x48: INSUFFICIENT_FUNDS');
+    ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
 
   it(`Can't record redemption if claimAmount < minReturnedWei`, async function () {
@@ -629,8 +628,8 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* minReturnedWei */ AMOUNT.addUnsafe(AMOUNT), // We've set this higher than the claim amount
         /* beneficiary */ beneficiary.address,
         /* memo */ 'test',
-        /* delegateMetadata */ 0,
+        /* delegateMetadata */ delegateMetadata,
       ),
-    ).to.be.revertedWith('0x49: INADEQUATE');
+    ).to.be.revertedWith(errors.INADEQUATE_CLAIM_AMOUNT);
   });
 });

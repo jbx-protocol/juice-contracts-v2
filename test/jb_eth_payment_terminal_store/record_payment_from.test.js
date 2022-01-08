@@ -3,6 +3,7 @@ import { ethers } from 'hardhat';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
+import errors from '../helpers/errors.json';
 import { packFundingCycleMetadata } from '../helpers/utils';
 
 import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
@@ -361,7 +362,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
           /* memo */ 'test',
           /* delegateMetadata */ 0,
         ),
-    ).to.be.revertedWith('0x3a: UNAUTHORIZED');
+    ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 
   it(`Can't record payment if fundingCycle hasn't been configured`, async function () {
@@ -370,7 +371,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // empty JBFundingCycle obj
-      number: 0,
+      number: 0, // Set bad number
       configuration: 0,
       basedOn: 0,
       start: 0,
@@ -396,7 +397,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
           /* memo */ 'test',
           /* delegateMetadata */ 0,
         ),
-    ).to.be.revertedWith('0x3a: NOT_FOUND');
+    ).to.be.revertedWith(errors.INVALID_FUNDING_CYCLE);
   });
 
   it(`Can't record payment if fundingCycle has been paused`, async function () {
@@ -431,10 +432,10 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
           /* memo */ 'test',
           /* delegateMetadata */ 0,
         ),
-    ).to.be.revertedWith('0x3b: PAUSED');
+    ).to.be.revertedWith(errors.FUNDING_CYCLE_PAYMENT_PAUSED);
   });
 
-  it(`Can't record payment if tokens minted is less than _minReturnedTokens`, async function () {
+  it(`Can't record payment if tokens minted < minReturnedTokens`, async function () {
     const {
       terminal,
       payer,
@@ -479,17 +480,15 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
     const preferClaimedTokensBigNum = ethers.BigNumber.from(0); // false
     const beneficiaryBigNum = ethers.BigNumber.from(beneficiary.address).shl(1); // addr shifted left by 1
     await expect(
-      jbEthPaymentTerminalStore
-        .connect(terminal)
-        .recordPaymentFrom(
-          /* payer */ payer.address,
-          AMOUNT,
-          PROJECT_ID,
-          /* preferClaimedTokensAndBeneficiary */ preferClaimedTokensBigNum.or(beneficiaryBigNum),
-          /* minReturnedTokens */ ethers.FixedNumber.from(minReturnedAmt),
-          /* memo */ 'test',
-          /* delegateMetadata */ 0,
-        ),
-    ).to.be.revertedWith('0x3c: INADEQUATE');
+      jbEthPaymentTerminalStore.connect(terminal).recordPaymentFrom(
+        /* payer */ payer.address,
+        AMOUNT,
+        PROJECT_ID,
+        /* preferClaimedTokensAndBeneficiary */ preferClaimedTokensBigNum.or(beneficiaryBigNum),
+        /* minReturnedTokens */ ethers.FixedNumber.from(minReturnedAmt), // Set intentionally larger
+        /* memo */ 'test',
+        /* delegateMetadata */ 0,
+      ),
+    ).to.be.revertedWith(errors.INADEQUATE_TOKEN_COUNT);
   });
 });

@@ -28,9 +28,11 @@ error INADEQUATE_TOKEN_COUNT();
 error INADEQUATE_WITHDRAW_AMOUNT();
 error INSUFFICIENT_TOKENS();
 error INVALID_FUNDING_CYCLE();
+error NO_CLAIMABLE_TOKENS();
 error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
 error PAYMENT_TERMINAL_UNAUTHORIZED();
 error STORE_ALREADY_CLAIMED();
+error TOKEN_AMOUNT_ZERO();
 
 /**
   @notice
@@ -462,7 +464,7 @@ contract JBETHPaymentTerminalStore {
 
     // There must be sufficient allowance available.
     if (
-      _newOverflowAllowanceOf <=
+      _newOverflowAllowanceOf >
       directory.controllerOf(_projectId).overflowAllowanceOf(
         _projectId,
         fundingCycle.configuration,
@@ -530,7 +532,10 @@ contract JBETHPaymentTerminalStore {
       string memory memo
     )
   {
-    require(_tokenCount > 0, '0x22: NO_OP');
+    // There must be some amount of tokens to record redemption for.
+    if (_tokenCount == 0) {
+      revert TOKEN_AMOUNT_ZERO();
+    }
 
     // The holder must have the specified number of the project's tokens.
     if (tokenStore.balanceOf(_holder, _projectId) < _tokenCount) {
@@ -566,7 +571,10 @@ contract JBETHPaymentTerminalStore {
       memo = _memo;
     }
 
-    require(claimAmount > 0, '0x50: NOTHING_TO_CLAIM');
+    // There must be something to claim.
+    if (claimAmount == 0) {
+      revert NO_CLAIMABLE_TOKENS();
+    }
 
     // The amount being claimed must be within the project's balance.
     if (claimAmount > balanceOf[_projectId]) {

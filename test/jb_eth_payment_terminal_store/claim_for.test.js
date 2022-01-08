@@ -9,6 +9,8 @@ import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPric
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
+import errors from '../helpers/errors.json';
+
 describe('JBETHPaymentTerminalStore::claimFor(...)', function () {
   async function setup() {
     const [deployer, terminal] = await ethers.getSigners();
@@ -53,7 +55,7 @@ describe('JBETHPaymentTerminalStore::claimFor(...)', function () {
 
     // Set terminal address again
     await expect(jbEthPaymentTerminalStore.claimFor(terminal.address)).to.be.revertedWith(
-      '0x4b: ALREADY_CLAIMED',
+      errors.STORE_ALREADY_CLAIMED,
     );
   });
 });

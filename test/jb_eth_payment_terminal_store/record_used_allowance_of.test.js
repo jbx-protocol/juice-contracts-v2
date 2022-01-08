@@ -3,6 +3,7 @@ import { ethers } from 'hardhat';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
+import errors from '../helpers/errors.json';
 import { packFundingCycleMetadata } from '../helpers/utils';
 
 import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
@@ -137,10 +138,32 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       jbEthPaymentTerminalStore
         .connect(addr)
         .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
-    ).to.be.revertedWith('0x3a: UNAUTHORIZED');
+    ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 
-  it(`Can't record allowance if withdrawnAmount < minReturnedWei`, async function () {
+  it(`Can't record allowance if currency param doesn't match controller's currency`, async function () {
+    const {
+      terminal,
+      mockJbController,
+      jbEthPaymentTerminalStore,
+      timestamp,
+      CURRENCY_ETH,
+      CURRENCY_USD,
+    } = await setup();
+
+    await mockJbController.mock.currencyOf
+      .withArgs(PROJECT_ID, timestamp, terminal.address)
+      .returns(CURRENCY_USD);
+
+    // Record the used allowance
+    await expect(
+      jbEthPaymentTerminalStore
+        .connect(terminal)
+        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
+    ).to.be.revertedWith(errors.CURRENCY_MISMATCH);
+  });
+
+  it(`Can't record allowance if controller's overflowAllowanceOf is exceeded`, async function () {
     const {
       terminal,
       mockJbController,
@@ -157,26 +180,21 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_ETH);
 
+    const smallTotalAllowance = AMOUNT.subUnsafe(ethers.FixedNumber.from(1));
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
-      .returns(AMOUNT);
+      .returns(smallTotalAllowance); // Set the controller's overflowAllowance to something small
 
     await mockJbPrices.mock.priceFor
       .withArgs(CURRENCY_ETH, CURRENCY_ETH)
       .returns(ethers.FixedNumber.from(1));
 
     // Record the used allowance
-    const minReturnedWei = AMOUNT.addUnsafe(ethers.FixedNumber.from(1));
     await expect(
       jbEthPaymentTerminalStore
         .connect(terminal)
-        .recordUsedAllowanceOf(
-          PROJECT_ID,
-          AMOUNT,
-          CURRENCY_ETH,
-          /* minReturnedWei */ minReturnedWei,
-        ),
-    ).to.be.revertedWith('0x45: INADEQUATE');
+        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
+    ).to.be.revertedWith(errors.INADEQUATE_CONTROLLER_ALLOWANCE);
   });
 
   it(`Can't record allowance if withdrawnAmount > project's total balance`, async function () {
@@ -207,15 +225,16 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       .withArgs(CURRENCY_ETH, CURRENCY_ETH)
       .returns(ethers.FixedNumber.from(1));
 
+    // Note: We didn't add an initial balance to the store
     // Record the used allowance
     await expect(
       jbEthPaymentTerminalStore
         .connect(terminal)
         .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
-    ).to.be.revertedWith('0x44: INSUFFICIENT_FUNDS');
+    ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
 
-  it(`Can't record allowance if overflowAllowanceOf is exceeded`, async function () {
+  it(`Can't record allowance if minReturnedWei > withdrawnAmount`, async function () {
     const {
       terminal,
       mockJbController,
@@ -232,42 +251,23 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_ETH);
 
-    const smallTotalAllowance = AMOUNT.subUnsafe(ethers.FixedNumber.from(1));
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
-      .returns(smallTotalAllowance);
+      .returns(AMOUNT);
 
     await mockJbPrices.mock.priceFor
       .withArgs(CURRENCY_ETH, CURRENCY_ETH)
       .returns(ethers.FixedNumber.from(1));
 
     // Record the used allowance
+    const minReturnedWei = AMOUNT.addUnsafe(ethers.FixedNumber.from(1));
     await expect(
-      jbEthPaymentTerminalStore
-        .connect(terminal)
-        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
-    ).to.be.revertedWith('0x43: NOT_ALLOWED');
-  });
-
-  it(`Can't record allowance if currency param doesn't match controller's currency`, async function () {
-    const {
-      terminal,
-      mockJbController,
-      jbEthPaymentTerminalStore,
-      timestamp,
-      CURRENCY_ETH,
-      CURRENCY_USD,
-    } = await setup();
-
-    await mockJbController.mock.currencyOf
-      .withArgs(PROJECT_ID, timestamp, terminal.address)
-      .returns(CURRENCY_USD);
-
-    // Record the used allowance
-    await expect(
-      jbEthPaymentTerminalStore
-        .connect(terminal)
-        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
-    ).to.be.revertedWith('0x42: UNEXPECTED_CURRENCY');
+      jbEthPaymentTerminalStore.connect(terminal).recordUsedAllowanceOf(
+        PROJECT_ID,
+        AMOUNT,
+        CURRENCY_ETH,
+        /* minReturnedWei */ minReturnedWei, // Set this to something higher than AMOUNT
+      ),
+    ).to.be.revertedWith(errors.INADEQUATE_WITHDRAW_AMOUNT);
   });
 });
