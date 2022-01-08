@@ -149,7 +149,7 @@ describe('JBETHPaymentTerminalStore::currentOverflowOf(...)', function () {
     expect(await jbEthPaymentTerminalStore.currentOverflowOf(PROJECT_ID)).to.equal(0);
   });
 
-  it('Should return 0 overflow if ETH balance == 0', async function () {
+  it('Should return 0 overflow if ETH balance is 0', async function () {
     const { mockJbFundingCycleStore, jbEthPaymentTerminalStore, timestamp } = await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({

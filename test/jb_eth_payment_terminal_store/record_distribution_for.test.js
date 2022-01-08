@@ -14,6 +14,7 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
 describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
+  const FUNDING_CYCLE_NUM = 1;
   const PROJECT_ID = 2;
   const AMOUNT = ethers.FixedNumber.fromString('4398541.345');
   const WEIGHT = ethers.FixedNumber.fromString('900000000.23411');
@@ -83,7 +84,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
-      number: 1,
+      number: FUNDING_CYCLE_NUM,
       configuration: timestamp,
       basedOn: timestamp,
       start: timestamp,
@@ -113,9 +114,9 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
     await mockJbPrices.mock.priceFor.withArgs(CURRENCY_USD, CURRENCY_ETH).returns(usdToEthPrice);
 
     // Pre-checks
-    expect(await jbEthPaymentTerminalStore.usedDistributionLimitOf(PROJECT_ID, timestamp)).to.equal(
-      0,
-    );
+    expect(
+      await jbEthPaymentTerminalStore.usedDistributionLimitOf(PROJECT_ID, FUNDING_CYCLE_NUM),
+    ).to.equal(0);
     expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(amountInWei);
 
     // Record the distributions
@@ -124,9 +125,9 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_USD, /* minReturnedWei */ amountInWei);
 
     // Post-checks
-    expect(await jbEthPaymentTerminalStore.usedDistributionLimitOf(PROJECT_ID, timestamp)).to.equal(
-      AMOUNT,
-    );
+    expect(
+      await jbEthPaymentTerminalStore.usedDistributionLimitOf(PROJECT_ID, FUNDING_CYCLE_NUM),
+    ).to.equal(AMOUNT);
     expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(0);
   });
 
@@ -154,7 +155,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
-      number: 1,
+      number: FUNDING_CYCLE_NUM,
       configuration: timestamp,
       basedOn: timestamp,
       start: timestamp,
@@ -186,7 +187,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
-      number: 1,
+      number: FUNDING_CYCLE_NUM,
       configuration: timestamp,
       basedOn: timestamp,
       start: timestamp,
@@ -222,7 +223,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
-      number: 1,
+      number: FUNDING_CYCLE_NUM,
       configuration: timestamp,
       basedOn: timestamp,
       start: timestamp,
@@ -270,7 +271,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
-      number: 1,
+      number: FUNDING_CYCLE_NUM,
       configuration: timestamp,
       basedOn: timestamp,
       start: timestamp,
@@ -320,7 +321,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
-      number: 1,
+      number: FUNDING_CYCLE_NUM,
       configuration: timestamp,
       basedOn: timestamp,
       start: timestamp,

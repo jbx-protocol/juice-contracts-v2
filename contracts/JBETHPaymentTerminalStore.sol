@@ -133,7 +133,7 @@ contract JBETHPaymentTerminalStore {
     Increases as projects use their distribution limit.
 
     _projectId The ID of the project to get the used distribution limit of.
-    _configuration The configuration of the during which the disitrution limit applies.
+    _number The number representing the funding cycle.
   */
   mapping(uint256 => mapping(uint256 => uint256)) public usedDistributionLimitOf;
 
@@ -383,9 +383,8 @@ contract JBETHPaymentTerminalStore {
     }
 
     // The new total amount that has been distributed during this funding cycle.
-    uint256 _newUsedDistributionLimitOf = usedDistributionLimitOf[_projectId][
-      fundingCycle.configuration
-    ] + _amount;
+    uint256 _newUsedDistributionLimitOf = usedDistributionLimitOf[_projectId][fundingCycle.number] +
+      _amount;
 
     // Amount must be within what is still distributable.
     if (
@@ -415,7 +414,7 @@ contract JBETHPaymentTerminalStore {
     }
 
     // Store the new amount.
-    usedDistributionLimitOf[_projectId][fundingCycle.configuration] = _newUsedDistributionLimitOf;
+    usedDistributionLimitOf[_projectId][fundingCycle.number] = _newUsedDistributionLimitOf;
 
     // Removed the distributed funds from the project's ETH balance.
     balanceOf[_projectId] = balanceOf[_projectId] - distributedAmount;
@@ -458,13 +457,13 @@ contract JBETHPaymentTerminalStore {
       revert CURRENCY_MISMATCH();
     }
 
-    uint256 _newOverflowAllowanceOf = usedOverflowAllowanceOf[_projectId][
+    uint256 _newUsedOverflowAllowanceOf = usedOverflowAllowanceOf[_projectId][
       fundingCycle.configuration
     ] + _amount;
 
     // There must be sufficient allowance available.
     if (
-      _newOverflowAllowanceOf >
+      _newUsedOverflowAllowanceOf >
       directory.controllerOf(_projectId).overflowAllowanceOf(
         _projectId,
         fundingCycle.configuration,
@@ -490,7 +489,7 @@ contract JBETHPaymentTerminalStore {
     }
 
     // Store the incremented value.
-    usedOverflowAllowanceOf[_projectId][fundingCycle.configuration] = _newOverflowAllowanceOf;
+    usedOverflowAllowanceOf[_projectId][fundingCycle.configuration] = _newUsedOverflowAllowanceOf;
 
     // Update the project's ETH balance.
     balanceOf[_projectId] = balanceOf[_projectId] - withdrawnAmount;
