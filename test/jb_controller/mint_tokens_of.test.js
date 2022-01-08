@@ -230,8 +230,8 @@ describe('JBController::mintTokensOf(...)', function () {
   });
 
   it(`Can't mint token if reserved rate is > 100%`, async function () {
-    const { projectOwner, beneficiary, jbController } = await setup();
-
+    const { projectOwner, beneficiary, mockJbOperatorStore, jbController } = await setup();
+    
     await expect(
       jbController
         .connect(projectOwner)
@@ -241,8 +241,8 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           true,
-          101,
-        ),
+          10001,
+        )
     ).to.be.revertedWith('INVALID_RESERVED_RATE()');
   });
 
@@ -252,7 +252,14 @@ describe('JBController::mintTokensOf(...)', function () {
     await expect(
       jbController
         .connect(projectOwner)
-        .mintTokensOf(PROJECT_ID, 0, beneficiary.address, MEMO, true, RESERVED_RATE),
+        .mintTokensOf(
+          PROJECT_ID,
+          0,
+          beneficiary.address,
+          MEMO,
+          true,
+          RESERVED_RATE
+        )
     ).to.be.revertedWith(errors.ZERO_TOKENS_TO_MINT);
   });
 
