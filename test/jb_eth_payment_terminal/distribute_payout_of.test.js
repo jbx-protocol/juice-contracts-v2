@@ -11,11 +11,17 @@ import jbEthPaymentTerminalStore from '../../artifacts/contracts/JBETHPaymentTer
 
 describe('JBETHPaymentTerminal::pay(...)', function () {
   const PROJECT_ID = 1;
+  const AMOUNT_DISTRIBUTED = 100;
+  const CURRENCY = 1;
+  const MIN_TOKEN_REQUESTED = 90;
+  const HANDLE = ethers.utils.formatBytes32String('PROJECT_HANDLE');
+
+
+
   const MEMO = 'Memo Test';
   const DELEGATE_METADATA = ethers.utils.randomBytes(32);
   const FUNDING_CYCLE_NUMBER = 1;
   const WEIGHT = 10;
-  const MIN_TOKEN_REQUESTED = 90;
   const TOKEN_RECEIVED = 100;
   const ETH_TO_PAY = ethers.utils.parseEther('1');
 
@@ -57,20 +63,20 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
       mockSplitsStore.address,
       mockJbEthPaymentTerminalStore.address,
       terminalOwner.address);
+    
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
+    
+    await mockJbProjects.mock.handleOf.withArgs(PROJECT_ID).returns(HANDLE);
 
-    await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
+    await mockJbEthPaymentTerminalStore.mock.recordDistributionFor
       .withArgs(
-        caller.address,
-        ETH_TO_PAY,
         PROJECT_ID,
-        //preferedCLaimed | uint160(beneficiary)<<1
-        ethers.BigNumber.from(1).or(ethers.BigNumber.from(caller.address).shl(1)),
-        MIN_TOKEN_REQUESTED,
-        MEMO,
-        DELEGATE_METADATA
+        AMOUNT_DISTRIBUTED,
+        CURRENCY,
+        MIN_TOKEN_REQUESTED
       )
       .returns(
-        { // mock JBFundingCycle obj
+        { // mock JBFundingCycle obj 
           number: 1,
           configuration: timestamp,
           basedOn: timestamp,
@@ -81,9 +87,7 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
           ballot: ethers.constants.AddressZero,
           metadata: packFundingCycleMetadata(),
         },
-        WEIGHT,
-        TOKEN_RECEIVED,
-        MEMO
+        AMOUNT_DISTRIBUTED
       )
 
     return {
@@ -97,7 +101,7 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
     }
   }
 
-  it('Should record payment and emit event', async function () {
+  it('Should distribute payout and emit event, without taking a fee if fee is 0', async function () {
     const { caller, jbEthPaymentTerminal, timestamp } = await setup();
 
     expect(
@@ -124,20 +128,9 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
     );
   });
 
-  it('Can\'t send tokens to the zero address', async function () {
-    const { caller, jbEthPaymentTerminal } = await setup();
+// without taking a fee if project is platform project's
+// taking a fee
+// should distribute and transfer remaining balance to projectowner
 
-    await expect(
-      jbEthPaymentTerminal.connect(caller).pay(
-        PROJECT_ID,
-        ethers.constants.AddressZero,
-        MIN_TOKEN_REQUESTED,
-        /*preferClaimedToken=*/true,
-        MEMO,
-        DELEGATE_METADATA,
-        { value: ETH_TO_PAY }
-      )
-    ).to.be.revertedWith(errors.PAY_TO_ZERO_ADDRESS);
-  });
 
 });
