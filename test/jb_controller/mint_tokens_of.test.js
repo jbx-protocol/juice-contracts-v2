@@ -229,6 +229,23 @@ describe('JBController::mintTokensOf(...)', function () {
     ).to.be.revertedWith('INVALID_RESERVED_RATE_AND_BENEFICIARY_ZERO_ADDRESS()');
   });
 
+  it(`Can't mint token if reserved rate is > 100%`, async function () {
+    const { projectOwner, beneficiary, jbController } = await setup();
+
+    await expect(
+      jbController
+        .connect(projectOwner)
+        .mintTokensOf(
+          PROJECT_ID,
+          AMOUNT_TO_MINT,
+          beneficiary.address,
+          MEMO,
+          true,
+          101,
+        ),
+    ).to.be.revertedWith('INVALID_RESERVED_RATE()');
+  });
+
   it(`Can't mint 0 token`, async function () {
     const { projectOwner, beneficiary, jbController } = await setup();
 
