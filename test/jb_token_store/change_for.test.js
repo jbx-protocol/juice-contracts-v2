@@ -9,6 +9,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import { deployJbToken } from '../helpers/utils';
+import errors from '../helpers/errors.json';
 
 describe('JBTokenStore::changeFor(...)', function () {
   const PROJECT_ID = 2;
@@ -116,6 +117,6 @@ describe('JBTokenStore::changeFor(...)', function () {
           ethers.Wallet.createRandom().address,
           ethers.Wallet.createRandom().address,
         ),
-    ).to.be.revertedWith('0x4f: UNAUTHORIZED');
+    ).to.be.revertedWith(errors.CONTROLLER_UNAUTHORIZED);
   });
 });

@@ -3,6 +3,7 @@ import { ethers } from 'hardhat';
 import { compilerOutput } from '@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { BigNumber } from '@ethersproject/bignumber';
+import errors from '../helpers/errors.json';
 
 describe('JBPrices::priceFor(...)', function () {
   let deployer;
@@ -76,6 +77,6 @@ describe('JBPrices::priceFor(...)', function () {
   it('Feed not found', async function () {
     await expect(
       jbPrices.connect(deployer).priceFor(/*currency=*/ 1, /*base=*/ 7),
-    ).to.be.revertedWith('0x03: NOT_FOUND');
+    ).to.be.revertedWith(errors.PRICE_FEED_NOT_FOUND);
   });
 });

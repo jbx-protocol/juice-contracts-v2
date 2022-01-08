@@ -4,6 +4,7 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
+import errors from '../helpers/errors.json';
 
 describe('JBProjects::setHandleOf(...)', function () {
   const PROJECT_HANDLE = 'PROJECT_1';
@@ -87,7 +88,7 @@ describe('JBProjects::setHandleOf(...)', function () {
       jbProjectsStore
         .connect(projectOwner)
         .setHandleOf(PROJECT_ID_1, ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY)),
-    ).to.be.revertedWith('0x08: EMPTY_HANDLE');
+    ).to.be.revertedWith(errors.HANDLE_EMPTY);
   });
 
   it(`Can't set if handle taken already`, async function () {
@@ -105,7 +106,7 @@ describe('JBProjects::setHandleOf(...)', function () {
       jbProjectsStore
         .connect(projectOwner)
         .setHandleOf(PROJECT_ID_1, ethers.utils.formatBytes32String(PROJECT_HANDLE)),
-    ).to.be.revertedWith('0x09: HANDLE_TAKEN');
+    ).to.be.revertedWith('HANDLE_TAKEN()');
   });
 
   it(`Can't set handle if not owner of project`, async function () {

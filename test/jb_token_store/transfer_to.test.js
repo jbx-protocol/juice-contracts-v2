@@ -6,6 +6,7 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
+import errors from '../helpers/errors.json';
 
 describe('JBTokenStore::transferTo(...)', function () {
   const PROJECT_ID = 2;
@@ -91,7 +92,7 @@ describe('JBTokenStore::transferTo(...)', function () {
       jbTokenStore
         .connect(controller)
         .transferTo(ethers.constants.AddressZero, holder.address, PROJECT_ID, /* amount= */ 1),
-    ).to.be.revertedWith('0x26: ZERO_ADDRESS');
+    ).to.be.revertedWith(errors.RECIPIENT_ZERO_ADDRESS);
   });
 
   it(`Can't transfer unclaimed tokens when recipient and holder are the same`, async function () {
@@ -105,7 +106,7 @@ describe('JBTokenStore::transferTo(...)', function () {
       jbTokenStore
         .connect(controller)
         .transferTo(holder.address, holder.address, PROJECT_ID, /* amount= */ 1),
-    ).to.be.revertedWith('0x27: IDENTITY');
+    ).to.be.revertedWith(errors.INVALID_RECIPIENT);
   });
 
   it(`Can't transfer unclaimed tokens if amount is <= 0`, async function () {
@@ -120,7 +121,7 @@ describe('JBTokenStore::transferTo(...)', function () {
       jbTokenStore
         .connect(controller)
         .transferTo(recipient.address, holder.address, PROJECT_ID, /* amount= */ 0),
-    ).to.be.revertedWith('0x28: NO_OP');
+    ).to.be.revertedWith(errors.TOKEN_AMOUNT_ZERO);
   });
 
   it(`Can't transfer more unclaimed tokens than available balance`, async function () {
@@ -136,7 +137,7 @@ describe('JBTokenStore::transferTo(...)', function () {
       jbTokenStore
         .connect(controller)
         .transferTo(recipient.address, holder.address, PROJECT_ID, /* amount= */ 1),
-    ).to.be.revertedWith('0x29: INSUFFICIENT_FUNDS');
+    ).to.be.revertedWith(errors.INSUFFICIENT_UNCLAIMED_TOKENS);
   });
 
   it(`Can't transfer unclaimed tokens if caller lacks permission`, async function () {

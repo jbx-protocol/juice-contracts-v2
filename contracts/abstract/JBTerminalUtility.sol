@@ -3,13 +3,19 @@ pragma solidity 0.8.6;
 
 import './../interfaces/IJBTerminalUtility.sol';
 
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+error TERMINAL_UNAUTHORIZED();
+
 /** 
   @notice
   Provides tools for contracts that has functionality that can only be accessed by a project's terminals.
 */
 abstract contract JBTerminalUtility is IJBTerminalUtility {
   modifier onlyTerminal(uint256 _projectId) {
-    require(directory.isTerminalDelegateOf(_projectId, msg.sender), '0x50: UNAUTHORIZED');
+    if (!directory.isTerminalDelegateOf(_projectId, msg.sender)) {
+      revert TERMINAL_UNAUTHORIZED();
+    }
     _;
   }
 
