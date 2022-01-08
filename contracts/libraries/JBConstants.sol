@@ -26,6 +26,12 @@ library JBConstants {
 
   /** 
     @notice
+    A funding cycle's discount rate is expressed as a percentage out of 100000000.
+  */
+  uint256 public constant MAX_DISCOUNT_RATE = 100000000;
+
+  /** 
+    @notice
     Maximum splits percentage.
   */
   uint256 public constant SPLITS_TOTAL_PERCENT = 10000000;
