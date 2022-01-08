@@ -335,7 +335,7 @@ describe('JBController::burnTokenOf(...)', function () {
           PROJECT_ID,
           AMOUNT_TO_BURN,
           MEMO,
-          /*_preferClaimedTokens=*/ true,
+          /*_preferClaimedTokens=*/true,
         ),
     ).to.be.not.reverted;
   });
