@@ -110,6 +110,6 @@ describe('JBController::issueTokenFor(...)', function () {
 
     await expect(
       jbController.connect(caller).callStatic.issueTokenFor(PROJECT_ID, NAME, SYMBOL),
-    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
+    ).to.be.revertedWith('UNAUTHORIZED()');
   });
 });

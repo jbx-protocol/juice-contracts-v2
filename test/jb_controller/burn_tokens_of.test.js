@@ -257,7 +257,7 @@ describe('JBController::burnTokenOf(...)', function () {
           MEMO,
           /*_preferClaimedTokens=*/ true,
         ),
-    ).to.be.revertedWith('0x32: NO_OP');
+    ).to.be.revertedWith('NO_BURNABLE_TOKENS()');
   });
 
   it(`Can't burn token if funding cycle is paused and caller is not a terminal delegate`, async function () {
@@ -286,7 +286,7 @@ describe('JBController::burnTokenOf(...)', function () {
           MEMO,
           /*_preferClaimedTokens=*/ true,
         ),
-    ).to.be.revertedWith('0x33: PAUSED');
+    ).to.be.revertedWith('BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE()');
   });
 
   it(`Should burn token if funding cycle is paused and caller is a terminal delegate`, async function () {

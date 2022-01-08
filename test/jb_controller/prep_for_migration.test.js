@@ -88,6 +88,6 @@ describe('JBController::prepForMigrationOf(...)', function () {
       jbController
         .connect(controllerSigner)
         .prepForMigrationOf(PROJECT_ID, ethers.constants.AddressZero),
-    ).to.be.revertedWith('0x34: NO_OP');
+    ).to.be.revertedWith('CANT_MIGRATE_TO_CURRENT_CONTROLLER()');
   });
 });

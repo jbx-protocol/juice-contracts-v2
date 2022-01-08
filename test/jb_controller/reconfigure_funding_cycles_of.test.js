@@ -338,7 +338,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         fundAccessConstraints,
       );
 
-    await expect(tx).to.be.revertedWith('Operatable: UNAUTHORIZED');
+    await expect(tx).to.be.revertedWith('UNAUTHORIZED()');
   });
 
   it(`Should reconfigure funding cycle without grouped splits`, async function () {
@@ -478,7 +478,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         fundAccessConstraints,
       );
 
-    await expect(tx).to.be.revertedWith('0x51: BAD_RESERVED_RATE');
+    await expect(tx).to.be.revertedWith('INVALID_RESERVED_RATE()');
   });
 
   it(`Can't set a redemption rate superior to 10000`, async function () {
@@ -506,7 +506,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         fundAccessConstraints,
       );
 
-    await expect(tx).to.be.revertedWith('0x52: BAD_REDEMPTION_RATE');
+    await expect(tx).to.be.revertedWith('INVALID_REDEMPTION_RATE()');
   });
 
   it(`Can't set a ballot redemption rate superior to 10000`, async function () {
@@ -535,6 +535,6 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         fundAccessConstraints,
       );
 
-    await expect(tx).to.be.revertedWith('0x53: BAD_BALLOT_REDEMPTION_RATE');
+    await expect(tx).to.be.revertedWith('INVALID_BALLOT_REDEMPTION_RATE()');
   });
 });

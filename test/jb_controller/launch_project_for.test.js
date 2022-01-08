@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
-import { impersonateAccount, makeSplits, packFundingCycleMetadata } from '../helpers/utils';
+import { makeSplits, packFundingCycleMetadata } from '../helpers/utils';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
@@ -12,7 +12,7 @@ import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsS
 import IJbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
 
-describe('JBController::launchProjectOf(...)', function () {
+describe('JBController::launchProjectFor(...)', function () {
   const PROJECT_ID = 1;
   const PROJECT_HANDLE = ethers.utils.formatBytes32String('PROJECT_1');
   const METADATA_CID = '';
@@ -294,7 +294,6 @@ describe('JBController::launchProjectOf(...)', function () {
     const {
       jbController,
       projectOwner,
-      timestamp,
       fundingCycleData,
       splits,
       mockTerminal1,
@@ -318,7 +317,7 @@ describe('JBController::launchProjectOf(...)', function () {
         terminals,
       );
 
-    await expect(tx).to.be.revertedWith('0x37: BAD_RESERVED_RATE');
+    await expect(tx).to.be.revertedWith('INVALID_RESERVED_RATE()');
   });
 
   it(`Can't launch a project with a redemption rate superior to 10000`, async function () {
@@ -350,7 +349,7 @@ describe('JBController::launchProjectOf(...)', function () {
         terminals,
       );
 
-    await expect(tx).to.be.revertedWith('0x38: BAD_REDEMPTION_RATE');
+    await expect(tx).to.be.revertedWith('INVALID_REDEMPTION_RATE()');
   });
 
   it(`Can't launch a project with a ballot redemption rate superior to 10000`, async function () {
@@ -383,6 +382,6 @@ describe('JBController::launchProjectOf(...)', function () {
         terminals,
       );
 
-    await expect(tx).to.be.revertedWith('0x39: BAD_BALLOT_REDEMPTION_RATE');
+    await expect(tx).to.be.revertedWith('INVALID_BALLOT_REDEMPTION_RATE()');
   });
 });

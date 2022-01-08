@@ -173,7 +173,7 @@ describe('JBController::migrate(...)', function () {
 
     await expect(
       jbController.connect(caller).migrate(PROJECT_ID, mockController.address),
-    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
+    ).to.be.revertedWith('UNAUTHORIZED()');
   });
 
   it(`Can't migrate if migration is not initiated via the current controller`, async function () {
@@ -187,7 +187,7 @@ describe('JBController::migrate(...)', function () {
 
     await expect(
       jbController.connect(projectOwner).migrate(PROJECT_ID, mockController.address),
-    ).to.be.revertedWith('0x35: NO_OP');
+    ).to.be.revertedWith('CALLER_NOT_CURRENT_CONTROLLER()');
   });
 
   it(`Can't migrate if migration is not allowed in funding cycle`, async function () {
@@ -208,6 +208,6 @@ describe('JBController::migrate(...)', function () {
 
     await expect(
       jbController.connect(projectOwner).migrate(PROJECT_ID, mockController.address),
-    ).to.be.revertedWith('0x36: NOT_ALLOWED');
+    ).to.be.revertedWith('MIGRATION_NOT_ALLOWED()');
   });
 });

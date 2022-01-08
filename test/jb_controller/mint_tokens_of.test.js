@@ -12,7 +12,7 @@ import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsS
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
 
-describe('JBController::mintTokenOf(...)', function () {
+describe('JBController::mintTokensOf(...)', function () {
   const PROJECT_ID = 1;
   const MEMO = 'Test Memo';
   const AMOUNT_TO_MINT = 20000;
@@ -225,7 +225,7 @@ describe('JBController::mintTokenOf(...)', function () {
           true,
           RESERVED_RATE,
         ),
-    ).to.be.revertedWith('0x2f: ZERO_ADDRESS');
+    ).to.be.revertedWith('INVALID_RESERVED_RATE_AND_BENEFICIARY_ZERO_ADDRESS()');
   });
 
   it(`Can't mint 0 token`, async function () {
@@ -235,7 +235,7 @@ describe('JBController::mintTokenOf(...)', function () {
       jbController
         .connect(projectOwner)
         .mintTokensOf(PROJECT_ID, 0, beneficiary.address, MEMO, true, RESERVED_RATE),
-    ).to.be.revertedWith('0x30: NO_OP');
+    ).to.be.revertedWith('ZERO_TOKENS_TO_MINT()');
   });
 
   it(`Can't mint token if funding cycle is paused and caller is not a terminal delegate`, async function () {
@@ -259,7 +259,7 @@ describe('JBController::mintTokenOf(...)', function () {
       jbController
         .connect(projectOwner)
         .mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, true, RESERVED_RATE),
-    ).to.be.revertedWith('0x31: PAUSED');
+    ).to.be.revertedWith('MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE()');
   });
 
   it(`Should mint token if funding cycle is paused and caller is a terminal delegate`, async function () {

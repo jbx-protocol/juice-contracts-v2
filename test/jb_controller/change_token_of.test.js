@@ -201,7 +201,7 @@ describe('JBController::changeTokenOf(...)', function () {
       jbController
         .connect(caller)
         .changeTokenOf(PROJECT_ID, mockToken.address, newTokenOwner.address),
-    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
+    ).to.be.revertedWith('UNAUTHORIZED()');
   });
 
   it(`Can't change current token if funding cycle is paused`, async function () {
@@ -238,6 +238,6 @@ describe('JBController::changeTokenOf(...)', function () {
       jbController
         .connect(projectOwner)
         .changeTokenOf(PROJECT_ID, mockToken.address, newTokenOwner.address),
-    ).to.revertedWith('0x05: NOT_ALLOWED');
+    ).to.revertedWith('CHANGE_TOKEN_NOT_ALLOWED()');
   });
 });
