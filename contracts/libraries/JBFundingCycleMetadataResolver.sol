@@ -7,14 +7,13 @@ import './../interfaces/IJBFundingCycleDataSource.sol';
 import './../structs/JBFundingCycleMetadata.sol';
 
 library JBFundingCycleMetadataResolver {
-
   function reservedRate(JBFundingCycle memory _fundingCycle) internal pure returns (uint256) {
     return uint256(uint16(_fundingCycle.metadata >> 8));
   }
 
   function redemptionRate(JBFundingCycle memory _fundingCycle) internal pure returns (uint256) {
     // Redemption rate is a number 0-10000. It's inverse was stored so the most common case of 100% results in no storage needs.
-    return JBConstants.MAX_TOKEN_RATE - uint256(uint16(_fundingCycle.metadata >> 24));
+    return JBConstants.MAX_REDEMPTION_RATE - uint256(uint16(_fundingCycle.metadata >> 24));
   }
 
   function ballotRedemptionRate(JBFundingCycle memory _fundingCycle)
@@ -23,7 +22,7 @@ library JBFundingCycleMetadataResolver {
     returns (uint256)
   {
     // Redemption rate is a number 0-10000. It's inverse was stored so the most common case of 100% results in no storage needs.
-    return JBConstants.MAX_TOKEN_RATE - uint256(uint16(_fundingCycle.metadata >> 40));
+    return JBConstants.MAX_BALLOT_REDEMPTION_RATE - uint256(uint16(_fundingCycle.metadata >> 40));
   }
 
   function payPaused(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
@@ -117,10 +116,10 @@ library JBFundingCycleMetadataResolver {
     packed |= _metadata.reservedRate << 8;
     // redemption rate in bits 24-39 (16 bits).
     // redemption rate is a number 0-10000. Store the reverse so the most common case of 100% results in no storage needs.
-    packed |= (JBConstants.MAX_TOKEN_RATE - _metadata.redemptionRate) << 24;
+    packed |= (JBConstants.MAX_REDEMPTION_RATE - _metadata.redemptionRate) << 24;
     // ballot redemption rate rate in bits 40-55 (16 bits).
     // ballot redemption rate is a number 0-10000. Store the reverse so the most common case of 100% results in no storage needs.
-    packed |= (JBConstants.MAX_TOKEN_RATE - _metadata.ballotRedemptionRate) << 40;
+    packed |= (JBConstants.MAX_BALLOT_REDEMPTION_RATE - _metadata.ballotRedemptionRate) << 40;
     // pause pay in bit 56.
     if (_metadata.pausePay) packed |= 1 << 56;
     // pause tap in bit 57.

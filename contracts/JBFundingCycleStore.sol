@@ -5,6 +5,7 @@ import '@paulrberg/contracts/math/PRBMath.sol';
 
 import './abstract/JBControllerUtility.sol';
 import './interfaces/IJBFundingCycleStore.sol';
+import './libraries/JBConstants.sol';
 
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
@@ -19,16 +20,6 @@ error NON_RECURRING_FUNDING_CYCLE();
   Manages funding cycle scheduling.
 */
 contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
-  //*********************************************************************//
-  // ------------------------- private constants ----------------------- //
-  //*********************************************************************//
-
-  /** 
-    @notice
-    A funding cycle's discount rate is expressed as a percentage out of 100000000.
-  */
-  uint256 private constant _MAX_DISCOUNT_RATE = 100000000;
-
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//
@@ -272,7 +263,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     }
 
     // Discount rate token must be less than or equal to 100%. A value of 1000000001 means non-recurring.
-    if (_data.discountRate > _MAX_DISCOUNT_RATE) {
+    if (_data.discountRate > JBConstants.MAX_DISCOUNT_RATE) {
       revert INVALID_DISCOUNT_RATE();
     }
 
@@ -732,8 +723,8 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       return
         PRBMath.mulDiv(
           _baseFundingCycle.weight,
-          _MAX_DISCOUNT_RATE - _baseFundingCycle.discountRate,
-          _MAX_DISCOUNT_RATE
+          JBConstants.MAX_DISCOUNT_RATE - _baseFundingCycle.discountRate,
+          JBConstants.MAX_DISCOUNT_RATE
         );
 
     // The weight should be based off the base funding cycle's weight.
@@ -753,8 +744,8 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       // Base the new weight on the specified funding cycle's weight.
       weight = PRBMath.mulDiv(
         weight,
-        _MAX_DISCOUNT_RATE - _baseFundingCycle.discountRate,
-        _MAX_DISCOUNT_RATE
+        JBConstants.MAX_DISCOUNT_RATE - _baseFundingCycle.discountRate,
+        JBConstants.MAX_DISCOUNT_RATE
       );
   }
 
