@@ -225,35 +225,6 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
   /** 
     @notice 
-    Add a terminal to a project's list of terminals if it hasn't been already.
-
-    @dev
-    If the terminal is equal to address zero, the transaction will be reverted.
-
-    @param _projectId The ID of the project having a terminal added.
-    @param _terminal The terminal to add.
-    @param _caller The original caller that added the terminal.
-  */
-  function _addTerminalIfNeeded(
-    uint256 _projectId,
-    IJBTerminal _terminal,
-    address _caller
-  ) internal {
-    if (_terminal == IJBTerminal(address(0))) {
-      revert ADD_TERMINAL_ZERO_ADDRESS();
-    }
-
-    // Check that the terminal has not already been added.
-    if (isTerminalOf(_projectId, _terminal)) return;
-
-    // Set the new terminal.
-    _terminalsOf[_projectId].push(_terminal);
-
-    emit AddTerminal(_projectId, _terminal, _caller);
-  }
-
-  /** 
-    @notice 
     Add terminals to project's list of terminals.
 
     @dev
@@ -388,5 +359,38 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     delete _setControllerAllowlist[_address];
 
     emit RemoveFromSetControllerAllowlist(_address, msg.sender);
+  }
+
+  //*********************************************************************//
+  // --------------------- private helper functions -------------------- //
+  //*********************************************************************//
+
+  /** 
+    @notice 
+    Add a terminal to a project's list of terminals if it hasn't been already.
+
+    @dev
+    If the terminal is equal to address zero, the transaction will be reverted.
+
+    @param _projectId The ID of the project having a terminal added.
+    @param _terminal The terminal to add.
+    @param _caller The original caller that added the terminal.
+  */
+  function _addTerminalIfNeeded(
+    uint256 _projectId,
+    IJBTerminal _terminal,
+    address _caller
+  ) private {
+    if (_terminal == IJBTerminal(address(0))) {
+      revert ADD_TERMINAL_ZERO_ADDRESS();
+    }
+
+    // Check that the terminal has not already been added.
+    if (isTerminalOf(_projectId, _terminal)) return;
+
+    // Set the new terminal.
+    _terminalsOf[_projectId].push(_terminal);
+
+    emit AddTerminal(_projectId, _terminal, _caller);
   }
 }
