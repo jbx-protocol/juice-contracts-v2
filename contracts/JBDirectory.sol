@@ -332,12 +332,12 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @param _address the allowed address to be added.
   */
   function addToSetControllerAllowlist(address _address) external override onlyOwner {
-    // Check that the controller has not already been added.
+    // Check that the address is not already in the allowlist.
     if (_setControllerAllowlist[_address]) {
       revert CONTROLLER_ALREADY_IN_ALLOWLIST();
     }
 
-    // Add the controller to the list of known controllers.
+    // Add the address to the allowlist.
     _setControllerAllowlist[_address] = true;
 
     emit AddToSetControllerAllowlist(_address, msg.sender);
@@ -350,12 +350,12 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @param _address The address to be removed.
   */
   function removeFromSetControllerAllowlist(address _address) external override onlyOwner {
-    // Not in the known controllers list
+    // Check that the address is in the allowlist.
     if (!_setControllerAllowlist[_address]) {
       revert CONTROLLER_NOT_IN_ALLOWLIST();
     }
 
-    // Remove the controller from the list of known controllers.
+    // Remove the address from the allowlist.
     delete _setControllerAllowlist[_address];
 
     emit RemoveFromSetControllerAllowlist(_address, msg.sender);
