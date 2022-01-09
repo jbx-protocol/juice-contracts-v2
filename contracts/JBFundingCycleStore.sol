@@ -7,7 +7,8 @@ import './abstract/JBControllerUtility.sol';
 import './interfaces/IJBFundingCycleStore.sol';
 import './libraries/JBConstants.sol';
 
-// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+// --------------------------- custom errors ------------------------- //
 //*********************************************************************//
 error FUNDING_CYCLE_CONFIGURATION_NOT_FOUND();
 error INVALID_DISCOUNT_RATE();

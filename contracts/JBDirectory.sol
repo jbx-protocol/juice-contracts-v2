@@ -8,7 +8,8 @@ import './interfaces/IJBTerminal.sol';
 import './interfaces/IJBDirectory.sol';
 import './libraries/JBOperations.sol';
 
-// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+// --------------------------- custom errors ------------------------- //
 //*********************************************************************//
 error ADD_TERMINAL_ZERO_ADDRESS();
 error CONTROLLER_ALREADY_IN_ALLOWLIST();
