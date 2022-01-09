@@ -104,28 +104,6 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
   it('Should distribute payout and emit event, without taking a fee if fee is 0', async function () {
     const { caller, jbEthPaymentTerminal, timestamp } = await setup();
 
-    expect(
-      await jbEthPaymentTerminal.connect(caller).pay(
-        PROJECT_ID,
-        caller.address,
-        MIN_TOKEN_REQUESTED,
-        /*preferClaimedToken=*/true,
-        MEMO,
-        DELEGATE_METADATA,
-        { value: ETH_TO_PAY }
-      )
-    ).to.emit(jbEthPaymentTerminal, 'Pay')
-    .withArgs(
-      /*fundingCycle.configuration=*/timestamp,
-      FUNDING_CYCLE_NUMBER,
-      PROJECT_ID,
-      caller.address,
-      ETH_TO_PAY,
-      WEIGHT,
-      TOKEN_RECEIVED,
-      MEMO,
-      caller.address
-    );
   });
 
 // without taking a fee if project is platform project's
