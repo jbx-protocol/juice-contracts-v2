@@ -345,7 +345,6 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
       timestamp,
       fundingCycleData,
       fundingCycleMetadata,
-      splits,
       mockTerminal1,
       mockTerminal2,
     } = await setup();

@@ -390,7 +390,7 @@ describe('JBController::mintTokensOf(...)', function () {
     expect(newReservedTokenBalance).to.equal(previousReservedTokenBalance.add(AMOUNT_TO_MINT));
   });
 
-  it(`Should substract the received amount to the reserved tokens if reserved rate is 0%`, async function () {
+  it.only(`Should not change the reserved tokens amount if reserved rate is 0%`, async function () {
     const {
       projectOwner,
       beneficiary,
@@ -433,9 +433,6 @@ describe('JBController::mintTokensOf(...)', function () {
 
     let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, 0);
 
-    // reserved token cannot be < 0
-    expect(newReservedTokenBalance).to.equal(
-      Math.max(previousReservedTokenBalance.sub(AMOUNT_TO_MINT), 0),
-    );
+    expect(newReservedTokenBalance).to.equal(previousReservedTokenBalance).and.to.equal(0);
   });
 });
