@@ -25,6 +25,16 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     metadata: ethers.BigNumber.from(0),
   };
 
+  const FUNDING_CYCLE_CAN_START_ASAP = ethers.BigNumber.from(0);
+
+  const MAX_DISCOUNT_RATE = ethers.BigNumber.from(100000000);
+
+  // The metadata value doesn't affect the test.
+  const RANDOM_FUNDING_CYCLE_METADATA_1 = ethers.BigNumber.from(123);
+
+  // The metadata value doesn't affect the test.
+  const RANDOM_FUNDING_CYCLE_METADATA_2 = ethers.BigNumber.from(234);
+
   const ballotStatus = {
     APPROVED: 0,
     ACTIVE: 1,
@@ -61,8 +71,6 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     metadata: fc[8],
   });
 
-  const fundingCycleMustStartOnOrAfterZero = ethers.BigNumber.from(0);
-
   it('Should have no current or queued funding cycle before configuring', async function () {
     const { jbFundingCycleStore } = await setup();
 
@@ -92,7 +100,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
         PROJECT_ID,
         fundingCycleData,
         fundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the configuration was made during.
@@ -110,7 +118,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
           fundingCycleData.ballot,
         ],
         fundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        FUNDING_CYCLE_CAN_START_ASAP,
         controller.address,
       );
 
@@ -287,17 +295,14 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
 
     const firstFundingCycleData = createFundingCycleData();
 
-    // The metadata value doesn't affect the test.
-    const firstFundingCycleMetadata = ethers.BigNumber.from(123);
-
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
       .configureFor(
         PROJECT_ID,
         firstFundingCycleData,
-        firstFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_1,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the first configuration was made during.
@@ -312,7 +317,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight,
       discountRate: firstFundingCycleData.discountRate,
       ballot: firstFundingCycleData.ballot,
-      metadata: firstFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_1,
     };
 
     const secondFundingCycleData = createFundingCycleData({
@@ -321,9 +326,6 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       discountRate: firstFundingCycleData.discountRate.add(1),
       weight: firstFundingCycleData.weight.add(1),
     });
-
-    // The metadata value doesn't affect the test.
-    const secondFundingCycleMetadata = ethers.BigNumber.from(234);
 
     //fast forward to within the cycle.
     //keep 5 seconds before the end of the cycle so make all necessary checks before the cycle ends.
@@ -335,8 +337,8 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       .configureFor(
         PROJECT_ID,
         secondFundingCycleData,
-        secondFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_2,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the second configuration was made during.
@@ -355,7 +357,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: secondFundingCycleData.weight,
       discountRate: secondFundingCycleData.discountRate,
       ballot: secondFundingCycleData.ballot,
-      metadata: secondFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_2,
     };
 
     expect(
@@ -375,17 +377,14 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
 
     const firstFundingCycleData = createFundingCycleData();
 
-    // The metadata value doesn't affect the test.
-    const firstFundingCycleMetadata = ethers.BigNumber.from(123);
-
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
       .configureFor(
         PROJECT_ID,
         firstFundingCycleData,
-        firstFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_1,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the first configuration was made during.
@@ -400,7 +399,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight,
       discountRate: firstFundingCycleData.discountRate,
       ballot: firstFundingCycleData.ballot,
-      metadata: firstFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_1,
     };
 
     // Must start in two funding cycles.
@@ -409,9 +408,6 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       discountRate: firstFundingCycleData.discountRate.add(1),
       weight: firstFundingCycleData.weight.add(1),
     });
-
-    // The metadata value doesn't affect the test.
-    const secondFundingCycleMetadata = ethers.BigNumber.from(234);
 
     //fast forward to within the cycle.
     //keep 5 seconds before the end of the cycle so make all necessary checks before the cycle ends.
@@ -427,7 +423,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       .configureFor(
         PROJECT_ID,
         secondFundingCycleData,
-        secondFundingCycleMetadata,
+        RANDOM_FUNDING_CYCLE_METADATA_2,
         reconfiguredFundingCycleMustStartOnOrAfter,
       );
 
@@ -447,7 +443,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: secondFundingCycleData.weight,
       discountRate: secondFundingCycleData.discountRate,
       ballot: secondFundingCycleData.ballot,
-      metadata: secondFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_2,
     };
 
     expect(
@@ -484,17 +480,14 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // No duration.
     const firstFundingCycleData = createFundingCycleData({ duration: BigNumber.from(0) });
 
-    // The metadata value doesn't affect the test.
-    const firstFundingCycleMetadata = ethers.BigNumber.from(123);
-
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
       .configureFor(
         PROJECT_ID,
         firstFundingCycleData,
-        firstFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_1,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the first configuration was made during.
@@ -509,7 +502,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight,
       discountRate: firstFundingCycleData.discountRate,
       ballot: firstFundingCycleData.ballot,
-      metadata: firstFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_1,
     };
 
     // Must start in two funding cycles.
@@ -518,8 +511,6 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight.add(1),
     });
 
-    // The metadata value doesn't affect the test.
-    const secondFundingCycleMetadata = ethers.BigNumber.from(234);
 
     // Start the configured cycle in 10000 seconds.
     const reconfiguredFundingCycleStartsIn = BigNumber.from(10000);
@@ -533,7 +524,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       .configureFor(
         PROJECT_ID,
         secondFundingCycleData,
-        secondFundingCycleMetadata,
+        RANDOM_FUNDING_CYCLE_METADATA_2,
         reconfiguredFundingCycleMustStartOnOrAfter,
       );
 
@@ -553,7 +544,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: secondFundingCycleData.weight,
       discountRate: secondFundingCycleData.discountRate,
       ballot: secondFundingCycleData.ballot,
-      metadata: secondFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_2,
     };
 
     expect(
@@ -573,17 +564,14 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
 
     const firstFundingCycleData = createFundingCycleData();
 
-    // The metadata value doesn't affect the test.
-    const firstFundingCycleMetadata = ethers.BigNumber.from(123);
-
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
       .configureFor(
         PROJECT_ID,
         firstFundingCycleData,
-        firstFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_1,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the first configuration was made during.
@@ -598,7 +586,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight,
       discountRate: firstFundingCycleData.discountRate,
       ballot: firstFundingCycleData.ballot,
-      metadata: firstFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_1,
     };
 
     const secondFundingCycleData = createFundingCycleData({
@@ -607,9 +595,6 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       discountRate: firstFundingCycleData.discountRate.add(1),
       weight: firstFundingCycleData.weight.add(1),
     });
-
-    // The metadata value doesn't affect the test.
-    const secondFundingCycleMetadata = ethers.BigNumber.from(234);
 
     // 5 cycles into the future.
     const cycleDiff = ethers.BigNumber.from(5);
@@ -625,8 +610,8 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       .configureFor(
         PROJECT_ID,
         secondFundingCycleData,
-        secondFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_2,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the second configuration was made during.
@@ -645,7 +630,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: secondFundingCycleData.weight,
       discountRate: secondFundingCycleData.discountRate,
       ballot: secondFundingCycleData.ballot,
-      metadata: secondFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_2,
     };
 
     expect(
@@ -663,6 +648,91 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     );
   });
 
+  it('Should configure subsequent cycle during a rolled over funding cycle many multiples of duration later', async function () {
+    // Increase timeout because this test will need a long for loop iteration.
+    this.timeout(6000);
+
+    const { controller, mockJbDirectory, jbFundingCycleStore, addrs } = await setup();
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    const discountRate = 0.005; // Use a discount rate of 0.5%
+
+    const firstFundingCycleData = createFundingCycleData({
+      duration: ethers.BigNumber.from(5),
+      discountRate: ethers.BigNumber.from(MAX_DISCOUNT_RATE.div(1 / discountRate)),
+    });
+
+    // Configure first funding cycle
+    const firstConfigureForTx = await jbFundingCycleStore
+      .connect(controller)
+      .configureFor(
+        PROJECT_ID,
+        firstFundingCycleData,
+        RANDOM_FUNDING_CYCLE_METADATA_1,
+        FUNDING_CYCLE_CAN_START_ASAP,
+      );
+
+    // The timestamp the first configuration was made during.
+    const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
+
+    const secondFundingCycleData = createFundingCycleData({
+      ballot: addrs[0].address,
+      duration: firstFundingCycleData.duration.add(1),
+      discountRate: firstFundingCycleData.discountRate.add(1),
+      weight: ethers.BigNumber.from(0), //inherit weight.
+    });
+
+    // 10000000 cycles into the future.
+    const cycleDiff = ethers.BigNumber.from(10000000);
+
+    //keep 5 seconds before the end of the cycle so make all necessary checks before the cycle ends.
+    await fastForward(
+      firstConfigureForTx.blockNumber,
+      firstFundingCycleData.duration.mul(cycleDiff).sub(5),
+    );
+
+    // Configure second funding cycle
+    const secondConfigureForTx = await jbFundingCycleStore
+      .connect(controller)
+      .configureFor(
+        PROJECT_ID,
+        secondFundingCycleData,
+        RANDOM_FUNDING_CYCLE_METADATA_2,
+        FUNDING_CYCLE_CAN_START_ASAP,
+      );
+
+    // The timestamp the second configuration was made during.
+    const secondConfigurationTimestamp = await getTimestamp(secondConfigureForTx.blockNumber);
+
+    await expect(secondConfigureForTx)
+      .to.emit(jbFundingCycleStore, `Init`)
+      .withArgs(secondConfigurationTimestamp, PROJECT_ID, /*basedOn=*/ firstConfigurationTimestamp);
+
+    const expectedSecondFundingCycleWithoutWeight = {
+      number: cycleDiff.add(1), // second cycle
+      configuration: secondConfigurationTimestamp,
+      basedOn: firstConfigurationTimestamp, // based on the first cycle
+      start: firstConfigurationTimestamp.add(firstFundingCycleData.duration.mul(cycleDiff)), // starts at the end of the first cycle
+      duration: secondFundingCycleData.duration,
+      discountRate: secondFundingCycleData.discountRate,
+      ballot: secondFundingCycleData.ballot,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_2,
+    };
+
+    // Wrap in try catch. If the new weight calculation breaks, it should default to equal 0.
+    try {
+      expect(cleanFundingCycle(await jbFundingCycleStore.queuedOf(PROJECT_ID))).to.eql({
+        ...expectedSecondFundingCycleWithoutWeight,
+        weight: firstFundingCycleData.weight.div(1 / discountRate ** cycleDiff),
+      });
+    } catch {
+      expect(cleanFundingCycle(await jbFundingCycleStore.queuedOf(PROJECT_ID))).to.eql({
+        ...expectedSecondFundingCycleWithoutWeight,
+        weight: ethers.BigNumber.from(0),
+      });
+    }
+  });
+
   it('Should ignore failed configuration and roll over current configuration', async function () {
     const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore, addrs } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
@@ -672,17 +742,14 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Set the ballot to have a short duration.
     await mockBallot.mock.duration.withArgs().returns(0);
 
-    // The metadata value doesn't affect the test.
-    const firstFundingCycleMetadata = ethers.BigNumber.from(123);
-
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
       .configureFor(
         PROJECT_ID,
         firstFundingCycleData,
-        firstFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_1,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the first configuration was made during.
@@ -697,7 +764,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight,
       discountRate: firstFundingCycleData.discountRate,
       ballot: firstFundingCycleData.ballot,
-      metadata: firstFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_1,
     };
 
     const failedFundingCycleData = createFundingCycleData({
@@ -717,7 +784,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
         PROJECT_ID,
         failedFundingCycleData,
         failedFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the second configuration was made during.
@@ -759,17 +826,14 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Set the ballot to have a short duration.
     await mockBallot.mock.duration.withArgs().returns(0);
 
-    // The metadata value doesn't affect the test.
-    const firstFundingCycleMetadata = ethers.BigNumber.from(123);
-
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
       .configureFor(
         PROJECT_ID,
         firstFundingCycleData,
-        firstFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_1,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the first configuration was made during.
@@ -784,7 +848,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight,
       discountRate: firstFundingCycleData.discountRate,
       ballot: firstFundingCycleData.ballot,
-      metadata: firstFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_1,
     };
 
     const secondFundingCycleData = createFundingCycleData({
@@ -794,17 +858,14 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight.add(1),
     });
 
-    // The metadata value doesn't affect the test.
-    const secondFundingCycleMetadata = ethers.BigNumber.from(234);
-
     // Configure a bogus failed funding cycle. Use the same metadata for convinience.
     const failedConfigureForTx = await jbFundingCycleStore
       .connect(controller)
       .configureFor(
         PROJECT_ID,
         secondFundingCycleData,
-        secondFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_2,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the second configuration was made during.
@@ -829,8 +890,8 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       .configureFor(
         PROJECT_ID,
         secondFundingCycleData,
-        secondFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_2,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the second configuration was made during.
@@ -854,7 +915,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: secondFundingCycleData.weight,
       discountRate: secondFundingCycleData.discountRate,
       ballot: secondFundingCycleData.ballot,
-      metadata: secondFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_2,
     };
 
     expect(
@@ -880,17 +941,14 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Set the ballot to have a short duration.
     await mockBallot.mock.duration.withArgs().returns(0);
 
-    // The metadata value doesn't affect the test.
-    const firstFundingCycleMetadata = ethers.BigNumber.from(123);
-
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
       .configureFor(
         PROJECT_ID,
         firstFundingCycleData,
-        firstFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_1,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the first configuration was made during.
@@ -905,7 +963,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight,
       discountRate: firstFundingCycleData.discountRate,
       ballot: firstFundingCycleData.ballot,
-      metadata: firstFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_1,
     };
 
     const secondFundingCycleData = createFundingCycleData({
@@ -914,9 +972,6 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       discountRate: firstFundingCycleData.discountRate.add(1),
       weight: firstFundingCycleData.weight.add(1),
     });
-
-    // The metadata value doesn't affect the test.
-    const secondFundingCycleMetadata = ethers.BigNumber.from(234);
 
     // 5 cycles into the future.
     const cycleDiff = ethers.BigNumber.from(5);
@@ -932,8 +987,8 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       .configureFor(
         PROJECT_ID,
         secondFundingCycleData,
-        secondFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_2,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the second configuration was made during.
@@ -956,8 +1011,8 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       .configureFor(
         PROJECT_ID,
         secondFundingCycleData,
-        secondFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_2,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the second configuration was made during.
@@ -981,7 +1036,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: secondFundingCycleData.weight,
       discountRate: secondFundingCycleData.discountRate,
       ballot: secondFundingCycleData.ballot,
-      metadata: secondFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_2,
     };
 
     expect(
@@ -1003,17 +1058,14 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
 
     const firstFundingCycleData = createFundingCycleData({ duration: BigNumber.from(0) });
 
-    // The metadata value doesn't affect the test.
-    const firstFundingCycleMetadata = ethers.BigNumber.from(123);
-
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
       .configureFor(
         PROJECT_ID,
         firstFundingCycleData,
-        firstFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_1,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the first configuration was made during.
@@ -1028,7 +1080,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight,
       discountRate: firstFundingCycleData.discountRate,
       ballot: firstFundingCycleData.ballot,
-      metadata: firstFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_1,
     };
 
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(
@@ -1043,9 +1095,6 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Set the duration to 0 of the second cycle to check that no queued cycle is being returned.
     const secondFundingCycleData = createFundingCycleData({ duration: BigNumber.from(0) });
 
-    // The metadata value doesn't affect the test.
-    const secondFundingCycleMetadata = ethers.BigNumber.from(234);
-
     //fast forward to within the cycle.
     //An arbitrary amount into the future.
     await fastForward(firstConfigureForTx.blockNumber, ethers.BigNumber.from(123456789));
@@ -1056,8 +1105,8 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       .configureFor(
         PROJECT_ID,
         secondFundingCycleData,
-        secondFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_2,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the second configuration was made during.
@@ -1072,7 +1121,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: secondFundingCycleData.weight,
       discountRate: secondFundingCycleData.discountRate,
       ballot: secondFundingCycleData.ballot,
-      metadata: secondFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_2,
     };
 
     expect(
@@ -1093,17 +1142,14 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
 
     const firstFundingCycleData = createFundingCycleData({ ballot: mockBallot.address });
 
-    // The metadata value doesn't affect the test.
-    const firstFundingCycleMetadata = ethers.BigNumber.from(123);
-
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
       .configureFor(
         PROJECT_ID,
         firstFundingCycleData,
-        firstFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_1,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the first configuration was made during.
@@ -1118,7 +1164,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight,
       discountRate: firstFundingCycleData.discountRate,
       ballot: firstFundingCycleData.ballot,
-      metadata: firstFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_1,
     };
 
     const secondFundingCycleData = createFundingCycleData({
@@ -1127,9 +1173,6 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       discountRate: firstFundingCycleData.discountRate.add(1),
       weight: firstFundingCycleData.weight.add(1),
     });
-
-    // The metadata value doesn't affect the test.
-    const secondFundingCycleMetadata = ethers.BigNumber.from(234);
 
     //fast forward to within the cycle.
     //keep 5 seconds before the end of the cycle so make all necessary checks before the cycle ends.
@@ -1144,8 +1187,8 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       .configureFor(
         PROJECT_ID,
         secondFundingCycleData,
-        secondFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_2,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the second configuration was made during.
@@ -1187,17 +1230,14 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
 
     const firstFundingCycleData = createFundingCycleData({ ballot: mockBallot.address });
 
-    // The metadata value doesn't affect the test.
-    const firstFundingCycleMetadata = ethers.BigNumber.from(123);
-
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
       .configureFor(
         PROJECT_ID,
         firstFundingCycleData,
-        firstFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_1,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the first configuration was made during.
@@ -1212,7 +1252,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight,
       discountRate: firstFundingCycleData.discountRate,
       ballot: firstFundingCycleData.ballot,
-      metadata: firstFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_1,
     };
 
     const secondFundingCycleData = createFundingCycleData({
@@ -1221,9 +1261,6 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       discountRate: firstFundingCycleData.discountRate.add(1),
       weight: firstFundingCycleData.weight.add(1),
     });
-
-    // The metadata value doesn't affect the test.
-    const secondFundingCycleMetadata = ethers.BigNumber.from(234);
 
     // Set the ballot to have a duration as long as the funding cycle.
     await mockBallot.mock.duration.returns(firstFundingCycleData.duration);
@@ -1237,8 +1274,8 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       .configureFor(
         PROJECT_ID,
         secondFundingCycleData,
-        secondFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_2,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the second configuration was made during.
@@ -1277,7 +1314,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     // Fast forward to the moment the ballot duration has passed.
     await fastForward(
       'latest',
-      secondConfigurationTimestamp.sub(firstConfigurationTimestamp).add(2),
+      secondConfigurationTimestamp.sub(firstConfigurationTimestamp).add(3), // Add 3 to give a buffer for subsequent calculations
     );
 
     // Mock the ballot on the first funding cycle as approved.
@@ -1299,7 +1336,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: secondFundingCycleData.weight,
       discountRate: secondFundingCycleData.discountRate,
       ballot: secondFundingCycleData.ballot,
-      metadata: secondFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_2,
     };
 
     // The reconfiguration should take effect on the third cycle.
@@ -1314,17 +1351,14 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
 
     const firstFundingCycleData = createFundingCycleData();
 
-    // The metadata value doesn't affect the test.
-    const firstFundingCycleMetadata = ethers.BigNumber.from(123);
-
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
       .configureFor(
         PROJECT_ID,
         firstFundingCycleData,
-        firstFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_1,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the first configuration was made during.
@@ -1336,17 +1370,14 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight.add(1),
     });
 
-    // The metadata value doesn't affect the test.
-    const secondFundingCycleMetadata = ethers.BigNumber.from(234);
-
     // Configure second funding cycle
     const secondConfigureForTx = await jbFundingCycleStore
       .connect(controller)
       .configureFor(
         PROJECT_ID,
         secondFundingCycleData,
-        secondFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_2,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the second configuration was made during.
@@ -1373,7 +1404,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
         PROJECT_ID,
         thirdFundingCycleData,
         thirdFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the third configuration was made during.
@@ -1411,17 +1442,14 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       duration: BigNumber.from(0),
     });
 
-    // The metadata value doesn't affect the test.
-    const firstFundingCycleMetadata = ethers.BigNumber.from(123);
-
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
       .configureFor(
         PROJECT_ID,
         firstFundingCycleData,
-        firstFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_1,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the first configuration was made during.
@@ -1436,14 +1464,11 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight,
       discountRate: firstFundingCycleData.discountRate,
       ballot: firstFundingCycleData.ballot,
-      metadata: firstFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_1,
     };
 
     // Use a weight of 0 to inherit from previous fc.
     const secondFundingCycleData = createFundingCycleData({ weight: BigNumber.from(0) });
-
-    // The metadata value doesn't affect the test.
-    const secondFundingCycleMetadata = ethers.BigNumber.from(234);
 
     const ballotDuration = BigNumber.from(100);
 
@@ -1456,8 +1481,8 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       .configureFor(
         PROJECT_ID,
         secondFundingCycleData,
-        secondFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_2,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the second configuration was made during.
@@ -1472,7 +1497,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight, // inherit from first fc
       discountRate: secondFundingCycleData.discountRate,
       ballot: secondFundingCycleData.ballot,
-      metadata: secondFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_2,
     };
 
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(
@@ -1501,17 +1526,14 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
 
     const firstFundingCycleData = createFundingCycleData();
 
-    // The metadata value doesn't affect the test.
-    const firstFundingCycleMetadata = ethers.BigNumber.from(123);
-
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
       .configureFor(
         PROJECT_ID,
         firstFundingCycleData,
-        firstFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_1,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the first configuration was made during.
@@ -1519,9 +1541,6 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
 
     // Set a weight of 0.
     const secondFundingCycleData = createFundingCycleData({ weight: ethers.BigNumber.from(0) });
-
-    // The metadata value doesn't affect the test.
-    const secondFundingCycleMetadata = ethers.BigNumber.from(234);
 
     //fast forward to within the cycle.
     //keep 5 seconds before the end of the cycle so make all necessary checks before the cycle ends.
@@ -1533,8 +1552,8 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       .configureFor(
         PROJECT_ID,
         secondFundingCycleData,
-        secondFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_2,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the second configuration was made during.
@@ -1549,7 +1568,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight, // expect a weight derived from the previous cycle's values because 0 was sent.
       discountRate: secondFundingCycleData.discountRate,
       ballot: secondFundingCycleData.ballot,
-      metadata: secondFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_2,
     };
 
     // The `queuedOf` should contain the properties of the current cycle, with a new number, start, and weight.
@@ -1564,17 +1583,14 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
 
     const firstFundingCycleData = createFundingCycleData();
 
-    // The metadata value doesn't affect the test.
-    const firstFundingCycleMetadata = ethers.BigNumber.from(123);
-
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
       .configureFor(
         PROJECT_ID,
         firstFundingCycleData,
-        firstFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_1,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the first configuration was made during.
@@ -1582,9 +1598,6 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
 
     // Set a weight of 1.
     const secondFundingCycleData = createFundingCycleData({ weight: ethers.BigNumber.from(1) });
-
-    // The metadata value doesn't affect the test.
-    const secondFundingCycleMetadata = ethers.BigNumber.from(234);
 
     //fast forward to within the cycle.
     //keep 5 seconds before the end of the cycle so make all necessary checks before the cycle ends.
@@ -1596,8 +1609,8 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       .configureFor(
         PROJECT_ID,
         secondFundingCycleData,
-        secondFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_2,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the second configuration was made during.
@@ -1612,7 +1625,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: ethers.BigNumber.from(0), // expect 0 because 1 was sent.
       discountRate: secondFundingCycleData.discountRate,
       ballot: secondFundingCycleData.ballot,
-      metadata: secondFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_2,
     };
 
     // The `queuedOf` should contain the properties of the current cycle, with a new number, start, and weight.
@@ -1632,17 +1645,14 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       discountRate: BigNumber.from(discountRate * discountFidelity),
     });
 
-    // The metadata value doesn't affect the test.
-    const firstFundingCycleMetadata = ethers.BigNumber.from(123);
-
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
       .configureFor(
         PROJECT_ID,
         firstFundingCycleData,
-        firstFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_1,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the first configuration was made during.
@@ -1650,9 +1660,6 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
 
     // Set a weight of 0.
     const secondFundingCycleData = createFundingCycleData({ weight: ethers.BigNumber.from(0) });
-
-    // The metadata value doesn't affect the test.
-    const secondFundingCycleMetadata = ethers.BigNumber.from(234);
 
     //fast forward to within the cycle.
     //keep 5 seconds before the end of the cycle so make all necessary checks before the cycle ends.
@@ -1664,8 +1671,8 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       .configureFor(
         PROJECT_ID,
         secondFundingCycleData,
-        secondFundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        RANDOM_FUNDING_CYCLE_METADATA_2,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the second configuration was made during.
@@ -1680,7 +1687,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight.div(1 / discountRate), // expect a weight derived from the previous cycle's values because 0 was sent.
       discountRate: secondFundingCycleData.discountRate,
       ballot: secondFundingCycleData.ballot,
-      metadata: secondFundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_2,
     };
 
     // The `queuedOf` should contain the properties of the current cycle, with a new number, start, and weight.
@@ -1695,10 +1702,8 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
 
     const discountRate = 0.5; // Use a discount rate of 50%
 
-    const discountRateFidelity = 100000000; // Discount rates are stored out of this number
-
     const fundingCycleData = createFundingCycleData({
-      discountRate: ethers.BigNumber.from(discountRateFidelity * discountRate),
+      discountRate: ethers.BigNumber.from(MAX_DISCOUNT_RATE.div(1 / discountRate)),
     });
 
     // The metadata value doesn't affect the test.
@@ -1711,7 +1716,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
         PROJECT_ID,
         fundingCycleData,
         fundingCycleMetadata,
-        fundingCycleMustStartOnOrAfterZero,
+        FUNDING_CYCLE_CAN_START_ASAP,
       );
 
     // The timestamp the configuration was made during.
@@ -1757,21 +1762,8 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     await expect(
       jbFundingCycleStore
         .connect(nonController)
-        .configureFor(PROJECT_ID, fundingCycleData, 0, fundingCycleMustStartOnOrAfterZero),
+        .configureFor(PROJECT_ID, fundingCycleData, 0, FUNDING_CYCLE_CAN_START_ASAP),
     ).to.be.revertedWith(errors.CONTROLLER_UNAUTHORIZED);
-  });
-
-  it(`Can't configure if funding cycle duration is shorter than 1000 seconds`, async function () {
-    const { controller, mockJbDirectory, jbFundingCycleStore } = await setup();
-    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
-
-    const fundingCycleData = createFundingCycleData({ duration: 999 });
-
-    await expect(
-      jbFundingCycleStore
-        .connect(controller)
-        .configureFor(PROJECT_ID, fundingCycleData, 0, fundingCycleMustStartOnOrAfterZero),
-    ).to.be.revertedWith(errors.INVALID_DURATION);
   });
 
   it(`Can't configure if funding cycle discount rate is above 100%`, async function () {
@@ -1783,7 +1775,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     await expect(
       jbFundingCycleStore
         .connect(controller)
-        .configureFor(PROJECT_ID, fundingCycleData, 0, fundingCycleMustStartOnOrAfterZero),
+        .configureFor(PROJECT_ID, fundingCycleData, 0, FUNDING_CYCLE_CAN_START_ASAP),
     ).to.be.revertedWith(errors.INVALID_DISCOUNT_RATE);
   });
 
@@ -1798,7 +1790,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     await expect(
       jbFundingCycleStore
         .connect(controller)
-        .configureFor(PROJECT_ID, fundingCycleData, 0, fundingCycleMustStartOnOrAfterZero),
+        .configureFor(PROJECT_ID, fundingCycleData, 0, FUNDING_CYCLE_CAN_START_ASAP),
     ).to.be.revertedWith(errors.INVALID_WEIGHT);
   });
 });

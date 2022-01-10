@@ -258,8 +258,8 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _metadata,
     uint256 _mustStartAtOrAfter
   ) external override onlyController(_projectId) returns (JBFundingCycle memory) {
-    // Duration must fit in a uint64, and must be greater than 1000 seconds to prevent manipulative miner behavior.
-    if (_data.duration > type(uint64).max || (_data.duration > 0 && _data.duration <= 1000)) {
+    // Duration must fit in a uint64.
+    if (_data.duration > type(uint64).max) {
       revert INVALID_DURATION();
     }
 
@@ -656,8 +656,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // A reference to the first possible start timestamp.
     start = _mustStartAtOrAfter - _timeFromImmediateStartMultiple;
 
-    // If _mustStartOnOrAfter % duration == 0, add mustStartOnOrAfter.
-
     // Add increments of duration as necessary to satisfy the threshold.
     while (_mustStartAtOrAfter > start) start = start + _baseFundingCycle.duration;
   }
@@ -673,7 +671,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
   */
   function _deriveWeightFrom(JBFundingCycle memory _baseFundingCycle, uint256 _start)
     private
-    pure
+    view
     returns (uint256 weight)
   {
     // A subsequent cycle to one with a duration of 0 should have the next possible weight.
@@ -697,7 +695,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // Apply the base funding cycle's discount rate for each cycle that has passed.
     uint256 _discountMultiple = _startDistance / _baseFundingCycle.duration;
 
-    for (uint256 i = 0; i < _discountMultiple; i++)
+    for (uint256 i = 0; i < _discountMultiple; i++) {
       // The number of times to apply the discount rate.
       // Base the new weight on the specified funding cycle's weight.
       weight = PRBMath.mulDiv(
@@ -705,6 +703,9 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
         JBConstants.MAX_DISCOUNT_RATE - _baseFundingCycle.discountRate,
         JBConstants.MAX_DISCOUNT_RATE
       );
+      // The calculation doesn't need to continue if the weight is 0.
+      if (weight == 0) break;
+    }
   }
 
   /** 
