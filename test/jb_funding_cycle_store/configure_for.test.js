@@ -650,7 +650,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
 
   it('Should configure subsequent cycle during a rolled over funding cycle many multiples of duration later', async function () {
     // Increase timeout because this test will need a long for loop iteration.
-    this.timeout(6000);
+    this.timeout(10000);
 
     const { controller, mockJbDirectory, jbFundingCycleStore, addrs } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
