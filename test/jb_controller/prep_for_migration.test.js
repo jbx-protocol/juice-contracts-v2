@@ -19,25 +19,23 @@ describe('JBController::prepForMigrationOf(...)', function () {
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
-    let promises = [];
-
-    promises.push(deployMockContract(deployer, jbOperatoreStore.abi));
-    promises.push(deployMockContract(deployer, jbProjects.abi));
-    promises.push(deployMockContract(deployer, jbDirectory.abi));
-    promises.push(deployMockContract(deployer, jbFundingCycleStore.abi));
-    promises.push(deployMockContract(deployer, jbTokenStore.abi));
-    promises.push(deployMockContract(deployer, jbSplitsStore.abi));
-    promises.push(deployMockContract(deployer, jbController.abi));
-
     let [
-      mockJbOperatorStore,
-      mockJbProjects,
+      mockController,
       mockJbDirectory,
       mockJbFundingCycleStore,
-      mockTokenStore,
+      mockJbOperatorStore,
+      mockJbProjects,
       mockSplitsStore,
-      mockController,
-    ] = await Promise.all(promises);
+      mockTokenStore,
+    ] = await Promise.all([
+      deployMockContract(deployer, jbController.abi),
+      deployMockContract(deployer, jbDirectory.abi),
+      deployMockContract(deployer, jbFundingCycleStore.abi),
+      deployMockContract(deployer, jbOperatoreStore.abi),
+      deployMockContract(deployer, jbProjects.abi),
+      deployMockContract(deployer, jbSplitsStore.abi),
+      deployMockContract(deployer, jbTokenStore.abi),
+    ]);
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');
     let jbController = await jbControllerFactory.deploy(

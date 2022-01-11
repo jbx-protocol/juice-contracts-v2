@@ -36,25 +36,23 @@ describe('JBController::mintTokensOf(...)', function () {
     const block = await ethers.provider.getBlock(blockNum);
     const timestamp = block.timestamp;
 
-    let promises = [];
-
-    promises.push(deployMockContract(deployer, jbOperatoreStore.abi));
-    promises.push(deployMockContract(deployer, jbProjects.abi));
-    promises.push(deployMockContract(deployer, jbDirectory.abi));
-    promises.push(deployMockContract(deployer, jbFundingCycleStore.abi));
-    promises.push(deployMockContract(deployer, jbTokenStore.abi));
-    promises.push(deployMockContract(deployer, jbSplitsStore.abi));
-    promises.push(deployMockContract(deployer, jbToken.abi));
-
     let [
-      mockJbOperatorStore,
-      mockJbProjects,
       mockJbDirectory,
       mockJbFundingCycleStore,
-      mockTokenStore,
-      mockSplitsStore,
-      mockToken,
-    ] = await Promise.all(promises);
+      mockJbOperatorStore,
+      mockJbProjects,
+      mockJbSplitsStore,
+      mockJbToken,
+      mockJbTokenStore
+    ] = await Promise.all([
+      deployMockContract(deployer, jbDirectory.abi),
+      deployMockContract(deployer, jbFundingCycleStore.abi),
+      deployMockContract(deployer, jbOperatoreStore.abi),
+      deployMockContract(deployer, jbProjects.abi),
+      deployMockContract(deployer, jbSplitsStore.abi),
+      deployMockContract(deployer, jbToken.abi),
+      deployMockContract(deployer, jbTokenStore.abi),
+    ]);
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');
     let jbController = await jbControllerFactory.deploy(
@@ -62,8 +60,8 @@ describe('JBController::mintTokensOf(...)', function () {
       mockJbProjects.address,
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
-      mockTokenStore.address,
-      mockSplitsStore.address,
+      mockJbTokenStore.address,
+      mockJbSplitsStore.address,
     );
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
@@ -85,11 +83,11 @@ describe('JBController::mintTokensOf(...)', function () {
       metadata: packFundingCycleMetadata({ pauseMint: 0, reservedRate: RESERVED_RATE }),
     });
 
-    await mockTokenStore.mock.mintFor
+    await mockJbTokenStore.mock.mintFor
       .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_RECEIVE, /*_preferClaimedTokens=*/ true)
       .returns();
 
-    await mockTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(AMOUNT_TO_RECEIVE);
+    await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(AMOUNT_TO_RECEIVE);
 
     return {
       projectOwner,
@@ -99,8 +97,8 @@ describe('JBController::mintTokensOf(...)', function () {
       mockJbOperatorStore,
       mockJbDirectory,
       mockJbFundingCycleStore,
-      mockTokenStore,
-      mockToken,
+      mockJbTokenStore,
+      mockJbToken,
       timestamp,
     };
   }
@@ -353,7 +351,7 @@ describe('JBController::mintTokensOf(...)', function () {
       beneficiary,
       jbController,
       mockJbFundingCycleStore,
-      mockTokenStore,
+      mockJbTokenStore,
       timestamp,
     } = await setup();
 
@@ -370,7 +368,7 @@ describe('JBController::mintTokensOf(...)', function () {
       metadata: packFundingCycleMetadata({ reservedRate: 10000 }),
     });
 
-    await mockTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(0);
+    await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(0);
 
     let previousReservedTokenBalance = await jbController.reservedTokenBalanceOf(
       PROJECT_ID,
@@ -396,7 +394,7 @@ describe('JBController::mintTokensOf(...)', function () {
       beneficiary,
       jbController,
       mockJbFundingCycleStore,
-      mockTokenStore,
+      mockJbTokenStore,
       timestamp,
     } = await setup();
 
@@ -412,9 +410,9 @@ describe('JBController::mintTokensOf(...)', function () {
       metadata: packFundingCycleMetadata({ reservedRate: 0 }),
     });
 
-    await mockTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(AMOUNT_TO_MINT); // to mint == to receive <=> reserve rate = 0
+    await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(AMOUNT_TO_MINT); // to mint == to receive <=> reserve rate = 0
 
-    await mockTokenStore.mock.mintFor
+    await mockJbTokenStore.mock.mintFor
       .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, true)
       .returns(); // to mint == to receive (reserve rate = 0)
 

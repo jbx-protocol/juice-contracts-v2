@@ -28,25 +28,24 @@ describe('JBController::issueTokenFor(...)', function () {
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
-    let promises = [];
-
-    promises.push(deployMockContract(deployer, jbOperatoreStore.abi));
-    promises.push(deployMockContract(deployer, jbProjects.abi));
-    promises.push(deployMockContract(deployer, jbDirectory.abi));
-    promises.push(deployMockContract(deployer, jbFundingCycleStore.abi));
-    promises.push(deployMockContract(deployer, jbTokenStore.abi));
-    promises.push(deployMockContract(deployer, jbSplitsStore.abi));
-    promises.push(deployMockContract(deployer, jbToken.abi));
-
     let [
-      mockJbOperatorStore,
-      mockJbProjects,
       mockJbDirectory,
       mockJbFundingCycleStore,
-      mockTokenStore,
-      mockSplitsStore,
-      mockToken,
-    ] = await Promise.all(promises);
+      mockJbOperatorStore,
+      mockJbProjects,
+      mockJbSplitsStore,
+      mockJbToken,
+      mockJbTokenStore,
+    ] = await Promise.all([
+      deployMockContract(deployer, jbDirectory.abi),
+      deployMockContract(deployer, jbFundingCycleStore.abi),
+      deployMockContract(deployer, jbOperatoreStore.abi),
+      deployMockContract(deployer, jbProjects.abi),
+      deployMockContract(deployer, jbSplitsStore.abi),
+      deployMockContract(deployer, jbToken.abi),
+      deployMockContract(deployer, jbTokenStore.abi),
+
+    ]);
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');
     let jbController = await jbControllerFactory.deploy(
@@ -54,13 +53,13 @@ describe('JBController::issueTokenFor(...)', function () {
       mockJbProjects.address,
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
-      mockTokenStore.address,
-      mockSplitsStore.address,
+      mockJbTokenStore.address,
+      mockJbSplitsStore.address,
     );
 
-    await mockTokenStore.mock.issueFor
+    await mockJbTokenStore.mock.issueFor
       .withArgs(PROJECT_ID, NAME, SYMBOL)
-      .returns(mockToken.address);
+      .returns(mockJbToken.address);
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
@@ -69,22 +68,22 @@ describe('JBController::issueTokenFor(...)', function () {
       deployer,
       addrs,
       jbController,
-      mockTokenStore,
-      mockToken,
+      mockJbTokenStore,
+      mockJbToken,
       mockJbOperatorStore,
     };
   }
 
   it(`Should deploy an ERC-20 token contract if caller is project owner`, async function () {
-    const { projectOwner, jbController, mockToken } = await setup();
+    const { projectOwner, jbController, mockJbToken } = await setup();
     let returnedAddress = await jbController
       .connect(projectOwner)
       .callStatic.issueTokenFor(PROJECT_ID, NAME, SYMBOL);
-    expect(returnedAddress).to.equal(mockToken.address);
+    expect(returnedAddress).to.equal(mockJbToken.address);
   });
 
   it(`Should deploy an ERC-20 token contract if caller is authorized`, async function () {
-    const { addrs, projectOwner, jbController, mockToken, mockJbOperatorStore } = await setup();
+    const { addrs, projectOwner, jbController, mockJbToken, mockJbOperatorStore } = await setup();
     let caller = addrs[0];
 
     await mockJbOperatorStore.mock.hasPermission
@@ -94,11 +93,11 @@ describe('JBController::issueTokenFor(...)', function () {
     let returnedAddress = await jbController
       .connect(caller)
       .callStatic.issueTokenFor(PROJECT_ID, NAME, SYMBOL);
-    expect(returnedAddress).to.equal(mockToken.address);
+    expect(returnedAddress).to.equal(mockJbToken.address);
   });
 
   it(`Can't deploy an ERC-20 token contract if caller is not authorized`, async function () {
-    const { addrs, projectOwner, jbController, mockToken, mockJbOperatorStore } = await setup();
+    const { addrs, projectOwner, jbController, mockJbToken, mockJbOperatorStore } = await setup();
     let caller = addrs[0];
 
     await mockJbOperatorStore.mock.hasPermission

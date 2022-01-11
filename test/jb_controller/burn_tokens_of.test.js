@@ -17,8 +17,10 @@ describe('JBController::burnTokenOf(...)', function () {
   const PROJECT_ID = 1;
   const MEMO = 'Test Memo';
   const TOTAL_SUPPLY = 100000;
-  const AMOUNT_TO_BURN = 20000;
   const RESERVED_RATE = 5000;
+  const EFFECTIVE_SUPPLY = (TOTAL_SUPPLY * (10000 - RESERVED_RATE)) / 10000;
+  const AMOUNT_TO_BURN = 20000;
+  const PREFERED_CLAIMED_TOKEN = true;
   let BURN_INDEX;
 
   before(async function () {
@@ -36,21 +38,21 @@ describe('JBController::burnTokenOf(...)', function () {
     const timestamp = block.timestamp;
 
     let [
-      mockJbOperatorStore,
-      mockJbProjects,
       mockJbDirectory,
       mockJbFundingCycleStore,
-      mockTokenStore,
+      mockJbOperatorStore,
+      mockJbProjects,
       mockSplitsStore,
       mockToken,
+      mockTokenStore,
     ] = await Promise.all([
-      deployMockContract(deployer, jbOperatoreStore.abi),
-      deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbDirectory.abi),
       deployMockContract(deployer, jbFundingCycleStore.abi),
-      deployMockContract(deployer, jbTokenStore.abi),
+      deployMockContract(deployer, jbOperatoreStore.abi),
+      deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
-      deployMockContract(deployer, jbToken.abi)
+      deployMockContract(deployer, jbToken.abi),
+      deployMockContract(deployer, jbTokenStore.abi),
     ]);
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');
@@ -99,18 +101,18 @@ describe('JBController::burnTokenOf(...)', function () {
         .withArgs(
           holder.address,
           PROJECT_ID,
-          (TOTAL_SUPPLY * (10000 - RESERVED_RATE)) / 10000,
-          /*_preferClaimedTokens=*/ true,
+          EFFECTIVE_SUPPLY,
+          PREFERED_CLAIMED_TOKEN,
         )
         .returns(),
 
       mockTokenStore.mock.burnFrom
-        .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, /*_preferClaimedTokens=*/ true)
+        .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, PREFERED_CLAIMED_TOKEN)
         .returns(),
 
       mockTokenStore.mock.totalSupplyOf
         .withArgs(PROJECT_ID)
-        .returns((TOTAL_SUPPLY * (10000 - RESERVED_RATE)) / 10000)
+        .returns(EFFECTIVE_SUPPLY)
     ]);
 
     await jbController
@@ -120,7 +122,7 @@ describe('JBController::burnTokenOf(...)', function () {
         TOTAL_SUPPLY,
         holder.address,
         MEMO,
-        /*_preferClaimedTokens=*/ true,
+        PREFERED_CLAIMED_TOKEN,
         RESERVED_RATE,
       );
 
@@ -153,7 +155,7 @@ describe('JBController::burnTokenOf(...)', function () {
           PROJECT_ID,
           AMOUNT_TO_BURN,
           MEMO,
-          /*_preferClaimedTokens=*/ true,
+          PREFERED_CLAIMED_TOKEN,
         ),
     )
       .to.emit(jbController, 'BurnTokens')
@@ -162,7 +164,7 @@ describe('JBController::burnTokenOf(...)', function () {
     // New total supply = previous total supply minus amount burned
     await mockTokenStore.mock.totalSupplyOf
       .withArgs(PROJECT_ID)
-      .returns((TOTAL_SUPPLY * (10000 - RESERVED_RATE)) / 10000 - AMOUNT_TO_BURN);
+      .returns(EFFECTIVE_SUPPLY - AMOUNT_TO_BURN);
 
     let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(
       PROJECT_ID,
@@ -192,7 +194,7 @@ describe('JBController::burnTokenOf(...)', function () {
           PROJECT_ID,
           AMOUNT_TO_BURN,
           MEMO,
-          /*_preferClaimedTokens=*/ true,
+          PREFERED_CLAIMED_TOKEN,
         ),
     ).to.be.not.reverted;
   });
@@ -229,7 +231,7 @@ describe('JBController::burnTokenOf(...)', function () {
           PROJECT_ID,
           AMOUNT_TO_BURN,
           MEMO,
-          /*_preferClaimedTokens=*/ true,
+          PREFERED_CLAIMED_TOKEN,
         ),
     ).to.be.not.reverted;
   });
@@ -245,7 +247,7 @@ describe('JBController::burnTokenOf(...)', function () {
           PROJECT_ID,
           /*_tokenCount=*/ 0,
           MEMO,
-          /*_preferClaimedTokens=*/ true,
+          PREFERED_CLAIMED_TOKEN,
         ),
     ).to.be.revertedWith(errors.NO_BURNABLE_TOKENS);
   });
@@ -274,7 +276,7 @@ describe('JBController::burnTokenOf(...)', function () {
           PROJECT_ID,
           AMOUNT_TO_BURN,
           MEMO,
-          /*_preferClaimedTokens=*/ true,
+          PREFERED_CLAIMED_TOKEN,
         ),
     ).to.be.revertedWith(errors.BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE);
   });

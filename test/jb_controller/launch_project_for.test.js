@@ -4,13 +4,13 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { makeSplits, packFundingCycleMetadata } from '../helpers/utils';
 import errors from '../helpers/errors.json';
 
-import IJbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
+import jbController from '../../artifacts/contracts/JBController.sol/JBController.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
+import jbTerminal from '../../artifacts/contracts/JBTerminal.sol/JBTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
 
 describe('JBController::launchProjectFor(...)', function () {
@@ -36,29 +36,27 @@ describe('JBController::launchProjectFor(...)', function () {
     const fundingCycleMetadata = makeFundingCycleMetadata();
     const splits = makeSplits();
 
-    let promises = [];
-
-    promises.push(deployMockContract(deployer, jbOperatoreStore.abi));
-    promises.push(deployMockContract(deployer, jbProjects.abi));
-    promises.push(deployMockContract(deployer, jbDirectory.abi));
-    promises.push(deployMockContract(deployer, jbFundingCycleStore.abi));
-    promises.push(deployMockContract(deployer, jbTokenStore.abi));
-    promises.push(deployMockContract(deployer, jbSplitsStore.abi));
-    promises.push(deployMockContract(deployer, IJbController.abi));
-    promises.push(deployMockContract(deployer, jbTerminal.abi));
-    promises.push(deployMockContract(deployer, jbTerminal.abi));
-
     let [
-      mockJbOperatorStore,
-      mockJbProjects,
+      mockController,
       mockJbDirectory,
       mockJbFundingCycleStore,
-      mockTokenStore,
-      mockSplitsStore,
-      mockController,
-      mockTerminal1,
-      mockTerminal2,
-    ] = await Promise.all(promises);
+      mockJbOperatorStore,
+      mockJbProjects,
+      mockJbSplitsStore,
+      mockJbTerminal1,
+      mockJbTerminal2,
+      mockJbTokenStore,
+    ] = await Promise.all([
+      deployMockContract(deployer, jbController.abi),
+      deployMockContract(deployer, jbDirectory.abi),
+      deployMockContract(deployer, jbFundingCycleStore.abi),
+      deployMockContract(deployer, jbOperatoreStore.abi),
+      deployMockContract(deployer, jbProjects.abi),
+      deployMockContract(deployer, jbSplitsStore.abi),
+      deployMockContract(deployer, jbTerminal.abi),
+      deployMockContract(deployer, jbTerminal.abi),
+      deployMockContract(deployer, jbTokenStore.abi),
+    ]);
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');
     let jbController = await jbControllerFactory.deploy(
@@ -66,8 +64,8 @@ describe('JBController::launchProjectFor(...)', function () {
       mockJbProjects.address,
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
-      mockTokenStore.address,
-      mockSplitsStore.address,
+      mockJbTokenStore.address,
+      mockJbSplitsStore.address,
     );
 
     await mockJbProjects.mock.createFor
@@ -77,7 +75,7 @@ describe('JBController::launchProjectFor(...)', function () {
     await mockJbDirectory.mock.setControllerOf.withArgs(PROJECT_ID, jbController.address).returns();
 
     await mockJbDirectory.mock.addTerminalsOf
-      .withArgs(PROJECT_ID, [mockTerminal1.address, mockTerminal2.address])
+      .withArgs(PROJECT_ID, [mockJbTerminal1.address, mockJbTerminal2.address])
       .returns();
 
     await mockJbFundingCycleStore.mock.configureFor
@@ -95,7 +93,7 @@ describe('JBController::launchProjectFor(...)', function () {
         ),
       );
 
-    await mockSplitsStore.mock.set
+    await mockJbSplitsStore.mock.set
       .withArgs(PROJECT_ID, /*configuration=*/ timestamp, /*group=*/ 1, splits)
       .returns();
 
@@ -106,12 +104,12 @@ describe('JBController::launchProjectFor(...)', function () {
       addrs,
       jbController,
       mockJbDirectory,
-      mockTokenStore,
+      mockJbTokenStore,
       mockController,
       mockJbOperatorStore,
       mockJbFundingCycleStore,
-      mockTerminal1,
-      mockTerminal2,
+      mockJbTerminal1,
+      mockJbTerminal2,
       timestamp,
       fundingCycleData,
       fundingCycleMetadata,
@@ -193,11 +191,11 @@ describe('JBController::launchProjectFor(...)', function () {
       fundingCycleData,
       fundingCycleMetadata,
       splits,
-      mockTerminal1,
-      mockTerminal2,
+      mockJbTerminal1,
+      mockJbTerminal2,
     } = await setup();
     const groupedSplits = [{ group: 1, splits }];
-    const terminals = [mockTerminal1.address, mockTerminal2.address];
+    const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
     const fundAccessConstraints = makeFundingAccessConstraints({ terminals });
 
     expect(
@@ -297,11 +295,11 @@ describe('JBController::launchProjectFor(...)', function () {
       projectOwner,
       fundingCycleData,
       splits,
-      mockTerminal1,
-      mockTerminal2,
+      mockJbTerminal1,
+      mockJbTerminal2,
     } = await setup();
     const groupedSplits = [{ group: 1, splits }];
-    const terminals = [mockTerminal1.address, mockTerminal2.address];
+    const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
     const fundAccessConstraints = makeFundingAccessConstraints({ terminals });
     const fundingCycleMetadata = makeFundingCycleMetadata({ reservedRate: 10001 });
 
@@ -328,11 +326,11 @@ describe('JBController::launchProjectFor(...)', function () {
       fundingCycleData,
       fundingCycleMetadata,
       splits,
-      mockTerminal1,
-      mockTerminal2,
+      mockJbTerminal1,
+      mockJbTerminal2,
     } = await setup();
     const groupedSplits = [{ group: 1, splits }];
-    const terminals = [mockTerminal1.address, mockTerminal2.address];
+    const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
     const fundAccessConstraints = makeFundingAccessConstraints({ terminals });
 
     fundingCycleMetadata.unpacked.redemptionRate = 10001; //not possible in packed metadata (shl of a negative value)
@@ -360,12 +358,12 @@ describe('JBController::launchProjectFor(...)', function () {
       fundingCycleData,
       fundingCycleMetadata,
       splits,
-      mockTerminal1,
-      mockTerminal2,
+      mockJbTerminal1,
+      mockJbTerminal2,
     } = await setup();
 
     const groupedSplits = [{ group: 1, splits }];
-    const terminals = [mockTerminal1.address, mockTerminal2.address];
+    const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
     const fundAccessConstraints = makeFundingAccessConstraints({ terminals });
 
     fundingCycleMetadata.unpacked.ballotRedemptionRate = 10001; //not possible in packed metadata (shl of a negative value)

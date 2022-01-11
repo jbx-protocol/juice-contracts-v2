@@ -37,27 +37,25 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
     const block = await ethers.provider.getBlock(blockNum);
     const timestamp = block.timestamp;
 
-    let promises = [];
-
-    promises.push(deployMockContract(deployer, jbOperatoreStore.abi));
-    promises.push(deployMockContract(deployer, jbProjects.abi));
-    promises.push(deployMockContract(deployer, jbDirectory.abi));
-    promises.push(deployMockContract(deployer, jbFundingCycleStore.abi));
-    promises.push(deployMockContract(deployer, jbTokenStore.abi));
-    promises.push(deployMockContract(deployer, jbSplitsStore.abi));
-    promises.push(deployMockContract(deployer, jbToken.abi));
-    promises.push(deployMockContract(deployer, jbAllocator.abi));
-
     let [
-      mockJbOperatorStore,
-      mockJbProjects,
+      mockAllocator,
       mockJbDirectory,
       mockJbFundingCycleStore,
-      mockTokenStore,
+      mockJbOperatorStore,
+      mockJbProjects,
       mockSplitsStore,
       mockToken,
-      mockAllocator,
-    ] = await Promise.all(promises);
+      mockTokenStore,
+    ] = await Promise.all([
+      deployMockContract(deployer, jbAllocator.abi),
+      deployMockContract(deployer, jbDirectory.abi),
+      deployMockContract(deployer, jbFundingCycleStore.abi),
+      deployMockContract(deployer, jbOperatoreStore.abi),
+      deployMockContract(deployer, jbProjects.abi),
+      deployMockContract(deployer, jbSplitsStore.abi),
+      deployMockContract(deployer, jbToken.abi),
+      deployMockContract(deployer, jbTokenStore.abi),
+    ]);
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');
     let jbController = await jbControllerFactory.deploy(
