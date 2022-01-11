@@ -4,7 +4,7 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { impersonateAccount } from '../helpers/utils';
 import errors from '../helpers/errors.json';
 
-import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
+import JbController from '../../artifacts/contracts/JBController.sol/JBController.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
@@ -28,7 +28,7 @@ describe('JBController::prepForMigrationOf(...)', function () {
       mockJbSplitsStore,
       mockJbTokenStore,
     ] = await Promise.all([
-      deployMockContract(deployer, jbController.abi),
+      deployMockContract(deployer, JbController.abi),
       deployMockContract(deployer, jbDirectory.abi),
       deployMockContract(deployer, jbFundingCycleStore.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
