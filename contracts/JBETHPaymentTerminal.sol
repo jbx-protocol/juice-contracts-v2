@@ -240,6 +240,7 @@ contract JBETHPaymentTerminal is
     return
       _pay(
         msg.value,
+        msg.sender,
         _projectId,
         _beneficiary,
         _minReturnedTokens,
@@ -305,6 +306,7 @@ contract JBETHPaymentTerminal is
       _projectId,
       _fundingCycle,
       _distributedAmount - _feeAmount,
+      _projectOwner,
       string(bytes.concat('Payout from @', _handle))
     );
 
@@ -580,6 +582,7 @@ contract JBETHPaymentTerminal is
     @param _projectId The ID of the project for which payout splits are being distributed.
     @param _fundingCycle The funding cycle during which the distribution is being made.
     @param _amount The total amount being distributed.
+    @param _projectOwner The owner of the project distributing the payments.
     @param _memo A memo to pass along to the emitted events.
 
     @return leftoverAmount If the leftover amount if the splits don't add up to 100%.
@@ -588,6 +591,7 @@ contract JBETHPaymentTerminal is
     uint256 _projectId,
     JBFundingCycle memory _fundingCycle,
     uint256 _amount,
+    address _projectOwner,
     string memory _memo
   ) private returns (uint256 leftoverAmount) {
     // Set the leftover amount to the initial amount.
@@ -638,6 +642,7 @@ contract JBETHPaymentTerminal is
           if (_terminal == this) {
             _pay(
               _payoutAmount,
+              _projectOwner,
               _split.projectId,
               _split.beneficiary,
               0,
@@ -723,7 +728,7 @@ contract JBETHPaymentTerminal is
 
     // When processing the admin fee, save gas if the admin is using this contract as its terminal.
     _terminal == this // Use the local pay call.
-      ? _pay(_amount, 1, _beneficiary, 0, false, _memo, bytes('')) // Use the external pay call of the correct terminal.
+      ? _pay(_amount, address(this), 1, _beneficiary, 0, false, _memo, bytes('')) // Use the external pay call of the correct terminal.
       : _terminal.pay{value: _amount}(1, _beneficiary, 0, false, _memo, bytes(''));
   }
 
@@ -733,6 +738,7 @@ contract JBETHPaymentTerminal is
   */
   function _pay(
     uint256 _amount,
+    address _payer,
     uint256 _projectId,
     address _beneficiary,
     uint256 _minReturnedTokens,
@@ -751,7 +757,7 @@ contract JBETHPaymentTerminal is
 
     // Record the payment.
     (_fundingCycle, _weight, _tokenCount, _memo) = store.recordPaymentFrom(
-      msg.sender,
+      _payer,
       _amount,
       _projectId,
       (_preferClaimedTokens ? 1 : 0) | uint160(_beneficiary),
