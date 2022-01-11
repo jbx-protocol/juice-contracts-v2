@@ -12,10 +12,6 @@ abstract contract JBExpirySource is IJBExpirySource {
 
   /** 
     @notice Get the total challenge expiry time when challenging an inactive project handle.
-    
-    @dev The owner of the contract makes admin decisions such as:
-      - Which address is the funding cycle owner, which can withdraw funds from the funding cycle.
-      - Should this project's Tickets be migrated to a new TerminalV1. 
 
     @dev The projectId param is unused here, but could be used in other implementations of IJBChallengeExpiry 
     (e.g. to help recover specific handles)
