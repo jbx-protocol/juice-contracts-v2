@@ -196,7 +196,9 @@ describe('JBController::burnTokenOf(...)', function () {
           MEMO,
           PREFERED_CLAIMED_TOKEN,
         ),
-    ).to.be.not.reverted;
+    )
+      .to.emit(jbController, 'BurnTokens')
+      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, holder.address);
   });
 
   it(`Should burn token if caller is a terminal of the corresponding project`, async function () {
@@ -233,7 +235,9 @@ describe('JBController::burnTokenOf(...)', function () {
           MEMO,
           PREFERED_CLAIMED_TOKEN,
         ),
-    ).to.be.not.reverted;
+    )
+      .to.emit(jbController, 'BurnTokens')
+      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, holder.address);
   });
 
   it(`Can't burn 0 token`, async function () {
@@ -329,6 +333,8 @@ describe('JBController::burnTokenOf(...)', function () {
           MEMO,
           /*_preferClaimedTokens=*/true,
         ),
-    ).to.be.not.reverted;
+    )
+      .to.emit(jbController, 'BurnTokens')
+      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, holder.address);
   });
 });
