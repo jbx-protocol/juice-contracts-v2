@@ -21,7 +21,8 @@ import './abstract/JBOperatable.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
-// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+// --------------------------- custom errors ------------------------- //
 //*********************************************************************//
 error FEE_TOO_HIGH();
 error PAY_TO_ZERO_ADDRESS();

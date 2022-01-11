@@ -11,7 +11,8 @@ import './interfaces/IJBDirectory.sol';
 
 import './libraries/JBConstants.sol';
 
-// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+// --------------------------- custom errors ------------------------- //
 //*********************************************************************//
 error ALLOCATOR_AND_BENEFICIARY_ZERO_ADDRESS();
 error INVALID_SPLIT_PERCENT();
