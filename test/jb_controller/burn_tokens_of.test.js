@@ -42,9 +42,9 @@ describe('JBController::burnTokenOf(...)', function () {
       mockJbFundingCycleStore,
       mockJbOperatorStore,
       mockJbProjects,
-      mockSplitsStore,
-      mockToken,
-      mockTokenStore,
+      mockJbSplitsStore,
+      mockJbToken,
+      mockJbTokenStore,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
       deployMockContract(deployer, jbFundingCycleStore.abi),
@@ -61,8 +61,8 @@ describe('JBController::burnTokenOf(...)', function () {
       mockJbProjects.address,
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
-      mockTokenStore.address,
-      mockSplitsStore.address,
+      mockJbTokenStore.address,
+      mockJbSplitsStore.address,
     );
 
     await Promise.all([
@@ -97,7 +97,7 @@ describe('JBController::burnTokenOf(...)', function () {
         }),
 
       // only non-reserved are minted, minting total supply in holder account
-      mockTokenStore.mock.mintFor
+      mockJbTokenStore.mock.mintFor
         .withArgs(
           holder.address,
           PROJECT_ID,
@@ -106,11 +106,11 @@ describe('JBController::burnTokenOf(...)', function () {
         )
         .returns(),
 
-      mockTokenStore.mock.burnFrom
+      mockJbTokenStore.mock.burnFrom
         .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, PREFERED_CLAIMED_TOKEN)
         .returns(),
 
-      mockTokenStore.mock.totalSupplyOf
+      mockJbTokenStore.mock.totalSupplyOf
         .withArgs(PROJECT_ID)
         .returns(EFFECTIVE_SUPPLY)
     ]);
@@ -134,14 +134,14 @@ describe('JBController::burnTokenOf(...)', function () {
       mockJbOperatorStore,
       mockJbDirectory,
       mockJbFundingCycleStore,
-      mockTokenStore,
-      mockToken,
+      mockJbTokenStore,
+      mockJbToken,
       timestamp,
     };
   }
 
   it(`Should burn if caller is token owner and update reserved token balance of the project`, async function () {
-    const { holder, jbController, mockTokenStore } = await setup();
+    const { holder, jbController, mockJbTokenStore } = await setup();
     let initReservedTokenBalance = await jbController.reservedTokenBalanceOf(
       PROJECT_ID,
       RESERVED_RATE,
@@ -162,7 +162,7 @@ describe('JBController::burnTokenOf(...)', function () {
       .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, holder.address);
 
     // New total supply = previous total supply minus amount burned
-    await mockTokenStore.mock.totalSupplyOf
+    await mockJbTokenStore.mock.totalSupplyOf
       .withArgs(PROJECT_ID)
       .returns(EFFECTIVE_SUPPLY - AMOUNT_TO_BURN);
 
@@ -174,7 +174,7 @@ describe('JBController::burnTokenOf(...)', function () {
   });
 
   it(`Should burn token if caller is not project owner but is authorized`, async function () {
-    const { holder, addrs, jbController, mockTokenStore, mockJbOperatorStore, mockJbDirectory } =
+    const { holder, addrs, jbController, mockJbTokenStore, mockJbOperatorStore, mockJbDirectory } =
       await setup();
     let caller = addrs[0];
 
@@ -206,7 +206,7 @@ describe('JBController::burnTokenOf(...)', function () {
       jbController,
       mockJbOperatorStore,
       mockJbDirectory,
-      mockTokenStore,
+      mockJbTokenStore,
     } = await setup();
     const terminal = await deployMockContract(projectOwner, jbTerminal.abi);
     const terminalSigner = await impersonateAccount(terminal.address);

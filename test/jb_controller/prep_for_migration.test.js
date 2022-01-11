@@ -20,13 +20,13 @@ describe('JBController::prepForMigrationOf(...)', function () {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
     let [
-      mockController,
+      mockJbController,
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbOperatorStore,
       mockJbProjects,
-      mockSplitsStore,
-      mockTokenStore,
+      mockJbSplitsStore,
+      mockJbTokenStore,
     ] = await Promise.all([
       deployMockContract(deployer, jbController.abi),
       deployMockContract(deployer, jbDirectory.abi),
@@ -43,28 +43,28 @@ describe('JBController::prepForMigrationOf(...)', function () {
       mockJbProjects.address,
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
-      mockTokenStore.address,
-      mockSplitsStore.address,
+      mockJbTokenStore.address,
+      mockJbSplitsStore.address,
     );
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
-    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockController.address);
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
-    await mockTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(TOTAL_SUPPLY);
+    await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(TOTAL_SUPPLY);
 
     return {
       projectOwner,
       addrs,
       jbController,
       mockJbDirectory,
-      mockTokenStore,
-      mockController,
+      mockJbTokenStore,
+      mockJbController,
     };
   }
 
   it(`Should set the processed token tracker as the total supply if caller is not project's current controller`, async function () {
-    const { jbController, mockController, mockTokenStore } = await setup();
+    const { jbController, mockJbController, mockJbTokenStore } = await setup();
     let controllerSigner = await impersonateAccount(jbController.address);
 
     await expect(
@@ -78,8 +78,8 @@ describe('JBController::prepForMigrationOf(...)', function () {
   });
 
   it(`Can't prep for migration if the caller is the current controller`, async function () {
-    const { jbController, mockController, mockJbDirectory } = await setup();
-    let controllerSigner = await impersonateAccount(mockController.address);
+    const { jbController, mockJbController, mockJbDirectory } = await setup();
+    let controllerSigner = await impersonateAccount(mockJbController.address);
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(jbController.address);
 

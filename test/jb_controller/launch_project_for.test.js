@@ -4,7 +4,7 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { makeSplits, packFundingCycleMetadata } from '../helpers/utils';
 import errors from '../helpers/errors.json';
 
-import jbController from '../../artifacts/contracts/JBController.sol/JBController.json';
+import JbController from '../../artifacts/contracts/JBController.sol/JBController.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
@@ -37,7 +37,7 @@ describe('JBController::launchProjectFor(...)', function () {
     const splits = makeSplits();
 
     let [
-      mockController,
+      mockJbController,
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbOperatorStore,
@@ -47,7 +47,7 @@ describe('JBController::launchProjectFor(...)', function () {
       mockJbTerminal2,
       mockJbTokenStore,
     ] = await Promise.all([
-      deployMockContract(deployer, jbController.abi),
+      deployMockContract(deployer, JbController.abi),
       deployMockContract(deployer, jbDirectory.abi),
       deployMockContract(deployer, jbFundingCycleStore.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
@@ -105,7 +105,7 @@ describe('JBController::launchProjectFor(...)', function () {
       jbController,
       mockJbDirectory,
       mockJbTokenStore,
-      mockController,
+      mockJbController,
       mockJbOperatorStore,
       mockJbFundingCycleStore,
       mockJbTerminal1,

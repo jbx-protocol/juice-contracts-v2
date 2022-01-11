@@ -34,21 +34,21 @@ describe('JBController::changeTokenOf(...)', function () {
     const timestamp = block.timestamp;
 
     let [
-      mockJbOperatorStore,
-      mockJbProjects,
       mockJbDirectory,
       mockJbFundingCycleStore,
-      mockTokenStore,
-      mockSplitsStore,
-      mockToken,
+      mockJbOperatorStore,
+      mockJbProjects,
+      mockJbSplitsStore,
+      mockJbToken,
+      mockJbTokenStore,
     ] = await Promise.all([
-      deployMockContract(deployer, jbOperatoreStore.abi),
-      deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbDirectory.abi),
       deployMockContract(deployer, jbFundingCycleStore.abi),
-      deployMockContract(deployer, jbTokenStore.abi),
+      deployMockContract(deployer, jbOperatoreStore.abi),
+      deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
-      deployMockContract(deployer, jbToken.abi)
+      deployMockContract(deployer, jbToken.abi),
+      deployMockContract(deployer, jbTokenStore.abi),
     ]);
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');
@@ -57,13 +57,13 @@ describe('JBController::changeTokenOf(...)', function () {
       mockJbProjects.address,
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
-      mockTokenStore.address,
-      mockSplitsStore.address,
+      mockJbTokenStore.address,
+      mockJbSplitsStore.address,
     );
 
-    await mockTokenStore.mock.issueFor
+    await mockJbTokenStore.mock.issueFor
       .withArgs(PROJECT_ID, NAME, SYMBOL)
-      .returns(mockToken.address);
+      .returns(mockJbToken.address);
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
@@ -73,8 +73,8 @@ describe('JBController::changeTokenOf(...)', function () {
       jbController,
       mockJbOperatorStore,
       mockJbFundingCycleStore,
-      mockTokenStore,
-      mockToken,
+      mockJbTokenStore,
+      mockJbToken,
       timestamp,
     };
   }
@@ -85,8 +85,8 @@ describe('JBController::changeTokenOf(...)', function () {
       addrs,
       jbController,
       mockJbFundingCycleStore,
-      mockTokenStore,
-      mockToken,
+      mockJbTokenStore,
+      mockJbToken,
       timestamp,
     } = await setup();
     let newTokenOwner = addrs[0];
@@ -104,14 +104,14 @@ describe('JBController::changeTokenOf(...)', function () {
       metadata: packFundingCycleMetadata({ allowChangeToken: 1 }),
     });
 
-    await mockTokenStore.mock.changeFor
-      .withArgs(PROJECT_ID, mockToken.address, newTokenOwner.address)
+    await mockJbTokenStore.mock.changeFor
+      .withArgs(PROJECT_ID, mockJbToken.address, newTokenOwner.address)
       .returns();
 
     await expect(
       jbController
         .connect(projectOwner)
-        .changeTokenOf(PROJECT_ID, mockToken.address, newTokenOwner.address),
+        .changeTokenOf(PROJECT_ID, mockJbToken.address, newTokenOwner.address),
     ).to.be.not.reverted;
   });
 
@@ -122,8 +122,8 @@ describe('JBController::changeTokenOf(...)', function () {
       jbController,
       mockJbOperatorStore,
       mockJbFundingCycleStore,
-      mockTokenStore,
-      mockToken,
+      mockJbTokenStore,
+      mockJbToken,
       timestamp,
     } = await setup();
     let newTokenOwner = addrs[0];
@@ -146,14 +146,14 @@ describe('JBController::changeTokenOf(...)', function () {
       metadata: packFundingCycleMetadata({ allowChangeToken: 1 }),
     });
 
-    await mockTokenStore.mock.changeFor
-      .withArgs(PROJECT_ID, mockToken.address, newTokenOwner.address)
+    await mockJbTokenStore.mock.changeFor
+      .withArgs(PROJECT_ID, mockJbToken.address, newTokenOwner.address)
       .returns();
 
     await expect(
       jbController
         .connect(caller)
-        .changeTokenOf(PROJECT_ID, mockToken.address, newTokenOwner.address),
+        .changeTokenOf(PROJECT_ID, mockJbToken.address, newTokenOwner.address),
     ).to.be.not.reverted;
   });
 
@@ -164,8 +164,8 @@ describe('JBController::changeTokenOf(...)', function () {
       jbController,
       mockJbOperatorStore,
       mockJbFundingCycleStore,
-      mockTokenStore,
-      mockToken,
+      mockJbTokenStore,
+      mockJbToken,
       timestamp,
     } = await setup();
     let newTokenOwner = addrs[0];
@@ -192,14 +192,14 @@ describe('JBController::changeTokenOf(...)', function () {
       metadata: packFundingCycleMetadata({ allowChangeToken: 1 }),
     });
 
-    await mockTokenStore.mock.changeFor
-      .withArgs(PROJECT_ID, mockToken.address, newTokenOwner.address)
+    await mockJbTokenStore.mock.changeFor
+      .withArgs(PROJECT_ID, mockJbToken.address, newTokenOwner.address)
       .returns();
 
     await expect(
       jbController
         .connect(caller)
-        .changeTokenOf(PROJECT_ID, mockToken.address, newTokenOwner.address),
+        .changeTokenOf(PROJECT_ID, mockJbToken.address, newTokenOwner.address),
     ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 
@@ -210,8 +210,8 @@ describe('JBController::changeTokenOf(...)', function () {
       jbController,
       mockJbOperatorStore,
       mockJbFundingCycleStore,
-      mockTokenStore,
-      mockToken,
+      mockJbTokenStore,
+      mockJbToken,
       timestamp,
     } = await setup();
     let newTokenOwner = addrs[0];
@@ -229,14 +229,14 @@ describe('JBController::changeTokenOf(...)', function () {
       metadata: packFundingCycleMetadata({ allowChangeToken: 0 }),
     });
 
-    await mockTokenStore.mock.changeFor
-      .withArgs(PROJECT_ID, mockToken.address, newTokenOwner.address)
+    await mockJbTokenStore.mock.changeFor
+      .withArgs(PROJECT_ID, mockJbToken.address, newTokenOwner.address)
       .returns();
 
     await expect(
       jbController
         .connect(projectOwner)
-        .changeTokenOf(PROJECT_ID, mockToken.address, newTokenOwner.address),
+        .changeTokenOf(PROJECT_ID, mockJbToken.address, newTokenOwner.address),
     ).to.revertedWith(errors.CHANGE_TOKEN_NOT_ALLOWED);
   });
 });

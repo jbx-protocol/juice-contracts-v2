@@ -38,14 +38,14 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
     const timestamp = block.timestamp;
 
     let [
-      mockAllocator,
+      mockJbAllocator,
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbOperatorStore,
       mockJbProjects,
       mockSplitsStore,
-      mockToken,
-      mockTokenStore,
+      mockJbToken,
+      mockJbTokenStore,
     ] = await Promise.all([
       deployMockContract(deployer, jbAllocator.abi),
       deployMockContract(deployer, jbDirectory.abi),
@@ -63,7 +63,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       mockJbProjects.address,
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
-      mockTokenStore.address,
+      mockJbTokenStore.address,
       mockSplitsStore.address,
     );
     
@@ -84,7 +84,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
           metadata: packFundingCycleMetadata({ reservedRate: 10000 }),
         }),
       // No token has been distributed/minted since the reserved rate is 100
-      mockTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(0),
+      mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(0),
     ]);
 
     // Minting the reserved token
@@ -96,12 +96,12 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       projectOwner,
       addrs,
       jbController,
-      mockAllocator,
+      mockJbAllocator,
       mockJbOperatorStore,
       mockJbDirectory,
       mockJbFundingCycleStore,
-      mockTokenStore,
-      mockToken,
+      mockJbTokenStore,
+      mockJbToken,
       mockSplitsStore,
       mockJbProjects,
       timestamp,
@@ -109,7 +109,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
   }
 
   it(`Should send to beneficiaries if no allocator or project id is set in splits`, async function () {
-    const { addrs, projectOwner, jbController, mockTokenStore, mockSplitsStore, timestamp } =
+    const { addrs, projectOwner, jbController, mockJbTokenStore, mockSplitsStore, timestamp } =
       await setup();
     const caller = addrs[0];
     const splitsBeneficiariesAddresses = [addrs[1], addrs[2]].map((signer) => signer.address);
@@ -126,7 +126,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
 
     await Promise.all(
       splitsBeneficiariesAddresses.map(async (beneficiary) => {
-        await mockTokenStore.mock.mintFor
+        await mockJbTokenStore.mock.mintFor
           .withArgs(
             beneficiary,
             PROJECT_ID,
@@ -184,7 +184,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       addrs,
       projectOwner,
       jbController,
-      mockTokenStore,
+      mockJbTokenStore,
       mockSplitsStore,
       mockJbProjects,
       timestamp,
@@ -207,7 +207,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       .withArgs(PROJECT_ID, timestamp, RESERVED_SPLITS_GROUP)
       .returns(splits);
 
-    await mockTokenStore.mock.mintFor
+    await mockJbTokenStore.mock.mintFor
       .withArgs(
         otherProjectOwner.address,
         PROJECT_ID,
@@ -262,9 +262,9 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       addrs,
       projectOwner,
       jbController,
-      mockTokenStore,
+      mockJbTokenStore,
       mockSplitsStore,
-      mockAllocator,
+      mockJbAllocator,
       timestamp,
     } = await setup();
     const caller = addrs[0];
@@ -275,7 +275,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       count: 2,
       beneficiary: splitsBeneficiariesAddresses,
       preferClaimed: true,
-      allocator: mockAllocator.address,
+      allocator: mockJbAllocator.address,
       projectId: otherProjectId,
     });
 
@@ -283,9 +283,9 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       .withArgs(PROJECT_ID, timestamp, RESERVED_SPLITS_GROUP)
       .returns(splits);
 
-    await mockTokenStore.mock.mintFor
+    await mockJbTokenStore.mock.mintFor
       .withArgs(
-        mockAllocator.address,
+        mockJbAllocator.address,
         PROJECT_ID,
         Math.floor(RESERVED_AMOUNT / splitsBeneficiariesAddresses.length),
         true,
@@ -294,7 +294,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
 
     await Promise.all(
       splitsBeneficiariesAddresses.map(async (beneficiary) => {
-        await mockAllocator.mock.allocate
+        await mockJbAllocator.mock.allocate
           .withArgs(
             Math.floor(RESERVED_AMOUNT / splitsBeneficiariesAddresses.length),
             RESERVED_SPLITS_GROUP,
@@ -349,7 +349,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
   });
 
   it(`Should send all left-over tokens to the project owner`, async function () {
-    const { addrs, projectOwner, jbController, mockTokenStore, mockSplitsStore, timestamp } =
+    const { addrs, projectOwner, jbController, mockJbTokenStore, mockSplitsStore, timestamp } =
       await setup();
     const caller = addrs[0];
     const splitsBeneficiariesAddresses = [addrs[1], addrs[2]].map((signer) => signer.address);
@@ -367,7 +367,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       .withArgs(PROJECT_ID, timestamp, RESERVED_SPLITS_GROUP)
       .returns(splits);
 
-    await mockTokenStore.mock.mintFor
+    await mockJbTokenStore.mock.mintFor
       .withArgs(
         splitsBeneficiariesAddresses[0],
         PROJECT_ID,
@@ -376,11 +376,11 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       )
       .returns();
 
-    await mockTokenStore.mock.mintFor
+    await mockJbTokenStore.mock.mintFor
       .withArgs(splitsBeneficiariesAddresses[1], PROJECT_ID, 0, true)
       .returns();
 
-    await mockTokenStore.mock.mintFor
+    await mockJbTokenStore.mock.mintFor
       .withArgs(
         projectOwner.address,
         PROJECT_ID,
@@ -430,7 +430,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
   });
 
   it(`Should not revert if called with 0 tokens in reserve`, async function () {
-    const { addrs, jbController, mockTokenStore, mockSplitsStore, timestamp } = await setup();
+    const { addrs, jbController, mockJbTokenStore, mockSplitsStore, timestamp } = await setup();
 
     const caller = addrs[0];
     const splitsBeneficiariesAddresses = [addrs[1], addrs[2]].map((signer) => signer.address);
@@ -447,7 +447,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
 
     await Promise.all(
       splitsBeneficiariesAddresses.map(async (beneficiary) => {
-        await mockTokenStore.mock.mintFor
+        await mockJbTokenStore.mock.mintFor
           .withArgs(
             beneficiary,
             PROJECT_ID,
@@ -460,7 +460,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
 
     await jbController.connect(caller).distributeReservedTokensOf(PROJECT_ID, MEMO);
 
-    await mockTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(RESERVED_AMOUNT);
+    await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(RESERVED_AMOUNT);
 
     expect(
       await jbController.reservedTokenBalanceOf(PROJECT_ID, /*RESERVED_RATE=*/ 10000),
