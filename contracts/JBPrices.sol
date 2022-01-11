@@ -5,7 +5,8 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 
 import './interfaces/IJBPrices.sol';
 
-// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+// --------------------------- custom errors ------------------------- //
 //*********************************************************************//
 error PRICE_FEED_ALREADY_EXISTS();
 error PRICE_FEED_NOT_FOUND();

@@ -14,7 +14,8 @@ import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 
-// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+// --------------------------- custom errors ------------------------- //
 //*********************************************************************//
 error CURRENCY_MISMATCH();
 error DISTRIBUTION_AMOUNT_LIMIT_REACHED();
