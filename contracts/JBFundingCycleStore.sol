@@ -671,7 +671,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
   */
   function _deriveWeightFrom(JBFundingCycle memory _baseFundingCycle, uint256 _start)
     private
-    view
+    pure
     returns (uint256 weight)
   {
     // A subsequent cycle to one with a duration of 0 should have the next possible weight.
