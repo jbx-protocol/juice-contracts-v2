@@ -178,7 +178,7 @@ describe('JBController::migrate(...)', function () {
   it(`Can't migrate if migration is not initiated via the current controller`, async function () {
     const { deployer, jbController, projectOwner, mockJbDirectory, mockJbController } = await setup();
 
-    let mockCurrentController = await deployMockContract(deployer, IJbController.abi);
+    let mockCurrentController = await deployMockContract(deployer, JbController.abi);
 
     await mockJbDirectory.mock.controllerOf
       .withArgs(PROJECT_ID)
