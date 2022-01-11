@@ -119,7 +119,7 @@ contract JBETHPaymentTerminal is
     @notice
     The data source that returns a discount to apply to a project's fee.
   */
-  IJBFeeGuage public override feeGuage;
+  IJBFeeGauge public override feeGauge;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -579,18 +579,18 @@ contract JBETHPaymentTerminal is
 
   /**
     @notice
-    Allows the fee guage to be updated.
+    Allows the fee gauge to be updated.
 
     @dev
-    Only the owner of this contract can change the fee guage.
+    Only the owner of this contract can change the fee gauge.
 
-    @param _feeGuage The new fee guage.
+    @param _feeGauge The new fee gauge.
   */
-  function setFeeGuage(IJBFeeGuage _feeGuage) external onlyOwner {
-    // Store the new fee guage.
-    feeGuage = _feeGuage;
+  function setFeeGauge(IJBFeeGauge _feeGauge) external onlyOwner {
+    // Store the new fee gauge.
+    feeGauge = _feeGauge;
 
-    emit SetFeeGuage(_feeGuage, msg.sender);
+    emit SetFeeGauge(_feeGauge, msg.sender);
   }
 
   //*********************************************************************//
@@ -722,9 +722,9 @@ contract JBETHPaymentTerminal is
     string memory _memo
   ) private returns (uint256 feeAmount) {
     // Get the fee discount.
-    uint256 _feeDiscount = feeGuage == IJBFeeGuage(address(0))
+    uint256 _feeDiscount = feeGauge == IJBFeeGauge(address(0))
       ? 0
-      : feeGuage.currentDiscountFor(_projectId);
+      : feeGauge.currentDiscountFor(_projectId);
 
     // Set the discounted fee if its valid.
     if (_feeDiscount > 1000000) _feeDiscount = 0;

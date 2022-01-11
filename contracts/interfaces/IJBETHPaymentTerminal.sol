@@ -12,7 +12,7 @@ import './IJBTokenStore.sol';
 import './IJBPrices.sol';
 import './IJBRedemptionDelegate.sol';
 import './IJBController.sol';
-import './IJBFeeGuage.sol';
+import './IJBFeeGauge.sol';
 
 import './../structs/JBFee.sol';
 
@@ -76,7 +76,7 @@ interface IJBETHPaymentTerminal {
 
   event SetFee(uint256 fee, address caller);
 
-  event SetFeeGuage(IJBFeeGuage feeGuage, address caller);
+  event SetFeeGauge(IJBFeeGauge feeGauge, address caller);
 
   function projects() external view returns (IJBProjects);
 
@@ -88,7 +88,7 @@ interface IJBETHPaymentTerminal {
 
   function fee() external view returns (uint256);
 
-  function feeGuage() external view returns (IJBFeeGuage);
+  function feeGauge() external view returns (IJBFeeGauge);
 
   function distributePayoutsOf(
     uint256 _projectId,
