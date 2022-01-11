@@ -27,7 +27,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
 
   const FUNDING_CYCLE_CAN_START_ASAP = ethers.BigNumber.from(0);
 
-  const MAX_DISCOUNT_RATE = ethers.BigNumber.from(100000000);
+  const MAX_DISCOUNT_RATE = ethers.BigNumber.from(1000000000);
 
   // The metadata value doesn't affect the test.
   const RANDOM_FUNDING_CYCLE_METADATA_1 = ethers.BigNumber.from(123);
@@ -650,7 +650,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
 
   it('Should configure subsequent cycle during a rolled over funding cycle many multiples of duration later', async function () {
     // Increase timeout because this test will need a long for loop iteration.
-    this.timeout(10000);
+    this.timeout(20000);
 
     const { controller, mockJbDirectory, jbFundingCycleStore, addrs } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
@@ -659,7 +659,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
 
     const firstFundingCycleData = createFundingCycleData({
       duration: ethers.BigNumber.from(5),
-      discountRate: ethers.BigNumber.from(MAX_DISCOUNT_RATE.div(1 / discountRate)),
+      discountRate: MAX_DISCOUNT_RATE.div(1 / discountRate),
     });
 
     // Configure first funding cycle
@@ -1639,10 +1639,9 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     const discountRate = 0.5; // 50% discount rate
-    const discountFidelity = 100000000; // Discout rate is stored out of this number.
 
     const firstFundingCycleData = createFundingCycleData({
-      discountRate: BigNumber.from(discountRate * discountFidelity),
+      discountRate: (MAX_DISCOUNT_RATE.div(1 / discountRate)),
     });
 
     // Configure first funding cycle
@@ -1703,11 +1702,8 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     const discountRate = 0.5; // Use a discount rate of 50%
 
     const fundingCycleData = createFundingCycleData({
-      discountRate: ethers.BigNumber.from(MAX_DISCOUNT_RATE.div(1 / discountRate)),
+      discountRate: MAX_DISCOUNT_RATE.div(1 / discountRate),
     });
-
-    // The metadata value doesn't affect the test.
-    const fundingCycleMetadata = ethers.BigNumber.from(123);
 
     // Configure funding cycle
     const configureForTx = await jbFundingCycleStore
@@ -1715,7 +1711,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       .configureFor(
         PROJECT_ID,
         fundingCycleData,
-        fundingCycleMetadata,
+        RANDOM_FUNDING_CYCLE_METADATA_1,
         FUNDING_CYCLE_CAN_START_ASAP,
       );
 
@@ -1731,7 +1727,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       weight: fundingCycleData.weight,
       discountRate: fundingCycleData.discountRate,
       ballot: fundingCycleData.ballot,
-      metadata: fundingCycleMetadata,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_1,
     };
     // The `get` call should return the correct funding cycle.
     expect(
@@ -1766,11 +1762,23 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     ).to.be.revertedWith(errors.CONTROLLER_UNAUTHORIZED);
   });
 
+  it(`Can't configure if funding cycle duration is bigger than 2^64 - 1`, async function () {
+    const { controller, mockJbDirectory, jbFundingCycleStore } = await setup();
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    const fundingCycleData = createFundingCycleData({ duration: ethers.BigNumber.from(2).pow(64) });
+
+    await expect(
+      jbFundingCycleStore
+        .connect(controller)
+        .configureFor(PROJECT_ID, fundingCycleData, 0, FUNDING_CYCLE_CAN_START_ASAP),
+    ).to.be.revertedWith(errors.INVALID_DURATION);
+  });
   it(`Can't configure if funding cycle discount rate is above 100%`, async function () {
     const { controller, mockJbDirectory, jbFundingCycleStore } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
-    const fundingCycleData = createFundingCycleData({ discountRate: 1000000001 });
+    const fundingCycleData = createFundingCycleData({ discountRate: BigNumber.from(1000000001) });
 
     await expect(
       jbFundingCycleStore

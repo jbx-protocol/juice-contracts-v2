@@ -243,7 +243,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @param _data The funding cycle configuration.
       @dev _data.duration The duration of the funding cycle. Measured in days. 
         Set to 0 for no expiry and to be able to reconfigure anytime.
-      @dev _data.discountRate A number from 0-100000000 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
+      @dev _data.discountRate A number from 0-1000000000 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
         If it's 0, each funding cycle will have equal weight.
         If the number is 900000000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
       @dev _data.ballot The new ballot that will be used to approve subsequent reconfigurations.
@@ -263,7 +263,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       revert INVALID_DURATION();
     }
 
-    // Discount rate token must be less than or equal to 100%. A value of 1000000001 means non-recurring.
+    // Discount rate token must be less than or equal to 100%.
     if (_data.discountRate > JBConstants.MAX_DISCOUNT_RATE) {
       revert INVALID_DISCOUNT_RATE();
     }
