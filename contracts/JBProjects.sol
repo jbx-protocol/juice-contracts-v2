@@ -7,7 +7,8 @@ import './abstract/JBOperatable.sol';
 import './interfaces/IJBProjects.sol';
 import './libraries/JBOperations.sol';
 
-// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+// --------------------------- custom errors ------------------------- //
 //*********************************************************************//
 error HANDLE_ALREADY_CHALLENGED();
 error HANDLE_EMPTY();

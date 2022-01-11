@@ -8,7 +8,8 @@ import './interfaces/IJBTerminal.sol';
 import './interfaces/IJBDirectory.sol';
 import './libraries/JBOperations.sol';
 
-// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+// --------------------------- custom errors ------------------------- //
 //*********************************************************************//
 error ADD_TERMINAL_ZERO_ADDRESS();
 error CONTROLLER_ALREADY_IN_ALLOWLIST();
@@ -225,35 +226,6 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
   /** 
     @notice 
-    Add a terminal to a project's list of terminals if it hasn't been already.
-
-    @dev
-    If the terminal is equal to address zero, the transaction will be reverted.
-
-    @param _projectId The ID of the project having a terminal added.
-    @param _terminal The terminal to add.
-    @param _caller The original caller that added the terminal.
-  */
-  function _addTerminalIfNeeded(
-    uint256 _projectId,
-    IJBTerminal _terminal,
-    address _caller
-  ) internal {
-    if (_terminal == IJBTerminal(address(0))) {
-      revert ADD_TERMINAL_ZERO_ADDRESS();
-    }
-
-    // Check that the terminal has not already been added.
-    if (isTerminalOf(_projectId, _terminal)) return;
-
-    // Set the new terminal.
-    _terminalsOf[_projectId].push(_terminal);
-
-    emit AddTerminal(_projectId, _terminal, _caller);
-  }
-
-  /** 
-    @notice 
     Add terminals to project's list of terminals.
 
     @dev
@@ -361,12 +333,12 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @param _address the allowed address to be added.
   */
   function addToSetControllerAllowlist(address _address) external override onlyOwner {
-    // Check that the controller has not already been added.
+    // Check that the address is not already in the allowlist.
     if (_setControllerAllowlist[_address]) {
       revert CONTROLLER_ALREADY_IN_ALLOWLIST();
     }
 
-    // Add the controller to the list of known controllers.
+    // Add the address to the allowlist.
     _setControllerAllowlist[_address] = true;
 
     emit AddToSetControllerAllowlist(_address, msg.sender);
@@ -379,14 +351,47 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @param _address The address to be removed.
   */
   function removeFromSetControllerAllowlist(address _address) external override onlyOwner {
-    // Not in the known controllers list
+    // Check that the address is in the allowlist.
     if (!_setControllerAllowlist[_address]) {
       revert CONTROLLER_NOT_IN_ALLOWLIST();
     }
 
-    // Remove the controller from the list of known controllers.
+    // Remove the address from the allowlist.
     delete _setControllerAllowlist[_address];
 
     emit RemoveFromSetControllerAllowlist(_address, msg.sender);
+  }
+
+  //*********************************************************************//
+  // --------------------- private helper functions -------------------- //
+  //*********************************************************************//
+
+  /** 
+    @notice 
+    Add a terminal to a project's list of terminals if it hasn't been already.
+
+    @dev
+    If the terminal is equal to address zero, the transaction will be reverted.
+
+    @param _projectId The ID of the project having a terminal added.
+    @param _terminal The terminal to add.
+    @param _caller The original caller that added the terminal.
+  */
+  function _addTerminalIfNeeded(
+    uint256 _projectId,
+    IJBTerminal _terminal,
+    address _caller
+  ) private {
+    if (_terminal == IJBTerminal(address(0))) {
+      revert ADD_TERMINAL_ZERO_ADDRESS();
+    }
+
+    // Check that the terminal has not already been added.
+    if (isTerminalOf(_projectId, _terminal)) return;
+
+    // Set the new terminal.
+    _terminalsOf[_projectId].push(_terminal);
+
+    emit AddTerminal(_projectId, _terminal, _caller);
   }
 }

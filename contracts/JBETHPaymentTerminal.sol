@@ -5,6 +5,7 @@ import '@openzeppelin/contracts/utils/Address.sol';
 import '@paulrberg/contracts/math/PRBMathUD60x18.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 
+import './libraries/JBConstants.sol';
 import './libraries/JBCurrencies.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
@@ -20,7 +21,8 @@ import './abstract/JBOperatable.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
-// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+// --------------------------- custom errors ------------------------- //
 //*********************************************************************//
 error FEE_TOO_HIGH();
 error PAY_TO_ZERO_ADDRESS();
@@ -603,8 +605,12 @@ contract JBETHPaymentTerminal is
       // Get a reference to the mod being iterated on.
       JBSplit memory _split = _splits[_i];
 
-      // The amount to send towards mods. Mods percents are out of 10000000.
-      uint256 _payoutAmount = PRBMath.mulDiv(_amount, _split.percent, 10000000);
+      // The amount to send towards mods.
+      uint256 _payoutAmount = PRBMath.mulDiv(
+        _amount,
+        _split.percent,
+        JBConstants.SPLITS_TOTAL_PERCENT
+      );
 
       if (_payoutAmount > 0) {
         // Transfer ETH to the mod.

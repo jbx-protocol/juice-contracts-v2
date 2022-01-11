@@ -8,12 +8,14 @@ import './interfaces/IJBPrices.sol';
 import './interfaces/IJBTokenStore.sol';
 import './interfaces/IJBTerminal.sol';
 
+import './libraries/JBConstants.sol';
 import './libraries/JBCurrencies.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 
-// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+// --------------------------- custom errors ------------------------- //
 //*********************************************************************//
 error CURRENCY_MISMATCH();
 error DISTRIBUTION_AMOUNT_LIMIT_REACHED();
@@ -97,14 +99,6 @@ contract JBETHPaymentTerminalStore {
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
 
-  /**
-    @notice
-    Maximum redemption rate for a given funding cycle.
-  */
-  uint256 constant _MAX_REDEMPTION_RATE = 10000;
-
-  /**
-    @notice
   /**
     @notice
     The amount of ETH that each project has.
@@ -727,13 +721,17 @@ contract JBETHPaymentTerminalStore {
     uint256 _base = PRBMath.mulDiv(_currentOverflow, _tokenCount, _totalSupply);
 
     // These conditions are all part of the same curve. Edge conditions are separated because fewer operation are necessary.
-    if (_redemptionRate == _MAX_REDEMPTION_RATE) return _base;
+    if (_redemptionRate == JBConstants.MAX_REDEMPTION_RATE) return _base;
     return
       PRBMath.mulDiv(
         _base,
         _redemptionRate +
-          PRBMath.mulDiv(_tokenCount, _MAX_REDEMPTION_RATE - _redemptionRate, _totalSupply),
-        _MAX_REDEMPTION_RATE
+          PRBMath.mulDiv(
+            _tokenCount,
+            JBConstants.MAX_REDEMPTION_RATE - _redemptionRate,
+            _totalSupply
+          ),
+        JBConstants.MAX_REDEMPTION_RATE
       );
   }
 
