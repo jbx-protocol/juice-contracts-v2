@@ -2,8 +2,10 @@
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
+import '@openzeppelin/contracts/access/Ownable.sol';
 
 import './abstract/JBOperatable.sol';
+import './interfaces/IJBExpirySource.sol';
 import './interfaces/IJBProjects.sol';
 import './libraries/JBOperations.sol';
 
@@ -23,17 +25,7 @@ error TRANSFER_HANDLE_UNAUTHORIZED();
   @dev
   Projects are represented as ERC-721's.
 */
-contract JBProjects is ERC721, IJBProjects, JBOperatable {
-  //*********************************************************************//
-  // --------------------- private stored constants -------------------- //
-  //*********************************************************************//
-
-  /** 
-    @notice
-    The number of seconds in 365 days.
-  */
-  uint256 private constant _SECONDS_IN_YEAR = 31536000;
-
+contract JBProjects is ERC721, IJBProjects, JBOperatable, Ownable {
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
@@ -47,6 +39,16 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     The resulting ERC-721 token ID for each project is the newly incremented count value.
   */
   uint256 public override count = 0;
+
+  /** 
+    @notice 
+    The number of projects that have been created using this contract.
+
+    @dev
+    The count is incremented with each new project created. 
+    The resulting ERC-721 token ID for each project is the newly incremented count value.
+  */
+  IJBExpirySource public expirySource;
 
   /** 
     @notice 
@@ -104,10 +106,13 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
   /** 
     @param _operatorStore A contract storing operator assignments.
   */
-  constructor(IJBOperatorStore _operatorStore)
+  constructor(IJBOperatorStore _operatorStore, address _owner)
     ERC721('Juicebox project', 'JUICEBOX')
     JBOperatable(_operatorStore)
-  {}
+  {
+    // Transfer the ownership.
+    transferOwnership(_owner);
+  }
 
   //*********************************************************************//
   // ---------------------- external transactions ---------------------- //
@@ -341,7 +346,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     }
 
     // The challenge will expire in a year, at which point the handle can be claimed if it has yet to be renewed.
-    uint256 _challengeExpiry = block.timestamp + _SECONDS_IN_YEAR;
+    uint256 _challengeExpiry = expirySource.getExpiryFor(_projectId);
 
     // Store the challenge expiry for the handle.
     challengeExpiryOf[_handle] = _challengeExpiry;
@@ -370,5 +375,13 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     challengeExpiryOf[_handle] = 0;
 
     emit RenewHandle(_handle, _projectId, msg.sender);
+  }
+
+  //*********************************************************************//
+  // ---------------------- public transactions ------------------------ //
+  //*********************************************************************//
+
+  function setExpirySource(IJBExpirySource _expirySource) public onlyOwner {
+    expirySource = _expirySource;
   }
 }
