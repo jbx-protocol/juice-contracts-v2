@@ -101,11 +101,16 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable, Ownable {
 
   /** 
     @param _operatorStore A contract storing operator assignments.
+    @param _expirySource A contract to calculate initial challenge expiries.
+    @param _owner The intial owner of this contract.
   */
-  constructor(IJBOperatorStore _operatorStore, address _owner)
-    ERC721('Juicebox project', 'JUICEBOX')
-    JBOperatable(_operatorStore)
-  {
+  constructor(
+    IJBOperatorStore _operatorStore,
+    IJBExpirySource _expirySource,
+    address _owner
+  ) ERC721('Juicebox project', 'JUICEBOX') JBOperatable(_operatorStore) {
+    // Set the expiry source
+    setExpirySource(_expirySource);
     // Transfer the ownership.
     transferOwnership(_owner);
   }
