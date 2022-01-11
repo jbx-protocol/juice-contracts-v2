@@ -113,7 +113,13 @@ contract JBETHPaymentTerminal is
     @dev
     Out of 200.
   */
-  uint256 public fee = 10;
+  uint256 public override fee = 10;
+
+  /**
+    @notice
+    The data source that returns a discount to apply to a project's fee.
+  */
+  IJBFeeGuage public override feeGuage;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -571,6 +577,22 @@ contract JBETHPaymentTerminal is
     emit SetFee(_fee, msg.sender);
   }
 
+  /**
+    @notice
+    Allows the fee guage to be updated.
+
+    @dev
+    Only the owner of this contract can change the fee guage.
+
+    @param _feeGuage The new fee guage.
+  */
+  function setFeeGuage(IJBFeeGuage _feeGuage) external onlyOwner {
+    // Store the new fee guage.
+    feeGuage = _feeGuage;
+
+    emit SetFeeGuage(_feeGuage, msg.sender);
+  }
+
   //*********************************************************************//
   // --------------------- private helper functions -------------------- //
   //*********************************************************************//
@@ -699,8 +721,19 @@ contract JBETHPaymentTerminal is
     address _beneficiary,
     string memory _memo
   ) private returns (uint256 feeAmount) {
+    // Get the fee discount.
+    uint256 _feeDiscount = feeGuage == IJBFeeGuage(address(0))
+      ? 0
+      : feeGuage.currentDiscountFor(_projectId);
+
+    // Set the discounted fee if its valid.
+    if (_feeDiscount > 1000000) _feeDiscount = 0;
+
+    // Calculate the discounted fee.
+    uint256 _discountedFee = fee - PRBMath.mulDiv(fee, _feeDiscount, 1000000);
+
     // The amount of ETH from the _amount to pay as a fee.
-    feeAmount = _amount - PRBMath.mulDiv(_amount, 200, fee + 200);
+    feeAmount = _amount - PRBMath.mulDiv(_amount, 200, _discountedFee + 200);
 
     // Nothing to do if there's no fee to take.
     if (feeAmount == 0) return 0;

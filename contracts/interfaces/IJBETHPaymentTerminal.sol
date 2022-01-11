@@ -12,6 +12,7 @@ import './IJBTokenStore.sol';
 import './IJBPrices.sol';
 import './IJBRedemptionDelegate.sol';
 import './IJBController.sol';
+import './IJBFeeGuage.sol';
 
 import './../structs/JBFee.sol';
 
@@ -75,6 +76,8 @@ interface IJBETHPaymentTerminal {
 
   event SetFee(uint256 fee, address caller);
 
+  event SetFeeGuage(IJBFeeGuage feeGuage, address caller);
+
   function projects() external view returns (IJBProjects);
 
   function splitsStore() external view returns (IJBSplitsStore);
@@ -82,6 +85,10 @@ interface IJBETHPaymentTerminal {
   function directory() external view returns (IJBDirectory);
 
   function heldFeesOf(uint256 _projectId) external view returns (JBFee[] memory);
+
+  function fee() external view returns (uint256);
+
+  function feeGuage() external view returns (IJBFeeGuage);
 
   function distributePayoutsOf(
     uint256 _projectId,
