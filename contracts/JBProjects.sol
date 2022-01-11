@@ -42,11 +42,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable, Ownable {
 
   /** 
     @notice 
-    The number of projects that have been created using this contract.
-
-    @dev
-    The count is incremented with each new project created. 
-    The resulting ERC-721 token ID for each project is the newly incremented count value.
+    The contract responsible for calculating initial challenge expiries.
   */
   IJBExpirySource public expirySource;
 
