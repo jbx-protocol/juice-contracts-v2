@@ -66,35 +66,26 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       mockTokenStore.address,
       mockSplitsStore.address,
     );
-
-    promises = [];
-
-    promises.push(mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address));
-
-    promises.push(
+    
+    await Promise.all([
+      mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address),
       mockJbDirectory.mock.isTerminalDelegateOf
-        .withArgs(PROJECT_ID, projectOwner.address)
-        .returns(false),
-    );
-
-    promises.push(
+          .withArgs(PROJECT_ID, projectOwner.address)
+          .returns(false),
       mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-        number: 1,
-        configuration: timestamp,
-        basedOn: timestamp,
-        start: timestamp,
-        duration: 0,
-        weight: 0,
-        discountRate: 0,
-        ballot: ethers.constants.AddressZero,
-        metadata: packFundingCycleMetadata({ reservedRate: 10000 }),
-      }),
-    );
-
-    // No token has been distributed/minted since the reserved rate is 100
-    promises.push(mockTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(0));
-
-    await Promise.all(promises);
+          number: 1,
+          configuration: timestamp,
+          basedOn: timestamp,
+          start: timestamp,
+          duration: 0,
+          weight: 0,
+          discountRate: 0,
+          ballot: ethers.constants.AddressZero,
+          metadata: packFundingCycleMetadata({ reservedRate: 10000 }),
+        }),
+      // No token has been distributed/minted since the reserved rate is 100
+      mockTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(0),
+    ]);
 
     // Minting the reserved token
     await jbController
