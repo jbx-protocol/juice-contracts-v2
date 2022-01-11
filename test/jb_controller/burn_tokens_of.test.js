@@ -4,14 +4,14 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { impersonateAccount, packFundingCycleMetadata } from '../helpers/utils';
 import errors from '../helpers/errors.json';
 
-import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
-import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
-import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
+import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
+import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
-import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
+import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
+import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
 
 describe('JBController::burnTokenOf(...)', function () {
   const PROJECT_ID = 1;
@@ -35,16 +35,6 @@ describe('JBController::burnTokenOf(...)', function () {
     const block = await ethers.provider.getBlock(blockNum);
     const timestamp = block.timestamp;
 
-    let promises = [];
-
-    promises.push(deployMockContract(deployer, jbOperatoreStore.abi));
-    promises.push(deployMockContract(deployer, jbProjects.abi));
-    promises.push(deployMockContract(deployer, jbDirectory.abi));
-    promises.push(deployMockContract(deployer, jbFundingCycleStore.abi));
-    promises.push(deployMockContract(deployer, jbTokenStore.abi));
-    promises.push(deployMockContract(deployer, jbSplitsStore.abi));
-    promises.push(deployMockContract(deployer, jbToken.abi));
-
     let [
       mockJbOperatorStore,
       mockJbProjects,
@@ -53,7 +43,15 @@ describe('JBController::burnTokenOf(...)', function () {
       mockTokenStore,
       mockSplitsStore,
       mockToken,
-    ] = await Promise.all(promises);
+    ] = await Promise.all([
+      deployMockContract(deployer, jbOperatoreStore.abi),
+      deployMockContract(deployer, jbProjects.abi),
+      deployMockContract(deployer, jbDirectory.abi),
+      deployMockContract(deployer, jbFundingCycleStore.abi),
+      deployMockContract(deployer, jbTokenStore.abi),
+      deployMockContract(deployer, jbSplitsStore.abi),
+      deployMockContract(deployer, jbToken.abi)
+    ]);
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');
     let jbController = await jbControllerFactory.deploy(
@@ -65,41 +63,38 @@ describe('JBController::burnTokenOf(...)', function () {
       mockSplitsStore.address,
     );
 
-    promises = [];
+    await Promise.all([
+      mockJbProjects.mock.ownerOf
+        .withArgs(PROJECT_ID)
+        .returns(projectOwner.address),
 
-    promises.push(mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address));
+      mockJbDirectory.mock.isTerminalDelegateOf
+        .withArgs(PROJECT_ID, holder.address)
+        .returns(false),
 
-    promises.push(
-      mockJbDirectory.mock.isTerminalDelegateOf.withArgs(PROJECT_ID, holder.address).returns(false),
-    );
-
-    promises.push(
       mockJbDirectory.mock.isTerminalDelegateOf
         .withArgs(PROJECT_ID, projectOwner.address)
         .returns(false),
-    );
 
-    promises.push(
-      mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-        // mock JBFundingCycle obj
-        number: 1,
-        configuration: timestamp,
-        basedOn: timestamp,
-        start: timestamp,
-        duration: 0,
-        weight: 0,
-        discountRate: 0,
-        ballot: ethers.constants.AddressZero,
-        metadata: packFundingCycleMetadata({
-          pauseBurn: 0,
-          pauseMint: 0,
-          reservedRate: RESERVED_RATE,
+      mockJbFundingCycleStore.mock.currentOf
+        .withArgs(PROJECT_ID)
+        .returns({
+          number: 1,
+          configuration: timestamp,
+          basedOn: timestamp,
+          start: timestamp,
+          duration: 0,
+          weight: 0,
+          discountRate: 0,
+          ballot: ethers.constants.AddressZero,
+          metadata: packFundingCycleMetadata({
+            pauseBurn: 0,
+            pauseMint: 0,
+            reservedRate: RESERVED_RATE,
+           }),
         }),
-      }),
-    );
 
-    // only non-reserved are minted, minting total supply in holder account
-    promises.push(
+      // only non-reserved are minted, minting total supply in holder account
       mockTokenStore.mock.mintFor
         .withArgs(
           holder.address,
@@ -108,21 +103,15 @@ describe('JBController::burnTokenOf(...)', function () {
           /*_preferClaimedTokens=*/ true,
         )
         .returns(),
-    );
 
-    promises.push(
       mockTokenStore.mock.burnFrom
         .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, /*_preferClaimedTokens=*/ true)
         .returns(),
-    );
 
-    promises.push(
       mockTokenStore.mock.totalSupplyOf
         .withArgs(PROJECT_ID)
-        .returns((TOTAL_SUPPLY * (10000 - RESERVED_RATE)) / 10000),
-    ); // rest is in reserved
-
-    await Promise.all(promises);
+        .returns((TOTAL_SUPPLY * (10000 - RESERVED_RATE)) / 10000)
+    ]);
 
     await jbController
       .connect(projectOwner)

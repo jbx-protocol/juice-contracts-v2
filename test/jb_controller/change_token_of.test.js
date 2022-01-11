@@ -4,13 +4,13 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { packFundingCycleMetadata } from '../helpers/utils';
 import errors from '../helpers/errors.json';
 
-import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
-import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
-import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
+import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
+import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
+import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
 
 describe('JBController::changeTokenOf(...)', function () {
   const PROJECT_ID = 1;
@@ -33,16 +33,6 @@ describe('JBController::changeTokenOf(...)', function () {
     const block = await ethers.provider.getBlock(blockNum);
     const timestamp = block.timestamp;
 
-    let promises = [];
-
-    promises.push(deployMockContract(deployer, jbOperatoreStore.abi));
-    promises.push(deployMockContract(deployer, jbProjects.abi));
-    promises.push(deployMockContract(deployer, jbDirectory.abi));
-    promises.push(deployMockContract(deployer, jbFundingCycleStore.abi));
-    promises.push(deployMockContract(deployer, jbTokenStore.abi));
-    promises.push(deployMockContract(deployer, jbSplitsStore.abi));
-    promises.push(deployMockContract(deployer, jbToken.abi));
-
     let [
       mockJbOperatorStore,
       mockJbProjects,
@@ -51,7 +41,15 @@ describe('JBController::changeTokenOf(...)', function () {
       mockTokenStore,
       mockSplitsStore,
       mockToken,
-    ] = await Promise.all(promises);
+    ] = await Promise.all([
+      deployMockContract(deployer, jbOperatoreStore.abi),
+      deployMockContract(deployer, jbProjects.abi),
+      deployMockContract(deployer, jbDirectory.abi),
+      deployMockContract(deployer, jbFundingCycleStore.abi),
+      deployMockContract(deployer, jbTokenStore.abi),
+      deployMockContract(deployer, jbSplitsStore.abi),
+      deployMockContract(deployer, jbToken.abi)
+    ]);
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');
     let jbController = await jbControllerFactory.deploy(

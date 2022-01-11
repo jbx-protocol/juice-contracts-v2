@@ -4,13 +4,13 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { packFundingCycleMetadata } from '../helpers/utils';
 import errors from '../helpers/errors.json';
 
-import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
-import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
+import IJbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
-import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
+import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
+import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
-import IJbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
+import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
 
 describe('JBController::migrate(...)', function () {
   const PROJECT_ID = 1;
