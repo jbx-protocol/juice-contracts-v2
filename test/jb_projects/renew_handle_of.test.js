@@ -27,8 +27,16 @@ describe('JBProjects::renewHandle(...)', function () {
     let jbOperatorStore = await jbOperatorStoreFactory.deploy();
 
     let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
+
+    let jbExpirySourceFactory = await ethers.getContractFactory('JBExpirySource');
+    let jbExpirySource = await jbExpirySourceFactory.deploy();
+
     let jbProjectsFactory = await ethers.getContractFactory('JBProjects');
-    let jbProjectsStore = await jbProjectsFactory.deploy(jbOperatorStore.address);
+    let jbProjectsStore = await jbProjectsFactory.deploy(
+      jbOperatorStore.address,
+      jbExpirySource.address,
+      deployer.address
+    );
 
     return {
       projectOwner,

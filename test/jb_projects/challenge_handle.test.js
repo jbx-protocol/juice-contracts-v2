@@ -17,8 +17,15 @@ describe('JBProjects::challengeHandle(...)', function () {
 
     let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
 
+    let jbExpirySourceFactory = await ethers.getContractFactory('JBExpirySource');
+    let jbExpirySource = await jbExpirySourceFactory.deploy();
+
     let jbProjectsFactory = await ethers.getContractFactory('JBProjects');
-    let jbProjectsStore = await jbProjectsFactory.deploy(mockJbOperatorStore.address);
+    let jbProjectsStore = await jbProjectsFactory.deploy(
+      mockJbOperatorStore.address,
+      jbExpirySource.address,
+      deployer.address
+    );
 
     return {
       projectOwner,
@@ -42,11 +49,11 @@ describe('JBProjects::challengeHandle(...)', function () {
     let tx = await jbProjectsStore
       .connect(addrs[0])
       .challengeHandle(/*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
-
     let expectedChallengeExpiry = (await getTimestamp(tx.blockNumber)).add(31536000);
     let storedChallengeExpiryOf = await jbProjectsStore
       .connect(addrs[0])
       .challengeExpiryOf(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
+
     await expect(storedChallengeExpiryOf).equal(expectedChallengeExpiry);
 
     await expect(tx)

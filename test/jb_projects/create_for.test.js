@@ -2,6 +2,10 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import errors from '../helpers/errors.json';
 
+import { deployMockContract } from '@ethereum-waffle/mock-contract';
+
+import jbExpirySource from '../../artifacts/contracts/JBExpirySource.sol/JBExpirySource.json';
+
 describe('JBProjects::createFor(...)', function () {
   const PROJECT_HANDLE_1 = 'PROJECT_1';
   const PROJECT_HANDLE_2 = 'PROJECT_2';
@@ -16,8 +20,14 @@ describe('JBProjects::createFor(...)', function () {
     let jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
     let jbOperatorStore = await jbOperatorStoreFactory.deploy();
 
+    let mockJbExpirySource = await deployMockContract(deployer, jbExpirySource.abi);
+
     let jbProjectsFactory = await ethers.getContractFactory('JBProjects');
-    let jbProjectsStore = await jbProjectsFactory.deploy(jbOperatorStore.address);
+    let jbProjectsStore = await jbProjectsFactory.deploy(
+      jbOperatorStore.address,
+      mockJbExpirySource.address,
+      deployer.address
+    );
 
     return {
       projectOwner,

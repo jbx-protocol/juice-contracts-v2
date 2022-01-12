@@ -44,7 +44,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable, Ownable {
     @notice 
     The contract responsible for calculating initial challenge expiries.
   */
-  IJBExpirySource public expirySource;
+  IJBExpirySource public override expirySource;
 
   /** 
     @notice 
@@ -346,7 +346,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable, Ownable {
       revert HANDLE_ALREADY_CHALLENGED();
     }
 
-    // The challenge will expire in a year, at which point the handle can be claimed if it has yet to be renewed.
+    // Once the expiry time has passed, the handle can be claimed if it has yet to be renewed.
     uint256 _challengeExpiry = expirySource.getExpiryFor(_projectId);
 
     // Store the challenge expiry for the handle.
@@ -382,7 +382,15 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable, Ownable {
   // ---------------------- public transactions ------------------------ //
   //*********************************************************************//
 
+  /** 
+    @notice
+    Allows the owner to set a new expiry source.
+
+    @param _expirySource Address of the new expiry source contract.
+  */
   function setExpirySource(IJBExpirySource _expirySource) public onlyOwner {
     expirySource = _expirySource;
+
+    emit NewExpirySource(address(expirySource));
   }
 }

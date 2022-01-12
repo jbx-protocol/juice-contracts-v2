@@ -35,6 +35,7 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 //*********************************************************************//
 error BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE();
 error CALLER_NOT_CURRENT_CONTROLLER();
+error CALLER_NOT_PROJECT_OWNER();
 error CANT_MIGRATE_TO_CURRENT_CONTROLLER();
 error CHANGE_TOKEN_NOT_ALLOWED();
 error INVALID_BALLOT_REDEMPTION_RATE();
@@ -321,8 +322,19 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       revert INVALID_BALLOT_REDEMPTION_RATE();
     }
 
-    // Create the project for into the wallet of the message sender.
-    projectId = projects.createFor(_owner, _handle, _metadataCid);
+    // Get the projectId (will be 0 if project doesn't exist)
+    projectId = projects.idFor(_handle);
+
+    // If project already exists and msg.sender is not the project owner, revert
+    // (if project already exists and msg.sender is the project owner, continue without creating a new project).
+    if (projectId != 0 && msg.sender != projects.ownerOf(projectId)) {
+      revert CALLER_NOT_PROJECT_OWNER();
+    }
+
+    // If project doesn't already exist, create it
+    if (projectId == 0) {
+      projectId = projects.createFor(_owner, _handle, _metadataCid);
+    }
 
     // Set the this contract as the project's controller in the directory.
     directory.setControllerOf(projectId, this);

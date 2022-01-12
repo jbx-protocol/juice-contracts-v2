@@ -29,8 +29,14 @@ describe('JBProjects::claimHandle(...)', function () {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
     let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
+    let jbExpirySourceFactory = await ethers.getContractFactory('JBExpirySource');
+    let jbExpirySource = await jbExpirySourceFactory.deploy();
     let jbProjectsFactory = await ethers.getContractFactory('JBProjects');
-    let jbProjectsStore = await jbProjectsFactory.deploy(mockJbOperatorStore.address);
+    let jbProjectsStore = await jbProjectsFactory.deploy(
+      mockJbOperatorStore.address,
+      jbExpirySource.address,
+      deployer.address
+    );
 
     return {
       projectOwner,

@@ -3,6 +3,7 @@ pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 
+import './IJBExpirySource.sol';
 import './IJBTerminal.sol';
 
 interface IJBProjects is IERC721 {
@@ -42,7 +43,11 @@ interface IJBProjects is IERC721 {
 
   event RenewHandle(bytes32 indexed handle, uint256 indexed projectId, address caller);
 
+  event NewExpirySource(address expirySource);
+
   function count() external view returns (uint256);
+
+  function expirySource() external view returns (IJBExpirySource);
 
   function metadataCidOf(uint256 _projectId) external view returns (string memory);
 

@@ -45,9 +45,15 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     log: true,
   });
 
+  const JBExpirySource = await deploy('JBExpirySource', {
+    from: deployer,
+    args: [],
+    log: true,
+  })
+
   const JBProjects = await deploy('JBProjects', {
     from: deployer,
-    args: [JBOperatorStore.address],
+    args: [JBOperatorStore.address, JBExpirySource.address, multisigAddress],
     log: true,
   });
 
