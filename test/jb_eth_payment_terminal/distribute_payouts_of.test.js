@@ -11,7 +11,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 
-describe.only('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
+describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
   const PROJECT_ID = 2;
   const PLATFORM_PROJECT_ID = 1;
 
