@@ -31,6 +31,7 @@ describe.only('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
   const NEW_FEE = 20; // 10%
   const MEMO = 'Memo Test';
 
+  let fundingCycle;
 
   const DELEGATE_METADATA = ethers.utils.randomBytes(32);
   const FUNDING_CYCLE_NUMBER = 1;
@@ -62,11 +63,23 @@ describe.only('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
   async function setup() {
     let [deployer, projectOwner, terminalOwner, caller, beneficiaryOne, beneficiaryTwo, ...addrs] = await ethers.getSigners();
 
-console.log([deployer, projectOwner, terminalOwner, caller, beneficiaryOne, beneficiaryTwo].map( i => i.address));
+ console.log([deployer, projectOwner, terminalOwner, caller, beneficiaryOne, beneficiaryTwo].map( i => i.address));
 
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);
     const timestamp = block.timestamp;
+
+    fundingCycle = {
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: 0,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata(),
+    }
 
     let [
       mockJbOperatorStore,
@@ -125,17 +138,7 @@ console.log([deployer, projectOwner, terminalOwner, caller, beneficiaryOne, bene
         MIN_TOKEN_REQUESTED
       )
       .returns(
-        { // mock JBFundingCycle obj 
-          number: 1,
-          configuration: timestamp,
-          basedOn: timestamp,
-          start: timestamp,
-          duration: 0,
-          weight: 0,
-          discountRate: 0,
-          ballot: ethers.constants.AddressZero,
-          metadata: packFundingCycleMetadata( { holdFees: 0 } ),
-        },
+        fundingCycle,
         AMOUNT_DISTRIBUTED
       )
 
@@ -400,15 +403,94 @@ console.log([deployer, projectOwner, terminalOwner, caller, beneficiaryOne, bene
     await mockJbDirectory.mock.primaryTerminalOf.withArgs(1, ETH_ADDRESS).returns(mockJbEthPaymentTerminal.address);
 
     await mockJbEthPaymentTerminal.mock.pay
-    // .withArgs(
-    //   1, //JBX Dao
-    //   projectOwner.address,
-    //   0,
-    //   false,
-    //   'Fee from @'+HANDLE+PADDING,
-    //   '0x',
-    // )  --> fails with args
+     .withArgs(
+      1, //JBX Dao
+      projectOwner.address,
+      0,
+      false,
+      'Fee from @'+ethers.utils.parseBytes32String(HANDLE)+PADDING,
+      '0x',
+    )
       .returns();
+
+      let tx = await jbEthPaymentTerminal
+              .connect(caller)
+              .distributePayoutsOf(
+                PROJECT_ID,
+                AMOUNT_DISTRIBUTED,
+                ETH_PAYOUT_INDEX,
+                MIN_TOKEN_REQUESTED,
+                MEMO
+              );
+
+    await Promise.all(
+      splits.map(async (split) => {
+        await expect(tx)
+        .to.emit(jbEthPaymentTerminal, 'DistributeToPayoutSplit')
+        .withArgs(
+          /*_fundingCycle.configuration*/timestamp,
+          /*_fundingCycle.number*/1,
+          PROJECT_ID,
+          [
+            split.preferClaimed,
+            split.percent,
+            split.lockedUntil,
+            split.beneficiary,
+            split.allocator,
+            split.projectId,
+          ],
+          /*payoutAmount*/ Math.floor(AMOUNT_MINUS_FEES * split.percent / SPLITS_TOTAL_PERCENT),
+          caller.address
+        )
+      })
+    );
+
+    expect(await(tx))
+      .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
+      .withArgs(
+        /*_fundingCycle.configuration*/timestamp,
+        /*_fundingCycle.number*/1,
+        /*_projectId*/PROJECT_ID,
+        /*_projectOwner*/projectOwner.address,
+        /*_amount*/AMOUNT_DISTRIBUTED,
+        /*_distributedAmount*/AMOUNT_DISTRIBUTED,
+        /*_feeAmount*/AMOUNT_DISTRIBUTED-AMOUNT_MINUS_FEES,
+        /*_leftoverDistributionAmount*/0,
+        /*_memo*/MEMO,
+        /*msg.sender*/caller.address
+      );
+  });
+
+  it('Should distribute payout minus fee and pay the fee via the same terminal, if using Juicebox DAO terminal', async function () {
+    const { projectOwner, caller, beneficiaryOne, beneficiaryTwo, jbEthPaymentTerminal, timestamp, mockJbEthPaymentTerminalStore, mockJbDirectory, mockJbSplitsStore } = await setup();
+    const AMOUNT_MINUS_FEES = Math.floor((AMOUNT_DISTRIBUTED * 200) / (DEFAULT_FEE + 200));
+
+    const splits = makeSplits({ count: 2, beneficiary: [beneficiaryOne.address, beneficiaryTwo.address]});
+
+    await mockJbSplitsStore.mock.splitsOf
+      .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
+      .returns(splits);
+
+      console.log(ethers.BigNumber.from(1).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
+      )
+
+    await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
+      .withArgs(
+        projectOwner.address,
+        AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES,
+        PROJECT_ID,
+        //preferedCLaimed | uint160(beneficiary)<<1 and preferedClaimed=false hard coded
+        ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
+        /*_minReturnedTokens*/0, //hard coded
+        'Fee from @'+ethers.utils.parseBytes32String(HANDLE)+PADDING,
+        /*DELEGATE_METADATA*/'0x'
+      )
+      .returns(
+        fundingCycle,
+        0,
+        0,
+        'Fee from @'+ethers.utils.parseBytes32String(HANDLE)+PADDING,
+      )
 
     let tx = await jbEthPaymentTerminal
               .connect(caller)
@@ -465,10 +547,10 @@ console.log([deployer, projectOwner, terminalOwner, caller, beneficiaryOne, bene
 //   false -> takeFee() :
 //     _fundingCycle.shouldHoldfee ?
 //       false -> push in heldFeesOf                             [X]
-//       true -> _takeFee                                        [ ]
+//       true -> _takeFee                                
 //          primary terminal of the token = this?
 //              true -> _pay (event)                             [ ]
-//              false -> terminal.pay                            [ ]
+//              false -> terminal.pay                            [X]
 // leftOver = distributetToPayoutSplitsOf()
 //    iterate over splits
 //        allocator ? 
