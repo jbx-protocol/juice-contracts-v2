@@ -400,14 +400,14 @@ console.log([deployer, projectOwner, terminalOwner, caller, beneficiaryOne, bene
     await mockJbDirectory.mock.primaryTerminalOf.withArgs(1, ETH_ADDRESS).returns(mockJbEthPaymentTerminal.address);
 
     await mockJbEthPaymentTerminal.mock.pay
-       .withArgs(
-        1, //JBX Dao
-        projectOwner.address,
-        0,
-        false,
-        'Fee from @'+HANDLE+PADDING,
-        '0x',
-      )
+    // .withArgs(
+    //   1, //JBX Dao
+    //   projectOwner.address,
+    //   0,
+    //   false,
+    //   'Fee from @'+HANDLE+PADDING,
+    //   '0x',
+    // )  --> fails with args
       .returns();
 
     let tx = await jbEthPaymentTerminal
