@@ -8,10 +8,30 @@ To deploy the contracts to a local blockchain, run the following:
 yarn chain --network hardhat
 ```
 
-To run tests:
+### Unit Tests
 
 ```bash
 yarn test
+```
+
+### System Tests
+
+TODO: Foundry setup
+
+Build the contracts:
+
+```bash
+forge build --contracts ./contracts \
+  --remappings @chainlink/=node_modules/@chainlink/ \
+  --remappings @openzeppelin/=node_modules/@openzeppelin/ \
+  --remappings @paulrberg/=node_modules/@paulrberg/ \
+  --remappings prb-math/=node_modules/prb-math/
+```
+
+Run tests:
+
+```bash
+forge test
 ```
 
 ### Coverage

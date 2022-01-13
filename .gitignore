@@ -1,6 +1,9 @@
 node_modules
 .env
 
+# Foundry output
+out/
+
 # Hardhat files
 cache
 artifacts
