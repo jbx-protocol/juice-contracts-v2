@@ -19,8 +19,8 @@ describe.only('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
 
   const CURRENCY = 1;
   const MIN_TOKEN_REQUESTED = 180;
-  const HANDLE_STRING = 'PROJECT_HANDLE';
-  const HANDLE = ethers.utils.formatBytes32String(HANDLE_STRING);
+  const HANDLE = ethers.utils.formatBytes32String('PROJECT_HANDLE');
+  const PADDING = '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00';
   const NAME = "Foo";
   const SYMBOL = "BAR";
 
@@ -394,19 +394,19 @@ describe.only('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
         /*_projectId*/PROJECT_ID,
         /*_projectOwner*/projectOwner.address,
         /*_amount*/AMOUNT_DISTRIBUTED,
-        /*_distributedAmount*/AMOUNT_MINUS_FEES,
+        /*_distributedAmount*/AMOUNT_DISTRIBUTED,
         /*_feeAmount*/AMOUNT_DISTRIBUTED-AMOUNT_MINUS_FEES,
         /*_leftoverDistributionAmount*/0,
         /*_memo*/MEMO,
         /*msg.sender*/caller.address
       );
 
-    expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([
-        AMOUNT_DISTRIBUTED,
+    expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([[
+        ethers.BigNumber.from(AMOUNT_DISTRIBUTED),
         DEFAULT_FEE,
         projectOwner.address,
-        'Fee from @'+HANDLE_STRING
-    ]);
+        'Fee from @'+ethers.utils.parseBytes32String(HANDLE)+PADDING
+    ]]);
 
   });
 
@@ -414,7 +414,7 @@ describe.only('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
 //   true -> no fee taken                                        [X]
 //   false -> takeFee() :
 //     _fundingCycle.shouldHoldfee ?
-//       false -> push in heldFeesOf                             [ ]
+//       false -> push in heldFeesOf                             [X]
 //       true -> _takeFee                                        [ ]
 //          primary terminal of the token = this?
 //              true -> _pay (event)                             [ ]
