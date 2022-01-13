@@ -2,12 +2,12 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
+import jbController from '../../artifacts/contracts/JBController.sol/JBController.json';
+import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
+import jbEthPaymentTerminalStore from '../../artifacts/contracts/JBETHPaymentTerminalStore.sol/JBETHPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
-import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
-import jbEthPaymentTerminalStore from '../../artifacts/contracts/JBETHPaymentTerminalStore.sol/JBETHPaymentTerminalStore.json';
-import jbController from '../../artifacts/contracts/JBController.sol/JBController.json';
 
 describe('JBETHPaymentTerminal::remainingDistributionLimitOf(...)', function () {
   const PROJECT_ID = 13;
@@ -21,22 +21,21 @@ describe('JBETHPaymentTerminal::remainingDistributionLimitOf(...)', function () 
     const block = await ethers.provider.getBlock(blockNum);
     const timestamp = block.timestamp;
 
-    let promises = [];
-    promises.push(deployMockContract(deployer, jbOperatoreStore.abi));
-    promises.push(deployMockContract(deployer, jbProjects.abi));
-    promises.push(deployMockContract(deployer, jbDirectory.abi));
-    promises.push(deployMockContract(deployer, jbSplitsStore.abi));
-    promises.push(deployMockContract(deployer, jbEthPaymentTerminalStore.abi));
-    promises.push(deployMockContract(deployer, jbController.abi));
-
     let [
+      mockJbController,
+      mockJbDirectory,
+      mockJbEthPaymentTerminalStore,
       mockJbOperatorStore,
       mockJbProjects,
-      mockJbDirectory,
-      mockSplitsStore,
-      mockJbEthPaymentTerminalStore,
-      mockJbController,
-    ] = await Promise.all(promises);
+      mockJbSplitsStore,
+    ] = await Promise.all([
+      deployMockContract(deployer, jbController.abi),
+      deployMockContract(deployer, jbDirectory.abi),
+      deployMockContract(deployer, jbEthPaymentTerminalStore.abi),
+      deployMockContract(deployer, jbOperatoreStore.abi),
+      deployMockContract(deployer, jbProjects.abi),
+      deployMockContract(deployer, jbSplitsStore.abi),
+    ]);
 
     let jbTerminalFactory = await ethers.getContractFactory("JBETHPaymentTerminal", deployer);
 
@@ -51,7 +50,7 @@ describe('JBETHPaymentTerminal::remainingDistributionLimitOf(...)', function () 
       mockJbOperatorStore.address,
       mockJbProjects.address,
       mockJbDirectory.address,
-      mockSplitsStore.address,
+      mockJbSplitsStore.address,
       mockJbEthPaymentTerminalStore.address,
       terminalOwner.address);
 
@@ -67,7 +66,7 @@ describe('JBETHPaymentTerminal::remainingDistributionLimitOf(...)', function () 
   }
 
   it('Should return the remaining distribution limit of the project', async function () {
-    const { deployer, jbEthPaymentTerminal, mockJbDirectory, mockJbController, mockJbEthPaymentTerminalStore, timestamp } = await setup();
+    const { jbEthPaymentTerminal, mockJbDirectory, mockJbController, mockJbEthPaymentTerminalStore, timestamp } = await setup();
 
     await mockJbDirectory.mock.controllerOf
       .withArgs(PROJECT_ID)

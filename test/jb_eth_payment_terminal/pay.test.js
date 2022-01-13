@@ -3,11 +3,11 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { packFundingCycleMetadata } from '../helpers/utils.js';
 import errors from '../helpers/errors.json';
+import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
+import jbEthPaymentTerminalStore from '../../artifacts/contracts/JBETHPaymentTerminalStore.sol/JBETHPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
-import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
-import jbEthPaymentTerminalStore from '../../artifacts/contracts/JBETHPaymentTerminalStore.sol/JBETHPaymentTerminalStore.json';
 
 describe('JBETHPaymentTerminal::pay(...)', function () {
   const PROJECT_ID = 1;
@@ -26,20 +26,19 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
     const block = await ethers.provider.getBlock(blockNum);
     const timestamp = block.timestamp;
 
-    let promises = [];
-    promises.push(deployMockContract(deployer, jbOperatoreStore.abi));
-    promises.push(deployMockContract(deployer, jbProjects.abi));
-    promises.push(deployMockContract(deployer, jbDirectory.abi));
-    promises.push(deployMockContract(deployer, jbSplitsStore.abi));
-    promises.push(deployMockContract(deployer, jbEthPaymentTerminalStore.abi));
-
     let [
+      mockJbDirectory,
+      mockJbEthPaymentTerminalStore,
       mockJbOperatorStore,
       mockJbProjects,
-      mockJbDirectory,
-      mockSplitsStore,
-      mockJbEthPaymentTerminalStore,
-    ] = await Promise.all(promises);
+      mockJbSplitsStore,
+    ] = await Promise.all([
+      deployMockContract(deployer, jbDirectory.abi),
+      deployMockContract(deployer, jbEthPaymentTerminalStore.abi),  
+      deployMockContract(deployer, jbOperatoreStore.abi),
+      deployMockContract(deployer, jbProjects.abi),
+      deployMockContract(deployer, jbSplitsStore.abi),
+    ]);
 
     let jbTerminalFactory = await ethers.getContractFactory("JBETHPaymentTerminal", deployer);
 
@@ -54,7 +53,7 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
       mockJbOperatorStore.address,
       mockJbProjects.address,
       mockJbDirectory.address,
-      mockSplitsStore.address,
+      mockJbSplitsStore.address,
       mockJbEthPaymentTerminalStore.address,
       terminalOwner.address);
 
