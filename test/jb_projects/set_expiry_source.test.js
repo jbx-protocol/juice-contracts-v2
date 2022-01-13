@@ -5,19 +5,19 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 
-describe('JBProjects::setExpirySource(...)', function () {
+describe('JBProjects::setChallengePeriodSource(...)', function () {
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
     let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
 
-    let jbExpirySourceFactory = await ethers.getContractFactory('JBExpirySource');
-    let jbExpirySource = await jbExpirySourceFactory.deploy();
+    let jbChallengePeriodSourceFactory = await ethers.getContractFactory('JB1YearChallengePeriodSource');
+    let jbChallengePeriodSource = await jbChallengePeriodSourceFactory.deploy();
 
     let jbProjectsFactory = await ethers.getContractFactory('JBProjects');
     let jbProjectsStore = await jbProjectsFactory.deploy(
       mockJbOperatorStore.address,
-      jbExpirySource.address,
+      jbChallengePeriodSource.address,
       deployer.address
     );
 
@@ -26,44 +26,44 @@ describe('JBProjects::setExpirySource(...)', function () {
       deployer,
       addrs,
       jbProjectsStore,
-      jbExpirySourceFactory,
-      jbExpirySource,
+      jbChallengePeriodSourceFactory,
+      jbChallengePeriodSource,
     };
   }
 
-  it(`Should switch expirySource`, async function () {
-    const { deployer, jbProjectsStore, jbExpirySourceFactory, jbExpirySource } = await setup();
+  it(`Should switch challengePeriodSource`, async function () {
+    const { deployer, jbProjectsStore, jbChallengePeriodSourceFactory, jbChallengePeriodSource } = await setup();
 
-    assert.equal(await jbProjectsStore.expirySource(), jbExpirySource.address);
+    assert.equal(await jbProjectsStore.challengePeriodSource(), jbChallengePeriodSource.address);
 
-    let jbExpirySource2 = await jbExpirySourceFactory.deploy();
-    assert.notEqual(jbExpirySource.address, jbExpirySource2.address);
+    let jbChallengePeriodSource2 = await jbChallengePeriodSourceFactory.deploy();
+    assert.notEqual(jbChallengePeriodSource.address, jbChallengePeriodSource2.address);
 
     let tx = await jbProjectsStore
       .connect(deployer)
-      .setExpirySource(jbExpirySource2.address)
+      .setChallengePeriodSource(jbChallengePeriodSource2.address)
 
-    assert.equal(await jbProjectsStore.expirySource(), jbExpirySource2.address);
+    assert.equal(await jbProjectsStore.challengePeriodSource(), jbChallengePeriodSource2.address);
 
     await expect(tx)
-      .to.emit(jbProjectsStore, 'NewExpirySource')
+      .to.emit(jbProjectsStore, 'NewChallengePeriodSource')
       .withArgs(
-        jbExpirySource2.address
+        jbChallengePeriodSource2.address
       );
   });
 
   it(`Should only allow owner to call`, async function () {
-    const { addrs, jbProjectsStore, jbExpirySourceFactory, jbExpirySource } = await setup();
+    const { addrs, jbProjectsStore, jbChallengePeriodSourceFactory, jbChallengePeriodSource } = await setup();
 
-    assert.equal(await jbProjectsStore.expirySource(), jbExpirySource.address);
+    assert.equal(await jbProjectsStore.challengePeriodSource(), jbChallengePeriodSource.address);
 
-    let jbExpirySource2 = await jbExpirySourceFactory.deploy();
-    assert.notEqual(jbExpirySource.address, jbExpirySource2.address);
+    let jbChallengePeriodSource2 = await jbChallengePeriodSourceFactory.deploy();
+    assert.notEqual(jbChallengePeriodSource.address, jbChallengePeriodSource2.address);
 
     await expect(
       jbProjectsStore
         .connect(addrs[0])
-        .setExpirySource(jbExpirySource2.address)
+        .setChallengePeriodSource(jbChallengePeriodSource2.address)
     ).to.be.revertedWith("Ownable: caller is not the owner");
   });
 });

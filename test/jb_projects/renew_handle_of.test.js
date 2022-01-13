@@ -28,13 +28,13 @@ describe('JBProjects::renewHandle(...)', function () {
 
     let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
 
-    let jbExpirySourceFactory = await ethers.getContractFactory('JBExpirySource');
-    let jbExpirySource = await jbExpirySourceFactory.deploy();
+    let jbChallengePeriodSourceFactory = await ethers.getContractFactory('JB1YearChallengePeriodSource');
+    let jbChallengePeriodSource = await jbChallengePeriodSourceFactory.deploy();
 
     let jbProjectsFactory = await ethers.getContractFactory('JBProjects');
     let jbProjectsStore = await jbProjectsFactory.deploy(
       jbOperatorStore.address,
-      jbExpirySource.address,
+      jbChallengePeriodSource.address,
       deployer.address
     );
 
@@ -60,10 +60,10 @@ describe('JBProjects::renewHandle(...)', function () {
 
     let tx = await jbProjectsStore.connect(projectOwner).renewHandleOf(PROJECT_ID_1);
 
-    let storedChallengeExpiryOf = await jbProjectsStore
+    let storedChallengePeriodOf = await jbProjectsStore
       .connect(deployer)
-      .challengeExpiryOf(ethers.utils.formatBytes32String(PROJECT_HANDLE));
-    await expect(storedChallengeExpiryOf).equal(0);
+      .challengePeriodOf(ethers.utils.formatBytes32String(PROJECT_HANDLE));
+    await expect(storedChallengePeriodOf).equal(0);
 
     await expect(tx)
       .to.emit(jbProjectsStore, 'RenewHandle')

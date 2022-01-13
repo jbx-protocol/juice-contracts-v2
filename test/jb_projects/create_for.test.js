@@ -4,7 +4,7 @@ import errors from '../helpers/errors.json';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
-import jbExpirySource from '../../artifacts/contracts/JBExpirySource.sol/JBExpirySource.json';
+import jbChallengePeriodSource from '../../artifacts/contracts/JB1YearChallengePeriodSource.sol/JB1YearChallengePeriodSource.json';
 
 describe('JBProjects::createFor(...)', function () {
   const PROJECT_HANDLE_1 = 'PROJECT_1';
@@ -20,12 +20,12 @@ describe('JBProjects::createFor(...)', function () {
     let jbOperatorStoreFactory = await ethers.getContractFactory('JBOperatorStore');
     let jbOperatorStore = await jbOperatorStoreFactory.deploy();
 
-    let mockJbExpirySource = await deployMockContract(deployer, jbExpirySource.abi);
+    let mockJbChallengePeriodSource = await deployMockContract(deployer, jbChallengePeriodSource.abi);
 
     let jbProjectsFactory = await ethers.getContractFactory('JBProjects');
     let jbProjectsStore = await jbProjectsFactory.deploy(
       jbOperatorStore.address,
-      mockJbExpirySource.address,
+      mockJbChallengePeriodSource.address,
       deployer.address
     );
 

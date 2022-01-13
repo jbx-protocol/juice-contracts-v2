@@ -3,7 +3,7 @@ pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 
-import './IJBExpirySource.sol';
+import './IJBChallengePeriodSource.sol';
 import './IJBTerminal.sol';
 
 interface IJBProjects is IERC721 {
@@ -37,17 +37,17 @@ interface IJBProjects is IERC721 {
   event ChallengeHandle(
     bytes32 indexed handle,
     uint256 indexed projectId,
-    uint256 challengeExpiry,
+    uint256 challengePeriod,
     address caller
   );
 
   event RenewHandle(bytes32 indexed handle, uint256 indexed projectId, address caller);
 
-  event NewExpirySource(address expirySource);
+  event NewChallengePeriodSource(address challengePeriodSource);
 
   function count() external view returns (uint256);
 
-  function expirySource() external view returns (IJBExpirySource);
+  function challengePeriodSource() external view returns (IJBChallengePeriodSource);
 
   function metadataCidOf(uint256 _projectId) external view returns (string memory);
 
@@ -57,7 +57,7 @@ interface IJBProjects is IERC721 {
 
   function transferAddressFor(bytes32 _handle) external returns (address receiver);
 
-  function challengeExpiryOf(bytes32 _handle) external returns (uint256);
+  function challengePeriodOf(bytes32 _handle) external returns (uint256);
 
   function createFor(
     address _owner,

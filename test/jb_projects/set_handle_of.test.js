@@ -4,7 +4,7 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
-import jbExpirySource from '../../artifacts/contracts/JBExpirySource.sol/JBExpirySource.json';
+import jbChallengePeriodSource from '../../artifacts/contracts/JB1YearChallengePeriodSource.sol/JB1YearChallengePeriodSource.json';
 import errors from '../helpers/errors.json';
 
 describe('JBProjects::setHandleOf(...)', function () {
@@ -30,11 +30,11 @@ describe('JBProjects::setHandleOf(...)', function () {
     let jbOperatorStore = await jbOperatorStoreFactory.deploy();
 
     let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
-    let mockJbExpirySource = await deployMockContract(deployer, jbExpirySource.abi);
+    let mockJbChallengePeriodSource = await deployMockContract(deployer, jbChallengePeriodSource.abi);
     let jbProjectsFactory = await ethers.getContractFactory('JBProjects');
     let jbProjectsStore = await jbProjectsFactory.deploy(
       jbOperatorStore.address,
-      mockJbExpirySource.address,
+      mockJbChallengePeriodSource.address,
       deployer.address
     );
 

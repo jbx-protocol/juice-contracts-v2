@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './interfaces/IJBExpirySource.sol';
+import './interfaces/IJBChallengePeriodSource.sol';
 
-contract JBExpirySource is IJBExpirySource {
+contract JB1YearChallengePeriodSource is IJBChallengePeriodSource {
   /** 
     @notice
     The number of seconds in 365 days.
@@ -17,7 +17,7 @@ contract JBExpirySource is IJBExpirySource {
     (e.g. to help recover specific handles)
   */
 
-  function getExpiryFor(uint256) external view override returns (uint256) {
+  function getChallengePeriod(uint256) external view override returns (uint256) {
     return block.timestamp + _SECONDS_IN_YEAR;
   }
 }

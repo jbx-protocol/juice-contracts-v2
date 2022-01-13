@@ -5,7 +5,7 @@ import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 
 import './abstract/JBOperatable.sol';
-import './interfaces/IJBExpirySource.sol';
+import './interfaces/IJBChallengePeriodSource.sol';
 import './interfaces/IJBProjects.sol';
 import './libraries/JBOperations.sol';
 
@@ -44,7 +44,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable, Ownable {
     @notice 
     The contract responsible for calculating initial challenge expiries.
   */
-  IJBExpirySource public override expirySource;
+  IJBChallengePeriodSource public override challengePeriodSource;
 
   /** 
     @notice 
@@ -91,9 +91,9 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable, Ownable {
     @dev
     A value of 0 means a handle isn't yet being challenged.
 
-    _handle The handle to look for the challenge expiry of.
+    _handle The handle to look for the challenge period of.
   */
-  mapping(bytes32 => uint256) public override challengeExpiryOf;
+  mapping(bytes32 => uint256) public override challengePeriodOf;
 
   //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
@@ -101,16 +101,16 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable, Ownable {
 
   /** 
     @param _operatorStore A contract storing operator assignments.
-    @param _expirySource A contract to calculate initial challenge expiries.
+    @param _challengePeriodSource A contract to calculate initial challenge expiries.
     @param _owner The intial owner of this contract.
   */
   constructor(
     IJBOperatorStore _operatorStore,
-    IJBExpirySource _expirySource,
+    IJBChallengePeriodSource _challengePeriodSource,
     address _owner
   ) ERC721('Juicebox project', 'JUICEBOX') JBOperatable(_operatorStore) {
-    // Set the expiry source
-    setExpirySource(_expirySource);
+    // Set the challenge period source
+    setChallengePeriodSource(_challengePeriodSource);
     // Transfer the ownership.
     transferOwnership(_owner);
   }
@@ -302,7 +302,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable, Ownable {
     // or the handle challenge must have expired before being renewed.
     if (
       transferAddressFor[_handle] != _transferAddress &&
-      (challengeExpiryOf[_handle] == 0 || block.timestamp <= challengeExpiryOf[_handle])
+      (challengePeriodOf[_handle] == 0 || block.timestamp <= challengePeriodOf[_handle])
     ) {
       revert TRANSFER_HANDLE_UNAUTHORIZED();
     }
@@ -320,7 +320,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable, Ownable {
     transferAddressFor[_handle] = address(0);
 
     // Reset the challenge to 0.
-    challengeExpiryOf[_handle] = 0;
+    challengePeriodOf[_handle] = 0;
 
     emit ClaimHandle(_projectId, _transferAddress, _handle, msg.sender);
   }
@@ -342,17 +342,17 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable, Ownable {
     }
 
     // No need to challenge again if a handle is already being challenged.
-    if (challengeExpiryOf[_handle] != 0) {
+    if (challengePeriodOf[_handle] != 0) {
       revert HANDLE_ALREADY_CHALLENGED();
     }
 
-    // Once the expiry time has passed, the handle can be claimed if it has yet to be renewed.
-    uint256 _challengeExpiry = expirySource.getExpiryFor(_projectId);
+    // Once the challenge period has passed, the handle can be claimed if it has yet to be renewed.
+    uint256 _challengePeriod = challengePeriodSource.getChallengePeriod(_projectId);
 
-    // Store the challenge expiry for the handle.
-    challengeExpiryOf[_handle] = _challengeExpiry;
+    // Store the challenge period for the handle.
+    challengePeriodOf[_handle] = _challengePeriod;
 
-    emit ChallengeHandle(_handle, _projectId, _challengeExpiry, msg.sender);
+    emit ChallengeHandle(_handle, _projectId, _challengePeriod, msg.sender);
   }
 
   /** 
@@ -373,7 +373,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable, Ownable {
     bytes32 _handle = handleOf[_projectId];
 
     // Reset the challenge to 0.
-    challengeExpiryOf[_handle] = 0;
+    challengePeriodOf[_handle] = 0;
 
     emit RenewHandle(_handle, _projectId, msg.sender);
   }
@@ -384,13 +384,16 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable, Ownable {
 
   /** 
     @notice
-    Allows the owner to set a new expiry source.
+    Allows the owner to set a new challenge period source.
 
-    @param _expirySource Address of the new expiry source contract.
+    @param _challengePeriodSource Address of the new challenge period source contract.
   */
-  function setExpirySource(IJBExpirySource _expirySource) public onlyOwner {
-    expirySource = _expirySource;
+  function setChallengePeriodSource(IJBChallengePeriodSource _challengePeriodSource)
+    public
+    onlyOwner
+  {
+    challengePeriodSource = _challengePeriodSource;
 
-    emit NewExpirySource(address(expirySource));
+    emit NewChallengePeriodSource(address(challengePeriodSource));
   }
 }

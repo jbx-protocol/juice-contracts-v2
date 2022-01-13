@@ -17,13 +17,13 @@ describe('JBProjects::challengeHandle(...)', function () {
 
     let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
 
-    let jbExpirySourceFactory = await ethers.getContractFactory('JBExpirySource');
-    let jbExpirySource = await jbExpirySourceFactory.deploy();
+    let jbChallengePeriodSourceFactory = await ethers.getContractFactory('JB1YearChallengePeriodSource');
+    let jbChallengePeriodSource = await jbChallengePeriodSourceFactory.deploy();
 
     let jbProjectsFactory = await ethers.getContractFactory('JBProjects');
     let jbProjectsStore = await jbProjectsFactory.deploy(
       mockJbOperatorStore.address,
-      jbExpirySource.address,
+      jbChallengePeriodSource.address,
       deployer.address
     );
 
@@ -49,19 +49,19 @@ describe('JBProjects::challengeHandle(...)', function () {
     let tx = await jbProjectsStore
       .connect(addrs[0])
       .challengeHandle(/*handle=*/ ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
-    let expectedChallengeExpiry = (await getTimestamp(tx.blockNumber)).add(31536000);
-    let storedChallengeExpiryOf = await jbProjectsStore
+    let expectedChallengePeriod = (await getTimestamp(tx.blockNumber)).add(31536000);
+    let storedChallengePeriodOf = await jbProjectsStore
       .connect(addrs[0])
-      .challengeExpiryOf(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
+      .challengePeriodOf(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
 
-    await expect(storedChallengeExpiryOf).equal(expectedChallengeExpiry);
+    await expect(storedChallengePeriodOf).equal(expectedChallengePeriod);
 
     await expect(tx)
       .to.emit(jbProjectsStore, 'ChallengeHandle')
       .withArgs(
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         PROJECT_ID_1,
-        expectedChallengeExpiry,
+        expectedChallengePeriod,
         /*msg.sender=*/ addrs[0].address,
       );
   });
