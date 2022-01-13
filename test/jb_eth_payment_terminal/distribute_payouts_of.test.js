@@ -406,7 +406,7 @@ console.log([deployer, projectOwner, terminalOwner, caller, beneficiaryOne, bene
         0,
         false,
         'Fee from @'+HANDLE+PADDING,
-        '0x',  
+        '0x',
       )
       .returns();
 
