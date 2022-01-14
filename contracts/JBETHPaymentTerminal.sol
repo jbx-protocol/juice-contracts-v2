@@ -100,9 +100,9 @@ contract JBETHPaymentTerminal is
   */
   JBETHPaymentTerminalStore public immutable store;
 
-  /** 
-    @notice 
-    The token that this terminal accepts. 
+  /**
+    @notice
+    The token that this terminal accepts.
   */
   address public immutable override token = JBTokens.ETH;
 
@@ -722,9 +722,9 @@ contract JBETHPaymentTerminal is
     IJBTerminal _terminal = directory.primaryTerminalOf(1, token);
 
     // When processing the admin fee, save gas if the admin is using this contract as its terminal.
-    _terminal == this // Use the local pay call.
-      ? _pay(_amount, 1, _beneficiary, 0, false, _memo, bytes('')) // Use the external pay call of the correct terminal.
-      : _terminal.pay{value: _amount}(1, _beneficiary, 0, false, _memo, bytes(''));
+    _terminal == this
+      ? _pay(_amount, 1, _beneficiary, 0, false, _memo, bytes('')) // Use the local pay call.
+      : _terminal.pay{value: _amount}(1, _beneficiary, 0, false, _memo, bytes('')); // Use the external pay call of the correct terminal.
   }
 
   /**
