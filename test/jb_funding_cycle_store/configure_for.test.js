@@ -113,10 +113,10 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
         configurationTimestamp,
         PROJECT_ID,
         [
-          fundingCycleData.duration,
-          fundingCycleData.weight,
-          fundingCycleData.discountRate,
-          fundingCycleData.ballot,
+          DEFAULT_FUNDING_CYCLE_DATA.duration,
+          DEFAULT_FUNDING_CYCLE_DATA.weight,
+          DEFAULT_FUNDING_CYCLE_DATA.discountRate,
+          DEFAULT_FUNDING_CYCLE_DATA.ballot,
         ],
         fundingCycleMetadata,
         FUNDING_CYCLE_CAN_START_ASAP,
@@ -132,10 +132,10 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       configuration: configurationTimestamp,
       basedOn: ethers.BigNumber.from(0),
       start: configurationTimestamp,
-      duration: fundingCycleData.duration,
-      weight: fundingCycleData.weight,
-      discountRate: fundingCycleData.discountRate,
-      ballot: fundingCycleData.ballot,
+      duration: DEFAULT_FUNDING_CYCLE_DATA.duration,
+      weight: DEFAULT_FUNDING_CYCLE_DATA.weight,
+      discountRate: DEFAULT_FUNDING_CYCLE_DATA.discountRate,
+      ballot: DEFAULT_FUNDING_CYCLE_DATA.ballot,
       metadata: fundingCycleMetadata,
     };
 
@@ -156,7 +156,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
 
     //Fast forward to towards the very end of the cycle.
     //Subtract at least two from the end of the cycle, otherwise the second might tick between the fast forward and the check.
-    await fastForward(configureForTx.blockNumber, fundingCycleData.duration.sub(2));
+    await fastForward(configureForTx.blockNumber, DEFAULT_FUNDING_CYCLE_DATA.duration.sub(2));
 
     // The stored properties should not have changed.
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(
@@ -169,7 +169,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     });
 
     //fast forward to the next cycle.
-    await fastForward(configureForTx.blockNumber, fundingCycleData.duration);
+    await fastForward(configureForTx.blockNumber, DEFAULT_FUNDING_CYCLE_DATA.duration);
 
     // What was the queued cycle should now be the current cycle.
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql({
@@ -187,7 +187,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     });
 
     //fast forward to the subsequent cycle, repeat the process.
-    await fastForward(configureForTx.blockNumber, fundingCycleData.duration.mul(2));
+    await fastForward(configureForTx.blockNumber, DEFAULT_FUNDING_CYCLE_DATA.duration.mul(2));
 
     // What was the queued cycle should now be the current cycle.
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql({
@@ -241,10 +241,10 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
         configurationTimestamp,
         PROJECT_ID,
         [
-          fundingCycleData.duration,
-          fundingCycleData.weight,
-          fundingCycleData.discountRate,
-          fundingCycleData.ballot,
+          DEFAULT_FUNDING_CYCLE_DATA.duration,
+          DEFAULT_FUNDING_CYCLE_DATA.weight,
+          DEFAULT_FUNDING_CYCLE_DATA.discountRate,
+          DEFAULT_FUNDING_CYCLE_DATA.ballot,
         ],
         fundingCycleMetadata,
         fundingCycleMustStartOnOrAfter,
@@ -260,10 +260,10 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       configuration: configurationTimestamp,
       basedOn: ethers.BigNumber.from(0),
       start: timestamp.add(startsIn),
-      duration: fundingCycleData.duration,
-      weight: fundingCycleData.weight,
-      discountRate: fundingCycleData.discountRate,
-      ballot: fundingCycleData.ballot,
+      duration: DEFAULT_FUNDING_CYCLE_DATA.duration,
+      weight: DEFAULT_FUNDING_CYCLE_DATA.weight,
+      discountRate: DEFAULT_FUNDING_CYCLE_DATA.discountRate,
+      ballot: DEFAULT_FUNDING_CYCLE_DATA.ballot,
       metadata: fundingCycleMetadata,
     };
 
