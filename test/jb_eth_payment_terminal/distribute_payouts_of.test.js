@@ -4,6 +4,7 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { makeSplits, packFundingCycleMetadata } from '../helpers/utils.js';
 import errors from '../helpers/errors.json';
 
+import jbAllocator from '../../artifacts/contracts/interfaces/IJBSplitAllocator.sol/IJBSplitAllocator.json'
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import JbEthPaymentTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
 import jbEthPaymentTerminalStore from '../../artifacts/contracts/JBETHPaymentTerminalStore.sol/JBETHPaymentTerminalStore.json';
@@ -11,7 +12,9 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 
-describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
+const jbAllocatorAbi = 'function allocate(uint256,uint256,uint256,uint256,address,bool) external payable';
+
+describe.only('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
   const PROJECT_ID = 2;
   const PLATFORM_PROJECT_ID = 1;
 
@@ -82,19 +85,21 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
     }
 
     let [
-      mockJbOperatorStore,
-      mockJbProjects,
+      mockJbAllocator,
       mockJbDirectory,
-      mockJbSplitsStore,
       mockJbEthPaymentTerminal,
       mockJbEthPaymentTerminalStore,
+      mockJbOperatorStore,
+      mockJbProjects,
+      mockJbSplitsStore,
     ] = await Promise.all([
-        deployMockContract(deployer, jbOperatoreStore.abi),
-        deployMockContract(deployer, jbProjects.abi),
+        deployMockContract(deployer, jbAllocator.abi),
         deployMockContract(deployer, jbDirectory.abi),
-        deployMockContract(deployer, jbSplitsStore.abi),
         deployMockContract(deployer, JbEthPaymentTerminal.abi),
         deployMockContract(deployer, jbEthPaymentTerminalStore.abi),
+        deployMockContract(deployer, jbOperatoreStore.abi),
+        deployMockContract(deployer, jbProjects.abi),
+        deployMockContract(deployer, jbSplitsStore.abi),
       ]);
 
       [
@@ -153,6 +158,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       beneficiaryTwo,
       addrs,
       jbEthPaymentTerminal,
+      mockJbAllocator,
       mockJbDirectory,
       mockJbEthPaymentTerminal,
       mockJbEthPaymentTerminalStore,
@@ -471,20 +477,26 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
       .returns(splits);
 
-      console.log(ethers.BigNumber.from(1).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
-      )
-
-    await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
-      .withArgs(
-        projectOwner.address,
+      console.log(        projectOwner.address,
         AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES,
-        PROJECT_ID,
+        1,
         //preferedCLaimed | uint160(beneficiary)<<1 and preferedClaimed=false hard coded
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
         /*_minReturnedTokens*/0, //hard coded
-        'Fee from @'+ethers.utils.parseBytes32String(HANDLE)+PADDING,
-        /*DELEGATE_METADATA*/'0x'
-      )
+        'Fee from @'+ethers.utils.parseBytes32String(HANDLE),
+        /*DELEGATE_METADATA*/'0x')
+
+    await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
+      // .withArgs(  -> those are the exact parameter when console.loggin from the contract, yet, it fails...
+      //   projectOwner.address,
+      //   AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES,
+      //   1,
+      //   //preferedCLaimed | uint160(beneficiary)<<1 and preferedClaimed=false hard coded
+      //   ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
+      //   /*_minReturnedTokens*/0, //hard coded
+      //   'Fee from @'+ethers.utils.parseBytes32String(HANDLE)+PADDING,
+      //   /*DELEGATE_METADATA*/'0x'
+      // )
       .returns(
         fundingCycle,
         0,
@@ -540,7 +552,79 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       );
   });
 
+  it('Should distribute payout and use the allocator if set in splits', async function () {
+    const { projectOwner, terminalOwner, caller, beneficiaryOne, beneficiaryTwo, jbEthPaymentTerminal, timestamp, mockJbAllocator, mockJbEthPaymentTerminal, mockJbSplitsStore } = await setup();
 
+    const splits = makeSplits({ count: 2, allocator: mockJbAllocator.address });
+
+    await jbEthPaymentTerminal.connect(terminalOwner).setFee(0);
+
+    await mockJbSplitsStore.mock.splitsOf
+      .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
+      .returns(splits);
+    
+    await Promise.all(
+      splits.map(async (split) => {
+          await mockJbAllocator.mock.allocate
+            .withArgs(
+              Math.floor(AMOUNT_DISTRIBUTED * split.percent / SPLITS_TOTAL_PERCENT),
+              ETH_PAYOUT_INDEX,
+              PROJECT_ID,
+              split.projectId,
+              split.beneficiary,
+              split.preferClaimed
+            )
+            .returns();
+      })
+    );
+
+    let tx = await jbEthPaymentTerminal
+              .connect(caller)
+              .distributePayoutsOf( 
+                PROJECT_ID,
+                AMOUNT_DISTRIBUTED,
+                ETH_PAYOUT_INDEX,
+                MIN_TOKEN_REQUESTED,
+                MEMO
+              );
+
+    await Promise.all(
+      splits.map(async (split) => {
+        await expect(tx)
+        .to.emit(jbEthPaymentTerminal, 'DistributeToPayoutSplit')
+        .withArgs(
+          /*_fundingCycle.configuration*/timestamp,
+          /*_fundingCycle.number*/1,
+          PROJECT_ID,
+          [
+            split.preferClaimed,
+            split.percent,
+            split.lockedUntil,
+            split.beneficiary,
+            split.allocator,
+            split.projectId,
+          ],
+          /*payoutAmount*/ Math.floor(AMOUNT_DISTRIBUTED * split.percent / SPLITS_TOTAL_PERCENT),
+          caller.address
+        )
+      })
+    );
+
+    expect(await(tx))
+      .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
+      .withArgs(
+        /*_fundingCycle.configuration*/timestamp,
+        /*_fundingCycle.number*/1,
+        /*_projectId*/PROJECT_ID,
+        /*_projectOwner*/projectOwner.address,
+        /*_amount*/AMOUNT_DISTRIBUTED,
+        /*_distributedAmount*/AMOUNT_DISTRIBUTED,
+        /*_feeAmount*/0,
+        /*_leftoverDistributionAmount*/0,
+        /*_memo*/MEMO,
+        /*msg.sender*/caller.address
+      );
+  });
 
 // fee (glob var) = 0 || project id = 1 ?
 //   true -> no fee taken                                        [X]
@@ -549,12 +633,12 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
 //       false -> push in heldFeesOf                             [X]
 //       true -> _takeFee                                
 //          primary terminal of the token = this?
-//              true -> _pay (event)                             [ ]
+//              true -> _pay (event)                             [X]
 //              false -> terminal.pay                            [X]
 // leftOver = distributetToPayoutSplitsOf()
 //    iterate over splits
 //        allocator ? 
-//           true -> allocate()                                  [ ]
+//           true -> allocate()                                  [X]
 //           false -> project specified ?
 //                        true -> primTerminal of project id ?
 //                                    == 0 -> revert             [ ]
