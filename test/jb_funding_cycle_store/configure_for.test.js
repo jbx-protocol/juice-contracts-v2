@@ -35,6 +35,9 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
   // The metadata value doesn't affect the test.
   const RANDOM_FUNDING_CYCLE_METADATA_2 = ethers.BigNumber.from(234);
 
+  // Default data, nothing special about it.
+  const DEFAULT_FUNDING_CYCLE_DATA = createFundingCycleData();
+
   const ballotStatus = {
     APPROVED: 0,
     ACTIVE: 1,
@@ -88,8 +91,6 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     const { controller, mockJbDirectory, jbFundingCycleStore } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
-    const fundingCycleData = createFundingCycleData();
-
     // The metadata value doesn't affect the test.
     const fundingCycleMetadata = ethers.BigNumber.from(0);
 
@@ -98,7 +99,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       .connect(controller)
       .configureFor(
         PROJECT_ID,
-        fundingCycleData,
+        DEFAULT_FUNDING_CYCLE_DATA,
         fundingCycleMetadata,
         FUNDING_CYCLE_CAN_START_ASAP,
       );
@@ -218,8 +219,6 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
 
     const fundingCycleMustStartOnOrAfter = timestamp.add(startsIn);
 
-    const fundingCycleData = createFundingCycleData();
-
     // The metadata value doesn't affect the test.
     const fundingCycleMetadata = ethers.BigNumber.from(0);
 
@@ -228,7 +227,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       .connect(controller)
       .configureFor(
         PROJECT_ID,
-        fundingCycleData,
+        DEFAULT_FUNDING_CYCLE_DATA,
         fundingCycleMetadata,
         fundingCycleMustStartOnOrAfter,
       );
@@ -932,6 +931,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       expectedSecondFundingCycle,
     );
   });
+
   it('Should configure subsequent cycle during a rolled over funding cycle that overwrote a failed one', async function () {
     const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore, addrs } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
@@ -1753,12 +1753,10 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     const [nonController] = addrs;
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
-    const fundingCycleData = createFundingCycleData();
-
     await expect(
       jbFundingCycleStore
         .connect(nonController)
-        .configureFor(PROJECT_ID, fundingCycleData, 0, FUNDING_CYCLE_CAN_START_ASAP),
+        .configureFor(PROJECT_ID, DEFAULT_FUNDING_CYCLE_DATA, 0, FUNDING_CYCLE_CAN_START_ASAP),
     ).to.be.revertedWith(errors.CONTROLLER_UNAUTHORIZED);
   });
 
