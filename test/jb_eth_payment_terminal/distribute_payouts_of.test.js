@@ -14,6 +14,31 @@ import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsS
 
 const jbAllocatorAbi = 'function allocate(uint256,uint256,uint256,uint256,address,bool) external payable';
 
+// fee (glob var) = 0 || project id = 1 ?
+//   true -> no fee taken                                        [X]
+//   false -> takeFee() :
+//     _fundingCycle.shouldHoldfee ?
+//       false -> push in heldFeesOf                             [X]
+//       true -> _takeFee                                
+//          primary terminal of the token = this?
+//              true -> _pay (event)                             [X]
+//              false -> terminal.pay                            [X]
+// leftOver = distributetToPayoutSplitsOf()   ---   tested without fees (fees validated supra)
+//    iterate over splits
+//        allocator ? 
+//           true -> allocate()                                  [X]
+//           false -> project specified ?
+//                        true -> primTerminal of project id ?
+//                                    == 0 -> revert             [ ]
+//                                    == this -> _pay (+event)    [ ]
+//                                    else terminal.pay          [X]
+//                         false -> send to beneficiary          [X] (same as first)
+//        leftOver -= amount send
+//    emit event                                                 [(X)]->for each
+// leftOver > 0 -> true: send to projectOwner                    [ ]
+// emit event                                                    [(X)]->for each
+
+
 describe.only('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
   const PLATFORM_PROJECT_ID = 1;
   const PROJECT_ID = 2;
@@ -714,18 +739,19 @@ describe.only('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
         caller.address,
         Math.floor(AMOUNT_DISTRIBUTED * split.percent / SPLITS_TOTAL_PERCENT),
         split.projectId,
-        //preferedCLaimed | uint160(beneficiary)<<1 and preferedClaimed=false hard coded
+        //preferedCLaimed | uint160(beneficiary)<<1
         ethers.BigNumber.from(split.preferClaimed == true ? 1:0).or(ethers.BigNumber.from(split.beneficiary).shl(1)),
         /*_minReturnedTokens*/0,
-        MEMO,
+        'Payout from @'+ethers.utils.parseBytes32String(HANDLE)+PADDING,
         /*DELEGATE_METADATA*/'0x',
+        split.beneficiary
       );
       await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
         caller.address,
         Math.floor(AMOUNT_DISTRIBUTED * split.percent / SPLITS_TOTAL_PERCENT),
         split.projectId,
-        //preferedCLaimed | uint160(beneficiary)<<1 and preferedClaimed=false hard coded
+        //preferedCLaimed | uint160(beneficiary)<<1
         ethers.BigNumber.from(split.preferClaimed == true ? 1:0).or(ethers.BigNumber.from(split.beneficiary).shl(1)),
         /*_minReturnedTokens*/0,
         'Payout from @'+ethers.utils.parseBytes32String(HANDLE)+PADDING,
@@ -739,7 +765,6 @@ describe.only('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       )
     })
   );
-
 
     let tx = await jbEthPaymentTerminal
               .connect(caller)
@@ -794,29 +819,5 @@ describe.only('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
 
   it('Should send any leftover after distributing to the projectOwner', async function () {
   });
-
-// fee (glob var) = 0 || project id = 1 ?
-//   true -> no fee taken                                        [X]
-//   false -> takeFee() :
-//     _fundingCycle.shouldHoldfee ?
-//       false -> push in heldFeesOf                             [X]
-//       true -> _takeFee                                
-//          primary terminal of the token = this?
-//              true -> _pay (event)                             [X]
-//              false -> terminal.pay                            [X]
-// leftOver = distributetToPayoutSplitsOf()
-//    iterate over splits
-//        allocator ? 
-//           true -> allocate()                                  [X]
-//           false -> project specified ?
-//                        true -> primTerminal of project id ?
-//                                    == 0 -> revert             [ ]
-//                                    == this -> _pay (event)    [ ]
-//                                    else terminal.pay          [X]
-//                         false -> send to beneficiary          [X] (same as first)
-//        leftOver -= amount send
-//    emit event                                                 [(X)]->for each
-// leftOver > 0 -> true: send to projectOwner                    [ ]
-// emit event                                                    [(X)]->for each
 
 });
