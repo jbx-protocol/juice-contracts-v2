@@ -812,7 +812,7 @@ describe.only('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
 //                        true -> primTerminal of project id ?
 //                                    == 0 -> revert             [ ]
 //                                    == this -> _pay (event)    [ ]
-//                                    else terminal.pay          [ ]
+//                                    else terminal.pay          [X]
 //                         false -> send to beneficiary          [X] (same as first)
 //        leftOver -= amount send
 //    emit event                                                 [(X)]->for each
