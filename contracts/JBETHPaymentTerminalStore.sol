@@ -8,16 +8,37 @@ import './interfaces/IJBPrices.sol';
 import './interfaces/IJBTokenStore.sol';
 import './interfaces/IJBTerminal.sol';
 
+import './libraries/JBConstants.sol';
 import './libraries/JBCurrencies.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 
+//*********************************************************************//
+// --------------------------- custom errors ------------------------- //
+//*********************************************************************//
+error CURRENCY_MISMATCH();
+error DISTRIBUTION_AMOUNT_LIMIT_REACHED();
+error FUNDING_CYCLE_PAYMENT_PAUSED();
+error FUNDING_CYCLE_DISTRIBUTION_PAUSED();
+error FUNDING_CYCLE_REDEEM_PAUSED();
+error INADEQUATE_CLAIM_AMOUNT();
+error INADEQUATE_CONTROLLER_ALLOWANCE();
+error INSUFFICIENT_FUND_FOR_DISTRIBUTION();
+error INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
+error INADEQUATE_TOKEN_COUNT();
+error INADEQUATE_WITHDRAW_AMOUNT();
+error INSUFFICIENT_TOKENS();
+error INVALID_FUNDING_CYCLE();
+error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
+error PAYMENT_TERMINAL_UNAUTHORIZED();
+error STORE_ALREADY_CLAIMED();
+
 /**
   @notice
   This contract manages all inflows and outflows of funds into the Juicebox ecosystem.
 
-  @dev 
+  @dev
   A project can transfer its funds, along with the power to reconfigure and mint/burn their tokens, from this contract to another allowed terminal contract at any time.
 
   Inherits from:
@@ -32,7 +53,9 @@ contract JBETHPaymentTerminalStore {
 
   // A modifier only allowing the associated payment terminal to access the function.
   modifier onlyAssociatedPaymentTerminal() {
-    require(msg.sender == address(terminal), '0x3a: UNAUTHORIZED');
+    if (msg.sender != address(terminal)) {
+      revert PAYMENT_TERMINAL_UNAUTHORIZED();
+    }
     _;
   }
 
@@ -40,37 +63,37 @@ contract JBETHPaymentTerminalStore {
 
   event DelegateDidRedeem(IJBRedemptionDelegate indexed delegate, JBDidRedeemData data);
 
-  /** 
+  /**
     @notice
     The Projects contract which mints ERC-721's that represent project ownership and transfers.
   */
   IJBProjects public immutable projects;
 
-  /** 
+  /**
     @notice
     The directory of terminals and controllers for projects.
   */
   IJBDirectory public immutable directory;
 
-  /** 
-    @notice 
+  /**
+    @notice
     The contract storing all funding cycle configurations.
   */
   IJBFundingCycleStore public immutable fundingCycleStore;
 
-  /** 
-    @notice 
+  /**
+    @notice
     The contract that manages token minting and burning.
   */
   IJBTokenStore public immutable tokenStore;
 
-  /** 
-    @notice 
+  /**
+    @notice
     The contract that exposes price feeds.
   */
   IJBPrices public immutable prices;
 
-  /** 
+  /**
     @notice
     The associated payment terminal for which this contract stores data.
   */
@@ -82,6 +105,8 @@ contract JBETHPaymentTerminalStore {
 
   /** 
     @notice 
+  /**
+    @notice
     The amount of ETH that each project has.
 
     _projectId The ID of the project to get the balance of.
@@ -89,10 +114,10 @@ contract JBETHPaymentTerminalStore {
   mapping(uint256 => uint256) public balanceOf;
 
   /**
-    @notice 
-    The amount of overflow that a project has used from its allowance during the current funding cycle configuration. 
+    @notice
+    The amount of overflow that a project has used from its allowance during the current funding cycle configuration.
 
-    @dev 
+    @dev
     Increases as projects use their allowance.
 
     _projectId The ID of the project to get the used overflow allowance of.
@@ -101,10 +126,10 @@ contract JBETHPaymentTerminalStore {
   mapping(uint256 => mapping(uint256 => uint256)) public usedOverflowAllowanceOf;
 
   /**
-    @notice 
-    The amount that a project has distributed from its limit during the current funding cycle. 
+    @notice
+    The amount that a project has distributed from its limit during the current funding cycle.
 
-    @dev 
+    @dev
     Increases as projects use their distribution limit.
 
     _projectId The ID of the project to get the used distribution limit of.
@@ -153,7 +178,7 @@ contract JBETHPaymentTerminalStore {
     @dev If the project has an active funding cycle reconfiguration ballot, the project's ballot redemption rate is used.
 
     @param _projectId The ID of the project to get a claimable amount for.
-    @param _tokenCount The number of tokens to make the calculation with. 
+    @param _tokenCount The number of tokens to make the calculation with.
 
     @return The amount of overflowed ETH that can be claimed.
   */
@@ -169,7 +194,7 @@ contract JBETHPaymentTerminalStore {
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
 
-  /** 
+  /**
     @param _prices A contract that exposes price feeds.
     @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
     @param _directory A contract storing directories of terminals and controllers for each project.
@@ -201,7 +226,7 @@ contract JBETHPaymentTerminalStore {
     @dev
     Mint's the project's tokens according to values provided by a configured data source. If no data source is configured, mints tokens proportional to the amount of the contribution.
 
-    @dev 
+    @dev
     Only the associated payment terminal can record a payment.
 
     @param _payer The original address that sent the payment to the terminal.
@@ -243,10 +268,14 @@ contract JBETHPaymentTerminalStore {
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // The project must have a funding cycle configured.
-    require(fundingCycle.number > 0, '0x3a: NOT_FOUND');
+    if (fundingCycle.number == 0) {
+      revert INVALID_FUNDING_CYCLE();
+    }
 
     // Must not be paused.
-    require(!fundingCycle.payPaused(), '0x3b: PAUSED');
+    if (fundingCycle.payPaused()) {
+      revert FUNDING_CYCLE_PAYMENT_PAUSED();
+    }
 
     // Save a reference to the delegate to use.
     IJBPayDelegate _delegate;
@@ -287,7 +316,9 @@ contract JBETHPaymentTerminalStore {
       );
 
     // The token count for the beneficiary must be greater than or equal to the minimum expected.
-    require(tokenCount >= _minReturnedTokens, '0x3c: INADEQUATE');
+    if (tokenCount < _minReturnedTokens) {
+      revert INADEQUATE_TOKEN_COUNT();
+    }
 
     // If a delegate was returned by the data source, issue a callback to it.
     if (_delegate != IJBPayDelegate(address(0))) {
@@ -335,33 +366,37 @@ contract JBETHPaymentTerminalStore {
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // The funding cycle must not be configured to have distributions paused.
-    require(!fundingCycle.distributionsPaused(), '0x3e: PAUSED');
+    if (fundingCycle.distributionsPaused()) {
+      revert FUNDING_CYCLE_DISTRIBUTION_PAUSED();
+    }
 
     // Make sure the currencies match.
-    require(
-      _currency ==
-        directory.controllerOf(_projectId).distributionLimitCurrencyOf(
-          _projectId,
-          fundingCycle.configuration,
-          terminal
-        ),
-      '0x3f: UNEXPECTED_CURRENCY'
-    );
+    if (
+      _currency !=
+      directory.controllerOf(_projectId).distributionLimitCurrencyOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      )
+    ) {
+      revert CURRENCY_MISMATCH();
+    }
 
     // The new total amount that has been distributed during this funding cycle.
     uint256 _newUsedDistributionLimitOf = usedDistributionLimitOf[_projectId][fundingCycle.number] +
       _amount;
 
     // Amount must be within what is still distributable.
-    require(
-      _newUsedDistributionLimitOf <=
-        directory.controllerOf(_projectId).distributionLimitOf(
-          _projectId,
-          fundingCycle.configuration,
-          terminal
-        ),
-      '0x1b: LIMIT_REACHED'
-    );
+    if (
+      _newUsedDistributionLimitOf >
+      directory.controllerOf(_projectId).distributionLimitOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      )
+    ) {
+      revert DISTRIBUTION_AMOUNT_LIMIT_REACHED();
+    }
 
     // Convert the amount to wei.
     // A currency of 0 should be interpreted as whatever the currency being distributed is.
@@ -370,10 +405,14 @@ contract JBETHPaymentTerminalStore {
       : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, JBCurrencies.ETH));
 
     // The amount being distributed must be available.
-    require(distributedAmount <= balanceOf[_projectId], '0x40: INSUFFICIENT_FUNDS');
+    if (distributedAmount > balanceOf[_projectId]) {
+      revert INSUFFICIENT_FUND_FOR_DISTRIBUTION();
+    }
 
     // The amount being distributed must be at least as much as was expected.
-    require(_minReturnedWei <= distributedAmount, '0x41: INADEQUATE');
+    if (_minReturnedWei > distributedAmount) {
+      revert INSUFFICIENT_FUND_FOR_DISTRIBUTION();
+    }
 
     // Store the new amount.
     usedDistributionLimitOf[_projectId][fundingCycle.number] = _newUsedDistributionLimitOf;
@@ -382,8 +421,8 @@ contract JBETHPaymentTerminalStore {
     balanceOf[_projectId] = balanceOf[_projectId] - distributedAmount;
   }
 
-  /** 
-    @notice 
+  /**
+    @notice
     Records newly used allowance funds of a project.
 
     @param _projectId The ID of the project to use the allowance of.
@@ -408,15 +447,16 @@ contract JBETHPaymentTerminalStore {
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Make sure the currencies match.
-    require(
-      _currency ==
-        directory.controllerOf(_projectId).overflowAllowanceCurrencyOf(
-          _projectId,
-          fundingCycle.configuration,
-          terminal
-        ),
-      '0x42: UNEXPECTED_CURRENCY'
-    );
+    if (
+      _currency !=
+      directory.controllerOf(_projectId).overflowAllowanceCurrencyOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      )
+    ) {
+      revert CURRENCY_MISMATCH();
+    }
 
     // Convert the amount to wei.
     // A currency of 0 should be interpreted as whatever the currency being withdrawn is.
@@ -425,22 +465,27 @@ contract JBETHPaymentTerminalStore {
       : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, JBCurrencies.ETH));
 
     // There must be sufficient allowance available.
-    require(
-      withdrawnAmount <=
-        directory.controllerOf(_projectId).overflowAllowanceOf(
-          _projectId,
-          fundingCycle.configuration,
-          terminal
-        ) -
-          usedOverflowAllowanceOf[_projectId][fundingCycle.configuration],
-      '0x43: NOT_ALLOWED'
-    );
+    if (
+      withdrawnAmount >
+      directory.controllerOf(_projectId).overflowAllowanceOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      ) -
+        usedOverflowAllowanceOf[_projectId][fundingCycle.configuration]
+    ) {
+      revert INADEQUATE_CONTROLLER_ALLOWANCE();
+    }
 
     // The amount being withdrawn must be available.
-    require(withdrawnAmount <= balanceOf[_projectId], '0x44: INSUFFICIENT_FUNDS');
+    if (withdrawnAmount > balanceOf[_projectId]) {
+      revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
+    }
 
     // The amount being withdrawn must be at least as much as was expected.
-    require(_minReturnedWei <= withdrawnAmount, '0x45: INADEQUATE');
+    if (_minReturnedWei > withdrawnAmount) {
+      revert INADEQUATE_WITHDRAW_AMOUNT();
+    }
 
     // Store the decremented value.
     usedOverflowAllowanceOf[_projectId][fundingCycle.configuration] =
@@ -455,7 +500,7 @@ contract JBETHPaymentTerminalStore {
     @notice
     Records newly redeemed tokens of a project.
 
-    @dev 
+    @dev
     Only the associated payment terminal can record a redemption.
 
     @param _holder The account that is having its tokens redeemed.
@@ -488,13 +533,17 @@ contract JBETHPaymentTerminalStore {
     )
   {
     // The holder must have the specified number of the project's tokens.
-    require(tokenStore.balanceOf(_holder, _projectId) >= _tokenCount, '0x46: INSUFFICIENT_TOKENS');
+    if (tokenStore.balanceOf(_holder, _projectId) < _tokenCount) {
+      revert INSUFFICIENT_TOKENS();
+    }
 
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // The current funding cycle must not be paused.
-    require(!fundingCycle.redeemPaused(), '0x47: PAUSED');
+    if (fundingCycle.redeemPaused()) {
+      revert FUNDING_CYCLE_REDEEM_PAUSED();
+    }
 
     // Save a reference to the delegate to use.
     IJBRedemptionDelegate _delegate;
@@ -518,10 +567,13 @@ contract JBETHPaymentTerminalStore {
     }
 
     // The amount being claimed must be within the project's balance.
-    require(claimAmount <= balanceOf[_projectId], '0x48: INSUFFICIENT_FUNDS');
-
+    if (claimAmount > balanceOf[_projectId]) {
+      revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
+    }
     // The amount being claimed must be at least as much as was expected.
-    require(claimAmount >= _minReturnedWei, '0x49: INADEQUATE');
+    if (claimAmount < _minReturnedWei) {
+      revert INADEQUATE_CLAIM_AMOUNT();
+    }
 
     // Redeem the tokens, which burns them.
     if (_tokenCount > 0)
@@ -576,7 +628,7 @@ contract JBETHPaymentTerminalStore {
     balanceOf[_projectId] = balanceOf[_projectId] + _amount;
   }
 
-  /** 
+  /**
     @notice
     Records the migration of this terminal to another.
 
@@ -593,7 +645,9 @@ contract JBETHPaymentTerminalStore {
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Migration must be allowed
-    require(_fundingCycle.terminalMigrationAllowed(), '0x4a: NOT_ALLOWED');
+    if (!_fundingCycle.terminalMigrationAllowed()) {
+      revert PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
+    }
 
     // Return the current balance.
     balance = balanceOf[_projectId];
@@ -602,14 +656,15 @@ contract JBETHPaymentTerminalStore {
     balanceOf[_projectId] = 0;
   }
 
-  /** 
+  /**
     @notice
     Allows this store to be claimed by an address so that it recognized the address as its terminal.
   */
   function claimFor(IJBTerminal _terminal) external {
     // This store can only be claimed once.
-    require(terminal == IJBTerminal(address(0)), '0x4b: ALREADY_CLAIMED');
-
+    if (terminal != IJBTerminal(address(0))) {
+      revert STORE_ALREADY_CLAIMED();
+    }
     // Set the terminal.
     terminal = _terminal;
   }
@@ -664,12 +719,17 @@ contract JBETHPaymentTerminalStore {
     uint256 _base = PRBMath.mulDiv(_currentOverflow, _tokenCount, _totalSupply);
 
     // These conditions are all part of the same curve. Edge conditions are separated because fewer operation are necessary.
-    if (_redemptionRate == 10000) return _base;
+    if (_redemptionRate == JBConstants.MAX_REDEMPTION_RATE) return _base;
     return
       PRBMath.mulDiv(
         _base,
-        _redemptionRate + PRBMath.mulDiv(_tokenCount, 10000 - _redemptionRate, _totalSupply),
-        10000
+        _redemptionRate +
+          PRBMath.mulDiv(
+            _tokenCount,
+            JBConstants.MAX_REDEMPTION_RATE - _redemptionRate,
+            _totalSupply
+          ),
+        JBConstants.MAX_REDEMPTION_RATE
       );
   }
 

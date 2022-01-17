@@ -5,6 +5,7 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbOperatorStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
+import errors from '../helpers/errors.json';
 
 describe('JBSplitsStore::set(...)', function () {
   const PROJECT_ID = 1;
@@ -167,7 +168,7 @@ describe('JBSplitsStore::set(...)', function () {
 
     await expect(
       jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, newSplits),
-    ).to.be.revertedWith('0x0f: SOME_LOCKED');
+    ).to.be.revertedWith(errors.PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED);
   });
 
   it('Should set new splits with extension of a preexisting locked one', async function () {
@@ -200,7 +201,7 @@ describe('JBSplitsStore::set(...)', function () {
 
     await expect(
       jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits),
-    ).to.be.revertedWith('0x10: BAD_SPLIT_PERCENT');
+    ).to.be.revertedWith(errors.INVALID_SPLIT_PERCENT);
   });
 
   it("Can't set splits when a split has both allocator and beneficiary zero address", async function () {
@@ -211,7 +212,7 @@ describe('JBSplitsStore::set(...)', function () {
 
     await expect(
       jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits),
-    ).to.be.revertedWith('0x11: ZERO_ADDRESS');
+    ).to.be.revertedWith(errors.ALLOCATOR_AND_BENEFICIARY_ZERO_ADDRESS);
   });
 
   it("Can't set splits if the sum of the percents is greather than 10000000", async function () {
@@ -222,7 +223,7 @@ describe('JBSplitsStore::set(...)', function () {
 
     await expect(
       jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits),
-    ).to.be.revertedWith('0x12: BAD_TOTAL_PERCENT');
+    ).to.be.revertedWith(errors.INVALID_TOTAL_PERCENT);
   });
 
   it('Should set splits if controller', async function () {
@@ -288,6 +289,6 @@ describe('JBSplitsStore::set(...)', function () {
 
     await expect(
       jbSplitsStore.connect(caller).set(PROJECT_ID, DOMAIN, GROUP, splits),
-    ).to.be.revertedWith('Operatable: UNAUTHORIZED');
+    ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 });

@@ -4,6 +4,7 @@ pragma solidity 0.8.6;
 import '@paulrberg/contracts/math/PRBMath.sol';
 import '@paulrberg/contracts/math/PRBMathUD60x18.sol';
 
+import './libraries/JBConstants.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
@@ -28,6 +29,22 @@ import './abstract/JBOperatable.sol';
 import './abstract/JBTerminalUtility.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
+
+//*********************************************************************//
+// --------------------------- custom errors ------------------------- //
+//*********************************************************************//
+error BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE();
+error CALLER_NOT_CURRENT_CONTROLLER();
+error CANT_MIGRATE_TO_CURRENT_CONTROLLER();
+error CHANGE_TOKEN_NOT_ALLOWED();
+error INVALID_BALLOT_REDEMPTION_RATE();
+error INVALID_RESERVED_RATE();
+error INVALID_RESERVED_RATE_AND_BENEFICIARY_ZERO_ADDRESS();
+error INVALID_REDEMPTION_RATE();
+error MIGRATION_NOT_ALLOWED();
+error MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE();
+error NO_BURNABLE_TOKENS();
+error ZERO_TOKENS_TO_MINT();
 
 /**
   @notice
@@ -303,10 +320,9 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
         A value of 0 means that the weight should be inherited and potentially discounted from the currently active cycle if possible. Otherwise a weight of 0 will be used.
         A value of 1 means that no tokens should be minted regardless of how many ETH was paid. The protocol will set the stored weight value to 0.
         A value of 1 X 10^18 means that one token should be minted per ETH received.
-      @dev _data.discountRate A number from 0-1000000001 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
+      @dev _data.discountRate A number from 0-1000000000 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
         If it's 0, each funding cycle will have equal weight.
         If the number is 900000000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
-        If the number is 1000000001, an non-recurring funding cycle will get made.
       @dev _data.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
     @param _metadata A JBFundingCycleMetadata data structure specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
       @dev _metadata.reservedRate A number from 0-10000 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
@@ -341,14 +357,17 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     JBFundAccessConstraints[] memory _fundAccessConstraints,
     IJBTerminal[] memory _terminals
   ) external returns (uint256 projectId) {
-    // The reserved project token rate must be less than or equal to 10000.
-    require(_metadata.reservedRate <= 10000, '0x37: BAD_RESERVED_RATE');
+    if (_metadata.reservedRate > JBConstants.MAX_RESERVED_RATE) {
+      revert INVALID_RESERVED_RATE();
+    }
 
-    // The redemption rate must be between 0 and 10000.
-    require(_metadata.redemptionRate <= 10000, '0x38: BAD_REDEMPTION_RATE');
+    if (_metadata.redemptionRate > JBConstants.MAX_REDEMPTION_RATE) {
+      revert INVALID_REDEMPTION_RATE();
+    }
 
-    // The ballot redemption rate must be less than or equal to 10000.
-    require(_metadata.ballotRedemptionRate <= 10000, '0x39: BAD_BALLOT_REDEMPTION_RATE');
+    if (_metadata.ballotRedemptionRate > JBConstants.MAX_BALLOT_REDEMPTION_RATE) {
+      revert INVALID_BALLOT_REDEMPTION_RATE();
+    }
 
     // Create the project for into the wallet of the message sender.
     projectId = projects.createFor(_owner, _handle, _metadataCid);
@@ -382,10 +401,9 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
         A value of 0 means that the weight should be inherited and potentially discounted from the currently active cycle if possible. Otherwise a weight of 0 will be used.
         A value of 1 means that no tokens should be minted regardless of how many ETH was paid. The protocol will set the stored weight value to 0.
         A value of 1 X 10^18 means that one token should be minted per ETH received.
-      @dev _data.discountRate A number from 0-1000000001 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
+      @dev _data.discountRate A number from 0-1000000000 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
         If it's 0, each funding cycle will have equal weight.
         If the number is 900000000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
-        If the number is 1000000001, an non-recurring funding cycle will get made.
       @dev _data.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
     @param _metadata A JBFundingCycleMetadata data structure specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
       @dev _metadata.reservedRate A number from 0-10000 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
@@ -420,14 +438,17 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
     returns (uint256)
   {
-    // The reserved project token rate must be less than or equal to 10000.
-    require(_metadata.reservedRate <= 10000, '0x51: BAD_RESERVED_RATE');
+    if (_metadata.reservedRate > JBConstants.MAX_RESERVED_RATE) {
+      revert INVALID_RESERVED_RATE();
+    }
 
-    // The redemption rate must be between 0 and 10000.
-    require(_metadata.redemptionRate <= 10000, '0x52: BAD_REDEMPTION_RATE');
+    if (_metadata.redemptionRate > JBConstants.MAX_REDEMPTION_RATE) {
+      revert INVALID_REDEMPTION_RATE();
+    }
 
-    // The ballot redemption rate must be less than or equal to 10000.
-    require(_metadata.ballotRedemptionRate <= 10000, '0x53: BAD_BALLOT_REDEMPTION_RATE');
+    if (_metadata.ballotRedemptionRate > JBConstants.MAX_BALLOT_REDEMPTION_RATE) {
+      revert INVALID_BALLOT_REDEMPTION_RATE();
+    }
 
     return _configure(_projectId, _data, _metadata, _groupedSplits, _fundAccessConstraints);
   }
@@ -483,7 +504,9 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // The current funding cycle must not be paused.
-    require(_fundingCycle.changeTokenAllowed(), '0x05: NOT_ALLOWED');
+    if (!_fundingCycle.changeTokenAllowed()) {
+      revert CHANGE_TOKEN_NOT_ALLOWED();
+    }
 
     // Change the token in the store.
     tokenStore.changeFor(_projectId, _token, _newOwner);
@@ -524,29 +547,40 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     )
     returns (uint256 beneficiaryTokenCount)
   {
+    if (_reservedRate > JBConstants.MAX_RESERVED_RATE) {
+      revert INVALID_RESERVED_RATE();
+    }
+
     // Can't send to the zero address.
-    require(_reservedRate == 10000 || _beneficiary != address(0), '0x2f: ZERO_ADDRESS');
+    if (_reservedRate != JBConstants.MAX_RESERVED_RATE && _beneficiary == address(0)) {
+      revert INVALID_RESERVED_RATE_AND_BENEFICIARY_ZERO_ADDRESS();
+    }
 
     // There should be tokens to mint.
-    require(_tokenCount > 0, '0x30: NO_OP');
+    if (_tokenCount == 0) {
+      revert ZERO_TOKENS_TO_MINT();
+    }
 
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
-    require(
-      !_fundingCycle.mintPaused() || directory.isTerminalDelegateOf(_projectId, msg.sender),
-      '0x31: PAUSED'
-    );
+    if (_fundingCycle.mintPaused() && !directory.isTerminalDelegateOf(_projectId, msg.sender)) {
+      revert MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE();
+    }
 
-    if (_reservedRate == 10000) {
+    if (_reservedRate == JBConstants.MAX_RESERVED_RATE) {
       // Subtract the total weighted amount from the tracker so the full reserved token amount can be printed later.
       _processedTokenTrackerOf[_projectId] =
         _processedTokenTrackerOf[_projectId] -
         int256(_tokenCount);
     } else {
       // The unreserved token count that will be minted for the beneficiary.
-      beneficiaryTokenCount = PRBMath.mulDiv(_tokenCount, 10000 - _reservedRate, 10000);
+      beneficiaryTokenCount = PRBMath.mulDiv(
+        _tokenCount,
+        JBConstants.MAX_RESERVED_RATE - _reservedRate,
+        JBConstants.MAX_RESERVED_RATE
+      );
 
       // Mint the tokens.
       tokenStore.mintFor(_beneficiary, _projectId, beneficiaryTokenCount, _preferClaimedTokens);
@@ -592,16 +626,17 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     )
   {
     // There should be tokens to burn
-    require(_tokenCount > 0, '0x32: NO_OP');
+    if (_tokenCount == 0) {
+      revert NO_BURNABLE_TOKENS();
+    }
 
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
-    require(
-      !_fundingCycle.burnPaused() || directory.isTerminalDelegateOf(_projectId, msg.sender),
-      '0x33: PAUSED'
-    );
+    if (_fundingCycle.burnPaused() && !directory.isTerminalDelegateOf(_projectId, msg.sender)) {
+      revert BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE();
+    }
 
     // Update the token tracker so that reserved tokens will still be correctly mintable.
     _processedTokenTrackerOf[_projectId] =
@@ -639,7 +674,9 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   */
   function prepForMigrationOf(uint256 _projectId, IJBController) external override {
     // This controller must not be the project's current controller.
-    require(directory.controllerOf(_projectId) != this, '0x34: NO_OP');
+    if (directory.controllerOf(_projectId) == this) {
+      revert CANT_MIGRATE_TO_CURRENT_CONTROLLER();
+    }
 
     // Set the tracker as the total supply.
     _processedTokenTrackerOf[_projectId] = int256(tokenStore.totalSupplyOf(_projectId));
@@ -661,13 +698,17 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     nonReentrant
   {
     // This controller must be the project's current controller.
-    require(directory.controllerOf(_projectId) == this, '0x35: NO_OP');
+    if (directory.controllerOf(_projectId) != this) {
+      revert CALLER_NOT_CURRENT_CONTROLLER();
+    }
 
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Migration must be allowed
-    require(_fundingCycle.controllerMigrationAllowed(), '0x36: NOT_ALLOWED');
+    if (!_fundingCycle.controllerMigrationAllowed()) {
+      revert MIGRATION_NOT_ALLOWED();
+    }
 
     // All reserved tokens must be minted before migrating.
     if (uint256(_processedTokenTrackerOf[_projectId]) != tokenStore.totalSupplyOf(_projectId))
@@ -830,11 +871,14 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     if (_unprocessedTokenBalanceOf == 0) return 0;
 
     // If all tokens are reserved, return the full unprocessed amount.
-    if (_reservedRate == 10000) return _unprocessedTokenBalanceOf;
+    if (_reservedRate == JBConstants.MAX_RESERVED_RATE) return _unprocessedTokenBalanceOf;
 
     return
-      PRBMath.mulDiv(_unprocessedTokenBalanceOf, 10000, 10000 - _reservedRate) -
-      _unprocessedTokenBalanceOf;
+      PRBMath.mulDiv(
+        _unprocessedTokenBalanceOf,
+        JBConstants.MAX_RESERVED_RATE,
+        JBConstants.MAX_RESERVED_RATE - _reservedRate
+      ) - _unprocessedTokenBalanceOf;
   }
 
   /** 

@@ -5,6 +5,13 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Address.sol';
 
 import './../interfaces/IJBDirectory.sol';
+import './../libraries/JBTokens.sol';
+
+// --------------------------- custom errors -------------------------- //
+//*********************************************************************//
+error INSUFFICIENT_BALANCE();
+error PROJECT_NOT_FOUND();
+error TERMINAL_NOT_FOUND();
 
 /** 
   @notice A contract that inherits from JuiceboxProject can use Juicebox as a business-model-as-a-service.
@@ -14,7 +21,7 @@ import './../interfaces/IJBDirectory.sol';
 */
 abstract contract JBProject is Ownable {
   /// @notice The direct deposit terminals.
-  IJBDirectory immutable directory;
+  IJBDirectory public immutable directory;
 
   /// @notice The ID of the project that should be used to forward this contract's received payments.
   uint256 public projectId;
@@ -29,10 +36,10 @@ abstract contract JBProject is Ownable {
   }
 
   /** 
-      Received funds go streight to the project.
+      Received funds go straight to the project.
     */
   receive() external payable {
-    _pay(msg.sender, '', false, address(0));
+    _pay(msg.sender, '', false, JBTokens.ETH);
   }
 
   /** 
@@ -74,21 +81,22 @@ abstract contract JBProject is Ownable {
     bool _preferClaimedTokens,
     address _token
   ) internal {
-    _projectId = _projectId > 0 ? _projectId : projectId;
-
-    require(_projectId != 0, 'JuiceboxProject::_fundTreasury: PROJECT_NOT_FOUND');
+    if (_projectId == 0) {
+      revert PROJECT_NOT_FOUND();
+    }
 
     // Find the terminal for this contract's project.
     IJBTerminal _terminal = directory.primaryTerminalOf(_projectId, _token);
 
     // There must be a terminal.
-    require(
-      _terminal != IJBTerminal(address(0)),
-      'JuiceboxProject::_fundTreasury: TERMINAL_NOT_FOUND'
-    );
+    if (_terminal == IJBTerminal(address(0))) {
+      revert TERMINAL_NOT_FOUND();
+    }
 
     // There must be enough funds in the contract to take the fee.
-    require(address(this).balance >= _amount, 'JuiceboxProject::_fundTreasury: INSUFFICIENT_FUNDS');
+    if (address(this).balance < _amount) {
+      revert INSUFFICIENT_BALANCE();
+    }
 
     // Send funds to the terminal.
     _terminal.pay{value: _amount}(
@@ -110,13 +118,17 @@ abstract contract JBProject is Ownable {
     bool _preferClaimedTokens,
     address _token
   ) private {
-    require(projectId != 0, 'JuiceboxProject::_pay: PROJECT_NOT_FOUND');
+    if (projectId == 0) {
+      revert PROJECT_NOT_FOUND();
+    }
 
     // Get the terminal for this contract's project.
     IJBTerminal _terminal = directory.primaryTerminalOf(projectId, _token);
 
     // There must be a terminal.
-    require(_terminal != IJBTerminal(address(0)), 'JuiceboxProject::_pay: TERMINAL_NOT_FOUND');
+    if (_terminal == IJBTerminal(address(0))) {
+      revert TERMINAL_NOT_FOUND();
+    }
 
     _terminal.pay{value: msg.value}(
       projectId,

@@ -6,6 +6,7 @@ import { fastForward, getTimestamp } from '../helpers/utils';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
+import errors from '../helpers/errors.json';
 
 describe('JBProjects::claimHandle(...)', function () {
   const PROJECT_HANDLE_1 = 'PROJECT_1';
@@ -177,7 +178,7 @@ describe('JBProjects::claimHandle(...)', function () {
           projectOwner.address,
           PROJECT_ID_1,
         ),
-    ).to.be.revertedWith('0x0c: UNAUTHORIZED');
+    ).to.be.revertedWith(errors.TRANSFER_HANDLE_UNAUTHORIZED);
   });
 
   it(`Can't claim if it is after expiration date`, async function () {
@@ -221,7 +222,7 @@ describe('JBProjects::claimHandle(...)', function () {
           deployer.address,
           PROJECT_ID_2,
         ),
-    ).to.be.revertedWith('0x0c: UNAUTHORIZED');
+    ).to.be.revertedWith(errors.TRANSFER_HANDLE_UNAUTHORIZED);
   });
 
   it(`Can't claim handle and assign to inexistent or not owned projectId`, async function () {

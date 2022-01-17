@@ -6,6 +6,7 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
+import errors from '../helpers/errors.json';
 
 describe('JBTokenStore::claimFor(...)', function () {
   const PROJECT_ID = 2;
@@ -67,7 +68,7 @@ describe('JBTokenStore::claimFor(...)', function () {
 
     await expect(
       jbTokenStore.claimFor(newHolder.address, PROJECT_ID, numTokens),
-    ).to.be.revertedWith('0x24: NOT_FOUND');
+    ).to.be.revertedWith(errors.TOKEN_NOT_FOUND);
   });
 
   it(`Can't claim more tokens than the current _unclaimedBalance`, async function () {
@@ -85,6 +86,6 @@ describe('JBTokenStore::claimFor(...)', function () {
 
     await expect(
       jbTokenStore.claimFor(newHolder.address, PROJECT_ID, numTokens + 1),
-    ).to.be.revertedWith('0x25: INSUFFICIENT_FUNDS');
+    ).to.be.revertedWith(errors.INSUFFICIENT_UNCLAIMED_TOKENS);
   });
 });
