@@ -174,7 +174,7 @@ describe('JBController::burnTokenOf(...)', function () {
   });
 
   it(`Should burn token if caller is not project owner but is authorized`, async function () {
-    const { holder, addrs, jbController, mockJbTokenStore, mockJbOperatorStore, mockJbDirectory } =
+    const { holder, addrs, jbController, mockJbOperatorStore, mockJbDirectory } =
       await setup();
     let caller = addrs[0];
 
@@ -198,7 +198,7 @@ describe('JBController::burnTokenOf(...)', function () {
         ),
     )
       .to.emit(jbController, 'BurnTokens')
-      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, holder.address);
+      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, caller.address);
   });
 
   it(`Should burn token if caller is a terminal of the corresponding project`, async function () {
@@ -208,7 +208,6 @@ describe('JBController::burnTokenOf(...)', function () {
       jbController,
       mockJbOperatorStore,
       mockJbDirectory,
-      mockJbTokenStore,
     } = await setup();
     const terminal = await deployMockContract(projectOwner, jbTerminal.abi);
     const terminalSigner = await impersonateAccount(terminal.address);
@@ -237,7 +236,7 @@ describe('JBController::burnTokenOf(...)', function () {
         ),
     )
       .to.emit(jbController, 'BurnTokens')
-      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, holder.address);
+      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, terminalSigner.address);
   });
 
   it(`Can't burn 0 token`, async function () {
@@ -249,7 +248,7 @@ describe('JBController::burnTokenOf(...)', function () {
         .burnTokensOf(
           holder.address,
           PROJECT_ID,
-          /*_tokenCount=*/ 0,
+          /*_tokenCount=*/0,
           MEMO,
           PREFERED_CLAIMED_TOKEN,
         ),
@@ -260,7 +259,6 @@ describe('JBController::burnTokenOf(...)', function () {
     const { holder, jbController, mockJbFundingCycleStore, timestamp } = await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      // mock JBFundingCycle obj
       number: 1,
       configuration: timestamp,
       basedOn: timestamp,
@@ -295,6 +293,7 @@ describe('JBController::burnTokenOf(...)', function () {
       mockJbDirectory,
       timestamp,
     } = await setup();
+
     const terminal = await deployMockContract(projectOwner, jbTerminal.abi);
     const terminalSigner = await impersonateAccount(terminal.address);
 
@@ -311,7 +310,6 @@ describe('JBController::burnTokenOf(...)', function () {
       .returns(true);
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      // mock JBFundingCycle obj
       number: 1,
       configuration: timestamp,
       basedOn: timestamp,
@@ -331,10 +329,10 @@ describe('JBController::burnTokenOf(...)', function () {
           PROJECT_ID,
           AMOUNT_TO_BURN,
           MEMO,
-          /*_preferClaimedTokens=*/true,
+          PREFERED_CLAIMED_TOKEN,
         ),
     )
       .to.emit(jbController, 'BurnTokens')
-      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, holder.address);
+      .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, terminalSigner.address);
   });
 });

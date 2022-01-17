@@ -92,7 +92,6 @@ describe('JBController::changeTokenOf(...)', function () {
     let newTokenOwner = addrs[0];
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      // mock JBFundingCycle obj
       number: 1,
       configuration: timestamp,
       basedOn: timestamp,
@@ -134,7 +133,6 @@ describe('JBController::changeTokenOf(...)', function () {
       .returns(true);
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      // mock JBFundingCycle obj
       number: 1,
       configuration: timestamp,
       basedOn: timestamp,
@@ -180,7 +178,6 @@ describe('JBController::changeTokenOf(...)', function () {
       .returns(false);
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      // mock JBFundingCycle obj
       number: 1,
       configuration: timestamp,
       basedOn: timestamp,
@@ -217,7 +214,6 @@ describe('JBController::changeTokenOf(...)', function () {
     let newTokenOwner = addrs[0];
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      // mock JBFundingCycle obj
       number: 1,
       configuration: timestamp,
       basedOn: timestamp,
