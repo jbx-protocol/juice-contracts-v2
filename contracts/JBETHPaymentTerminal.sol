@@ -365,9 +365,8 @@ contract JBETHPaymentTerminal is
     bytes32 _handle = projects.handleOf(_projectId);
 
     // Take a fee from the _withdrawnAmount, if needed.
-    // The project's owner will be the beneficiary of the resulting minted tokens from platform project.
-    // The platform project's ID is 1.
-    uint256 _feeAmount = fee == 0 || _projectId == 1
+    // The project's owner will be the beneficiary.
+    uint256 _feeAmount = fee == 0 || _projectId == 1 // The platform project's ID is 1.
       ? 0
       : _takeFeeFrom(
         _projectId,
@@ -701,8 +700,8 @@ contract JBETHPaymentTerminal is
     if (feeAmount == 0) return 0;
 
     _fundingCycle.shouldHoldFees()
-      ? _heldFeesOf[_projectId].push(JBFee(_amount, uint8(fee), _beneficiary, _memo)) // Take the fee.
-      : _takeFee(feeAmount, _beneficiary, _memo);
+      ? _heldFeesOf[_projectId].push(JBFee(_amount, uint8(fee), _beneficiary, _memo))
+      : _takeFee(feeAmount, _beneficiary, _memo); // Take the fee.
   }
 
   /**

@@ -18,8 +18,7 @@ describe('JBETHPaymentTerminal::redeemTokensOf(...)', function () {
   const WEIGHT = 1000;
 
   async function setup() {
-    const [deployer, beneficiary, holder, otherCaller, projectOwner, terminalOwner] =
-      await ethers.getSigners();
+    const [deployer, beneficiary, holder, otherCaller, terminalOwner] = await ethers.getSigners();
 
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);
