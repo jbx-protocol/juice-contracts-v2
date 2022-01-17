@@ -11,7 +11,7 @@ interface IJBFundingCycleStore {
     uint256 indexed projectId,
     JBFundingCycleData data,
     uint256 metadata,
-    uint256 mustStartOnOrAfter,
+    uint256 mustStartAtOrAfter,
     address caller
   );
 
