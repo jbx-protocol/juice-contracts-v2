@@ -169,6 +169,7 @@ export function makeSplits({
     });
   }
   return splits;
+}
 
 /* Returns a mock FundingCyleData struct
  * @summary Should create a struct based on the definition in structs/JBFundingCycleData.sol.
