@@ -16,7 +16,6 @@ import './JBETHPaymentTerminalStore.sol';
 // Inheritance
 import './interfaces/IJBETHPaymentTerminal.sol';
 import './interfaces/IJBTerminal.sol';
-import './interfaces/IJBVault.sol';
 import './abstract/JBOperatable.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
@@ -113,7 +112,7 @@ contract JBETHPaymentTerminal is
     @dev
     Out of 200.
   */
-  uint256 public fee = 10;
+  uint256 public override fee = 10;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //

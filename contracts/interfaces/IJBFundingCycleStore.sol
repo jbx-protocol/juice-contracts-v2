@@ -11,6 +11,7 @@ interface IJBFundingCycleStore {
     uint256 indexed projectId,
     JBFundingCycleData data,
     uint256 metadata,
+    uint256 mustStartAtOrAfter,
     address caller
   );
 
@@ -32,6 +33,7 @@ interface IJBFundingCycleStore {
   function configureFor(
     uint256 _projectId,
     JBFundingCycleData calldata _data,
-    uint256 _metadata
+    uint256 _metadata,
+    uint256 _mustStartAtOrAfter
   ) external returns (JBFundingCycle memory fundingCycle);
 }
