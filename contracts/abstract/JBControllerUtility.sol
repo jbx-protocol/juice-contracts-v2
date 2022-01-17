@@ -13,9 +13,7 @@ error CONTROLLER_UNAUTHORIZED();
 */
 abstract contract JBControllerUtility is IJBControllerUtility {
   modifier onlyController(uint256 _projectId) {
-    if (address(directory.controllerOf(_projectId)) != msg.sender) {
-      revert CONTROLLER_UNAUTHORIZED();
-    }
+    if (address(directory.controllerOf(_projectId)) != msg.sender) revert CONTROLLER_UNAUTHORIZED();
     _;
   }
 
