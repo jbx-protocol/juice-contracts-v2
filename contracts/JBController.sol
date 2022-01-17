@@ -126,27 +126,37 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
   /**
     @notice 
-    bits 0-248: The amount of token that a project can withdraw per funding cycle.
+    Data regarding the distribution limit of a project during a configuration.
+
+    @dev 
+    bits 0-247: The amount of token that a project can withdraw per funding cycle.
+
+    @dev 
     bits 248-255: The currency of amount that a project can withdraw.
 
-    _projectId The ID of the project to get the current distribution limit of.
-    _configuration The configuration during which the distribution limit applies.
+    _projectId The ID of the project to get the packed distribution limit data of.
+    _configuration The configuration during which the packed distribution limit data applies.
     _terminal The terminal from which distributions are being limited. 
   */
   mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
-    public _packedDistributionLimitDataOf;
+    private _packedDistributionLimitDataOf;
 
   /**
     @notice 
+    Data regarding the overflow allowance of a project during a configuration.
+
+    @dev 
     bits 0-247: The amount of overflow that a project is allowed to tap into on-demand throughout configuration.
+
+    @dev 
     bits 248-255: The currency of the amount of overflow that a project is allowed to tap.
 
-    _projectId The ID of the project to get the current overflow allowance of.
-    _configuration The configuration during which the allowance applies.
+    _projectId The ID of the project to get the packed overflow allowance data of.
+    _configuration The configuration during which the packed overflow allowance data applies.
     _terminal The terminal managing the overflow.
   */
   mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
-    public _packedOverflowAllowanceDataOf;
+    private _packedOverflowAllowanceDataOf;
 
   //*********************************************************************//
   // --------------- public immutable stored properties ---------------- //
@@ -184,7 +194,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     @notice 
     The amount of token that a project can withdraw per funding cycle.
 
-    @param _projectId The ID of the project to get the current distribution limit of.
+    @param _projectId The ID of the project to get the distribution limit of.
     @param _configuration The configuration during which the distribution limit applies.
     @param _terminal The terminal from which distributions are being limited. 
   */
@@ -200,7 +210,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     @notice 
     The currency of the amount of that a project can withdraw per funding cycle.
 
-    @param _projectId The ID of the project to get the current distribution limit currency of.
+    @param _projectId The ID of the project to get the distribution limit currency of.
     @param _configuration The configuration during which the distribution limit currency applies.
     @param _terminal The terminal from which distributions are being limited. 
   */
@@ -216,7 +226,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     @notice 
     The amount of overflow that a project is allowed to tap into on-demand throughout configuration.
 
-    @param _projectId The ID of the project to get the current overflow allowance of.
+    @param _projectId The ID of the project to get the overflow allowance of.
     @param _configuration The configuration of the during which the allowance applies.
     @param _terminal The terminal managing the overflow.
   */
@@ -232,7 +242,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     @notice 
     The currency of the amount of overflow that a project is allowed to tap into.
 
-    @param _projectId The ID of the project to get the current overflow allowance currency of.
+    @param _projectId The ID of the project to get the overflow allowance currency of.
     @param _configuration The configuration of the during which the allowance currency applies.
     @param _terminal The terminal managing the overflow.
   */
