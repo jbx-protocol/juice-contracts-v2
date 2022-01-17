@@ -34,5 +34,5 @@ library JBConstants {
     @notice
     Maximum splits percentage.
   */
-  uint256 public constant SPLITS_TOTAL_PERCENT = 10000000;
+  uint256 public constant SPLITS_TOTAL_PERCENT = 1000000000;
 }

@@ -20,7 +20,6 @@ struct JBFundingCycle {
   // A duration of 0 means that the funding cycle will stay active until the project owner explicitly issues a reconfiguration, at which point a new funding cycle will be triggered with the updated properties.
   // If the duration is greater than 0, a project owner cannot make changes to a funding cycle's parameters while it is active – any proposed changes will apply to the subsequent cycle.
   // If no changes are proposed, a funding cycle rolls over to another one with the same properties but new `start` timestamp and a discounted `weight`.
-  // A duration has a minimum of 1000 seconds to prevent extractive miner behavior, see https://ethereum.stackexchange.com/questions/413/can-a-contract-safely-rely-on-block-timestamp.
   uint256 duration;
   // A number that contracts can use to base arbitrary calculations on.
   // For example, the `JBETHPaymentTerminalStore` uses this to determine how many tokens it should mint when a payment is received.

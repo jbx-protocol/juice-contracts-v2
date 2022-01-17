@@ -56,7 +56,7 @@ describe('JBSplitsStore::set(...)', function () {
     for (let i = 0; i < count; i++) {
       splits.push({
         preferClaimed: false,
-        percent: Math.floor(10000000 / count),
+        percent: Math.floor(1000000000 / count),
         lockedUntil: 0,
         beneficiary: beneficiaryAddress,
         allocator: ethers.constants.AddressZero,
@@ -215,10 +215,10 @@ describe('JBSplitsStore::set(...)', function () {
     ).to.be.revertedWith(errors.ALLOCATOR_AND_BENEFICIARY_ZERO_ADDRESS);
   });
 
-  it("Can't set splits if the sum of the percents is greather than 10000000", async function () {
+  it("Can't set splits if the sum of the percents is greather than 1000000000", async function () {
     const { projectOwner, jbSplitsStore, splits } = await setup();
 
-    // Set sum at 10000001
+    // Set sum at 1000000001
     splits[0].percent += 1;
 
     await expect(
