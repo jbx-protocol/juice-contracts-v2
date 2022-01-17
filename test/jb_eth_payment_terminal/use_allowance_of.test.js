@@ -13,7 +13,7 @@ import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.s
 describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
   const AMOUNT = 50000;
   const DEFAULT_FEE = 10; // 5%
-  const AMOUNT_MINUS_FEES = Math.floor((AMOUNT * 200) / (10 + 200));
+  const AMOUNT_MINUS_FEES = Math.floor((AMOUNT * 200) / (DEFAULT_FEE + 200));
 
   const FUNDING_CYCLE_NUM = 1;
   const HANDLE = ethers.utils.formatBytes32String('PROJECT_HANDLE');
@@ -257,15 +257,15 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
       .returns(fundingCycle, AMOUNT);
 
     await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
-      // .withArgs(
-      //   projectOwner.address,
-      //   AMOUNT - AMOUNT_MINUS_FEES,
-      //   PROJECT_ID,
-      //   ethers.BigNumber.from(0).or(ethers.BigNumber.from(beneficiary.address).shl(1)),
-      //   /* minReturnedTokens */ 0,
-      //   /* memo */ 'Fee from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
-      //   /* delegateMetadata */ '0x',
-      // )
+      .withArgs(
+        projectOwner.address,
+        AMOUNT - AMOUNT_MINUS_FEES,
+        JUICEBOX_PROJECT_ID,
+        ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
+        /* minReturnedTokens */ 0,
+        /* memo */ 'Fee from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+        /* delegateMetadata */ '0x',
+      )
       .returns(fundingCycle, WEIGHT, AMOUNT, MEMO);
 
     await mockJbDirectory.mock.primaryTerminalOf

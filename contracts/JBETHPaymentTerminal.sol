@@ -754,7 +754,7 @@ contract JBETHPaymentTerminal is
       msg.sender,
       _amount,
       _projectId,
-      (_preferClaimedTokens ? 1 : 0) | (uint160(_beneficiary) << 1),
+      (_preferClaimedTokens ? 1 : 0) | (uint256(uint160(_beneficiary)) << 1),
       _minReturnedTokens,
       _memo,
       _delegateMetadata
