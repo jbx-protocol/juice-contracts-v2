@@ -15,6 +15,8 @@ import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStor
 
 describe('JBController::reconfigureFundingCycleOf(...)', function () {
   const PROJECT_ID = 1;
+  const PROJECT_START = '1';
+
   let RECONFIGURE_INDEX;
 
   before(async function () {
@@ -70,7 +72,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
     await mockJbFundingCycleStore.mock.configureFor
-      .withArgs(PROJECT_ID, fundingCycleData, fundingCycleMetadata.packed)
+      .withArgs(PROJECT_ID, fundingCycleData, fundingCycleMetadata.packed, PROJECT_START)
       .returns(
         Object.assign(
           {
@@ -197,6 +199,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
           PROJECT_ID,
           fundingCycleData,
           fundingCycleMetadata.unpacked,
+          PROJECT_START,
           groupedSplits,
           fundAccessConstraints,
         ),
@@ -208,6 +211,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_ID,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
+        PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
       );
@@ -262,6 +266,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
           PROJECT_ID,
           fundingCycleData,
           fundingCycleMetadata.unpacked,
+          PROJECT_START,
           groupedSplits,
           fundAccessConstraints,
         ),
@@ -273,6 +278,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_ID,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
+        PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
       );
@@ -329,6 +335,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_ID,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
+        PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
       );
@@ -357,6 +364,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
           PROJECT_ID,
           fundingCycleData,
           fundingCycleMetadata.unpacked,
+          PROJECT_START,
           [],
           fundAccessConstraints,
         ),
@@ -368,6 +376,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_ID,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
+        PROJECT_START,
         [],
         fundAccessConstraints,
       );
@@ -419,6 +428,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
           PROJECT_ID,
           fundingCycleData,
           fundingCycleMetadata.unpacked,
+          PROJECT_START,
           groupedSplits,
           fundAccessConstraints,
         ),
@@ -430,6 +440,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_ID,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
+        PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
       );
@@ -468,6 +479,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_ID,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
+        PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
       );
@@ -496,6 +508,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_ID,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
+        PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
       );
@@ -525,6 +538,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_ID,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
+        PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
       );

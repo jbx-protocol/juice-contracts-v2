@@ -142,7 +142,6 @@ export function packFundingCycleMetadata({
 }
 
 /**
-
  * Returns an array of JBSplits
  * @param {custom obj} count being the number of splits in the returned array, rest of the
  * object is a JBSplit
@@ -171,7 +170,8 @@ export function makeSplits({
   return splits;
 }
 
-/* Returns a mock FundingCyleData struct
+/**
+ * Returns a mock FundingCyleData struct
  * @summary Should create a struct based on the definition in structs/JBFundingCycleData.sol.
  * @param {custom obj} e.g. createFundingCycleData({ duration: 604800, weight: 1000000000000000000000000, discountRate: 0, ballot: constants.AddressZero })
  * @return {custom obj}

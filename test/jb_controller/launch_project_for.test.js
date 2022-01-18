@@ -17,6 +17,7 @@ describe('JBController::launchProjectFor(...)', function () {
   const PROJECT_ID = 1;
   const PROJECT_HANDLE = ethers.utils.formatBytes32String('PROJECT_1');
   const METADATA_CID = '';
+  const PROJECT_START = '1';
   let MIGRATE_CONTROLLER_INDEX;
 
   before(async function () {
@@ -79,7 +80,7 @@ describe('JBController::launchProjectFor(...)', function () {
       .returns();
 
     await mockJbFundingCycleStore.mock.configureFor
-      .withArgs(PROJECT_ID, fundingCycleData, fundingCycleMetadata.packed)
+      .withArgs(PROJECT_ID, fundingCycleData, fundingCycleMetadata.packed, PROJECT_START)
       .returns(
         Object.assign(
           {
@@ -207,6 +208,7 @@ describe('JBController::launchProjectFor(...)', function () {
           METADATA_CID,
           fundingCycleData,
           fundingCycleMetadata.unpacked,
+          PROJECT_START,
           groupedSplits,
           fundAccessConstraints,
           terminals,
@@ -221,6 +223,7 @@ describe('JBController::launchProjectFor(...)', function () {
         METADATA_CID,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
+        PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
         terminals,
@@ -267,6 +270,7 @@ describe('JBController::launchProjectFor(...)', function () {
           METADATA_CID,
           fundingCycleData,
           fundingCycleMetadata.unpacked,
+          PROJECT_START,
           groupedSplits,
           fundAccessConstraints,
           [],
@@ -282,6 +286,7 @@ describe('JBController::launchProjectFor(...)', function () {
         METADATA_CID,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
+        PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
         [],
@@ -311,6 +316,7 @@ describe('JBController::launchProjectFor(...)', function () {
         METADATA_CID,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
+        PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
         terminals,
@@ -343,6 +349,7 @@ describe('JBController::launchProjectFor(...)', function () {
         METADATA_CID,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
+        PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
         terminals,
@@ -376,6 +383,7 @@ describe('JBController::launchProjectFor(...)', function () {
         METADATA_CID,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
+        PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
         terminals,
