@@ -44,7 +44,6 @@ describe('JBController::issueTokenFor(...)', function () {
       deployMockContract(deployer, jbSplitsStore.abi),
       deployMockContract(deployer, jbToken.abi),
       deployMockContract(deployer, jbTokenStore.abi),
-
     ]);
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');

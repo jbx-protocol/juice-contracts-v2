@@ -278,19 +278,20 @@ describe('JBController::launchProjectFor(...)', function () {
     ).to.equal(PROJECT_ID);
 
     // No constraint => no event
-    await expect(jbController
-      .connect(projectOwner)
-      .launchProjectFor(
-        projectOwner.address,
-        PROJECT_HANDLE,
-        METADATA_CID,
-        fundingCycleData,
-        fundingCycleMetadata.unpacked,
-        PROJECT_START,
-        groupedSplits,
-        fundAccessConstraints,
-        [],
-      )
+    await expect(
+      jbController
+        .connect(projectOwner)
+        .launchProjectFor(
+          projectOwner.address,
+          PROJECT_HANDLE,
+          METADATA_CID,
+          fundingCycleData,
+          fundingCycleMetadata.unpacked,
+          PROJECT_START,
+          groupedSplits,
+          fundAccessConstraints,
+          [],
+        ),
     ).to.not.emit(jbController, 'SetFundAccessConstraints');
   });
 

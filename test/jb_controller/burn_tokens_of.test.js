@@ -66,53 +66,40 @@ describe('JBController::burnTokenOf(...)', function () {
     );
 
     await Promise.all([
-      mockJbProjects.mock.ownerOf
-        .withArgs(PROJECT_ID)
-        .returns(projectOwner.address),
+      mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address),
 
-      mockJbDirectory.mock.isTerminalDelegateOf
-        .withArgs(PROJECT_ID, holder.address)
-        .returns(false),
+      mockJbDirectory.mock.isTerminalDelegateOf.withArgs(PROJECT_ID, holder.address).returns(false),
 
       mockJbDirectory.mock.isTerminalDelegateOf
         .withArgs(PROJECT_ID, projectOwner.address)
         .returns(false),
 
-      mockJbFundingCycleStore.mock.currentOf
-        .withArgs(PROJECT_ID)
-        .returns({
-          number: 1,
-          configuration: timestamp,
-          basedOn: timestamp,
-          start: timestamp,
-          duration: 0,
-          weight: 0,
-          discountRate: 0,
-          ballot: ethers.constants.AddressZero,
-          metadata: packFundingCycleMetadata({
-            pauseBurn: 0,
-            pauseMint: 0,
-            reservedRate: RESERVED_RATE,
-           }),
+      mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+        number: 1,
+        configuration: timestamp,
+        basedOn: timestamp,
+        start: timestamp,
+        duration: 0,
+        weight: 0,
+        discountRate: 0,
+        ballot: ethers.constants.AddressZero,
+        metadata: packFundingCycleMetadata({
+          pauseBurn: 0,
+          pauseMint: 0,
+          reservedRate: RESERVED_RATE,
         }),
+      }),
 
       // only non-reserved are minted, minting total supply in holder account
       mockJbTokenStore.mock.mintFor
-        .withArgs(
-          holder.address,
-          PROJECT_ID,
-          EFFECTIVE_SUPPLY,
-          PREFERED_CLAIMED_TOKEN,
-        )
+        .withArgs(holder.address, PROJECT_ID, EFFECTIVE_SUPPLY, PREFERED_CLAIMED_TOKEN)
         .returns(),
 
       mockJbTokenStore.mock.burnFrom
         .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, PREFERED_CLAIMED_TOKEN)
         .returns(),
 
-      mockJbTokenStore.mock.totalSupplyOf
-        .withArgs(PROJECT_ID)
-        .returns(EFFECTIVE_SUPPLY)
+      mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(EFFECTIVE_SUPPLY),
     ]);
 
     await jbController
@@ -150,13 +137,7 @@ describe('JBController::burnTokenOf(...)', function () {
     await expect(
       jbController
         .connect(holder)
-        .burnTokensOf(
-          holder.address,
-          PROJECT_ID,
-          AMOUNT_TO_BURN,
-          MEMO,
-          PREFERED_CLAIMED_TOKEN,
-        ),
+        .burnTokensOf(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, PREFERED_CLAIMED_TOKEN),
     )
       .to.emit(jbController, 'BurnTokens')
       .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, holder.address);
@@ -174,8 +155,7 @@ describe('JBController::burnTokenOf(...)', function () {
   });
 
   it(`Should burn token if caller is not project owner but is authorized`, async function () {
-    const { holder, addrs, jbController, mockJbOperatorStore, mockJbDirectory } =
-      await setup();
+    const { holder, addrs, jbController, mockJbOperatorStore, mockJbDirectory } = await setup();
     let caller = addrs[0];
 
     await mockJbOperatorStore.mock.hasPermission
@@ -189,26 +169,15 @@ describe('JBController::burnTokenOf(...)', function () {
     await expect(
       jbController
         .connect(caller)
-        .burnTokensOf(
-          holder.address,
-          PROJECT_ID,
-          AMOUNT_TO_BURN,
-          MEMO,
-          PREFERED_CLAIMED_TOKEN,
-        ),
+        .burnTokensOf(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, PREFERED_CLAIMED_TOKEN),
     )
       .to.emit(jbController, 'BurnTokens')
       .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, caller.address);
   });
 
   it(`Should burn token if caller is a terminal of the corresponding project`, async function () {
-    const {
-      projectOwner,
-      holder,
-      jbController,
-      mockJbOperatorStore,
-      mockJbDirectory,
-    } = await setup();
+    const { projectOwner, holder, jbController, mockJbOperatorStore, mockJbDirectory } =
+      await setup();
     const terminal = await deployMockContract(projectOwner, jbTerminal.abi);
     const terminalSigner = await impersonateAccount(terminal.address);
 
@@ -227,13 +196,7 @@ describe('JBController::burnTokenOf(...)', function () {
     await expect(
       jbController
         .connect(terminalSigner)
-        .burnTokensOf(
-          holder.address,
-          PROJECT_ID,
-          AMOUNT_TO_BURN,
-          MEMO,
-          PREFERED_CLAIMED_TOKEN,
-        ),
+        .burnTokensOf(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, PREFERED_CLAIMED_TOKEN),
     )
       .to.emit(jbController, 'BurnTokens')
       .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, terminalSigner.address);
@@ -245,13 +208,7 @@ describe('JBController::burnTokenOf(...)', function () {
     await expect(
       jbController
         .connect(holder)
-        .burnTokensOf(
-          holder.address,
-          PROJECT_ID,
-          /*_tokenCount=*/0,
-          MEMO,
-          PREFERED_CLAIMED_TOKEN,
-        ),
+        .burnTokensOf(holder.address, PROJECT_ID, /*_tokenCount=*/ 0, MEMO, PREFERED_CLAIMED_TOKEN),
     ).to.be.revertedWith(errors.NO_BURNABLE_TOKENS);
   });
 
@@ -273,13 +230,7 @@ describe('JBController::burnTokenOf(...)', function () {
     await expect(
       jbController
         .connect(holder)
-        .burnTokensOf(
-          holder.address,
-          PROJECT_ID,
-          AMOUNT_TO_BURN,
-          MEMO,
-          PREFERED_CLAIMED_TOKEN,
-        ),
+        .burnTokensOf(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, PREFERED_CLAIMED_TOKEN),
     ).to.be.revertedWith(errors.BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE);
   });
 
@@ -324,13 +275,7 @@ describe('JBController::burnTokenOf(...)', function () {
     await expect(
       jbController
         .connect(terminalSigner)
-        .burnTokensOf(
-          holder.address,
-          PROJECT_ID,
-          AMOUNT_TO_BURN,
-          MEMO,
-          PREFERED_CLAIMED_TOKEN,
-        ),
+        .burnTokensOf(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, PREFERED_CLAIMED_TOKEN),
     )
       .to.emit(jbController, 'BurnTokens')
       .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, terminalSigner.address);

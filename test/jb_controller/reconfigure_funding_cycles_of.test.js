@@ -418,7 +418,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
       terminals,
       distributionLimit: 0,
       overflowAllowance: 0,
-      currency: 0
+      currency: 0,
     });
 
     expect(
@@ -466,8 +466,14 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
   });
 
   it(`Can't set a reserved rate superior to 10000`, async function () {
-    const { jbController, projectOwner, fundingCycleData, splits, mockJbTerminal1, mockJbTerminal2 } =
-      await setup();
+    const {
+      jbController,
+      projectOwner,
+      fundingCycleData,
+      splits,
+      mockJbTerminal1,
+      mockJbTerminal2,
+    } = await setup();
     const groupedSplits = [{ group: 1, splits }];
     const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
     const fundAccessConstraints = makeFundingAccessConstraints({ terminals });
