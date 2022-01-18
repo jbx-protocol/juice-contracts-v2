@@ -82,7 +82,7 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
         metadata: packFundingCycleMetadata( { holdFees: 1 } ),
       }
 
-      await mockJbEthPaymentTerminalStore.mock.recordDistributionFor
+    await mockJbEthPaymentTerminalStore.mock.recordDistributionFor
       .withArgs(
         PROJECT_ID,
         AMOUNT,
@@ -102,15 +102,15 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
           metadata: packFundingCycleMetadata( { holdFees: 1 } ),
         },
         AMOUNT
-      )
+    )
 
-      await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
-      await mockJbProjects.mock.handleOf.withArgs(PROJECT_ID).returns(HANDLE);
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
+    await mockJbProjects.mock.handleOf.withArgs(PROJECT_ID).returns(HANDLE);
 
-      await mockJbEthPaymentTerminalStore.mock.recordAddedBalanceFor
-        .withArgs(PROJECT_ID, AMOUNT)
-        .returns(fundingCycle);
-  
+    await mockJbEthPaymentTerminalStore.mock.recordAddedBalanceFor
+      .withArgs(PROJECT_ID, AMOUNT)
+      .returns(fundingCycle);
+
     await ethers.provider.send('hardhat_setBalance', [jbEthPaymentTerminal.address, AMOUNT.toHexString()]);
       
     return {
@@ -160,7 +160,7 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
       expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([]);
   });
 
-  it('Should add to the project balance, refund any held fee by substracting the amount from the held fee amount and emit event', async function () {
+  it('Should add to the project balance, refund a held fee by substracting the amount from the held fee amount and emit event', async function () {
     const { caller, beneficiaryOne, beneficiaryTwo, jbEthPaymentTerminal, timestamp, mockJbSplitsStore, mockJbEthPaymentTerminalStore, fundingCycle } = await setup();
     const splits = makeSplits({ count: 2, beneficiary: [beneficiaryOne.address, beneficiaryTwo.address]});
 
@@ -195,7 +195,76 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
 
     let heldFeeAfter = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
     expect(heldFeeAfter[0].amount).to.equal(heldFeeBefore[0].amount.sub(1))
-});
+  });
+
+  it('Should add to the project balance, refund multiple held fee by substracting the amount from the held fee amount when possible, and held the fee left when not', async function () {
+    const { caller, beneficiaryOne, beneficiaryTwo, jbEthPaymentTerminal, timestamp, mockJbSplitsStore, mockJbEthPaymentTerminalStore, fundingCycle } = await setup();
+    const splits = makeSplits({ count: 2, beneficiary: [beneficiaryOne.address, beneficiaryTwo.address]});
+
+    await mockJbSplitsStore.mock.splitsOf
+      .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
+      .returns(splits);
+
+    await mockJbEthPaymentTerminalStore.mock.recordDistributionFor
+      .withArgs(
+        PROJECT_ID,
+        AMOUNT.div(2),
+        CURRENCY,
+        0
+      )
+      .returns(
+        { 
+          number: 1,
+          configuration: timestamp,
+          basedOn: timestamp,
+          start: timestamp,
+          duration: 0,
+          weight: 0,
+          discountRate: 0,
+          ballot: ethers.constants.AddressZero,
+          metadata: packFundingCycleMetadata( { holdFees: 1 } ),
+        },
+        AMOUNT.div(2)
+      )
+
+    await jbEthPaymentTerminal
+      .connect(caller)
+      .distributePayoutsOf(
+        PROJECT_ID,
+        AMOUNT.div(2),
+        ETH_PAYOUT_INDEX,
+        MIN_TOKEN_REQUESTED,
+        MEMO
+      );
+
+    await jbEthPaymentTerminal
+      .connect(caller)
+      .distributePayoutsOf(
+        PROJECT_ID,
+        AMOUNT.div(2),
+        ETH_PAYOUT_INDEX,
+        MIN_TOKEN_REQUESTED,
+        MEMO
+      );
+
+    await mockJbEthPaymentTerminalStore.mock.recordAddedBalanceFor
+      .withArgs(PROJECT_ID, 10)
+      .returns(fundingCycle);
+
+    let heldFeeBefore = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
+    
+    expect(await jbEthPaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, MEMO, {value: 10}))
+    .to.emit(jbEthPaymentTerminal, 'AddToBalance')
+    .withArgs(
+      PROJECT_ID,
+      10,
+      MEMO,
+      caller.address
+    )
+
+    let heldFeeAfter = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
+    expect(heldFeeAfter[0].amount).to.equal(heldFeeBefore[0].amount.sub(10))
+  });
 
   it('Can\'t add 0 ethers to the project balance', async function () {
     const { caller, beneficiaryOne, beneficiaryTwo, jbEthPaymentTerminal, timestamp, mockJbSplitsStore } = await setup();
@@ -218,4 +287,5 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
     await expect(jbEthPaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, MEMO, {value: 0}))
      .to.be.revertedWith(errors.ZERO_VALUE_SENT);
   });
+
 });
