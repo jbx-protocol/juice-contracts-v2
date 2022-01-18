@@ -10,7 +10,7 @@ import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorSt
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
 
-describe.only('JBETHPaymentTerminal::setFee(...)', function () {
+describe('JBETHPaymentTerminal::setFee(...)', function () {
   const NEW_FEE = 8; // 4%
   
   async function setup() {
