@@ -15,5 +15,9 @@ coverage.json
 
 *.txt
 
+# Foundry
+out
+!remappings.txt
+
 # VSCode
 workspace.code-workspace
