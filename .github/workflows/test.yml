@@ -42,3 +42,20 @@ jobs:
         run: yarn install --frozen-lockfile --prefer-offline
       - name: Tests and code coverage
         run: node --require esm ./node_modules/.bin/hardhat coverage --network hardhat
+  forge-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v2
+      - name: Install dev dependencies
+        run: npm install
+
+      - name: Install Foundry
+        uses: onbjerg/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run tests
+        run: forge test --contracts fuzz --optimize

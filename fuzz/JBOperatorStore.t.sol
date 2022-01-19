@@ -4,8 +4,8 @@ pragma solidity 0.8.6;
 import 'ds-test/test.sol';
 import 'forge-std/Vm.sol';
 
-import {JBOperatorStore, PERMISSION_INDEX_OUT_OF_BOUNDS} from '../../../contracts/JBOperatorStore.sol';
-import {JBOperatorData} from '../../../contracts/structs/JBOperatorData.sol';
+import {JBOperatorStore} from '@juicebox/JBOperatorStore.sol';
+import {JBOperatorData} from '@juicebox/structs/JBOperatorData.sol';
 
 contract JBOperatorStoreTest is DSTest {
   Vm public constant vm = Vm(HEVM_ADDRESS);

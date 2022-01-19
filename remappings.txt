@@ -4,3 +4,4 @@ forge-std/=lib/forge-std/src/
 @chainlink=node_modules/@chainlink
 @paulrberg=node_modules/@paulrberg
 prb-math=node_modules/prb-math
+@juicebox=contracts

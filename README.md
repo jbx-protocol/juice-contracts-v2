@@ -23,8 +23,9 @@ node --require esm ./node_modules/.bin/hardhat coverage --network hardhat
 ```
 
 A few notes:
-* Hardhat doesn't support [esm](https://nodejs.org/api/esm.html) yet, hence running manually with node.
-* We are currently using a forked version of [solidity-coverage](https://www.npmjs.com/package/solidity-coverage) that includes optimizer settings. Ideally we will move to the maintained version after this is fixed on their end.
+
+- Hardhat doesn't support [esm](https://nodejs.org/api/esm.html) yet, hence running manually with node.
+- We are currently using a forked version of [solidity-coverage](https://www.npmjs.com/package/solidity-coverage) that includes optimizer settings. Ideally we will move to the maintained version after this is fixed on their end.
 
 ## Deploy
 
@@ -47,3 +48,11 @@ npx hardhat --network $network etherscan-verify
 ```
 
 This will verify all of the deployed contracts in `./deployments`.
+
+## Fuzz
+
+Juicebox uses Foundry to fuzz test contract implementation. In order to run them, first download [Foundry](https://github.com/gakonst/foundry).
+
+```bash
+forge test --contracts fuzz --optimize
+```
