@@ -134,7 +134,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
     await mockJbProjects.mock.handleOf.withArgs(PROJECT_ID).returns(HANDLE);
 
-    // Used with hardcoded one to get JBDao address
+    // Used with hardcoded one to get JBDao terminal
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)
       .returns(jbEthPaymentTerminal.address);
@@ -441,6 +441,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
     const splits = makeSplits({
       count: 2,
       beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
+      projectId: 1
     });
 
     await mockJbSplitsStore.mock.splitsOf
@@ -461,6 +462,21 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
         '0x',
       )
       .returns();
+
+    await Promise.all(
+      splits.map(async (split) => {
+        await mockJbEthPaymentTerminal.mock.pay
+          .withArgs(
+            split.projectId, //JBX Dao
+            split.beneficiary,
+            0,
+            split.preferClaimed,
+            'Payout from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+            '0x',
+          )
+          .returns();
+      })
+    )
 
     let tx = await jbEthPaymentTerminal
       .connect(caller)
@@ -525,6 +541,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
     const splits = makeSplits({
       count: 2,
       beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
+      projectId: 1
     });
 
     await mockJbSplitsStore.mock.splitsOf
@@ -548,6 +565,28 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
         0,
         'Fee from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
       );
+    
+    await Promise.all(
+      splits.map(async (split) => {
+        await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
+        .withArgs(
+          caller.address,
+          /*amount paid*/Math.floor((AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT),
+          split.projectId,
+          /*preferedCLaimed | uint160(beneficiary)<<1 and preferedClaimed=false hard coded*/
+          ethers.BigNumber.from(0).or(ethers.BigNumber.from(split.beneficiary).shl(1)),
+          /*_minReturnedTokens*/ 0, //hard coded
+          'Payout from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+          /*DELEGATE_METADATA*/ '0x',
+        )
+        .returns(
+          fundingCycle,
+          0,
+          0,
+          'Payout from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+        );
+      })
+    );
 
     let tx = await jbEthPaymentTerminal
       .connect(caller)
