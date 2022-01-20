@@ -405,6 +405,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
     const tx = await jbEthPaymentTerminal.connect(projectOwner).processFees(PROJECT_ID);
 
     expect(await tx).to.emit(jbEthPaymentTerminal, 'ProcessFees');
+    /** @dev Chai matchers can't seem to match these args even though I've inspected the data inside to be exactly the same. */
     // .withArgs(
     //   PROJECT_ID,
     //   [
