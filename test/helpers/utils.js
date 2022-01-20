@@ -147,7 +147,8 @@ export function packFundingCycleMetadata({
  * object is a JBSplit
  * @return a JBSplit array of count objects
  */
- export function makeSplits({
+
+export function makeSplits({
   count = 4,
   beneficiary = Array(count).fill(ethers.constants.AddressZero),
   preferClaimed = false,
