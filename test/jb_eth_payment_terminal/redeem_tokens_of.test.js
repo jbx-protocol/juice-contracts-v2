@@ -159,7 +159,7 @@ describe('JBETHPaymentTerminal::redeemTokensOf(...)', function () {
     );
   });
 
-  it('Should only emit event if claim amount is 0', async function () {
+  it('Should not perform a transfer and only emit events if claim amount is 0', async function () {
     const {
       beneficiary,
       fundingCycle,

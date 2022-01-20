@@ -37,22 +37,26 @@ describe('JBETHPaymentTerminal::remainingDistributionLimitOf(...)', function () 
       deployMockContract(deployer, jbSplitsStore.abi),
     ]);
 
-    let jbTerminalFactory = await ethers.getContractFactory("JBETHPaymentTerminal", deployer);
+    let jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
 
     const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
-    const futureTerminalAddress = ethers.utils.getContractAddress({ from: deployer.address, nonce: currentNonce + 1 });
+    const futureTerminalAddress = ethers.utils.getContractAddress({
+      from: deployer.address,
+      nonce: currentNonce + 1,
+    });
 
-    await mockJbEthPaymentTerminalStore.mock.claimFor
-      .withArgs(futureTerminalAddress)
-      .returns();
+    await mockJbEthPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
 
-    let jbEthPaymentTerminal = await jbTerminalFactory.connect(deployer).deploy(
-      mockJbOperatorStore.address,
-      mockJbProjects.address,
-      mockJbDirectory.address,
-      mockJbSplitsStore.address,
-      mockJbEthPaymentTerminalStore.address,
-      terminalOwner.address);
+    let jbEthPaymentTerminal = await jbTerminalFactory
+      .connect(deployer)
+      .deploy(
+        mockJbOperatorStore.address,
+        mockJbProjects.address,
+        mockJbDirectory.address,
+        mockJbSplitsStore.address,
+        mockJbEthPaymentTerminalStore.address,
+        terminalOwner.address,
+      );
 
     return {
       terminalOwner,
@@ -61,16 +65,20 @@ describe('JBETHPaymentTerminal::remainingDistributionLimitOf(...)', function () 
       mockJbDirectory,
       mockJbEthPaymentTerminalStore,
       mockJbController,
-      timestamp
-    }
+      timestamp,
+    };
   }
 
   it('Should return the remaining distribution limit of the project', async function () {
-    const { jbEthPaymentTerminal, mockJbDirectory, mockJbController, mockJbEthPaymentTerminalStore, timestamp } = await setup();
+    const {
+      jbEthPaymentTerminal,
+      mockJbDirectory,
+      mockJbController,
+      mockJbEthPaymentTerminalStore,
+      timestamp,
+    } = await setup();
 
-    await mockJbDirectory.mock.controllerOf
-      .withArgs(PROJECT_ID)
-      .returns(mockJbController.address);
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, jbEthPaymentTerminal.address)
@@ -78,14 +86,14 @@ describe('JBETHPaymentTerminal::remainingDistributionLimitOf(...)', function () 
 
     await mockJbEthPaymentTerminalStore.mock.usedDistributionLimitOf
       .withArgs(PROJECT_ID, FUNDING_CYCLE_NUMBER)
-      .returns(BALANCE)
+      .returns(BALANCE);
 
     expect(
       await jbEthPaymentTerminal.remainingDistributionLimitOf(
         PROJECT_ID,
         timestamp,
-        FUNDING_CYCLE_NUMBER
-      )
+        FUNDING_CYCLE_NUMBER,
+      ),
     ).to.equal(0);
   });
 });

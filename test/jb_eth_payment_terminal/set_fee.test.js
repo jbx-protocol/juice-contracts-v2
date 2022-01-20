@@ -12,7 +12,7 @@ import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.s
 
 describe('JBETHPaymentTerminal::setFee(...)', function () {
   const NEW_FEE = 8; // 4%
-  
+
   async function setup() {
     let [deployer, terminalOwner, caller] = await ethers.getSigners();
 
@@ -54,7 +54,7 @@ describe('JBETHPaymentTerminal::setFee(...)', function () {
     return {
       jbEthPaymentTerminal,
       terminalOwner,
-      caller
+      caller,
     };
   }
 
@@ -66,9 +66,9 @@ describe('JBETHPaymentTerminal::setFee(...)', function () {
       .withArgs(NEW_FEE, terminalOwner.address);
   });
 
-  it('Can\'t set fee above 5%', async function () {
+  it("Can't set fee above 5%", async function () {
     const { jbEthPaymentTerminal, terminalOwner } = await setup();
     await expect(jbEthPaymentTerminal.connect(terminalOwner).setFee(11)) // 5.5%
-      .to.be.revertedWith(errors.FEE_TOO_HIGH)
+      .to.be.revertedWith(errors.FEE_TOO_HIGH);
   });
 });

@@ -30,37 +30,39 @@ describe('JBETHPaymentTerminal::ethBalanceOf(...)', function () {
       deployMockContract(deployer, jbSplitsStore.abi),
     ]);
 
-    let jbTerminalFactory = await ethers.getContractFactory("JBETHPaymentTerminal", deployer);
+    let jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
 
     const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
-    const futureTerminalAddress = ethers.utils.getContractAddress({ from: deployer.address, nonce: currentNonce + 1 });
+    const futureTerminalAddress = ethers.utils.getContractAddress({
+      from: deployer.address,
+      nonce: currentNonce + 1,
+    });
 
-    await mockJbEthPaymentTerminalStore.mock.claimFor
-      .withArgs(futureTerminalAddress)
-      .returns();
+    await mockJbEthPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
 
-    let jbEthPaymentTerminal = await jbTerminalFactory.connect(deployer).deploy(
-      mockJbOperatorStore.address,
-      mockJbProjects.address,
-      mockJbDirectory.address,
-      mockJbSplitsStore.address,
-      mockJbEthPaymentTerminalStore.address,
-      terminalOwner.address);
+    let jbEthPaymentTerminal = await jbTerminalFactory
+      .connect(deployer)
+      .deploy(
+        mockJbOperatorStore.address,
+        mockJbProjects.address,
+        mockJbDirectory.address,
+        mockJbSplitsStore.address,
+        mockJbEthPaymentTerminalStore.address,
+        terminalOwner.address,
+      );
 
     return {
       terminalOwner,
       addrs,
       jbEthPaymentTerminal,
-      mockJbEthPaymentTerminalStore
-    }
+      mockJbEthPaymentTerminalStore,
+    };
   }
 
   it('Should return the balance of the project', async function () {
     const { jbEthPaymentTerminal, mockJbEthPaymentTerminalStore } = await setup();
 
-    await mockJbEthPaymentTerminalStore.mock.balanceOf
-      .withArgs(PROJECT_ID)
-      .returns(BALANCE)
+    await mockJbEthPaymentTerminalStore.mock.balanceOf.withArgs(PROJECT_ID).returns(BALANCE);
 
     expect(await jbEthPaymentTerminal.ethBalanceOf(PROJECT_ID)).to.equal(BALANCE);
   });

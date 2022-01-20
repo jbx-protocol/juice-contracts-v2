@@ -44,12 +44,12 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
       mockJbProjects,
       mockJbSplitsStore,
     ] = await Promise.all([
-        deployMockContract(deployer, jbDirectory.abi),
-        deployMockContract(deployer, JbEthPaymentTerminal.abi),
-        deployMockContract(deployer, jbEthPaymentTerminalStore.abi),
-        deployMockContract(deployer, jbOperatoreStore.abi),
-        deployMockContract(deployer, jbProjects.abi),
-        deployMockContract(deployer, jbSplitsStore.abi),
+      deployMockContract(deployer, jbDirectory.abi),
+      deployMockContract(deployer, JbEthPaymentTerminal.abi),
+      deployMockContract(deployer, jbEthPaymentTerminalStore.abi),
+      deployMockContract(deployer, jbOperatoreStore.abi),
+      deployMockContract(deployer, jbProjects.abi),
+      deployMockContract(deployer, jbSplitsStore.abi),
       ]);
 
     let jbTerminalFactory = await ethers.getContractFactory("JBETHPaymentTerminal", deployer);
@@ -68,7 +68,6 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
       mockJbSplitsStore.address,
       mockJbEthPaymentTerminalStore.address,
       terminalOwner.address);
-
 
     let fundingCycle = {
         number: 1,
@@ -131,33 +130,33 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
   }
 
   it('Should add to the project balance, refund any held fee by removing them if the transfered amount is enough, and emit event', async function () {
-      const { caller, beneficiaryOne, beneficiaryTwo, jbEthPaymentTerminal, timestamp, mockJbSplitsStore } = await setup();
-      const splits = makeSplits({ count: 2, beneficiary: [beneficiaryOne.address, beneficiaryTwo.address]});
-  
-      await mockJbSplitsStore.mock.splitsOf
-        .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
-        .returns(splits);
-  
-      await jbEthPaymentTerminal
-                .connect(caller)
-                .distributePayoutsOf(
-                  PROJECT_ID,
-                  AMOUNT,
-                  ETH_PAYOUT_INDEX,
-                  MIN_TOKEN_REQUESTED,
-                  MEMO
-                );
-      
-      expect(await jbEthPaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, MEMO, {value: AMOUNT}))
-       .to.emit(jbEthPaymentTerminal, 'AddToBalance')
-       .withArgs(
-         PROJECT_ID,
-         AMOUNT,
-         MEMO,
-         caller.address
-       )
-      
-      expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([]);
+    const { caller, beneficiaryOne, beneficiaryTwo, jbEthPaymentTerminal, timestamp, mockJbSplitsStore } = await setup();
+    const splits = makeSplits({ count: 2, beneficiary: [beneficiaryOne.address, beneficiaryTwo.address]});
+
+    await mockJbSplitsStore.mock.splitsOf
+      .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
+      .returns(splits);
+
+    await jbEthPaymentTerminal
+              .connect(caller)
+              .distributePayoutsOf(
+                PROJECT_ID,
+                AMOUNT,
+                ETH_PAYOUT_INDEX,
+                MIN_TOKEN_REQUESTED,
+                MEMO
+              );
+    
+    expect(await jbEthPaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, MEMO, {value: AMOUNT}))
+      .to.emit(jbEthPaymentTerminal, 'AddToBalance')
+      .withArgs(
+        PROJECT_ID,
+        AMOUNT,
+        MEMO,
+        caller.address
+      )
+    
+    expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([]);
   });
 
   it('Should add to the project balance, refund a held fee by substracting the amount from the held fee amount and emit event', async function () {
@@ -287,5 +286,4 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
     await expect(jbEthPaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, MEMO, {value: 0}))
      .to.be.revertedWith(errors.ZERO_VALUE_SENT);
   });
-
 });

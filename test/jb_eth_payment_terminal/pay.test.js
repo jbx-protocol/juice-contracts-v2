@@ -34,28 +34,32 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
       mockJbSplitsStore,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
-      deployMockContract(deployer, jbEthPaymentTerminalStore.abi),  
+      deployMockContract(deployer, jbEthPaymentTerminalStore.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
     ]);
 
-    let jbTerminalFactory = await ethers.getContractFactory("JBETHPaymentTerminal", deployer);
+    let jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
 
     const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
-    const futureTerminalAddress = ethers.utils.getContractAddress({ from: deployer.address, nonce: currentNonce + 1 });
+    const futureTerminalAddress = ethers.utils.getContractAddress({
+      from: deployer.address,
+      nonce: currentNonce + 1,
+    });
 
-    await mockJbEthPaymentTerminalStore.mock.claimFor
-      .withArgs(futureTerminalAddress)
-      .returns();
+    await mockJbEthPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
 
-    let jbEthPaymentTerminal = await jbTerminalFactory.connect(deployer).deploy(
-      mockJbOperatorStore.address,
-      mockJbProjects.address,
-      mockJbDirectory.address,
-      mockJbSplitsStore.address,
-      mockJbEthPaymentTerminalStore.address,
-      terminalOwner.address);
+    let jbEthPaymentTerminal = await jbTerminalFactory
+      .connect(deployer)
+      .deploy(
+        mockJbOperatorStore.address,
+        mockJbProjects.address,
+        mockJbDirectory.address,
+        mockJbSplitsStore.address,
+        mockJbEthPaymentTerminalStore.address,
+        terminalOwner.address,
+      );
 
     await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
@@ -66,10 +70,11 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
         ethers.BigNumber.from(1).or(ethers.BigNumber.from(caller.address).shl(1)),
         MIN_TOKEN_REQUESTED,
         MEMO,
-        DELEGATE_METADATA
+        DELEGATE_METADATA,
       )
       .returns(
-        { // mock JBFundingCycle obj
+        {
+          // mock JBFundingCycle obj
           number: 1,
           configuration: timestamp,
           basedOn: timestamp,
@@ -82,8 +87,8 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
         },
         WEIGHT,
         TOKEN_RECEIVED,
-        MEMO
-      )
+        MEMO,
+      );
 
     return {
       terminalOwner,
@@ -93,50 +98,54 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
       jbEthPaymentTerminal,
       mockJbEthPaymentTerminalStore,
       timestamp,
-    }
+    };
   }
 
   it('Should record payment and emit event', async function () {
     const { caller, jbEthPaymentTerminal, timestamp } = await setup();
 
     expect(
-      await jbEthPaymentTerminal.connect(caller).pay(
+      await jbEthPaymentTerminal
+        .connect(caller)
+        .pay(
+          PROJECT_ID,
+          caller.address,
+          MIN_TOKEN_REQUESTED,
+          /*preferClaimedToken=*/ true,
+          MEMO,
+          DELEGATE_METADATA,
+          { value: ETH_TO_PAY },
+        ),
+    )
+      .to.emit(jbEthPaymentTerminal, 'Pay')
+      .withArgs(
+        /*fundingCycle.configuration=*/ timestamp,
+        FUNDING_CYCLE_NUMBER,
         PROJECT_ID,
         caller.address,
-        MIN_TOKEN_REQUESTED,
-        /*preferClaimedToken=*/true,
+        ETH_TO_PAY,
+        WEIGHT,
+        TOKEN_RECEIVED,
         MEMO,
-        DELEGATE_METADATA,
-        { value: ETH_TO_PAY }
-      )
-    ).to.emit(jbEthPaymentTerminal, 'Pay')
-    .withArgs(
-      /*fundingCycle.configuration=*/timestamp,
-      FUNDING_CYCLE_NUMBER,
-      PROJECT_ID,
-      caller.address,
-      ETH_TO_PAY,
-      WEIGHT,
-      TOKEN_RECEIVED,
-      MEMO,
-      caller.address
-    );
+        caller.address,
+      );
   });
 
-  it('Can\'t send tokens to the zero address', async function () {
+  it("Can't send tokens to the zero address", async function () {
     const { caller, jbEthPaymentTerminal } = await setup();
 
     await expect(
-      jbEthPaymentTerminal.connect(caller).pay(
-        PROJECT_ID,
-        ethers.constants.AddressZero,
-        MIN_TOKEN_REQUESTED,
-        /*preferClaimedToken=*/true,
-        MEMO,
-        DELEGATE_METADATA,
-        { value: ETH_TO_PAY }
-      )
+      jbEthPaymentTerminal
+        .connect(caller)
+        .pay(
+          PROJECT_ID,
+          ethers.constants.AddressZero,
+          MIN_TOKEN_REQUESTED,
+          /*preferClaimedToken=*/ true,
+          MEMO,
+          DELEGATE_METADATA,
+          { value: ETH_TO_PAY },
+        ),
     ).to.be.revertedWith(errors.PAY_TO_ZERO_ADDRESS);
   });
-
 });

@@ -22,11 +22,11 @@ describe('JBETHPaymentTerminal::migrate(...)', function () {
     let jbOperations = await jbOperationsFactory.deploy();
 
     MIGRATE_TERMINAL_PERMISSION_INDEX = await jbOperations.MIGRATE_TERMINAL();
-    });
+  });
 
   async function setup() {
     let [deployer, projectOwner, terminalOwner, caller, ...addrs] = await ethers.getSigners();
-    
+
     let [
       mockJbDirectory,
       mockJbEthPaymentTerminal,
@@ -35,31 +35,35 @@ describe('JBETHPaymentTerminal::migrate(...)', function () {
       mockJbProjects,
       mockJbSplitsStore,
     ] = await Promise.all([
-        deployMockContract(deployer, jbDirectory.abi),
-        deployMockContract(deployer, JbEthPaymentTerminal.abi),
-        deployMockContract(deployer, jbEthPaymentTerminalStore.abi),
-        deployMockContract(deployer, jbOperatoreStore.abi),
-        deployMockContract(deployer, jbProjects.abi),
-        deployMockContract(deployer, jbSplitsStore.abi),
-      ]);
+      deployMockContract(deployer, jbDirectory.abi),
+      deployMockContract(deployer, JbEthPaymentTerminal.abi),
+      deployMockContract(deployer, jbEthPaymentTerminalStore.abi),
+      deployMockContract(deployer, jbOperatoreStore.abi),
+      deployMockContract(deployer, jbProjects.abi),
+      deployMockContract(deployer, jbSplitsStore.abi),
+    ]);
 
-    let jbTerminalFactory = await ethers.getContractFactory("JBETHPaymentTerminal", deployer);
+    let jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
 
     const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
-    const futureTerminalAddress = ethers.utils.getContractAddress({ from: deployer.address, nonce: currentNonce + 1 });
+    const futureTerminalAddress = ethers.utils.getContractAddress({
+      from: deployer.address,
+      nonce: currentNonce + 1,
+    });
 
-    await mockJbEthPaymentTerminalStore.mock.claimFor
-      .withArgs(futureTerminalAddress)
-      .returns();
+    await mockJbEthPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
 
-    let jbEthPaymentTerminal = await jbTerminalFactory.connect(deployer).deploy(
-      mockJbOperatorStore.address,
-      mockJbProjects.address,
-      mockJbDirectory.address,
-      mockJbSplitsStore.address,
-      mockJbEthPaymentTerminalStore.address,
-      terminalOwner.address);
-  
+    let jbEthPaymentTerminal = await jbTerminalFactory
+      .connect(deployer)
+      .deploy(
+        mockJbOperatorStore.address,
+        mockJbProjects.address,
+        mockJbDirectory.address,
+        mockJbSplitsStore.address,
+        mockJbEthPaymentTerminalStore.address,
+        terminalOwner.address,
+      );
+
     CURRENT_TERMINAL_TOKEN = await jbEthPaymentTerminal.token();
 
     await mockJbOperatorStore.mock.hasPermission
@@ -75,11 +79,12 @@ describe('JBETHPaymentTerminal::migrate(...)', function () {
 
     await mockJbEthPaymentTerminal.mock.token.returns(CURRENT_TERMINAL_TOKEN);
 
-    await mockJbEthPaymentTerminal.mock.addToBalanceOf
-      .withArgs(PROJECT_ID, '')
-      .returns();
-    
-    await ethers.provider.send('hardhat_setBalance', [jbEthPaymentTerminal.address, CURRENT_TERMINAL_BALANCE.toHexString()]);
+    await mockJbEthPaymentTerminal.mock.addToBalanceOf.withArgs(PROJECT_ID, '').returns();
+
+    await ethers.provider.send('hardhat_setBalance', [
+      jbEthPaymentTerminal.address,
+      CURRENT_TERMINAL_BALANCE.toHexString(),
+    ]);
 
     await mockJbEthPaymentTerminalStore.mock.recordMigration
       .withArgs(PROJECT_ID)
@@ -95,52 +100,81 @@ describe('JBETHPaymentTerminal::migrate(...)', function () {
       mockJbEthPaymentTerminal,
       mockJbEthPaymentTerminalStore,
       mockJbOperatorStore,
-    }
+    };
   }
 
   it('Should migrate terminal and emit event if caller is project owner', async function () {
     const { projectOwner, jbEthPaymentTerminal, mockJbEthPaymentTerminal } = await setup();
 
-    expect(await jbEthPaymentTerminal.connect(projectOwner).migrate(PROJECT_ID, mockJbEthPaymentTerminal.address))
+    expect(
+      await jbEthPaymentTerminal
+        .connect(projectOwner)
+        .migrate(PROJECT_ID, mockJbEthPaymentTerminal.address),
+    )
       .to.emit(jbEthPaymentTerminal, 'Migrate')
-      .withArgs(PROJECT_ID, mockJbEthPaymentTerminal.address, CURRENT_TERMINAL_BALANCE, projectOwner.address);
+      .withArgs(
+        PROJECT_ID,
+        mockJbEthPaymentTerminal.address,
+        CURRENT_TERMINAL_BALANCE,
+        projectOwner.address,
+      );
   });
 
   it('Should migrate terminal with empty balance and emit event if caller is project owner', async function () {
-    const { projectOwner, jbEthPaymentTerminal, mockJbEthPaymentTerminal, mockJbEthPaymentTerminalStore } = await setup();
+    const {
+      projectOwner,
+      jbEthPaymentTerminal,
+      mockJbEthPaymentTerminal,
+      mockJbEthPaymentTerminalStore,
+    } = await setup();
 
-    await mockJbEthPaymentTerminalStore.mock.recordMigration
-      .withArgs(PROJECT_ID)
-      .returns(0);
+    await mockJbEthPaymentTerminalStore.mock.recordMigration.withArgs(PROJECT_ID).returns(0);
 
-    expect(await jbEthPaymentTerminal.connect(projectOwner).migrate(PROJECT_ID, mockJbEthPaymentTerminal.address))
+    expect(
+      await jbEthPaymentTerminal
+        .connect(projectOwner)
+        .migrate(PROJECT_ID, mockJbEthPaymentTerminal.address),
+    )
       .to.emit(jbEthPaymentTerminal, 'Migrate')
       .withArgs(PROJECT_ID, mockJbEthPaymentTerminal.address, 0, projectOwner.address);
   });
 
   it('Should migrate terminal and emit event if caller is authorized', async function () {
-    const { projectOwner, caller, jbEthPaymentTerminal, mockJbEthPaymentTerminal, mockJbOperatorStore } = await setup();
+    const {
+      projectOwner,
+      caller,
+      jbEthPaymentTerminal,
+      mockJbEthPaymentTerminal,
+      mockJbOperatorStore,
+    } = await setup();
 
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(
-        caller.address,
-        projectOwner.address,
-        PROJECT_ID,
-        MIGRATE_TERMINAL_PERMISSION_INDEX,
-      )
-    .returns(true);
+      .withArgs(caller.address, projectOwner.address, PROJECT_ID, MIGRATE_TERMINAL_PERMISSION_INDEX)
+      .returns(true);
 
-    expect(await jbEthPaymentTerminal.connect(caller).migrate(PROJECT_ID, mockJbEthPaymentTerminal.address))
+    expect(
+      await jbEthPaymentTerminal
+        .connect(caller)
+        .migrate(PROJECT_ID, mockJbEthPaymentTerminal.address),
+    )
       .to.emit(jbEthPaymentTerminal, 'Migrate')
-      .withArgs(PROJECT_ID, mockJbEthPaymentTerminal.address, CURRENT_TERMINAL_BALANCE, caller.address);
+      .withArgs(
+        PROJECT_ID,
+        mockJbEthPaymentTerminal.address,
+        CURRENT_TERMINAL_BALANCE,
+        caller.address,
+      );
   });
 
-  it('Can\'t migrate terminal with different token', async function () {
+  it("Can't migrate terminal with different token", async function () {
     const { projectOwner, jbEthPaymentTerminal, mockJbEthPaymentTerminal } = await setup();
 
     await mockJbEthPaymentTerminal.mock.token.returns(ethers.Wallet.createRandom().address);
 
-    await expect(jbEthPaymentTerminal.connect(projectOwner).migrate(PROJECT_ID, mockJbEthPaymentTerminal.address))
-      .to.be.revertedWith(errors.TERMINAL_TOKENS_INCOMPATIBLE);
+    await expect(
+      jbEthPaymentTerminal
+        .connect(projectOwner)
+        .migrate(PROJECT_ID, mockJbEthPaymentTerminal.address),
+    ).to.be.revertedWith(errors.TERMINAL_TOKENS_INCOMPATIBLE);
   });
 });
