@@ -616,6 +616,17 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
             ],
             /*payoutAmount*/ Math.floor((AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT),
             caller.address,
+          ).and.to.emit(jbEthPaymentTerminal, 'Pay')
+          .withArgs(
+            timestamp,
+            1,
+            split.projectId,
+            split.beneficiary,
+            Math.floor((AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT),
+            0,
+            0,
+            'Payout from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+            caller.address
           );
       }),
     );
@@ -642,7 +653,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       terminalOwner,
       caller,
       jbEthPaymentTerminal,
-      timestamp,
+      timestamp,  
       mockJbAllocator,
       mockJbSplitsStore,
     } = await setup();
@@ -838,19 +849,6 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
 
     await Promise.all(
       splits.map(async (split) => {
-        console.log(
-          caller.address,
-          Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
-          split.projectId,
-          //preferedCLaimed | uint256(uint160(beneficiary))<<1
-          ethers.BigNumber.from(split.preferClaimed == true ? 1 : 0).or(
-            ethers.BigNumber.from(split.beneficiary).shl(1),
-          ),
-          /*_minReturnedTokens*/ 0,
-          'Payout from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
-          /*DELEGATE_METADATA*/ '0x',
-          split.beneficiary,
-        );
         await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
           .withArgs(
             caller.address,
@@ -902,6 +900,17 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
               (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
             ),
             caller.address,
+          ).and.to.emit(jbEthPaymentTerminal, 'Pay')
+          .withArgs(
+            timestamp,
+            1,
+            split.projectId,
+            split.beneficiary,
+            Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
+            0,
+            0,
+            'Payout from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+            caller.address
           );
       }),
     );
