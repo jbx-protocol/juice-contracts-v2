@@ -510,7 +510,6 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight.add(1),
     });
 
-
     // Start the configured cycle in 10000 seconds.
     const reconfiguredFundingCycleStartsIn = BigNumber.from(10000);
     const reconfiguredFundingCycleMustStartOnOrAfter = firstConfigurationTimestamp.add(
@@ -1641,7 +1640,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     const discountRate = 0.5; // 50% discount rate
 
     const firstFundingCycleData = createFundingCycleData({
-      discountRate: (MAX_DISCOUNT_RATE.div(1 / discountRate)),
+      discountRate: MAX_DISCOUNT_RATE.div(1 / discountRate),
     });
 
     // Configure first funding cycle
