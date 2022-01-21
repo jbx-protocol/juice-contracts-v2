@@ -243,8 +243,8 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
       .withArgs({
         // JBDidRedeemData obj
         holder: holder.address,
-        tokenCount: AMOUNT,
         projectId: PROJECT_ID,
+        tokenCount: AMOUNT,
         claimAmount: AMOUNT,
         beneficiary: beneficiary.address,
         memo: newMemo,
