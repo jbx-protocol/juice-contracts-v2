@@ -282,9 +282,6 @@ contract JBETHPaymentTerminal is
     // and receive any extra distributable funds not allocated to payout splits.
     address payable _projectOwner = payable(projects.ownerOf(_projectId));
 
-    // Get a reference to the handle of the project paying the fee and sending payouts.
-    bytes32 _handle = projects.handleOf(_projectId);
-
     // Take a fee from the _distributedAmount, if needed.
     // The project's owner will be the beneficiary of the resulting minted tokens from platform project.
     // The platform project's ID is 1.
@@ -295,7 +292,7 @@ contract JBETHPaymentTerminal is
         _fundingCycle,
         _distributedAmount,
         _projectOwner,
-        string(bytes.concat('Fee from @', _handle))
+        string(bytes.concat('Fee from ', bytes32(_projectId)))
       );
 
     // Payout to splits and get a reference to the leftover transfer amount after all mods have been paid.
@@ -304,7 +301,7 @@ contract JBETHPaymentTerminal is
       _projectId,
       _fundingCycle,
       _distributedAmount - _feeAmount,
-      string(bytes.concat('Payout from @', _handle))
+      string(bytes.concat('Payout from ', bytes32(_projectId)))
     );
 
     // Transfer any remaining balance to the project owner.
@@ -360,21 +357,15 @@ contract JBETHPaymentTerminal is
     // and receive any extra distributable funds not allocated to payout splits.
     address payable _projectOwner = payable(projects.ownerOf(_projectId));
 
-    // Get a reference to the handle of the project paying the fee and sending payouts.
-    bytes32 _handle = projects.handleOf(_projectId);
-
     // Take a fee from the _withdrawnAmount, if needed.
     // The project's owner will be the beneficiary of the resulting minted tokens from platform project.
     // The platform project's ID is 1.
+
+    // Prevents stack-too-deep error
+    string memory str = string(bytes.concat('Fee from ', bytes32(_projectId)));
     uint256 _feeAmount = fee == 0 || _projectId == 1
       ? 0
-      : _takeFeeFrom(
-        _projectId,
-        _fundingCycle,
-        _withdrawnAmount,
-        _projectOwner,
-        string(bytes.concat('Fee from @', _handle))
-      );
+      : _takeFeeFrom(_projectId, _fundingCycle, _withdrawnAmount, _projectOwner, str);
 
     // Transfer any remaining balance to the project owner.
     Address.sendValue(_beneficiary, _withdrawnAmount - _feeAmount);

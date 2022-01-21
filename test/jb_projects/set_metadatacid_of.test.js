@@ -6,7 +6,6 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 
 describe('JBProjects::setMetadataCidOf(...)', function () {
-  const PROJECT_HANDLE = 'PROJECT_1';
   const METADATA_CID = '';
   const METADATA_CID_2 = 'ipfs://randommetadatacidipsaddress';
   const PROJECT_ID_1 = 1;
@@ -43,7 +42,6 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
       .connect(deployer)
       .createFor(
         projectOwner.address,
-        ethers.utils.formatBytes32String(PROJECT_HANDLE),
         METADATA_CID,
       );
 
@@ -66,7 +64,6 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
       .connect(deployer)
       .createFor(
         projectOwner.address,
-        ethers.utils.formatBytes32String(PROJECT_HANDLE),
         METADATA_CID,
       );
 
@@ -90,7 +87,6 @@ describe('JBProjects::setMetadataCidOf(...)', function () {
       .connect(deployer)
       .createFor(
         projectOwner.address,
-        ethers.utils.formatBytes32String(PROJECT_HANDLE),
         METADATA_CID,
       );
 

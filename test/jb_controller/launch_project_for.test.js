@@ -15,7 +15,6 @@ import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStor
 
 describe('JBController::launchProjectFor(...)', function () {
   const PROJECT_ID = 1;
-  const PROJECT_HANDLE = ethers.utils.formatBytes32String('PROJECT_1');
   const METADATA_CID = '';
   const PROJECT_START = '1';
   let MIGRATE_CONTROLLER_INDEX;
@@ -70,7 +69,7 @@ describe('JBController::launchProjectFor(...)', function () {
     );
 
     await mockJbProjects.mock.createFor
-      .withArgs(projectOwner.address, PROJECT_HANDLE, METADATA_CID)
+      .withArgs(projectOwner.address, METADATA_CID)
       .returns(PROJECT_ID);
 
     await mockJbDirectory.mock.setControllerOf.withArgs(PROJECT_ID, jbController.address).returns();
@@ -204,7 +203,6 @@ describe('JBController::launchProjectFor(...)', function () {
         .connect(projectOwner)
         .callStatic.launchProjectFor(
           projectOwner.address,
-          PROJECT_HANDLE,
           METADATA_CID,
           fundingCycleData,
           fundingCycleMetadata.unpacked,
@@ -219,7 +217,6 @@ describe('JBController::launchProjectFor(...)', function () {
       .connect(projectOwner)
       .launchProjectFor(
         projectOwner.address,
-        PROJECT_HANDLE,
         METADATA_CID,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
@@ -266,7 +263,6 @@ describe('JBController::launchProjectFor(...)', function () {
         .connect(projectOwner)
         .callStatic.launchProjectFor(
           projectOwner.address,
-          PROJECT_HANDLE,
           METADATA_CID,
           fundingCycleData,
           fundingCycleMetadata.unpacked,
@@ -283,7 +279,6 @@ describe('JBController::launchProjectFor(...)', function () {
         .connect(projectOwner)
         .launchProjectFor(
           projectOwner.address,
-          PROJECT_HANDLE,
           METADATA_CID,
           fundingCycleData,
           fundingCycleMetadata.unpacked,
@@ -313,7 +308,6 @@ describe('JBController::launchProjectFor(...)', function () {
       .connect(projectOwner)
       .launchProjectFor(
         projectOwner.address,
-        PROJECT_HANDLE,
         METADATA_CID,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
@@ -346,7 +340,6 @@ describe('JBController::launchProjectFor(...)', function () {
       .connect(projectOwner)
       .launchProjectFor(
         projectOwner.address,
-        PROJECT_HANDLE,
         METADATA_CID,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
@@ -380,7 +373,6 @@ describe('JBController::launchProjectFor(...)', function () {
       .connect(projectOwner)
       .launchProjectFor(
         projectOwner.address,
-        PROJECT_HANDLE,
         METADATA_CID,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
