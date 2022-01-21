@@ -167,7 +167,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
     };
   }
 
-  it('Should distribute payout without fee is fee is set at 0, and emit event', async function () {
+  it('Should distribute payout without fee when fee is set to 0 and emit event', async function () {
     const {
       projectOwner,
       terminalOwner,
@@ -457,7 +457,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
         1, //JBX Dao
         projectOwner.address,
         0,
-        false,
+        /*preferedClaimedToken*/false,
         'Fee from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
         '0x',
       )
@@ -759,7 +759,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
           .withArgs(
             split.projectId,
             split.beneficiary,
-            0,
+            /*minReturnedToken*/0,
             split.preferClaimed,
             'Payout from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
             '0x',
