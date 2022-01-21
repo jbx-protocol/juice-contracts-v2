@@ -240,10 +240,10 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
             [
               split.preferClaimed,
               split.percent,
-              split.lockedUntil,
+              split.projectId,
               split.beneficiary,
               split.allocator,
-              split.projectId,
+              split.lockedUntil,
             ],
             /*count=*/ RESERVED_AMOUNT / splits.length,
             /*caller=*/ caller.address,
@@ -331,10 +331,10 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
             [
               split.preferClaimed,
               split.percent,
-              split.lockedUntil,
+              split.projectId,
               split.beneficiary,
               split.allocator,
-              split.projectId,
+              split.lockedUntil
             ],
             /*count=*/ RESERVED_AMOUNT / splits.length,
             /*caller=*/ caller.address,
@@ -413,10 +413,10 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
           [
             splits[0].preferClaimed,
             splits[0].percent,
-            splits[0].lockedUntil,
+            splits[0].projectId,
             splits[0].beneficiary,
             splits[0].allocator,
-            splits[0].projectId,
+            splits[0].lockedUntil
           ],
           /*count=*/ RESERVED_AMOUNT / splitsBeneficiariesAddresses.length,
           caller.address,
