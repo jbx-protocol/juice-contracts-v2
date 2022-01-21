@@ -178,6 +178,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
         // JBPayParamsData obj
         payer: payer.address,
         amount: AMOUNT,
+        projectId: PROJECT_ID,
         weight: WEIGHT,
         reservedRate: reservedRate,
         beneficiary: beneficiary.address,
@@ -286,6 +287,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
         // JBPayParamsData obj
         payer: payer.address,
         amount: 0,
+        projectId: PROJECT_ID,
         weight: WEIGHT,
         reservedRate: reservedRate,
         beneficiary: beneficiary.address,
