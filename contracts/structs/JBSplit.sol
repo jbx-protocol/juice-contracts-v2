@@ -7,10 +7,11 @@ struct JBSplit {
   // A flag that only has effect if a projectId is also specified, and that project has issued its tokens.
   // If so, this flag indicates if the tokens that result from making a payment to the project should be delivered staked or unstaked to the beneficiary.
   bool preferClaimed;
-  // The percent of the whole group that this split occupies. This number is out of 10000000.
-  uint24 percent;
-  // Specifies if the split should be unchangeable until the specifies time comes, with the exception of extending the lockedUntil period.
-  uint48 lockedUntil;
+  // The percent of the whole group that this split occupies. This number is out of 1000000000.
+  uint32 percent;
+  // If an allocator is not set but a projectId is set, funds will be sent to the Juicebox treasury belonging to the project who's ID is specified.
+  // Resulting tokens will be routed to the beneficiary with the unstaked token prerence respected.
+  uint56 projectId;
   // The role the  beneficary depends on whether or not projectId is specified, or whether or not allocator is specified.
   // If allocator is set, the beneficiary will be forwarded to the allocator for it to use.
   // If allocator is not set but projectId is set, the beneficiary is the address to which the project's tokens will be sent that result from a payment to it.
@@ -18,7 +19,6 @@ struct JBSplit {
   address payable beneficiary;
   // If an allocator is specified, funds will be sent to the allocator contract along with the projectId, beneficiary, preferClaimed properties.
   IJBSplitAllocator allocator;
-  // If an allocator is not set but a projectId is set, funds will be sent to the Juicebox treasury belonging to the project who's ID is specified.
-  // Resulting tokens will be routed to the beneficiary with the unstaked token prerence respected.
-  uint56 projectId;
+  // Specifies if the split should be unchangeable until the specifies time comes, with the exception of extending the lockedUntil period.
+  uint48 lockedUntil;
 }
