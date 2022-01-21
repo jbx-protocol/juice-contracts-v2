@@ -130,7 +130,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
   function createFor(
     address _owner,
     bytes32 _handle,
-    JBProjectMetadataData calldata _metadataData
+    JBProjectMetadata calldata _metadataData
   ) external override returns (uint256) {
     // Handle must exist.
     if (_handle == bytes32(0)) {
@@ -209,7 +209,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     @param _projectId The ID of the project who's URI is being changed.
     @param _metadataData An struct containing an IPFS CID hash where metadata about the project has been uploaded, and domain within which the metadata applies. An empty string is acceptable if no metadata is being provided.
   */
-  function setMetadataCidOf(uint256 _projectId, JBProjectMetadataData calldata _metadataData)
+  function setMetadataCidOf(uint256 _projectId, JBProjectMetadata calldata _metadataData)
     external
     override
     requirePermission(ownerOf(_projectId), _projectId, JBOperations.SET_METADATA_CID)

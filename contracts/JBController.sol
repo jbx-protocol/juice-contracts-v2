@@ -22,7 +22,7 @@ import './structs/JBFundingCycleData.sol';
 import './structs/JBFundingCycleMetadata.sol';
 import './structs/JBFundAccessConstraints.sol';
 import './structs/JBGroupedSplits.sol';
-import './structs/JBProjectMetadataData.sol';
+import './structs/JBProjectMetadata.sol';
 
 // Inheritance
 import './interfaces/IJBController.sol';
@@ -304,7 +304,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   function launchProjectFor(
     address _owner,
     bytes32 _handle,
-    JBProjectMetadataData calldata _projectMetadataData,
+    JBProjectMetadata calldata _projectMetadataData,
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
     uint256 _mustStartAtOrAfter,
