@@ -200,23 +200,23 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
 
   /**
     @notice 
-    Allows a project owner to set the project's IPFS CID hash where metadata about the project has been uploaded.
+    Allows a project owner to set the project's IPFS CID hash where metadata about the project has been uploaded for various domains.
 
     @dev 
-    Only a project's owner or operator can set its URI.
+    Only a project's owner or operator can set its metadata.
 
     @param _projectId The ID of the project who's URI is being changed.
     @param _metadata A struct containing an IPFS CID hash where metadata about the project has been uploaded, and domain within which the metadata applies. An empty string is acceptable if no metadata is being provided.
   */
-  function setMetadataCidOf(uint256 _projectId, JBProjectMetadata calldata _metadata)
+  function setMetadataOf(uint256 _projectId, JBProjectMetadata calldata _metadata)
     external
     override
-    requirePermission(ownerOf(_projectId), _projectId, JBOperations.SET_METADATA_CID)
+    requirePermission(ownerOf(_projectId), _projectId, JBOperations.SET_METADATA)
   {
     // Set the new uri within the specified domain.
     metadataCidOf[_projectId][_metadata.domain] = _metadata.cid;
 
-    emit SetMetadataCid(_projectId, _metadata, msg.sender);
+    emit SetMetadata(_projectId, _metadata, msg.sender);
   }
 
   /**
