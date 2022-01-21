@@ -1,4 +1,3 @@
-import { BigNumber } from '@ethersproject/bignumber';
 import { ethers, network } from 'hardhat';
 
 /**
@@ -43,7 +42,7 @@ export function makePackedPermissions(permissionIndexes) {
  */
 export async function impersonateAccount(
   address,
-  balance = BigNumber.from('0x1000000000000000000000'),
+  balance = ethers.BigNumber.from('0x1000000000000000000000'),
 ) {
   await network.provider.request({
     method: 'hardhat_impersonateAccount',
@@ -140,4 +139,54 @@ export function packFundingCycleMetadata({
   if (useDataSourceForPay) packed = packed.or(one.shl(66));
   if (useDataSourceForRedeem) packed = packed.or(one.shl(67));
   return packed.or(ethers.BigNumber.from(dataSource).shl(68));
+}
+
+/**
+ * Returns an array of JBSplits
+ * @param {custom obj} count being the number of splits in the returned array, rest of the
+ * object is a JBSplit
+ * @return a JBSplit array of count objects
+ */
+export function makeSplits({
+  count = 4,
+  beneficiary = Array(count).fill(ethers.constants.AddressZero),
+  preferClaimed = false,
+  percent = Math.floor(10000000 / count),
+  lockedUntil = 0,
+  allocator = ethers.constants.AddressZero,
+  projectId = 0,
+} = {}) {
+  let splits = [];
+  for (let i = 0; i < count; i++) {
+    splits.push({
+      preferClaimed,
+      percent,
+      lockedUntil,
+      beneficiary: beneficiary[i],
+      allocator,
+      projectId,
+    });
+  }
+  return splits;
+}
+
+/**
+ * Returns a mock FundingCyleData struct
+ * @summary Should create a struct based on the definition in structs/JBFundingCycleData.sol.
+ * @param {custom obj} e.g. createFundingCycleData({ duration: 604800, weight: 1000000000000000000000000, discountRate: 0, ballot: constants.AddressZero })
+ * @return {custom obj}
+ * @note Passing in an empty obj will use default values below
+ */
+export function createFundingCycleData({
+  duration = ethers.BigNumber.from(604800), // 1 week
+  weight = ethers.BigNumber.from(10).pow(24), // 1 million with 18 decimals
+  discountRate = ethers.BigNumber.from(0),
+  ballot = ethers.constants.AddressZero,
+} = {}) {
+  return {
+    duration,
+    weight,
+    discountRate,
+    ballot,
+  };
 }

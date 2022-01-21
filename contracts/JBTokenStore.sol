@@ -203,6 +203,9 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     @dev
     Only a project's current controller can change its token.
 
+    @dev
+    This JBTokenStore contract must have access to all IJBToken interface functions.
+
     @param _projectId The ID of the project to which the changed token belongs.
     @param _token The new token.
     @param _newOwner An address to transfer the current token's ownership to. This is optional, but it cannot be done later.

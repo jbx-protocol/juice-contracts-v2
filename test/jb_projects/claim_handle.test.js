@@ -13,6 +13,7 @@ describe('JBProjects::claimHandle(...)', function () {
   const PROJECT_HANDLE_2 = 'PROJECT_2';
   const PROJECT_HANDLE_3 = 'PROJECT_3';
   const METADATA_CID = '';
+  const METADATA_DOMAIN = 1234;
   const PROJECT_ID_1 = 1;
   const PROJECT_ID_2 = 2;
 
@@ -49,7 +50,10 @@ describe('JBProjects::claimHandle(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN,
+        ]
       );
 
     await jbProjectsStore
@@ -57,7 +61,10 @@ describe('JBProjects::claimHandle(...)', function () {
       .createFor(
         deployer.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN,
+        ]
       );
 
     await jbProjectsStore
@@ -102,7 +109,10 @@ describe('JBProjects::claimHandle(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN,
+        ]
       );
 
     let handleReceiver = addrs[0];
@@ -113,7 +123,10 @@ describe('JBProjects::claimHandle(...)', function () {
       .createFor(
         handleReceiver.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_3),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN,
+        ]
       );
 
     await jbProjectsStore
@@ -159,7 +172,10 @@ describe('JBProjects::claimHandle(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN,
+        ]
       );
 
     await jbProjectsStore
@@ -189,7 +205,10 @@ describe('JBProjects::claimHandle(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN,
+        ]
       );
 
     await jbProjectsStore
@@ -197,7 +216,10 @@ describe('JBProjects::claimHandle(...)', function () {
       .createFor(
         deployer.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN,
+        ]
       );
 
     await jbProjectsStore
@@ -233,7 +255,10 @@ describe('JBProjects::claimHandle(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN,
+        ]
       );
 
     let handleReceiver = addrs[0];
