@@ -123,14 +123,14 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
 
     @param _owner The address that will be the owner of the project.
     @param _handle A unique string to associate with the project that will resolve to its token ID.
-    @param _metadataData An struct containing an IPFS CID hash where metadata about the project has been uploaded, and domain within which the metadata applies. An empty string is acceptable if no metadata is being provided.
+    @param _metadata An struct containing an IPFS CID hash where metadata about the project has been uploaded, and domain within which the metadata applies. An empty string is acceptable if no metadata is being provided.
 
     @return The token ID of the newly created project
   */
   function createFor(
     address _owner,
     bytes32 _handle,
-    JBProjectMetadata calldata _metadataData
+    JBProjectMetadata calldata _metadata
   ) external override returns (uint256) {
     // Handle must exist.
     if (_handle == bytes32(0)) {
@@ -155,10 +155,10 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     idFor[_handle] = count;
 
     // Set the URI if one was provided for the specified domain.
-    if (bytes(_metadataData.cid).length > 0)
-      metadataCidOf[count][_metadataData.domain] = _metadataData.cid;
+    if (bytes(_metadata.cid).length > 0)
+      metadataCidOf[count][_metadata.domain] = _metadata.cid;
 
-    emit Create(count, _owner, _handle, _metadataData, msg.sender);
+    emit Create(count, _owner, _handle, _metadata, msg.sender);
 
     return count;
   }
@@ -207,17 +207,17 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     Only a project's owner or operator can set its URI.
 
     @param _projectId The ID of the project who's URI is being changed.
-    @param _metadataData An struct containing an IPFS CID hash where metadata about the project has been uploaded, and domain within which the metadata applies. An empty string is acceptable if no metadata is being provided.
+    @param _metadata An struct containing an IPFS CID hash where metadata about the project has been uploaded, and domain within which the metadata applies. An empty string is acceptable if no metadata is being provided.
   */
-  function setMetadataCidOf(uint256 _projectId, JBProjectMetadata calldata _metadataData)
+  function setMetadataCidOf(uint256 _projectId, JBProjectMetadata calldata _metadata)
     external
     override
     requirePermission(ownerOf(_projectId), _projectId, JBOperations.SET_METADATA_CID)
   {
     // Set the new uri within the specified domain.
-    metadataCidOf[_projectId][_metadataData.domain] = _metadataData.cid;
+    metadataCidOf[_projectId][_metadata.domain] = _metadata.cid;
 
-    emit SetUri(_projectId, _metadataData, msg.sender);
+    emit SetMetadataCid(_projectId, _metadata, msg.sender);
   }
 
   /**

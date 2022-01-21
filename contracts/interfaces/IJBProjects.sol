@@ -12,13 +12,13 @@ interface IJBProjects is IERC721 {
     uint256 indexed projectId,
     address indexed owner,
     bytes32 indexed handle,
-    JBProjectMetadata metadataData,
+    JBProjectMetadata metadata,
     address caller
   );
 
   event SetHandle(uint256 indexed projectId, bytes32 indexed handle, address caller);
 
-  event SetUri(uint256 indexed projectId, JBProjectMetadata metadataData, address caller);
+  event SetMetadataCid(uint256 indexed projectId, JBProjectMetadata metadata, address caller);
 
   event TransferHandle(
     uint256 indexed projectId,
@@ -59,12 +59,12 @@ interface IJBProjects is IERC721 {
   function createFor(
     address _owner,
     bytes32 _handle,
-    JBProjectMetadata calldata _metadataData
+    JBProjectMetadata calldata _metadata
   ) external returns (uint256 id);
 
   function setHandleOf(uint256 _projectId, bytes32 _handle) external;
 
-  function setMetadataCidOf(uint256 _projectId, JBProjectMetadata calldata _metadataData) external;
+  function setMetadataCidOf(uint256 _projectId, JBProjectMetadata calldata _metadata) external;
 
   function transferHandleOf(
     uint256 _projectId,

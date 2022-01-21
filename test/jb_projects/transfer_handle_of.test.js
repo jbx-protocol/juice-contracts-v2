@@ -11,6 +11,7 @@ describe('JBProjects::transferHandleOf(...)', function () {
   const PROJECT_HANDLE_2 = 'PROJECT_2';
   const PROJECT_HANDLE_EMPTY = '';
   const METADATA_CID = '';
+  const METADATA_DOMAIN = 1234;
   const PROJECT_ID_1 = 1;
 
   let SET_HANDLE_PERMISSION_INDEX;
@@ -46,7 +47,10 @@ describe('JBProjects::transferHandleOf(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN
+        ]
       );
 
     let tx = await jbProjectsStore
@@ -88,7 +92,10 @@ describe('JBProjects::transferHandleOf(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN
+        ]
       );
 
     await expect(
@@ -110,7 +117,10 @@ describe('JBProjects::transferHandleOf(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN
+        ]
       );
 
     await expect(
@@ -132,7 +142,10 @@ describe('JBProjects::transferHandleOf(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN
+        ]
       );
 
     await expect(
@@ -154,7 +167,10 @@ describe('JBProjects::transferHandleOf(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN
+        ]
       );
 
     await mockJbOperatorStore.mock.hasPermission
