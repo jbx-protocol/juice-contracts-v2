@@ -218,6 +218,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
         // JBRedeemParamsData obj
         holder: holder.address,
         tokenCount: AMOUNT,
+        projectId: PROJECT_ID,
         redemptionRate: redemptionRate,
         ballotRedemptionRate: ballotRedemptionRate,
         beneficiary: beneficiary.address,
@@ -242,8 +243,8 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
       .withArgs({
         // JBDidRedeemData obj
         holder: holder.address,
-        projectId: PROJECT_ID,
         tokenCount: AMOUNT,
+        projectId: PROJECT_ID,
         claimAmount: AMOUNT,
         beneficiary: beneficiary.address,
         memo: newMemo,
@@ -454,6 +455,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
         // JBRedeemParamsData obj
         holder: holder.address,
         tokenCount: AMOUNT,
+        projectId: PROJECT_ID,
         redemptionRate: redemptionRate,
         ballotRedemptionRate: ballotRedemptionRate,
         beneficiary: beneficiary.address,
@@ -532,6 +534,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
         // JBRedeemParamsData obj
         holder: holder.address,
         tokenCount: AMOUNT,
+        projectId: PROJECT_ID,
         redemptionRate: redemptionRate,
         ballotRedemptionRate: ballotRedemptionRate,
         beneficiary: beneficiary.address,
@@ -605,6 +608,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
         // JBRedeemParamsData obj
         holder: holder.address,
         tokenCount: AMOUNT,
+        projectId: PROJECT_ID,
         redemptionRate: redemptionRate,
         ballotRedemptionRate: ballotRedemptionRate,
         beneficiary: beneficiary.address,
