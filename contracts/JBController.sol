@@ -22,6 +22,7 @@ import './structs/JBFundingCycleData.sol';
 import './structs/JBFundingCycleMetadata.sol';
 import './structs/JBFundAccessConstraints.sol';
 import './structs/JBGroupedSplits.sol';
+import './structs/JBProjectMetadata.sol';
 
 // Inheritance
 import './interfaces/IJBController.sol';
@@ -261,7 +262,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
     @param _owner The address to set as the owner of the project. The project ERC-721 will be owned by this address.
     @param _handle The project's unique handle. This can be updated any time by the owner of the project.
-    @param _metadataCid A link to associate with the project. This can be updated any time by the owner of the project.
+    @param _projectMetadata A link to associate with the project within a particular domain. This can be updated any time by the owner of the project.
     @param _data A JBFundingCycleData data structure that defines the project's first funding cycle. These properties will remain fixed for the duration of the funding cycle.
       @dev _data.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
       @dev _data.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
@@ -303,7 +304,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   function launchProjectFor(
     address _owner,
     bytes32 _handle,
-    string calldata _metadataCid,
+    JBProjectMetadata calldata _projectMetadata,
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
     uint256 _mustStartAtOrAfter,
@@ -324,7 +325,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     }
 
     // Create the project for into the wallet of the message sender.
-    projectId = projects.createFor(_owner, _handle, _metadataCid);
+    projectId = projects.createFor(_owner, _handle, _projectMetadata);
 
     // Set the this contract as the project's controller in the directory.
     directory.setControllerOf(projectId, this);

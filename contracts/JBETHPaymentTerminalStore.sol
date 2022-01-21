@@ -280,6 +280,7 @@ contract JBETHPaymentTerminalStore {
         JBPayParamsData(
           _payer,
           _amount,
+          _projectId,
           fundingCycle.weight,
           fundingCycle.reservedRate(),
           address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
@@ -552,6 +553,7 @@ contract JBETHPaymentTerminalStore {
         JBRedeemParamsData(
           _holder,
           _tokenCount,
+          _projectId,
           fundingCycle.redemptionRate(),
           fundingCycle.ballotRedemptionRate(),
           _beneficiary,
