@@ -151,7 +151,7 @@ export function makeSplits({
   count = 4,
   beneficiary = Array(count).fill(ethers.constants.AddressZero),
   preferClaimed = false,
-  percent = Math.floor(10000000 / count),
+  percent = Math.floor(1000000000 / count),
   lockedUntil = 0,
   allocator = ethers.constants.AddressZero,
   projectId = 0,

@@ -12,36 +12,13 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 
-// fee (glob var) = 0 || project id = 1 ?
-//   true -> no fee taken                                        [X]
-//   false -> takeFee() :
-//     _fundingCycle.shouldHoldfee ?
-//       false -> push in heldFeesOf                             [X]
-//       true -> _takeFee
-//          primary terminal of the token = this?
-//              true -> _pay (event)                             [X]
-//              false -> terminal.pay                            [X]
-// leftOver = distributetToPayoutSplitsOf()   ---   tested without fees (fees validated supra)
-//    iterate over splits
-//        allocator ?
-//           true -> allocate()                                  [X]
-//           false -> project specified ?
-//                        true -> primTerminal of project id ?
-//                                    == 0 -> revert             [X]
-//                                    == this -> _pay (+event)    [X]
-//                                    else terminal.pay          [X]
-//                         false -> send to beneficiary          [X] (same as first)
-//        leftOver -= amount send
-//    emit event                                                 [(X)]->for each
-// leftOver > 0 -> true: send to projectOwner                    [X]
-// emit event                                                    [(X)]->for each
-
 describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
   const PLATFORM_PROJECT_ID = 1;
   const PROJECT_ID = 2;
   const OTHER_PROJECT_ID = 3;
 
   const AMOUNT_DISTRIBUTED = 1000000000000;
+  
   const DEFAULT_FEE = 10; // 5%
 
   const AMOUNT_MINUS_FEES = Math.floor((AMOUNT_DISTRIBUTED * 200) / (DEFAULT_FEE + 200));
@@ -210,10 +187,10 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
             [
               split.preferClaimed,
               split.percent,
-              split.lockedUntil,
+              split.projectId,
               split.beneficiary,
               split.allocator,
-              split.projectId,
+              split.lockedUntil,
             ],
             /*payoutAmount*/ Math.floor(
               (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
@@ -230,8 +207,8 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
         /*_fundingCycle.number*/ 1,
         PROJECT_ID,
         projectOwner.address,
-        AMOUNT_DISTRIBUTED,
-        AMOUNT_DISTRIBUTED,
+        /*amount*/AMOUNT_DISTRIBUTED,
+        /*distributedAmount*/AMOUNT_DISTRIBUTED,
         /*_feeAmount*/ 0,
         /*_leftoverDistributionAmount*/ 0,
         MEMO,
@@ -302,10 +279,10 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
             [
               split.preferClaimed,
               split.percent,
-              split.lockedUntil,
+              split.projectId,
               split.beneficiary,
               split.allocator,
-              split.projectId,
+              split.lockedUntil,
             ],
             /*payoutAmount*/ Math.floor(
               (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
@@ -389,10 +366,10 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
             [
               split.preferClaimed,
               split.percent,
-              split.lockedUntil,
+              split.projectId,
               split.beneficiary,
               split.allocator,
-              split.projectId,
+              split.lockedUntil,
             ],
             /*payoutAmount*/ Math.floor((AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT),
             caller.address,
@@ -499,10 +476,10 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
             [
               split.preferClaimed,
               split.percent,
-              split.lockedUntil,
+              split.projectId,
               split.beneficiary,
               split.allocator,
-              split.projectId,
+              split.lockedUntil,
             ],
             /*payoutAmount*/ Math.floor((AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT),
             caller.address,
@@ -609,10 +586,10 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
             [
               split.preferClaimed,
               split.percent,
-              split.lockedUntil,
+              split.projectId,
               split.beneficiary,
               split.allocator,
-              split.projectId,
+              split.lockedUntil,
             ],
             /*payoutAmount*/ Math.floor((AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT),
             caller.address,
@@ -701,10 +678,10 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
             [
               split.preferClaimed,
               split.percent,
-              split.lockedUntil,
+              split.projectId,
               split.beneficiary,
               split.allocator,
-              split.projectId,
+              split.lockedUntil,
             ],
             /*payoutAmount*/ Math.floor(
               (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
@@ -789,10 +766,10 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
             [
               split.preferClaimed,
               split.percent,
-              split.lockedUntil,
+              split.projectId,
               split.beneficiary,
               split.allocator,
-              split.projectId,
+              split.lockedUntil,
             ],
             /*payoutAmount*/ Math.floor(
               (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
@@ -891,10 +868,10 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
             [
               split.preferClaimed,
               split.percent,
-              split.lockedUntil,
+              split.projectId,
               split.beneficiary,
               split.allocator,
-              split.projectId,
+              split.lockedUntil,
             ],
             /*payoutAmount*/ Math.floor(
               (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
@@ -1026,10 +1003,10 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
             [
               split.preferClaimed,
               split.percent,
-              split.lockedUntil,
+              split.projectId,
               split.beneficiary,
               split.allocator,
-              split.projectId,
+              split.lockedUntil,
             ],
             /*payoutAmount*/ Math.floor(
               (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
@@ -1113,10 +1090,10 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
             [
               split.preferClaimed,
               split.percent,
-              split.lockedUntil,
+              split.projectId,
               split.beneficiary,
               split.allocator,
-              split.projectId,
+              split.lockedUntil,
             ],
             /*payoutAmount*/ Math.floor((0 * split.percent) / SPLITS_TOTAL_PERCENT),
             caller.address,
