@@ -261,10 +261,6 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     @dev
     Anyone can deploy a project on an owner's behalf.
 
-    @dev
-    If a non-0 existingProjectId is submitted, the function will attempt to launch a JB instance for an existing project.
-    If a JB instance already exists, this function can potentially overwrite its settings.
-
     @param _owner The address to set as the owner of the project. The project ERC-721 will be owned by this address.
     @param _metadataCid A link to associate with the project. This can be updated any time by the owner of the project.
     @param _data A JBFundingCycleData data structure that defines the project's first funding cycle. These properties will remain fixed for the duration of the funding cycle.
