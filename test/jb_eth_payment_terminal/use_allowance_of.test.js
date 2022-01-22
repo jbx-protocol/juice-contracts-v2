@@ -259,7 +259,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
 
     await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
-        projectOwner.address,
+        jbEthPaymentTerminal.address,
         AMOUNT - AMOUNT_MINUS_FEES,
         JUICEBOX_PROJECT_ID,
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
@@ -344,7 +344,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
 
     await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
-        projectOwner.address,
+        jbEthPaymentTerminal.address,
         AMOUNT - AMOUNT_MINUS_FEES,
         JUICEBOX_PROJECT_ID,
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
