@@ -88,12 +88,13 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     log: true,
   });
 
-  // Add the deployed JBController as a known controller.
+  // Add the deployed JBController as a known controller, then transfer ownership to the multisig.
   const [signer, ..._] = await ethers.getSigners();
   const jbDirectoryContract = new ethers.Contract(JBDirectory.address, JBDirectory.abi);
-
   // Note: this'll revert if already set, which might happen during deploys.
-  await jbDirectoryContract.connect(signer).addToSetControllerAllowlist(JBController.address);
+  // await jbDirectoryContract.connect(signer).addToSetControllerAllowlist(JBController.address);
+  // await jbDirectoryContract.connect(signer).addToSetControllerAllowlist(JBController.address);
+  await jbDirectoryContract.connect(signer).transferOwnership(multisigAddress);
 
   const JBETHPaymentTerminalStore = await deploy('JBETHPaymentTerminalStore', {
     from: deployer,
