@@ -9,6 +9,7 @@ import errors from '../helpers/errors.json';
 describe('JBProjects::renewHandle(...)', function () {
   const PROJECT_HANDLE = 'PROJECT_1';
   const METADATA_CID = '';
+  const METADATA_DOMAIN = 1234;
   const PROJECT_ID_1 = 1;
 
   let RENEW_HANDLE_PERMISSION_INDEX;
@@ -47,7 +48,10 @@ describe('JBProjects::renewHandle(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN,
+        ]
       );
 
     let tx = await jbProjectsStore.connect(projectOwner).renewHandleOf(PROJECT_ID_1);
@@ -55,6 +59,7 @@ describe('JBProjects::renewHandle(...)', function () {
     let storedChallengeExpiryOf = await jbProjectsStore
       .connect(deployer)
       .challengeExpiryOf(ethers.utils.formatBytes32String(PROJECT_HANDLE));
+
     await expect(storedChallengeExpiryOf).equal(0);
 
     await expect(tx)
@@ -71,7 +76,12 @@ describe('JBProjects::renewHandle(...)', function () {
 
     await jbProjectsStore
       .connect(deployer)
-      .createFor(deployer.address, ethers.utils.formatBytes32String(PROJECT_HANDLE), METADATA_CID);
+      .createFor(deployer.address, ethers.utils.formatBytes32String(PROJECT_HANDLE),
+        [
+          METADATA_CID,
+          METADATA_DOMAIN,
+        ]
+      );
 
     await expect(
       jbProjectsStore.connect(projectOwner).renewHandleOf(PROJECT_ID_1),
@@ -86,7 +96,10 @@ describe('JBProjects::renewHandle(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN,
+        ]
       );
 
     await expect(jbProjectsStore.connect(deployer).renewHandleOf(PROJECT_ID_1)).to.be.revertedWith(
@@ -102,7 +115,10 @@ describe('JBProjects::renewHandle(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN,
+        ]
       );
 
     await expect(jbProjectsStore.connect(addrs[0]).renewHandleOf(PROJECT_ID_1)).to.be.revertedWith(
@@ -118,7 +134,10 @@ describe('JBProjects::renewHandle(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN,
+        ]
       );
 
     await mockJbOperatorStore.mock.hasPermission

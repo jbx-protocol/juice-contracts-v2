@@ -2,7 +2,6 @@
 pragma solidity 0.8.6;
 
 import './IJBDirectory.sol';
-import './IJBVault.sol';
 
 interface IJBTerminal {
   function token() external view returns (address);

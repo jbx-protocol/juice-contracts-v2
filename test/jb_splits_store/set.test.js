@@ -56,11 +56,11 @@ describe('JBSplitsStore::set(...)', function () {
     for (let i = 0; i < count; i++) {
       splits.push({
         preferClaimed: false,
-        percent: Math.floor(10000000 / count),
-        lockedUntil: 0,
+        percent: Math.floor(1000000000 / count),
+        projectId: 0,
         beneficiary: beneficiaryAddress,
         allocator: ethers.constants.AddressZero,
-        projectId: 0,
+        lockedUntil: 0
       });
     }
     return splits;
@@ -72,10 +72,10 @@ describe('JBSplitsStore::set(...)', function () {
       cleanedSplits.push({
         preferClaimed: split[0],
         percent: split[1],
-        lockedUntil: split[2],
+        projectId: split[2].toNumber(),
         beneficiary: split[3],
         allocator: split[4],
-        projectId: split[5].toNumber(),
+        lockedUntil: split[5]
       });
     }
     return cleanedSplits;
@@ -215,10 +215,10 @@ describe('JBSplitsStore::set(...)', function () {
     ).to.be.revertedWith(errors.ALLOCATOR_AND_BENEFICIARY_ZERO_ADDRESS);
   });
 
-  it("Can't set splits if the sum of the percents is greather than 10000000", async function () {
+  it("Can't set splits if the sum of the percents is greather than 1000000000", async function () {
     const { projectOwner, jbSplitsStore, splits } = await setup();
 
-    // Set sum at 10000001
+    // Set sum at 1000000001
     splits[0].percent += 1;
 
     await expect(
@@ -228,12 +228,9 @@ describe('JBSplitsStore::set(...)', function () {
 
   it('Should set splits if controller', async function () {
     const {
-      projectOwner,
       addrs,
       jbSplitsStore,
       splits,
-      mockJbOperatorStore,
-      mockJbProjects,
       mockJbDirectory,
     } = await setup();
 
@@ -251,9 +248,7 @@ describe('JBSplitsStore::set(...)', function () {
       addrs,
       jbSplitsStore,
       splits,
-      mockJbOperatorStore,
-      mockJbProjects,
-      mockJbDirectory,
+      mockJbOperatorStore
     } = await setup();
 
     let caller = addrs[0];
@@ -272,9 +267,7 @@ describe('JBSplitsStore::set(...)', function () {
       addrs,
       jbSplitsStore,
       splits,
-      mockJbOperatorStore,
-      mockJbProjects,
-      mockJbDirectory,
+      mockJbOperatorStore
     } = await setup();
 
     let caller = addrs[1];

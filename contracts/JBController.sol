@@ -22,6 +22,7 @@ import './structs/JBFundingCycleData.sol';
 import './structs/JBFundingCycleMetadata.sol';
 import './structs/JBFundAccessConstraints.sol';
 import './structs/JBGroupedSplits.sol';
+import './structs/JBProjectMetadata.sol';
 
 // Inheritance
 import './interfaces/IJBController.sol';
@@ -261,7 +262,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
     @param _owner The address to set as the owner of the project. The project ERC-721 will be owned by this address.
     @param _handle The project's unique handle. This can be updated any time by the owner of the project.
-    @param _metadataCid A link to associate with the project. This can be updated any time by the owner of the project.
+    @param _projectMetadata A link to associate with the project within a particular domain. This can be updated any time by the owner of the project.
     @param _data A JBFundingCycleData data structure that defines the project's first funding cycle. These properties will remain fixed for the duration of the funding cycle.
       @dev _data.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
       @dev _data.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
@@ -293,6 +294,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       @dev _metadata.useDataSourceForPay Whether or not the data source should be used when processing a payment.
       @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
       @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
+    @param _mustStartAtOrAfter The time before which the configured funding cycle can't start.
     @param _groupedSplits An array of splits to set for any number of group.
     @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
     @param _terminals Payment terminals to add for the project.
@@ -302,9 +304,10 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   function launchProjectFor(
     address _owner,
     bytes32 _handle,
-    string calldata _metadataCid,
+    JBProjectMetadata calldata _projectMetadata,
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
+    uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
     IJBTerminal[] memory _terminals
@@ -322,12 +325,19 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     }
 
     // Create the project for into the wallet of the message sender.
-    projectId = projects.createFor(_owner, _handle, _metadataCid);
+    projectId = projects.createFor(_owner, _handle, _projectMetadata);
 
     // Set the this contract as the project's controller in the directory.
     directory.setControllerOf(projectId, this);
 
-    _configure(projectId, _data, _metadata, _groupedSplits, _fundAccessConstraints);
+    _configure(
+      projectId,
+      _data,
+      _metadata,
+      _mustStartAtOrAfter,
+      _groupedSplits,
+      _fundAccessConstraints
+    );
 
     // Add the provided terminals to the list of terminals.
     if (_terminals.length > 0) directory.addTerminalsOf(projectId, _terminals);
@@ -374,6 +384,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       @dev _metadata.useDataSourceForPay Whether or not the data source should be used when processing a payment.
       @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
       @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
+    @param _mustStartAtOrAfter The time before which the configured funding cycle can't start.
     @param _groupedSplits An array of splits to set for any number of group.
     @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
 
@@ -383,6 +394,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     uint256 _projectId,
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
+    uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints
   )
@@ -402,7 +414,15 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       revert INVALID_BALLOT_REDEMPTION_RATE();
     }
 
-    return _configure(_projectId, _data, _metadata, _groupedSplits, _fundAccessConstraints);
+    return
+      _configure(
+        _projectId,
+        _data,
+        _metadata,
+        _mustStartAtOrAfter,
+        _groupedSplits,
+        _fundAccessConstraints
+      );
   }
 
   /**
@@ -756,8 +776,8 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       // Get a reference to the split being iterated on.
       JBSplit memory _split = _splits[_i];
 
-      // The amount to send towards the split. JBSplit percents are out of 10000000.
-      uint256 _tokenCount = PRBMath.mulDiv(_amount, _split.percent, 10000000);
+      // The amount to send towards the split.
+      uint256 _tokenCount = PRBMath.mulDiv(_amount, _split.percent, JBConstants.SPLITS_TOTAL_PERCENT);
 
       // Mints tokens for the split if needed.
       if (_tokenCount > 0) {
@@ -844,6 +864,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     uint256 _projectId,
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
+    uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints
   ) private returns (uint256) {
@@ -851,7 +872,8 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     JBFundingCycle memory _fundingCycle = fundingCycleStore.configureFor(
       _projectId,
       _data,
-      JBFundingCycleMetadataResolver.packFundingCycleMetadata(_metadata)
+      JBFundingCycleMetadataResolver.packFundingCycleMetadata(_metadata),
+      _mustStartAtOrAfter
     );
 
     for (uint256 _i; _i < _groupedSplits.length; _i++)
