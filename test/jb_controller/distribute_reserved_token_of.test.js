@@ -162,10 +162,10 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
             [
               split.preferClaimed,
               split.percent,
-              split.lockedUntil,
+              split.projectId,
               split.beneficiary,
               split.allocator,
-              split.projectId,
+              split.lockedUntil,
             ],
             /*count=*/ RESERVED_AMOUNT / splits.length,
             /*caller=*/ caller.address,
