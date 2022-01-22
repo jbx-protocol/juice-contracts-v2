@@ -2,6 +2,7 @@
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/utils/Address.sol';
+import '@openzeppelin/contracts/utils/Strings.sol';
 import '@paulrberg/contracts/math/PRBMathUD60x18.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 
@@ -292,7 +293,7 @@ contract JBETHPaymentTerminal is
         _fundingCycle,
         _distributedAmount,
         _projectOwner,
-        string(bytes.concat('Fee from ', bytes32(_projectId)))
+        string(abi.encodePacked('Fee from @', Strings.toString(_projectId)))
       );
 
     // Payout to splits and get a reference to the leftover transfer amount after all mods have been paid.
@@ -301,7 +302,7 @@ contract JBETHPaymentTerminal is
       _projectId,
       _fundingCycle,
       _distributedAmount - _feeAmount,
-      string(bytes.concat('Payout from ', bytes32(_projectId)))
+      string(abi.encodePacked('Payout from @', Strings.toString(_projectId)))
     );
 
     // Transfer any remaining balance to the project owner.
@@ -362,7 +363,7 @@ contract JBETHPaymentTerminal is
     // The platform project's ID is 1.
 
     // Prevents stack-too-deep error
-    string memory str = string(bytes.concat('Fee from ', bytes32(_projectId)));
+    string memory str = string(abi.encodePacked('Fee from @', Strings.toString(_projectId)));
     uint256 _feeAmount = fee == 0 || _projectId == 1
       ? 0
       : _takeFeeFrom(_projectId, _fundingCycle, _withdrawnAmount, _projectOwner, str);
