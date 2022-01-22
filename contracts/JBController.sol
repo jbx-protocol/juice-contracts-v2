@@ -51,14 +51,14 @@ error ZERO_TOKENS_TO_MINT();
   @notice
   Stitches together funding cycles and community tokens, making sure all activity is accounted for and correct.
 
-  @dev 
+  @dev
   A project can transfer control from this contract to another allowed controller contract at any time.
 
   Inherits from:
 
   IJBController - general interface for the generic controller methods in this contract that interacts with funding cycles and tokens according to the Juicebox protocol's rules.
   JBTerminalUtility - provides tools for contracts that has functionality that can only be accessed
-  by a project's terminals. 
+  by a project's terminals.
   JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
   ReentrencyGuard - several function in this contract shouldn't be accessible recursively.
 */
@@ -116,7 +116,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//
 
-  /** 
+  /**
     @notice
     The difference between the processed token tracker of a project and the project's token's total supply is the amount of tokens that
     still need to have reserves minted against them.
@@ -125,77 +125,135 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   */
   mapping(uint256 => int256) private _processedTokenTrackerOf;
 
+  /**
+    @notice
+    Data regarding the distribution limit of a project during a configuration.
+
+    @dev
+    bits 0-247: The amount of token that a project can withdraw per funding cycle.
+
+    @dev
+    bits 248-255: The currency of amount that a project can withdraw.
+
+    _projectId The ID of the project to get the packed distribution limit data of.
+    _configuration The configuration during which the packed distribution limit data applies.
+    _terminal The terminal from which distributions are being limited.
+  */
+  mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
+    private _packedDistributionLimitDataOf;
+
+  /**
+    @notice
+    Data regarding the overflow allowance of a project during a configuration.
+
+    @dev
+    bits 0-247: The amount of overflow that a project is allowed to tap into on-demand throughout configuration.
+
+    @dev
+    bits 248-255: The currency of the amount of overflow that a project is allowed to tap.
+
+    _projectId The ID of the project to get the packed overflow allowance data of.
+    _configuration The configuration during which the packed overflow allowance data applies.
+    _terminal The terminal managing the overflow.
+  */
+  mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
+    private _packedOverflowAllowanceDataOf;
+
   //*********************************************************************//
   // --------------- public immutable stored properties ---------------- //
   //*********************************************************************//
 
-  /** 
-    @notice 
+  /**
+    @notice
     The Projects contract which mints ERC-721's that represent project ownership.
   */
   IJBProjects public immutable projects;
 
-  /** 
-    @notice 
+  /**
+    @notice
     The contract storing all funding cycle configurations.
   */
   IJBFundingCycleStore public immutable fundingCycleStore;
 
-  /** 
-    @notice 
+  /**
+    @notice
     The contract that manages token minting and burning.
   */
   IJBTokenStore public immutable tokenStore;
 
-  /** 
-    @notice 
+  /**
+    @notice
     The contract that stores splits for each project.
   */
   IJBSplitsStore public immutable splitsStore;
 
   //*********************************************************************//
-  // --------------------- public stored properties -------------------- //
-  //*********************************************************************//
-
-  /**
-    @notice 
-    The amount of overflow that a project is allowed to tap into on-demand throughout configuration.
-
-    _projectId The ID of the project to get the current overflow allowance of.
-    _configuration The configuration of the during which the allowance applies.
-    _terminal The terminal managing the overflow.
-  */
-  mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
-    public
-    override overflowAllowanceOf;
-
-  /**
-    @notice 
-    The amount of that a project can withdraw per funding cycle.
-
-    _projectId The ID of the project to get the current distribution limit of.
-    _configuration The configuration during which the distribution limit applies.
-    _terminal The terminal from which distributions are being limited. 
-  */
-  mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
-    public
-    override distributionLimitOf;
-
-  /**
-    @notice 
-    The currency that overflow allowances and distribution limits are measured in for a particular funding cycle configuration, applied only to the specified terminal.
-
-    _projectId The ID of the project to get the currency of.
-    _configuration The configuration during which the currency applies.
-    _terminal The terminal for which the currency should be used. 
-  */
-  mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
-    public
-    override currencyOf;
-
-  //*********************************************************************//
   // ------------------------- external views -------------------------- //
   //*********************************************************************//
+
+  /**
+    @notice
+    The amount of token that a project can withdraw per funding cycle.
+
+    @param _projectId The ID of the project to get the distribution limit of.
+    @param _configuration The configuration during which the distribution limit applies.
+    @param _terminal The terminal from which distributions are being limited.
+  */
+  function distributionLimitOf(
+    uint256 _projectId,
+    uint256 _configuration,
+    IJBTerminal _terminal
+  ) external view override returns (uint256) {
+    return uint256(uint248(_packedDistributionLimitDataOf[_projectId][_configuration][_terminal]));
+  }
+
+  /**
+    @notice
+    The currency of the amount of that a project can withdraw per funding cycle.
+
+    @param _projectId The ID of the project to get the distribution limit currency of.
+    @param _configuration The configuration during which the distribution limit currency applies.
+    @param _terminal The terminal from which distributions are being limited.
+  */
+  function distributionLimitCurrencyOf(
+    uint256 _projectId,
+    uint256 _configuration,
+    IJBTerminal _terminal
+  ) external view override returns (uint256) {
+    return _packedDistributionLimitDataOf[_projectId][_configuration][_terminal] >> 248;
+  }
+
+  /**
+    @notice
+    The amount of overflow that a project is allowed to tap into on-demand throughout configuration.
+
+    @param _projectId The ID of the project to get the overflow allowance of.
+    @param _configuration The configuration of the during which the allowance applies.
+    @param _terminal The terminal managing the overflow.
+  */
+  function overflowAllowanceOf(
+    uint256 _projectId,
+    uint256 _configuration,
+    IJBTerminal _terminal
+  ) external view override returns (uint256) {
+    return uint256(uint248(_packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal]));
+  }
+
+  /**
+    @notice
+    The currency of the amount of overflow that a project is allowed to tap into.
+
+    @param _projectId The ID of the project to get the overflow allowance currency of.
+    @param _configuration The configuration of the during which the allowance currency applies.
+    @param _terminal The terminal managing the overflow.
+  */
+  function overflowAllowanceCurrencyOf(
+    uint256 _projectId,
+    uint256 _configuration,
+    IJBTerminal _terminal
+  ) external view override returns (uint256) {
+    return _packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal] >> 248;
+  }
 
   /**
     @notice
@@ -426,10 +484,10 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   }
 
   /**
-    @notice 
+    @notice
     Issues an owner's ERC-20 Tokens that'll be used when claiming tokens.
 
-    @dev 
+    @dev
     Deploys a project's ERC-20 token contract.
 
     @dev
@@ -453,7 +511,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   }
 
   /**
-    @notice 
+    @notice
     Swap the current project's token that is minted and burned for another, and transfer ownership of the current token to another address if needed.
 
     @dev
@@ -638,7 +696,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     return _distributeReservedTokensOf(_projectId, _memo);
   }
 
-  /** 
+  /**
     @notice
     Allows other controllers to signal to this one that a migration is expected for the specified project.
 
@@ -654,7 +712,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     _processedTokenTrackerOf[_projectId] = int256(tokenStore.totalSupplyOf(_projectId));
   }
 
-  /** 
+  /**
     @notice
     Allows a project to migrate from this controller to another.
 
@@ -700,7 +758,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   //*********************************************************************//
 
   /**
-    @notice 
+    @notice
     See docs for `distributeReservedTokens`
   */
   function _distributeReservedTokensOf(uint256 _projectId, string memory _memo)
@@ -777,7 +835,11 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       JBSplit memory _split = _splits[_i];
 
       // The amount to send towards the split.
-      uint256 _tokenCount = PRBMath.mulDiv(_amount, _split.percent, JBConstants.SPLITS_TOTAL_PERCENT);
+      uint256 _tokenCount = PRBMath.mulDiv(
+        _amount,
+        _split.percent,
+        JBConstants.SPLITS_TOTAL_PERCENT
+      );
 
       // Mints tokens for the split if needed.
       if (_tokenCount > 0) {
@@ -853,8 +915,8 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       ) - _unprocessedTokenBalanceOf;
   }
 
-  /** 
-    @notice 
+  /**
+    @notice
     Configures a funding cycle and stores information pertinent to the configuration.
 
     @dev
@@ -891,20 +953,22 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       JBFundAccessConstraints memory _constraints = _fundAccessConstraints[_i];
 
       // Set the distribution limit if there is one.
-      if (_constraints.distributionLimit > 0)
-        distributionLimitOf[_projectId][_fundingCycle.configuration][
+      if (_constraints.distributionLimit > 0) {
+        _packedDistributionLimitDataOf[_projectId][_fundingCycle.configuration][
           _constraints.terminal
-        ] = _constraints.distributionLimit;
+        ] =
+          uint256(_constraints.distributionLimit) |
+          (uint256(_constraints.distributionLimitCurrency) << 248);
+      }
 
       // Set the overflow allowance if there is one.
-      if (_constraints.overflowAllowance > 0)
-        overflowAllowanceOf[_projectId][_fundingCycle.configuration][
+      if (_constraints.overflowAllowance > 0) {
+        _packedOverflowAllowanceDataOf[_projectId][_fundingCycle.configuration][
           _constraints.terminal
-        ] = _constraints.overflowAllowance;
-
-      if (_constraints.currency > 0)
-        currencyOf[_projectId][_fundingCycle.configuration][_constraints.terminal] = _constraints
-          .currency;
+        ] =
+          uint256(_constraints.overflowAllowance) |
+          (uint256(_constraints.overflowAllowanceCurrency) << 248);
+      }
 
       emit SetFundAccessConstraints(
         _fundingCycle.configuration,

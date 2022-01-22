@@ -103,7 +103,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       .connect(terminal)
       .recordAddedBalanceFor(PROJECT_ID, amountInWei);
 
-    await mockJbController.mock.currencyOf
+    await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_USD);
 
@@ -198,7 +198,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       metadata: packFundingCycleMetadata({ pauseDistributions: 0 }),
     });
 
-    await mockJbController.mock.currencyOf
+    await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_USD);
 
@@ -237,7 +237,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
     // Add to balance beforehand
     await jbEthPaymentTerminalStore.connect(terminal).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
 
-    await mockJbController.mock.currencyOf
+    await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_ETH);
 
@@ -288,7 +288,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       .connect(terminal)
       .recordAddedBalanceFor(PROJECT_ID, smallBalance);
 
-    await mockJbController.mock.currencyOf
+    await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_ETH);
 
@@ -335,7 +335,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
     // Add to balance beforehand
     await jbEthPaymentTerminalStore.connect(terminal).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
 
-    await mockJbController.mock.currencyOf
+    await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_ETH);
 
