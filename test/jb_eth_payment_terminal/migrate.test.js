@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
+import { setBalance } from '../helpers/utils'
 import errors from '../helpers/errors.json';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
@@ -81,10 +82,7 @@ describe('JBETHPaymentTerminal::migrate(...)', function () {
 
     await mockJbEthPaymentTerminal.mock.addToBalanceOf.withArgs(PROJECT_ID, '').returns();
 
-    await ethers.provider.send('hardhat_setBalance', [
-      jbEthPaymentTerminal.address,
-      CURRENT_TERMINAL_BALANCE.toHexString(),
-    ]);
+    await setBalance(jbEthPaymentTerminal.address, CURRENT_TERMINAL_BALANCE)
 
     await mockJbEthPaymentTerminalStore.mock.recordMigration
       .withArgs(PROJECT_ID)

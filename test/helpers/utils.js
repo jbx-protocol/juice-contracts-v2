@@ -55,6 +55,19 @@ export async function impersonateAccount(
 }
 
 /**
+ * Set the ETH balance of a given address
+ * @param {string} address
+ * @param {ethers.BigNumber} balance
+ */
+ export async function setBalance(
+  address,
+  balance = ethers.BigNumber.from('0x1000000000000000000000'),
+) {
+  balance = ethers.BigNumber.from(balance);
+  await network.provider.send('hardhat_setBalance', [address, balance.toHexString()]);
+}
+
+/**
  * Deploy a test JBToken contract
  * @param {string} name
  * @param {string} symbol

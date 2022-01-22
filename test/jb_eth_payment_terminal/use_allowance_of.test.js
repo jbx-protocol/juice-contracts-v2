@@ -3,7 +3,7 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import errors from '../helpers/errors.json';
-import { packFundingCycleMetadata } from '../helpers/utils.js';
+import { packFundingCycleMetadata, setBalance } from '../helpers/utils.js';
 
 import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
 import jbEthPaymentTerminalStore from '../../artifacts/contracts/JBETHPaymentTerminalStore.sol/JBETHPaymentTerminalStore.json';
@@ -65,8 +65,6 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
         terminalOwner.address,
       );
 
-    /* Lib constants */
-
     const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
     const jbCurrencies = await jbCurrenciesFactory.deploy();
     const CURRENCY_ETH = await jbCurrencies.ETH();
@@ -79,8 +77,6 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
     let jbTokenFactory = await ethers.getContractFactory('JBTokens');
     let jbToken = await jbTokenFactory.deploy();
     const ETH_ADDRESS = await jbToken.ETH();
-
-    /* Common mocks */
 
     await mockJbProjects.mock.ownerOf.returns(projectOwner.address);
     await mockJbProjects.mock.handleOf.returns(HANDLE);
@@ -148,10 +144,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
       .returns(fundingCycle, AMOUNT);
 
     // Give terminal sufficient ETH
-    await ethers.provider.send('hardhat_setBalance', [
-      jbEthPaymentTerminal.address,
-      '0x' + AMOUNT.toString(16),
-    ]);
+    await setBalance(jbEthPaymentTerminal.address, AMOUNT);
 
     const initialBeneficiaryBalance = await ethers.provider.getBalance(beneficiary.address);
 
@@ -207,10 +200,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
       .returns(fundingCycle, AMOUNT);
 
     // Give terminal sufficient ETH
-    await ethers.provider.send('hardhat_setBalance', [
-      jbEthPaymentTerminal.address,
-      '0x' + AMOUNT.toString(16),
-    ]);
+    await setBalance(jbEthPaymentTerminal.address, AMOUNT);
 
     const initialBeneficiaryBalance = await ethers.provider.getBalance(beneficiary.address);
 
@@ -284,10 +274,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
       .returns(jbEthPaymentTerminal.address);
 
     // Give terminal sufficient ETH
-    await ethers.provider.send('hardhat_setBalance', [
-      jbEthPaymentTerminal.address,
-      '0x' + AMOUNT_MINUS_FEES.toString(16),
-    ]);
+    await setBalance(jbEthPaymentTerminal.address, AMOUNT_MINUS_FEES);
 
     const initialBeneficiaryBalance = await ethers.provider.getBalance(beneficiary.address);
 
@@ -372,10 +359,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
       .returns(jbEthPaymentTerminal.address);
 
     // Give terminal sufficient ETH
-    await ethers.provider.send('hardhat_setBalance', [
-      jbEthPaymentTerminal.address,
-      '0x' + AMOUNT_MINUS_FEES.toString(16),
-    ]);
+    await setBalance(jbEthPaymentTerminal.address, AMOUNT_MINUS_FEES);
 
     // Set fee to default 5%
     await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);

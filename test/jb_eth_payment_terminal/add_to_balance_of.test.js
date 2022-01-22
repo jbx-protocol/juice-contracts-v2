@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
-import { makeSplits, packFundingCycleMetadata } from '../helpers/utils.js';
+import { makeSplits, packFundingCycleMetadata, setBalance } from '../helpers/utils.js';
 
 import errors from '../helpers/errors.json';
 
@@ -110,7 +110,7 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
       .withArgs(PROJECT_ID, AMOUNT)
       .returns(fundingCycle);
 
-    await ethers.provider.send('hardhat_setBalance', [jbEthPaymentTerminal.address, AMOUNT.toHexString()]);
+    await setBalance(jbEthPaymentTerminal.address, AMOUNT);
       
     return {
       deployer,

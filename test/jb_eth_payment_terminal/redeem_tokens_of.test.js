@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
+import { setBalance } from '../helpers/utils';
 import errors from '../helpers/errors.json';
 
 import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
@@ -116,11 +117,7 @@ describe('JBETHPaymentTerminal::redeemTokensOf(...)', function () {
       )
       .returns(fundingCycle, /* claimAmount */ AMOUNT, MEMO);
 
-    // Give terminal sufficient ETH
-    await ethers.provider.send('hardhat_setBalance', [
-      jbEthPaymentTerminal.address,
-      '0x' + AMOUNT.toString(16),
-    ]);
+    await setBalance(jbEthPaymentTerminal.address, AMOUNT);
 
     const initialBeneficiaryBalance = await ethers.provider.getBalance(beneficiary.address);
 
@@ -182,11 +179,7 @@ describe('JBETHPaymentTerminal::redeemTokensOf(...)', function () {
       )
       .returns(fundingCycle, /* claimAmount */ 0, MEMO); // Set claimAmount to 0
 
-    // Give terminal sufficient ETH
-    await ethers.provider.send('hardhat_setBalance', [
-      jbEthPaymentTerminal.address,
-      '0x' + AMOUNT.toString(16),
-    ]);
+    await setBalance(jbEthPaymentTerminal.address, AMOUNT);
 
     const initialBeneficiaryBalance = await ethers.provider.getBalance(beneficiary.address);
 

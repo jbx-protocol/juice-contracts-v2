@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
-import { makeSplits, packFundingCycleMetadata } from '../helpers/utils.js';
+import { makeSplits, packFundingCycleMetadata, setBalance } from '../helpers/utils.js';
 import errors from '../helpers/errors.json';
 
 import jbAllocator from '../../artifacts/contracts/interfaces/IJBSplitAllocator.sol/IJBSplitAllocator.json';
@@ -120,10 +120,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       .withArgs(PROJECT_ID, AMOUNT_DISTRIBUTED, CURRENCY, MIN_TOKEN_REQUESTED)
       .returns(fundingCycle, AMOUNT_DISTRIBUTED);
 
-    await ethers.provider.send('hardhat_setBalance', [
-      jbEthPaymentTerminal.address,
-      '0x' + AMOUNT_DISTRIBUTED.toString(16),
-    ]);
+    await setBalance(jbEthPaymentTerminal.address, AMOUNT_DISTRIBUTED);
 
     return {
       deployer,
