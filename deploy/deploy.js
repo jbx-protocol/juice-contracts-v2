@@ -93,7 +93,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const jbDirectoryContract = new ethers.Contract(JBDirectory.address, JBDirectory.abi);
 
   // Note: this'll revert if already set, which might happen during deploys.
-  // await jbDirectoryContract.connect(signer).addToSetControllerAllowlist(JBController.address);
+  await jbDirectoryContract.connect(signer).addToSetControllerAllowlist(JBController.address);
 
   const JBETHPaymentTerminalStore = await deploy('JBETHPaymentTerminalStore', {
     from: deployer,
