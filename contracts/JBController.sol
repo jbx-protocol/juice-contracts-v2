@@ -776,8 +776,8 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
       // Get a reference to the split being iterated on.
       JBSplit memory _split = _splits[_i];
 
-      // The amount to send towards the split. JBSplit percents are out of 10000000.
-      uint256 _tokenCount = PRBMath.mulDiv(_amount, _split.percent, 10000000);
+      // The amount to send towards the split.
+      uint256 _tokenCount = PRBMath.mulDiv(_amount, _split.percent, JBConstants.SPLITS_TOTAL_PERCENT);
 
       // Mints tokens for the split if needed.
       if (_tokenCount > 0) {
