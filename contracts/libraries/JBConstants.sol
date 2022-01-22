@@ -35,4 +35,10 @@ library JBConstants {
     Maximum splits percentage.
   */
   uint256 public constant SPLITS_TOTAL_PERCENT = 1000000000;
+
+  /** 
+    @notice
+    Maximum discount on fee granted by a gauge.
+  */
+  uint256 public constant MAX_FEE_DISCOUNT = 1000000;
 }

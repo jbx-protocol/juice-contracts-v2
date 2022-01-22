@@ -725,10 +725,10 @@ contract JBETHPaymentTerminal is
       : feeGauge.currentDiscountFor(_projectId);
 
     // Set the discounted fee if its valid.
-    if (_feeDiscount > 1000000) _feeDiscount = 0;
+    if (_feeDiscount > JBConstants.MAX_FEE_DISCOUNT) _feeDiscount = 0;
 
     // Calculate the discounted fee.
-    uint256 _discountedFee = fee - PRBMath.mulDiv(fee, _feeDiscount, 1000000);
+    uint256 _discountedFee = fee - PRBMath.mulDiv(fee, _feeDiscount, JBConstants.MAX_FEE_DISCOUNT);
 
     // The amount of ETH from the _amount to pay as a fee.
     feeAmount = _amount - PRBMath.mulDiv(_amount, 200, _discountedFee + 200);
