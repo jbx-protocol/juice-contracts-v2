@@ -2,10 +2,11 @@
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
+import '@openzeppelin/contracts/access/Ownable.sol';
 
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBProjects.sol';
-import './interfaces/IJBTokenUriResolver.sol'
+import './interfaces/IJBTokenUriResolver.sol';
 import './libraries/JBOperations.sol';
 
 //*********************************************************************//
@@ -24,7 +25,7 @@ error TRANSFER_HANDLE_UNAUTHORIZED();
   @dev
   Projects are represented as ERC-721's.
 */
-contract JBProjects is ERC721, IJBProjects, JBOperatable {
+contract JBProjects is ERC721, Ownable, IJBProjects, JBOperatable {
   //*********************************************************************//
   // --------------------- private stored constants -------------------- //
   //*********************************************************************//
@@ -231,11 +232,12 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
 
   /**
     @notice 
-    Allows a project owner to set the project's URI linked to the projectOwner NFT.
+    Allows a project owner to set the project's URI of the project owner NFT.
 
     @dev 
     Only a project's owner or operator can set its URI. This is the URI returned
     by tokenURI() and should therefore be a valid IPFS URI where an ERC-721 standard JSON is hosted.
+    This is optional for every project.
 
     @param _projectId The ID of the project who's URI is being changed.
     @param _newUri The new URI
@@ -245,13 +247,32 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     override
     requirePermission(ownerOf(_projectId), _projectId, JBOperations.SET_TOKEN_URI)
   {
-    IJBTokenUriResolver.setUri(_projectId, _newUri);
+    JBTokenUriResolver.setUri(_projectId, _newUri);
   }
 
-  function tokenURI(uint256 _projectId) external view override returns(string memory) {
-    return IJBTokenUriResolver.getUri(_projectId);
+  /**
+    @notice 
+    Returns the URI where the ERC-721 standard JSON of a project is hosted.
+
+    @dev 
+    this is optional for every project
+
+    @param _projectId The ID of the project.
+  */
+  function tokenURI(uint256 _projectId) public view override returns (string memory) {
+    return JBTokenUriResolver.getUri(_projectId);
   }
 
+  /**
+    @notice 
+    Set the address of the IJBTokenUriResolver used to retrieve the tokenURI of projects
+
+    @param newResolver The address of the new resolver.
+  */
+  function setTokenUriResolver(IJBTokenUriResolver newResolver) external onlyOwner {
+    JBTokenUriResolver = newResolver;
+    emit SetJBTokenUriResolver(newResolver);
+  }
 
   /**
     @notice 
