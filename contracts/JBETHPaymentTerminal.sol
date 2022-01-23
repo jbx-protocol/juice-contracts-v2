@@ -637,7 +637,7 @@ contract JBETHPaymentTerminal is
           if (_terminal == this) {
             _pay(
               _payoutAmount,
-              _projectOwner,
+              address(this),
               _split.projectId,
               _split.beneficiary,
               0,
@@ -727,7 +727,7 @@ contract JBETHPaymentTerminal is
 
     // When processing the admin fee, save gas if the admin is using this contract as its terminal.
     _terminal == this
-      ? _pay(_amount, 1, _beneficiary, 0, false, '', bytes('')) // Use the local pay call.
+      ? _pay(_amount, address(this), 1, _beneficiary, 0, false, '', bytes('')) // Use the local pay call.
       : _terminal.pay{value: _amount}(1, _beneficiary, 0, false, '', bytes('')); // Use the external pay call of the correct terminal.
   }
 
