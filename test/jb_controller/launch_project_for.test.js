@@ -410,4 +410,144 @@ describe('JBController::launchProjectFor(...)', function () {
 
     await expect(tx).to.be.revertedWith(errors.INVALID_BALLOT_REDEMPTION_RATE);
   });
+
+  it(`Can't launch a project with distribution limit larger than uint248`, async function () {
+    const {
+      jbController,
+      projectOwner,
+      fundingCycleData,
+      fundingCycleMetadata,
+      splits,
+      mockJbTerminal1,
+      mockJbTerminal2,
+    } = await setup();
+
+    const groupedSplits = [{ group: 1, splits }];
+    const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
+    const fundAccessConstraints = makeFundingAccessConstraints({
+      terminals,
+      distributionLimit: ethers.constants.MaxUint256, // Should be too large
+    });
+
+    let tx = jbController
+      .connect(projectOwner)
+      .launchProjectFor(
+        projectOwner.address,
+        PROJECT_HANDLE,
+        [METADATA_CID, METADATA_DOMAIN],
+        fundingCycleData,
+        fundingCycleMetadata.unpacked,
+        PROJECT_START,
+        groupedSplits,
+        fundAccessConstraints,
+        terminals,
+      );
+
+    await expect(tx).to.be.revertedWith(errors.BAD_DISTRIBUTION_LIMIT);
+  });
+
+  it(`Can't launch a project with distribution limit currency larger than uint8`, async function () {
+    const {
+      jbController,
+      projectOwner,
+      fundingCycleData,
+      fundingCycleMetadata,
+      splits,
+      mockJbTerminal1,
+      mockJbTerminal2,
+    } = await setup();
+
+    const groupedSplits = [{ group: 1, splits }];
+    const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
+    const fundAccessConstraints = makeFundingAccessConstraints({
+      terminals,
+      distributionLimitCurrency: ethers.constants.MaxUint256, // Should be too large
+    });
+
+    let tx = jbController
+      .connect(projectOwner)
+      .launchProjectFor(
+        projectOwner.address,
+        PROJECT_HANDLE,
+        [METADATA_CID, METADATA_DOMAIN],
+        fundingCycleData,
+        fundingCycleMetadata.unpacked,
+        PROJECT_START,
+        groupedSplits,
+        fundAccessConstraints,
+        terminals,
+      );
+
+    await expect(tx).to.be.revertedWith(errors.BAD_DISTRIBUTION_LIMIT_CURRENCY);
+  });
+
+  it(`Can't launch a project with overflow allowance larger than uint248`, async function () {
+    const {
+      jbController,
+      projectOwner,
+      fundingCycleData,
+      fundingCycleMetadata,
+      splits,
+      mockJbTerminal1,
+      mockJbTerminal2,
+    } = await setup();
+
+    const groupedSplits = [{ group: 1, splits }];
+    const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
+    const fundAccessConstraints = makeFundingAccessConstraints({
+      terminals,
+      overflowAllowance: ethers.constants.MaxUint256, // Should be too large
+    });
+
+    let tx = jbController
+      .connect(projectOwner)
+      .launchProjectFor(
+        projectOwner.address,
+        PROJECT_HANDLE,
+        [METADATA_CID, METADATA_DOMAIN],
+        fundingCycleData,
+        fundingCycleMetadata.unpacked,
+        PROJECT_START,
+        groupedSplits,
+        fundAccessConstraints,
+        terminals,
+      );
+
+    await expect(tx).to.be.revertedWith(errors.BAD_OVERFLOW_ALLOWANCE);
+  });
+
+  it(`Can't launch a project with overflow allowance currency larger than uint8`, async function () {
+    const {
+      jbController,
+      projectOwner,
+      fundingCycleData,
+      fundingCycleMetadata,
+      splits,
+      mockJbTerminal1,
+      mockJbTerminal2,
+    } = await setup();
+
+    const groupedSplits = [{ group: 1, splits }];
+    const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
+    const fundAccessConstraints = makeFundingAccessConstraints({
+      terminals,
+      overflowAllowanceCurrency: ethers.constants.MaxUint256, // Should be too large
+    });
+
+    let tx = jbController
+      .connect(projectOwner)
+      .launchProjectFor(
+        projectOwner.address,
+        PROJECT_HANDLE,
+        [METADATA_CID, METADATA_DOMAIN],
+        fundingCycleData,
+        fundingCycleMetadata.unpacked,
+        PROJECT_START,
+        groupedSplits,
+        fundAccessConstraints,
+        terminals,
+      );
+
+    await expect(tx).to.be.revertedWith(errors.BAD_OVERFLOW_ALLOWANCE_CURRENCY);
+  });
 });
