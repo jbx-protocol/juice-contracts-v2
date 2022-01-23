@@ -138,6 +138,8 @@ contract JBProjects is ERC721Votes, Ownable, IJBProjects, JBOperatable {
     @param _projectId The ID of the project.
   */
   function tokenURI(uint256 _projectId) public view override returns (string memory) {
+    if (JBTokenUriResolver == IJBTokenUriResolver(address(0))) return '';
+
     return JBTokenUriResolver.getUri(_projectId);
   }
 
