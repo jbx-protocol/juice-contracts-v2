@@ -19,7 +19,10 @@ interface IJBProjects is IERC721 {
 
   function count() external view returns (uint256);
 
-  function metadataCidOf(uint256 _projectId, uint256 _domain) external view returns (string memory);
+  function metadataContentOf(uint256 _projectId, uint256 _domain)
+    external
+    view
+    returns (string memory);
 
   function createFor(address _owner, JBProjectMetadata calldata _metadata)
     external

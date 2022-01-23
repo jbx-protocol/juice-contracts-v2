@@ -37,7 +37,7 @@ describe('JBProjects::createFor(...)', function () {
         ]
       );
 
-    let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataCidOf(PROJECT_ID_1, METADATA_DOMAIN);
+    let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataContentOf(PROJECT_ID_1, METADATA_DOMAIN);
 
     await expect(storedMetadataCid).to.equal(METADATA_CID);
 

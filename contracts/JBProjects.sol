@@ -45,7 +45,7 @@ contract JBProjects is ERC721Votes, IJBProjects, JBOperatable {
     _projectId The ID of the project to which the URI belongs.
     _domain The domain within which the metadata applies.
   */
-  mapping(uint256 => mapping(uint256 => string)) public override metadataCidOf;
+  mapping(uint256 => mapping(uint256 => string)) public override metadataContentOf;
 
   //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
@@ -56,7 +56,7 @@ contract JBProjects is ERC721Votes, IJBProjects, JBOperatable {
   */
   constructor(IJBOperatorStore _operatorStore)
     ERC721('Juicebox Projects', 'JUICEBOX')
-    EIP712('Juicebox Projects', 'V2')
+    EIP712('Juicebox Projects', '1')
     JBOperatable(_operatorStore)
   {}
 
@@ -88,7 +88,8 @@ contract JBProjects is ERC721Votes, IJBProjects, JBOperatable {
     _safeMint(_owner, count);
 
     // Set the URI if one was provided.
-    if (bytes(_metadata.cid).length > 0) metadataCidOf[count][_metadata.domain] = _metadata.cid;
+    if (bytes(_metadata.content).length > 0)
+      metadataContentOf[count][_metadata.domain] = _metadata.content;
 
     emit Create(count, _owner, _metadata, msg.sender);
 
@@ -97,13 +98,13 @@ contract JBProjects is ERC721Votes, IJBProjects, JBOperatable {
 
   /**
     @notice 
-    Allows a project owner to set the project's IPFS CID hash where metadata about the project has been uploaded.
+    Allows a project owner to set the project's metadata content for a particular domain namespace. 
 
     @dev 
     Only a project's owner or operator can set its metadata.
 
     @param _projectId The ID of the project who's URI is being changed.
-    @param _metadata A struct containing an IPFS CID hash where metadata about the project has been uploaded, and domain within which the metadata applies. An empty string is acceptable if no metadata is being provided.
+    @param _metadata A struct containing metadata content, and domain within which the metadata applies. An empty string is acceptable if no metadata is being provided.
   */
   function setMetadataOf(uint256 _projectId, JBProjectMetadata calldata _metadata)
     external
@@ -111,7 +112,7 @@ contract JBProjects is ERC721Votes, IJBProjects, JBOperatable {
     requirePermission(ownerOf(_projectId), _projectId, JBOperations.SET_METADATA)
   {
     // Set the new uri within the specified domain.
-    metadataCidOf[_projectId][_metadata.domain] = _metadata.cid;
+    metadataContentOf[_projectId][_metadata.domain] = _metadata.content;
 
     emit SetMetadata(_projectId, _metadata, msg.sender);
   }
