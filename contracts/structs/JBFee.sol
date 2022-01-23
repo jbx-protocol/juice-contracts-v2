@@ -8,6 +8,4 @@ struct JBFee {
   uint8 fee;
   // The address that will receive the tokens that are minted as a result of the fee payment.
   address beneficiary;
-  // The memo that should be emitted alongside the fee payment.
-  string memo;
 }
