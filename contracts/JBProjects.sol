@@ -45,7 +45,7 @@ contract JBProjects is ERC721Votes, Ownable, IJBProjects, JBOperatable {
     @dev
     This is optional for each project
   */
-  IJBTokenUriResolver public uriResolver;
+  IJBTokenUriResolver public tokenUriResolver;
 
   /** 
     @notice 
@@ -138,9 +138,9 @@ contract JBProjects is ERC721Votes, Ownable, IJBProjects, JBOperatable {
     @param _projectId The ID of the project.
   */
   function tokenURI(uint256 _projectId) public view override returns (string memory) {
-    if (uriResolver == IJBTokenUriResolver(address(0))) return '';
+    if (tokenUriResolver == IJBTokenUriResolver(address(0))) return '';
 
-    return uriResolver.getUri(_projectId);
+    return tokenUriResolver.getUri(_projectId);
   }
 
   /**
@@ -150,7 +150,7 @@ contract JBProjects is ERC721Votes, Ownable, IJBProjects, JBOperatable {
     @param _newResolver The address of the new resolver.
   */
   function setTokenUriResolver(IJBTokenUriResolver _newResolver) external override onlyOwner {
-    uriResolver = _newResolver;
-    emit SetJBTokenUriResolver(_newResolver);
+    tokenUriResolver = _newResolver;
+    emit SetTokenUriResolver(_newResolver);
   }
 }

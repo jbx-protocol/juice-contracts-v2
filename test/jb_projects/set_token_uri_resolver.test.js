@@ -30,10 +30,10 @@ describe('JBProjects::setTokenUriResolver(...)', function () {
       .connect(deployer)
       .setTokenUriResolver(mockJbTokenUriResolver.address)
       )
-      .to.emit(jbProjects, 'SetJBTokenUriResolver')
+      .to.emit(jbProjects, 'SetTokenUriResolver')
       .withArgs(mockJbTokenUriResolver.address);
 
-    expect(await jbProjects.JBTokenUriResolver()).to.equal(mockJbTokenUriResolver.address);
+    expect(await jbProjects.tokenUriResolver()).to.equal(mockJbTokenUriResolver.address);
 
   });
 });

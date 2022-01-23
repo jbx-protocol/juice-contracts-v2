@@ -18,7 +18,7 @@ interface IJBProjects is IERC721 {
 
   event SetMetadata(uint256 indexed projectId, JBProjectMetadata metadata, address caller);
 
-  event SetJBTokenUriResolver(IJBTokenUriResolver newResolver);
+  event SetTokenUriResolver(IJBTokenUriResolver newResolver);
 
   function count() external view returns (uint256);
 
