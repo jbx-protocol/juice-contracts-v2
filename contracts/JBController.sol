@@ -33,6 +33,10 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
 //*********************************************************************//
+error BAD_DISTRIBUTION_LIMIT();
+error BAD_DISTRIBUTION_LIMIT_CURRENCY();
+error BAD_OVERFLOW_ALLOWANCE();
+error BAD_OVERFLOW_ALLOWANCE_CURRENCY();
 error BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE();
 error CALLER_NOT_CURRENT_CONTROLLER();
 error CANT_MIGRATE_TO_CURRENT_CONTROLLER();
@@ -184,8 +188,8 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
   */
   IJBSplitsStore public immutable splitsStore;
 
-  /** 
-    @notice 
+  /**
+    @notice
     The directory of terminals and controllers for projects.
   */
   IJBDirectory public immutable directory;
@@ -956,22 +960,30 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     for (uint256 _i; _i < _fundAccessConstraints.length; _i++) {
       JBFundAccessConstraints memory _constraints = _fundAccessConstraints[_i];
 
+      // If distribution limit values are too large then revert.
+      if (_constraints.distributionLimit > type(uint248).max) revert BAD_DISTRIBUTION_LIMIT();
+
+      if (_constraints.distributionLimitCurrency > type(uint8).max)
+        revert BAD_DISTRIBUTION_LIMIT_CURRENCY();
+
       // Set the distribution limit if there is one.
       if (_constraints.distributionLimit > 0) {
         _packedDistributionLimitDataOf[_projectId][_fundingCycle.configuration][
           _constraints.terminal
-        ] =
-          uint256(_constraints.distributionLimit) |
-          (uint256(_constraints.distributionLimitCurrency) << 248);
+        ] = _constraints.distributionLimit | (_constraints.distributionLimitCurrency << 248);
       }
+
+      // If overflow allowance values are too large then revert.
+      if (_constraints.overflowAllowance > type(uint248).max) revert BAD_OVERFLOW_ALLOWANCE();
+
+      if (_constraints.overflowAllowanceCurrency > type(uint8).max)
+        revert BAD_OVERFLOW_ALLOWANCE_CURRENCY();
 
       // Set the overflow allowance if there is one.
       if (_constraints.overflowAllowance > 0) {
         _packedOverflowAllowanceDataOf[_projectId][_fundingCycle.configuration][
           _constraints.terminal
-        ] =
-          uint256(_constraints.overflowAllowance) |
-          (uint256(_constraints.overflowAllowanceCurrency) << 248);
+        ] = _constraints.overflowAllowance | (_constraints.overflowAllowanceCurrency << 248);
       }
 
       emit SetFundAccessConstraints(
