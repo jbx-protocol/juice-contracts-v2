@@ -36,7 +36,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     _domain is An identifier within which the returned splits should be considered active.
     _group The identifying group of the splits.
   */
-  mapping(uint256 => mapping(uint256 => mapping(uint256 => uint256))) private _numSplitsOf;
+  mapping(uint256 => mapping(uint256 => mapping(uint256 => uint256))) private _splitCountOf;
 
   /** 
     @notice
@@ -230,7 +230,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     }
 
     // Set the new length of the splits.
-    _numSplitsOf[_projectId][_domain][_group] = _splits.length;
+    _splitCountOf[_projectId][_domain][_group] = _splits.length;
   }
 
   /**
@@ -249,13 +249,13 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     uint256 _group
   ) private view returns (JBSplit[] memory) {
     // Get a reference to the number of splits that need to be added to the returned array.
-    uint256 _numSplits = _numSplitsOf[_projectId][_domain][_group];
+    uint256 _splitCount = _splitCountOf[_projectId][_domain][_group];
 
     // Initialize an array to be returned that has the set length.
-    JBSplit[] memory _splits = new JBSplit[](_numSplits);
+    JBSplit[] memory _splits = new JBSplit[](_splitCount);
 
     // Loop throuhgh each split and unpack the values into structs.
-    for (uint256 _i = 0; _i < _numSplits; _i++) {
+    for (uint256 _i = 0; _i < _splitCount; _i++) {
       // Get a reference to the fist packed data.
       uint256 _packedSplitPart1 = _packedSplitParts1Of[_projectId][_domain][_group][_i];
 
