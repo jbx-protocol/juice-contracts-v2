@@ -2,7 +2,6 @@
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/utils/Address.sol';
-import '@openzeppelin/contracts/utils/Strings.sol';
 import '@paulrberg/contracts/math/PRBMathUD60x18.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 
@@ -692,9 +691,9 @@ contract JBETHPaymentTerminal is
     IJBTerminal _terminal = directory.primaryTerminalOf(1, token);
 
     // When processing the admin fee, save gas if the admin is using this contract as its terminal.
-    _terminal == this // Use the local pay call.
-      ? _pay(_amount, 1, _beneficiary, 0, false, '', bytes('')) // Use the external pay call of the correct terminal.
-      : _terminal.pay{value: _amount}(1, _beneficiary, 0, false, '', bytes(''));
+    _terminal == this
+      ? _pay(_amount, 1, _beneficiary, 0, false, '', bytes('')) // Use the local pay call.
+      : _terminal.pay{value: _amount}(1, _beneficiary, 0, false, '', bytes('')); // Use the external pay call of the correct terminal.
   }
 
   /**

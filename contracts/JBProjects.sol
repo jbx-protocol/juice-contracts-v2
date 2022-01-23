@@ -55,7 +55,7 @@ contract JBProjects is ERC721Votes, IJBProjects, JBOperatable {
     @param _operatorStore A contract storing operator assignments.
   */
   constructor(IJBOperatorStore _operatorStore)
-    ERC721('Juicebox Project', 'JUICEBOX')
+    ERC721('Juicebox Projects', 'JUICEBOX')
     EIP712('Juicebox Projects', 'V2')
     JBOperatable(_operatorStore)
   {}

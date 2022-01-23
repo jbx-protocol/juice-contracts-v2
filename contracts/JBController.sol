@@ -325,7 +325,6 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
 
     @param _owner The address to set as the owner of the project. The project ERC-721 will be owned by this address.
     @param _projectMetadata A link to associate with the project within a particular domain. This can be updated any time by the owner of the project.
->>>>>>> main
     @param _data A JBFundingCycleData data structure that defines the project's first funding cycle. These properties will remain fixed for the duration of the funding cycle.
       @dev _data.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
       @dev _data.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
