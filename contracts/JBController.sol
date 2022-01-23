@@ -27,7 +27,6 @@ import './structs/JBProjectMetadata.sol';
 // Inheritance
 import './interfaces/IJBController.sol';
 import './abstract/JBOperatable.sol';
-import './abstract/JBTerminalUtility.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
@@ -57,12 +56,10 @@ error ZERO_TOKENS_TO_MINT();
   Inherits from:
 
   IJBController - general interface for the generic controller methods in this contract that interacts with funding cycles and tokens according to the Juicebox protocol's rules.
-  JBTerminalUtility - provides tools for contracts that has functionality that can only be accessed
-  by a project's terminals.
   JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
   ReentrencyGuard - several function in this contract shouldn't be accessible recursively.
 */
-contract JBController is IJBController, JBTerminalUtility, JBOperatable, ReentrancyGuard {
+contract JBController is IJBController, JBOperatable, ReentrancyGuard {
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
@@ -187,6 +184,12 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   */
   IJBSplitsStore public immutable splitsStore;
 
+  /** 
+    @notice 
+    The directory of terminals and controllers for projects.
+  */
+  IJBDirectory public immutable directory;
+
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
   //*********************************************************************//
@@ -297,8 +300,9 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     IJBFundingCycleStore _fundingCycleStore,
     IJBTokenStore _tokenStore,
     IJBSplitsStore _splitsStore
-  ) JBTerminalUtility(_directory) JBOperatable(_operatorStore) {
+  ) JBOperatable(_operatorStore) {
     projects = _projects;
+    directory = _directory;
     fundingCycleStore = _fundingCycleStore;
     tokenStore = _tokenStore;
     splitsStore = _splitsStore;
