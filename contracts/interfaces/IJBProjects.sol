@@ -30,5 +30,5 @@ interface IJBProjects is IERC721 {
 
   function setMetadataOf(uint256 _projectId, JBProjectMetadata calldata _metadata) external;
 
-  function setTokenUriOf(uint256 _projectId, string calldata _newUri) external;
+  function setTokenUriResolver(IJBTokenUriResolver newResolver) external;
 }
