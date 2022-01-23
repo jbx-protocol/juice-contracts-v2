@@ -40,7 +40,7 @@ contract JBProjects is ERC721Votes, Ownable, IJBProjects, JBOperatable {
 
   /**
     @notice
-    The contract resolving each project id to its ERC721 URI (as an IPFS CID)
+    The contract resolving each project id to its ERC721 URI
     
     @dev
     This is optional for each project
