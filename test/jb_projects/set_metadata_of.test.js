@@ -54,7 +54,7 @@ describe('JBProjects::setMetadataOf(...)', function () {
       .connect(projectOwner)
       .setMetadataOf(PROJECT_ID_1, [METADATA_CID_2, METADATA_DOMAIN_2]);
 
-    let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataCidOf(PROJECT_ID_1, METADATA_DOMAIN_2);
+    let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataContentOf(PROJECT_ID_1, METADATA_DOMAIN_2);
     await expect(storedMetadataCid).to.equal(METADATA_CID_2);
 
     await expect(tx)
