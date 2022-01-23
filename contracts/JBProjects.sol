@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/token/ERC721/extensions/draft-ERC721Votes.sol';
 
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBProjects.sol';
+import './interfaces/IJBTokenUriResolver.sol';
 import './libraries/JBOperations.sol';
 
 /**
@@ -20,7 +22,8 @@ import './libraries/JBOperations.sol';
   @dev
   Projects are represented as ERC-721's.
 */
-contract JBProjects is ERC721Votes, IJBProjects, JBOperatable {
+
+contract JBProjects is ERC721Votes, Ownable, IJBProjects, JBOperatable {
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
@@ -34,6 +37,15 @@ contract JBProjects is ERC721Votes, IJBProjects, JBOperatable {
     The resulting ERC-721 token ID for each project is the newly incremented count value.
   */
   uint256 public override count = 0;
+
+  /**
+    @notice
+    The contract resolving each project id to its ERC721 URI
+    
+    @dev
+    This is optional for each project
+  */
+  IJBTokenUriResolver public tokenUriResolver;
 
   /** 
     @notice 
@@ -114,5 +126,31 @@ contract JBProjects is ERC721Votes, IJBProjects, JBOperatable {
     metadataCidOf[_projectId][_metadata.domain] = _metadata.cid;
 
     emit SetMetadata(_projectId, _metadata, msg.sender);
+  }
+
+  /**
+    @notice 
+    Returns the URI where the ERC-721 standard JSON of a project is hosted.
+
+    @dev 
+    this is optional for every project
+
+    @param _projectId The ID of the project.
+  */
+  function tokenURI(uint256 _projectId) public view override returns (string memory) {
+    if (tokenUriResolver == IJBTokenUriResolver(address(0))) return '';
+
+    return tokenUriResolver.getUri(_projectId);
+  }
+
+  /**
+    @notice 
+    Set the address of the IJBTokenUriResolver used to retrieve the tokenURI of projects
+
+    @param _newResolver The address of the new resolver.
+  */
+  function setTokenUriResolver(IJBTokenUriResolver _newResolver) external override onlyOwner {
+    tokenUriResolver = _newResolver;
+    emit SetTokenUriResolver(_newResolver);
   }
 }

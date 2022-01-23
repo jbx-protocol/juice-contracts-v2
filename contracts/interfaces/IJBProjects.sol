@@ -6,6 +6,7 @@ import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import './IJBTerminal.sol';
 
 import './../structs/JBProjectMetadata.sol';
+import './IJBTokenUriResolver.sol';
 
 interface IJBProjects is IERC721 {
   event Create(
@@ -17,6 +18,8 @@ interface IJBProjects is IERC721 {
 
   event SetMetadata(uint256 indexed projectId, JBProjectMetadata metadata, address caller);
 
+  event SetTokenUriResolver(IJBTokenUriResolver newResolver);
+
   function count() external view returns (uint256);
 
   function metadataCidOf(uint256 _projectId, uint256 _domain) external view returns (string memory);
@@ -26,4 +29,6 @@ interface IJBProjects is IERC721 {
     returns (uint256 id);
 
   function setMetadataOf(uint256 _projectId, JBProjectMetadata calldata _metadata) external;
+
+  function setTokenUriResolver(IJBTokenUriResolver newResolver) external;
 }
