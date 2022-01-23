@@ -116,7 +116,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
     /* Mocks for _claimableOverflowOf private method */
-    await mockJbController.mock.currencyOf
+    await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_ETH);
 
@@ -218,6 +218,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
         // JBRedeemParamsData obj
         holder: holder.address,
         tokenCount: AMOUNT,
+        projectId: PROJECT_ID,
         redemptionRate: redemptionRate,
         ballotRedemptionRate: ballotRedemptionRate,
         beneficiary: beneficiary.address,
@@ -454,6 +455,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
         // JBRedeemParamsData obj
         holder: holder.address,
         tokenCount: AMOUNT,
+        projectId: PROJECT_ID,
         redemptionRate: redemptionRate,
         ballotRedemptionRate: ballotRedemptionRate,
         beneficiary: beneficiary.address,
@@ -532,6 +534,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
         // JBRedeemParamsData obj
         holder: holder.address,
         tokenCount: AMOUNT,
+        projectId: PROJECT_ID,
         redemptionRate: redemptionRate,
         ballotRedemptionRate: ballotRedemptionRate,
         beneficiary: beneficiary.address,
@@ -605,6 +608,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
         // JBRedeemParamsData obj
         holder: holder.address,
         tokenCount: AMOUNT,
+        projectId: PROJECT_ID,
         redemptionRate: redemptionRate,
         ballotRedemptionRate: ballotRedemptionRate,
         beneficiary: beneficiary.address,

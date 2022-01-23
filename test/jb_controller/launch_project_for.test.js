@@ -16,6 +16,7 @@ import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStor
 describe('JBController::launchProjectFor(...)', function () {
   const PROJECT_ID = 1;
   const METADATA_CID = '';
+  const METADATA_DOMAIN = 1234;
   const PROJECT_START = '1';
   let MIGRATE_CONTROLLER_INDEX;
 
@@ -69,7 +70,11 @@ describe('JBController::launchProjectFor(...)', function () {
     );
 
     await mockJbProjects.mock.createFor
+<<<<<<< HEAD
       .withArgs(projectOwner.address, METADATA_CID)
+=======
+      .withArgs(projectOwner.address, PROJECT_HANDLE, [METADATA_CID, METADATA_DOMAIN])
+>>>>>>> main
       .returns(PROJECT_ID);
 
     await mockJbDirectory.mock.setControllerOf.withArgs(PROJECT_ID, jbController.address).returns();
@@ -167,17 +172,19 @@ describe('JBController::launchProjectFor(...)', function () {
 
   function makeFundingAccessConstraints({
     terminals,
-    distributionLimit = 10,
-    overflowAllowance = 10,
-    currency = 1,
+    distributionLimit = 200,
+    distributionLimitCurrency = 1,
+    overflowAllowance = 100,
+    overflowAllowanceCurrency = 2,
   } = {}) {
     let constraints = [];
     for (let terminal of terminals) {
       constraints.push({
         terminal,
         distributionLimit,
+        distributionLimitCurrency,
         overflowAllowance,
-        currency,
+        overflowAllowanceCurrency,
       });
     }
     return constraints;
@@ -203,7 +210,12 @@ describe('JBController::launchProjectFor(...)', function () {
         .connect(projectOwner)
         .callStatic.launchProjectFor(
           projectOwner.address,
+<<<<<<< HEAD
           METADATA_CID,
+=======
+          PROJECT_HANDLE,
+          [METADATA_CID, METADATA_DOMAIN],
+>>>>>>> main
           fundingCycleData,
           fundingCycleMetadata.unpacked,
           PROJECT_START,
@@ -217,7 +229,12 @@ describe('JBController::launchProjectFor(...)', function () {
       .connect(projectOwner)
       .launchProjectFor(
         projectOwner.address,
+<<<<<<< HEAD
         METADATA_CID,
+=======
+        PROJECT_HANDLE,
+        [METADATA_CID, METADATA_DOMAIN],
+>>>>>>> main
         fundingCycleData,
         fundingCycleMetadata.unpacked,
         PROJECT_START,
@@ -237,11 +254,26 @@ describe('JBController::launchProjectFor(...)', function () {
             [
               constraints.terminal,
               constraints.distributionLimit,
+              constraints.distributionLimitCurrency,
               constraints.overflowAllowance,
-              constraints.currency,
+              constraints.overflowAllowanceCurrency,
             ],
             projectOwner.address,
           );
+
+        const args = [PROJECT_ID, timestamp, constraints.terminal];
+        expect(await jbController.distributionLimitOf(...args)).equals(
+          constraints.distributionLimit,
+        );
+        expect(await jbController.distributionLimitCurrencyOf(...args)).equals(
+          constraints.distributionLimitCurrency,
+        );
+        expect(await jbController.overflowAllowanceOf(...args)).equals(
+          constraints.overflowAllowance,
+        );
+        expect(await jbController.overflowAllowanceCurrencyOf(...args)).equals(
+          constraints.overflowAllowanceCurrency,
+        );
       }),
     );
   });
@@ -263,7 +295,12 @@ describe('JBController::launchProjectFor(...)', function () {
         .connect(projectOwner)
         .callStatic.launchProjectFor(
           projectOwner.address,
+<<<<<<< HEAD
           METADATA_CID,
+=======
+          PROJECT_HANDLE,
+          [METADATA_CID, METADATA_DOMAIN],
+>>>>>>> main
           fundingCycleData,
           fundingCycleMetadata.unpacked,
           PROJECT_START,
@@ -279,7 +316,12 @@ describe('JBController::launchProjectFor(...)', function () {
         .connect(projectOwner)
         .launchProjectFor(
           projectOwner.address,
+<<<<<<< HEAD
           METADATA_CID,
+=======
+          PROJECT_HANDLE,
+          [METADATA_CID, METADATA_DOMAIN],
+>>>>>>> main
           fundingCycleData,
           fundingCycleMetadata.unpacked,
           PROJECT_START,
@@ -308,7 +350,12 @@ describe('JBController::launchProjectFor(...)', function () {
       .connect(projectOwner)
       .launchProjectFor(
         projectOwner.address,
+<<<<<<< HEAD
         METADATA_CID,
+=======
+        PROJECT_HANDLE,
+        [METADATA_CID, METADATA_DOMAIN],
+>>>>>>> main
         fundingCycleData,
         fundingCycleMetadata.unpacked,
         PROJECT_START,
@@ -340,7 +387,12 @@ describe('JBController::launchProjectFor(...)', function () {
       .connect(projectOwner)
       .launchProjectFor(
         projectOwner.address,
+<<<<<<< HEAD
         METADATA_CID,
+=======
+        PROJECT_HANDLE,
+        [METADATA_CID, METADATA_DOMAIN],
+>>>>>>> main
         fundingCycleData,
         fundingCycleMetadata.unpacked,
         PROJECT_START,
@@ -373,7 +425,12 @@ describe('JBController::launchProjectFor(...)', function () {
       .connect(projectOwner)
       .launchProjectFor(
         projectOwner.address,
+<<<<<<< HEAD
         METADATA_CID,
+=======
+        PROJECT_HANDLE,
+        [METADATA_CID, METADATA_DOMAIN],
+>>>>>>> main
         fundingCycleData,
         fundingCycleMetadata.unpacked,
         PROJECT_START,

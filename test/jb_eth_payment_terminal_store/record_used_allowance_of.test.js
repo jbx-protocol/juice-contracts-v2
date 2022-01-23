@@ -100,7 +100,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       .connect(terminal)
       .recordAddedBalanceFor(PROJECT_ID, amountInWei);
 
-    await mockJbController.mock.currencyOf
+    await mockJbController.mock.overflowAllowanceCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_USD);
 
@@ -151,7 +151,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       CURRENCY_USD,
     } = await setup();
 
-    await mockJbController.mock.currencyOf
+    await mockJbController.mock.overflowAllowanceCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_USD);
 
@@ -176,7 +176,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     // Add to balance beforehand
     await jbEthPaymentTerminalStore.connect(terminal).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
 
-    await mockJbController.mock.currencyOf
+    await mockJbController.mock.overflowAllowanceCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_ETH);
 
@@ -213,7 +213,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       .connect(terminal)
       .recordAddedBalanceFor(PROJECT_ID, smallBalance);
 
-    await mockJbController.mock.currencyOf
+    await mockJbController.mock.overflowAllowanceCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_ETH);
 
@@ -247,7 +247,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     // Add to balance beforehand
     await jbEthPaymentTerminalStore.connect(terminal).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
 
-    await mockJbController.mock.currencyOf
+    await mockJbController.mock.overflowAllowanceCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_ETH);
 

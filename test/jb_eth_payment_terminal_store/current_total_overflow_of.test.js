@@ -110,10 +110,10 @@ describe('JBETHPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
-    await mockJbController.mock.currencyOf
+    await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminalA.address)
       .returns(CURRENCY_ETH);
-    await mockJbController.mock.currencyOf
+    await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminalB.address)
       .returns(CURRENCY_USD);
 
@@ -167,10 +167,10 @@ describe('JBETHPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
-    await mockJbController.mock.currencyOf
+    await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminalA.address)
       .returns(CURRENCY_ETH);
-    await mockJbController.mock.currencyOf
+    await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminalB.address)
       .returns(CURRENCY_ETH);
 

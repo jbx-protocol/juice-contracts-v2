@@ -160,17 +160,19 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
 
   function makeFundingAccessConstraints({
     terminals,
-    distributionLimit = 10,
-    overflowAllowance = 10,
-    currency = 1,
+    distributionLimit = 200,
+    distributionLimitCurrency = 1,
+    overflowAllowance = 100,
+    overflowAllowanceCurrency = 2,
   } = {}) {
     let constraints = [];
     for (let terminal of terminals) {
       constraints.push({
         terminal,
         distributionLimit,
+        distributionLimitCurrency,
         overflowAllowance,
-        currency,
+        overflowAllowanceCurrency,
       });
     }
     return constraints;
@@ -227,8 +229,9 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
             [
               constraints.terminal,
               constraints.distributionLimit,
+              constraints.distributionLimitCurrency,
               constraints.overflowAllowance,
-              constraints.currency,
+              constraints.overflowAllowanceCurrency,
             ],
             projectOwner.address,
           );
@@ -294,8 +297,9 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
             [
               constraints.terminal,
               constraints.distributionLimit,
+              constraints.distributionLimitCurrency,
               constraints.overflowAllowance,
-              constraints.currency,
+              constraints.overflowAllowanceCurrency,
             ],
             caller.address,
           );
@@ -392,8 +396,9 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
             [
               constraints.terminal,
               constraints.distributionLimit,
+              constraints.distributionLimitCurrency,
               constraints.overflowAllowance,
-              constraints.currency,
+              constraints.overflowAllowanceCurrency,
             ],
             projectOwner.address,
           );
@@ -456,8 +461,9 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
             [
               constraints.terminal,
               constraints.distributionLimit,
+              constraints.distributionLimitCurrency,
               constraints.overflowAllowance,
-              constraints.currency,
+              constraints.overflowAllowanceCurrency,
             ],
             projectOwner.address,
           );

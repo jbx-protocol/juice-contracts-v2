@@ -100,9 +100,9 @@ contract JBETHPaymentTerminal is
   */
   JBETHPaymentTerminalStore public immutable store;
 
-  /** 
-    @notice 
-    The token that this terminal accepts. 
+  /**
+    @notice
+    The token that this terminal accepts.
   */
   address public immutable override token = JBTokens.ETH;
 
@@ -353,10 +353,8 @@ contract JBETHPaymentTerminal is
     address payable _projectOwner = payable(projects.ownerOf(_projectId));
 
     // Take a fee from the _withdrawnAmount, if needed.
-    // The project's owner will be the beneficiary of the resulting minted tokens from platform project.
-    // The platform project's ID is 1.
-
-    uint256 _feeAmount = fee == 0 || _projectId == 1
+    // The project's owner will be the beneficiary.
+    uint256 _feeAmount = fee == 0 || _projectId == 1 // The platform project's ID is 1.
       ? 0
       : _takeFeeFrom(_projectId, _fundingCycle, _withdrawnAmount, _projectOwner);
 
@@ -729,7 +727,7 @@ contract JBETHPaymentTerminal is
       msg.sender,
       _amount,
       _projectId,
-      (_preferClaimedTokens ? 1 : 0) | (uint160(_beneficiary) << 1),
+      (_preferClaimedTokens ? 1 : 0) | (uint256(uint160(_beneficiary)) << 1),
       _minReturnedTokens,
       _memo,
       _delegateMetadata
