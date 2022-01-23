@@ -7,6 +7,7 @@ import { packFundingCycleMetadata, setBalance } from '../helpers/utils.js';
 
 import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
 import jbEthPaymentTerminalStore from '../../artifacts/contracts/JBETHPaymentTerminalStore.sol/JBETHPaymentTerminalStore.json';
+import jbFeeGauge from '../../artifacts/contracts/interfaces/IJBFeeGauge.sol/IJBFeeGauge.json';
 import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorStore.sol/IJBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
@@ -14,6 +15,8 @@ import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.s
 describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
   const AMOUNT = 50000;
   const DEFAULT_FEE = 10; // 5%
+  const FEE_DISCOUNT = 500000; // 50%
+
   const AMOUNT_MINUS_FEES = Math.floor((AMOUNT * 200) / (DEFAULT_FEE + 200));
 
   const FUNDING_CYCLE_NUM = 1;
@@ -23,6 +26,8 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
   const PADDING = '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00';
   const PROJECT_ID = 13;
   const WEIGHT = 1000;
+
+  let MAX_FEE_DISCOUNT;
 
   async function setup() {
     const [deployer, beneficiary, otherCaller, projectOwner, terminalOwner] =
@@ -35,12 +40,14 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
     const [
       mockJbDirectory,
       mockJbEthPaymentTerminalStore,
+      mockJbFeeGauge,
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
       deployMockContract(deployer, jbEthPaymentTerminalStore.abi),
+      deployMockContract(deployer, jbFeeGauge.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
@@ -68,6 +75,10 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
     const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
     const jbCurrencies = await jbCurrenciesFactory.deploy();
     const CURRENCY_ETH = await jbCurrencies.ETH();
+
+    const jbConstantsFactory = await ethers.getContractFactory('JBConstants');
+    const jbConstants = await jbConstantsFactory.deploy();
+    MAX_FEE_DISCOUNT = await jbConstants.MAX_FEE_DISCOUNT();
 
     let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
     let jbOperations = await jbOperationsFactory.deploy();
@@ -119,6 +130,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
       fundingCycle,
       mockJbDirectory,
       mockJbEthPaymentTerminalStore,
+      mockJbFeeGauge,
       mockJbOperatorStore,
       otherCaller,
       projectOwner,
@@ -259,7 +271,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
 
     await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
-        projectOwner.address,
+        jbEthPaymentTerminal.address,
         AMOUNT - AMOUNT_MINUS_FEES,
         JUICEBOX_PROJECT_ID,
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
@@ -277,6 +289,171 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
     await setBalance(jbEthPaymentTerminal.address, AMOUNT_MINUS_FEES);
 
     const initialBeneficiaryBalance = await ethers.provider.getBalance(beneficiary.address);
+
+    // Set fee to default 5%
+    await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
+
+    const tx = await jbEthPaymentTerminal
+      .connect(projectOwner)
+      .useAllowanceOf(
+        PROJECT_ID,
+        AMOUNT,
+        CURRENCY_ETH,
+        /* minReturnedWei */ AMOUNT,
+        beneficiary.address,
+      );
+
+    expect(await tx)
+      .to.emit(jbEthPaymentTerminal, 'UseAllowance')
+      .withArgs(
+        /* _fundingCycle.configuration */ timestamp,
+        /* _fundingCycle.number */ FUNDING_CYCLE_NUM,
+        /* _projectId */ PROJECT_ID,
+        /* _beneficiary */ beneficiary.address,
+        /* _withdrawnAmount */ AMOUNT,
+        /* _feeAmount */ AMOUNT - AMOUNT_MINUS_FEES,
+        /* _withdrawnAmount - _feeAmount */ AMOUNT_MINUS_FEES,
+        /* msg.sender */ projectOwner.address,
+      );
+
+    // Terminal should be out of ETH
+    expect(await ethers.provider.getBalance(jbEthPaymentTerminal.address)).to.equal(0);
+
+    // Beneficiary should have a larger balance
+    expect(await ethers.provider.getBalance(beneficiary.address)).to.equal(
+      initialBeneficiaryBalance.add(AMOUNT_MINUS_FEES),
+    );
+  });
+
+  it('Should send funds from overflow, with discounted fees applied if gauge is set', async function () {
+    const {
+      beneficiary,
+      CURRENCY_ETH,
+      ETH_ADDRESS,
+      fundingCycle,
+      jbEthPaymentTerminal,
+      mockJbDirectory,
+      mockJbEthPaymentTerminalStore,
+      mockJbFeeGauge,
+      projectOwner,
+      terminalOwner,
+      timestamp,
+    } = await setup();
+
+    const DISCOUNTED_FEE = DEFAULT_FEE - Math.floor( (DEFAULT_FEE * FEE_DISCOUNT) / MAX_FEE_DISCOUNT );
+    const AMOUNT_MINUS_DISCOUNTED_FEES =  Math.floor( (AMOUNT * 200) / (200 + DISCOUNTED_FEE) );
+
+    await mockJbFeeGauge.mock.currentDiscountFor
+     .withArgs(PROJECT_ID)
+     .returns(FEE_DISCOUNT);
+
+    await mockJbEthPaymentTerminalStore.mock.recordUsedAllowanceOf
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT)
+      .returns(fundingCycle, AMOUNT);
+
+    await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
+      .withArgs(
+        jbEthPaymentTerminal.address,
+        AMOUNT - AMOUNT_MINUS_DISCOUNTED_FEES,
+        JUICEBOX_PROJECT_ID,
+        ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
+        /* minReturnedTokens */ 0,
+        /* memo */ 'Fee from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+        /* delegateMetadata */ '0x',
+      )
+      .returns(fundingCycle, WEIGHT, AMOUNT, MEMO);
+
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(1, ETH_ADDRESS)
+      .returns(jbEthPaymentTerminal.address);
+
+    // Give terminal sufficient ETH
+    await setBalance(jbEthPaymentTerminal.address, AMOUNT_MINUS_DISCOUNTED_FEES);
+
+    const initialBeneficiaryBalance = await ethers.provider.getBalance(beneficiary.address);
+
+    // Set fee to default 5%
+    await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
+
+    await jbEthPaymentTerminal.connect(terminalOwner).setFeeGauge(mockJbFeeGauge.address);
+
+    const tx = await jbEthPaymentTerminal
+      .connect(projectOwner)
+      .useAllowanceOf(
+        PROJECT_ID,
+        AMOUNT,
+        CURRENCY_ETH,
+        /* minReturnedWei */ AMOUNT,
+        beneficiary.address,
+      );
+
+    expect(await tx)
+      .to.emit(jbEthPaymentTerminal, 'UseAllowance')
+      .withArgs(
+        /* _fundingCycle.configuration */ timestamp,
+        /* _fundingCycle.number */ FUNDING_CYCLE_NUM,
+        /* _projectId */ PROJECT_ID,
+        /* _beneficiary */ beneficiary.address,
+        /* _withdrawnAmount */ AMOUNT,
+        /* _feeAmount */ AMOUNT - AMOUNT_MINUS_DISCOUNTED_FEES,
+        /* _withdrawnAmount - _feeAmount */ AMOUNT_MINUS_DISCOUNTED_FEES,
+        /* msg.sender */ projectOwner.address,
+      );
+
+    // Terminal should be out of ETH
+    expect(await ethers.provider.getBalance(jbEthPaymentTerminal.address)).to.equal(0);
+
+    // Beneficiary should have a larger balance
+    expect(await ethers.provider.getBalance(beneficiary.address)).to.equal(
+      initialBeneficiaryBalance.add(AMOUNT_MINUS_DISCOUNTED_FEES),
+    );
+  });
+
+  it('Should send funds from overflow, with non discounted-fees applied if discount is above 100%', async function () {
+    const {
+      beneficiary,
+      CURRENCY_ETH,
+      ETH_ADDRESS,
+      fundingCycle,
+      jbEthPaymentTerminal,
+      mockJbDirectory,
+      mockJbEthPaymentTerminalStore,
+      mockJbFeeGauge,
+      projectOwner,
+      terminalOwner,
+      timestamp,
+    } = await setup();
+
+    await mockJbFeeGauge.mock.currentDiscountFor
+    .withArgs(PROJECT_ID)
+    .returns(MAX_FEE_DISCOUNT + 1);
+
+    await mockJbEthPaymentTerminalStore.mock.recordUsedAllowanceOf
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT)
+      .returns(fundingCycle, AMOUNT);
+
+    await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
+      .withArgs(
+        jbEthPaymentTerminal.address,
+        AMOUNT - AMOUNT_MINUS_FEES,
+        JUICEBOX_PROJECT_ID,
+        ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
+        /* minReturnedTokens */ 0,
+        /* memo */ 'Fee from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+        /* delegateMetadata */ '0x',
+      )
+      .returns(fundingCycle, WEIGHT, AMOUNT, MEMO);
+
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(1, ETH_ADDRESS)
+      .returns(jbEthPaymentTerminal.address);
+
+    // Give terminal sufficient ETH
+    await setBalance(jbEthPaymentTerminal.address, AMOUNT_MINUS_FEES);
+
+    const initialBeneficiaryBalance = await ethers.provider.getBalance(beneficiary.address);
+
+    await jbEthPaymentTerminal.connect(terminalOwner).setFeeGauge(mockJbFeeGauge.address);
 
     // Set fee to default 5%
     await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
@@ -344,7 +521,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
 
     await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
-        projectOwner.address,
+        jbEthPaymentTerminal.address,
         AMOUNT - AMOUNT_MINUS_FEES,
         JUICEBOX_PROJECT_ID,
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),

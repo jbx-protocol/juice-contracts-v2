@@ -114,6 +114,12 @@ contract JBETHPaymentTerminal is
   */
   uint256 public override fee = 10;
 
+  /**
+    @notice
+    The data source that returns a discount to apply to a project's fee.
+  */
+  IJBFeeGauge public override feeGauge;
+
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
   //*********************************************************************//
@@ -239,6 +245,7 @@ contract JBETHPaymentTerminal is
     return
       _pay(
         msg.value,
+        msg.sender,
         _projectId,
         _beneficiary,
         _minReturnedTokens,
@@ -304,6 +311,7 @@ contract JBETHPaymentTerminal is
       _projectId,
       _fundingCycle,
       _distributedAmount - _feeAmount,
+      _projectOwner,
       string(bytes.concat('Payout from @', _handle))
     );
 
@@ -567,6 +575,22 @@ contract JBETHPaymentTerminal is
     emit SetFee(_fee, msg.sender);
   }
 
+  /**
+    @notice
+    Allows the fee gauge to be updated.
+
+    @dev
+    Only the owner of this contract can change the fee gauge.
+
+    @param _feeGauge The new fee gauge.
+  */
+  function setFeeGauge(IJBFeeGauge _feeGauge) external onlyOwner {
+    // Store the new fee gauge.
+    feeGauge = _feeGauge;
+
+    emit SetFeeGauge(_feeGauge, msg.sender);
+  }
+
   //*********************************************************************//
   // --------------------- private helper functions -------------------- //
   //*********************************************************************//
@@ -578,6 +602,7 @@ contract JBETHPaymentTerminal is
     @param _projectId The ID of the project for which payout splits are being distributed.
     @param _fundingCycle The funding cycle during which the distribution is being made.
     @param _amount The total amount being distributed.
+    @param _projectOwner The owner of the project distributing the payments.
     @param _memo A memo to pass along to the emitted events.
 
     @return leftoverAmount If the leftover amount if the splits don't add up to 100%.
@@ -586,6 +611,7 @@ contract JBETHPaymentTerminal is
     uint256 _projectId,
     JBFundingCycle memory _fundingCycle,
     uint256 _amount,
+    address _projectOwner,
     string memory _memo
   ) private returns (uint256 leftoverAmount) {
     // Set the leftover amount to the initial amount.
@@ -636,6 +662,7 @@ contract JBETHPaymentTerminal is
           if (_terminal == this) {
             _pay(
               _payoutAmount,
+              _projectOwner,
               _split.projectId,
               _split.beneficiary,
               0,
@@ -692,8 +719,19 @@ contract JBETHPaymentTerminal is
     address _beneficiary,
     string memory _memo
   ) private returns (uint256 feeAmount) {
+    // Get the fee discount.
+    uint256 _feeDiscount = feeGauge == IJBFeeGauge(address(0))
+      ? 0
+      : feeGauge.currentDiscountFor(_projectId);
+
+    // Set the discounted fee if its valid.
+    if (_feeDiscount > JBConstants.MAX_FEE_DISCOUNT) _feeDiscount = 0;
+
+    // Calculate the discounted fee.
+    uint256 _discountedFee = fee - PRBMath.mulDiv(fee, _feeDiscount, JBConstants.MAX_FEE_DISCOUNT);
+
     // The amount of ETH from the _amount to pay as a fee.
-    feeAmount = _amount - PRBMath.mulDiv(_amount, 200, fee + 200);
+    feeAmount = _amount - PRBMath.mulDiv(_amount, 200, _discountedFee + 200);
 
     // Nothing to do if there's no fee to take.
     if (feeAmount == 0) return 0;
@@ -721,7 +759,7 @@ contract JBETHPaymentTerminal is
 
     // When processing the admin fee, save gas if the admin is using this contract as its terminal.
     _terminal == this
-      ? _pay(_amount, 1, _beneficiary, 0, false, _memo, bytes('')) // Use the local pay call.
+      ? _pay(_amount, address(this), 1, _beneficiary, 0, false, _memo, bytes('')) // Use the local pay call.
       : _terminal.pay{value: _amount}(1, _beneficiary, 0, false, _memo, bytes('')); // Use the external pay call of the correct terminal.
   }
 
@@ -731,6 +769,7 @@ contract JBETHPaymentTerminal is
   */
   function _pay(
     uint256 _amount,
+    address _payer,
     uint256 _projectId,
     address _beneficiary,
     uint256 _minReturnedTokens,
@@ -749,7 +788,7 @@ contract JBETHPaymentTerminal is
 
     // Record the payment.
     (_fundingCycle, _weight, _tokenCount, _memo) = store.recordPaymentFrom(
-      msg.sender,
+      _payer,
       _amount,
       _projectId,
       (_preferClaimedTokens ? 1 : 0) | (uint256(uint160(_beneficiary)) << 1),
