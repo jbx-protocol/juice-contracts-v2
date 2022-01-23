@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './abstract/ERC721Checkpointable.sol';
+import '@openzeppelin/contracts/token/ERC721/extensions/draft-ERC721Votes.sol';
+
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBProjects.sol';
 import './libraries/JBOperations.sol';
@@ -19,7 +20,7 @@ import './libraries/JBOperations.sol';
   @dev
   Projects are represented as ERC-721's.
 */
-contract JBProjects is ERC721Checkpointable, IJBProjects, JBOperatable {
+contract JBProjects is ERC721Votes, IJBProjects, JBOperatable {
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
@@ -54,7 +55,8 @@ contract JBProjects is ERC721Checkpointable, IJBProjects, JBOperatable {
     @param _operatorStore A contract storing operator assignments.
   */
   constructor(IJBOperatorStore _operatorStore)
-    ERC721('Juicebox project', 'JUICEBOX')
+    ERC721('Juicebox Project', 'JUICEBOX')
+    EIP712('Juicebox Projects', 'V2')
     JBOperatable(_operatorStore)
   {}
 
