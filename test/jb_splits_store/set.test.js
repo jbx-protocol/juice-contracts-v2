@@ -6,6 +6,7 @@ import jbOperatorStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOpe
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import errors from '../helpers/errors.json';
+import { BigNumber } from 'ethers';
 
 describe('JBSplitsStore::set(...)', function () {
   const PROJECT_ID = 1;
@@ -56,11 +57,11 @@ describe('JBSplitsStore::set(...)', function () {
     for (let i = 0; i < count; i++) {
       splits.push({
         preferClaimed: false,
-        percent: Math.floor(1000000000 / count),
-        projectId: 0,
+        percent: BigNumber.from(Math.floor(1000000000 / count)),
+        projectId: BigNumber.from(0),
         beneficiary: beneficiaryAddress,
-        allocator: ethers.constants.AddressZero,
-        lockedUntil: 0
+        lockedUntil: BigNumber.from(0),
+        allocator: ethers.constants.AddressZero
       });
     }
     return splits;
@@ -71,11 +72,11 @@ describe('JBSplitsStore::set(...)', function () {
     for (let split of splits) {
       cleanedSplits.push({
         preferClaimed: split[0],
-        percent: split[1],
-        projectId: split[2].toNumber(),
+        percent: BigNumber.from(split[1]),
+        projectId: BigNumber.from(split[2].toNumber()),
         beneficiary: split[3],
-        allocator: split[4],
-        lockedUntil: split[5]
+        lockedUntil: BigNumber.from(split[4]),
+        allocator: split[5]
       });
     }
     return cleanedSplits;
