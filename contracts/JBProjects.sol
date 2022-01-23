@@ -5,6 +5,7 @@ import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBProjects.sol';
+import './interfaces/IJBTokenUriResolver.sol'
 import './libraries/JBOperations.sol';
 
 //*********************************************************************//
@@ -47,6 +48,15 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     The resulting ERC-721 token ID for each project is the newly incremented count value.
   */
   uint256 public override count = 0;
+
+  /**
+    @notice
+    The contract resolving each project id to its ERC721 URI (as an IPFS CID)
+    
+    @dev
+    This is optional for each project
+  */
+  IJBTokenUriResolver public JBTokenUriResolver;
 
   /** 
     @notice 
@@ -218,6 +228,30 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
 
     emit SetUri(_projectId, _metadataCid, msg.sender);
   }
+
+  /**
+    @notice 
+    Allows a project owner to set the project's URI linked to the projectOwner NFT.
+
+    @dev 
+    Only a project's owner or operator can set its URI. This is the URI returned
+    by tokenURI() and should therefore be a valid IPFS URI where an ERC-721 standard JSON is hosted.
+
+    @param _projectId The ID of the project who's URI is being changed.
+    @param _newUri The new URI
+  */
+  function setTokenUriOf(uint256 _projectId, string calldata _newUri)
+    external
+    override
+    requirePermission(ownerOf(_projectId), _projectId, JBOperations.SET_TOKEN_URI)
+  {
+    IJBTokenUriResolver.setUri(_projectId, _newUri);
+  }
+
+  function tokenURI(uint256 _projectId) external view override returns(string memory) {
+    return IJBTokenUriResolver.getUri(_projectId);
+  }
+
 
   /**
     @notice 

@@ -23,4 +23,5 @@ library JBOperations {
   uint256 public constant SET_PRIMARY_TERMINAL = 19;
   uint256 public constant USE_ALLOWANCE = 20;
   uint256 public constant SET_SPLITS = 21;
+  uint256 public constant SET_TOKEN_URI = 22;
 }
