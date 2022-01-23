@@ -11,7 +11,6 @@ interface IJBProjects is IERC721 {
   event Create(
     uint256 indexed projectId,
     address indexed owner,
-    bytes32 indexed handle,
     JBProjectMetadata metadata,
     address caller
   );
@@ -22,7 +21,9 @@ interface IJBProjects is IERC721 {
 
   function metadataCidOf(uint256 _projectId, uint256 _domain) external view returns (string memory);
 
-  function createFor(address _owner, string calldata _metadataCid) external returns (uint256 id);
+  function createFor(address _owner, JBProjectMetadata calldata _metadata)
+    external
+    returns (uint256 id);
 
   function setMetadataOf(uint256 _projectId, JBProjectMetadata calldata _metadata) external;
 }

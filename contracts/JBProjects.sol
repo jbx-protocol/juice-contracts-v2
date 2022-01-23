@@ -87,7 +87,7 @@ contract JBProjects is ERC721, IJBProjects, JBOperatable {
     _safeMint(_owner, count);
 
     // Set the URI if one was provided.
-    if (bytes(_metadata.cid).length > 0) metadataCidOf[count] = _metadata.cid;
+    if (bytes(_metadata.cid).length > 0) metadataCidOf[count][_metadata.domain] = _metadata.cid;
 
     emit Create(count, _owner, _metadata, msg.sender);
 
