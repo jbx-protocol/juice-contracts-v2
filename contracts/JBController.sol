@@ -310,7 +310,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
     IJBTerminal[] memory _terminals
-  ) external validRates(_metadata) returns (uint256 projectId) {
+  ) external returns (uint256 projectId) {
     // Mint the project into the wallet of the message sender.
     projectId = projects.createFor(_owner, _metadataCid);
 
@@ -385,7 +385,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
     IJBTerminal[] memory _terminals
-  ) external validRates(_metadata) returns (uint256 configuration) {
+  ) external returns (uint256 configuration) {
     // Check the project exists and is owned by msg.sender
     if (msg.sender != projects.ownerOf(projectId)) revert CALLER_NOT_PROJECT_OWNER();
 
@@ -467,7 +467,6 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
   )
     external
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
-    validRates(_metadata)
     returns (uint256)
   {
     return
@@ -924,6 +923,18 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints
   ) private returns (uint256) {
+    if (_metadata.reservedRate > JBConstants.MAX_RESERVED_RATE) {
+      revert INVALID_RESERVED_RATE();
+    }
+
+    if (_metadata.redemptionRate > JBConstants.MAX_REDEMPTION_RATE) {
+      revert INVALID_REDEMPTION_RATE();
+    }
+
+    if (_metadata.ballotRedemptionRate > JBConstants.MAX_BALLOT_REDEMPTION_RATE) {
+      revert INVALID_BALLOT_REDEMPTION_RATE();
+    }
+
     // Configure the funding cycle's properties.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.configureFor(
       _projectId,
@@ -972,21 +983,5 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     }
 
     return _fundingCycle.configuration;
-  }
-
-  modifier validRates(JBFundingCycleMetadata calldata _metadata) {
-    if (_metadata.reservedRate > JBConstants.MAX_RESERVED_RATE) {
-      revert INVALID_RESERVED_RATE();
-    }
-
-    if (_metadata.redemptionRate > JBConstants.MAX_REDEMPTION_RATE) {
-      revert INVALID_REDEMPTION_RATE();
-    }
-
-    if (_metadata.ballotRedemptionRate > JBConstants.MAX_BALLOT_REDEMPTION_RATE) {
-      revert INVALID_BALLOT_REDEMPTION_RATE();
-    }
-
-    _;
   }
 }

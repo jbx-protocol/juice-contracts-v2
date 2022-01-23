@@ -47,6 +47,7 @@
     "chain": "hardhat node",
     "account": "hardhat account",
     "test": "mocha './test/**/*.test.js' -r esm --bail",
+    "coverage": "node --require esm ./node_modules/.bin/hardhat coverage --network hardhat",
     "clean": "rimraf ./cache && rimraf ./artifacts",
     "compile": "yarn clean && hardhat compile",
     "pretty": "prettier --write \"./**/*.{js,jsx,json}\""

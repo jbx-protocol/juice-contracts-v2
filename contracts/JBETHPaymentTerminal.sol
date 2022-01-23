@@ -288,13 +288,7 @@ contract JBETHPaymentTerminal is
     // The platform project's ID is 1.
     uint256 _feeAmount = fee == 0 || _projectId == 1
       ? 0
-      : _takeFeeFrom(
-        _projectId,
-        _fundingCycle,
-        _distributedAmount,
-        _projectOwner,
-        string(abi.encodePacked('Fee from @', Strings.toString(_projectId)))
-      );
+      : _takeFeeFrom(_projectId, _fundingCycle, _distributedAmount, _projectOwner);
 
     // Payout to splits and get a reference to the leftover transfer amount after all mods have been paid.
     // The net transfer amount is the withdrawn amount minus the fee.
@@ -362,11 +356,9 @@ contract JBETHPaymentTerminal is
     // The project's owner will be the beneficiary of the resulting minted tokens from platform project.
     // The platform project's ID is 1.
 
-    // Prevents stack-too-deep error
-    string memory str = string(abi.encodePacked('Fee from @', Strings.toString(_projectId)));
     uint256 _feeAmount = fee == 0 || _projectId == 1
       ? 0
-      : _takeFeeFrom(_projectId, _fundingCycle, _withdrawnAmount, _projectOwner, str);
+      : _takeFeeFrom(_projectId, _fundingCycle, _withdrawnAmount, _projectOwner);
 
     // Transfer any remaining balance to the project owner.
     Address.sendValue(_beneficiary, _withdrawnAmount - _feeAmount);
@@ -529,8 +521,7 @@ contract JBETHPaymentTerminal is
     for (uint256 _i = 0; _i < _heldFees.length; _i++)
       _takeFee(
         _heldFees[_i].amount - PRBMath.mulDiv(_heldFees[_i].amount, 200, _heldFees[_i].fee + 200),
-        _heldFees[_i].beneficiary,
-        _heldFees[_i].memo
+        _heldFees[_i].beneficiary
       );
 
     // Delete the held fee's now that they've been processed.
@@ -674,7 +665,6 @@ contract JBETHPaymentTerminal is
     @param _fundingCycle The funding cycle during which the fee is being taken.
     @param _amount The amount to take a fee from.
     @param _beneficiary The address to print the platforms tokens for.
-    @param _memo A memo to pass along to the emitted event.
 
     @return feeAmount The amount of the fee taken.
   */
@@ -682,8 +672,7 @@ contract JBETHPaymentTerminal is
     uint256 _projectId,
     JBFundingCycle memory _fundingCycle,
     uint256 _amount,
-    address _beneficiary,
-    string memory _memo
+    address _beneficiary
   ) private returns (uint256 feeAmount) {
     // The amount of ETH from the _amount to pay as a fee.
     feeAmount = _amount - PRBMath.mulDiv(_amount, 200, fee + 200);
@@ -692,8 +681,8 @@ contract JBETHPaymentTerminal is
     if (feeAmount == 0) return 0;
 
     _fundingCycle.shouldHoldFees()
-      ? _heldFeesOf[_projectId].push(JBFee(_amount, uint8(fee), _beneficiary, _memo)) // Take the fee.
-      : _takeFee(feeAmount, _beneficiary, _memo);
+      ? _heldFeesOf[_projectId].push(JBFee(_amount, uint8(fee), _beneficiary)) // Take the fee.
+      : _takeFee(feeAmount, _beneficiary);
   }
 
   /**
@@ -702,20 +691,15 @@ contract JBETHPaymentTerminal is
 
     @param _amount The fee amount.
     @param _beneficiary The address to print the platforms tokens for.
-    @param _memo A memo to pass along to the emitted event.
   */
-  function _takeFee(
-    uint256 _amount,
-    address _beneficiary,
-    string memory _memo
-  ) private {
+  function _takeFee(uint256 _amount, address _beneficiary) private {
     // Get the terminal for the JuiceboxDAO project.
     IJBTerminal _terminal = directory.primaryTerminalOf(1, token);
 
     // When processing the admin fee, save gas if the admin is using this contract as its terminal.
     _terminal == this // Use the local pay call.
-      ? _pay(_amount, 1, _beneficiary, 0, false, _memo, bytes('')) // Use the external pay call of the correct terminal.
-      : _terminal.pay{value: _amount}(1, _beneficiary, 0, false, _memo, bytes(''));
+      ? _pay(_amount, 1, _beneficiary, 0, false, '', bytes('')) // Use the external pay call of the correct terminal.
+      : _terminal.pay{value: _amount}(1, _beneficiary, 0, false, '', bytes(''));
   }
 
   /**
@@ -786,12 +770,7 @@ contract JBETHPaymentTerminal is
         _amount = _amount - _heldFees[_i].amount;
       } else {
         _heldFeesOf[_projectId].push(
-          JBFee(
-            _heldFees[_i].amount - _amount,
-            _heldFees[_i].fee,
-            _heldFees[_i].beneficiary,
-            _heldFees[_i].memo
-          )
+          JBFee(_heldFees[_i].amount - _amount, _heldFees[_i].fee, _heldFees[_i].beneficiary)
         );
         _amount = 0;
       }
