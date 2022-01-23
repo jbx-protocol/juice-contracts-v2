@@ -13,22 +13,26 @@ import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsS
 import jbTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
 
-describe('JBController::launchProjectFor(...)', function () {
-  const PROJECT_ID = 1;
+describe('JBController::launchFundingCycleFor(...)', function () {
+  const EXISTING_PROJECT = 1;
+  const LAUNCHED_PROJECT = 2;
+  const NONEXISTANT_PROJECT = 3
   const METADATA_CID = '';
   const METADATA_DOMAIN = 1234;
   const PROJECT_START = '1';
+  let RECONFIGURE_INDEX;
   let MIGRATE_CONTROLLER_INDEX;
 
   before(async function () {
     let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
     let jbOperations = await jbOperationsFactory.deploy();
 
+    RECONFIGURE_INDEX = await jbOperations.RECONFIGURE();
     MIGRATE_CONTROLLER_INDEX = await jbOperations.MIGRATE_CONTROLLER();
   });
 
   async function setup() {
-    let [deployer, projectOwner, caller, ...addrs] = await ethers.getSigners();
+    let [deployer, projectOwner, nonOwner, ...addrs] = await ethers.getSigners();
 
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);
@@ -71,20 +75,32 @@ describe('JBController::launchProjectFor(...)', function () {
 
     await mockJbProjects.mock.createFor
       .withArgs(projectOwner.address, [METADATA_CID, METADATA_DOMAIN])
-      .returns(PROJECT_ID);
+      .returns(EXISTING_PROJECT);
 
-    await mockJbDirectory.mock.setControllerOf.withArgs(PROJECT_ID, jbController.address).returns();
+    await mockJbProjects.mock.ownerOf
+      .withArgs(EXISTING_PROJECT)
+      .returns(projectOwner.address);
+
+    await mockJbProjects.mock.ownerOf
+      .withArgs(LAUNCHED_PROJECT)
+      .returns(projectOwner.address);
+
+    await mockJbProjects.mock.ownerOf
+      .withArgs(NONEXISTANT_PROJECT)
+      .reverts();
+
+    await mockJbDirectory.mock.setControllerOf.withArgs(EXISTING_PROJECT, jbController.address).returns();
 
     await mockJbDirectory.mock.addTerminalsOf
-      .withArgs(PROJECT_ID, [mockJbTerminal1.address, mockJbTerminal2.address])
+      .withArgs(EXISTING_PROJECT, [mockJbTerminal1.address, mockJbTerminal2.address])
       .returns();
 
     await mockJbFundingCycleStore.mock.configureFor
-      .withArgs(PROJECT_ID, fundingCycleData, fundingCycleMetadata.packed, PROJECT_START)
+      .withArgs(EXISTING_PROJECT, fundingCycleData, fundingCycleMetadata.packed, PROJECT_START)
       .returns(
         Object.assign(
           {
-            number: 1,
+            number: EXISTING_PROJECT,
             configuration: timestamp,
             basedOn: timestamp,
             start: timestamp,
@@ -94,19 +110,28 @@ describe('JBController::launchProjectFor(...)', function () {
         ),
       );
 
+    await mockJbFundingCycleStore.mock.latestConfigurationOf
+      .withArgs(EXISTING_PROJECT)
+      .returns(0);
+
+    await mockJbFundingCycleStore.mock.latestConfigurationOf
+      .withArgs(LAUNCHED_PROJECT)
+      .returns(1);
+
     await mockJbSplitsStore.mock.set
-      .withArgs(PROJECT_ID, /*configuration=*/ timestamp, /*group=*/ 1, splits)
+      .withArgs(EXISTING_PROJECT, /*configuration=*/ timestamp, /*group=*/ 1, splits)
       .returns();
 
     return {
       deployer,
       projectOwner,
-      caller,
+      nonOwner,
       addrs,
       jbController,
       mockJbDirectory,
       mockJbTokenStore,
       mockJbController,
+      mockJbProjects,
       mockJbOperatorStore,
       mockJbFundingCycleStore,
       mockJbTerminal1,
@@ -186,7 +211,7 @@ describe('JBController::launchProjectFor(...)', function () {
     return constraints;
   }
 
-  it(`Should launch a project and emit events`, async function () {
+  it(`Should launch a funding cycle for an existing project and emit events`, async function () {
     const {
       jbController,
       projectOwner,
@@ -204,9 +229,8 @@ describe('JBController::launchProjectFor(...)', function () {
     expect(
       await jbController
         .connect(projectOwner)
-        .callStatic.launchProjectFor(
-          projectOwner.address,
-          [METADATA_CID, METADATA_DOMAIN],
+        .callStatic.launchFundingCycleFor(
+          EXISTING_PROJECT,
           fundingCycleData,
           fundingCycleMetadata.unpacked,
           PROJECT_START,
@@ -214,13 +238,12 @@ describe('JBController::launchProjectFor(...)', function () {
           fundAccessConstraints,
           terminals,
         ),
-    ).to.equal(PROJECT_ID);
+    ).to.equal(timestamp);
 
     let tx = jbController
       .connect(projectOwner)
-      .launchProjectFor(
-        projectOwner.address,
-        [METADATA_CID, METADATA_DOMAIN],
+      .launchFundingCycleFor(
+        EXISTING_PROJECT,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
         PROJECT_START,
@@ -236,7 +259,7 @@ describe('JBController::launchProjectFor(...)', function () {
           .withArgs(
             /*fundingCycleData.configuration=*/ timestamp,
             /*fundingCycleData.number=*/ 1,
-            PROJECT_ID,
+            EXISTING_PROJECT,
             [
               constraints.terminal,
               constraints.distributionLimit,
@@ -247,7 +270,7 @@ describe('JBController::launchProjectFor(...)', function () {
             projectOwner.address,
           );
 
-        const args = [PROJECT_ID, timestamp, constraints.terminal];
+        const args = [EXISTING_PROJECT, timestamp, constraints.terminal];
         expect(await jbController.distributionLimitOf(...args)).equals(
           constraints.distributionLimit,
         );
@@ -264,7 +287,7 @@ describe('JBController::launchProjectFor(...)', function () {
     );
   });
 
-  it(`Should launch a project without payment terminals and funding cycle constraints`, async function () {
+  it(`Should launch a funding cycle without payment terminals and funding cycle constraints`, async function () {
     const {
       jbController,
       projectOwner,
@@ -279,9 +302,8 @@ describe('JBController::launchProjectFor(...)', function () {
     expect(
       await jbController
         .connect(projectOwner)
-        .callStatic.launchProjectFor(
-          projectOwner.address,
-          [METADATA_CID, METADATA_DOMAIN],
+        .callStatic.launchFundingCycleFor(
+          EXISTING_PROJECT,
           fundingCycleData,
           fundingCycleMetadata.unpacked,
           PROJECT_START,
@@ -289,15 +311,14 @@ describe('JBController::launchProjectFor(...)', function () {
           fundAccessConstraints,
           [],
         ),
-    ).to.equal(PROJECT_ID);
+    ).to.equal(timestamp);
 
     // No constraint => no event
     await expect(
       jbController
         .connect(projectOwner)
-        .launchProjectFor(
-          projectOwner.address,
-          [METADATA_CID, METADATA_DOMAIN],
+        .launchFundingCycleFor(
+          EXISTING_PROJECT,
           fundingCycleData,
           fundingCycleMetadata.unpacked,
           PROJECT_START,
@@ -324,9 +345,8 @@ describe('JBController::launchProjectFor(...)', function () {
 
     let tx = jbController
       .connect(projectOwner)
-      .launchProjectFor(
-        projectOwner.address,
-        [METADATA_CID, METADATA_DOMAIN],
+      .launchFundingCycleFor(
+        EXISTING_PROJECT,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
         PROJECT_START,
@@ -335,7 +355,7 @@ describe('JBController::launchProjectFor(...)', function () {
         terminals,
       );
 
-    await expect(tx).to.be.revertedWith('INVALID_RESERVED_RATE()');
+    await expect(tx).to.be.revertedWith(errors.INVALID_RESERVED_RATE);
   });
 
   it(`Can't launch a project with a redemption rate superior to 10000`, async function () {
@@ -356,9 +376,8 @@ describe('JBController::launchProjectFor(...)', function () {
 
     let tx = jbController
       .connect(projectOwner)
-      .launchProjectFor(
-        projectOwner.address,
-        [METADATA_CID, METADATA_DOMAIN],
+      .launchFundingCycleFor(
+        EXISTING_PROJECT,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
         PROJECT_START,
@@ -389,9 +408,8 @@ describe('JBController::launchProjectFor(...)', function () {
 
     let tx = jbController
       .connect(projectOwner)
-      .launchProjectFor(
-        projectOwner.address,
-        [METADATA_CID, METADATA_DOMAIN],
+      .launchFundingCycleFor(
+        EXISTING_PROJECT,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
         PROJECT_START,
@@ -403,7 +421,7 @@ describe('JBController::launchProjectFor(...)', function () {
     await expect(tx).to.be.revertedWith(errors.INVALID_BALLOT_REDEMPTION_RATE);
   });
 
-  it(`Can't launch a project with distribution limit larger than uint248`, async function () {
+  it(`Can't be called for a non-existant project`, async function () {
     const {
       jbController,
       projectOwner,
@@ -413,19 +431,14 @@ describe('JBController::launchProjectFor(...)', function () {
       mockJbTerminal1,
       mockJbTerminal2,
     } = await setup();
-
     const groupedSplits = [{ group: 1, splits }];
     const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
-    const fundAccessConstraints = makeFundingAccessConstraints({
-      terminals,
-      distributionLimit: ethers.constants.MaxUint256, // Should be too large
-    });
+    const fundAccessConstraints = makeFundingAccessConstraints({ terminals });
 
     let tx = jbController
       .connect(projectOwner)
-      .launchProjectFor(
-        projectOwner.address,
-        [METADATA_CID, METADATA_DOMAIN],
+      .callStatic.launchFundingCycleFor(
+        NONEXISTANT_PROJECT,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
         PROJECT_START,
@@ -434,10 +447,49 @@ describe('JBController::launchProjectFor(...)', function () {
         terminals,
       );
 
-    await expect(tx).to.be.revertedWith(errors.BAD_DISTRIBUTION_LIMIT);
+    await expect(tx).to.be.reverted;
   });
 
-  it(`Can't launch a project with distribution limit currency larger than uint8`, async function () {
+  it(`Can't be called for a project by a non-owner`, async function () {
+    const {
+      jbController,
+      projectOwner,
+      nonOwner,
+      fundingCycleData,
+      fundingCycleMetadata,
+      splits,
+      mockJbTerminal1,
+      mockJbTerminal2,
+      mockJbOperatorStore
+    } = await setup();
+    const groupedSplits = [{ group: 1, splits }];
+    const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
+    const fundAccessConstraints = makeFundingAccessConstraints({ terminals });
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(nonOwner.address, projectOwner.address, EXISTING_PROJECT, RECONFIGURE_INDEX)
+      .returns(false);
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(nonOwner.address, projectOwner.address, 0, RECONFIGURE_INDEX)
+      .returns(false);
+
+    let tx = jbController
+      .connect(nonOwner)
+      .callStatic.launchFundingCycleFor(
+        EXISTING_PROJECT,
+        fundingCycleData,
+        fundingCycleMetadata.unpacked,
+        PROJECT_START,
+        groupedSplits,
+        fundAccessConstraints,
+        terminals,
+      );
+
+    await expect(tx).to.be.revertedWith(errors.UNAUTHORIZED);
+  });
+
+  it(`Can't launch for a project with an existing funding cycle`, async function () {
     const {
       jbController,
       projectOwner,
@@ -447,19 +499,14 @@ describe('JBController::launchProjectFor(...)', function () {
       mockJbTerminal1,
       mockJbTerminal2,
     } = await setup();
-
     const groupedSplits = [{ group: 1, splits }];
     const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
-    const fundAccessConstraints = makeFundingAccessConstraints({
-      terminals,
-      distributionLimitCurrency: ethers.constants.MaxUint256, // Should be too large
-    });
+    const fundAccessConstraints = makeFundingAccessConstraints({ terminals });
 
     let tx = jbController
       .connect(projectOwner)
-      .launchProjectFor(
-        projectOwner.address,
-        [METADATA_CID, METADATA_DOMAIN],
+      .callStatic.launchFundingCycleFor(
+        LAUNCHED_PROJECT,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
         PROJECT_START,
@@ -468,74 +515,6 @@ describe('JBController::launchProjectFor(...)', function () {
         terminals,
       );
 
-    await expect(tx).to.be.revertedWith(errors.BAD_DISTRIBUTION_LIMIT_CURRENCY);
+    await expect(tx).to.be.revertedWith(errors.FUNDING_CYCLE_ALREADY_LAUNCHED);
   });
-
-  it(`Can't launch a project with overflow allowance larger than uint248`, async function () {
-    const {
-      jbController,
-      projectOwner,
-      fundingCycleData,
-      fundingCycleMetadata,
-      splits,
-      mockJbTerminal1,
-      mockJbTerminal2,
-    } = await setup();
-
-    const groupedSplits = [{ group: 1, splits }];
-    const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
-    const fundAccessConstraints = makeFundingAccessConstraints({
-      terminals,
-      overflowAllowance: ethers.constants.MaxUint256, // Should be too large
-    });
-
-    let tx = jbController
-      .connect(projectOwner)
-      .launchProjectFor(
-        projectOwner.address,
-        [METADATA_CID, METADATA_DOMAIN],
-        fundingCycleData,
-        fundingCycleMetadata.unpacked,
-        PROJECT_START,
-        groupedSplits,
-        fundAccessConstraints,
-        terminals,
-      );
-
-    await expect(tx).to.be.revertedWith(errors.BAD_OVERFLOW_ALLOWANCE);
-  });
-
-  it(`Can't launch a project with overflow allowance currency larger than uint8`, async function () {
-    const {
-      jbController,
-      projectOwner,
-      fundingCycleData,
-      fundingCycleMetadata,
-      splits,
-      mockJbTerminal1,
-      mockJbTerminal2,
-    } = await setup();
-
-    const groupedSplits = [{ group: 1, splits }];
-    const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
-    const fundAccessConstraints = makeFundingAccessConstraints({
-      terminals,
-      overflowAllowanceCurrency: ethers.constants.MaxUint256, // Should be too large
-    });
-
-    let tx = jbController
-      .connect(projectOwner)
-      .launchProjectFor(
-        projectOwner.address,
-        [METADATA_CID, METADATA_DOMAIN],
-        fundingCycleData,
-        fundingCycleMetadata.unpacked,
-        PROJECT_START,
-        groupedSplits,
-        fundAccessConstraints,
-        terminals,
-      );
-
-    await expect(tx).to.be.revertedWith(errors.BAD_OVERFLOW_ALLOWANCE_CURRENCY);
-  });
-});
+})

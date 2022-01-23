@@ -45,12 +45,6 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   */
   mapping(uint256 => mapping(address => IJBTerminal)) private _primaryTerminalOf;
 
-  /**
-    @notice
-    Addresses that can set a project's controller. These addresses/contracts have been vetted and verified by Juicebox owners.
-   */
-  mapping(address => bool) private _setControllerAllowlist;
-
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
@@ -64,6 +58,12 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
+
+  /**
+    @notice
+    Addresses that can set a project's controller. These addresses/contracts have been vetted and verified by Juicebox owners.
+   */
+  mapping(address => bool) public override isAllowedToSetController;
 
   /** 
     @notice 
@@ -161,18 +161,6 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     return IJBTerminal(address(0));
   }
 
-  /**
-    @notice
-    Whether or not a specified address is allowed to set controllers.
-
-    @param _address the address to check
-
-    @return A flag indicating whether or not the specified address can change controllers.
-  */
-  function isAllowedToSetController(address _address) public view override returns (bool) {
-    return _setControllerAllowlist[_address];
-  }
-
   //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
@@ -202,7 +190,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
       projects.ownerOf(_projectId),
       _projectId,
       JBOperations.SET_CONTROLLER,
-      (_setControllerAllowlist[address(_controller)] && _setControllerAllowlist[msg.sender])
+      (isAllowedToSetController[address(_controller)] && isAllowedToSetController[msg.sender])
     )
   {
     // Can't set the zero address.
@@ -334,12 +322,12 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   */
   function addToSetControllerAllowlist(address _address) external override onlyOwner {
     // Check that the address is not already in the allowlist.
-    if (_setControllerAllowlist[_address]) {
+    if (isAllowedToSetController[_address]) {
       revert CONTROLLER_ALREADY_IN_ALLOWLIST();
     }
 
     // Add the address to the allowlist.
-    _setControllerAllowlist[_address] = true;
+    isAllowedToSetController[_address] = true;
 
     emit AddToSetControllerAllowlist(_address, msg.sender);
   }
@@ -352,12 +340,12 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   */
   function removeFromSetControllerAllowlist(address _address) external override onlyOwner {
     // Check that the address is in the allowlist.
-    if (!_setControllerAllowlist[_address]) {
+    if (!isAllowedToSetController[_address]) {
       revert CONTROLLER_NOT_IN_ALLOWLIST();
     }
 
     // Remove the address from the allowlist.
-    delete _setControllerAllowlist[_address];
+    delete isAllowedToSetController[_address];
 
     emit RemoveFromSetControllerAllowlist(_address, msg.sender);
   }
