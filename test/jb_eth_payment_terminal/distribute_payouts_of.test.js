@@ -736,7 +736,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
         /*_amount*/ AMOUNT_DISTRIBUTED,
         /*_distributedAmount*/ AMOUNT_DISTRIBUTED,
         /*_feeAmount*/ FEE_AMOUNT,
-        /*_leftoverDistributionAmount*/ 1, // Rounding
+        /*_leftoverDistributionAmount*/ 0,
         MEMO,
         caller.address,
       );
@@ -758,7 +758,6 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
     } = await setup();
 
     const AMOUNT_MINUS_FEES =  Math.floor( (AMOUNT_DISTRIBUTED * 200) / (200 + DEFAULT_FEE) );
-    const FEE_AMOUNT = AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES;
 
     const splits = makeSplits({
       count: 2,

@@ -40,5 +40,5 @@ library JBConstants {
     @notice
     Maximum discount on fee granted by a gauge.
   */
-  uint256 public constant MAX_FEE_DISCOUNT = 1000000;
+  uint256 public constant MAX_FEE_DISCOUNT = 1000000000;
 }
