@@ -676,8 +676,8 @@ contract JBETHPaymentTerminal is
     if (feeAmount == 0) return 0;
 
     _fundingCycle.shouldHoldFees()
-      ? _heldFeesOf[_projectId].push(JBFee(_amount, uint8(fee), _beneficiary)) // Take the fee.
-      : _takeFee(feeAmount, _beneficiary);
+      ? _heldFeesOf[_projectId].push(JBFee(_amount, uint8(fee), _beneficiary))
+      : _takeFee(feeAmount, _beneficiary); // Take the fee.
   }
 
   /**

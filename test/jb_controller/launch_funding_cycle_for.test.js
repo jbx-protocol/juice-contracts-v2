@@ -20,12 +20,14 @@ describe('JBController::launchFundingCycleFor(...)', function () {
   const METADATA_CID = '';
   const METADATA_DOMAIN = 1234;
   const PROJECT_START = '1';
+  let RECONFIGURE_INDEX;
   let MIGRATE_CONTROLLER_INDEX;
 
   before(async function () {
     let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
     let jbOperations = await jbOperationsFactory.deploy();
 
+    RECONFIGURE_INDEX = await jbOperations.RECONFIGURE();
     MIGRATE_CONTROLLER_INDEX = await jbOperations.MIGRATE_CONTROLLER();
   });
 
@@ -451,16 +453,26 @@ describe('JBController::launchFundingCycleFor(...)', function () {
   it(`Can't be called for a project by a non-owner`, async function () {
     const {
       jbController,
+      projectOwner,
       nonOwner,
       fundingCycleData,
       fundingCycleMetadata,
       splits,
       mockJbTerminal1,
       mockJbTerminal2,
+      mockJbOperatorStore
     } = await setup();
     const groupedSplits = [{ group: 1, splits }];
     const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
     const fundAccessConstraints = makeFundingAccessConstraints({ terminals });
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(nonOwner.address, projectOwner.address, EXISTING_PROJECT, RECONFIGURE_INDEX)
+      .returns(false);
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(nonOwner.address, projectOwner.address, 0, RECONFIGURE_INDEX)
+      .returns(false);
 
     let tx = jbController
       .connect(nonOwner)
@@ -474,7 +486,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
         terminals,
       );
 
-    await expect(tx).to.be.revertedWith(errors.CALLER_NOT_PROJECT_OWNER);
+    await expect(tx).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 
   it(`Can't launch for a project with an existing funding cycle`, async function () {
@@ -503,6 +515,6 @@ describe('JBController::launchFundingCycleFor(...)', function () {
         terminals,
       );
 
-    await expect(tx).to.be.revertedWith(errors.PROJECT_ALREADY_LAUNCHED);
+    await expect(tx).to.be.revertedWith(errors.FUNDING_CYCLE_ALREADY_LAUNCHED);
   });
 })

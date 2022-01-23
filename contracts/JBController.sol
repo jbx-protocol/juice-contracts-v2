@@ -35,9 +35,9 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 //*********************************************************************//
 error BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE();
 error CALLER_NOT_CURRENT_CONTROLLER();
-error CALLER_NOT_PROJECT_OWNER();
 error CANT_MIGRATE_TO_CURRENT_CONTROLLER();
 error CHANGE_TOKEN_NOT_ALLOWED();
+error FUNDING_CYCLE_ALREADY_LAUNCHED();
 error INVALID_BALLOT_REDEMPTION_RATE();
 error INVALID_RESERVED_RATE();
 error INVALID_RESERVED_RATE_AND_BENEFICIARY_ZERO_ADDRESS();
@@ -45,7 +45,6 @@ error INVALID_REDEMPTION_RATE();
 error MIGRATION_NOT_ALLOWED();
 error MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE();
 error NO_BURNABLE_TOKENS();
-error PROJECT_ALREADY_LAUNCHED();
 error ZERO_TOKENS_TO_MINT();
 
 /**
@@ -401,7 +400,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     @dev
     Can only be called by the ERC-721 token holder.
 
-    @param projectId The ID of the existing project ERC-721.
+    @param _projectId The ID of the existing project ERC-721.
     @param _data A JBFundingCycleData data structure that defines the project's first funding cycle. These properties will remain fixed for the duration of the funding cycle.
       @dev _data.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
       @dev _data.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
@@ -442,27 +441,28 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
    */
 
   function launchFundingCycleFor(
-    uint256 projectId,
+    uint256 _projectId,
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
     uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
     IJBTerminal[] memory _terminals
-  ) external returns (uint256 configuration) {
-    // Check the project exists and is owned by msg.sender
-    if (msg.sender != projects.ownerOf(projectId)) revert CALLER_NOT_PROJECT_OWNER();
-
+  )
+    external
+    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
+    returns (uint256 configuration)
+  {
     // If there is a previous configuration, reconfigureFundingCyclesOf should be called instead
-    if (fundingCycleStore.latestConfigurationOf(projectId) != 0) {
-      revert PROJECT_ALREADY_LAUNCHED();
+    if (fundingCycleStore.latestConfigurationOf(_projectId) != 0) {
+      revert FUNDING_CYCLE_ALREADY_LAUNCHED();
     }
 
     // Set this contract as the project's controller in the directory.
-    directory.setControllerOf(projectId, this);
+    directory.setControllerOf(_projectId, this);
 
     configuration = _configure(
-      projectId,
+      _projectId,
       _data,
       _metadata,
       _mustStartAtOrAfter,
@@ -471,7 +471,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     );
 
     // Add the provided terminals to the list of terminals.
-    if (_terminals.length > 0) directory.addTerminalsOf(projectId, _terminals);
+    if (_terminals.length > 0) directory.addTerminalsOf(_projectId, _terminals);
   }
 
   /**
