@@ -10,6 +10,7 @@ import errors from '../helpers/errors.json';
 describe('JBProjects::challengeHandle(...)', function () {
   const PROJECT_HANDLE_1 = 'PROJECT_1';
   const METADATA_CID = '';
+  const METADATA_DOMAIN = 1234;
   const PROJECT_ID_1 = 1;
 
   async function setup() {
@@ -36,7 +37,10 @@ describe('JBProjects::challengeHandle(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN
+        ]
       );
 
     let tx = await jbProjectsStore
@@ -77,7 +81,10 @@ describe('JBProjects::challengeHandle(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN
+        ]
       );
 
     await jbProjectsStore

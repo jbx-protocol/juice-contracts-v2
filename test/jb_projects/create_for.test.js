@@ -7,6 +7,7 @@ describe('JBProjects::createFor(...)', function () {
   const PROJECT_HANDLE_2 = 'PROJECT_2';
   const PROJECT_HANDLE_EMPTY = '';
   const METADATA_CID = 'QmThsKQpFBQicz3t3SU9rRz3GV81cwjnWsBBLxzznRNvpa';
+  const METADATA_DOMAIN = 1234;
   const PROJECT_ID_1 = 1;
   const PROJECT_ID_2 = 2;
 
@@ -35,14 +36,17 @@ describe('JBProjects::createFor(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN
+        ]
       );
 
     let storedHandle = await jbProjectsStore.connect(deployer).handleOf(PROJECT_ID_1);
     let storedProjectId = await jbProjectsStore
       .connect(deployer)
       .idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
-    let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataCidOf(PROJECT_ID_1);
+    let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataCidOf(PROJECT_ID_1, METADATA_DOMAIN);
 
     await expect(storedHandle).to.equal(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
     await expect(storedProjectId).to.equal(PROJECT_ID_1);
@@ -54,7 +58,10 @@ describe('JBProjects::createFor(...)', function () {
         PROJECT_ID_1,
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN
+        ],
         deployer.address,
       );
   });
@@ -67,7 +74,10 @@ describe('JBProjects::createFor(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN
+        ],
       );
 
     let tx = await jbProjectsStore
@@ -75,7 +85,10 @@ describe('JBProjects::createFor(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN
+        ],
       );
 
     let storedId1 = await jbProjectsStore
@@ -94,7 +107,10 @@ describe('JBProjects::createFor(...)', function () {
         2,
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN
+        ],
         deployer.address,
       );
   });
@@ -108,7 +124,10 @@ describe('JBProjects::createFor(...)', function () {
         .createFor(
           projectOwner.address,
           ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
-          METADATA_CID,
+          [
+            METADATA_CID,
+            METADATA_DOMAIN
+          ],
         ),
     ).to.be.revertedWith(errors.HANDLE_EMPTY);
   });
@@ -121,7 +140,10 @@ describe('JBProjects::createFor(...)', function () {
       .createFor(
         projectOwner.address,
         ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        METADATA_CID,
+        [
+          METADATA_CID,
+          METADATA_DOMAIN
+        ],
       );
 
     await expect(
@@ -130,7 +152,10 @@ describe('JBProjects::createFor(...)', function () {
         .createFor(
           projectOwner.address,
           ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-          METADATA_CID,
+          [
+            METADATA_CID,
+            METADATA_DOMAIN
+          ],
         ),
     ).to.be.revertedWith(errors.HANDLE_TAKEN);
   });
