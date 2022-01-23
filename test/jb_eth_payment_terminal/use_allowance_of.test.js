@@ -337,12 +337,12 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
       timestamp,
     } = await setup();
 
-    const DISCOUNTED_FEE = DEFAULT_FEE - Math.floor( (DEFAULT_FEE * FEE_DISCOUNT) / MAX_FEE_DISCOUNT );
-    const AMOUNT_MINUS_DISCOUNTED_FEES =  Math.floor( (AMOUNT * 200) / (200 + DISCOUNTED_FEE) );
+    const DISCOUNTED_FEE = DEFAULT_FEE - Math.floor((DEFAULT_FEE * FEE_DISCOUNT) / MAX_FEE_DISCOUNT);
+    const AMOUNT_MINUS_DISCOUNTED_FEES = Math.floor((AMOUNT * 200) / (200 + DISCOUNTED_FEE));
 
     await mockJbFeeGauge.mock.currentDiscountFor
-     .withArgs(PROJECT_ID)
-     .returns(FEE_DISCOUNT);
+      .withArgs(PROJECT_ID)
+      .returns(FEE_DISCOUNT);
 
     await mockJbEthPaymentTerminalStore.mock.recordUsedAllowanceOf
       .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT)
@@ -355,7 +355,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
         JUICEBOX_PROJECT_ID,
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
         /* minReturnedTokens */ 0,
-        /* memo */ 'Fee from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+        /* memo */ '',
         /* delegateMetadata */ '0x',
       )
       .returns(fundingCycle, WEIGHT, AMOUNT, MEMO);
@@ -422,8 +422,8 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
     } = await setup();
 
     await mockJbFeeGauge.mock.currentDiscountFor
-    .withArgs(PROJECT_ID)
-    .returns(MAX_FEE_DISCOUNT + 1);
+      .withArgs(PROJECT_ID)
+      .returns(MAX_FEE_DISCOUNT + 1);
 
     await mockJbEthPaymentTerminalStore.mock.recordUsedAllowanceOf
       .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT)
@@ -436,7 +436,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
         JUICEBOX_PROJECT_ID,
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
         /* minReturnedTokens */ 0,
-        /* memo */ 'Fee from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+        /* memo */ '',
         /* delegateMetadata */ '0x',
       )
       .returns(fundingCycle, WEIGHT, AMOUNT, MEMO);

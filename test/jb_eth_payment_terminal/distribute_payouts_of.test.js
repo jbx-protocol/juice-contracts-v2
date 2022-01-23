@@ -546,7 +546,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       splits.map(async (split) => {
         await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
           .withArgs(
-            projectOwner.address,
+            jbEthPaymentTerminal.address,
           /*amount paid*/Math.floor((AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT),
             split.projectId,
             /*preferedCLaimed | uint160(beneficiary)<<1 and preferedClaimed=false hard coded*/
@@ -669,7 +669,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
         projectOwner.address,
         0,
         /*preferedClaimedToken*/false,
-        'Fee from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+        '',
         '0x',
       )
       .returns();
@@ -682,7 +682,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
             split.beneficiary,
             0,
             split.preferClaimed,
-            'Payout from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+            '',
             '0x',
           )
           .returns();
@@ -780,7 +780,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
         projectOwner.address,
         0,
         /*preferedClaimedToken*/false,
-        'Fee from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+        '',
         '0x',
       )
       .returns();
@@ -793,7 +793,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
             split.beneficiary,
             0,
             split.preferClaimed,
-            'Payout from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+            '',
             '0x',
           )
           .returns();
@@ -1052,7 +1052,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       splits.map(async (split) => {
         await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
           .withArgs(
-            projectOwner.address,
+            jbEthPaymentTerminal.address,
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             split.projectId,
             ethers.BigNumber.from(split.preferClaimed == true ? 1 : 0).or(

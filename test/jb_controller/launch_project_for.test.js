@@ -425,7 +425,6 @@ describe('JBController::launchProjectFor(...)', function () {
       .connect(projectOwner)
       .launchProjectFor(
         projectOwner.address,
-        PROJECT_HANDLE,
         [METADATA_CID, METADATA_DOMAIN],
         fundingCycleData,
         fundingCycleMetadata.unpacked,
@@ -460,7 +459,6 @@ describe('JBController::launchProjectFor(...)', function () {
       .connect(projectOwner)
       .launchProjectFor(
         projectOwner.address,
-        PROJECT_HANDLE,
         [METADATA_CID, METADATA_DOMAIN],
         fundingCycleData,
         fundingCycleMetadata.unpacked,
@@ -495,7 +493,6 @@ describe('JBController::launchProjectFor(...)', function () {
       .connect(projectOwner)
       .launchProjectFor(
         projectOwner.address,
-        PROJECT_HANDLE,
         [METADATA_CID, METADATA_DOMAIN],
         fundingCycleData,
         fundingCycleMetadata.unpacked,
@@ -530,7 +527,6 @@ describe('JBController::launchProjectFor(...)', function () {
       .connect(projectOwner)
       .launchProjectFor(
         projectOwner.address,
-        PROJECT_HANDLE,
         [METADATA_CID, METADATA_DOMAIN],
         fundingCycleData,
         fundingCycleMetadata.unpacked,
