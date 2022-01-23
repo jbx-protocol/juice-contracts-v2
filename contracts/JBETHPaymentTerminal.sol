@@ -63,6 +63,10 @@ contract JBETHPaymentTerminal is
   */
   uint256 private constant _MAX_FEE = 10;
 
+  //*********************************************************************//
+  // --------------------- private stored properties ------------------- //
+  //*********************************************************************//
+
   /**
     @notice
     Fees that are being held to be processed later.
