@@ -17,7 +17,6 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
   const AMOUNT_MINUS_FEES = Math.floor((AMOUNT * 200) / (DEFAULT_FEE + 200));
 
   const FUNDING_CYCLE_NUM = 1;
-  const HANDLE = ethers.utils.formatBytes32String('PROJECT_HANDLE');
   const JUICEBOX_PROJECT_ID = 1;
   const MEMO = 'test memo';
   const PADDING = '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00';
@@ -79,7 +78,6 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
     const ETH_ADDRESS = await jbToken.ETH();
 
     await mockJbProjects.mock.ownerOf.returns(projectOwner.address);
-    await mockJbProjects.mock.handleOf.returns(HANDLE);
 
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(
@@ -264,7 +262,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
         JUICEBOX_PROJECT_ID,
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
         /* minReturnedTokens */ 0,
-        /* memo */ 'Fee from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+        /* memo */ '' + PADDING,
         /* delegateMetadata */ '0x',
       )
       .returns(fundingCycle, WEIGHT, AMOUNT, MEMO);
@@ -349,7 +347,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
         JUICEBOX_PROJECT_ID,
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
         /* minReturnedTokens */ 0,
-        /* memo */ 'Fee from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+        /* memo */ '' + PADDING,
         /* delegateMetadata */ '0x',
       )
       .returns(newFundingCycle, WEIGHT, AMOUNT, MEMO);
@@ -381,7 +379,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
         ethers.BigNumber.from(AMOUNT),
         DEFAULT_FEE,
         projectOwner.address,
-        'Fee from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+        '' + PADDING,
       ],
     ]);
 
@@ -397,7 +395,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
     //       ethers.BigNumber.from(AMOUNT),
     //       DEFAULT_FEE,
     //       projectOwner.address,
-    //       'Fee from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+    //       '' + PADDING,
     //     ],
     //   ],
     //   projectOwner.address,

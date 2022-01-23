@@ -31,13 +31,6 @@ describe('JBProjects::createFor(...)', function () {
       .connect(deployer)
       .createFor(
         projectOwner.address,
-<<<<<<< HEAD
-        METADATA_CID,
-      );
-
-    let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataCidOf(PROJECT_ID_1);
-=======
-        ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         [
           METADATA_CID,
           METADATA_DOMAIN
@@ -49,7 +42,6 @@ describe('JBProjects::createFor(...)', function () {
       .connect(deployer)
       .idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
     let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataCidOf(PROJECT_ID_1, METADATA_DOMAIN);
->>>>>>> main
 
     await expect(storedMetadataCid).to.equal(METADATA_CID);
 
@@ -58,15 +50,10 @@ describe('JBProjects::createFor(...)', function () {
       .withArgs(
         PROJECT_ID_1,
         projectOwner.address,
-<<<<<<< HEAD
-        METADATA_CID,
-=======
-        ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         [
           METADATA_CID,
           METADATA_DOMAIN
         ],
->>>>>>> main
         deployer.address,
       );
   });
@@ -78,30 +65,20 @@ describe('JBProjects::createFor(...)', function () {
       .connect(deployer)
       .createFor(
         projectOwner.address,
-<<<<<<< HEAD
-        METADATA_CID,
-=======
-        ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
         [
           METADATA_CID,
           METADATA_DOMAIN
         ],
->>>>>>> main
       );
 
     let tx = await jbProjectsStore
       .connect(deployer)
       .createFor(
         projectOwner.address,
-<<<<<<< HEAD
-        METADATA_CID,
-=======
-        ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
         [
           METADATA_CID,
           METADATA_DOMAIN
         ],
->>>>>>> main
       );
 
     await expect(tx)
@@ -109,13 +86,6 @@ describe('JBProjects::createFor(...)', function () {
       .withArgs(
         PROJECT_ID_2,
         projectOwner.address,
-<<<<<<< HEAD
-        METADATA_CID,
-        deployer.address,
-      );
-  });
-=======
-        ethers.utils.formatBytes32String(PROJECT_HANDLE_2),
         [
           METADATA_CID,
           METADATA_DOMAIN
@@ -168,5 +138,4 @@ describe('JBProjects::createFor(...)', function () {
         ),
     ).to.be.revertedWith(errors.HANDLE_TAKEN);
   });
->>>>>>> main
 });

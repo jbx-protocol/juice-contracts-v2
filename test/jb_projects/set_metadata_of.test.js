@@ -5,12 +5,7 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 
-<<<<<<< HEAD
-describe('JBProjects::setMetadataCidOf(...)', function () {
-=======
 describe('JBProjects::setMetadataOf(...)', function () {
-  const PROJECT_HANDLE = 'PROJECT_1';
->>>>>>> main
   const METADATA_CID = '';
   const METADATA_DOMAIN = 1234;
   const METADATA_CID_2 = 'ipfs://randommetadatacidipsaddress';
@@ -49,15 +44,10 @@ describe('JBProjects::setMetadataOf(...)', function () {
       .connect(deployer)
       .createFor(
         projectOwner.address,
-<<<<<<< HEAD
-        METADATA_CID,
-=======
-        ethers.utils.formatBytes32String(PROJECT_HANDLE),
         [
           METADATA_CID,
           METADATA_DOMAIN
         ]
->>>>>>> main
       );
 
     let tx = await jbProjectsStore
@@ -79,15 +69,10 @@ describe('JBProjects::setMetadataOf(...)', function () {
       .connect(deployer)
       .createFor(
         projectOwner.address,
-<<<<<<< HEAD
-        METADATA_CID,
-=======
-        ethers.utils.formatBytes32String(PROJECT_HANDLE),
         [
           METADATA_CID,
           METADATA_DOMAIN
         ]
->>>>>>> main
       );
 
     await mockJbOperatorStore.mock.hasPermission
@@ -110,12 +95,7 @@ describe('JBProjects::setMetadataOf(...)', function () {
       .connect(deployer)
       .createFor(
         projectOwner.address,
-<<<<<<< HEAD
-        METADATA_CID,
-=======
-        ethers.utils.formatBytes32String(PROJECT_HANDLE),
         [METADATA_CID, METADATA_DOMAIN]
->>>>>>> main
       );
 
     await mockJbOperatorStore.mock.hasPermission
