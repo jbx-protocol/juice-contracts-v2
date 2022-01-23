@@ -1223,7 +1223,8 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     });
   });
 
-  it("Should hold off on using a reconfigured funding cycle if the current cycle's ballot duration doesn't end until after the current cycle is over", async function () {
+  it.only("Should hold off on using a reconfigured funding cycle if the current cycle's ballot duration doesn't end until after the current cycle is over", async function () {
+
     const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore, addrs } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
@@ -1261,8 +1262,8 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight.add(1),
     });
 
-    // Set the ballot to have a duration as long as the funding cycle.
-    await mockBallot.mock.duration.returns(firstFundingCycleData.duration);
+    // Set the ballot to have a duration longer than the funding cycle.
+    await mockBallot.mock.duration.returns(firstFundingCycleData.duration.add(1));
 
     // Ballot status should be approved.
     expect(await jbFundingCycleStore.currentBallotStateOf(PROJECT_ID)).to.eql(0);

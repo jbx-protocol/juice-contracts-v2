@@ -17,6 +17,8 @@ import './libraries/JBConstants.sol';
 error ALLOCATOR_AND_BENEFICIARY_ZERO_ADDRESS();
 error INVALID_SPLIT_PERCENT();
 error INVALID_TOTAL_PERCENT();
+error INVALID_PROJECT_ID();
+error INVALID_LOCKED_UNTIL();
 error PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();
 
 /**
@@ -191,6 +193,10 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
       if (_splits[_i].percent == 0) {
         revert INVALID_SPLIT_PERCENT();
       }
+      // ProjectId should be within a uint56
+      if (_splits[_i].projectId > type(uint56).max) {
+        revert INVALID_PROJECT_ID();
+      }
 
       // The allocator and the beneficiary shouldn't both be the zero address.
       if (
@@ -218,6 +224,10 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
 
       // If there's data to store in the second packed split part, pack and store.
       if (_splits[_i].lockedUntil > 0 || _splits[_i].allocator != IJBSplitAllocator(address(0))) {
+        // Locked until should be within a uint48
+        if (_splits[_i].lockedUntil > type(uint48).max) {
+          revert INVALID_LOCKED_UNTIL();
+        }
         uint256 _packedSplitParts2 = uint48(_splits[_i].lockedUntil);
         _packedSplitParts2 |= uint256(uint160(address(_splits[_i].allocator))) << 48;
         _packedSplitParts2Of[_projectId][_domain][_group][_i] = _packedSplitParts2;

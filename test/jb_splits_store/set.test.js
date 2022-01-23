@@ -246,6 +246,26 @@ describe('JBSplitsStore::set(...)', function () {
     ).to.be.revertedWith(errors.INVALID_TOTAL_PERCENT);
   });
 
+  it("Can't set splits if the projectId is greater than 2^56", async function () {
+    const { projectOwner, jbSplitsStore, splits } = await setup();
+
+    splits[0].projectId = ethers.BigNumber.from(2).pow(56);
+
+    await expect(
+      jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits),
+    ).to.be.revertedWith(errors.INVALID_PROJECT_ID);
+  });
+
+  it("Can't set splits if the lockedUntil is greater than 2^48", async function () {
+    const { projectOwner, jbSplitsStore, splits } = await setup();
+
+    splits[0].lockedUntil = ethers.BigNumber.from(2).pow(48);
+
+    await expect(
+      jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits),
+    ).to.be.revertedWith(errors.INVALID_LOCKED_UNTIL);
+  });
+
   it('Should set splits if controller', async function () {
     const {
       addrs,
