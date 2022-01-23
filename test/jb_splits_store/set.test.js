@@ -155,6 +155,25 @@ describe('JBSplitsStore::set(...)', function () {
     let splitsStored = cleanSplits(await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP));
     expect(splitsStored).to.eql(newSplits);
   });
+  it('Should set splits overriding ones with a set allocator or lockedUntil timestamp', async function () {
+    const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore, mockJbDirectory } =
+      await setup();
+
+    await mockJbOperatorStore.mock.hasPermission.returns(false);
+    await mockJbDirectory.mock.controllerOf.returns(addrs[0].address);
+
+    // Set one locked split
+    splits[1].allocator = addrs[4].address;
+
+    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits);
+
+    // Set one locked split
+    splits[1].allocator = ethers.constants.AddressZero;
+    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits);
+
+    let splitsStored = cleanSplits(await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP));
+    expect(splitsStored).to.eql(splits);
+  });
 
   it("Can't set new splits without including a preexisting locked one", async function () {
     const { projectOwner, addrs, jbSplitsStore, splits } = await setup();

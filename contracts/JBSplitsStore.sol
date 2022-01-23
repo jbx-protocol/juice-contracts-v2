@@ -256,9 +256,6 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     // Initialize an array to be returned that has the set length.
     JBSplit[] memory _splits = new JBSplit[](_numSplits);
 
-    // Return an empty splits if the projectId, domain, or group specified is 0.
-    if (_projectId == 0 || _domain == 0 || _group == 0) return _splits;
-
     // Loop throuhgh each split and unpack the values into structs.
     for (uint256 _i = 0; _i < _numSplits; _i++) {
       // Get a reference to the fist packed data.
