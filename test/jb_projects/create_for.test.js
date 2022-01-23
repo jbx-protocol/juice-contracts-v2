@@ -37,10 +37,6 @@ describe('JBProjects::createFor(...)', function () {
         ]
       );
 
-    let storedHandle = await jbProjectsStore.connect(deployer).handleOf(PROJECT_ID_1);
-    let storedProjectId = await jbProjectsStore
-      .connect(deployer)
-      .idFor(ethers.utils.formatBytes32String(PROJECT_HANDLE_1));
     let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataCidOf(PROJECT_ID_1, METADATA_DOMAIN);
 
     await expect(storedMetadataCid).to.equal(METADATA_CID);
@@ -92,50 +88,5 @@ describe('JBProjects::createFor(...)', function () {
         ],
         deployer.address,
       );
-  });
-
-  it(`Can't create project if has an empty handle`, async function () {
-    const { projectOwner, deployer, jbProjectsStore } = await setup();
-
-    await expect(
-      jbProjectsStore
-        .connect(deployer)
-        .createFor(
-          projectOwner.address,
-          ethers.utils.formatBytes32String(PROJECT_HANDLE_EMPTY),
-          [
-            METADATA_CID,
-            METADATA_DOMAIN
-          ],
-        ),
-    ).to.be.revertedWith(errors.HANDLE_EMPTY);
-  });
-
-  it(`Can't create if handle taken already`, async function () {
-    const { projectOwner, deployer, jbProjectsStore } = await setup();
-
-    await jbProjectsStore
-      .connect(deployer)
-      .createFor(
-        projectOwner.address,
-        ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-        [
-          METADATA_CID,
-          METADATA_DOMAIN
-        ],
-      );
-
-    await expect(
-      jbProjectsStore
-        .connect(deployer)
-        .createFor(
-          projectOwner.address,
-          ethers.utils.formatBytes32String(PROJECT_HANDLE_1),
-          [
-            METADATA_CID,
-            METADATA_DOMAIN
-          ],
-        ),
-    ).to.be.revertedWith(errors.HANDLE_TAKEN);
   });
 });

@@ -19,7 +19,6 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
   const FUNDING_CYCLE_NUM = 1;
   const JUICEBOX_PROJECT_ID = 1;
   const MEMO = 'test memo';
-  const PADDING = '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00';
   const PROJECT_ID = 13;
   const WEIGHT = 1000;
 
@@ -262,7 +261,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
         JUICEBOX_PROJECT_ID,
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
         /* minReturnedTokens */ 0,
-        /* memo */ '' + PADDING,
+        /* memo */ '',
         /* delegateMetadata */ '0x',
       )
       .returns(fundingCycle, WEIGHT, AMOUNT, MEMO);
@@ -347,7 +346,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
         JUICEBOX_PROJECT_ID,
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
         /* minReturnedTokens */ 0,
-        /* memo */ '' + PADDING,
+        /* memo */ '',
         /* delegateMetadata */ '0x',
       )
       .returns(newFundingCycle, WEIGHT, AMOUNT, MEMO);
@@ -379,7 +378,6 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
         ethers.BigNumber.from(AMOUNT),
         DEFAULT_FEE,
         projectOwner.address,
-        '' + PADDING,
       ],
     ]);
 
@@ -395,7 +393,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
     //       ethers.BigNumber.from(AMOUNT),
     //       DEFAULT_FEE,
     //       projectOwner.address,
-    //       '' + PADDING,
+    //       '',
     //     ],
     //   ],
     //   projectOwner.address,

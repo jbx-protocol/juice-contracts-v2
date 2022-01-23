@@ -295,8 +295,7 @@ contract JBETHPaymentTerminal is
     uint256 _leftoverDistributionAmount = _distributeToPayoutSplitsOf(
       _projectId,
       _fundingCycle,
-      _distributedAmount - _feeAmount,
-      string(abi.encodePacked('Payout from @', Strings.toString(_projectId)))
+      _distributedAmount - _feeAmount
     );
 
     // Transfer any remaining balance to the project owner.
@@ -560,15 +559,13 @@ contract JBETHPaymentTerminal is
     @param _projectId The ID of the project for which payout splits are being distributed.
     @param _fundingCycle The funding cycle during which the distribution is being made.
     @param _amount The total amount being distributed.
-    @param _memo A memo to pass along to the emitted events.
 
     @return leftoverAmount If the leftover amount if the splits don't add up to 100%.
   */
   function _distributeToPayoutSplitsOf(
     uint256 _projectId,
     JBFundingCycle memory _fundingCycle,
-    uint256 _amount,
-    string memory _memo
+    uint256 _amount
   ) private returns (uint256 leftoverAmount) {
     // Set the leftover amount to the initial amount.
     leftoverAmount = _amount;
@@ -622,7 +619,7 @@ contract JBETHPaymentTerminal is
               _split.beneficiary,
               0,
               _split.preferClaimed,
-              _memo,
+              '',
               bytes('')
             );
           } else {
@@ -631,7 +628,7 @@ contract JBETHPaymentTerminal is
               _split.beneficiary,
               0,
               _split.preferClaimed,
-              _memo,
+              '',
               bytes('')
             );
           }

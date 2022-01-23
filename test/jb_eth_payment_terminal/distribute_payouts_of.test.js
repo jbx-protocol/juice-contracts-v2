@@ -25,8 +25,6 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
 
   const CURRENCY = 1;
   const MIN_TOKEN_REQUESTED = 180;
-  const HANDLE = ethers.utils.formatBytes32String('PROJECT_HANDLE');
-  const PADDING = '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00';
   const MEMO = 'Memo Test';
   let ETH_ADDRESS;
   let ETH_PAYOUT_INDEX;
@@ -391,7 +389,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       [
         ethers.BigNumber.from(AMOUNT_DISTRIBUTED),
         DEFAULT_FEE,
-        projectOwner.address
+        projectOwner.address,
       ],
     ]);
   });
@@ -405,9 +403,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       jbEthPaymentTerminal,
       timestamp,
       mockJbEthPaymentTerminal,
-      mockJbEthPaymentTerminalStore,
       mockJbDirectory,
-      mockJbProjects,
       mockJbSplitsStore,
     } = await setup();
     const AMOUNT_MINUS_FEES = Math.floor((AMOUNT_DISTRIBUTED * 200) / (DEFAULT_FEE + 200));
@@ -416,7 +412,6 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
       projectId: 1
     });
-    console.log('made splits')
 
     await mockJbSplitsStore.mock.splitsOf
       .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
@@ -432,32 +427,10 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
         projectOwner.address,
         0,
         /*preferedClaimedToken*/false,
-        'Fee from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+        '',
         '0x',
       )
       .returns();
-
-    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
-
-    await mockJbEthPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT_DISTRIBUTED, CURRENCY, MIN_TOKEN_REQUESTED)
-      .returns(
-        {
-          // mock JBFundingCycle obj
-          number: 1,
-          configuration: timestamp,
-          basedOn: timestamp,
-          start: timestamp,
-          duration: 0,
-          weight: 0,
-          discountRate: 0,
-          ballot: ethers.constants.AddressZero,
-          metadata: packFundingCycleMetadata({ holdFees: 0 }),
-        },
-        AMOUNT_DISTRIBUTED,
-      );
-
-    console.log('mocks')
 
     await Promise.all(
       splits.map(async (split) => {
@@ -467,13 +440,12 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
             split.beneficiary,
             0,
             split.preferClaimed,
-            'Payout from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+            '',
             '0x',
           )
           .returns();
       })
     )
-    console.log('promise all 1')
 
     let tx = await jbEthPaymentTerminal
       .connect(caller)
@@ -484,7 +456,6 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
-    console.log('distributed payments')
 
     await Promise.all(
       splits.map(async (split) => {
@@ -507,7 +478,6 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
           );
       }),
     );
-    console.log('promise all 2')
 
     expect(await tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
@@ -555,14 +525,14 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
         /*preferedCLaimed | uint160(beneficiary)<<1 and preferedClaimed=false hard coded*/
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
         /*_minReturnedTokens*/ 0, //hard coded
-        'Fee from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+        '',
         /*DELEGATE_METADATA*/ '0x',
       )
       .returns(
         fundingCycle,
         0,
         0,
-        'Fee from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+        '',
       );
 
     await Promise.all(
@@ -575,14 +545,14 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
             /*preferedCLaimed | uint160(beneficiary)<<1 and preferedClaimed=false hard coded*/
             ethers.BigNumber.from(0).or(ethers.BigNumber.from(split.beneficiary).shl(1)),
           /*_minReturnedTokens*/ 0, //hard coded
-            'Payout from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+            '',
           /*DELEGATE_METADATA*/ '0x',
           )
           .returns(
             fundingCycle,
             0,
             0,
-            'Payout from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+            '',
           );
       })
     );
@@ -624,7 +594,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
             Math.floor((AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT),
             0,
             0,
-            'Payout from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+            '',
             caller.address
           );
       }),
@@ -760,7 +730,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
             split.beneficiary,
             /*minReturnedToken*/0,
             split.preferClaimed,
-            'Payout from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+            '',
             '0x',
           )
           .returns();
@@ -857,14 +827,14 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
               ethers.BigNumber.from(split.beneficiary).shl(1),
             ),
             /*_minReturnedTokens*/ 0,
-            'Payout from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+            '',
             /*DELEGATE_METADATA*/ '0x',
           )
           .returns(
             fundingCycle,
             0,
             0,
-            'Payout from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+            '',
           );
       }),
     );
@@ -908,7 +878,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             0,
             0,
-            'Payout from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+            '',
             caller.address
           );
       }),
@@ -960,7 +930,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
             split.beneficiary,
             0,
             split.preferClaimed,
-            'Payout from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+            '',
             '0x',
           )
           .returns();
@@ -1087,14 +1057,14 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
         //preferedCLaimed | uint160(beneficiary)<<1 and preferedClaimed=false hard coded
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
         /*_minReturnedTokens*/ 0, //hard coded
-        'Fee from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+        '',
         /*DELEGATE_METADATA*/ '0x',
       )
       .returns(
         fundingCycle,
         0,
         0,
-        'Fee from @' + ethers.utils.parseBytes32String(HANDLE) + PADDING,
+        '',
       );
 
     let tx = await jbEthPaymentTerminal
