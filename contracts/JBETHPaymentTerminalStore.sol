@@ -418,7 +418,7 @@ contract JBETHPaymentTerminalStore {
     @notice
     Records newly used allowance funds of a project.
 
-	  @dev	
+    @dev	
     Only the associated payment terminal can record a used allowance. 
 
     @param _projectId The ID of the project to use the allowance of.
