@@ -419,6 +419,9 @@ contract JBETHPaymentTerminalStore {
     @notice
     Records newly used allowance funds of a project.
 
+	  @dev	
+    Only the associated payment terminal can record a used allowance. 
+
     @param _projectId The ID of the project to use the allowance of.
     @param _amount The amount of the allowance to use as a fixed point number.
     @param _currency The currency of the `_amount` value. Must match the funding cycle's currency.
@@ -452,6 +455,7 @@ contract JBETHPaymentTerminalStore {
       revert CURRENCY_MISMATCH();
     }
 
+    // Get a reference to the new used overflow allowance.
     uint256 _newUsedOverflowAllowanceOf = usedOverflowAllowanceOf[_projectId][
       fundingCycle.configuration
     ] + _amount;
