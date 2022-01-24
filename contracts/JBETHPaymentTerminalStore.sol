@@ -526,11 +526,6 @@ contract JBETHPaymentTerminalStore {
       string memory memo
     )
   {
-    // There must be some amount of tokens to record redemption for.
-    if (_tokenCount == 0) {
-      revert TOKEN_AMOUNT_ZERO();
-    }
-
     // The holder must have the specified number of the project's tokens.
     if (tokenStore.balanceOf(_holder, _projectId) < _tokenCount) {
       revert INSUFFICIENT_TOKENS();
@@ -566,11 +561,6 @@ contract JBETHPaymentTerminalStore {
       memo = _memo;
     }
 
-    // There must be something to claim.
-    if (claimAmount == 0) {
-      revert NO_CLAIMABLE_TOKENS();
-    }
-
     // The amount being claimed must be within the project's balance.
     if (claimAmount > balanceOf[_projectId]) {
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
@@ -581,16 +571,11 @@ contract JBETHPaymentTerminalStore {
     }
 
     // Redeem the tokens, which burns them.
-    directory.controllerOf(_projectId).burnTokensOf(
-      _holder,
-      _projectId,
-      _tokenCount,
-      'Redeem for ETH',
-      true
-    );
+    if (_tokenCount > 0)
+      directory.controllerOf(_projectId).burnTokensOf(_holder, _projectId, _tokenCount, '', false);
 
     // Remove the redeemed funds from the project's balance.
-    balanceOf[_projectId] = balanceOf[_projectId] - claimAmount;
+    if (claimAmount > 0) balanceOf[_projectId] = balanceOf[_projectId] - claimAmount;
 
     // If a delegate was returned by the data source, issue a callback to it.
     if (_delegate != IJBRedemptionDelegate(address(0))) {
