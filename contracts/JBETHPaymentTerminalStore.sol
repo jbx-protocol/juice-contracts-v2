@@ -30,11 +30,9 @@ error INADEQUATE_TOKEN_COUNT();
 error INADEQUATE_WITHDRAW_AMOUNT();
 error INSUFFICIENT_TOKENS();
 error INVALID_FUNDING_CYCLE();
-error NO_CLAIMABLE_TOKENS();
 error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
 error PAYMENT_TERMINAL_UNAUTHORIZED();
 error STORE_ALREADY_CLAIMED();
-error TOKEN_AMOUNT_ZERO();
 
 /**
   @notice
@@ -499,7 +497,7 @@ contract JBETHPaymentTerminalStore {
 
     @param _holder The account that is having its tokens redeemed.
     @param _projectId The ID of the project to which the tokens being redeemed belong.
-    @param _tokenCount The number of tokens to redeemed.
+    @param _tokenCount The number of tokens to redeem.
     @param _minReturnedWei The minimum amount of wei expected in return.
     @param _beneficiary The address that will benefit from the claimed amount.
     @param _memo A memo to pass along to the emitted event.
