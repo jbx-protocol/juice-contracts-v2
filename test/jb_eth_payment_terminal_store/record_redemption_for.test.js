@@ -241,7 +241,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* delegateMetadata */ 0,
       );
 
-    // Expect recorded balance to decrease by redeemed amount
+    // Expect recorded balance to not have changed
     expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
   });
 
@@ -309,7 +309,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
       )
       .returns();
 
-    // Add to balance beforehand to have sufficient overflow
+    // No balance
     const startingBalance = 0;
 
     expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
@@ -327,7 +327,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* delegateMetadata */ 0,
       );
 
-    // Expect recorded balance to decrease by redeemed amount
+    // Expect recorded balance to not have changed
     expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(
       startingBalance,
     );
