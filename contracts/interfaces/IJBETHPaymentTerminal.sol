@@ -11,7 +11,6 @@ import './IJBPayDelegate.sol';
 import './IJBTokenStore.sol';
 import './IJBPrices.sol';
 import './IJBRedemptionDelegate.sol';
-import './IJBController.sol';
 import './IJBFeeGauge.sol';
 
 import './../structs/JBFee.sol';
