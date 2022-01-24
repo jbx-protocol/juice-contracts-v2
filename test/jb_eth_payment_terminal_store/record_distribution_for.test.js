@@ -305,7 +305,7 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       jbEthPaymentTerminalStore
         .connect(terminal)
         .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
-    ).to.be.revertedWith(errors.INSUFFICIENT_FUND_FOR_DISTRIBUTION);
+    ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
 
   it(`Can't record distribution if minReturnedWei > distributedAmount`, async function () {
@@ -356,6 +356,6 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
         CURRENCY_ETH,
         /* minReturnedWei */ minReturnedWei, // Set intentionally large
       ),
-    ).to.be.revertedWith(errors.INSUFFICIENT_FUND_FOR_DISTRIBUTION);
+    ).to.be.revertedWith(errors.INADEQUATE_WITHDRAW_AMOUNT);
   });
 });

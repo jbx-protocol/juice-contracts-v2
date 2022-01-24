@@ -24,7 +24,6 @@ error FUNDING_CYCLE_DISTRIBUTION_PAUSED();
 error FUNDING_CYCLE_REDEEM_PAUSED();
 error INADEQUATE_CLAIM_AMOUNT();
 error INADEQUATE_CONTROLLER_ALLOWANCE();
-error INSUFFICIENT_FUND_FOR_DISTRIBUTION();
 error INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
 error INADEQUATE_TOKEN_COUNT();
 error INADEQUATE_WITHDRAW_AMOUNT();
@@ -305,7 +304,7 @@ contract JBETHPaymentTerminalStore {
         _projectId,
         _weightedAmount,
         address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
-        'ETH received',
+        '',
         (_preferClaimedTokensAndBeneficiary & 1) == 1,
         fundingCycle.reservedRate()
       );
@@ -400,12 +399,12 @@ contract JBETHPaymentTerminalStore {
 
     // The amount being distributed must be available.
     if (distributedAmount > balanceOf[_projectId]) {
-      revert INSUFFICIENT_FUND_FOR_DISTRIBUTION();
+      revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
     }
 
     // The amount being distributed must be at least as much as was expected.
     if (_minReturnedWei > distributedAmount) {
-      revert INSUFFICIENT_FUND_FOR_DISTRIBUTION();
+      revert INADEQUATE_WITHDRAW_AMOUNT();
     }
 
     // Store the new amount.
