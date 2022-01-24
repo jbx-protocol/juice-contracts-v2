@@ -106,7 +106,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
         PROJECT_ID,
         WEIGHTED_AMOUNT,
         /* beneficiary */ beneficiary.address,
-        /* memo */ 'ETH received',
+        /* memo */ '',
         /* preferClaimedTokens */ false,
         /* reservedRate */ reservedRate,
       )
@@ -192,7 +192,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
         PROJECT_ID,
         WEIGHTED_AMOUNT,
         /* beneficiary */ beneficiary.address,
-        /* memo */ 'ETH received',
+        /* memo */ '',
         /* preferClaimedTokens */ false,
         /* reservedRate */ reservedRate,
       )
@@ -472,7 +472,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
         PROJECT_ID,
         WEIGHTED_AMOUNT,
         /* beneficiary */ beneficiary.address,
-        /* memo */ 'ETH received',
+        /* memo */ '',
         /* preferClaimedTokens */ false,
         /* reservedRate */ reservedRate,
       )
