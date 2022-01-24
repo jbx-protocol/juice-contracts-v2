@@ -179,7 +179,7 @@ contract JBETHPaymentTerminal is
 
   /**
     @notice
-    An address that serves as this terminal's delegate when making requests to juicebox ecosystem contracts.
+    An address that serves as this terminal's delegate when making requests to ecosystem contracts.
 
     @return The delegate address.
   */
@@ -726,7 +726,7 @@ contract JBETHPaymentTerminal is
     @param _beneficiary The address to print the platforms tokens for.
   */
   function _takeFee(uint256 _amount, address _beneficiary) private {
-    // Get the terminal for the JuiceboxDAO project.
+    // Get the terminal for the protocol project.
     IJBTerminal _terminal = directory.primaryTerminalOf(1, token);
 
     // When processing the admin fee, save gas if the admin is using this contract as its terminal.
