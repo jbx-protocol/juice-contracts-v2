@@ -175,15 +175,17 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   }
 
   /**
-  @notice
-  Update the controller that manages how terminals interact with the ecosystem.
-  @dev 
-  A controller can be set if:
-  - the message sender is the project owner or an operator having the correct authorization.
-  - or, an allowedlisted address is setting an allowlisted controller.
-  @param _projectId The ID of the project to set a new controller for.
-  @param _controller The new controller to set.
-*/
+    @notice
+    Update the controller that manages how terminals interact with the ecosystem.
+
+    @dev 
+    A controller can be set if:
+    - the message sender is the project owner or an operator having the correct authorization.
+    - or, an allowedlisted address is setting an allowlisted controller.
+
+    @param _projectId The ID of the project to set a new controller for.
+    @param _controller The new controller to set.
+  */
   function setControllerOf(uint256 _projectId, IJBController _controller)
     external
     override

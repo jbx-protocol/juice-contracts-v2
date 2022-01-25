@@ -9,7 +9,7 @@ import jbController from '../../artifacts/contracts/interfaces/IJBController.sol
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import errors from '../helpers/errors.json';
 
-describe.only('JBDirectory::setControllerOf(...)', function () {
+describe('JBDirectory::setControllerOf(...)', function () {
   const PROJECT_ID = 1;
 
   let SET_CONTROLLER_PERMISSION_INDEX;
