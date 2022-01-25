@@ -22,7 +22,7 @@ library JBFundingCycleMetadataResolver {
     returns (uint256)
   {
     // Redemption rate is a number 0-10000. It's inverse was stored so the most common case of 100% results in no storage needs.
-    return JBConstants.MAX_BALLOT_REDEMPTION_RATE - uint256(uint16(_fundingCycle.metadata >> 40));
+    return JBConstants.MAX_REDEMPTION_RATE - uint256(uint16(_fundingCycle.metadata >> 40));
   }
 
   function payPaused(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
@@ -119,7 +119,7 @@ library JBFundingCycleMetadataResolver {
     packed |= (JBConstants.MAX_REDEMPTION_RATE - _metadata.redemptionRate) << 24;
     // ballot redemption rate rate in bits 40-55 (16 bits).
     // ballot redemption rate is a number 0-10000. Store the reverse so the most common case of 100% results in no storage needs.
-    packed |= (JBConstants.MAX_BALLOT_REDEMPTION_RATE - _metadata.ballotRedemptionRate) << 40;
+    packed |= (JBConstants.MAX_REDEMPTION_RATE - _metadata.ballotRedemptionRate) << 40;
     // pause pay in bit 56.
     if (_metadata.pausePay) packed |= 1 << 56;
     // pause tap in bit 57.

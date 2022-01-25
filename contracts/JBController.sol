@@ -914,7 +914,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
       revert INVALID_REDEMPTION_RATE();
     }
 
-    if (_metadata.ballotRedemptionRate > JBConstants.MAX_BALLOT_REDEMPTION_RATE) {
+    if (_metadata.ballotRedemptionRate > JBConstants.MAX_REDEMPTION_RATE) {
       revert INVALID_BALLOT_REDEMPTION_RATE();
     }
 
