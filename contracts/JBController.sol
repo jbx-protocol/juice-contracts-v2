@@ -332,7 +332,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     @param _data A JBFundingCycleData data structure that defines the project's first funding cycle. These properties will remain fixed for the duration of the funding cycle.
     @param _metadata A JBFundingCycleMetadata data structure specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
     @param _mustStartAtOrAfter The time before which the configured funding cycle can't start.
-    @param _groupedSplits An array of splits to set for any number of group.
+    @param _groupedSplits An array of splits to set for any number of group. The core protocol makes use of groups defined in `JBSplitsGroups`.
     @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
     @param _terminals Payment terminals to add for the project.
 
@@ -378,7 +378,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     @param _data A JBFundingCycleData data structure that defines the project's first funding cycle. These properties will remain fixed for the duration of the funding cycle.
     @param _metadata A JBFundingCycleMetadata data structure specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
     @param _mustStartAtOrAfter The time before which the configured funding cycle can't start.
-    @param _groupedSplits An array of splits to set for any number of group.
+    @param _groupedSplits An array of splits to set for any number of group. The core protocol makes use of groups defined in `JBSplitsGroups`.
     @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
     @param _terminals Payment terminals to add for the project.
 
@@ -431,7 +431,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     @param _data A JBFundingCycleData data structure that defines the project's funding cycle that will be queued. These properties will remain fixed for the duration of the funding cycle.
     @param _metadata A JBFundingCycleMetadata data structure specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
     @param _mustStartAtOrAfter The time before which the configured funding cycle can't start.
-    @param _groupedSplits An array of splits to set for any number of group.
+    @param _groupedSplits An array of splits to set for any number of group. The core protocol makes use of groups defined in `JBSplitsGroups`.
     @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
 
     @return The configuration of the funding cycle that was successfully reconfigured.
