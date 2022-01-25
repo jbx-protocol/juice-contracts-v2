@@ -29,9 +29,9 @@ describe('JBProjects::setTokenUriResolver(...)', function () {
     expect(await jbProjects
       .connect(deployer)
       .setTokenUriResolver(mockJbTokenUriResolver.address)
-      )
+    )
       .to.emit(jbProjects, 'SetTokenUriResolver')
-      .withArgs(mockJbTokenUriResolver.address);
+      .withArgs(mockJbTokenUriResolver.address, deployer.address);
 
     expect(await jbProjects.tokenUriResolver()).to.equal(mockJbTokenUriResolver.address);
 
