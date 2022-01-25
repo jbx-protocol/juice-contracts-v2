@@ -6,7 +6,6 @@ import '@openzeppelin/contracts/token/ERC721/extensions/draft-ERC721Votes.sol';
 
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBProjects.sol';
-import './interfaces/IJBTokenUriResolver.sol';
 import './libraries/JBOperations.sol';
 
 /**
@@ -38,26 +37,20 @@ contract JBProjects is ERC721Votes, Ownable, IJBProjects, JBOperatable {
   */
   uint256 public override count = 0;
 
-  /**
-    @notice
-    The contract resolving each project id to its ERC721 URI
-    
-    @dev
-    This is optional for each project
-  */
-  IJBTokenUriResolver public tokenUriResolver;
-
   /** 
     @notice 
-    The IPFS CID for each project, which can be used to reference the project's metadata.
+    The metadata for each project, which can be used across several domains.
 
-    @dev
-    This is optional for each project.
-
-    _projectId The ID of the project to which the URI belongs.
+    _projectId The ID of the project to which the metadata belongs.
     _domain The domain within which the metadata applies.
   */
   mapping(uint256 => mapping(uint256 => string)) public override metadataContentOf;
+
+  /**
+    @notice
+    The contract resolving each project ID to its ERC721 URI.
+  */
+  IJBTokenUriResolver public override tokenUriResolver;
 
   //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
@@ -84,7 +77,7 @@ contract JBProjects is ERC721Votes, Ownable, IJBProjects, JBOperatable {
     Anyone can create a project on an owner's behalf.
 
     @param _owner The address that will be the owner of the project.
-    @param _metadata A struct containing an IPFS CID hash where metadata about the project has been uploaded, and domain within which the metadata applies. An empty string is acceptable if no metadata is being provided.
+    @param _metadata A struct containing metadata content about the project, and domain within which the metadata applies. An empty string is acceptable if no metadata is being provided.
 
     @return The token ID of the newly created project
   */
@@ -99,7 +92,7 @@ contract JBProjects is ERC721Votes, Ownable, IJBProjects, JBOperatable {
     // Mint the project.
     _safeMint(_owner, count);
 
-    // Set the URI if one was provided.
+    // Set the metadata if one was provided.
     if (bytes(_metadata.content).length > 0)
       metadataContentOf[count][_metadata.domain] = _metadata.content;
 
@@ -115,7 +108,7 @@ contract JBProjects is ERC721Votes, Ownable, IJBProjects, JBOperatable {
     @dev 
     Only a project's owner or operator can set its metadata.
 
-    @param _projectId The ID of the project who's URI is being changed.
+    @param _projectId The ID of the project who's metadata is being changed.
     @param _metadata A struct containing metadata content, and domain within which the metadata applies. An empty string is acceptable if no metadata is being provided.
   */
   function setMetadataOf(uint256 _projectId, JBProjectMetadata calldata _metadata)
@@ -140,18 +133,17 @@ contract JBProjects is ERC721Votes, Ownable, IJBProjects, JBOperatable {
   */
   function tokenURI(uint256 _projectId) public view override returns (string memory) {
     if (tokenUriResolver == IJBTokenUriResolver(address(0))) return '';
-
     return tokenUriResolver.getUri(_projectId);
   }
 
   /**
     @notice 
-    Set the address of the IJBTokenUriResolver used to retrieve the tokenURI of projects
+    Set the address of the IJBTokenUriResolver used to retrieve the tokenURI of projects.
 
     @param _newResolver The address of the new resolver.
   */
   function setTokenUriResolver(IJBTokenUriResolver _newResolver) external override onlyOwner {
     tokenUriResolver = _newResolver;
-    emit SetTokenUriResolver(_newResolver);
+    emit SetTokenUriResolver(_newResolver, msg.sender);
   }
 }
