@@ -4,6 +4,7 @@ pragma solidity 0.8.6;
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 
 import './IJBTerminal.sol';
+import './IJBTokenUriResolver.sol';
 
 import './../structs/JBProjectMetadata.sol';
 import './IJBTokenUriResolver.sol';
@@ -18,9 +19,11 @@ interface IJBProjects is IERC721 {
 
   event SetMetadata(uint256 indexed projectId, JBProjectMetadata metadata, address caller);
 
-  event SetTokenUriResolver(IJBTokenUriResolver newResolver);
+  event SetTokenUriResolver(IJBTokenUriResolver resolver, address caller);
 
   function count() external view returns (uint256);
+
+  function tokenUriResolver() external view returns (IJBTokenUriResolver);
 
   function metadataContentOf(uint256 _projectId, uint256 _domain)
     external
