@@ -34,8 +34,8 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     @notice
     The number of splits currently set for each project ID's configurations.
 
-    _projectId is The ID of the project to get the split number for.
-    _domain is An identifier within which the returned splits should be considered active.
+    _projectId The ID of the project to get the split count for.
+    _domain An identifier within which the returned splits should be considered active.
     _group The identifying group of the splits.
   */
   mapping(uint256 => mapping(uint256 => mapping(uint256 => uint256))) private _splitCountOf;
@@ -44,8 +44,8 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     @notice
     Packed data of splits for each project ID's configurations.
 
-    _projectId is The ID of the project to get packed splits data for.
-    _domain is An identifier within which the returned splits should be considered active.
+    _projectId The ID of the project to get packed splits data for.
+    _domain An identifier within which the returned splits should be considered active.
     _group The identifying group of the splits.
     _index The indexed order that the split was set at.
   */
@@ -59,8 +59,8 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     @dev
     This packed data is often 0.
 
-    _projectId is The ID of the project to get packed splits data for.
-    _domain is An identifier within which the returned splits should be considered active.
+    _projectId The ID of the project to get packed splits data for.
+    _domain An identifier within which the returned splits should be considered active.
     _group The identifying group of the splits.
     _index The indexed order that the split was set at.
   */
@@ -88,15 +88,15 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
   //*********************************************************************//
 
   /**
-    @notice 
-    Get all splits for the specified project ID, within the specified domain, for the specified group.
+  @notice 
+  Get all splits for the specified project ID, within the specified domain, for the specified group.
 
-    @param _projectId The ID of the project to get splits for.
-    @param _domain An identifier within which the returned splits should be considered active.
-    @param _group The identifying group of the splits.
+  @param _projectId The ID of the project to get splits for.
+  @param _domain An identifier within which the returned splits should be considered active.
+  @param _group The identifying group of the splits.
 
-    @return An array of all splits for the project.
-  */
+  @return An array of all splits for the project.
+*/
   function splitsOf(
     uint256 _projectId,
     uint256 _domain,
@@ -264,7 +264,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     // Initialize an array to be returned that has the set length.
     JBSplit[] memory _splits = new JBSplit[](_splitCount);
 
-    // Loop throuhgh each split and unpack the values into structs.
+    // Loop through each split and unpack the values into structs.
     for (uint256 _i = 0; _i < _splitCount; _i++) {
       // Get a reference to the fist packed data.
       uint256 _packedSplitPart1 = _packedSplitParts1Of[_projectId][_domain][_group][_i];
