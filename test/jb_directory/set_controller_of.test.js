@@ -68,19 +68,6 @@ describe('JBDirectory::setControllerOf(...)', function () {
     ).to.be.revertedWith(errors.INVALID_PROJECT_ID);
   });
 
-  it('Should set same controller if controller already set', async function () {
-    const { projectOwner, jbDirectory, mockJbProjects, controller1 } = await setup();
-
-    await mockJbProjects.mock.count.returns(PROJECT_ID);
-
-    await jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller1.address);
-    await expect(jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller1.address))
-      .to.not.be.reverted;
-
-    let controller = await jbDirectory.connect(projectOwner).controllerOf(PROJECT_ID);
-    expect(controller).to.equal(controller1.address);
-  });
-
   it('Should set controller and emit event if caller is project owner', async function () {
     const { projectOwner, jbDirectory, mockJbProjects, controller1 } = await setup();
 
@@ -202,5 +189,15 @@ describe('JBDirectory::setControllerOf(...)', function () {
     await expect(
       jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller2.address),
     ).to.be.revertedWith(errors.UNAUTHORIZED);
+  });
+  it("Can't set same controller if controller already set", async function () {
+    const { projectOwner, jbDirectory, mockJbProjects, controller1 } = await setup();
+
+    await mockJbProjects.mock.count.returns(PROJECT_ID);
+
+    await jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller1.address);
+    await expect
+    expect(jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller1.address))
+      .to.be.revertedWith(errors.CONTROLLER_ALREADY_SET);
   });
 });
