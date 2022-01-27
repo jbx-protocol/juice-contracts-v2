@@ -1,5 +1,6 @@
 node_modules
 .env
+*.txt
 
 # Foundry
 out
@@ -16,8 +17,6 @@ deployments/localhost/**
 # Code coverage reports
 coverage/
 coverage.json
-
-*.txt
 
 # VSCode
 workspace.code-workspace
