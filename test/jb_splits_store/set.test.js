@@ -6,6 +6,7 @@ import jbOperatorStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOpe
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import errors from '../helpers/errors.json';
+import { BigNumber } from 'ethers';
 
 describe('JBSplitsStore::set(...)', function () {
   const PROJECT_ID = 1;
@@ -56,11 +57,11 @@ describe('JBSplitsStore::set(...)', function () {
     for (let i = 0; i < count; i++) {
       splits.push({
         preferClaimed: false,
-        percent: Math.floor(10000000 / count),
-        lockedUntil: 0,
+        percent: BigNumber.from(Math.floor(1000000000 / count)),
+        projectId: BigNumber.from(0),
         beneficiary: beneficiaryAddress,
-        allocator: ethers.constants.AddressZero,
-        projectId: 0,
+        lockedUntil: BigNumber.from(0),
+        allocator: ethers.constants.AddressZero
       });
     }
     return splits;
@@ -71,11 +72,11 @@ describe('JBSplitsStore::set(...)', function () {
     for (let split of splits) {
       cleanedSplits.push({
         preferClaimed: split[0],
-        percent: split[1],
-        lockedUntil: split[2],
+        percent: BigNumber.from(split[1]),
+        projectId: BigNumber.from(split[2].toNumber()),
         beneficiary: split[3],
-        allocator: split[4],
-        projectId: split[5].toNumber(),
+        lockedUntil: BigNumber.from(split[4]),
+        allocator: split[5]
       });
     }
     return cleanedSplits;
@@ -154,6 +155,25 @@ describe('JBSplitsStore::set(...)', function () {
     let splitsStored = cleanSplits(await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP));
     expect(splitsStored).to.eql(newSplits);
   });
+  it('Should set splits overriding ones with a set allocator or lockedUntil timestamp', async function () {
+    const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore, mockJbDirectory } =
+      await setup();
+
+    await mockJbOperatorStore.mock.hasPermission.returns(false);
+    await mockJbDirectory.mock.controllerOf.returns(addrs[0].address);
+
+    // Set one locked split
+    splits[1].allocator = addrs[4].address;
+
+    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits);
+
+    // Set one locked split
+    splits[1].allocator = ethers.constants.AddressZero;
+    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits);
+
+    let splitsStored = cleanSplits(await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP));
+    expect(splitsStored).to.eql(splits);
+  });
 
   it("Can't set new splits without including a preexisting locked one", async function () {
     const { projectOwner, addrs, jbSplitsStore, splits } = await setup();
@@ -215,10 +235,10 @@ describe('JBSplitsStore::set(...)', function () {
     ).to.be.revertedWith(errors.ALLOCATOR_AND_BENEFICIARY_ZERO_ADDRESS);
   });
 
-  it("Can't set splits if the sum of the percents is greather than 10000000", async function () {
+  it("Can't set splits if the sum of the percents is greather than 1000000000", async function () {
     const { projectOwner, jbSplitsStore, splits } = await setup();
 
-    // Set sum at 10000001
+    // Set sum at 1000000001
     splits[0].percent += 1;
 
     await expect(
@@ -226,14 +246,31 @@ describe('JBSplitsStore::set(...)', function () {
     ).to.be.revertedWith(errors.INVALID_TOTAL_PERCENT);
   });
 
+  it("Can't set splits if the projectId is greater than 2^56", async function () {
+    const { projectOwner, jbSplitsStore, splits } = await setup();
+
+    splits[0].projectId = ethers.BigNumber.from(2).pow(56);
+
+    await expect(
+      jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits),
+    ).to.be.revertedWith(errors.INVALID_PROJECT_ID);
+  });
+
+  it("Can't set splits if the lockedUntil is greater than 2^48", async function () {
+    const { projectOwner, jbSplitsStore, splits } = await setup();
+
+    splits[0].lockedUntil = ethers.BigNumber.from(2).pow(48);
+
+    await expect(
+      jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits),
+    ).to.be.revertedWith(errors.INVALID_LOCKED_UNTIL);
+  });
+
   it('Should set splits if controller', async function () {
     const {
-      projectOwner,
       addrs,
       jbSplitsStore,
       splits,
-      mockJbOperatorStore,
-      mockJbProjects,
       mockJbDirectory,
     } = await setup();
 
@@ -251,9 +288,7 @@ describe('JBSplitsStore::set(...)', function () {
       addrs,
       jbSplitsStore,
       splits,
-      mockJbOperatorStore,
-      mockJbProjects,
-      mockJbDirectory,
+      mockJbOperatorStore
     } = await setup();
 
     let caller = addrs[0];
@@ -272,9 +307,7 @@ describe('JBSplitsStore::set(...)', function () {
       addrs,
       jbSplitsStore,
       splits,
-      mockJbOperatorStore,
-      mockJbProjects,
-      mockJbDirectory,
+      mockJbOperatorStore
     } = await setup();
 
     let caller = addrs[1];

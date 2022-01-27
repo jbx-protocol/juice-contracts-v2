@@ -6,6 +6,8 @@ struct JBRedeemParamsData {
   address holder;
   // The proposed number of tokens being redeemed.
   uint256 tokenCount;
+  // The ID of the project whos tokens are being redeemed.
+  uint256 projectId;
   // The redemption rate of the funding cycle during which the redemption is being made.
   uint256 redemptionRate;
   // The ballot redemption rate of the funding cycle during which the redemption is being made.
