@@ -871,11 +871,9 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
         await mockJbAllocator.mock.allocate
           .withArgs(
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
-            ETH_PAYOUT_INDEX,
             PROJECT_ID,
-            split.projectId,
-            split.beneficiary,
-            split.preferClaimed,
+            ETH_PAYOUT_INDEX,
+            split
           )
           .returns();
       }),

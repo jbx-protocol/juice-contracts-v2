@@ -621,11 +621,9 @@ contract JBETHPaymentTerminal is
         if (_split.allocator != IJBSplitAllocator(address(0))) {
           _split.allocator.allocate{value: _payoutAmount}(
             _payoutAmount,
-            JBSplitsGroups.ETH_PAYOUT,
             _projectId,
-            _split.projectId,
-            _split.beneficiary,
-            _split.preferClaimed
+            JBSplitsGroups.ETH_PAYOUT,
+            _split
           );
           // Otherwise, if a project is specified, make a payment to it.
         } else if (_split.projectId != 0) {
