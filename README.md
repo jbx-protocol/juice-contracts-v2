@@ -16,23 +16,26 @@ yarn test
 
 ### System Tests
 
-TODO: Foundry setup
+We are currently in the process of writing system tests with [Foundry](https://github.com/gakonst/foundry). Hop in the Discord if you want to help out with this iniative!
 
-Build the contracts:
+To get set up:
+
+1. Install [Foundry](https://github.com/gakonst/foundry).
+
+2. Build the contracts:
 
 ```bash
-forge build --contracts ./contracts \
-  --remappings @chainlink/=node_modules/@chainlink/ \
-  --remappings @openzeppelin/=node_modules/@openzeppelin/ \
-  --remappings @paulrberg/=node_modules/@paulrberg/ \
-  --remappings prb-math/=node_modules/prb-math/
+forge build
 ```
 
-Run tests:
+3. Run tests:
 
 ```bash
 forge test
 ```
+
+Resources:
+* [Forge guide](https://onbjerg.github.io/foundry-book/forge)
 
 ### Coverage
 

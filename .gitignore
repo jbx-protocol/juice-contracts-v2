@@ -3,6 +3,7 @@ node_modules
 
 # Foundry output
 out/
+!remappings.txt
 
 # Hardhat files
 cache
