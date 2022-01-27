@@ -3,11 +3,13 @@ on:
   pull_request:
     branches:
       - main
-      - foundry
+      # TODO(odd-amphora): Remove after merged to main.      
+      - test/system-tests
   push:
     branches:
       - main
-      - foundry
+      # TODO(odd-amphora): Remove after merged to main.      
+      - test/system-tests
 jobs:
   forge-test:
     runs-on: ubuntu-latest
