@@ -14,6 +14,19 @@ import '../../JBTokenStore.sol';
 
 import './DSTest.sol';
 
+import '../../structs/JBDidPayData.sol';
+import '../../structs/JBDidRedeemData.sol';
+import '../../structs/JBFee.sol';
+import '../../structs/JBFundAccessConstraints.sol';
+import '../../structs/JBFundingCycle.sol';
+import '../../structs/JBFundingCycleData.sol';
+import '../../structs/JBFundingCycleMetadata.sol';
+import '../../structs/JBGroupedSplits.sol';
+import '../../structs/JBOperatorData.sol';
+import '../../structs/JBPayParamsData.sol';
+import '../../structs/JBRedeemParamsData.sol';
+import '../../structs/JBSplit.sol';
+
 // Base contract for Juicebox system tests.
 //
 // Provides common functionality, such as deploying contracts on test setup.
