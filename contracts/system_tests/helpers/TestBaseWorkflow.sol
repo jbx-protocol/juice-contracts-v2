@@ -24,9 +24,11 @@ import '../../structs/JBFundingCycleMetadata.sol';
 import '../../structs/JBGroupedSplits.sol';
 import '../../structs/JBOperatorData.sol';
 import '../../structs/JBPayParamsData.sol';
-import '../../structs/JBProjectsMetadata.sol';
+import '../../structs/JBProjectMetadata.sol';
 import '../../structs/JBRedeemParamsData.sol';
 import '../../structs/JBSplit.sol';
+
+import '../../interfaces/IJBTerminal.sol';
 
 // Base contract for Juicebox system tests.
 //
