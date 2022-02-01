@@ -1,21 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './../JBController.sol';
-import './../JBDirectory.sol';
-import './../JBETHPaymentTerminal.sol';
-import './../JBETHPaymentTerminalStore.sol';
-import './../JBFundingCycleStore.sol';
-import './../JBOperatorStore.sol';
-import './../JBPrices.sol';
-import './../JBProjects.sol';
-import './../JBSplitsStore.sol';
-import './../JBTokenStore.sol';
+import '../../JBController.sol';
+import '../../JBDirectory.sol';
+import '../../JBETHPaymentTerminal.sol';
+import '../../JBETHPaymentTerminalStore.sol';
+import '../../JBFundingCycleStore.sol';
+import '../../JBOperatorStore.sol';
+import '../../JBPrices.sol';
+import '../../JBProjects.sol';
+import '../../JBSplitsStore.sol';
+import '../../JBTokenStore.sol';
+
+import './DSTest.sol';
 
 // Base contract for Juicebox system tests.
 //
 // Provides common functionality, such as deploying contracts on test setup.
-abstract contract TestBaseWorkflow {
+abstract contract TestBaseWorkflow is DSTest {
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//

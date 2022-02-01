@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './TestBaseWorkflow.sol';
+import './helpers/TestBaseWorkflow.sol';
 
 contract TestHelloWorld is TestBaseWorkflow {
-  function testHelloWorld() public view {
-    require(
-      jbOperatorStore().hasPermission(address(0), address(0), 1, 1) == false,
-      'Should not have permission'
-    );
+  function testHelloWorld() public {
+    JBETHPaymentTerminalStore terminalStore = jbETHPaymentTerminalStore();
+
+    assertEq(terminalStore.balanceOf(1), 0);
+
+    assertTrue(jbDirectory().isAllowedToSetController(address(jbController())));
+
+    emit log('Hello world');
   }
 }
