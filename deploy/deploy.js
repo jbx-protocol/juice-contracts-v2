@@ -1,22 +1,27 @@
 const { ethers } = require('hardhat');
 
 /**
- * Deploys the Juice V2 contracts.
+ * Deploys the entire Juice V2 contract suite.
  *
  * Example usage:
  *
  * npx hardhat deploy --network rinkeby
- *
- * TODO(odd-amphora): Conditionally use `skipIfAlreadyDeployed` iff mainnet.
  */
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
 
   let multisigAddress;
+  let chainId = await getChainId();
+  let baseDeployArgs = {
+    from: deployer,
+    log: true,
+    // On mainnet, we will not redeploy contracts if they have already been deployed.
+    skipIfAlreadyDeployed: chainId === '1',
+  };
 
-  console.log({ deployer, k: await getChainId() });
-  switch (await getChainId()) {
+  console.log({ deployer, chain: chainId });
+  switch (chainId) {
     // mainnet
     case '1':
       multisigAddress = '0xAF28bcB48C40dBC86f52D459A6562F658fc94B1e';
@@ -34,49 +39,42 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   console.log({ multisigAddress });
 
   const JBOperatorStore = await deploy('JBOperatorStore', {
-    from: deployer,
+    ...baseDeployArgs,
     args: [],
-    log: true,
   });
 
   const JBPrices = await deploy('JBPrices', {
-    from: deployer,
+    ...baseDeployArgs,
     args: [multisigAddress],
-    log: true,
   });
 
   const JBProjects = await deploy('JBProjects', {
-    from: deployer,
+    ...baseDeployArgs,
     args: [JBOperatorStore.address],
-    log: true,
   });
 
   const JBDirectory = await deploy('JBDirectory', {
-    from: deployer,
+    ...baseDeployArgs,
     args: [JBOperatorStore.address, JBProjects.address],
-    log: true,
   });
 
   const JBFundingCycleStore = await deploy('JBFundingCycleStore', {
-    from: deployer,
+    ...baseDeployArgs,
     args: [JBDirectory.address],
-    log: true,
   });
 
   const JBTokenStore = await deploy('JBTokenStore', {
-    from: deployer,
+    ...baseDeployArgs,
     args: [JBOperatorStore.address, JBProjects.address, JBDirectory.address],
-    log: true,
   });
 
   const JBSplitStore = await deploy('JBSplitsStore', {
-    from: deployer,
+    ...baseDeployArgs,
     args: [JBOperatorStore.address, JBProjects.address, JBDirectory.address],
-    log: true,
   });
 
   const JBController = await deploy('JBController', {
-    from: deployer,
+    ...baseDeployArgs,
     args: [
       JBOperatorStore.address,
       JBProjects.address,
@@ -85,7 +83,6 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
       JBTokenStore.address,
       JBSplitStore.address,
     ],
-    log: true,
   });
 
   // Add the deployed JBController as a known controller, then transfer ownership to the multisig.
@@ -101,7 +98,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   }
 
   const JBETHPaymentTerminalStore = await deploy('JBETHPaymentTerminalStore', {
-    from: deployer,
+    ...baseDeployArgs,
     args: [
       JBPrices.address,
       JBProjects.address,
@@ -109,11 +106,10 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
       JBFundingCycleStore.address,
       JBTokenStore.address,
     ],
-    log: true,
   });
 
   const JBETHPaymentTerminal = await deploy('JBETHPaymentTerminal', {
-    from: deployer,
+    ...baseDeployArgs,
     args: [
       JBOperatorStore.address,
       JBProjects.address,
@@ -122,7 +118,6 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
       JBETHPaymentTerminalStore.address,
       multisigAddress,
     ],
-    log: true,
   });
 
   console.log('Deloying project...');
