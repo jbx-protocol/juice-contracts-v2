@@ -6,7 +6,6 @@ import './helpers/TestBaseWorkflow.sol';
 contract TestLaunchProject is TestBaseWorkflow {
   function testLaunchProject() public {
     uint256 WEIGHT = 1000 * 10**18;
-    evm.warp(123456);
 
     JBController controller = jbController();
 

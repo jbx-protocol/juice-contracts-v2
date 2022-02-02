@@ -43,7 +43,6 @@ abstract contract TestBaseWorkflow is DSTest {
   address private _multisig = address(123);
 
   // EVM Cheat codes - test addresses via prank and startPrank in hevm
-  /// @inheritDoc Hevm
   Hevm public evm = Hevm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 
   // JBOperatorStore
@@ -121,6 +120,12 @@ abstract contract TestBaseWorkflow is DSTest {
 
   // Deploys and initializes contracts for testing.
   function setUp() public {
+    // Set timestamp
+    evm.warp(1643802347);
+
+    // Set block height
+    evm.roll(14126430);
+
     // JBOperatorStore
     _jbOperatorStore = new JBOperatorStore();
     // JBProjects
