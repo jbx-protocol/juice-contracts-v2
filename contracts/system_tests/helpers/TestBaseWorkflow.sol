@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import './DSTest.sol';
+import './hevm.sol';
+
 import '../../JBController.sol';
 import '../../JBDirectory.sol';
 import '../../JBETHPaymentTerminal.sol';
@@ -11,8 +14,6 @@ import '../../JBPrices.sol';
 import '../../JBProjects.sol';
 import '../../JBSplitsStore.sol';
 import '../../JBTokenStore.sol';
-
-import './DSTest.sol';
 
 import '../../structs/JBDidPayData.sol';
 import '../../structs/JBDidRedeemData.sol';
@@ -39,8 +40,11 @@ abstract contract TestBaseWorkflow is DSTest {
   //*********************************************************************//
 
   // Multisig address used for testing.
-  // TODO: figure out how test addresses work.
   address private _multisig = address(123);
+
+  // EVM Cheat codes - test addresses via prank and startPrank in hevm
+  /// @inheritDoc Hevm
+  Hevm public evm = Hevm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 
   // JBOperatorStore
   JBOperatorStore private _jbOperatorStore;

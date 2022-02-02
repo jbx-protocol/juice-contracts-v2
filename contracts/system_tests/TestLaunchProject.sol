@@ -6,6 +6,8 @@ import './helpers/TestBaseWorkflow.sol';
 contract TestLaunchProject is TestBaseWorkflow {
   function testLaunchProject() public {
     uint256 WEIGHT = 1000 * 10**18;
+    evm.warp(123456);
+
     JBController controller = jbController();
 
     JBProjectMetadata memory _projectMetadata = JBProjectMetadata({
@@ -58,9 +60,7 @@ contract TestLaunchProject is TestBaseWorkflow {
 
     JBFundingCycle memory fundingCycle = jbFundingCycleStore().currentOf(projectId); //, latestConfig);
 
-    emit log_uint(fundingCycle.number);
-    emit log_uint(projectId);
-
-    assertEq(fundingCycle.number, 0); // 0 ?!?
+    assertEq(fundingCycle.number, 1);
+    assertEq(fundingCycle.weight, WEIGHT);
   }
 }
