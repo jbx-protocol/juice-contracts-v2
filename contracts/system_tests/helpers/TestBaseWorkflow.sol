@@ -120,12 +120,6 @@ abstract contract TestBaseWorkflow is DSTest {
 
   // Deploys and initializes contracts for testing.
   function deployAll() public {
-    // Set timestamp
-    evm.warp(1643802347);
-
-    // Set block height
-    evm.roll(14126430);
-
     // JBOperatorStore
     _jbOperatorStore = new JBOperatorStore();
     // JBProjects
