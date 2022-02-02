@@ -21,7 +21,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   };
 
   console.log({ deployer, chain: chainId });
-  switch (await getChainId()) {
+  switch (chainId) {
     // mainnet
     case '1':
       multisigAddress = '0xAF28bcB48C40dBC86f52D459A6562F658fc94B1e';
