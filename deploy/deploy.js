@@ -93,7 +93,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const jbDirectoryContract = new ethers.Contract(JBDirectory.address, JBDirectory.abi);
 
   // Note: these will revert if already set, which might happen during deploys.
-  if (!jbDirectoryContract.connect(signer).isAllowedToSetController(JBController.address)) {
+  if (!(await jbDirectoryContract.connect(signer).isAllowedToSetController(JBController.address))) {
     await jbDirectoryContract.connect(signer).addToSetControllerAllowlist(JBController.address);
   }
   if ((await jbDirectoryContract.connect(signer).owner()) != multisigAddress) {
@@ -125,7 +125,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     log: true,
   });
 
-  console.log("Deloying project...");
+  console.log('Deloying project...');
   const jbControllerContract = new ethers.Contract(JBController.address, JBController.abi);
 
   // Deploy the protocol project
@@ -133,56 +133,53 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     /*owner*/ multisigAddress,
 
     /* projectMetadata */
-    [
-     /*content*/ "",
-     /*domain*/ ethers.BigNumber.from(0)
-    ],
+    [/*content*/ '', /*domain*/ ethers.BigNumber.from(0)],
 
     /*fundingCycleData*/
     [
-     /*duration*/ ethers.BigNumber.from(1209600),
-     /*weight*/ ethers.BigNumber.from(10).pow(18).mul(1000000),
-     /*discountRate*/ ethers.BigNumber.from(40000000),
-     /*ballot*/ "0x0000000000000000000000000000000000000000"
+      /*duration*/ ethers.BigNumber.from(1209600),
+      /*weight*/ ethers.BigNumber.from(10).pow(18).mul(1000000),
+      /*discountRate*/ ethers.BigNumber.from(40000000),
+      /*ballot*/ '0x0000000000000000000000000000000000000000',
     ],
 
     /*fundingCycleMetadata*/
     [
-     /*reservedRate*/ ethers.BigNumber.from(5000),
-     /*redemptionRate*/ ethers.BigNumber.from(7000),
-     /*ballotRedemptionRate*/ ethers.BigNumber.from(7000),
-     /*pausePay*/ ethers.BigNumber.from(0),
-     /*pauseDistributions*/ ethers.BigNumber.from(0),
-     /*pauseRedeem*/ ethers.BigNumber.from(0),
-     /*pauseMint*/ ethers.BigNumber.from(1),
-     /*pauseBurn*/ ethers.BigNumber.from(0),
-     /*allowChangeToken*/ ethers.BigNumber.from(0),
-     /*allowTerminalMigration*/ ethers.BigNumber.from(0),
-     /*allowControllerMigration*/ ethers.BigNumber.from(0),
-     /*holdFees*/ ethers.BigNumber.from(0),
-     /*useLocalBalanceForRedemptions*/ ethers.BigNumber.from(0),
-     /*useDataSourceForPay*/ ethers.BigNumber.from(0),
-     /*useDataSourceForRedeem*/ ethers.BigNumber.from(0),
-     /*dataSource*/ "0x0000000000000000000000000000000000000000"
+      /*reservedRate*/ ethers.BigNumber.from(5000),
+      /*redemptionRate*/ ethers.BigNumber.from(7000),
+      /*ballotRedemptionRate*/ ethers.BigNumber.from(7000),
+      /*pausePay*/ ethers.BigNumber.from(0),
+      /*pauseDistributions*/ ethers.BigNumber.from(0),
+      /*pauseRedeem*/ ethers.BigNumber.from(0),
+      /*pauseMint*/ ethers.BigNumber.from(1),
+      /*pauseBurn*/ ethers.BigNumber.from(0),
+      /*allowChangeToken*/ ethers.BigNumber.from(0),
+      /*allowTerminalMigration*/ ethers.BigNumber.from(0),
+      /*allowControllerMigration*/ ethers.BigNumber.from(0),
+      /*holdFees*/ ethers.BigNumber.from(0),
+      /*useLocalBalanceForRedemptions*/ ethers.BigNumber.from(0),
+      /*useDataSourceForPay*/ ethers.BigNumber.from(0),
+      /*useDataSourceForRedeem*/ ethers.BigNumber.from(0),
+      /*dataSource*/ '0x0000000000000000000000000000000000000000',
     ],
 
     /*mustStartOnOrAfter*/ ethers.BigNumber.from(0),
 
-    /*groupedSplits*/[],
+    /*groupedSplits*/ [],
 
     /*fundAccessConstraints*/
     [
       [
-      /*terminal*/ JBETHPaymentTerminal.address,
-      /*distributionLimit*/ ethers.BigNumber.from(0),
-      /*distributionLimitCurrency*/ ethers.BigNumber.from(1),
-      /*overflowAllowance*/ ethers.BigNumber.from(0),
-      /*overflowAllowanceCurrency*/ ethers.BigNumber.from(0)
-      ]
+        /*terminal*/ JBETHPaymentTerminal.address,
+        /*distributionLimit*/ ethers.BigNumber.from(0),
+        /*distributionLimitCurrency*/ ethers.BigNumber.from(1),
+        /*overflowAllowance*/ ethers.BigNumber.from(0),
+        /*overflowAllowanceCurrency*/ ethers.BigNumber.from(0),
+      ],
     ],
 
-    /*terminals*/[JBETHPaymentTerminal.address]
+    /*terminals*/ [JBETHPaymentTerminal.address],
   );
 
-  console.log("Done");
+  console.log('Done');
 };
