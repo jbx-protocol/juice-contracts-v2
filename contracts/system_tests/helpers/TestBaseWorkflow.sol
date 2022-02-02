@@ -119,7 +119,7 @@ abstract contract TestBaseWorkflow is DSTest {
   //*********************************************************************//
 
   // Deploys and initializes contracts for testing.
-  function setUp() public {
+  function deployAll() public {
     // Set timestamp
     evm.warp(1643802347);
 
