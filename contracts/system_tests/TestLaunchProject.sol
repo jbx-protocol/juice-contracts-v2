@@ -12,8 +12,8 @@ contract TestLaunchProject is TestBaseWorkflow {
   JBFundAccessConstraints[] _fundAccessConstraints; // Default empty
   IJBTerminal[] _terminals; // Default empty
 
-  function setUp() public {
-    deployAll();
+  function setUp() public override {
+    super.setUp();
 
     controller = jbController();
 

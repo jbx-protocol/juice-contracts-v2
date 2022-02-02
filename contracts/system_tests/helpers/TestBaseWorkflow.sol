@@ -119,7 +119,7 @@ abstract contract TestBaseWorkflow is DSTest {
   //*********************************************************************//
 
   // Deploys and initializes contracts for testing.
-  function deployAll() public {
+  function setUp() public virtual {
     // JBOperatorStore
     _jbOperatorStore = new JBOperatorStore();
     // JBProjects
