@@ -294,11 +294,11 @@ contract JBETHPaymentTerminalStore {
     // Add the amount to the ETH balance of the project if needed.
     if (_amount > 0) balanceOf[_projectId] = balanceOf[_projectId] + _amount;
 
-    // Multiply the amount by the weight to determine the amount of tokens to mint, which should be non null
-    if (PRBMathUD60x18.mul(_amount, weight) > 0)
+    // Amount and weight must be non-zero in order to mint tokens.
+    if (_amount > 0 && weight > 0)
       tokenCount = directory.controllerOf(_projectId).mintTokensOf(
         _projectId,
-        PRBMathUD60x18.mul(_amount, weight),
+        PRBMathUD60x18.mul(_amount, weight), // Multiply the amount by the weight to determine the amount of tokens to mint
         address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
         '',
         (_preferClaimedTokensAndBeneficiary & 1) == 1,
@@ -414,8 +414,8 @@ contract JBETHPaymentTerminalStore {
     @notice
     Records newly used allowance funds of a project.
 
-    @dev	
-    Only the associated payment terminal can record a used allowance. 
+    @dev
+    Only the associated payment terminal can record a used allowance.
 
     @param _projectId The ID of the project to use the allowance of.
     @param _amount The amount of the allowance to use as a fixed point number.
