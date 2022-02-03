@@ -3,17 +3,13 @@ on:
   pull_request:
     branches:
       - main
-      # TODO(odd-amphora): Remove after merged to main.      
-      - test/system-tests
   push:
     branches:
       - main
-      # TODO(odd-amphora): Remove after merged to main.      
-      - test/system-tests
 jobs:
   forge-test:
     runs-on: ubuntu-latest
-    steps:    
+    steps:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -40,7 +36,7 @@ jobs:
             ./packages/hardhat/node_modules
           key: ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-nodemodules-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-nodemodules-          
+            ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-nodemodules-
       - name: Install Foundry
         uses: onbjerg/foundry-toolchain@v1
         with:
@@ -49,6 +45,6 @@ jobs:
         if: |
           steps.cache-yarn-cache.outputs.cache-hit != 'true' ||
           steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: yarn install --frozen-lockfile --prefer-offline          
+        run: yarn install --frozen-lockfile --prefer-offline
       - name: Run tests
         run: forge test --force --optimize
