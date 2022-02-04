@@ -14,7 +14,7 @@ import './libraries/JBOperations.sol';
 error ADD_TERMINAL_ZERO_ADDRESS();
 error CONTROLLER_ALREADY_IN_ALLOWLIST();
 error CONTROLLER_NOT_IN_ALLOWLIST();
-error INVALID_PROJECT_ID();
+error INVALID_PROJECT_ID_IN_DIRECTORY();
 error PRIMARY_TERMINAL_ALREADY_SET();
 error SET_CONTROLLER_ZERO_ADDRESS();
 error SET_PRIMARY_TERMINAL_ZERO_ADDRESS();
@@ -208,7 +208,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     // The project must exist.
     if (projects.count() < _projectId) {
-      revert INVALID_PROJECT_ID();
+      revert INVALID_PROJECT_ID_IN_DIRECTORY();
     }
 
     // Set the new controller.

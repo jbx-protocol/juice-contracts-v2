@@ -291,21 +291,22 @@ contract JBETHPaymentTerminalStore {
       memo = _memo;
     }
 
-    // Multiply the amount by the weight to determine the amount of tokens to mint.
-    uint256 _weightedAmount = PRBMathUD60x18.mul(_amount, weight);
+    if (_amount > 0) {
+      // Add the amount to the ETH balance of the project if needed.
+      balanceOf[_projectId] = balanceOf[_projectId] + _amount;
 
-    // Add the amount to the ETH balance of the project if needed.
-    if (_amount > 0) balanceOf[_projectId] = balanceOf[_projectId] + _amount;
-
-    if (_weightedAmount > 0)
-      tokenCount = directory.controllerOf(_projectId).mintTokensOf(
-        _projectId,
-        _weightedAmount,
-        address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
-        '',
-        (_preferClaimedTokensAndBeneficiary & 1) == 1,
-        fundingCycle.reservedRate()
-      );
+      // Amount and weight must be non-zero in order to mint tokens.
+      if (weight > 0) {
+        tokenCount = directory.controllerOf(_projectId).mintTokensOf(
+          _projectId,
+          PRBMathUD60x18.mul(_amount, weight), // Multiply the amount by the weight to determine the amount of tokens to mint
+          address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
+          '',
+          (_preferClaimedTokensAndBeneficiary & 1) == 1,
+          fundingCycle.reservedRate()
+        );
+      }
+    }
 
     // The token count for the beneficiary must be greater than or equal to the minimum expected.
     if (tokenCount < _minReturnedTokens) {
@@ -416,8 +417,8 @@ contract JBETHPaymentTerminalStore {
     @notice
     Records newly used allowance funds of a project.
 
-    @dev	
-    Only the associated payment terminal can record a used allowance. 
+    @dev
+    Only the associated payment terminal can record a used allowance.
 
     @param _projectId The ID of the project to use the allowance of.
     @param _amount The amount of the allowance to use as a fixed point number.
