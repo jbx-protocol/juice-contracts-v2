@@ -164,21 +164,21 @@ contract JBETHPaymentTerminalStore {
 
   /**
     @notice
-    The amount of overflowed ETH that can be claimed by the specified number of tokens.
+    The amount of overflowed ETH that can be reclaimed by the specified number of tokens.
 
     @dev If the project has an active funding cycle reconfiguration ballot, the project's ballot redemption rate is used.
 
-    @param _projectId The ID of the project to get a claimable amount for.
+    @param _projectId The ID of the project to get a reclaimable amount for.
     @param _tokenCount The number of tokens to make the calculation with.
 
-    @return The amount of overflowed ETH that can be claimed.
+    @return The amount of overflowed ETH that can be reclaimed.
   */
-  function claimableOverflowOf(uint256 _projectId, uint256 _tokenCount)
+  function reclaimableOverflowOf(uint256 _projectId, uint256 _tokenCount)
     external
     view
     returns (uint256)
   {
-    return _claimableOverflowOf(_projectId, fundingCycleStore.currentOf(_projectId), _tokenCount);
+    return _reclaimableOverflowOf(_projectId, fundingCycleStore.currentOf(_projectId), _tokenCount);
   }
 
   //*********************************************************************//
@@ -559,7 +559,7 @@ contract JBETHPaymentTerminalStore {
         )
       );
     } else {
-      reclaimAmount = _claimableOverflowOf(_projectId, fundingCycle, _tokenCount);
+      reclaimAmount = _reclaimableOverflowOf(_projectId, fundingCycle, _tokenCount);
       memo = _memo;
     }
 
@@ -666,9 +666,9 @@ contract JBETHPaymentTerminalStore {
 
   /**
     @notice
-    See docs for `claimableOverflowOf`
+    See docs for `reclaimableOverflowOf`
   */
-  function _claimableOverflowOf(
+  function _reclaimableOverflowOf(
     uint256 _projectId,
     JBFundingCycle memory _fundingCycle,
     uint256 _tokenCount

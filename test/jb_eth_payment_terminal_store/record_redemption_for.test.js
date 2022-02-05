@@ -115,7 +115,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
-    /* Mocks for _claimableOverflowOf private method */
+    /* Mocks for _reclaimableOverflowOf private method */
     await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_ETH);
@@ -129,7 +129,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
     await mockJbController.mock.reservedTokenBalanceOf
       .withArgs(PROJECT_ID, reservedRate)
       .returns(0);
-    /* End of mocks for _claimableOverflowOf private method */
+    /* End of mocks for _reclaimableOverflowOf private method */
 
     await mockJbController.mock.burnTokensOf
       .withArgs(
@@ -283,7 +283,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
-    /* Mocks for _claimableOverflowOf private method */
+    /* Mocks for _reclaimableOverflowOf private method */
     await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_ETH);
@@ -297,7 +297,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
     await mockJbController.mock.reservedTokenBalanceOf
       .withArgs(PROJECT_ID, reservedRate)
       .returns(0);
-    /* End of mocks for _claimableOverflowOf private method */
+    /* End of mocks for _reclaimableOverflowOf private method */
 
     await mockJbController.mock.burnTokensOf
       .withArgs(
@@ -444,7 +444,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        /* reclaimedAmount */ AMOUNT,
+        /* reclaimAmount */ AMOUNT,
         /* beneficiary */ beneficiary.address,
         /* memo */ newMemo,
         /* delegateMetadata */ ethers.BigNumber.from(delegateMetadata),
