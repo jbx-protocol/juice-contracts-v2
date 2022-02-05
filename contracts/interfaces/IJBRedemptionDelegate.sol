@@ -6,5 +6,5 @@ import './IJBFundingCycleStore.sol';
 import './../structs/JBDidRedeemData.sol';
 
 interface IJBRedemptionDelegate {
-	function didRedeem(JBDidRedeemData calldata _param) external;
+  function didRedeem(JBDidRedeemData calldata _param) external;
 }

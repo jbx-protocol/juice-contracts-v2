@@ -9,9 +9,9 @@
     {
       "files": "*.sol",
       "options": {
-        "printWidth": 80,
-        "tabWidth": 4,
-        "useTabs": true,
+        "printWidth": 100,
+        "tabWidth": 2,
+        "useTabs": false,
         "bracketSpacing": false,
         "explicitTypes": "always"
       }

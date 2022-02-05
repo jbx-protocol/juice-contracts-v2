@@ -15,36 +15,34 @@ error PRICE_FEED_NOT_FOUND();
   @notice Manages and normalizes price feeds.
 */
 contract JBPrices is IJBPrices, Ownable {
-	//*********************************************************************//
-	// ---------------- public constant stored properties ---------------- //
-	//*********************************************************************//
+  //*********************************************************************//
+  // ---------------- public constant stored properties ---------------- //
+  //*********************************************************************//
 
-	/** 
+  /** 
     @notice 
     The normalized number of decimals each price feed has.
   */
-	uint256 public constant override TARGET_DECIMALS = 18;
+  uint256 public constant override TARGET_DECIMALS = 18;
 
-	//*********************************************************************//
-	// --------------------- public stored properties -------------------- //
-	//*********************************************************************//
+  //*********************************************************************//
+  // --------------------- public stored properties -------------------- //
+  //*********************************************************************//
 
-	/** 
+  /** 
     @notice 
     The available price feeds.
 
     _currency he currency of the feed.
     _base he base of the feed. 
   */
-	mapping(uint256 => mapping(uint256 => AggregatorV3Interface))
-		public
-		override feedFor;
+  mapping(uint256 => mapping(uint256 => AggregatorV3Interface)) public override feedFor;
 
-	//*********************************************************************//
-	// ------------------------- external views -------------------------- //
-	//*********************************************************************//
+  //*********************************************************************//
+  // ------------------------- external views -------------------------- //
+  //*********************************************************************//
 
-	/** 
+  /** 
       @notice 
       Gets the current price of the provided currency in terms of the provided base currency.
       
@@ -53,56 +51,51 @@ contract JBPrices is IJBPrices, Ownable {
       
       @return The price of the currency in terms of the base, with 18 decimals.
     */
-	function priceFor(uint256 _currency, uint256 _base)
-		external
-		view
-		override
-		returns (uint256)
-	{
-		// If the currency is the base, return 1 since they are priced the same.
-		if (_currency == _base) return 10**TARGET_DECIMALS;
+  function priceFor(uint256 _currency, uint256 _base) external view override returns (uint256) {
+    // If the currency is the base, return 1 since they are priced the same.
+    if (_currency == _base) return 10**TARGET_DECIMALS;
 
-		// Get a reference to the feed.
-		AggregatorV3Interface _feed = feedFor[_currency][_base];
+    // Get a reference to the feed.
+    AggregatorV3Interface _feed = feedFor[_currency][_base];
 
-		// Feed must exist.
-		if (_feed == AggregatorV3Interface(address(0))) {
-			revert PRICE_FEED_NOT_FOUND();
-		}
+    // Feed must exist.
+    if (_feed == AggregatorV3Interface(address(0))) {
+      revert PRICE_FEED_NOT_FOUND();
+    }
 
-		// Get the latest round information. Only need the price is needed.
-		(, int256 _price, , , ) = _feed.latestRoundData();
+    // Get the latest round information. Only need the price is needed.
+    (, int256 _price, , , ) = _feed.latestRoundData();
 
-		// Get a reference to the number of decimals the feed uses.
-		uint256 _decimals = _feed.decimals();
+    // Get a reference to the number of decimals the feed uses.
+    uint256 _decimals = _feed.decimals();
 
-		// If decimals need adjusting, multiply or divide the price by the decimal adjuster to get the normalized result.
-		if (TARGET_DECIMALS == _decimals) {
-			return uint256(_price);
-		} else if (TARGET_DECIMALS > _decimals) {
-			return uint256(_price) * 10**(TARGET_DECIMALS - _decimals);
-		} else {
-			return uint256(_price) / 10**(_decimals - TARGET_DECIMALS);
-		}
-	}
+    // If decimals need adjusting, multiply or divide the price by the decimal adjuster to get the normalized result.
+    if (TARGET_DECIMALS == _decimals) {
+      return uint256(_price);
+    } else if (TARGET_DECIMALS > _decimals) {
+      return uint256(_price) * 10**(TARGET_DECIMALS - _decimals);
+    } else {
+      return uint256(_price) / 10**(_decimals - TARGET_DECIMALS);
+    }
+  }
 
-	//*********************************************************************//
-	// ---------------------------- constructor -------------------------- //
-	//*********************************************************************//
+  //*********************************************************************//
+  // ---------------------------- constructor -------------------------- //
+  //*********************************************************************//
 
-	/** 
+  /** 
     @param _owner The address that will own the contract.
   */
-	constructor(address _owner) {
-		// Transfer the ownership.
-		transferOwnership(_owner);
-	}
+  constructor(address _owner) {
+    // Transfer the ownership.
+    transferOwnership(_owner);
+  }
 
-	//*********************************************************************//
-	// ---------------------- external transactions ---------------------- //
-	//*********************************************************************//
+  //*********************************************************************//
+  // ---------------------- external transactions ---------------------- //
+  //*********************************************************************//
 
-	/** 
+  /** 
     @notice 
     Add a price feed for a currency in terms of the provided base currency.
 
@@ -113,19 +106,19 @@ contract JBPrices is IJBPrices, Ownable {
     @param _base The currency that the price feed is based on.
     @param _feed The price feed being added.
   */
-	function addFeedFor(
-		uint256 _currency,
-		uint256 _base,
-		AggregatorV3Interface _feed
-	) external override onlyOwner {
-		// There can't already be a feed for the specified currency.
-		if (feedFor[_currency][_base] != AggregatorV3Interface(address(0))) {
-			revert PRICE_FEED_ALREADY_EXISTS();
-		}
+  function addFeedFor(
+    uint256 _currency,
+    uint256 _base,
+    AggregatorV3Interface _feed
+  ) external override onlyOwner {
+    // There can't already be a feed for the specified currency.
+    if (feedFor[_currency][_base] != AggregatorV3Interface(address(0))) {
+      revert PRICE_FEED_ALREADY_EXISTS();
+    }
 
-		// Set the feed.
-		feedFor[_currency][_base] = _feed;
+    // Set the feed.
+    feedFor[_currency][_base] = _feed;
 
-		emit AddFeed(_currency, _base, _feed);
-	}
+    emit AddFeed(_currency, _base, _feed);
+  }
 }

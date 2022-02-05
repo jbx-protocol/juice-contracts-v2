@@ -25,61 +25,60 @@ error CONTROLLER_ALREADY_SET();
   Keeps a reference of which terminal contracts each project is currently accepting funds through, and which controller contract is managing each project's tokens and funding cycles.
 */
 contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
-	//*********************************************************************//
-	// --------------------- private stored properties ------------------- //
-	//*********************************************************************//
+  //*********************************************************************//
+  // --------------------- private stored properties ------------------- //
+  //*********************************************************************//
 
-	/** 
+  /** 
     @notice 
     For each project ID, the terminals that are currently managing its funds.
 
     _projectId The ID of the project to get terminals of.
   */
-	mapping(uint256 => IJBTerminal[]) private _terminalsOf;
+  mapping(uint256 => IJBTerminal[]) private _terminalsOf;
 
-	/** 
+  /** 
     @notice 
     The project's primary terminal for a token.
 
     _projectId The ID of the project to get the primary terminal of.
     _token The token to get the project's primary terminal of.
   */
-	mapping(uint256 => mapping(address => IJBTerminal))
-		private _primaryTerminalOf;
+  mapping(uint256 => mapping(address => IJBTerminal)) private _primaryTerminalOf;
 
-	//*********************************************************************//
-	// ---------------- public immutable stored properties --------------- //
-	//*********************************************************************//
+  //*********************************************************************//
+  // ---------------- public immutable stored properties --------------- //
+  //*********************************************************************//
 
-	/** 
+  /** 
     @notice 
     The Projects contract which mints ERC-721's that represent project ownership and transfers.
   */
-	IJBProjects public immutable override projects;
+  IJBProjects public immutable override projects;
 
-	//*********************************************************************//
-	// --------------------- public stored properties -------------------- //
-	//*********************************************************************//
+  //*********************************************************************//
+  // --------------------- public stored properties -------------------- //
+  //*********************************************************************//
 
-	/**
+  /**
     @notice
     Addresses that can set a project's controller. These addresses/contracts have been vetted and verified by Juicebox owners.
    */
-	mapping(address => bool) public override isAllowedToSetController;
+  mapping(address => bool) public override isAllowedToSetController;
 
-	/** 
+  /** 
     @notice 
     For each project ID, the controller that manages how terminals interact with tokens and funding cycles.
 
     _projectId The ID of the project to get the controller of.
   */
-	mapping(uint256 => IJBController) public override controllerOf;
+  mapping(uint256 => IJBController) public override controllerOf;
 
-	//*********************************************************************//
-	// ------------------------- external views -------------------------- //
-	//*********************************************************************//
+  //*********************************************************************//
+  // ------------------------- external views -------------------------- //
+  //*********************************************************************//
 
-	/** 
+  /** 
     @notice
     For each project ID, the terminals that are currently managing its funds.
 
@@ -87,16 +86,11 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     @return An array of terminal addresses.
   */
-	function terminalsOf(uint256 _projectId)
-		external
-		view
-		override
-		returns (IJBTerminal[] memory)
-	{
-		return _terminalsOf[_projectId];
-	}
+  function terminalsOf(uint256 _projectId) external view override returns (IJBTerminal[] memory) {
+    return _terminalsOf[_projectId];
+  }
 
-	/** 
+  /** 
     @notice
     Whether or not a specified terminal is a terminal of the specified project.
 
@@ -105,18 +99,18 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     @return A flag indicating whether or not the specified terminal is a terminal of the specified project.
   */
-	function isTerminalOf(uint256 _projectId, IJBTerminal _terminal)
-		public
-		view
-		override
-		returns (bool)
-	{
-		for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++)
-			if (_terminalsOf[_projectId][_i] == _terminal) return true;
-		return false;
-	}
+  function isTerminalOf(uint256 _projectId, IJBTerminal _terminal)
+    public
+    view
+    override
+    returns (bool)
+  {
+    for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++)
+      if (_terminalsOf[_projectId][_i] == _terminal) return true;
+    return false;
+  }
 
-	/** 
+  /** 
     @notice
     Whether or not a specified terminal is a terminal of the specified project.
 
@@ -125,19 +119,18 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     @return A flag indicating whether or not the specified terminal is a terminal of the specified project.
   */
-	function isTerminalDelegateOf(uint256 _projectId, address _contract)
-		public
-		view
-		override
-		returns (bool)
-	{
-		for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++)
-			if (address(_terminalsOf[_projectId][_i].delegate()) == _contract)
-				return true;
-		return false;
-	}
+  function isTerminalDelegateOf(uint256 _projectId, address _contract)
+    public
+    view
+    override
+    returns (bool)
+  {
+    for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++)
+      if (address(_terminalsOf[_projectId][_i].delegate()) == _contract) return true;
+    return false;
+  }
 
-	/** 
+  /** 
     @notice
     The primary terminal that is managing funds for a project for a specified token.
 
@@ -149,41 +142,39 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     @return The primary terminal for the project for the specified token.
   */
-	function primaryTerminalOf(uint256 _projectId, address _token)
-		public
-		view
-		override
-		returns (IJBTerminal)
-	{
-		// If a primary terminal for the token was specifically set, return it.
-		if (_primaryTerminalOf[_projectId][_token] != IJBTerminal(address(0)))
-			return _primaryTerminalOf[_projectId][_token];
+  function primaryTerminalOf(uint256 _projectId, address _token)
+    public
+    view
+    override
+    returns (IJBTerminal)
+  {
+    // If a primary terminal for the token was specifically set, return it.
+    if (_primaryTerminalOf[_projectId][_token] != IJBTerminal(address(0)))
+      return _primaryTerminalOf[_projectId][_token];
 
-		// Return the first terminal which accepts the specified token.
-		for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++) {
-			IJBTerminal _terminal = _terminalsOf[_projectId][_i];
-			if (_terminal.token() == _token) return _terminal;
-		}
+    // Return the first terminal which accepts the specified token.
+    for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++) {
+      IJBTerminal _terminal = _terminalsOf[_projectId][_i];
+      if (_terminal.token() == _token) return _terminal;
+    }
 
-		// Not found.
-		return IJBTerminal(address(0));
-	}
+    // Not found.
+    return IJBTerminal(address(0));
+  }
 
-	//*********************************************************************//
-	// -------------------------- constructor ---------------------------- //
-	//*********************************************************************//
+  //*********************************************************************//
+  // -------------------------- constructor ---------------------------- //
+  //*********************************************************************//
 
-	/** 
+  /** 
     @param _operatorStore A contract storing operator assignments.
     @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
   */
-	constructor(IJBOperatorStore _operatorStore, IJBProjects _projects)
-		JBOperatable(_operatorStore)
-	{
-		projects = _projects;
-	}
+  constructor(IJBOperatorStore _operatorStore, IJBProjects _projects) JBOperatable(_operatorStore) {
+    projects = _projects;
+  }
 
-	/**
+  /**
     @notice
     Update the controller that manages how terminals interact with the ecosystem.
 
@@ -195,39 +186,38 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @param _projectId The ID of the project to set a new controller for.
     @param _controller The new controller to set.
   */
-	function setControllerOf(uint256 _projectId, IJBController _controller)
-		external
-		override
-		requirePermissionAllowingOverride(
-			projects.ownerOf(_projectId),
-			_projectId,
-			JBOperations.SET_CONTROLLER,
-			(isAllowedToSetController[address(_controller)] &&
-				isAllowedToSetController[msg.sender])
-		)
-	{
-		// Can't set the zero address.
-		if (_controller == IJBController(address(0))) {
-			revert SET_CONTROLLER_ZERO_ADDRESS();
-		}
+  function setControllerOf(uint256 _projectId, IJBController _controller)
+    external
+    override
+    requirePermissionAllowingOverride(
+      projects.ownerOf(_projectId),
+      _projectId,
+      JBOperations.SET_CONTROLLER,
+      (isAllowedToSetController[address(_controller)] && isAllowedToSetController[msg.sender])
+    )
+  {
+    // Can't set the zero address.
+    if (_controller == IJBController(address(0))) {
+      revert SET_CONTROLLER_ZERO_ADDRESS();
+    }
 
-		// Can't set the controller if it's already set.
-		if (controllerOf[_projectId] == _controller) {
-			revert CONTROLLER_ALREADY_SET();
-		}
+    // Can't set the controller if it's already set.
+    if (controllerOf[_projectId] == _controller) {
+      revert CONTROLLER_ALREADY_SET();
+    }
 
-		// The project must exist.
-		if (projects.count() < _projectId) {
-			revert INVALID_PROJECT_ID_IN_DIRECTORY();
-		}
+    // The project must exist.
+    if (projects.count() < _projectId) {
+      revert INVALID_PROJECT_ID_IN_DIRECTORY();
+    }
 
-		// Set the new controller.
-		controllerOf[_projectId] = _controller;
+    // Set the new controller.
+    controllerOf[_projectId] = _controller;
 
-		emit SetController(_projectId, _controller, msg.sender);
-	}
+    emit SetController(_projectId, _controller, msg.sender);
+  }
 
-	/** 
+  /** 
     @notice 
     Add terminals to project's list of terminals.
 
@@ -237,30 +227,27 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @param _projectId The ID of the project having a terminal added.
     @param _terminals The terminals to add.
   */
-	function addTerminalsOf(
-		uint256 _projectId,
-		IJBTerminal[] calldata _terminals
-	)
-		external
-		override
-		requirePermissionAllowingOverride(
-			projects.ownerOf(_projectId),
-			_projectId,
-			JBOperations.ADD_TERMINALS,
-			msg.sender == address(controllerOf[_projectId])
-		)
-	{
-		for (uint256 _i = 0; _i < _terminals.length; _i++) {
-			// Can't be the zero address.
-			if (_terminals[_i] == IJBTerminal(address(0))) {
-				revert ADD_TERMINAL_ZERO_ADDRESS();
-			}
+  function addTerminalsOf(uint256 _projectId, IJBTerminal[] calldata _terminals)
+    external
+    override
+    requirePermissionAllowingOverride(
+      projects.ownerOf(_projectId),
+      _projectId,
+      JBOperations.ADD_TERMINALS,
+      msg.sender == address(controllerOf[_projectId])
+    )
+  {
+    for (uint256 _i = 0; _i < _terminals.length; _i++) {
+      // Can't be the zero address.
+      if (_terminals[_i] == IJBTerminal(address(0))) {
+        revert ADD_TERMINAL_ZERO_ADDRESS();
+      }
 
-			_addTerminalIfNeeded(_projectId, _terminals[_i]);
-		}
-	}
+      _addTerminalIfNeeded(_projectId, _terminals[_i]);
+    }
+  }
 
-	/** 
+  /** 
     @notice 
     Remove a terminal from a project's list of terminals.
 
@@ -270,35 +257,30 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @param _projectId The ID of the project having a terminal removed.
     @param _terminal The terminal to remove.
   */
-	function removeTerminalOf(uint256 _projectId, IJBTerminal _terminal)
-		external
-		override
-		requirePermission(
-			projects.ownerOf(_projectId),
-			_projectId,
-			JBOperations.REMOVE_TERMINAL
-		)
-	{
-		// Get a reference to the terminals of the project.
-		IJBTerminal[] memory _terminals = _terminalsOf[_projectId];
+  function removeTerminalOf(uint256 _projectId, IJBTerminal _terminal)
+    external
+    override
+    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.REMOVE_TERMINAL)
+  {
+    // Get a reference to the terminals of the project.
+    IJBTerminal[] memory _terminals = _terminalsOf[_projectId];
 
-		// Delete the stored terminals for the project.
-		delete _terminalsOf[_projectId];
+    // Delete the stored terminals for the project.
+    delete _terminalsOf[_projectId];
 
-		// Repopulate the stored terminals for the project, omitting the one being deleted.
-		for (uint256 _i; _i < _terminals.length; _i++)
-			// Don't include the terminal being deleted.
-			if (_terminals[_i] != _terminal)
-				_terminalsOf[_projectId].push(_terminals[_i]);
+    // Repopulate the stored terminals for the project, omitting the one being deleted.
+    for (uint256 _i; _i < _terminals.length; _i++)
+      // Don't include the terminal being deleted.
+      if (_terminals[_i] != _terminal) _terminalsOf[_projectId].push(_terminals[_i]);
 
-		// If the terminal that is being removed is the primary terminal for the token, delete it from being primary terminal.
-		if (_primaryTerminalOf[_projectId][_terminal.token()] == _terminal)
-			delete _primaryTerminalOf[_projectId][_terminal.token()];
+    // If the terminal that is being removed is the primary terminal for the token, delete it from being primary terminal.
+    if (_primaryTerminalOf[_projectId][_terminal.token()] == _terminal)
+      delete _primaryTerminalOf[_projectId][_terminal.token()];
 
-		emit RemoveTerminal(_projectId, _terminal, msg.sender);
-	}
+    emit RemoveTerminal(_projectId, _terminal, msg.sender);
+  }
 
-	/** 
+  /** 
     @notice
     Project's can set which terminal should be their primary for a particular token.
     This is useful in case a project has several terminals connected for a particular token.
@@ -309,38 +291,34 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @param _projectId The ID of the project for which a primary token is being set.
     @param _terminal The terminal to make primary.
   */
-	function setPrimaryTerminalOf(uint256 _projectId, IJBTerminal _terminal)
-		external
-		override
-		requirePermission(
-			projects.ownerOf(_projectId),
-			_projectId,
-			JBOperations.SET_PRIMARY_TERMINAL
-		)
-	{
-		// Can't set the zero address.
-		if (_terminal == IJBTerminal(address(0))) {
-			revert SET_PRIMARY_TERMINAL_ZERO_ADDRESS();
-		}
+  function setPrimaryTerminalOf(uint256 _projectId, IJBTerminal _terminal)
+    external
+    override
+    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.SET_PRIMARY_TERMINAL)
+  {
+    // Can't set the zero address.
+    if (_terminal == IJBTerminal(address(0))) {
+      revert SET_PRIMARY_TERMINAL_ZERO_ADDRESS();
+    }
 
-		// Get a reference to the token that the terminal's vault accepts.
-		address _token = _terminal.token();
+    // Get a reference to the token that the terminal's vault accepts.
+    address _token = _terminal.token();
 
-		// Can't set this terminal as the primary if it already is.
-		if (_terminal == _primaryTerminalOf[_projectId][_token]) {
-			revert PRIMARY_TERMINAL_ALREADY_SET();
-		}
+    // Can't set this terminal as the primary if it already is.
+    if (_terminal == _primaryTerminalOf[_projectId][_token]) {
+      revert PRIMARY_TERMINAL_ALREADY_SET();
+    }
 
-		// Add the terminal to thge project if it hasn't been already.
-		_addTerminalIfNeeded(_projectId, _terminal);
+    // Add the terminal to thge project if it hasn't been already.
+    _addTerminalIfNeeded(_projectId, _terminal);
 
-		// Store the terminal as the primary for the particular token.
-		_primaryTerminalOf[_projectId][_token] = _terminal;
+    // Store the terminal as the primary for the particular token.
+    _primaryTerminalOf[_projectId][_token] = _terminal;
 
-		emit SetPrimaryTerminal(_projectId, _token, _terminal, msg.sender);
-	}
+    emit SetPrimaryTerminal(_projectId, _token, _terminal, msg.sender);
+  }
 
-	/** 
+  /** 
     @notice	
     Add a controller to the list of trusted controllers.	
 
@@ -355,23 +333,19 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     @param _address the allowed address to be added.
   */
-	function addToSetControllerAllowlist(address _address)
-		external
-		override
-		onlyOwner
-	{
-		// Check that the address is not already in the allowlist.
-		if (isAllowedToSetController[_address]) {
-			revert CONTROLLER_ALREADY_IN_ALLOWLIST();
-		}
+  function addToSetControllerAllowlist(address _address) external override onlyOwner {
+    // Check that the address is not already in the allowlist.
+    if (isAllowedToSetController[_address]) {
+      revert CONTROLLER_ALREADY_IN_ALLOWLIST();
+    }
 
-		// Add the address to the allowlist.
-		isAllowedToSetController[_address] = true;
+    // Add the address to the allowlist.
+    isAllowedToSetController[_address] = true;
 
-		emit AddToSetControllerAllowlist(_address, msg.sender);
-	}
+    emit AddToSetControllerAllowlist(_address, msg.sender);
+  }
 
-	/** 
+  /** 
     @notice	
     Remove a controller to the list of trusted controllers.	
 
@@ -380,42 +354,36 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     @param _address The address to be removed.
   */
-	function removeFromSetControllerAllowlist(address _address)
-		external
-		override
-		onlyOwner
-	{
-		// Check that the address is in the allowlist.
-		if (!isAllowedToSetController[_address]) {
-			revert CONTROLLER_NOT_IN_ALLOWLIST();
-		}
+  function removeFromSetControllerAllowlist(address _address) external override onlyOwner {
+    // Check that the address is in the allowlist.
+    if (!isAllowedToSetController[_address]) {
+      revert CONTROLLER_NOT_IN_ALLOWLIST();
+    }
 
-		// Remove the address from the allowlist.
-		delete isAllowedToSetController[_address];
+    // Remove the address from the allowlist.
+    delete isAllowedToSetController[_address];
 
-		emit RemoveFromSetControllerAllowlist(_address, msg.sender);
-	}
+    emit RemoveFromSetControllerAllowlist(_address, msg.sender);
+  }
 
-	//*********************************************************************//
-	// --------------------- private helper functions -------------------- //
-	//*********************************************************************//
+  //*********************************************************************//
+  // --------------------- private helper functions -------------------- //
+  //*********************************************************************//
 
-	/** 
+  /** 
     @notice 
     Add a terminal to a project's list of terminals if it hasn't been already.
 
     @param _projectId The ID of the project having a terminal added.
     @param _terminal The terminal to add.
   */
-	function _addTerminalIfNeeded(uint256 _projectId, IJBTerminal _terminal)
-		private
-	{
-		// Check that the terminal has not already been added.
-		if (isTerminalOf(_projectId, _terminal)) return;
+  function _addTerminalIfNeeded(uint256 _projectId, IJBTerminal _terminal) private {
+    // Check that the terminal has not already been added.
+    if (isTerminalOf(_projectId, _terminal)) return;
 
-		// Set the new terminal.
-		_terminalsOf[_projectId].push(_terminal);
+    // Set the new terminal.
+    _terminalsOf[_projectId].push(_terminal);
 
-		emit AddTerminal(_projectId, _terminal, msg.sender);
-	}
+    emit AddTerminal(_projectId, _terminal, msg.sender);
+  }
 }
