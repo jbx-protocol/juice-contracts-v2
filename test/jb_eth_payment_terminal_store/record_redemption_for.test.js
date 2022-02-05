@@ -410,7 +410,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
         holder: holder.address,
         projectId: PROJECT_ID,
         tokenCount: AMOUNT,
-        claimAmount: AMOUNT,
+        reclaimedAmount: AMOUNT,
         beneficiary: beneficiary.address,
         memo: newMemo,
         metadata: delegateMetadata,
@@ -444,7 +444,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        /* claimAmount */ AMOUNT,
+        /* reclaimedAmount */ AMOUNT,
         /* beneficiary */ beneficiary.address,
         /* memo */ newMemo,
         /* delegateMetadata */ ethers.BigNumber.from(delegateMetadata),
@@ -629,7 +629,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
 
-  it(`Can't record redemption if claimAmount < minReturnedWei`, async function () {
+  it(`Can't record redemption if reclaimAmount < minReturnedWei`, async function () {
     const {
       terminal,
       holder,

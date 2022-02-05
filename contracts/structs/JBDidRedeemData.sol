@@ -8,8 +8,8 @@ struct JBDidRedeemData {
   uint256 projectId;
   // The number of tokens being redeemed.
   uint256 tokenCount;
-  // The amount of ETH being claimed.
-  uint256 claimAmount;
+  // The amount of ETH being reclaimed.
+  uint256 reclaimedAmount;
   // The address to which the ETH will be sent.
   address payable beneficiary;
   // The memo that is being emitted alongside the redemption.
