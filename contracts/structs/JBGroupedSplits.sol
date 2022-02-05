@@ -5,6 +5,6 @@ import './JBSplit.sol';
 import '../libraries/JBSplitsGroups.sol';
 
 struct JBGroupedSplits {
-    uint256 group;
-    JBSplit[] splits;
+	uint256 group;
+	JBSplit[] splits;
 }

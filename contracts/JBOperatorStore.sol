@@ -13,11 +13,11 @@ error PERMISSION_INDEX_OUT_OF_BOUNDS();
   Stores operator permissions for all addresses. Addresses can give permissions to any other address to take specific indexed actions on their behalf.
 */
 contract JBOperatorStore is IJBOperatorStore {
-    //*********************************************************************//
-    // --------------------- public stored properties -------------------- //
-    //*********************************************************************//
+	//*********************************************************************//
+	// --------------------- public stored properties -------------------- //
+	//*********************************************************************//
 
-    /** 
+	/** 
     @notice
     The permissions that an operator has to operate on a specific domain.
     
@@ -30,15 +30,15 @@ contract JBOperatorStore is IJBOperatorStore {
     _account The address of the account being operated.
     _domain The domain within which the permissions apply.
   */
-    mapping(address => mapping(address => mapping(uint256 => uint256)))
-        public
-        override permissionsOf;
+	mapping(address => mapping(address => mapping(uint256 => uint256)))
+		public
+		override permissionsOf;
 
-    //*********************************************************************//
-    // ------------------------- external views -------------------------- //
-    //*********************************************************************//
+	//*********************************************************************//
+	// ------------------------- external views -------------------------- //
+	//*********************************************************************//
 
-    /** 
+	/** 
     @notice 
     Whether or not an operator has the permission to take a certain action pertaining to the specified domain.
 
@@ -49,20 +49,20 @@ contract JBOperatorStore is IJBOperatorStore {
 
     @return Whether the operator has the specified permission.
   */
-    function hasPermission(
-        address _operator,
-        address _account,
-        uint256 _domain,
-        uint256 _permissionIndex
-    ) external view override returns (bool) {
-        if (_permissionIndex > 255) {
-            revert PERMISSION_INDEX_OUT_OF_BOUNDS();
-        }
-        return (((permissionsOf[_operator][_account][_domain] >>
-            _permissionIndex) & 1) == 1);
-    }
+	function hasPermission(
+		address _operator,
+		address _account,
+		uint256 _domain,
+		uint256 _permissionIndex
+	) external view override returns (bool) {
+		if (_permissionIndex > 255) {
+			revert PERMISSION_INDEX_OUT_OF_BOUNDS();
+		}
+		return (((permissionsOf[_operator][_account][_domain] >>
+			_permissionIndex) & 1) == 1);
+	}
 
-    /** 
+	/** 
     @notice 
     Whether or not an operator has the permission to take certain actions pertaining to the specified domain.
 
@@ -73,30 +73,30 @@ contract JBOperatorStore is IJBOperatorStore {
 
     @return Whether the operator has all specified permissions.
   */
-    function hasPermissions(
-        address _operator,
-        address _account,
-        uint256 _domain,
-        uint256[] calldata _permissionIndexes
-    ) external view override returns (bool) {
-        for (uint256 _i = 0; _i < _permissionIndexes.length; _i++) {
-            uint256 _permissionIndex = _permissionIndexes[_i];
-            if (_permissionIndex > 255) {
-                revert PERMISSION_INDEX_OUT_OF_BOUNDS();
-            }
-            if (
-                ((permissionsOf[_operator][_account][_domain] >>
-                    _permissionIndex) & 1) == 0
-            ) return false;
-        }
-        return true;
-    }
+	function hasPermissions(
+		address _operator,
+		address _account,
+		uint256 _domain,
+		uint256[] calldata _permissionIndexes
+	) external view override returns (bool) {
+		for (uint256 _i = 0; _i < _permissionIndexes.length; _i++) {
+			uint256 _permissionIndex = _permissionIndexes[_i];
+			if (_permissionIndex > 255) {
+				revert PERMISSION_INDEX_OUT_OF_BOUNDS();
+			}
+			if (
+				((permissionsOf[_operator][_account][_domain] >>
+					_permissionIndex) & 1) == 0
+			) return false;
+		}
+		return true;
+	}
 
-    //*********************************************************************//
-    // ---------------------- external transactions ---------------------- //
-    //*********************************************************************//
+	//*********************************************************************//
+	// ---------------------- external transactions ---------------------- //
+	//*********************************************************************//
 
-    /**
+	/**
     @notice
     Sets permissions for an operators.
 
@@ -108,28 +108,28 @@ contract JBOperatorStore is IJBOperatorStore {
       @dev _operatorData.domains Lists the domain that each operator is being given permissions to operate. A value of 0 serves as a wildcard domain. Applications can specify their own domain system.
       @dev _operatorData.permissionIndexes Lists the permission indexes to set for each operator. Indexes must be between 0-255. Applications can specify the significance of each index.
   */
-    function setOperator(JBOperatorData calldata _operatorData)
-        external
-        override
-    {
-        // Pack the indexes into a uint256.
-        uint256 _packed = _packedPermissions(_operatorData.permissionIndexes);
+	function setOperator(JBOperatorData calldata _operatorData)
+		external
+		override
+	{
+		// Pack the indexes into a uint256.
+		uint256 _packed = _packedPermissions(_operatorData.permissionIndexes);
 
-        // Store the new value.
-        permissionsOf[_operatorData.operator][msg.sender][
-            _operatorData.domain
-        ] = _packed;
+		// Store the new value.
+		permissionsOf[_operatorData.operator][msg.sender][
+			_operatorData.domain
+		] = _packed;
 
-        emit SetOperator(
-            _operatorData.operator,
-            msg.sender,
-            _operatorData.domain,
-            _operatorData.permissionIndexes,
-            _packed
-        );
-    }
+		emit SetOperator(
+			_operatorData.operator,
+			msg.sender,
+			_operatorData.domain,
+			_operatorData.permissionIndexes,
+			_packed
+		);
+	}
 
-    /**
+	/**
     @notice
     Sets permissions for many operators.
 
@@ -141,36 +141,36 @@ contract JBOperatorStore is IJBOperatorStore {
       @dev _operatorData.domains Lists the domain that each operator is being given permissions to operate. A value of 0 serves as a wildcard domain. Applications can specify their own domain system.
       @dev _operatorData.permissionIndexes Lists the permission indexes to set for each operator. Indexes must be between 0-255. Applications can specify the significance of each index.
   */
-    function setOperators(JBOperatorData[] calldata _operatorData)
-        external
-        override
-    {
-        for (uint256 _i = 0; _i < _operatorData.length; _i++) {
-            // Pack the indexes into a uint256.
-            uint256 _packed = _packedPermissions(
-                _operatorData[_i].permissionIndexes
-            );
+	function setOperators(JBOperatorData[] calldata _operatorData)
+		external
+		override
+	{
+		for (uint256 _i = 0; _i < _operatorData.length; _i++) {
+			// Pack the indexes into a uint256.
+			uint256 _packed = _packedPermissions(
+				_operatorData[_i].permissionIndexes
+			);
 
-            // Store the new value.
-            permissionsOf[_operatorData[_i].operator][msg.sender][
-                _operatorData[_i].domain
-            ] = _packed;
+			// Store the new value.
+			permissionsOf[_operatorData[_i].operator][msg.sender][
+				_operatorData[_i].domain
+			] = _packed;
 
-            emit SetOperator(
-                _operatorData[_i].operator,
-                msg.sender,
-                _operatorData[_i].domain,
-                _operatorData[_i].permissionIndexes,
-                _packed
-            );
-        }
-    }
+			emit SetOperator(
+				_operatorData[_i].operator,
+				msg.sender,
+				_operatorData[_i].domain,
+				_operatorData[_i].permissionIndexes,
+				_packed
+			);
+		}
+	}
 
-    //*********************************************************************//
-    // --------------------- private helper functions -------------------- //
-    //*********************************************************************//
+	//*********************************************************************//
+	// --------------------- private helper functions -------------------- //
+	//*********************************************************************//
 
-    /** 
+	/** 
     @notice 
     Converts an array of permission indexes to a packed uint256.
 
@@ -178,18 +178,18 @@ contract JBOperatorStore is IJBOperatorStore {
 
     @return packed The packed result.
   */
-    function _packedPermissions(uint256[] calldata _indexes)
-        private
-        pure
-        returns (uint256 packed)
-    {
-        for (uint256 _i = 0; _i < _indexes.length; _i++) {
-            uint256 _index = _indexes[_i];
-            if (_index > 255) {
-                revert PERMISSION_INDEX_OUT_OF_BOUNDS();
-            }
-            // Turn the bit at the index on.
-            packed |= 1 << _index;
-        }
-    }
+	function _packedPermissions(uint256[] calldata _indexes)
+		private
+		pure
+		returns (uint256 packed)
+	{
+		for (uint256 _i = 0; _i < _indexes.length; _i++) {
+			uint256 _index = _indexes[_i];
+			if (_index > 255) {
+				revert PERMISSION_INDEX_OUT_OF_BOUNDS();
+			}
+			// Turn the bit at the index on.
+			packed |= 1 << _index;
+		}
+	}
 }

@@ -11,37 +11,37 @@ import './interfaces/IJBToken.sol';
   An ERC-20 token that can be minted and burned by its owner.
 */
 contract JBToken is IJBToken, ERC20Votes, Ownable {
-    function totalSupply(uint256) external view override returns (uint256) {
-        return super.totalSupply();
-    }
+	function totalSupply(uint256) external view override returns (uint256) {
+		return super.totalSupply();
+	}
 
-    function balanceOf(uint256, address _account)
-        external
-        view
-        override
-        returns (uint256)
-    {
-        return super.balanceOf(_account);
-    }
+	function balanceOf(uint256, address _account)
+		external
+		view
+		override
+		returns (uint256)
+	{
+		return super.balanceOf(_account);
+	}
 
-    //*********************************************************************//
-    // -------------------------- constructor ---------------------------- //
-    //*********************************************************************//
+	//*********************************************************************//
+	// -------------------------- constructor ---------------------------- //
+	//*********************************************************************//
 
-    /** 
+	/** 
     @param _name The name of the token.
     @param _symbol The symbol that the token should be represented by.
   */
-    constructor(string memory _name, string memory _symbol)
-        ERC20(_name, _symbol)
-        ERC20Permit(_name)
-    {}
+	constructor(string memory _name, string memory _symbol)
+		ERC20(_name, _symbol)
+		ERC20Permit(_name)
+	{}
 
-    //*********************************************************************//
-    // ---------------------- external transactions ---------------------- //
-    //*********************************************************************//
+	//*********************************************************************//
+	// ---------------------- external transactions ---------------------- //
+	//*********************************************************************//
 
-    /** 
+	/** 
     @notice
     Mints more of the token.
 
@@ -51,15 +51,15 @@ contract JBToken is IJBToken, ERC20Votes, Ownable {
     @param _account The account to mint the tokens for.
     @param _amount The amount of tokens to mint.
   */
-    function mint(
-        uint256,
-        address _account,
-        uint256 _amount
-    ) external override onlyOwner {
-        return _mint(_account, _amount);
-    }
+	function mint(
+		uint256,
+		address _account,
+		uint256 _amount
+	) external override onlyOwner {
+		return _mint(_account, _amount);
+	}
 
-    /** 
+	/** 
     @notice
     Burn some outstanding tokens.
 
@@ -69,15 +69,15 @@ contract JBToken is IJBToken, ERC20Votes, Ownable {
     @param _account The account to burn tokens from.
     @param _amount The amount of tokens to burn.
   */
-    function burn(
-        uint256,
-        address _account,
-        uint256 _amount
-    ) external override onlyOwner {
-        return _burn(_account, _amount);
-    }
+	function burn(
+		uint256,
+		address _account,
+		uint256 _amount
+	) external override onlyOwner {
+		return _burn(_account, _amount);
+	}
 
-    /** 
+	/** 
     @notice
     Transfer ownership of this contract to another address.
 
@@ -89,12 +89,12 @@ contract JBToken is IJBToken, ERC20Votes, Ownable {
 
     @param _newOwner The new owner.
   */
-    function transferOwnership(address _newOwner)
-        public
-        virtual
-        override(Ownable, IJBToken)
-        onlyOwner
-    {
-        return super.transferOwnership(_newOwner);
-    }
+	function transferOwnership(address _newOwner)
+		public
+		virtual
+		override(Ownable, IJBToken)
+		onlyOwner
+	{
+		return super.transferOwnership(_newOwner);
+	}
 }

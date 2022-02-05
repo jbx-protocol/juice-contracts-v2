@@ -11,7 +11,7 @@
       "options": {
         "printWidth": 80,
         "tabWidth": 4,
-        "useTabs": false,
+        "useTabs": true,
         "bracketSpacing": false,
         "explicitTypes": "always"
       }
