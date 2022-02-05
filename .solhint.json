@@ -1,12 +1,17 @@
 {
   "extends": "solhint:recommended",
+  "plugins": ["prettier"],
   "rules": {
-    "compiler-version": ["error", "^0.8.6"],
-    "func-visibility": ["warn", { "ignoreConstructors": true }],
+    "prettier/prettier": "error",
+    "compiler-version": ["off"],
+    "constructor-syntax": "warn",
     "quotes": ["error", "single"],
-    "func-name-mixedcase": "off",
+    "func-visibility": ["warn", { "ignoreConstructors": true }],
     "not-rely-on-time": "off",
-    "no-empty-blocks": "off",
-    "const-name-snakecase": "off"
+    "private-vars-leading-underscore": ["warn", { "strict": false }],
+    "const-name-snakecase": "warn",
+    "comprehensive-interface": "off",
+    "func-param-name-mixedcase": "error",
+    "modifier-name-mixedcase": "error"
   }
 }
