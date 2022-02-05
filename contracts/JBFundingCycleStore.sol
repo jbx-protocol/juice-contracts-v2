@@ -225,6 +225,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
   /** 
     @param _directory A contract storing directories of terminals and controllers for each project.
   */
+  // solhint-disable-next-line no-empty-blocks
   constructor(IJBDirectory _directory) JBControllerUtility(_directory) {}
 
   //*********************************************************************//
