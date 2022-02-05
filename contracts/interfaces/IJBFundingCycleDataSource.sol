@@ -24,7 +24,7 @@ interface IJBFundingCycleDataSource {
     external
     view
     returns (
-      uint256 amount,
+      uint256 reclaimAmount,
       string memory memo,
       IJBRedemptionDelegate delegate,
       bytes memory delegateMetadata
