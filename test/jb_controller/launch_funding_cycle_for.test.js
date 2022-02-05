@@ -16,7 +16,7 @@ import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStor
 describe('JBController::launchFundingCycleFor(...)', function () {
   const EXISTING_PROJECT = 1;
   const LAUNCHED_PROJECT = 2;
-  const NONEXISTANT_PROJECT = 3
+  const NONEXISTANT_PROJECT = 3;
   const METADATA_CID = '';
   const METADATA_DOMAIN = 1234;
   const PROJECT_START = '1';
@@ -77,19 +77,15 @@ describe('JBController::launchFundingCycleFor(...)', function () {
       .withArgs(projectOwner.address, [METADATA_CID, METADATA_DOMAIN])
       .returns(EXISTING_PROJECT);
 
-    await mockJbProjects.mock.ownerOf
-      .withArgs(EXISTING_PROJECT)
-      .returns(projectOwner.address);
+    await mockJbProjects.mock.ownerOf.withArgs(EXISTING_PROJECT).returns(projectOwner.address);
 
-    await mockJbProjects.mock.ownerOf
-      .withArgs(LAUNCHED_PROJECT)
-      .returns(projectOwner.address);
+    await mockJbProjects.mock.ownerOf.withArgs(LAUNCHED_PROJECT).returns(projectOwner.address);
 
-    await mockJbProjects.mock.ownerOf
-      .withArgs(NONEXISTANT_PROJECT)
-      .reverts();
+    await mockJbProjects.mock.ownerOf.withArgs(NONEXISTANT_PROJECT).reverts();
 
-    await mockJbDirectory.mock.setControllerOf.withArgs(EXISTING_PROJECT, jbController.address).returns();
+    await mockJbDirectory.mock.setControllerOf
+      .withArgs(EXISTING_PROJECT, jbController.address)
+      .returns();
 
     await mockJbDirectory.mock.addTerminalsOf
       .withArgs(EXISTING_PROJECT, [mockJbTerminal1.address, mockJbTerminal2.address])
@@ -110,13 +106,9 @@ describe('JBController::launchFundingCycleFor(...)', function () {
         ),
       );
 
-    await mockJbFundingCycleStore.mock.latestConfigurationOf
-      .withArgs(EXISTING_PROJECT)
-      .returns(0);
+    await mockJbFundingCycleStore.mock.latestConfigurationOf.withArgs(EXISTING_PROJECT).returns(0);
 
-    await mockJbFundingCycleStore.mock.latestConfigurationOf
-      .withArgs(LAUNCHED_PROJECT)
-      .returns(1);
+    await mockJbFundingCycleStore.mock.latestConfigurationOf.withArgs(LAUNCHED_PROJECT).returns(1);
 
     await mockJbSplitsStore.mock.set
       .withArgs(EXISTING_PROJECT, /*configuration=*/ timestamp, /*group=*/ 1, splits)
@@ -460,7 +452,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
       splits,
       mockJbTerminal1,
       mockJbTerminal2,
-      mockJbOperatorStore
+      mockJbOperatorStore,
     } = await setup();
     const groupedSplits = [{ group: 1, splits }];
     const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
@@ -517,4 +509,4 @@ describe('JBController::launchFundingCycleFor(...)', function () {
 
     await expect(tx).to.be.revertedWith(errors.FUNDING_CYCLE_ALREADY_LAUNCHED);
   });
-})
+});

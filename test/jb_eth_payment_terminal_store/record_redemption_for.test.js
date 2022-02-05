@@ -132,13 +132,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
     /* End of mocks for _claimableOverflowOf private method */
 
     await mockJbController.mock.burnTokensOf
-      .withArgs(
-        holder.address,
-        PROJECT_ID,
-        AMOUNT,
-        /* memo */ '',
-        /* preferClaimedTokens */ false,
-      )
+      .withArgs(holder.address, PROJECT_ID, AMOUNT, /* memo */ '', /* preferClaimedTokens */ false)
       .returns();
 
     // Add to balance beforehand to have sufficient overflow
@@ -300,13 +294,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
     /* End of mocks for _claimableOverflowOf private method */
 
     await mockJbController.mock.burnTokensOf
-      .withArgs(
-        holder.address,
-        PROJECT_ID,
-        AMOUNT,
-        /* memo */ '',
-        /* preferClaimedTokens */ false,
-      )
+      .withArgs(holder.address, PROJECT_ID, AMOUNT, /* memo */ '', /* preferClaimedTokens */ false)
       .returns();
 
     // No balance
@@ -328,9 +316,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
       );
 
     // Expect recorded balance to not have changed
-    expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(
-      startingBalance,
-    );
+    expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
   });
 
   it('Should record redemption with a datasource and emit event', async function () {
@@ -395,13 +381,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
     await mockJbController.mock.burnTokensOf
-      .withArgs(
-        holder.address,
-        PROJECT_ID,
-        AMOUNT,
-        /* memo */ '',
-        /* preferClaimedTokens */ false,
-      )
+      .withArgs(holder.address, PROJECT_ID, AMOUNT, /* memo */ '', /* preferClaimedTokens */ false)
       .returns();
 
     await mockJbRedemptionDelegate.mock.didRedeem

@@ -29,15 +29,11 @@ describe('JBProjects::createFor(...)', function () {
 
     let tx = await jbProjectsStore
       .connect(deployer)
-      .createFor(
-        projectOwner.address,
-        [
-          METADATA_CID,
-          METADATA_DOMAIN
-        ]
-      );
+      .createFor(projectOwner.address, [METADATA_CID, METADATA_DOMAIN]);
 
-    let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataContentOf(PROJECT_ID_1, METADATA_DOMAIN);
+    let storedMetadataCid = await jbProjectsStore
+      .connect(deployer)
+      .metadataContentOf(PROJECT_ID_1, METADATA_DOMAIN);
 
     await expect(storedMetadataCid).to.equal(METADATA_CID);
 
@@ -46,10 +42,7 @@ describe('JBProjects::createFor(...)', function () {
       .withArgs(
         PROJECT_ID_1,
         projectOwner.address,
-        [
-          METADATA_CID,
-          METADATA_DOMAIN
-        ],
+        [METADATA_CID, METADATA_DOMAIN],
         deployer.address,
       );
   });
@@ -59,33 +52,18 @@ describe('JBProjects::createFor(...)', function () {
 
     await jbProjectsStore
       .connect(deployer)
-      .createFor(
-        projectOwner.address,
-        [
-          METADATA_CID,
-          METADATA_DOMAIN
-        ],
-      );
+      .createFor(projectOwner.address, [METADATA_CID, METADATA_DOMAIN]);
 
     let tx = await jbProjectsStore
       .connect(deployer)
-      .createFor(
-        projectOwner.address,
-        [
-          METADATA_CID,
-          METADATA_DOMAIN
-        ],
-      );
+      .createFor(projectOwner.address, [METADATA_CID, METADATA_DOMAIN]);
 
     await expect(tx)
       .to.emit(jbProjectsStore, 'Create')
       .withArgs(
         PROJECT_ID_2,
         projectOwner.address,
-        [
-          METADATA_CID,
-          METADATA_DOMAIN
-        ],
+        [METADATA_CID, METADATA_DOMAIN],
         deployer.address,
       );
   });

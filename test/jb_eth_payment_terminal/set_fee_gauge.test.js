@@ -55,7 +55,7 @@ describe('JBETHPaymentTerminal::setFeeGauge(...)', function () {
       terminalOwner,
       caller,
       jbEthPaymentTerminal,
-      mockJbFeeGauge
+      mockJbFeeGauge,
     };
   }
 
@@ -66,10 +66,11 @@ describe('JBETHPaymentTerminal::setFeeGauge(...)', function () {
       .to.emit(jbEthPaymentTerminal, 'SetFeeGauge')
       .withArgs(mockJbFeeGauge.address, terminalOwner.address);
   });
-  it('Can\'t set the fee gauge if caller is not the terminal owner', async function () {
+  it("Can't set the fee gauge if caller is not the terminal owner", async function () {
     const { caller, jbEthPaymentTerminal, mockJbFeeGauge } = await setup();
 
-    await expect(jbEthPaymentTerminal.connect(caller).setFeeGauge(mockJbFeeGauge.address))
-      .to.be.revertedWith('Ownable: caller is not the owner');
+    await expect(
+      jbEthPaymentTerminal.connect(caller).setFeeGauge(mockJbFeeGauge.address),
+    ).to.be.revertedWith('Ownable: caller is not the owner');
   });
 });
