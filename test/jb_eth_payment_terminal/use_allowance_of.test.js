@@ -337,12 +337,11 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
       timestamp,
     } = await setup();
 
-    const DISCOUNTED_FEE = DEFAULT_FEE - Math.floor((DEFAULT_FEE * FEE_DISCOUNT) / MAX_FEE_DISCOUNT);
+    const DISCOUNTED_FEE =
+      DEFAULT_FEE - Math.floor((DEFAULT_FEE * FEE_DISCOUNT) / MAX_FEE_DISCOUNT);
     const AMOUNT_MINUS_DISCOUNTED_FEES = Math.floor((AMOUNT * 200) / (200 + DISCOUNTED_FEE));
 
-    await mockJbFeeGauge.mock.currentDiscountFor
-      .withArgs(PROJECT_ID)
-      .returns(FEE_DISCOUNT);
+    await mockJbFeeGauge.mock.currentDiscountFor.withArgs(PROJECT_ID).returns(FEE_DISCOUNT);
 
     await mockJbEthPaymentTerminalStore.mock.recordUsedAllowanceOf
       .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT)
@@ -421,9 +420,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
       timestamp,
     } = await setup();
 
-    await mockJbFeeGauge.mock.currentDiscountFor
-      .withArgs(PROJECT_ID)
-      .returns(MAX_FEE_DISCOUNT + 1);
+    await mockJbFeeGauge.mock.currentDiscountFor.withArgs(PROJECT_ID).returns(MAX_FEE_DISCOUNT + 1);
 
     await mockJbEthPaymentTerminalStore.mock.recordUsedAllowanceOf
       .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT)
@@ -551,11 +548,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
 
     // Should be holding fees in the contract
     expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([
-      [
-        ethers.BigNumber.from(AMOUNT),
-        DEFAULT_FEE,
-        projectOwner.address,
-      ],
+      [ethers.BigNumber.from(AMOUNT), DEFAULT_FEE, projectOwner.address],
     ]);
 
     // Process held fees

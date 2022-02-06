@@ -95,13 +95,13 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
     @param _projectId The ID of the project to get the queued funding cycle of.
 
-    @return _fundingCycle The queued funding cycle.
+    @return fundingCycle The queued funding cycle.
   */
   function queuedOf(uint256 _projectId)
     external
     view
     override
-    returns (JBFundingCycle memory _fundingCycle)
+    returns (JBFundingCycle memory fundingCycle)
   {
     // The project must have funding cycles.
     if (latestConfigurationOf[_projectId] == 0) return _getStructFor(0, 0);
@@ -111,32 +111,31 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
     // If it exists, return it's funding cycle if it is approved
     if (_standbyFundingCycleConfiguration > 0) {
-      _fundingCycle = _getStructFor(_projectId, _standbyFundingCycleConfiguration);
-      if (_isApproved(_projectId, _fundingCycle)) return _fundingCycle;
+      fundingCycle = _getStructFor(_projectId, _standbyFundingCycleConfiguration);
+      if (_isApproved(_projectId, fundingCycle)) return fundingCycle;
       // Resolve the funding cycle for the for the latest configured funding cycle.
-      _fundingCycle = _getStructFor(_projectId, _fundingCycle.basedOn);
+      fundingCycle = _getStructFor(_projectId, fundingCycle.basedOn);
     } else {
       // Resolve the funding cycle for the for the latest configured funding cycle.
-      _fundingCycle = _getStructFor(_projectId, latestConfigurationOf[_projectId]);
+      fundingCycle = _getStructFor(_projectId, latestConfigurationOf[_projectId]);
       // If the latest funding cycle starts in the future, it must start in the distant future
       // since its not in standby. In this case base the queued cycles on the base cycle.
-      if (_fundingCycle.start > block.timestamp)
-        _fundingCycle = _getStructFor(_projectId, _fundingCycle.basedOn);
+      if (fundingCycle.start > block.timestamp)
+        fundingCycle = _getStructFor(_projectId, fundingCycle.basedOn);
     }
 
     // There's no queued if the current has a duration of 0.
-    if (_fundingCycle.duration == 0) return _getStructFor(0, 0);
+    if (fundingCycle.duration == 0) return _getStructFor(0, 0);
 
     // Check to see if this funding cycle's ballot is approved.
     // If so, return a funding cycle based on it.
-    if (_isApproved(_projectId, _fundingCycle))
-      return _mockFundingCycleBasedOn(_fundingCycle, false);
+    if (_isApproved(_projectId, fundingCycle)) return _mockFundingCycleBasedOn(fundingCycle, false);
 
     // Get the funding cycle of its base funding cycle, which carries the last approved configuration.
-    _fundingCycle = _getStructFor(_projectId, _fundingCycle.basedOn);
+    fundingCycle = _getStructFor(_projectId, fundingCycle.basedOn);
 
     // Return a mock of the next up funding cycle.
-    return _mockFundingCycleBasedOn(_fundingCycle, false);
+    return _mockFundingCycleBasedOn(fundingCycle, false);
   }
 
   /**
@@ -225,6 +224,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
   /** 
     @param _directory A contract storing directories of terminals and controllers for each project.
   */
+  // solhint-disable-next-line no-empty-blocks
   constructor(IJBDirectory _directory) JBControllerUtility(_directory) {}
 
   //*********************************************************************//

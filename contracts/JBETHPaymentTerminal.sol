@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+/* solhint-disable comprehensive-interface*/
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/utils/Address.sol';
@@ -397,7 +398,7 @@ contract JBETHPaymentTerminal is
     @param _memo A memo to pass along to the emitted event.
     @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
 
-    @return claimAmount The amount of ETH that the tokens were redeemed for, in wei.
+    @return reclaimAmount The amount of ETH that the tokens were redeemed for, in wei.
   */
   function redeemTokensOf(
     address _holder,
@@ -412,7 +413,7 @@ contract JBETHPaymentTerminal is
     override
     nonReentrant
     requirePermission(_holder, _projectId, JBOperations.REDEEM)
-    returns (uint256 claimAmount)
+    returns (uint256 reclaimAmount)
   {
     // Can't send claimed funds to the zero address.
     if (_beneficiary == address(0)) {
@@ -423,7 +424,7 @@ contract JBETHPaymentTerminal is
     JBFundingCycle memory _fundingCycle;
 
     // Record the redemption.
-    (_fundingCycle, claimAmount, _memo) = store.recordRedemptionFor(
+    (_fundingCycle, reclaimAmount, _memo) = store.recordRedemptionFor(
       _holder,
       _projectId,
       _tokenCount,
@@ -434,7 +435,7 @@ contract JBETHPaymentTerminal is
     );
 
     // Send the claimed funds to the beneficiary.
-    if (claimAmount > 0) Address.sendValue(_beneficiary, claimAmount);
+    if (reclaimAmount > 0) Address.sendValue(_beneficiary, reclaimAmount);
 
     emit RedeemTokens(
       _fundingCycle.configuration,
@@ -443,7 +444,7 @@ contract JBETHPaymentTerminal is
       _holder,
       _beneficiary,
       _tokenCount,
-      claimAmount,
+      reclaimAmount,
       _memo,
       msg.sender
     );

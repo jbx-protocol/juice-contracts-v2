@@ -12,7 +12,7 @@ import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPric
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe('JBETHPaymentTerminalStore::claimableOverflowOf(...)', function () {
+describe('JBETHPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
   const PROJECT_ID = 2;
   const WEIGHT = ethers.FixedNumber.fromString('900000000.23411');
 
@@ -130,7 +130,7 @@ describe('JBETHPaymentTerminalStore::claimableOverflowOf(...)', function () {
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await jbEthPaymentTerminalStore.claimableOverflowOf(PROJECT_ID, /* tokenCount */ tokenAmt),
+      await jbEthPaymentTerminalStore.reclaimableOverflowOf(PROJECT_ID, /* tokenCount */ tokenAmt),
     ).to.equal(ethers.FixedNumber.fromString('41.25'));
   });
 
@@ -179,7 +179,7 @@ describe('JBETHPaymentTerminalStore::claimableOverflowOf(...)', function () {
 
     // Get claimable overflow
     expect(
-      await jbEthPaymentTerminalStore.claimableOverflowOf(PROJECT_ID, /* tokenCount */ tokenAmt),
+      await jbEthPaymentTerminalStore.reclaimableOverflowOf(PROJECT_ID, /* tokenCount */ tokenAmt),
     ).to.equal(0);
   });
 
@@ -245,7 +245,7 @@ describe('JBETHPaymentTerminalStore::claimableOverflowOf(...)', function () {
 
     // Get claimable overflow
     expect(
-      await jbEthPaymentTerminalStore.claimableOverflowOf(PROJECT_ID, /* tokenCount */ tokenAmt),
+      await jbEthPaymentTerminalStore.reclaimableOverflowOf(PROJECT_ID, /* tokenCount */ tokenAmt),
     ).to.equal(0);
   });
 
@@ -318,7 +318,7 @@ describe('JBETHPaymentTerminalStore::claimableOverflowOf(...)', function () {
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await jbEthPaymentTerminalStore.claimableOverflowOf(PROJECT_ID, /* tokenCount */ tokenAmt),
+      await jbEthPaymentTerminalStore.reclaimableOverflowOf(PROJECT_ID, /* tokenCount */ tokenAmt),
     ).to.equal(ethers.FixedNumber.from(50));
   });
 });

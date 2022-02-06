@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+/* solhint-disable comprehensive-interface*/
 pragma solidity 0.8.6;
 
 // Inheritance
@@ -9,6 +10,7 @@ import '../abstract/JBProject.sol';
   Fake Juicebox project used for testing.
 */
 contract JBFakeProject is JBProject {
+  // solhint-disable-next-line no-empty-blocks
   constructor(uint256 _projectId, IJBDirectory _directory) JBProject(_projectId, _directory) {}
 
   /**

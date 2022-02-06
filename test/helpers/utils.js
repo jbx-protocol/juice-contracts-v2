@@ -59,7 +59,7 @@ export async function impersonateAccount(
  * @param {string} address
  * @param {ethers.BigNumber} balance
  */
- export async function setBalance(
+export async function setBalance(
   address,
   balance = ethers.BigNumber.from('0x1000000000000000000000'),
 ) {
