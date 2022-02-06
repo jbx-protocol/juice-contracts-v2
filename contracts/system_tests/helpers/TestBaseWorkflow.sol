@@ -33,8 +33,7 @@ import '../../interfaces/IJBTerminal.sol';
 
 // Base contract for Juicebox system tests.
 //
-// Provides common functionality, such as deploying contracts on test setup
-// and jbx-tailored asserts (comùparing structs for instance)
+// Provides common functionality, such as deploying contracts on test setup.
 abstract contract TestBaseWorkflow is DSTest {
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
@@ -163,37 +162,4 @@ abstract contract TestBaseWorkflow is DSTest {
       _multisig
     );
   }
-
-  // Compare to JBFundingCycle struct
-  function assertEqFundingCycle(JBFundingCycle memory a, JBFundingCycle memory b) internal {
-      if(
-        a.number != b.number ||
-        a.configuration != b.configuration ||
-        a.basedOn != b.basedOn ||
-        a.start != b.start ||
-        a.duration != b.duration ||
-        a.weight != b.weight ||
-        a.discountRate != b.discountRate ||
-        a.ballot != b.ballot ||
-        a.metadata != b.metadata) {
-          emit log('JBFungingCycle a != b');
-          emit log('use test --vvv for more details');
-          fail();
-        }
-  }
-
-  function assertEqSplit(JBSplit memory a, JBSplit memory b) internal {
-      if(
-        a.preferClaimed != b.preferClaimed ||
-        a.percent != b.percent ||
-        a.projectId != b.projectId ||
-        a.beneficiary != b.beneficiary ||
-        a.lockedUntil != b.lockedUntil ||
-        a.allocator != b.allocator) {
-          emit log('JBSplit a != b');
-          emit log('use test --vvv for more details');
-          fail();
-        }
-  }
-  
 }
