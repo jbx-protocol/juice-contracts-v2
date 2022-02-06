@@ -29,16 +29,16 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//
 
-  /** 
-    @notice 
+  /**
+    @notice
     For each project ID, the terminals that are currently managing its funds.
 
     _projectId The ID of the project to get terminals of.
   */
   mapping(uint256 => IJBTerminal[]) private _terminalsOf;
 
-  /** 
-    @notice 
+  /**
+    @notice
     The project's primary terminal for a token.
 
     _projectId The ID of the project to get the primary terminal of.
@@ -50,8 +50,8 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
 
-  /** 
-    @notice 
+  /**
+    @notice
     The Projects contract which mints ERC-721's that represent project ownership and transfers.
   */
   IJBProjects public immutable override projects;
@@ -66,8 +66,8 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
    */
   mapping(address => bool) public override isAllowedToSetController;
 
-  /** 
-    @notice 
+  /**
+    @notice
     For each project ID, the controller that manages how terminals interact with tokens and funding cycles.
 
     _projectId The ID of the project to get the controller of.
@@ -78,7 +78,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   // ------------------------- external views -------------------------- //
   //*********************************************************************//
 
-  /** 
+  /**
     @notice
     For each project ID, the terminals that are currently managing its funds.
 
@@ -90,7 +90,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     return _terminalsOf[_projectId];
   }
 
-  /** 
+  /**
     @notice
     Whether or not a specified terminal is a terminal of the specified project.
 
@@ -110,7 +110,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     return false;
   }
 
-  /** 
+  /**
     @notice
     Whether or not a specified terminal is a terminal of the specified project.
 
@@ -130,7 +130,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     return false;
   }
 
-  /** 
+  /**
     @notice
     The primary terminal that is managing funds for a project for a specified token.
 
@@ -166,7 +166,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
 
-  /** 
+  /**
     @param _operatorStore A contract storing operator assignments.
     @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
   */
@@ -178,7 +178,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @notice
     Update the controller that manages how terminals interact with the ecosystem.
 
-    @dev 
+    @dev
     A controller can be set if:
     - the message sender is the project owner or an operator having the correct authorization.
     - or, an allowedlisted address is setting an allowlisted controller.
@@ -217,8 +217,8 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     emit SetController(_projectId, _controller, msg.sender);
   }
 
-  /** 
-    @notice 
+  /**
+    @notice
     Add terminals to project's list of terminals.
 
     @dev
@@ -247,12 +247,12 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     }
   }
 
-  /** 
-    @notice 
+  /**
+    @notice
     Remove a terminal from a project's list of terminals.
 
     @dev
-    Only a project owner or an operator can remove one of its terminals. 
+    Only a project owner or an operator can remove one of its terminals.
 
     @param _projectId The ID of the project having a terminal removed.
     @param _terminal The terminal to remove.
@@ -280,13 +280,13 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     emit RemoveTerminal(_projectId, _terminal, msg.sender);
   }
 
-  /** 
+  /**
     @notice
     Project's can set which terminal should be their primary for a particular token.
     This is useful in case a project has several terminals connected for a particular token.
 
     @dev
-    The terminal will be set as the primary for the token that its vault accepts. 
+    The terminal will be set as the primary for the token that its vault accepts.
 
     @param _projectId The ID of the project for which a primary token is being set.
     @param _terminal The terminal to make primary.
@@ -318,9 +318,9 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     emit SetPrimaryTerminal(_projectId, _token, _terminal, msg.sender);
   }
 
-  /** 
-    @notice	
-    Add a controller to the list of trusted controllers.	
+  /**
+    @notice
+    Add a controller to the list of trusted controllers.
 
     @dev
     The owner (Juicebox multisig) can add addresses which are allowed to change
@@ -345,11 +345,11 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     emit AddToSetControllerAllowlist(_address, msg.sender);
   }
 
-  /** 
-    @notice	
-    Remove a controller to the list of trusted controllers.	
+  /**
+    @notice
+    Remove a controller to the list of trusted controllers.
 
-    @dev	
+    @dev
     See `addToSetControllerAllowlist(...)` for context.
 
     @param _address The address to be removed.
@@ -370,8 +370,8 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   // --------------------- private helper functions -------------------- //
   //*********************************************************************//
 
-  /** 
-    @notice 
+  /**
+    @notice
     Add a terminal to a project's list of terminals if it hasn't been already.
 
     @param _projectId The ID of the project having a terminal added.

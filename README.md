@@ -8,11 +8,34 @@ To deploy the contracts to a local blockchain, run the following:
 yarn chain --network hardhat
 ```
 
-To run tests:
+### Unit Tests
 
 ```bash
 yarn test
 ```
+
+### System Tests
+
+We are currently in the process of writing system tests with [Foundry](https://github.com/gakonst/foundry). Hop in the Discord if you want to help out with this iniative!
+
+To get set up:
+
+1. Install [Foundry](https://github.com/gakonst/foundry).
+
+2. Build the contracts:
+
+```bash
+forge build
+```
+
+3. Run tests:
+
+```bash
+forge test
+```
+
+Resources:
+* [Forge guide](https://onbjerg.github.io/foundry-book/forge)
 
 ### Coverage
 
