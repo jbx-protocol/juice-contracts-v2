@@ -61,7 +61,7 @@ describe('JBSplitsStore::set(...)', function () {
         projectId: BigNumber.from(0),
         beneficiary: beneficiaryAddress,
         lockedUntil: BigNumber.from(0),
-        allocator: ethers.constants.AddressZero
+        allocator: ethers.constants.AddressZero,
       });
     }
     return splits;
@@ -76,7 +76,7 @@ describe('JBSplitsStore::set(...)', function () {
         projectId: BigNumber.from(split[2].toNumber()),
         beneficiary: split[3],
         lockedUntil: BigNumber.from(split[4]),
-        allocator: split[5]
+        allocator: split[5],
       });
     }
     return cleanedSplits;
@@ -267,12 +267,7 @@ describe('JBSplitsStore::set(...)', function () {
   });
 
   it('Should set splits if controller', async function () {
-    const {
-      addrs,
-      jbSplitsStore,
-      splits,
-      mockJbDirectory,
-    } = await setup();
+    const { addrs, jbSplitsStore, splits, mockJbDirectory } = await setup();
 
     let caller = addrs[0];
 
@@ -283,13 +278,7 @@ describe('JBSplitsStore::set(...)', function () {
   });
 
   it('Should set splits if not the project owner but has permission', async function () {
-    const {
-      projectOwner,
-      addrs,
-      jbSplitsStore,
-      splits,
-      mockJbOperatorStore
-    } = await setup();
+    const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore } = await setup();
 
     let caller = addrs[0];
 
@@ -302,13 +291,7 @@ describe('JBSplitsStore::set(...)', function () {
   });
 
   it("Can't set splits if not project owner and doesn't have permission", async function () {
-    const {
-      projectOwner,
-      addrs,
-      jbSplitsStore,
-      splits,
-      mockJbOperatorStore
-    } = await setup();
+    const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore } = await setup();
 
     let caller = addrs[1];
 

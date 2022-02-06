@@ -63,7 +63,10 @@ contract JBProjects is ERC721Votes, Ownable, IJBProjects, JBOperatable {
     ERC721('Juicebox Projects', 'JUICEBOX')
     EIP712('Juicebox Projects', '1')
     JBOperatable(_operatorStore)
-  {}
+  // solhint-disable-next-line no-empty-blocks
+  {
+
+  }
 
   //*********************************************************************//
   // ---------------------- external transactions ---------------------- //

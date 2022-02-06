@@ -30,7 +30,10 @@ contract JBToken is IJBToken, ERC20Votes, Ownable {
   constructor(string memory _name, string memory _symbol)
     ERC20(_name, _symbol)
     ERC20Permit(_name)
-  {}
+  // solhint-disable-next-line no-empty-blocks
+  {
+
+  }
 
   //*********************************************************************//
   // ---------------------- external transactions ---------------------- //

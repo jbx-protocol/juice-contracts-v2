@@ -42,19 +42,15 @@ describe('JBProjects::setMetadataOf(...)', function () {
 
     await jbProjectsStore
       .connect(deployer)
-      .createFor(
-        projectOwner.address,
-        [
-          METADATA_CID,
-          METADATA_DOMAIN
-        ]
-      );
+      .createFor(projectOwner.address, [METADATA_CID, METADATA_DOMAIN]);
 
     let tx = await jbProjectsStore
       .connect(projectOwner)
       .setMetadataOf(PROJECT_ID_1, [METADATA_CID_2, METADATA_DOMAIN_2]);
 
-    let storedMetadataCid = await jbProjectsStore.connect(deployer).metadataContentOf(PROJECT_ID_1, METADATA_DOMAIN_2);
+    let storedMetadataCid = await jbProjectsStore
+      .connect(deployer)
+      .metadataContentOf(PROJECT_ID_1, METADATA_DOMAIN_2);
     await expect(storedMetadataCid).to.equal(METADATA_CID_2);
 
     await expect(tx)
@@ -67,25 +63,14 @@ describe('JBProjects::setMetadataOf(...)', function () {
 
     await jbProjectsStore
       .connect(deployer)
-      .createFor(
-        projectOwner.address,
-        [
-          METADATA_CID,
-          METADATA_DOMAIN
-        ]
-      );
+      .createFor(projectOwner.address, [METADATA_CID, METADATA_DOMAIN]);
 
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(
-        addrs[1].address,
-        projectOwner.address,
-        PROJECT_ID_1,
-        SET_METADATA_PERMISSION_INDEX,
-      )
+      .withArgs(addrs[1].address, projectOwner.address, PROJECT_ID_1, SET_METADATA_PERMISSION_INDEX)
       .returns(true);
 
-    await expect(jbProjectsStore.connect(addrs[1]).setMetadataOf(PROJECT_ID_1, METADATA_CID_2))
-      .to.not.be.reverted;
+    await expect(jbProjectsStore.connect(addrs[1]).setMetadataOf(PROJECT_ID_1, METADATA_CID_2)).to
+      .not.be.reverted;
   });
 
   it(`Can't set MetadataCid on project if caller is not owner and doesn't have permission`, async function () {
@@ -93,21 +78,16 @@ describe('JBProjects::setMetadataOf(...)', function () {
 
     await jbProjectsStore
       .connect(deployer)
-      .createFor(
-        projectOwner.address,
-        [METADATA_CID, METADATA_DOMAIN]
-      );
+      .createFor(projectOwner.address, [METADATA_CID, METADATA_DOMAIN]);
 
     await mockJbOperatorStore.mock.hasPermission
-      .withArgs(
-        addrs[1].address,
-        projectOwner.address,
-        PROJECT_ID_1,
-        SET_METADATA_PERMISSION_INDEX,
-      )
+      .withArgs(addrs[1].address, projectOwner.address, PROJECT_ID_1, SET_METADATA_PERMISSION_INDEX)
       .returns(false);
 
-    await expect(jbProjectsStore.connect(addrs[1]).setMetadataOf(PROJECT_ID_1, [METADATA_CID_2, METADATA_DOMAIN_2]))
-      .to.be.reverted;
+    await expect(
+      jbProjectsStore
+        .connect(addrs[1])
+        .setMetadataOf(PROJECT_ID_1, [METADATA_CID_2, METADATA_DOMAIN_2]),
+    ).to.be.reverted;
   });
 });
