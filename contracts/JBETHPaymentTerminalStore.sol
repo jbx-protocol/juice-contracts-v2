@@ -765,7 +765,8 @@ contract JBETHPaymentTerminalStore {
     // Convert the _distributionRemaining to ETH.
     uint256 _ethDistributionRemaining = _distributionRemaining == 0
       ? 0
-      : (_currency == JBCurrencies.ETH)
+      : // _currency of 0 means the terminal's native token should be used.
+      (_currency == 0 || _currency == JBCurrencies.ETH)
       ? _distributionRemaining
       : PRBMathUD60x18.div(_distributionRemaining, prices.priceFor(_currency, JBCurrencies.ETH));
 
@@ -818,7 +819,8 @@ contract JBETHPaymentTerminalStore {
       _ethDistributionLimitRemaining =
         _ethDistributionLimitRemaining +
         (
-          _distributionRemaining == 0 ? 0 : (_currency == JBCurrencies.ETH)
+          // _currency of 0 means the terminal's native token should be used.
+          _distributionRemaining == 0 ? 0 : (_currency == 0 || _currency == JBCurrencies.ETH)
             ? _distributionRemaining
             : PRBMathUD60x18.div(
               _distributionRemaining,
