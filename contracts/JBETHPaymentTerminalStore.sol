@@ -125,7 +125,7 @@ contract JBETHPaymentTerminalStore {
     Increases as projects use their distribution limit.
 
     _projectId The ID of the project to get the used distribution limit of.
-    _number The number representing the funding cycle.
+    _fundingCycleNumber The number representing the funding cycle.
   */
   mapping(uint256 => mapping(uint256 => uint256)) public usedDistributionLimitOf;
 
