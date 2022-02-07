@@ -21,11 +21,14 @@ contract TestLaunchProject is TestBaseWorkflow {
   IJBFundingCycleBallot BALLOT = IJBFundingCycleBallot(address(0));
 
   address payable constant BENEFICIARY = payable(address(69420));
+  address constant TERMINAL_ADDRESS = address(42069);
 
   function setUp() public override {
     super.setUp();
 
     controller = jbController();
+
+    _terminals.push(IJBTerminal(address(TERMINAL_ADDRESS)));
 
     _projectMetadata = JBProjectMetadata({content: 'myIPFSHash', domain: PROJECT_DOMAIN});
 
@@ -57,7 +60,7 @@ contract TestLaunchProject is TestBaseWorkflow {
 
   }
 
-/// @dev setUp msg.sender is the address(0), while not for later calls -> insure
+/// @dev in setUp(), msg.sender is the address(0), while not in later tests -> insure
 ///      appropriate sender context.
   function launchProject() internal {
     JBSplit[] memory splitsArr = new JBSplit[](1);
@@ -143,7 +146,7 @@ contract TestLaunchProject is TestBaseWorkflow {
     assertEqFundingCycle(currentFundingCycle, storedFundingCycle);
   }
 
-  function testQueuedFundingCycle() public {
+  function testGetQueuedFundingCycle() public {
     launchProject();
 
     JBFundingCycle memory nextFundingCycle = JBFundingCycle({
@@ -163,10 +166,11 @@ contract TestLaunchProject is TestBaseWorkflow {
     assertEqFundingCycle(nextFundingCycle, storedFundingCycle);
   }
 
-  // Test for no queued if no duration?
+  // Test for no queued if no duration set?
 
-  function testSplitsOf() public {
-        JBSplit[] memory splitsArr = new JBSplit[](1);
+  function testGetSplits() public {
+    // Avoid memory to storage array copy error
+    JBSplit[] memory splitsArr = new JBSplit[](1);
     JBGroupedSplits[] memory _groupedSplits = new JBGroupedSplits[](1);
 
     splitsArr[0] =
@@ -190,4 +194,22 @@ contract TestLaunchProject is TestBaseWorkflow {
     for(uint256 i=0; i<currentSplits.length; i++) assertEqSplit(currentSplits[i], _groupedSplits[0].splits[i]);
   }
 
+  function testGetFundAccessConstraints() public {
+    // No constraint passed
+    assertEq(controller.distributionLimitOf(PROJECT_ID, block.timestamp, _terminals[0]), 0);
+  }
+
+  function testGetDistributionLimitCurrency() public {
+    assertEq(controller.distributionLimitCurrencyOf(PROJECT_ID, block.timestamp, _terminals[0]), 0);
+  }
+  function testGetOverflowAllowance() public {
+    assertEq(controller.overflowAllowanceOf(PROJECT_ID, block.timestamp, _terminals[0]), 0);
+  }
+  function testGetOverflowCurrency() public {
+    assertEq(controller.overflowAllowanceCurrencyOf(PROJECT_ID, block.timestamp, _terminals[0]), 0);
+  }
+
+  function testGetCurrentController() public {
+    assertEq(address(jbDirectory().controllerOf(PROJECT_ID)), address(controller));
+  }
 }
