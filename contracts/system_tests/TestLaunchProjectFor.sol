@@ -8,7 +8,6 @@ contract TestLaunchProject is TestBaseWorkflow {
   JBProjectMetadata _projectMetadata;
   JBFundingCycleData _data;
   JBFundingCycleMetadata _metadata;
-  JBGroupedSplits[] _groupedSplits;
   JBFundAccessConstraints[] _fundAccessConstraints; // Default empty
   IJBTerminal[] _terminals; // Default empty
 
@@ -20,6 +19,8 @@ contract TestLaunchProject is TestBaseWorkflow {
   uint256 DISCOUNT_RATE = 500000000; // 50%
   
   IJBFundingCycleBallot BALLOT = IJBFundingCycleBallot(address(0));
+
+  address payable constant BENEFICIARY = payable(address(69420));
 
   function setUp() public override {
     super.setUp();
@@ -54,28 +55,31 @@ contract TestLaunchProject is TestBaseWorkflow {
       dataSource: IJBFundingCycleDataSource(address(0))
     });
 
-    JBSplit[] memory splitsArr;
-
-    _groupedSplits = [
-      JBGroupedSplits({
-        group: 0,
-        splits: [
-            JBSplit({
-              preferClaimed: true,
-              percent: 250000000, //25%
-              projectId: 0,
-              beneficiary: payable(address(0)),
-              lockedUntil: 0,
-              allocator: IJBSplitAllocator(address(0))
-            })
-          ]
-      })
-    ];
   }
 
 /// @dev setUp msg.sender is the address(0), while not for later calls -> insure
 ///      appropriate sender context.
   function launchProject() internal {
+    JBSplit[] memory splitsArr = new JBSplit[](1);
+    JBGroupedSplits[] memory _groupedSplits = new JBGroupedSplits[](1);
+
+    splitsArr[0] =
+      JBSplit({
+              preferClaimed: true,
+              percent: 250000000, //25%
+              projectId: 0,
+              beneficiary: BENEFICIARY,
+              lockedUntil: 0,
+              allocator: IJBSplitAllocator(address(0))
+            });
+
+    _groupedSplits[0] = 
+      JBGroupedSplits({
+        group: 0,
+        splits: splitsArr
+      })
+    ;
+
     PROJECT_ID = controller.launchProjectFor(
       msg.sender,
       _projectMetadata,
@@ -162,9 +166,28 @@ contract TestLaunchProject is TestBaseWorkflow {
   // Test for no queued if no duration?
 
   function testSplitsOf() public {
+        JBSplit[] memory splitsArr = new JBSplit[](1);
+    JBGroupedSplits[] memory _groupedSplits = new JBGroupedSplits[](1);
+
+    splitsArr[0] =
+      JBSplit({
+              preferClaimed: true,
+              percent: 250000000, //25%
+              projectId: 0,
+              beneficiary: BENEFICIARY,
+              lockedUntil: 0,
+              allocator: IJBSplitAllocator(address(0))
+            });
+
+    _groupedSplits[0] = 
+      JBGroupedSplits({
+        group: 0,
+        splits: splitsArr
+      })
+    ;
     JBSplit[] memory currentSplits = jbSplitsStore().splitsOf(PROJECT_ID, PROJECT_DOMAIN, 0);
 
-    for(uint256 i=0; i<currentSplits.length; i++) assertEqSplit(currentSplits[i], _groupedSplits[i]);
+    for(uint256 i=0; i<currentSplits.length; i++) assertEqSplit(currentSplits[i], _groupedSplits[0].splits[i]);
   }
 
 }
