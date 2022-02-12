@@ -53,9 +53,8 @@ contract TestAllowance is TestBaseWorkflow {
 
   function testAllowance() public {
     JBETHPaymentTerminal terminal = jbETHPaymentTerminal();
+    address beneficiary = address(6942069);
     
-    //TODO: FUZZ ALLOWANCE
-
     _fundAccessConstraints.push(JBFundAccessConstraints({
         terminal: jbETHPaymentTerminal(),
         distributionLimit: 10 ether,
@@ -82,7 +81,7 @@ contract TestAllowance is TestBaseWorkflow {
       }
       (
         projectId,
-        msg.sender,
+        beneficiary,
         0,
         false,
         'Forge test',
@@ -99,7 +98,7 @@ contract TestAllowance is TestBaseWorkflow {
       payable(msg.sender) // Beneficiary
     );
 
-    // Distribute the funding target ETH -> no split == beneficiary is the project owner
+    // Distribute the funding target ETH -> no split then beneficiary is the project owner
     evm.prank(_projectOwner);
     terminal.distributePayoutsOf(
       projectId,
@@ -110,7 +109,7 @@ contract TestAllowance is TestBaseWorkflow {
     );
 
     // redeem the 5ETH left in the overflow by the token holder:
-   // terminal.redeemTokensOf(msg.sender, projectId, 1, 0, payable(msg.sender), 'gimme my money back', new bytes(0));
-
+    evm.prank(beneficiary);
+    terminal.redeemTokensOf(beneficiary, projectId, 1, 0, payable(beneficiary), 'gimme my money back', new bytes(0));
   }
 }
