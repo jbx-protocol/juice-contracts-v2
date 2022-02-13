@@ -26,14 +26,10 @@ describe('JBProjects::setTokenUriResolver(...)', function () {
   it(`Should set the tokenUri resolver and emit event, if called by the contract owner`, async function () {
     const { deployer, jbProjects, mockJbTokenUriResolver } = await setup();
 
-    expect(await jbProjects
-      .connect(deployer)
-      .setTokenUriResolver(mockJbTokenUriResolver.address)
-    )
+    expect(await jbProjects.connect(deployer).setTokenUriResolver(mockJbTokenUriResolver.address))
       .to.emit(jbProjects, 'SetTokenUriResolver')
       .withArgs(mockJbTokenUriResolver.address, deployer.address);
 
     expect(await jbProjects.tokenUriResolver()).to.equal(mockJbTokenUriResolver.address);
-
   });
 });

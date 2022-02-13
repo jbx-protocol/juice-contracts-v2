@@ -115,7 +115,7 @@ describe('JBETHPaymentTerminal::redeemTokensOf(...)', function () {
         MEMO,
         /* delegateMetadata */ 0,
       )
-      .returns(fundingCycle, /* claimAmount */ AMOUNT, MEMO);
+      .returns(fundingCycle, /* reclaimAmount */ AMOUNT, MEMO);
 
     await setBalance(jbEthPaymentTerminal.address, AMOUNT);
 
@@ -142,7 +142,7 @@ describe('JBETHPaymentTerminal::redeemTokensOf(...)', function () {
         /* _holder */ holder.address,
         /* _beneficiary */ beneficiary.address,
         /* _tokenCount */ AMOUNT,
-        /* claimAmount */ AMOUNT,
+        /* reclaimAmount */ AMOUNT,
         /* memo */ MEMO,
         /* msg.sender */ holder.address,
       );
@@ -177,7 +177,7 @@ describe('JBETHPaymentTerminal::redeemTokensOf(...)', function () {
         MEMO,
         /* delegateMetadata */ 0,
       )
-      .returns(fundingCycle, /* claimAmount */ 0, MEMO); // Set claimAmount to 0
+      .returns(fundingCycle, /* reclaimAmount */ 0, MEMO); // Set reclaimAmount to 0
 
     await setBalance(jbEthPaymentTerminal.address, AMOUNT);
 
@@ -204,7 +204,7 @@ describe('JBETHPaymentTerminal::redeemTokensOf(...)', function () {
         /* _holder */ holder.address,
         /* _beneficiary */ beneficiary.address,
         /* _tokenCount */ AMOUNT,
-        /* claimAmount */ 0,
+        /* reclaimAmount */ 0,
         /* memo */ MEMO,
         /* msg.sender */ holder.address,
       );

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+/* solhint-disable comprehensive-interface*/
 pragma solidity 0.8.6;
 
 import '@paulrberg/contracts/math/PRBMathUD60x18.sol';
@@ -124,7 +125,7 @@ contract JBETHPaymentTerminalStore {
     Increases as projects use their distribution limit.
 
     _projectId The ID of the project to get the used distribution limit of.
-    _number The number representing the funding cycle.
+    _fundingCycleNumber The number representing the funding cycle.
   */
   mapping(uint256 => mapping(uint256 => uint256)) public usedDistributionLimitOf;
 
@@ -164,21 +165,21 @@ contract JBETHPaymentTerminalStore {
 
   /**
     @notice
-    The amount of overflowed ETH that can be claimed by the specified number of tokens.
+    The amount of overflowed ETH that can be reclaimed by the specified number of tokens.
 
     @dev If the project has an active funding cycle reconfiguration ballot, the project's ballot redemption rate is used.
 
-    @param _projectId The ID of the project to get a claimable amount for.
+    @param _projectId The ID of the project to get a reclaimable amount for.
     @param _tokenCount The number of tokens to make the calculation with.
 
-    @return The amount of overflowed ETH that can be claimed.
+    @return The amount of overflowed ETH that can be reclaimed.
   */
-  function claimableOverflowOf(uint256 _projectId, uint256 _tokenCount)
+  function reclaimableOverflowOf(uint256 _projectId, uint256 _tokenCount)
     external
     view
     returns (uint256)
   {
-    return _claimableOverflowOf(_projectId, fundingCycleStore.currentOf(_projectId), _tokenCount);
+    return _reclaimableOverflowOf(_projectId, fundingCycleStore.currentOf(_projectId), _tokenCount);
   }
 
   //*********************************************************************//
@@ -291,22 +292,23 @@ contract JBETHPaymentTerminalStore {
       memo = _memo;
     }
 
-    // Multiply the amount by the weight to determine the amount of tokens to mint.
-    uint256 _weightedAmount = PRBMathUD60x18.mul(_amount, weight);
+    if (_amount > 0) {
+      // Add the amount to the ETH balance of the project if needed.
+      balanceOf[_projectId] = balanceOf[_projectId] + _amount;
 
-    // Add the amount to the ETH balance of the project if needed.
-    if (_amount > 0) balanceOf[_projectId] = balanceOf[_projectId] + _amount;
+      // Amount and weight must be non-zero in order to mint tokens.
+      if (weight > 0) {
+        tokenCount = directory.controllerOf(_projectId).mintTokensOf(
+          _projectId,
+          PRBMathUD60x18.mul(_amount, weight), // Multiply the amount by the weight to determine the amount of tokens to mint
+          address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
+          '',
+          (_preferClaimedTokensAndBeneficiary & 1) == 1,
+          fundingCycle.reservedRate()
+        );
+      }
+    }
 
-    if (PRBMathUD60x18.mul(_amount, weight) > 0)
-      tokenCount = directory.controllerOf(_projectId).mintTokensOf(
-        _projectId,
-        PRBMathUD60x18.mul(_amount, weight),
-        address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
-        '',
-        (_preferClaimedTokensAndBeneficiary & 1) == 1,
-        fundingCycle.reservedRate()
-      );
-  
     // The token count for the beneficiary must be greater than or equal to the minimum expected.
     if (tokenCount < _minReturnedTokens) {
       revert INADEQUATE_TOKEN_COUNT();
@@ -416,8 +418,8 @@ contract JBETHPaymentTerminalStore {
     @notice
     Records newly used allowance funds of a project.
 
-    @dev	
-    Only the associated payment terminal can record a used allowance. 
+    @dev
+    Only the associated payment terminal can record a used allowance.
 
     @param _projectId The ID of the project to use the allowance of.
     @param _amount The amount of the allowance to use as a fixed point number.
@@ -473,9 +475,25 @@ contract JBETHPaymentTerminalStore {
     withdrawnAmount = (_currency == JBCurrencies.ETH)
       ? _amount
       : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, JBCurrencies.ETH));
+    
+    // Get the current funding target
+    uint256 distributionLimit =
+      directory.controllerOf(_projectId).distributionLimitOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      );
 
-    // The amount being withdrawn must be available.
-    if (withdrawnAmount > balanceOf[_projectId]) {
+    // Convert the target into wei, if needed
+    distributionLimit = _currency == JBCurrencies.ETH
+      ? distributionLimit
+      : PRBMathUD60x18.div(
+        distributionLimit,
+        prices.priceFor(_currency, JBCurrencies.ETH)
+      );
+
+    // The amount being withdrawn must be available in the overflow.
+    if (withdrawnAmount > balanceOf[_projectId] + usedDistributionLimitOf[_projectId][fundingCycle.number] - distributionLimit) {
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
     }
 
@@ -507,7 +525,7 @@ contract JBETHPaymentTerminalStore {
     @param _delegateMetadata Bytes to send along to the delegate, if one is used.
 
     @return fundingCycle The funding cycle during which the redemption was made.
-    @return claimAmount The amount of wei claimed.
+    @return reclaimAmount The amount of wei reclaimed.
     @return memo A memo that should be passed along to the emitted event.
   */
   function recordRedemptionFor(
@@ -523,7 +541,7 @@ contract JBETHPaymentTerminalStore {
     onlyAssociatedPaymentTerminal
     returns (
       JBFundingCycle memory fundingCycle,
-      uint256 claimAmount,
+      uint256 reclaimAmount,
       string memory memo
     )
   {
@@ -545,7 +563,7 @@ contract JBETHPaymentTerminalStore {
 
     // If the funding cycle has configured a data source, use it to derive a claim amount and memo.
     if (fundingCycle.useDataSourceForRedeem()) {
-      (claimAmount, memo, _delegate, _delegateMetadata) = fundingCycle.dataSource().redeemParams(
+      (reclaimAmount, memo, _delegate, _delegateMetadata) = fundingCycle.dataSource().redeemParams(
         JBRedeemParamsData(
           _holder,
           _tokenCount,
@@ -558,16 +576,16 @@ contract JBETHPaymentTerminalStore {
         )
       );
     } else {
-      claimAmount = _claimableOverflowOf(_projectId, fundingCycle, _tokenCount);
+      reclaimAmount = _reclaimableOverflowOf(_projectId, fundingCycle, _tokenCount);
       memo = _memo;
     }
 
     // The amount being claimed must be within the project's balance.
-    if (claimAmount > balanceOf[_projectId]) {
+    if (reclaimAmount > balanceOf[_projectId]) {
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
     }
     // The amount being claimed must be at least as much as was expected.
-    if (claimAmount < _minReturnedWei) {
+    if (reclaimAmount < _minReturnedWei) {
       revert INADEQUATE_CLAIM_AMOUNT();
     }
 
@@ -576,7 +594,7 @@ contract JBETHPaymentTerminalStore {
       directory.controllerOf(_projectId).burnTokensOf(_holder, _projectId, _tokenCount, '', false);
 
     // Remove the redeemed funds from the project's balance.
-    if (claimAmount > 0) balanceOf[_projectId] = balanceOf[_projectId] - claimAmount;
+    if (reclaimAmount > 0) balanceOf[_projectId] = balanceOf[_projectId] - reclaimAmount;
 
     // If a delegate was returned by the data source, issue a callback to it.
     if (_delegate != IJBRedemptionDelegate(address(0))) {
@@ -584,7 +602,7 @@ contract JBETHPaymentTerminalStore {
         _holder,
         _projectId,
         _tokenCount,
-        claimAmount,
+        reclaimAmount,
         _beneficiary,
         memo,
         _delegateMetadata
@@ -665,9 +683,9 @@ contract JBETHPaymentTerminalStore {
 
   /**
     @notice
-    See docs for `claimableOverflowOf`
+    See docs for `reclaimableOverflowOf`
   */
-  function _claimableOverflowOf(
+  function _reclaimableOverflowOf(
     uint256 _projectId,
     JBFundingCycle memory _fundingCycle,
     uint256 _tokenCount
