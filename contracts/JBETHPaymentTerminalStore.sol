@@ -369,14 +369,13 @@ contract JBETHPaymentTerminalStore {
       _amount;
 
     // Amount must be within what is still distributable.
-    if (
-      _newUsedDistributionLimitOf >
-      directory.controllerOf(_projectId).distributionLimitOf(
+    uint256 _distributionLimitOf = directory.controllerOf(_projectId).distributionLimitOf(
         _projectId,
         fundingCycle.configuration,
         terminal
-      )
-    ) {
+      );
+
+    if (_newUsedDistributionLimitOf > _distributionLimitOf || _distributionLimitOf == 0) {
       revert DISTRIBUTION_AMOUNT_LIMIT_REACHED();
     }
 
@@ -448,14 +447,13 @@ contract JBETHPaymentTerminalStore {
     ] + _amount;
 
     // There must be sufficient allowance available.
-    if (
-      _newUsedOverflowAllowanceOf >
-      directory.controllerOf(_projectId).overflowAllowanceOf(
+    uint256 _allowanceOf = directory.controllerOf(_projectId).overflowAllowanceOf(
         _projectId,
         fundingCycle.configuration,
         terminal
-      )
-    ) {
+      );
+
+    if(_newUsedOverflowAllowanceOf > _allowanceOf || _allowanceOf == 0) {
       revert INADEQUATE_CONTROLLER_ALLOWANCE();
     }
 
