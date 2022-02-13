@@ -53,7 +53,6 @@ contract TestAllowance is TestBaseWorkflow {
 
   function testAllowance() public {
     JBETHPaymentTerminal terminal = jbETHPaymentTerminal();
-    address beneficiary = address(6942069);
     
     _fundAccessConstraints.push(JBFundAccessConstraints({
         terminal: jbETHPaymentTerminal(),
@@ -81,7 +80,7 @@ contract TestAllowance is TestBaseWorkflow {
       }
       (
         projectId,
-        beneficiary,
+        msg.sender,
         0,
         false,
         'Forge test',
@@ -109,7 +108,66 @@ contract TestAllowance is TestBaseWorkflow {
     );
 
     // redeem the 5ETH left in the overflow by the token holder:
-    evm.prank(beneficiary);
-    terminal.redeemTokensOf(beneficiary, projectId, 1, 0, payable(beneficiary), 'gimme my money back', new bytes(0));
+    evm.prank(msg.sender);
+    terminal.redeemTokensOf(msg.sender, projectId, 1, 0, payable(msg.sender), 'gimme my money back', new bytes(0));
+  }
+
+  function testFailingAllowance() public {
+    JBETHPaymentTerminal terminal = jbETHPaymentTerminal();
+    
+    _fundAccessConstraints.push(JBFundAccessConstraints({
+        terminal: jbETHPaymentTerminal(),
+        distributionLimit: 10 ether,
+        overflowAllowance: 10 ether,
+        distributionLimitCurrency: 1,
+        overflowAllowanceCurrency: 1
+      })
+    );
+
+    uint256 projectId = controller.launchProjectFor(
+      _projectOwner,
+      _projectMetadata,
+      _data,
+      _metadata,
+      block.timestamp,
+      _groupedSplits,
+      _fundAccessConstraints,
+      _terminals
+    );
+
+    terminal.pay
+      {
+        value: 15 ether  // funding target met and 5 ETH are now in the overflow
+      }
+      (
+        projectId,
+        msg.sender,
+        0,
+        false,
+        'Forge test',
+        new bytes(0)
+      );
+
+    // Use the whole 10Eth of overflowAllowance -> we're < balanceOf (20Eth) and < the overflow (5 eth)
+    evm.prank(_projectOwner); // Prank only next call
+    terminal.useAllowanceOf(
+      projectId,
+      10 ether,
+      1, // Currency
+      0, // Min wei out
+      payable(msg.sender) // Beneficiary
+    );
+
+    // We try to distribute the 10eth -> not enough eth left in the contract
+    evm.prank(_projectOwner);
+    evm.expectRevert(bytes4(keccak256('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()')));
+    
+    terminal.distributePayoutsOf(
+      projectId,
+      10 ether,
+      1, // Currency
+      0, // Min wei out
+      'Foundry payment' // Memo
+    );
   }
 }
