@@ -476,8 +476,16 @@ contract JBETHPaymentTerminalStore {
       ? _amount
       : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, JBCurrencies.ETH));
 
-    // The amount being withdrawn must be available.
-    if (withdrawnAmount > balanceOf[_projectId]) {
+    // Get the current funding target
+    uint256 distributionLimit =
+      directory.controllerOf(_projectId).distributionLimitOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      );
+
+    // The amount being withdrawn must be available in the overflow.
+    if (withdrawnAmount > balanceOf[_projectId] + usedDistributionLimitOf[_projectId][fundingCycle.number] - distributionLimit) {
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
     }
 
