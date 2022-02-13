@@ -112,14 +112,14 @@ contract TestAllowance is TestBaseWorkflow {
     terminal.redeemTokensOf(msg.sender, projectId, 1, 0, payable(msg.sender), 'gimme my money back', new bytes(0));
   }
 
-  function testFailingAllowance() public {
+  function testFuzzAllowance(uint256 ALLOWANCE, uint256 TARGET, uint256 BALANCE) public {
     JBETHPaymentTerminal terminal = jbETHPaymentTerminal();
     
     _fundAccessConstraints.push(JBFundAccessConstraints({
         terminal: jbETHPaymentTerminal(),
-        distributionLimit: 10 ether,
-        overflowAllowance: 10 ether,
-        distributionLimitCurrency: 1,
+        distributionLimit: TARGET,
+        overflowAllowance: ALLOWANCE,
+        distributionLimitCurrency: 1, // Currency = ETH
         overflowAllowanceCurrency: 1
       })
     );
@@ -137,7 +137,7 @@ contract TestAllowance is TestBaseWorkflow {
 
     terminal.pay
       {
-        value: 15 ether  // funding target met and 5 ETH are now in the overflow
+        value: BALANCE  // funding target met and 10 ETH are now in the overflow
       }
       (
         projectId,
@@ -148,26 +148,28 @@ contract TestAllowance is TestBaseWorkflow {
         new bytes(0)
       );
 
-    // Use the whole 10Eth of overflowAllowance -> we're < balanceOf (20Eth) and < the overflow (5 eth)
+    // Discretionary use of overflow allowance by project owner (allowance = 5ETH)
     evm.prank(_projectOwner); // Prank only next call
     terminal.useAllowanceOf(
       projectId,
-      10 ether,
+      ALLOWANCE,
       1, // Currency
       0, // Min wei out
       payable(msg.sender) // Beneficiary
     );
 
-    // We try to distribute the 10eth -> not enough eth left in the contract
+    // Distribute the funding target ETH -> no split then beneficiary is the project owner
     evm.prank(_projectOwner);
-    evm.expectRevert(bytes4(keccak256('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()')));
-    
     terminal.distributePayoutsOf(
       projectId,
-      10 ether,
+      TARGET,
       1, // Currency
       0, // Min wei out
       'Foundry payment' // Memo
     );
+
+    // redeem the 5ETH left in the overflow by the token holder:
+    evm.prank(msg.sender);
+    terminal.redeemTokensOf(msg.sender, projectId, 1, 0, payable(msg.sender), 'gimme my money back', new bytes(0));
   }
 }
