@@ -494,7 +494,7 @@ contract JBETHPaymentTerminalStore {
       );
 
     // The amount being withdrawn must be available in the overflow.
-    if (withdrawnAmount > balanceOf[_projectId] - _leftToDistribute) {
+    if (balanceOf[_projectId] == 0 || withdrawnAmount > balanceOf[_projectId] - _leftToDistribute) {
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
     }
 
