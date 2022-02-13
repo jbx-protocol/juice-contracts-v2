@@ -369,14 +369,13 @@ contract JBETHPaymentTerminalStore {
       _amount;
 
     // Amount must be within what is still distributable.
-    if (
-      _newUsedDistributionLimitOf >
-      directory.controllerOf(_projectId).distributionLimitOf(
+    uint256 _distributionLimitOf = directory.controllerOf(_projectId).distributionLimitOf(
         _projectId,
         fundingCycle.configuration,
         terminal
-      )
-    ) {
+      );
+
+    if (_newUsedDistributionLimitOf > _distributionLimitOf || _distributionLimitOf == 0) {
       revert DISTRIBUTION_AMOUNT_LIMIT_REACHED();
     }
 
@@ -448,14 +447,13 @@ contract JBETHPaymentTerminalStore {
     ] + _amount;
 
     // There must be sufficient allowance available.
-    if (
-      _newUsedOverflowAllowanceOf >
-      directory.controllerOf(_projectId).overflowAllowanceOf(
+    uint256 _allowanceOf = directory.controllerOf(_projectId).overflowAllowanceOf(
         _projectId,
         fundingCycle.configuration,
         terminal
-      )
-    ) {
+      );
+
+    if(_newUsedOverflowAllowanceOf > _allowanceOf || _allowanceOf == 0) {
       revert INADEQUATE_CONTROLLER_ALLOWANCE();
     }
 
@@ -475,9 +473,25 @@ contract JBETHPaymentTerminalStore {
     withdrawnAmount = (_currency == JBCurrencies.ETH)
       ? _amount
       : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, JBCurrencies.ETH));
+    
+    // Get the current funding target
+    uint256 distributionLimit =
+      directory.controllerOf(_projectId).distributionLimitOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      );
 
-    // The amount being withdrawn must be available.
-    if (withdrawnAmount > balanceOf[_projectId]) {
+    // Convert the target into wei, if needed
+    distributionLimit = _currency == JBCurrencies.ETH
+      ? distributionLimit
+      : PRBMathUD60x18.div(
+        distributionLimit,
+        prices.priceFor(_currency, JBCurrencies.ETH)
+      );
+
+    // The amount being withdrawn must be available in the overflow.
+    if (withdrawnAmount > balanceOf[_projectId] + usedDistributionLimitOf[_projectId][fundingCycle.number] - distributionLimit) {
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
     }
 
