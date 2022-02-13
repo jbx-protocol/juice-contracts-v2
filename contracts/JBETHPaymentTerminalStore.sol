@@ -364,18 +364,6 @@ contract JBETHPaymentTerminalStore {
       revert FUNDING_CYCLE_DISTRIBUTION_PAUSED();
     }
 
-    // Make sure the currencies match.
-    if (
-      _currency !=
-      directory.controllerOf(_projectId).distributionLimitCurrencyOf(
-        _projectId,
-        fundingCycle.configuration,
-        terminal
-      )
-    ) {
-      revert CURRENCY_MISMATCH();
-    }
-
     // The new total amount that has been distributed during this funding cycle.
     uint256 _newUsedDistributionLimitOf = usedDistributionLimitOf[_projectId][fundingCycle.number] +
       _amount;
@@ -390,6 +378,18 @@ contract JBETHPaymentTerminalStore {
       )
     ) {
       revert DISTRIBUTION_AMOUNT_LIMIT_REACHED();
+    }
+
+    // Make sure the currencies match.
+    if (
+      _currency !=
+      directory.controllerOf(_projectId).distributionLimitCurrencyOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      )
+    ) {
+      revert CURRENCY_MISMATCH();
     }
 
     // Convert the amount to wei.
@@ -442,18 +442,6 @@ contract JBETHPaymentTerminalStore {
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-    // Make sure the currencies match.
-    if (
-      _currency !=
-      directory.controllerOf(_projectId).overflowAllowanceCurrencyOf(
-        _projectId,
-        fundingCycle.configuration,
-        terminal
-      )
-    ) {
-      revert CURRENCY_MISMATCH();
-    }
-
     // Get a reference to the new used overflow allowance.
     uint256 _newUsedOverflowAllowanceOf = usedOverflowAllowanceOf[_projectId][
       fundingCycle.configuration
@@ -469,6 +457,18 @@ contract JBETHPaymentTerminalStore {
       )
     ) {
       revert INADEQUATE_CONTROLLER_ALLOWANCE();
+    }
+
+    // Make sure the currencies match.
+    if (
+      _currency !=
+      directory.controllerOf(_projectId).overflowAllowanceCurrencyOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      )
+    ) {
+      revert CURRENCY_MISMATCH();
     }
 
     // Convert the amount to wei.
