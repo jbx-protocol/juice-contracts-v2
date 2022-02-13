@@ -112,8 +112,13 @@ contract TestAllowance is TestBaseWorkflow {
     terminal.redeemTokensOf(msg.sender, projectId, 1, 0, payable(msg.sender), 'gimme my money back', new bytes(0));
   }
 
-  function testFuzzAllowance(uint256 ALLOWANCE, uint256 TARGET, uint256 BALANCE) public {
+  function testFuzzAllowance(uint256 ALLOWANCE, uint256 TARGET, uint96 BALANCE) public {
     JBETHPaymentTerminal terminal = jbETHPaymentTerminal();
+
+    // Avoid the INADEQUATE_CONTROLLER_ALLOWANCE() and DISTRIBUTION_AMOUNT_LIMIT_REACHED()
+    // when calling useAllowanceOf and distributePayoutOf with initial allowance and/or target == 0
+    TARGET = TARGET == 0 ? 1 : TARGET;
+    ALLOWANCE = ALLOWANCE == 0 ? 1 : ALLOWANCE;
     
     _fundAccessConstraints.push(JBFundAccessConstraints({
         terminal: jbETHPaymentTerminal(),
