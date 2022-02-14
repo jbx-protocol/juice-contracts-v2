@@ -364,21 +364,6 @@ contract JBETHPaymentTerminalStore {
       revert FUNDING_CYCLE_DISTRIBUTION_PAUSED();
     }
 
-    // The new total amount that has been distributed during this funding cycle.
-    uint256 _newUsedDistributionLimitOf = usedDistributionLimitOf[_projectId][fundingCycle.number] +
-      _amount;
-
-    // Amount must be within what is still distributable.
-    uint256 _distributionLimitOf = directory.controllerOf(_projectId).distributionLimitOf(
-        _projectId,
-        fundingCycle.configuration,
-        terminal
-      );
-
-    if (_newUsedDistributionLimitOf > _distributionLimitOf || _distributionLimitOf == 0) {
-      revert DISTRIBUTION_AMOUNT_LIMIT_REACHED();
-    }
-
     // Make sure the currencies match.
     if (
       _currency !=
@@ -389,6 +374,22 @@ contract JBETHPaymentTerminalStore {
       )
     ) {
       revert CURRENCY_MISMATCH();
+    }
+
+    // The new total amount that has been distributed during this funding cycle.
+    uint256 _newUsedDistributionLimitOf = usedDistributionLimitOf[_projectId][fundingCycle.number] +
+      _amount;
+
+    // Amount must be within what is still distributable.
+    if (
+      _newUsedDistributionLimitOf >
+      directory.controllerOf(_projectId).distributionLimitOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      )
+    ) {
+      revert DISTRIBUTION_AMOUNT_LIMIT_REACHED();
     }
 
     // Convert the amount to wei.
@@ -441,22 +442,6 @@ contract JBETHPaymentTerminalStore {
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-    // Get a reference to the new used overflow allowance.
-    uint256 _newUsedOverflowAllowanceOf = usedOverflowAllowanceOf[_projectId][
-      fundingCycle.configuration
-    ] + _amount;
-
-    // There must be sufficient allowance available.
-    uint256 _allowanceOf = directory.controllerOf(_projectId).overflowAllowanceOf(
-        _projectId,
-        fundingCycle.configuration,
-        terminal
-      );
-
-    if(_newUsedOverflowAllowanceOf > _allowanceOf || _allowanceOf == 0) {
-      revert INADEQUATE_CONTROLLER_ALLOWANCE();
-    }
-
     // Make sure the currencies match.
     if (
       _currency !=
@@ -467,6 +452,23 @@ contract JBETHPaymentTerminalStore {
       )
     ) {
       revert CURRENCY_MISMATCH();
+    }
+
+    // Get a reference to the new used overflow allowance.
+    uint256 _newUsedOverflowAllowanceOf = usedOverflowAllowanceOf[_projectId][
+      fundingCycle.configuration
+    ] + _amount;
+
+    // There must be sufficient allowance available.
+    if (
+      _newUsedOverflowAllowanceOf >
+      directory.controllerOf(_projectId).overflowAllowanceOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      )
+    ) {
+      revert INADEQUATE_CONTROLLER_ALLOWANCE();
     }
 
     // Convert the amount to wei.
@@ -485,12 +487,19 @@ contract JBETHPaymentTerminalStore {
     // The current overflow is the balance minus what still needs to be distributed
     uint256 _leftToDistribute = distributionLimit - usedDistributionLimitOf[_projectId][fundingCycle.number];
 
+    // Get the distribution limit currency (which might or might not be the same as the overflow allowance)
+    uint256 _distributionLimitCurrency = directory.controllerOf(_projectId).distributionLimitCurrencyOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      );
+
     // Convert the remaining to distribute into wei, if needed
-    _leftToDistribute = _currency == JBCurrencies.ETH
+    _leftToDistribute = _distributionLimitCurrency == JBCurrencies.ETH
       ? _leftToDistribute
       : PRBMathUD60x18.div(
         _leftToDistribute,
-        prices.priceFor(_currency, JBCurrencies.ETH)
+        prices.priceFor(_distributionLimitCurrency, JBCurrencies.ETH)
       );
 
     // The amount being withdrawn must be available in the overflow.

@@ -202,10 +202,6 @@ describe('JBETHPaymentTerminalStore::recordDistributionFor(...)', function () {
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_USD);
 
-    await mockJbController.mock.distributionLimitOf
-    .withArgs(PROJECT_ID, timestamp, terminal.address)
-    .returns(AMOUNT);
-
     // Record the distributions
     await expect(
       jbEthPaymentTerminalStore

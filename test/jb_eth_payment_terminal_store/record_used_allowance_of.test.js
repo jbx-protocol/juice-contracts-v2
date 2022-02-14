@@ -103,14 +103,18 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(0);
-
-    await mockJbController.mock.overflowAllowanceCurrencyOf
+    
+    await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_USD);
 
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(AMOUNT);
+    
+    await mockJbController.mock.overflowAllowanceCurrencyOf
+      .withArgs(PROJECT_ID, timestamp, terminal.address)
+      .returns(CURRENCY_USD);
 
     await mockJbPrices.mock.priceFor.withArgs(CURRENCY_USD, CURRENCY_ETH).returns(usdToEthPrice);
 
@@ -158,10 +162,6 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await mockJbController.mock.overflowAllowanceCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_USD);
-
-    await mockJbController.mock.overflowAllowanceOf
-      .withArgs(PROJECT_ID, timestamp, terminal.address)
-      .returns(AMOUNT);
 
     // Record the used allowance
     await expect(
@@ -227,13 +227,17 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(smallBalance);
 
-    await mockJbController.mock.overflowAllowanceCurrencyOf
+    await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_ETH);
 
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(AMOUNT);
+
+    await mockJbController.mock.overflowAllowanceCurrencyOf
+      .withArgs(PROJECT_ID, timestamp, terminal.address)
+      .returns(CURRENCY_ETH);
 
     await mockJbPrices.mock.priceFor
       .withArgs(CURRENCY_ETH, CURRENCY_ETH)
@@ -266,14 +270,18 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(0);
 
-    await mockJbController.mock.overflowAllowanceCurrencyOf
+    await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_ETH);
-
+      
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(AMOUNT);
 
+    await mockJbController.mock.overflowAllowanceCurrencyOf
+      .withArgs(PROJECT_ID, timestamp, terminal.address)
+      .returns(CURRENCY_ETH);
+      
     await mockJbPrices.mock.priceFor
       .withArgs(CURRENCY_ETH, CURRENCY_ETH)
       .returns(ethers.FixedNumber.from(1));
