@@ -116,6 +116,10 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_USD);
 
+    await mockJbController.mock.distributionLimitOf
+      .withArgs(PROJECT_ID, timestamp, terminal.address)
+      .returns(0);
+
     await mockJbPrices.mock.priceFor.withArgs(CURRENCY_USD, CURRENCY_ETH).returns(usdToEthPrice);
 
     // Pre-checks
@@ -162,6 +166,10 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await mockJbController.mock.overflowAllowanceCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_USD);
+    
+    await mockJbController.mock.overflowAllowanceOf
+      .withArgs(PROJECT_ID, timestamp, terminal.address)
+      .returns(AMOUNT);
 
     // Record the used allowance
     await expect(
