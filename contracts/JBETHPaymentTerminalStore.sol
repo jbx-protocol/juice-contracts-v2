@@ -482,7 +482,6 @@ contract JBETHPaymentTerminalStore {
         terminal
       );
 
-    // The current overflow is the balance minus what still needs to be distributed
     uint256 _leftToDistribute = distributionLimit - usedDistributionLimitOf[_projectId][fundingCycle.number];
 
     // Get the distribution limit currency (which might or might not be the same as the overflow allowance)
@@ -501,7 +500,7 @@ contract JBETHPaymentTerminalStore {
       );
 
     // The amount being withdrawn must be available in the overflow.
-    if (balanceOf[_projectId] == 0 || withdrawnAmount > balanceOf[_projectId] - _leftToDistribute) {
+    if (_leftToDistribute > balanceOf[_projectId] || withdrawnAmount > balanceOf[_projectId] - _leftToDistribute) {
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
     }
 
