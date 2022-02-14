@@ -485,12 +485,19 @@ contract JBETHPaymentTerminalStore {
     // The current overflow is the balance minus what still needs to be distributed
     uint256 _leftToDistribute = distributionLimit - usedDistributionLimitOf[_projectId][fundingCycle.number];
 
+    // Get the distribution limit currency (which might or might not be the same as the overflow allowance)
+    uint256 _distributionLimitCurrency = directory.controllerOf(_projectId).distributionLimitCurrencyOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      );
+
     // Convert the remaining to distribute into wei, if needed
-    _leftToDistribute = _currency == JBCurrencies.ETH
+    _leftToDistribute = _distributionLimitCurrency == JBCurrencies.ETH
       ? _leftToDistribute
       : PRBMathUD60x18.div(
         _leftToDistribute,
-        prices.priceFor(_currency, JBCurrencies.ETH)
+        prices.priceFor(_distributionLimitCurrency, JBCurrencies.ETH)
       );
 
     // The amount being withdrawn must be available in the overflow.
