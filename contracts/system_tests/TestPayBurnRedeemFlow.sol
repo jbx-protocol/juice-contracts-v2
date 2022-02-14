@@ -6,10 +6,10 @@ import '@paulrberg/contracts/math/PRBMathUD60x18.sol';
 import './helpers/TestBaseWorkflow.sol';
 
 /**
-* This system test file verifies the following flow:
-* launch project → issue token → pay project (claimed tokens) →  burn some of the claimed tokens → redeem rest of tokens
-*/
-contract TestPayRedeemFlow is TestBaseWorkflow {
+ * This system test file verifies the following flow:
+ * launch project → issue token → pay project (claimed tokens) →  burn some of the claimed tokens → redeem rest of tokens
+ */
+contract TestPayBurnRedeemFlow is TestBaseWorkflow {
   JBController private _controller;
   JBETHPaymentTerminal private _terminal;
   JBTokenStore private _tokenStore;
@@ -63,7 +63,8 @@ contract TestPayRedeemFlow is TestBaseWorkflow {
 
     _terminals.push(_terminal);
 
-    _fundAccessConstraints.push(JBFundAccessConstraints({
+    _fundAccessConstraints.push(
+      JBFundAccessConstraints({
         terminal: _terminal,
         distributionLimit: 10 ether,
         overflowAllowance: 5 ether,
@@ -84,30 +85,26 @@ contract TestPayRedeemFlow is TestBaseWorkflow {
       _fundAccessConstraints,
       _terminals
     );
-
   }
 
-  // fuzz candidates:
-  // mint claimed/unclaimed, burn claimed/unclaimed, payment amount, burn amount, redeem amount
-
-  function testPayRedeemFlow() public {
+  function testPayBurnRedeemFlow() public {
     // issue an ERC-20 token for project
     // next call from projectOwner addr
     evm.prank(_projectOwner);
     _controller.issueTokenFor(_projectId, 'TestName', 'TestSymbol');
 
     address _userWallet = address(1234);
-    uint256 _paymentAmtInWei = 20*10**18;
+    uint256 _paymentAmtInWei = 20 * 10**18;
 
     // pay terminal 20 ETH (20*10**18 wei)
     _terminal.pay{value: 20 ether}(
-        _projectId,
-        /* _beneficiary */ _userWallet,
-        /* _minReturnedTokens */ 0,
-        /* _preferClaimedTokens */ true,
-        /* _memo */ 'pay you',
-        /* _delegateMetadata */ new bytes(0)
-      ); // funding target met and 10 ETH are now in the overflow
+      _projectId,
+      /* _beneficiary */ _userWallet,
+      /* _minReturnedTokens */ 0,
+      /* _preferClaimedTokens */ true,
+      /* _memo */ 'pay you',
+      /* _delegateMetadata */ new bytes(0)
+    ); // funding target met and 10 ETH are now in the overflow
 
     // verify: beneficiary should have a balance of JBTokens
     uint256 _expectedUserBalance = PRBMathUD60x18.mul(_paymentAmtInWei, _weight);
@@ -119,7 +116,13 @@ contract TestPayRedeemFlow is TestBaseWorkflow {
     // burn tokens from beneficiary addr
     // next call will originate from holder addr
     evm.prank(_userWallet);
-    _controller.burnTokensOf(_userWallet, _projectId, /* _tokenCount */ 1, /* _memo */ 'Burn memo', /* _preferClaimedTokens */ true);
+    _controller.burnTokensOf(
+      _userWallet,
+      _projectId,
+      /* _tokenCount */ 1,
+      /* _memo */ 'Burn memo',
+      /* _preferClaimedTokens */ true
+    );
 
     // verify: beneficiary should have a new balance of JBTokens
     _expectedUserBalance = _expectedUserBalance - 1;
@@ -143,6 +146,75 @@ contract TestPayRedeemFlow is TestBaseWorkflow {
     assertEq(_tokenStore.balanceOf(_userWallet, _projectId), _expectedUserBalance);
 
     // verify: ETH balance in terminal should be halved due to 50% redemption rate
-    assertEq(_terminal.ethBalanceOf(_projectId), _paymentAmtInWei/2);
+    assertEq(_terminal.ethBalanceOf(_projectId), _paymentAmtInWei / 2);
+  }
+
+  function testFuzzPayBurnRedeemFlow(
+    bool MINT_CLAIMED,
+    bool BURN_CLAIMED,
+    uint256 BURN_AMOUNT,
+    uint256 REDEEM_AMOUNT
+  ) public {
+    // issue an ERC-20 token for project
+    evm.prank(_projectOwner);
+    _controller.issueTokenFor(_projectId, 'TestName', 'TestSymbol');
+
+    address _userWallet = address(1234);
+    uint256 _paymentAmtInWei = 20 * 10**18;
+
+    // pay terminal
+    _terminal.pay{value: 20 ether}(
+      _projectId,
+      /* _beneficiary */ _userWallet,
+      /* _minReturnedTokens */ 0,
+      /* _preferClaimedTokens */ MINT_CLAIMED,
+      /* _memo */ 'pay you',
+      /* _delegateMetadata */ new bytes(0)
+    ); // funding target met and 10 ETH are now in the overflow
+
+    // verify: beneficiary should have a balance of JBTokens
+    uint256 _expectedUserBalance = PRBMathUD60x18.mul(_paymentAmtInWei, _weight);
+    assertEq(_tokenStore.balanceOf(_userWallet, _projectId), _expectedUserBalance);
+
+    // verify: ETH balance in terminal should be up to date
+    assertEq(_terminal.ethBalanceOf(_projectId), _paymentAmtInWei);
+
+    // burn tokens from beneficiary addr
+    if (BURN_AMOUNT == 0) evm.expectRevert(abi.encodeWithSignature('NO_BURNABLE_TOKENS()'));
+    else if (BURN_AMOUNT > _expectedUserBalance)
+      evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_FUNDS()'));
+    else
+      _expectedUserBalance = _expectedUserBalance - BURN_AMOUNT;
+
+    evm.prank(_userWallet);
+    _controller.burnTokensOf(
+      _userWallet,
+      _projectId,
+      /* _tokenCount */ BURN_AMOUNT,
+      /* _memo */ 'Burn memo',
+      /* _preferClaimedTokens */ BURN_CLAIMED
+    );
+
+    // verify: beneficiary should have a new balance of JBTokens
+    assertEq(_tokenStore.balanceOf(_userWallet, _projectId), _expectedUserBalance);
+
+    // redeem tokens
+    if (REDEEM_AMOUNT > _terminal.ethBalanceOf(_projectId))
+      evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_TOKENS()'));
+    else _expectedUserBalance = _expectedUserBalance - REDEEM_AMOUNT;
+
+    evm.prank(_userWallet);
+    _terminal.redeemTokensOf(
+      /* _holder */ _userWallet,
+      /* _projectId */ _projectId,
+      /* _tokenCount */ REDEEM_AMOUNT,
+      /* _minReturnedWei */ 0,
+      /* _beneficiary */ payable(_userWallet),
+      /* _memo */ 'pay me',
+      /* _delegateMetadata */ new bytes(0)
+    );
+
+    // verify: beneficiary should have a new balance of JBTokens
+    assertEq(_tokenStore.balanceOf(_userWallet, _projectId), _expectedUserBalance);
   }
 }
