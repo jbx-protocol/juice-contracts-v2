@@ -99,14 +99,22 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await jbEthPaymentTerminalStore
       .connect(terminal)
       .recordAddedBalanceFor(PROJECT_ID, amountInWei);
-
-    await mockJbController.mock.overflowAllowanceCurrencyOf
+    
+    await mockJbController.mock.distributionLimitOf
+      .withArgs(PROJECT_ID, timestamp, terminal.address)
+      .returns(0);
+    
+    await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_USD);
 
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(AMOUNT);
+    
+    await mockJbController.mock.overflowAllowanceCurrencyOf
+      .withArgs(PROJECT_ID, timestamp, terminal.address)
+      .returns(CURRENCY_USD);
 
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
@@ -205,7 +213,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     ).to.be.revertedWith(errors.INADEQUATE_CONTROLLER_ALLOWANCE);
   });
 
-  it(`Can't record allowance if withdrawnAmount > project's total balance`, async function () {
+  it(`Can't record allowance if withdrawnAmount > overflow`, async function () {
     const {
       terminal,
       mockJbController,
@@ -217,17 +225,27 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
 
     // Add to balance beforehand
     const smallBalance = AMOUNT.subUnsafe(ethers.FixedNumber.from(1));
+
     await jbEthPaymentTerminalStore
       .connect(terminal)
-      .recordAddedBalanceFor(PROJECT_ID, smallBalance);
+      .recordAddedBalanceFor(PROJECT_ID, AMOUNT);
+    
+    // Leave a small overflow
+    await mockJbController.mock.distributionLimitOf
+      .withArgs(PROJECT_ID, timestamp, terminal.address)
+      .returns(smallBalance);
 
-    await mockJbController.mock.overflowAllowanceCurrencyOf
+    await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_ETH);
 
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(AMOUNT);
+
+    await mockJbController.mock.overflowAllowanceCurrencyOf
+      .withArgs(PROJECT_ID, timestamp, terminal.address)
+      .returns(CURRENCY_ETH);
 
     await mockJbPrices.mock.priceFor
       .withArgs(CURRENCY_ETH, CURRENCY_ETH)
@@ -252,17 +270,26 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       CURRENCY_ETH,
     } = await setup();
 
-    // Add to balance beforehand
-    await jbEthPaymentTerminalStore.connect(terminal).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
+    await jbEthPaymentTerminalStore
+      .connect(terminal)
+      .recordAddedBalanceFor(PROJECT_ID, AMOUNT);
+    
+    await mockJbController.mock.distributionLimitOf
+      .withArgs(PROJECT_ID, timestamp, terminal.address)
+      .returns(0);
 
-    await mockJbController.mock.overflowAllowanceCurrencyOf
+    await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_ETH);
-
+      
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(AMOUNT);
 
+    await mockJbController.mock.overflowAllowanceCurrencyOf
+      .withArgs(PROJECT_ID, timestamp, terminal.address)
+      .returns(CURRENCY_ETH);
+      
     await mockJbPrices.mock.priceFor
       .withArgs(CURRENCY_ETH, CURRENCY_ETH)
       .returns(ethers.FixedNumber.from(1));
