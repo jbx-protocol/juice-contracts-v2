@@ -137,7 +137,7 @@ contract TestAllowance is TestBaseWorkflow {
     terminal.pay{value: BALANCE}(projectId, msg.sender, 0, false, 'Forge test', new bytes(0));
 
     evm.prank(_projectOwner);
-    if (ALLOWANCE > BALANCE || ALLOWANCE > TARGET)
+    if (ALLOWANCE > BALANCE || TARGET > BALANCE) // Too much allowance or no overflow ?
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
 
     if (ALLOWANCE == 0)
