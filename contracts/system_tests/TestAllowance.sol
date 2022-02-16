@@ -167,6 +167,10 @@ contract TestAllowance is TestBaseWorkflow {
     );
 
     evm.prank(msg.sender);
+    
+    if (BALANCE == 0)
+      evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_TOKENS()'));
+
     terminal.redeemTokensOf(
       msg.sender,
       projectId,
