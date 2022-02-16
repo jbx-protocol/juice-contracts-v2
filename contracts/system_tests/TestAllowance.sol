@@ -167,7 +167,7 @@ contract TestAllowance is TestBaseWorkflow {
     );
 
     evm.prank(msg.sender);
-    
+
     if (BALANCE == 0)
       evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_TOKENS()'));
 
@@ -181,69 +181,4 @@ contract TestAllowance is TestBaseWorkflow {
       new bytes(0)
     );
   }
-
-  // function testFuzzTarget(uint248 TARGET, uint96 BALANCE) public {
-  //   JBETHPaymentTerminal terminal = jbETHPaymentTerminal();
-
-  //   _fundAccessConstraints.push(
-  //     JBFundAccessConstraints({
-  //       terminal: jbETHPaymentTerminal(),
-  //       distributionLimit: TARGET,
-  //       overflowAllowance: 5 ether,
-  //       distributionLimitCurrency: 1,
-  //       overflowAllowanceCurrency: 1
-  //     })
-  //   );
-
-  //   uint256 projectId = controller.launchProjectFor(
-  //     _projectOwner,
-  //     _projectMetadata,
-  //     _data,
-  //     _metadata,
-  //     block.timestamp,
-  //     _groupedSplits,
-  //     _fundAccessConstraints,
-  //     _terminals
-  //   );
-
-  //   terminal.pay{value: BALANCE}(projectId, msg.sender, 0, false, 'Forge test', new bytes(0));
-
-  //   evm.prank(_projectOwner);
-  //   if (TARGET > BALANCE)
-  //     evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
-  //   terminal.useAllowanceOf(
-  //     projectId,
-  //     5 ether,
-  //     1, // Currency
-  //     0, // Min wei out
-  //     payable(msg.sender) // Beneficiary
-  //   );
-
-  //   // Distribute the funding target ETH -> no split then beneficiary is the project owner
-  //   evm.prank(_projectOwner);
-  //   if (TARGET > BALANCE)
-  //     evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
-
-  //   if (TARGET == 0)
-  //     evm.expectRevert(abi.encodeWithSignature('DISTRIBUTION_AMOUNT_LIMIT_REACHED()'));
-
-  //   terminal.distributePayoutsOf(
-  //     projectId,
-  //     TARGET,
-  //     1, // Currency
-  //     0, // Min wei out
-  //     'Foundry payment' // Memo
-  //   );
-
-  //   evm.prank(msg.sender); // Fixing the msg.sender "instability" bug
-  //   terminal.redeemTokensOf(
-  //     msg.sender,
-  //     projectId,
-  //     1, // Currency
-  //     0, // Min wei out
-  //     payable(msg.sender),
-  //     'gimme my money back',
-  //     new bytes(0)
-  //   );
-  // }
 }
