@@ -492,7 +492,7 @@ contract JBETHPaymentTerminalStore {
       );
 
     // Convert the remaining to distribute into wei, if needed
-    _leftToDistribute = (_distributionLimitCurrency == JBCurrencies.ETH || _distributionLimitCurrency == 0)
+    _leftToDistribute = (_distributionLimitCurrency == JBCurrencies.ETH || distributionLimit == 0)
       ? _leftToDistribute
       : PRBMathUD60x18.div(
         _leftToDistribute,
