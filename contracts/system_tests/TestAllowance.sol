@@ -213,9 +213,10 @@ contract TestAllowance is TestBaseWorkflow {
     evm.prank(_projectOwner);
     if (TARGET > BALANCE)
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
+      
     if (TARGET == 0)
       evm.expectRevert(abi.encodeWithSignature('DISTRIBUTION_AMOUNT_LIMIT_REACHED()'));
-      
+
     terminal.distributePayoutsOf(
       projectId,
       TARGET,
