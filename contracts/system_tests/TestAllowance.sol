@@ -134,9 +134,9 @@ contract TestAllowance is TestBaseWorkflow {
       _terminals
     );
 
-    terminal.pay{value: BALANCE}(projectId, msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
+    terminal.pay{value: BALANCE}(projectId, msg.sender, 0, false, 'Forge test', new bytes(0));
 
-    evm.prank(_projectOwner); // Prank only next call
+    evm.prank(_projectOwner);
     if (ALLOWANCE > BALANCE)
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
     terminal.useAllowanceOf(
@@ -147,7 +147,6 @@ contract TestAllowance is TestBaseWorkflow {
       payable(msg.sender) // Beneficiary
     );
 
-    // Distribute the funding target ETH -> no split then beneficiary is the project owner
     evm.prank(_projectOwner);
     terminal.distributePayoutsOf(
       projectId,
@@ -157,13 +156,12 @@ contract TestAllowance is TestBaseWorkflow {
       'Foundry payment' // Memo
     );
 
-    // redeem the 5ETH left in the overflow by the token holder:
     evm.prank(msg.sender);
     terminal.redeemTokensOf(
       msg.sender,
       projectId,
-      1,
-      0,
+      1, // Currency
+      0, // Min wei out
       payable(msg.sender),
       'gimme my money back',
       new bytes(0)
@@ -178,7 +176,7 @@ contract TestAllowance is TestBaseWorkflow {
         terminal: jbETHPaymentTerminal(),
         distributionLimit: TARGET,
         overflowAllowance: 5 ether,
-        distributionLimitCurrency: 1, // Currency = ETH
+        distributionLimitCurrency: 1,
         overflowAllowanceCurrency: 1
       })
     );
@@ -194,9 +192,9 @@ contract TestAllowance is TestBaseWorkflow {
       _terminals
     );
 
-    terminal.pay{value: BALANCE}(projectId, msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
+    terminal.pay{value: BALANCE}(projectId, msg.sender, 0, false, 'Forge test', new bytes(0));
 
-    evm.prank(_projectOwner); // Prank only next call
+    evm.prank(_projectOwner);
     if (TARGET > BALANCE)
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
     terminal.useAllowanceOf(
@@ -219,13 +217,12 @@ contract TestAllowance is TestBaseWorkflow {
       'Foundry payment' // Memo
     );
 
-    // redeem the 5ETH left in the overflow by the token holder:
-    evm.prank(msg.sender);
+    evm.prank(msg.sender); // Fixing the msg.sender "instability" bug
     terminal.redeemTokensOf(
       msg.sender,
       projectId,
-      1,
-      0,
+      1, // Currency
+      0, // Min wei out
       payable(msg.sender),
       'gimme my money back',
       new bytes(0)
