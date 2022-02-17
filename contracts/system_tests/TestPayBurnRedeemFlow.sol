@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import '@paulrberg/contracts/math/PRBMath.sol';
 import '@paulrberg/contracts/math/PRBMathUD60x18.sol';
 
 import './helpers/TestBaseWorkflow.sol';
@@ -23,8 +24,8 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
 
   uint256 private _projectId;
   address private _projectOwner;
-  uint256 private _reservedRate = 0;
   uint256 private _weight = 1000 * 10**18;
+  uint256 private _targetInWei = 10 * 10**18;
 
   function setUp() public override {
     super.setUp();
@@ -43,8 +44,8 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
     });
 
     _metadata = JBFundingCycleMetadata({
-      reservedRate: _reservedRate,
-      redemptionRate: 5000, // 50%
+      reservedRate: 0,
+      redemptionRate: 10000, // 100% redemption rate
       ballotRedemptionRate: 0,
       pausePay: false,
       pauseDistributions: false,
@@ -66,7 +67,7 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
         terminal: _terminal,
-        distributionLimit: 10 ether,
+        distributionLimit: _targetInWei, // 10 ETH target
         overflowAllowance: 5 ether,
         distributionLimitCurrency: 1, // Currency = ETH
         overflowAllowanceCurrency: 1
@@ -87,134 +88,96 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
     );
   }
 
-  function testPayBurnRedeemFlow() public {
-    // issue an ERC-20 token for project
-    // next call from projectOwner addr
-    evm.prank(_projectOwner);
-    _controller.issueTokenFor(_projectId, 'TestName', 'TestSymbol');
-
-    address _userWallet = address(1234);
-    uint256 _paymentAmtInWei = 20 * 10**18;
-
-    // pay terminal 20 ETH (20*10**18 wei)
-    _terminal.pay{value: 20 ether}(
-      _projectId,
-      /* _beneficiary */ _userWallet,
-      /* _minReturnedTokens */ 0,
-      /* _preferClaimedTokens */ true,
-      /* _memo */ 'pay you',
-      /* _delegateMetadata */ new bytes(0)
-    ); // funding target met and 10 ETH are now in the overflow
-
-    // verify: beneficiary should have a balance of JBTokens
-    uint256 _expectedUserBalance = PRBMathUD60x18.mul(_paymentAmtInWei, _weight);
-    assertEq(_tokenStore.balanceOf(_userWallet, _projectId), _expectedUserBalance);
-
-    // verify: ETH balance in terminal should be up to date
-    assertEq(_terminal.ethBalanceOf(_projectId), _paymentAmtInWei);
-
-    // burn tokens from beneficiary addr
-    // next call will originate from holder addr
-    evm.prank(_userWallet);
-    _controller.burnTokensOf(
-      _userWallet,
-      _projectId,
-      /* _tokenCount */ 1,
-      /* _memo */ 'Burn memo',
-      /* _preferClaimedTokens */ true
-    );
-
-    // verify: beneficiary should have a new balance of JBTokens
-    _expectedUserBalance = _expectedUserBalance - 1;
-    assertEq(_tokenStore.balanceOf(_userWallet, _projectId), _expectedUserBalance);
-
-    // redeem tokens
-    // next call from someAddr
-    evm.prank(_userWallet);
-    _terminal.redeemTokensOf(
-      /* _holder */ _userWallet,
-      /* _projectId */ _projectId,
-      /* _tokenCount */ _expectedUserBalance,
-      /* _minReturnedWei */ 0,
-      /* _beneficiary */ payable(_userWallet),
-      /* _memo */ 'pay me',
-      /* _delegateMetadata */ new bytes(0)
-    );
-
-    // verify: beneficiary should have a new balance of JBTokens
-    _expectedUserBalance = _expectedUserBalance - _expectedUserBalance;
-    assertEq(_tokenStore.balanceOf(_userWallet, _projectId), _expectedUserBalance);
-
-    // verify: ETH balance in terminal should be halved due to 50% redemption rate
-    assertEq(_terminal.ethBalanceOf(_projectId), _paymentAmtInWei / 2);
-  }
-
   function testFuzzPayBurnRedeemFlow(
-    bool MINT_CLAIMED,
-    bool BURN_CLAIMED,
-    uint256 BURN_AMOUNT,
-    uint256 REDEEM_AMOUNT
-  ) public {
+    bool payPreferClaimed,
+    bool burnPreferClaimed,
+    uint96 payAmountInWei,
+    uint256 burnTokenAmount,
+    uint256 redeemTokenAmount
+  ) external {
     // issue an ERC-20 token for project
     evm.prank(_projectOwner);
     _controller.issueTokenFor(_projectId, 'TestName', 'TestSymbol');
 
     address _userWallet = address(1234);
-    uint256 _paymentAmtInWei = 20 * 10**18;
 
     // pay terminal
-    _terminal.pay{value: 20 ether}(
+    _terminal.pay{value: payAmountInWei}(
       _projectId,
-      /* _beneficiary */ _userWallet,
-      /* _minReturnedTokens */ 0,
-      /* _preferClaimedTokens */ MINT_CLAIMED,
-      /* _memo */ 'pay you',
-      /* _delegateMetadata */ new bytes(0)
-    ); // funding target met and 10 ETH are now in the overflow
+      /* _beneficiary */
+      _userWallet,
+      /* _minReturnedTokens */
+      0,
+      /* _preferClaimedTokens */
+      payPreferClaimed,
+      /* _memo */
+      'Take my money!',
+      /* _delegateMetadata */
+      new bytes(0)
+    );
 
     // verify: beneficiary should have a balance of JBTokens
-    uint256 _expectedUserBalance = PRBMathUD60x18.mul(_paymentAmtInWei, _weight);
-    assertEq(_tokenStore.balanceOf(_userWallet, _projectId), _expectedUserBalance);
+    uint256 _userTokenBalance = PRBMathUD60x18.mul(payAmountInWei, _weight);
+    assertEq(_tokenStore.balanceOf(_userWallet, _projectId), _userTokenBalance);
 
     // verify: ETH balance in terminal should be up to date
-    assertEq(_terminal.ethBalanceOf(_projectId), _paymentAmtInWei);
+    uint256 _terminalBalanceInWei = payAmountInWei;
+    assertEq(_terminal.ethBalanceOf(_projectId), _terminalBalanceInWei);
 
     // burn tokens from beneficiary addr
-    if (BURN_AMOUNT == 0) evm.expectRevert(abi.encodeWithSignature('NO_BURNABLE_TOKENS()'));
-    else if (BURN_AMOUNT > _expectedUserBalance)
+    if (burnTokenAmount == 0) evm.expectRevert(abi.encodeWithSignature('NO_BURNABLE_TOKENS()'));
+    else if (burnTokenAmount > _userTokenBalance)
       evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_FUNDS()'));
-    else
-      _expectedUserBalance = _expectedUserBalance - BURN_AMOUNT;
+    else _userTokenBalance = _userTokenBalance - burnTokenAmount;
 
     evm.prank(_userWallet);
     _controller.burnTokensOf(
       _userWallet,
       _projectId,
-      /* _tokenCount */ BURN_AMOUNT,
-      /* _memo */ 'Burn memo',
-      /* _preferClaimedTokens */ BURN_CLAIMED
+      /* _tokenCount */
+      burnTokenAmount,
+      /* _memo */
+      'I hate tokens!',
+      /* _preferClaimedTokens */
+      burnPreferClaimed
     );
 
     // verify: beneficiary should have a new balance of JBTokens
-    assertEq(_tokenStore.balanceOf(_userWallet, _projectId), _expectedUserBalance);
+    assertEq(_tokenStore.balanceOf(_userWallet, _projectId), _userTokenBalance);
+
+    uint256 _minWei = 1;
 
     // redeem tokens
-    if (REDEEM_AMOUNT > _terminal.ethBalanceOf(_projectId))
+    if (redeemTokenAmount > _userTokenBalance)
       evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_TOKENS()'));
-    else _expectedUserBalance = _expectedUserBalance - REDEEM_AMOUNT;
+    else if (
+      _targetInWei > payAmountInWei ||
+      PRBMath.mulDiv(payAmountInWei - _targetInWei, redeemTokenAmount, _userTokenBalance) < _minWei
+    ) evm.expectRevert(abi.encodeWithSignature('INADEQUATE_CLAIM_AMOUNT()'));
+    else _userTokenBalance = _userTokenBalance - redeemTokenAmount;
 
     evm.prank(_userWallet);
-    _terminal.redeemTokensOf(
-      /* _holder */ _userWallet,
-      /* _projectId */ _projectId,
-      /* _tokenCount */ REDEEM_AMOUNT,
-      /* _minReturnedWei */ 0,
-      /* _beneficiary */ payable(_userWallet),
-      /* _memo */ 'pay me',
-      /* _delegateMetadata */ new bytes(0)
+    uint256 _reclaimAmtInWei = _terminal.redeemTokensOf(
+      /* _holder */
+      _userWallet,
+      /* _projectId */
+      _projectId,
+      /* _tokenCount */
+      redeemTokenAmount,
+      /* _minReturnedWei */
+      _minWei,
+      /* _beneficiary */
+      payable(_userWallet),
+      /* _memo */
+      'Refund me now!',
+      /* _delegateMetadata */
+      new bytes(0)
     );
 
     // verify: beneficiary should have a new balance of JBTokens
-    assertEq(_tokenStore.balanceOf(_userWallet, _projectId), _expectedUserBalance);
+    assertEq(_tokenStore.balanceOf(_userWallet, _projectId), _userTokenBalance);
+
+    // verify: ETH balance in terminal should be up to date
+    assertEq(_terminal.ethBalanceOf(_projectId), _terminalBalanceInWei - _reclaimAmtInWei);
   }
 }
