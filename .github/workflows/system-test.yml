@@ -49,4 +49,4 @@ jobs:
           steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile --prefer-offline
       - name: Run tests
-        run: forge test --force --optimize
+        run: forge test --force --optimize -vvv
