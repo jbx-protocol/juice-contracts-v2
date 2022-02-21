@@ -781,6 +781,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       return JBBallotState.Approved;
     else if (_ballotFundingCycle.ballot.duration() >= block.timestamp - _configuration)
       return JBBallotState.Active;
-    else return _ballotFundingCycle.ballot.stateOf(_configuration);
+    else return _ballotFundingCycle.ballot.stateOf(_projectId, _configuration);
   }
 }
