@@ -7,7 +7,6 @@ library JBOperations {
   uint256 public constant MIGRATE_CONTROLLER = 3;
   uint256 public constant MIGRATE_TERMINAL = 4;
   uint256 public constant PROCESS_FEES = 5;
-  uint256 public constant SET_HANDLE = 6;
   uint256 public constant SET_METADATA = 7;
   uint256 public constant ISSUE = 8;
   uint256 public constant CHANGE_TOKEN = 9;
