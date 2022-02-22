@@ -21,17 +21,18 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
   const AMOUNT_DISTRIBUTED = 1000000000000;
 
   const DEFAULT_FEE = 10; // 5%
-  const FEE_DISCOUNT = 500000; // 50%
+  const FEE_DISCOUNT = 500000000; // 50%
 
-  const AMOUNT_MINUS_FEES = Math.floor((AMOUNT_DISTRIBUTED * 200) / (DEFAULT_FEE + 200));
-
+  
   const CURRENCY = 1;
   const MIN_TOKEN_REQUESTED = 180;
   const MEMO = 'Memo Test';
   let ETH_ADDRESS;
   let ETH_PAYOUT_INDEX;
   let SPLITS_TOTAL_PERCENT;
+  let MAX_FEE;
   let MAX_FEE_DISCOUNT;
+  let AMOUNT_MINUS_FEES;
 
   let fundingCycle;
 
@@ -49,6 +50,8 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
     ETH_ADDRESS = await jbToken.ETH();
     SPLITS_TOTAL_PERCENT = await jbConstants.SPLITS_TOTAL_PERCENT();
     MAX_FEE_DISCOUNT = await jbConstants.MAX_FEE_DISCOUNT();
+    MAX_FEE = (await jbConstants.MAX_FEE()).toNumber();
+    AMOUNT_MINUS_FEES = Math.floor((AMOUNT_DISTRIBUTED * MAX_FEE) / (DEFAULT_FEE + MAX_FEE));
   });
 
   async function setup() {
@@ -409,7 +412,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       mockJbDirectory,
       mockJbSplitsStore,
     } = await setup();
-    const AMOUNT_MINUS_FEES = Math.floor((AMOUNT_DISTRIBUTED * 200) / (DEFAULT_FEE + 200));
+    const AMOUNT_MINUS_FEES = Math.floor((AMOUNT_DISTRIBUTED * MAX_FEE) / (DEFAULT_FEE + MAX_FEE));
     const splits = makeSplits({
       count: 2,
       beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
@@ -509,7 +512,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       mockJbEthPaymentTerminalStore,
       mockJbSplitsStore,
     } = await setup();
-    const AMOUNT_MINUS_FEES = Math.floor((AMOUNT_DISTRIBUTED * 200) / (DEFAULT_FEE + 200));
+    const AMOUNT_MINUS_FEES = Math.floor((AMOUNT_DISTRIBUTED * MAX_FEE) / (DEFAULT_FEE + MAX_FEE));
     const splits = makeSplits({
       count: 2,
       beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
@@ -627,7 +630,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
 
     const DISCOUNTED_FEE =
       DEFAULT_FEE - Math.floor((DEFAULT_FEE * FEE_DISCOUNT) / MAX_FEE_DISCOUNT);
-    const AMOUNT_MINUS_FEES = Math.floor((AMOUNT_DISTRIBUTED * 200) / (200 + DISCOUNTED_FEE));
+    const AMOUNT_MINUS_FEES = Math.floor((AMOUNT_DISTRIBUTED * MAX_FEE) / (MAX_FEE + DISCOUNTED_FEE));
     const FEE_AMOUNT = AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES;
 
     const splits = makeSplits({
@@ -716,7 +719,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
         /*_amount*/ AMOUNT_DISTRIBUTED,
         /*_distributedAmount*/ AMOUNT_DISTRIBUTED,
         /*_feeAmount*/ FEE_AMOUNT,
-        /*_leftoverDistributionAmount*/ 0,
+        /*_leftoverDistributionAmount*/ 1,
         MEMO,
         caller.address,
       );
@@ -737,7 +740,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       mockJbSplitsStore,
     } = await setup();
 
-    const AMOUNT_MINUS_FEES = Math.floor((AMOUNT_DISTRIBUTED * 200) / (200 + DEFAULT_FEE));
+    const AMOUNT_MINUS_FEES = Math.floor((AMOUNT_DISTRIBUTED * MAX_FEE) / (MAX_FEE + DEFAULT_FEE));
 
     const splits = makeSplits({
       count: 2,
