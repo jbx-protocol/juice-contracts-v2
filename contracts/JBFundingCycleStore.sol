@@ -10,11 +10,9 @@ import './libraries/JBConstants.sol';
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
 //*********************************************************************//
-error FUNDING_CYCLE_CONFIGURATION_NOT_FOUND();
 error INVALID_DISCOUNT_RATE();
 error INVALID_DURATION();
 error INVALID_WEIGHT();
-error NON_RECURRING_FUNDING_CYCLE();
 
 /** 
   @notice 
