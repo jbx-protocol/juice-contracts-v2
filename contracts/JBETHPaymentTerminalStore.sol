@@ -500,9 +500,36 @@ contract JBETHPaymentTerminalStore {
         prices.priceFor(_distributionLimitCurrency, JBCurrencies.ETH)
       );
 
-    // The amount being withdrawn must be available in the overflow.
-    if (balanceOf[_projectId] == 0 || withdrawnAmount > balanceOf[_projectId] - _leftToDistribute) {
-      revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
+    // Get the current funding target
+    uint256 distributionLimit =
+      directory.controllerOf(_projectId).distributionLimitOf(
+        _projectId,
+        fundingCycle.configuration,
+        terminal
+      );
+
+    if(distributionLimit > 0) {
+      uint256 _leftToDistribute = distributionLimit - usedDistributionLimitOf[_projectId][fundingCycle.number];
+
+      // Get the distribution limit currency (which might or might not be the same as the overflow allowance)
+      uint256 _distributionLimitCurrency = directory.controllerOf(_projectId).distributionLimitCurrencyOf(
+          _projectId,
+          fundingCycle.configuration,
+          terminal
+        );
+
+      // Convert the remaining to distribute into wei, if needed
+      _leftToDistribute = (_distributionLimitCurrency == JBCurrencies.ETH || distributionLimit == 0)
+        ? _leftToDistribute
+        : PRBMathUD60x18.div(
+          _leftToDistribute,
+          prices.priceFor(_distributionLimitCurrency, JBCurrencies.ETH)
+        );
+
+      // The amount being withdrawn must be available in the overflow.
+      if (_leftToDistribute > balanceOf[_projectId] || withdrawnAmount > balanceOf[_projectId] - _leftToDistribute) {
+        revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
+      }
     }
 
     // The amount being withdrawn must be at least as much as was expected.

@@ -53,8 +53,9 @@ contract TestAllowance is TestBaseWorkflow {
 
   function testAllowance() public {
     JBETHPaymentTerminal terminal = jbETHPaymentTerminal();
-    
-    _fundAccessConstraints.push(JBFundAccessConstraints({
+
+    _fundAccessConstraints.push(
+      JBFundAccessConstraints({
         terminal: jbETHPaymentTerminal(),
         distributionLimit: 10 ether,
         overflowAllowance: 5 ether,
@@ -74,18 +75,7 @@ contract TestAllowance is TestBaseWorkflow {
       _terminals
     );
 
-    terminal.pay
-      {
-        value: 20 ether  // funding target met and 10 ETH are now in the overflow
-      }
-      (
-        projectId,
-        msg.sender,
-        0,
-        false,
-        'Forge test',
-        new bytes(0)
-      );
+    terminal.pay{value: 20 ether}(projectId, msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
 
     // Discretionary use of overflow allowance by project owner (allowance = 5ETH)
     evm.prank(_projectOwner); // Prank only next call
@@ -109,15 +99,24 @@ contract TestAllowance is TestBaseWorkflow {
 
     // redeem the 5ETH left in the overflow by the token holder:
     evm.prank(msg.sender);
-    terminal.redeemTokensOf(msg.sender, projectId, 1, 0, payable(msg.sender), 'gimme my money back', new bytes(0));
+    terminal.redeemTokensOf(
+      msg.sender,
+      projectId,
+      1,
+      0,
+      payable(msg.sender),
+      'gimme my money back',
+      new bytes(0)
+    );
   }
 
-  function testFuzzAllowance(uint248 ALLOWANCE, uint96 BALANCE) public {
+  function testFuzzAllowance(uint248 ALLOWANCE, uint248 TARGET, uint96 BALANCE) public {
     JBETHPaymentTerminal terminal = jbETHPaymentTerminal();
-    
-    _fundAccessConstraints.push(JBFundAccessConstraints({
+
+    _fundAccessConstraints.push(
+      JBFundAccessConstraints({
         terminal: jbETHPaymentTerminal(),
-        distributionLimit: 10 ether,
+        distributionLimit: TARGET,
         overflowAllowance: ALLOWANCE,
         distributionLimitCurrency: 1, // Currency = ETH
         overflowAllowanceCurrency: 1
@@ -135,22 +134,16 @@ contract TestAllowance is TestBaseWorkflow {
       _terminals
     );
 
-    terminal.pay
-      {
-        value: BALANCE  // funding target met and 10 ETH are now in the overflow
-      }
-      (
-        projectId,
-        msg.sender,
-        0,
-        false,
-        'Forge test',
-        new bytes(0)
-      );
+    terminal.pay{value: BALANCE}(projectId, msg.sender, 0, false, 'Forge test', new bytes(0));
 
-    evm.prank(_projectOwner); // Prank only next call
-    if(ALLOWANCE > BALANCE)
+    evm.prank(_projectOwner);
+
+    if (ALLOWANCE == 0) // Comes first in the flow (else to not expect 2 exceptions)
+      evm.expectRevert(abi.encodeWithSignature('INADEQUATE_CONTROLLER_ALLOWANCE()'));
+
+    else if (ALLOWANCE > BALANCE || TARGET >= BALANCE) // Too much allowance or no overflow ?
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
+
     terminal.useAllowanceOf(
       projectId,
       ALLOWANCE,
@@ -159,19 +152,34 @@ contract TestAllowance is TestBaseWorkflow {
       payable(msg.sender) // Beneficiary
     );
 
-    // Distribute the funding target ETH -> no split then beneficiary is the project owner
     evm.prank(_projectOwner);
+    if (TARGET > BALANCE)
+      evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
+    
+    if (TARGET == 0)
+      evm.expectRevert(abi.encodeWithSignature('DISTRIBUTION_AMOUNT_LIMIT_REACHED()'));
+
     terminal.distributePayoutsOf(
       projectId,
-      10 ether,
+      TARGET,
       1, // Currency
       0, // Min wei out
       'Foundry payment' // Memo
     );
 
-    // redeem the 5ETH left in the overflow by the token holder:
     evm.prank(msg.sender);
-    terminal.redeemTokensOf(msg.sender, projectId, 1, 0, payable(msg.sender), 'gimme my money back', new bytes(0));
-  }
 
+    if (BALANCE == 0)
+      evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_TOKENS()'));
+
+    terminal.redeemTokensOf(
+      msg.sender,
+      projectId,
+      1, // Currency
+      0, // Min wei out
+      payable(msg.sender),
+      'gimme my money back',
+      new bytes(0)
+    );
+  }
 }
