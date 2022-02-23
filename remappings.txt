@@ -1,7 +1,0 @@
-ds-test/=lib/ds-test/src/
-forge-std/=lib/forge-std/src/
-prb-math=node_modules/prb-math
-@openzeppelin=node_modules/@openzeppelin
-@chainlink=node_modules/@chainlink
-@paulrberg=node_modules/@paulrberg
-@juicebox=contracts
