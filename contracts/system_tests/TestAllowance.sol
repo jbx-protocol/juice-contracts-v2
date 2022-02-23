@@ -11,12 +11,17 @@ contract TestAllowance is TestBaseWorkflow {
   JBGroupedSplits[] _groupedSplits;
   JBFundAccessConstraints[] _fundAccessConstraints;
   IJBTerminal[] _terminals;
+  JBTokenStore _tokenStore;
   address _projectOwner;
+
+  uint256 WEIGHT = 1000 * 10**18;
 
   function setUp() public override {
     super.setUp();
 
     _projectOwner = multisig();
+
+    _tokenStore = jbTokenStore();
 
     controller = jbController();
 
@@ -24,7 +29,7 @@ contract TestAllowance is TestBaseWorkflow {
 
     _data = JBFundingCycleData({
       duration: 14,
-      weight: 1000 * 10**18,
+      weight: WEIGHT,
       discountRate: 450000000,
       ballot: IJBFundingCycleBallot(address(0))
     });
@@ -77,6 +82,13 @@ contract TestAllowance is TestBaseWorkflow {
 
     terminal.pay{value: 20 ether}(projectId, msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
 
+     // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
+    uint256 _userTokenBalance = PRBMathUD60x18.mul(20 ether, WEIGHT) / 2;
+    assertEq(_tokenStore.balanceOf(msg.sender, projectId), _userTokenBalance);
+
+    // verify: ETH balance in terminal should be up to date
+    assertEq(terminal.ethBalanceOf(projectId), 20 ether);
+
     // Discretionary use of overflow allowance by project owner (allowance = 5ETH)
     evm.prank(_projectOwner); // Prank only next call
     terminal.useAllowanceOf(
@@ -86,6 +98,7 @@ contract TestAllowance is TestBaseWorkflow {
       0, // Min wei out
       payable(msg.sender) // Beneficiary
     );
+    assertEq((msg.sender).balance, 5 ether);
 
     // Distribute the funding target ETH -> no split then beneficiary is the project owner
     evm.prank(_projectOwner);
@@ -96,18 +109,23 @@ contract TestAllowance is TestBaseWorkflow {
       0, // Min wei out
       'Foundry payment' // Memo
     );
+    assertEq(_projectOwner.balance, 10 ether);
 
-    // redeem the 5ETH left in the overflow by the token holder:
+    // redeem eth from the overflow by the token holder:
+    uint256 senderBalance = _tokenStore.balanceOf(msg.sender, projectId);
     evm.prank(msg.sender);
     terminal.redeemTokensOf(
       msg.sender,
       projectId,
-      1,
+      senderBalance,
       0,
       payable(msg.sender),
       'gimme my money back',
       new bytes(0)
     );
+
+    // verify: beneficiary should have a balance of 0 JBTokens
+    assertEq(_tokenStore.balanceOf(msg.sender, projectId), 0);
   }
 
   function testFuzzAllowance(uint248 ALLOWANCE, uint248 TARGET, uint96 BALANCE) public {
@@ -136,6 +154,13 @@ contract TestAllowance is TestBaseWorkflow {
 
     terminal.pay{value: BALANCE}(projectId, msg.sender, 0, false, 'Forge test', new bytes(0));
 
+    // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
+    uint256 _userTokenBalance = PRBMathUD60x18.mul(BALANCE, WEIGHT) / 2;
+    if(BALANCE != 0) assertEq(_tokenStore.balanceOf(msg.sender, projectId), _userTokenBalance);
+
+    // verify: ETH balance in terminal should be up to date
+    assertEq(terminal.ethBalanceOf(projectId), BALANCE);
+
     evm.prank(_projectOwner);
 
     if (ALLOWANCE == 0) // Comes first in the flow (else to not expect 2 exceptions)
@@ -151,6 +176,8 @@ contract TestAllowance is TestBaseWorkflow {
       0, // Min wei out
       payable(msg.sender) // Beneficiary
     );
+    if (BALANCE !=0  && BALANCE > TARGET) assertEq((msg.sender).balance, ALLOWANCE);
+
 
     evm.prank(_projectOwner);
     if (TARGET > BALANCE)
@@ -166,6 +193,7 @@ contract TestAllowance is TestBaseWorkflow {
       0, // Min wei out
       'Foundry payment' // Memo
     );
+    if (BALANCE !=0 && BALANCE > TARGET) assertEq(_projectOwner.balance, TARGET);
 
     evm.prank(msg.sender);
 
