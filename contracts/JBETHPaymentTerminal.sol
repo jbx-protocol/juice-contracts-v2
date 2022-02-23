@@ -26,6 +26,7 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 //*********************************************************************//
 error FEE_TOO_HIGH();
 error PAY_TO_ZERO_ADDRESS();
+error PROJECT_TERMINAL_MISMATCH();
 error REDEEM_TO_ZERO_ADDRESS();
 error TERMINAL_IN_SPLIT_ZERO_ADDRESS();
 error TERMINAL_TOKENS_INCOMPATIBLE();
@@ -246,7 +247,12 @@ contract JBETHPaymentTerminal is
     bool _preferClaimedTokens,
     string calldata _memo,
     bytes calldata _delegateMetadata
-  ) external payable override {
+  ) external payable override nonReentrant {
+    // Verify that this terminal is a terminal of provided project ID
+    if (!directory.isTerminalOf(_projectId, this)) {
+      revert PROJECT_TERMINAL_MISMATCH();
+    }
+
     return
       _pay(
         msg.value,
@@ -488,7 +494,12 @@ contract JBETHPaymentTerminal is
     @param _projectId The ID of the project to which the funds received belong.
     @param _memo A memo to pass along to the emitted event.
   */
-  function addToBalanceOf(uint256 _projectId, string memory _memo) external payable override {
+  function addToBalanceOf(uint256 _projectId, string memory _memo) external payable override nonReentrant {
+    // Verify that this terminal is a terminal of provided project ID
+    if (!directory.isTerminalOf(_projectId, this)) {
+      revert PROJECT_TERMINAL_MISMATCH();
+    }
+
     // Amount must be greater than 0.
     if (msg.value == 0) {
       revert ZERO_VALUE_SENT();
