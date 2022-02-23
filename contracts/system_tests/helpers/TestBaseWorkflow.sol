@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './DSTest.sol';
 import './hevm.sol';
+import '../../../lib/ds-test/src/test.sol';
 
 import '../../JBController.sol';
 import '../../JBDirectory.sol';
@@ -34,7 +34,7 @@ import '../../interfaces/IJBTerminal.sol';
 // Base contract for Juicebox system tests.
 //
 // Provides common functionality, such as deploying contracts on test setup.
-abstract contract TestBaseWorkflow is DSTest {
+contract TestBaseWorkflow is DSTest {
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//
@@ -43,7 +43,7 @@ abstract contract TestBaseWorkflow is DSTest {
   address private _multisig = address(123);
 
   // EVM Cheat codes - test addresses via prank and startPrank in hevm
-  Hevm public evm = Hevm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
+  Hevm public evm = Hevm(HEVM_ADDRESS);
 
   // JBOperatorStore
   JBOperatorStore private _jbOperatorStore;

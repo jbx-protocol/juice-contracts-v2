@@ -4,6 +4,7 @@ node_modules
 
 # Foundry
 out
+lib
 
 # Hardhat files
 cache
