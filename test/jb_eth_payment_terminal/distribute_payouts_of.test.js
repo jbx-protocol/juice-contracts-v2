@@ -23,7 +23,6 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
   const DEFAULT_FEE = 10; // 5%
   const FEE_DISCOUNT = 500000000; // 50%
 
-  
   const CURRENCY = 1;
   const MIN_TOKEN_REQUESTED = 180;
   const MEMO = 'Memo Test';
@@ -630,7 +629,9 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
 
     const DISCOUNTED_FEE =
       DEFAULT_FEE - Math.floor((DEFAULT_FEE * FEE_DISCOUNT) / MAX_FEE_DISCOUNT);
-    const AMOUNT_MINUS_FEES = Math.floor((AMOUNT_DISTRIBUTED * MAX_FEE) / (MAX_FEE + DISCOUNTED_FEE));
+    const AMOUNT_MINUS_FEES = Math.floor(
+      (AMOUNT_DISTRIBUTED * MAX_FEE) / (MAX_FEE + DISCOUNTED_FEE),
+    );
     const FEE_AMOUNT = AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES;
 
     const splits = makeSplits({
