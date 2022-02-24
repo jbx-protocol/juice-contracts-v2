@@ -27,35 +27,36 @@ abstract contract JBProject is Ownable {
   uint256 public projectId;
 
   /** 
-      @param _projectId The ID of the project that should be used to forward this contract's received payments.
-      @param _directory A directory of a project's current Juicebox terminal to receive payments in.
-    */
+    @param _projectId The ID of the project that should be used to forward this contract's received payments.
+    @param _directory A directory of a project's current Juicebox terminal to receive payments in.
+  */
   constructor(uint256 _projectId, IJBDirectory _directory) {
     projectId = _projectId;
     directory = _directory;
   }
 
   /** 
-      Received funds go straight to the project.
-    */
+    Received funds go straight to the project.
+  */
   receive() external payable {
     _pay(msg.sender, '', false, JBTokens.ETH);
   }
 
   /** 
-      @notice Allows the project that is being managed to be set.
-      @param _projectId The ID of the project that is being managed.
-    */
+    @notice Allows the project that is being managed to be set.
+    @param _projectId The ID of the project that is being managed.
+  */
   function setProjectId(uint256 _projectId) external onlyOwner {
     projectId = _projectId;
   }
 
   /** 
-      @notice Make a payment to this project.
-      @param _beneficiary The address who will receive tickets from this fee.
-      @param _memo A memo that will be included in the published event.
-      @param _preferClaimedTokens Whether ERC20's should be claimed automatically if they have been issued.
-    */
+    @notice Make a payment to this project.
+    @param _beneficiary The address who will receive tickets from this fee.
+    @param _memo A memo that will be included in the published event.
+    @param _preferClaimedTokens Whether ERC20's should be claimed automatically if they have been issued.
+    @param _token The token to pay in.
+  */
   function pay(
     address _beneficiary,
     string memory _memo,
@@ -66,13 +67,13 @@ abstract contract JBProject is Ownable {
   }
 
   /** 
-      @notice Take a fee for this project from this contract.
-      @param _projectId The ID of the project being funded.
-      @param _amount The payment amount.
-      @param _beneficiary The address who will receive tickets from this fee.
-      @param _memo A memo that will be included in the published event.
-      @param _preferClaimedTokens Whether ERC20's should be claimed automatically if they have been issued.
-    */
+    @notice Take a fee for this project from this contract.
+    @param _projectId The ID of the project being funded.
+    @param _amount The payment amount.
+    @param _beneficiary The address who will receive tickets from this fee.
+    @param _memo A memo that will be included in the published event.
+    @param _preferClaimedTokens Whether ERC20's should be claimed automatically if they have been issued.
+  */
   function _fundTreasury(
     uint256 _projectId,
     uint256 _amount,
@@ -110,8 +111,8 @@ abstract contract JBProject is Ownable {
   }
 
   /** 
-      @notice See the documentation from `pay`.
-    */
+    @notice See the documentation from `pay`.
+  */
   function _pay(
     address _beneficiary,
     string memory _memo,
