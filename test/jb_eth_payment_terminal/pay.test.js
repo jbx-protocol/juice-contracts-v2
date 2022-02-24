@@ -61,6 +61,10 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
         terminalOwner.address,
       );
 
+    await mockJbDirectory.mock.isTerminalOf
+      .withArgs(PROJECT_ID, jbEthPaymentTerminal.address)
+      .returns(true);
+
     await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
         caller.address,
@@ -96,6 +100,7 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
       beneficiary,
       addrs,
       jbEthPaymentTerminal,
+      mockJbDirectory,
       mockJbEthPaymentTerminalStore,
       timestamp,
     };
@@ -147,5 +152,28 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
           { value: ETH_TO_PAY },
         ),
     ).to.be.revertedWith(errors.PAY_TO_ZERO_ADDRESS);
+  });
+
+  it("Can't pay if current terminal doesn't belong to project", async function () {
+    const { caller, jbEthPaymentTerminal, mockJbDirectory } = await setup();
+
+    const otherProjectId = 18;
+    await mockJbDirectory.mock.isTerminalOf
+      .withArgs(otherProjectId, jbEthPaymentTerminal.address)
+      .returns(false);
+
+    await expect(
+      jbEthPaymentTerminal
+        .connect(caller)
+        .pay(
+          otherProjectId,
+          ethers.constants.AddressZero,
+          MIN_TOKEN_REQUESTED,
+          /*preferClaimedToken=*/ true,
+          MEMO,
+          DELEGATE_METADATA,
+          { value: ETH_TO_PAY },
+        ),
+    ).to.be.revertedWith(errors.PROJECT_TERMINAL_MISMATCH);
   });
 });

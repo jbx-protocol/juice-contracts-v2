@@ -10,11 +10,9 @@ import './libraries/JBConstants.sol';
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
 //*********************************************************************//
-error FUNDING_CYCLE_CONFIGURATION_NOT_FOUND();
 error INVALID_DISCOUNT_RATE();
 error INVALID_DURATION();
 error INVALID_WEIGHT();
-error NON_RECURRING_FUNDING_CYCLE();
 
 /** 
   @notice 
@@ -276,7 +274,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _configuration = block.timestamp;
 
     // Set up a reconfiguration by configuring intrinsic properties.
-    _configureIntrinsicProperiesFor(
+    _configureIntrinsicPropertiesFor(
       _projectId,
       _configuration,
       _data.weight,
@@ -324,7 +322,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @param _weight The weight to store in the configured funding cycle.
     @param _mustStartAtOrAfter The time before which the initialized funding cycle can't start.
   */
-  function _configureIntrinsicProperiesFor(
+  function _configureIntrinsicPropertiesFor(
     uint256 _projectId,
     uint256 _configuration,
     uint256 _weight,
@@ -781,6 +779,6 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       return JBBallotState.Approved;
     else if (_ballotFundingCycle.ballot.duration() >= block.timestamp - _configuration)
       return JBBallotState.Active;
-    else return _ballotFundingCycle.ballot.stateOf(_configuration);
+    else return _ballotFundingCycle.ballot.stateOf(_projectId, _configuration);
   }
 }

@@ -26,6 +26,7 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 //*********************************************************************//
 error FEE_TOO_HIGH();
 error PAY_TO_ZERO_ADDRESS();
+error PROJECT_TERMINAL_MISMATCH();
 error REDEEM_TO_ZERO_ADDRESS();
 error TERMINAL_IN_SPLIT_ZERO_ADDRESS();
 error TERMINAL_TOKENS_INCOMPATIBLE();
@@ -54,6 +55,14 @@ contract JBETHPaymentTerminal is
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
+  /// @notice A modifier that verifies this terminal is a terminal of provided project ID
+  modifier isTerminalOfProject(uint256 _projectId) {
+    if (!directory.isTerminalOf(_projectId, this)) {
+      revert PROJECT_TERMINAL_MISMATCH();
+    }
+    _;
+  }
+
   //*********************************************************************//
   // --------------------- private stored constants -------------------- //
   //*********************************************************************//
@@ -62,7 +71,7 @@ contract JBETHPaymentTerminal is
     @notice
     Maximum fee that can be set for a funding cycle configuration.
   */
-  uint256 private constant _MAX_FEE = 10;
+  uint256 private constant _FEE_CAP = 10;
 
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
@@ -115,7 +124,7 @@ contract JBETHPaymentTerminal is
     The platform fee percent.
 
     @dev
-    Out of 200.
+    Out of MAX_FEE.
   */
   uint256 public override fee = 10;
 
@@ -246,7 +255,7 @@ contract JBETHPaymentTerminal is
     bool _preferClaimedTokens,
     string calldata _memo,
     bytes calldata _delegateMetadata
-  ) external payable override {
+  ) external payable override nonReentrant isTerminalOfProject(_projectId) {
     return
       _pay(
         msg.value,
@@ -488,7 +497,13 @@ contract JBETHPaymentTerminal is
     @param _projectId The ID of the project to which the funds received belong.
     @param _memo A memo to pass along to the emitted event.
   */
-  function addToBalanceOf(uint256 _projectId, string memory _memo) external payable override {
+  function addToBalanceOf(uint256 _projectId, string memory _memo)
+    external
+    payable
+    override
+    nonReentrant
+    isTerminalOfProject(_projectId)
+  {
     // Amount must be greater than 0.
     if (msg.value == 0) {
       revert ZERO_VALUE_SENT();
@@ -528,7 +543,12 @@ contract JBETHPaymentTerminal is
     // Process each fee.
     for (uint256 _i = 0; _i < _heldFees.length; _i++)
       _takeFee(
-        _heldFees[_i].amount - PRBMath.mulDiv(_heldFees[_i].amount, 200, _heldFees[_i].fee + 200),
+        _heldFees[_i].amount -
+          PRBMath.mulDiv(
+            _heldFees[_i].amount,
+            JBConstants.MAX_FEE,
+            _heldFees[_i].fee + JBConstants.MAX_FEE
+          ),
         _heldFees[_i].beneficiary
       );
 
@@ -549,7 +569,7 @@ contract JBETHPaymentTerminal is
   */
   function setFee(uint256 _fee) external onlyOwner {
     // The max fee is 5%.
-    if (_fee > _MAX_FEE) {
+    if (_fee > _FEE_CAP) {
       revert FEE_TOO_HIGH();
     }
 
@@ -707,7 +727,9 @@ contract JBETHPaymentTerminal is
     uint256 _discountedFee = fee - PRBMath.mulDiv(fee, _feeDiscount, JBConstants.MAX_FEE_DISCOUNT);
 
     // The amount of ETH from the _amount to pay as a fee.
-    feeAmount = _amount - PRBMath.mulDiv(_amount, 200, _discountedFee + 200);
+    feeAmount =
+      _amount -
+      PRBMath.mulDiv(_amount, JBConstants.MAX_FEE, _discountedFee + JBConstants.MAX_FEE);
 
     // Nothing to do if there's no fee to take.
     if (feeAmount == 0) return 0;
