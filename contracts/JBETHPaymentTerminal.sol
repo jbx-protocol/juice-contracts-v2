@@ -3,7 +3,6 @@
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/utils/Address.sol';
-import '@paulrberg/contracts/math/PRBMathUD60x18.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 
 import './libraries/JBConstants.sol';
