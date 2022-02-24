@@ -8,3 +8,5 @@
 # Contract abstract classes and interfaces.
 !/contracts/abstract/**
 !/contracts/interfaces/**
+!/contracts/enums/**
+!/contracts/structs/**
