@@ -17,15 +17,21 @@ error DEFAULT_PROJECT_NOT_FOUND();
   @notice A contract that sends funds to a Juicebox project.
 */
 abstract contract JBProjectPayer is Ownable {
-  /// @notice The direct deposit terminals.
+  /**
+    @notice 
+    A contract storing directories of terminals and controllers for each project.
+  */
   IJBDirectory public immutable directory;
 
-  /// @notice The ID of the project that should be used to forward this contract's received payments.
+  /** 
+    @notice 
+    The ID of the project that should be used to forward this contract's received payments.
+  */
   uint256 public defaultProjectId;
 
   /** 
     @param _defaultProjectId The ID of the project that should be used to forward this contract's received payments.
-    @param _directory The direct deposit terminals.
+    @param _directory A contract storing directories of terminals and controllers for each project.
   */
   constructor(uint256 _defaultProjectId, IJBDirectory _directory) {
     directory = _directory;
@@ -49,7 +55,9 @@ abstract contract JBProjectPayer is Ownable {
   }
 
   /** 
-    @notice Make a payment to this project.
+    @notice 
+    Make a payment to this project.
+
     @param _projectId The ID of the project that is being paid.
     @param _beneficiary The address who will receive tickets from this fee.
     @param _memo A memo that will be included in the published event.
@@ -77,7 +85,8 @@ abstract contract JBProjectPayer is Ownable {
   }
 
   /** 
-    @notice Pay a project.
+    @notice 
+    Pay a project.
 
     @param _projectId The ID of the project being funded.
     @param _amount The payment amount.
