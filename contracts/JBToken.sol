@@ -15,7 +15,7 @@ contract JBToken is IJBToken, ERC20Votes, Ownable {
     return super.totalSupply();
   }
 
-  function balanceOf(uint256, address _account) external view override returns (uint256) {
+  function balanceOf(address _account, uint256) external view override returns (uint256) {
     return super.balanceOf(_account);
   }
 
