@@ -7,12 +7,14 @@ import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.j
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
 import errors from '../helpers/errors.json';
 
-describe('JBProject::pay(...)', function () {
+describe('JBProjectPayer::pay(...)', function () {
   const PROJECT_ID = 1;
+  const PROJECT_ID_2 = 2;
   const BENEFICIARY = ethers.Wallet.createRandom().address;
   const TOKEN = ethers.Wallet.createRandom().address;
   const PREFER_CLAIMED_TOKENS = true;
   const MEMO = 'memo';
+  const DELEGATE_METADATA = [0x1];
   const AMOUNT = ethers.utils.parseEther('1.0');
 
   let JBTOKENS_ETH;
@@ -30,7 +32,7 @@ describe('JBProject::pay(...)', function () {
     let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
     let mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
 
-    let jbFakeProjectFactory = await ethers.getContractFactory('JBFakeProject');
+    let jbFakeProjectFactory = await ethers.getContractFactory('JBFakeProjectPayer');
     let jbFakeProject = await jbFakeProjectFactory.deploy(PROJECT_ID, mockJbDirectory.address);
 
     return {
@@ -46,21 +48,21 @@ describe('JBProject::pay(...)', function () {
     const { jbFakeProject, mockJbDirectory, mockJbTerminal } = await setup();
 
     await mockJbDirectory.mock.primaryTerminalOf
-      .withArgs(PROJECT_ID, TOKEN)
+      .withArgs(PROJECT_ID_2, TOKEN)
       .returns(mockJbTerminal.address);
 
     await mockJbTerminal.mock.pay
-      .withArgs(PROJECT_ID, BENEFICIARY, 0, PREFER_CLAIMED_TOKENS, MEMO, [])
+      .withArgs(PROJECT_ID_2, BENEFICIARY, 0, PREFER_CLAIMED_TOKENS, MEMO, DELEGATE_METADATA)
       .returns();
 
     await expect(
-      jbFakeProject.pay(BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, {
+      jbFakeProject.pay(PROJECT_ID_2, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA, {
         value: AMOUNT,
       }),
     ).to.not.be.reverted;
   });
 
-  it(`Fallback function should pay funds towards project`, async function () {
+  it(`Fallback function should pay funds towards default project`, async function () {
     const { jbFakeProject, mockJbDirectory, mockJbTerminal, addrs } = await setup();
 
     let caller = addrs[0];
@@ -81,17 +83,6 @@ describe('JBProject::pay(...)', function () {
     ).to.not.be.reverted;
   });
 
-  it(`Can't pay if project not found`, async function () {
-    const { jbFakeProject } = await setup();
-
-    // Set project id to zero.
-    await jbFakeProject.setProjectId(0);
-
-    await expect(
-      jbFakeProject.pay(BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN),
-    ).to.be.revertedWith(errors.PROJECT_NOT_FOUND);
-  });
-
   it(`Can't pay if terminal not found`, async function () {
     const { jbFakeProject, mockJbDirectory } = await setup();
 
@@ -100,7 +91,7 @@ describe('JBProject::pay(...)', function () {
       .returns(ethers.constants.AddressZero);
 
     await expect(
-      jbFakeProject.pay(BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN),
+      jbFakeProject.pay(PROJECT_ID, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA),
     ).to.be.revertedWith(errors.TERMINAL_NOT_FOUND);
   });
 });

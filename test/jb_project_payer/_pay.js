@@ -8,12 +8,13 @@ import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJB
 import errors from '../helpers/errors.json';
 
 // NOTE: `fundTreasury()` is not a public API. The example Juicebox project has a `mint()` function that calls this internally.
-describe('JBProject::fundTreasury(...)', function () {
+describe('JBProjectPayer::fundTreasury(...)', function () {
   const INITIAL_PROJECT_ID = 1;
   const MISC_PROJECT_ID = 7;
   const AMOUNT = ethers.utils.parseEther('1.0');
   const BENEFICIARY = ethers.Wallet.createRandom().address;
   const MEMO = 'hello world';
+  const DELEGATE_METADATA = [0x1];
   const PREFER_CLAIMED_TOKENS = true;
   const TOKEN = ethers.Wallet.createRandom().address;
 
@@ -23,7 +24,7 @@ describe('JBProject::fundTreasury(...)', function () {
     let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
     let mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
 
-    let jbFakeProjectFactory = await ethers.getContractFactory('JBFakeProject');
+    let jbFakeProjectFactory = await ethers.getContractFactory('JBFakeProjectPayer');
     let jbFakeProject = await jbFakeProjectFactory.deploy(
       INITIAL_PROJECT_ID,
       mockJbDirectory.address,
@@ -46,26 +47,16 @@ describe('JBProject::fundTreasury(...)', function () {
       .returns(mockJbTerminal.address);
 
     await mockJbTerminal.mock.pay
-      .withArgs(MISC_PROJECT_ID, BENEFICIARY, 0, PREFER_CLAIMED_TOKENS, MEMO, [])
+      .withArgs(MISC_PROJECT_ID, BENEFICIARY, 0, PREFER_CLAIMED_TOKENS, MEMO, DELEGATE_METADATA)
       .returns();
 
     await expect(
       jbFakeProject
         .connect(addrs[0])
-        .mint(MISC_PROJECT_ID, AMOUNT, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, {
+        .mint(MISC_PROJECT_ID, AMOUNT, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA, {
           value: AMOUNT,
         }),
     ).to.not.be.reverted;
-  });
-
-  it(`Can't fund if project not found`, async function () {
-    const { jbFakeProject, addrs } = await setup();
-
-    await expect(
-      jbFakeProject
-        .connect(addrs[0])
-        .mint(/*projectId=*/ 0, AMOUNT, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN),
-    ).to.be.revertedWith(errors.PROJECT_NOT_FOUND);
   });
 
   it(`Can't fund if terminal not found`, async function () {
@@ -78,7 +69,7 @@ describe('JBProject::fundTreasury(...)', function () {
     await expect(
       jbFakeProject
         .connect(addrs[0])
-        .mint(MISC_PROJECT_ID, AMOUNT, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN),
+        .mint(MISC_PROJECT_ID, AMOUNT, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA),
     ).to.be.revertedWith(errors.TERMINAL_NOT_FOUND);
   });
 
@@ -93,7 +84,7 @@ describe('JBProject::fundTreasury(...)', function () {
     await expect(
       jbFakeProject
         .connect(addrs[0])
-        .mint(MISC_PROJECT_ID, AMOUNT, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN),
+        .mint(MISC_PROJECT_ID, AMOUNT, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA),
     ).to.be.revertedWith(errors.INSUFFICIENT_BALANCE);
   });
 });
