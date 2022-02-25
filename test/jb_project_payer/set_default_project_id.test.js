@@ -33,9 +33,16 @@ describe('JBProjectPayer::setDefaultProjectId(...)', function () {
     expect(await jbFakeProjectPayer.connect(deployer).defaultProjectId()).to.equal(INITIAL_PROJECT_ID);
 
     let newId = INITIAL_PROJECT_ID + 1;
-    await jbFakeProjectPayer.connect(deployer).setDefaultProjectId(newId);
+    const setDefaultProjectTx = await jbFakeProjectPayer.connect(deployer).setDefaultProjectId(newId);
 
     expect(await jbFakeProjectPayer.connect(deployer).defaultProjectId()).to.equal(newId);
+
+    await expect(setDefaultProjectTx)
+      .to.emit(jbFakeProjectPayer, 'SetDefaultProjectId')
+      .withArgs(
+        newId,
+        deployer.address,
+      );
   });
 
   it(`Can't set project id if not owner`, async function () {

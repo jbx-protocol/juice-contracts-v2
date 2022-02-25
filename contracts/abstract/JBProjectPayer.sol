@@ -17,6 +17,8 @@ error DEFAULT_PROJECT_NOT_FOUND();
   @notice A contract that sends funds to a Juicebox project.
 */
 abstract contract JBProjectPayer is Ownable {
+  event SetDefaultProjectId(uint256 projectId, address caller);
+
   /**
     @notice 
     A contract storing directories of terminals and controllers for each project.
@@ -52,6 +54,7 @@ abstract contract JBProjectPayer is Ownable {
   */
   function setDefaultProjectId(uint256 _projectId) external onlyOwner {
     defaultProjectId = _projectId;
+    emit SetDefaultProjectId(_projectId, msg.sender);
   }
 
   /** 
