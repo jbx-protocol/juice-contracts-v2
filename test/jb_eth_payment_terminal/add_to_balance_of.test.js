@@ -85,6 +85,10 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
       metadata: packFundingCycleMetadata({ holdFees: 1 }),
     };
 
+    await mockJbDirectory.mock.isTerminalOf
+      .withArgs(PROJECT_ID, jbEthPaymentTerminal.address)
+      .returns(true);
+
     await mockJbEthPaymentTerminalStore.mock.recordDistributionFor
       .withArgs(PROJECT_ID, AMOUNT, CURRENCY, 0)
       .returns(
@@ -119,6 +123,7 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
       beneficiaryTwo,
       addrs,
       jbEthPaymentTerminal,
+      mockJbDirectory,
       mockJbEthPaymentTerminal,
       mockJbEthPaymentTerminalStore,
       mockJbOperatorStore,
@@ -287,5 +292,18 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
     await expect(
       jbEthPaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, MEMO, { value: 0 }),
     ).to.be.revertedWith(errors.ZERO_VALUE_SENT);
+  });
+
+  it("Can't add to balance if terminal doesn't belong to project", async function () {
+    const { caller, jbEthPaymentTerminal, mockJbDirectory } = await setup();
+
+    const otherProjectId = 18;
+    await mockJbDirectory.mock.isTerminalOf
+      .withArgs(otherProjectId, jbEthPaymentTerminal.address)
+      .returns(false);
+
+    await expect(
+      jbEthPaymentTerminal.connect(caller).addToBalanceOf(otherProjectId, MEMO, { value: 0 }),
+    ).to.be.revertedWith(errors.PROJECT_TERMINAL_MISMATCH);
   });
 });
