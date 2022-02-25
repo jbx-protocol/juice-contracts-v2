@@ -95,4 +95,22 @@ contract JBToken is IJBToken, ERC20Votes, Ownable {
   {
     return super.transferOwnership(_newOwner);
   }
+
+  /** 
+    @notice
+    Transfer tokens between accounts.
+
+    @param _from The originating address.
+    @param _to The destination address.
+    @param _amount The amount of the transfer.
+
+    @return A flag indicating a successful transfer.
+  */
+  function transferFrom(
+    address _from,
+    address _to,
+    uint256 _amount
+  ) public override(ERC20, IJBToken) returns (bool) {
+    return super.transferFrom(_from, _to, _amount);
+  }
 }
