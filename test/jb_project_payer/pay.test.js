@@ -33,19 +33,19 @@ describe('JBProjectPayer::pay(...)', function () {
     let mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
 
     let jbFakeProjectFactory = await ethers.getContractFactory('JBFakeProjectPayer');
-    let jbFakeProject = await jbFakeProjectFactory.deploy(PROJECT_ID, mockJbDirectory.address);
+    let jbFakeProjectPayer = await jbFakeProjectFactory.deploy(PROJECT_ID, mockJbDirectory.address);
 
     return {
       deployer,
       addrs,
       mockJbDirectory,
       mockJbTerminal,
-      jbFakeProject,
+      jbFakeProjectPayer,
     };
   }
 
   it(`Should pay funds towards project`, async function () {
-    const { jbFakeProject, mockJbDirectory, mockJbTerminal } = await setup();
+    const { jbFakeProjectPayer, mockJbDirectory, mockJbTerminal } = await setup();
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(PROJECT_ID_2, TOKEN)
@@ -56,14 +56,14 @@ describe('JBProjectPayer::pay(...)', function () {
       .returns();
 
     await expect(
-      jbFakeProject.pay(PROJECT_ID_2, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA, {
+      jbFakeProjectPayer.pay(PROJECT_ID_2, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA, {
         value: AMOUNT,
       }),
     ).to.not.be.reverted;
   });
 
   it(`Fallback function should pay funds towards default project`, async function () {
-    const { jbFakeProject, mockJbDirectory, mockJbTerminal, addrs } = await setup();
+    const { jbFakeProjectPayer, mockJbDirectory, mockJbTerminal, addrs } = await setup();
 
     let caller = addrs[0];
 
@@ -77,21 +77,36 @@ describe('JBProjectPayer::pay(...)', function () {
 
     await expect(
       caller.sendTransaction({
-        to: jbFakeProject.address,
+        to: jbFakeProjectPayer.address,
         value: AMOUNT,
       }),
     ).to.not.be.reverted;
   });
 
+  it(`Can't pay with fallback function if there's no default project`, async function () {
+    const { jbFakeProjectPayer, deployer, addrs } = await setup();
+
+    let caller = addrs[0];
+
+    await jbFakeProjectPayer.connect(deployer).setDefaultProjectId(0);
+
+    await expect(
+      caller.sendTransaction({
+        to: jbFakeProjectPayer.address,
+        value: AMOUNT,
+      }),
+    ).to.be.revertedWith(errors.DEFAULT_PROJECT_NOT_FOUND);
+  });
+
   it(`Can't pay if terminal not found`, async function () {
-    const { jbFakeProject, mockJbDirectory } = await setup();
+    const { jbFakeProjectPayer, mockJbDirectory } = await setup();
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(PROJECT_ID, TOKEN)
       .returns(ethers.constants.AddressZero);
 
     await expect(
-      jbFakeProject.pay(PROJECT_ID, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA),
+      jbFakeProjectPayer.pay(PROJECT_ID, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA),
     ).to.be.revertedWith(errors.TERMINAL_NOT_FOUND);
   });
 });

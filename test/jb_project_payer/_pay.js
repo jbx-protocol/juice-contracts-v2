@@ -25,7 +25,7 @@ describe('JBProjectPayer::fundTreasury(...)', function () {
     let mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
 
     let jbFakeProjectFactory = await ethers.getContractFactory('JBFakeProjectPayer');
-    let jbFakeProject = await jbFakeProjectFactory.deploy(
+    let jbFakeProjectPayer = await jbFakeProjectFactory.deploy(
       INITIAL_PROJECT_ID,
       mockJbDirectory.address,
     );
@@ -35,12 +35,12 @@ describe('JBProjectPayer::fundTreasury(...)', function () {
       addrs,
       mockJbDirectory,
       mockJbTerminal,
-      jbFakeProject,
+      jbFakeProjectPayer,
     };
   }
 
   it(`Should fund project treasury`, async function () {
-    const { jbFakeProject, addrs, mockJbDirectory, mockJbTerminal } = await setup();
+    const { jbFakeProjectPayer, addrs, mockJbDirectory, mockJbTerminal } = await setup();
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(MISC_PROJECT_ID, TOKEN)
@@ -51,7 +51,7 @@ describe('JBProjectPayer::fundTreasury(...)', function () {
       .returns();
 
     await expect(
-      jbFakeProject
+      jbFakeProjectPayer
         .connect(addrs[0])
         .mint(MISC_PROJECT_ID, AMOUNT, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA, {
           value: AMOUNT,
@@ -60,21 +60,21 @@ describe('JBProjectPayer::fundTreasury(...)', function () {
   });
 
   it(`Can't fund if terminal not found`, async function () {
-    const { jbFakeProject, addrs, mockJbDirectory } = await setup();
+    const { jbFakeProjectPayer, addrs, mockJbDirectory } = await setup();
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(MISC_PROJECT_ID, TOKEN)
       .returns(ethers.constants.AddressZero);
 
     await expect(
-      jbFakeProject
+      jbFakeProjectPayer
         .connect(addrs[0])
         .mint(MISC_PROJECT_ID, AMOUNT, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA),
     ).to.be.revertedWith(errors.TERMINAL_NOT_FOUND);
   });
 
   it(`Can't fund if insufficient funds`, async function () {
-    const { jbFakeProject, addrs, mockJbDirectory } = await setup();
+    const { jbFakeProjectPayer, addrs, mockJbDirectory } = await setup();
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(MISC_PROJECT_ID, TOKEN)
@@ -82,7 +82,7 @@ describe('JBProjectPayer::fundTreasury(...)', function () {
 
     // No funds have been sent to the contract so this should fail.
     await expect(
-      jbFakeProject
+      jbFakeProjectPayer
         .connect(addrs[0])
         .mint(MISC_PROJECT_ID, AMOUNT, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA),
     ).to.be.revertedWith(errors.INSUFFICIENT_BALANCE);

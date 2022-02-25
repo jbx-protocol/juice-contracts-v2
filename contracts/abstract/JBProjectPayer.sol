@@ -11,6 +11,7 @@ import './../libraries/JBTokens.sol';
 //*********************************************************************//
 error INSUFFICIENT_BALANCE();
 error TERMINAL_NOT_FOUND();
+error DEFAULT_PROJECT_NOT_FOUND();
 
 /** 
   @notice A contract that sends funds to a Juicebox project.
@@ -35,8 +36,8 @@ abstract contract JBProjectPayer is Ownable {
     Received funds go straight to the project.
   */
   receive() external payable {
-    if (defaultProjectId > 0)
-      _pay(defaultProjectId, msg.value, msg.sender, '', false, JBTokens.ETH, bytes(''));
+    if (defaultProjectId == 0) revert DEFAULT_PROJECT_NOT_FOUND();
+    _pay(defaultProjectId, msg.value, msg.sender, '', false, JBTokens.ETH, bytes(''));
   }
 
   /** 
