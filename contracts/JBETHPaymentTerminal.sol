@@ -302,24 +302,28 @@ contract JBETHPaymentTerminal is
     // and receive any extra distributable funds not allocated to payout splits.
     address payable _projectOwner = payable(projects.ownerOf(_projectId));
 
-    // Take a fee from the _distributedAmount, if needed.
-    // The project's owner will be the beneficiary of the resulting minted tokens from platform project.
-    // The platform project's ID is 1.
+    // Payout to splits and get a reference to the leftover transfer amount after all mods have been paid.
+    // Also get a reference to the amount that was distributed that is eligible to have fees taken.
+    // The net transfer amount is the withdrawn amount minus the fee.
+    (
+      uint256 _leftoverDistributionAmount,
+      uint256 _feeEligibleDistributionAmount
+    ) = _distributeToPayoutSplitsOf(_projectId, _fundingCycle, _distributedAmount); // - _feeAmount);
+
+    // Leftover distribution amount is also eligible for a fee since the funds are going out of the ecosystem to _beneficiary.
+    _feeEligibleDistributionAmount += _leftoverDistributionAmount;
+
+    // Take the fee.
     uint256 _feeAmount = fee == 0 || _projectId == 1
       ? 0
-      : _takeFeeFrom(_projectId, _fundingCycle, _distributedAmount, _projectOwner);
-
-    // Payout to splits and get a reference to the leftover transfer amount after all mods have been paid.
-    // The net transfer amount is the withdrawn amount minus the fee.
-    uint256 _leftoverDistributionAmount = _distributeToPayoutSplitsOf(
-      _projectId,
-      _fundingCycle,
-      _distributedAmount - _feeAmount
-    );
+      : _takeFeeFrom(_projectId, _fundingCycle, _feeEligibleDistributionAmount, _projectOwner);
 
     // Transfer any remaining balance to the project owner.
     if (_leftoverDistributionAmount > 0)
-      Address.sendValue(_projectOwner, _leftoverDistributionAmount);
+      Address.sendValue(
+        _projectOwner,
+        _leftoverDistributionAmount - _getFeeAmount(_projectId, _leftoverDistributionAmount)
+      );
 
     emit DistributePayouts(
       _fundingCycle.configuration,
@@ -371,8 +375,7 @@ contract JBETHPaymentTerminal is
     address payable _projectOwner = payable(projects.ownerOf(_projectId));
 
     // Take a fee from the _withdrawnAmount, if needed.
-    // The project's owner will be the beneficiary.
-    uint256 _feeAmount = fee == 0 || _projectId == 1 // The platform project's ID is 1.
+    uint256 _feeAmount = fee == 0 || _projectId == 1
       ? 0
       : _takeFeeFrom(_projectId, _fundingCycle, _withdrawnAmount, _projectOwner);
 
@@ -541,7 +544,7 @@ contract JBETHPaymentTerminal is
 
     // Process each fee.
     for (uint256 _i = 0; _i < _heldFees.length; _i++)
-      _takeFee(
+      _processFee(
         _heldFees[_i].amount -
           PRBMath.mulDiv(
             _heldFees[_i].amount,
@@ -607,12 +610,13 @@ contract JBETHPaymentTerminal is
     @param _amount The total amount being distributed.
 
     @return leftoverAmount If the leftover amount if the splits don't add up to 100%.
+    @return feeEligibleDistributionAmount The total amount of distributions that are eligible to have fees taken from.
   */
   function _distributeToPayoutSplitsOf(
     uint256 _projectId,
     JBFundingCycle memory _fundingCycle,
     uint256 _amount
-  ) private returns (uint256 leftoverAmount) {
+  ) private returns (uint256 leftoverAmount, uint256 feeEligibleDistributionAmount) {
     // Set the leftover amount to the initial amount.
     leftoverAmount = _amount;
 
@@ -639,8 +643,11 @@ contract JBETHPaymentTerminal is
         // Transfer ETH to the mod.
         // If there's an allocator set, transfer to its `allocate` function.
         if (_split.allocator != IJBSplitAllocator(address(0))) {
+          // This distribution is eligible for a fee since the funds are leaving the ecosystem.
+          feeEligibleDistributionAmount += _payoutAmount;
+
           _split.allocator.allocate{value: _payoutAmount}(
-            _payoutAmount,
+            _payoutAmount - _getFeeAmount(_projectId, _payoutAmount),
             _projectId,
             JBSplitsGroups.ETH_PAYOUT,
             _split
@@ -678,8 +685,14 @@ contract JBETHPaymentTerminal is
             );
           }
         } else {
+          // This distribution is eligible for a fee since the funds are leaving the ecosystem.
+          feeEligibleDistributionAmount += _payoutAmount;
+
           // Otherwise, send the funds directly to the beneficiary.
-          Address.sendValue(_split.beneficiary, _payoutAmount);
+          Address.sendValue(
+            _split.beneficiary,
+            _payoutAmount - _getFeeAmount(_projectId, _payoutAmount)
+          );
         }
 
         // Subtract from the amount to be sent to the beneficiary.
@@ -703,7 +716,7 @@ contract JBETHPaymentTerminal is
 
     @param _projectId The ID of the project having fees taken from.
     @param _fundingCycle The funding cycle during which the fee is being taken.
-    @param _amount The amount to take a fee from.
+    @param _amount The amount of the fee to take.
     @param _beneficiary The address to print the platforms tokens for.
 
     @return feeAmount The amount of the fee taken.
@@ -714,6 +727,39 @@ contract JBETHPaymentTerminal is
     uint256 _amount,
     address _beneficiary
   ) private returns (uint256 feeAmount) {
+    feeAmount = _getFeeAmount(_projectId, _amount);
+    _fundingCycle.shouldHoldFees()
+      ? _heldFeesOf[_projectId].push(JBFee(_amount, uint8(fee), _beneficiary))
+      : _processFee(feeAmount, _beneficiary); // Take the fee.
+  }
+
+  /**
+    @notice
+    Take a fee of the specified amount.
+
+    @param _amount The fee amount.
+    @param _beneficiary The address to print the platforms tokens for.
+  */
+  function _processFee(uint256 _amount, address _beneficiary) private {
+    // Get the terminal for the protocol project.
+    IJBTerminal _terminal = directory.primaryTerminalOf(1, token);
+
+    // When processing the admin fee, save gas if the admin is using this contract as its terminal.
+    _terminal == this
+      ? _pay(_amount, address(this), 1, _beneficiary, 0, false, '', bytes('')) // Use the local pay call.
+      : _terminal.pay{value: _amount}(1, _beneficiary, 0, false, '', bytes('')); // Use the external pay call of the correct terminal.
+  }
+
+  /** 
+    @notice 
+    Returns the fee amount based on the provided amount for the specified project.
+
+    @param _projectId The ID of the project that is incurring the fee.
+    @param _amount The amount that the fee is based on.
+
+    @return The amount of the fee.
+  */
+  function _getFeeAmount(uint256 _projectId, uint256 _amount) private view returns (uint256) {
     // Get the fee discount.
     uint256 _feeDiscount = feeGauge == IJBFeeGauge(address(0))
       ? 0
@@ -726,33 +772,8 @@ contract JBETHPaymentTerminal is
     uint256 _discountedFee = fee - PRBMath.mulDiv(fee, _feeDiscount, JBConstants.MAX_FEE_DISCOUNT);
 
     // The amount of ETH from the _amount to pay as a fee.
-    feeAmount =
-      _amount -
-      PRBMath.mulDiv(_amount, JBConstants.MAX_FEE, _discountedFee + JBConstants.MAX_FEE);
-
-    // Nothing to do if there's no fee to take.
-    if (feeAmount == 0) return 0;
-
-    _fundingCycle.shouldHoldFees()
-      ? _heldFeesOf[_projectId].push(JBFee(_amount, uint8(fee), _beneficiary))
-      : _takeFee(feeAmount, _beneficiary); // Take the fee.
-  }
-
-  /**
-    @notice
-    Take a fee of the specified amount.
-
-    @param _amount The fee amount.
-    @param _beneficiary The address to print the platforms tokens for.
-  */
-  function _takeFee(uint256 _amount, address _beneficiary) private {
-    // Get the terminal for the protocol project.
-    IJBTerminal _terminal = directory.primaryTerminalOf(1, token);
-
-    // When processing the admin fee, save gas if the admin is using this contract as its terminal.
-    _terminal == this
-      ? _pay(_amount, address(this), 1, _beneficiary, 0, false, '', bytes('')) // Use the local pay call.
-      : _terminal.pay{value: _amount}(1, _beneficiary, 0, false, '', bytes('')); // Use the external pay call of the correct terminal.
+    return
+      _amount - PRBMath.mulDiv(_amount, JBConstants.MAX_FEE, _discountedFee + JBConstants.MAX_FEE);
   }
 
   /**
