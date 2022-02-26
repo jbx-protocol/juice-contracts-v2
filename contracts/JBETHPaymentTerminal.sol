@@ -699,7 +699,10 @@ contract JBETHPaymentTerminal is
               bytes('')
             );
           } else {
-            _terminal.pay{value: _payoutAmount}(
+            // This distribution is eligible for a fee since the funds are leaving this contract.
+            feeEligibleDistributionAmount += _payoutAmount;
+
+            _terminal.pay{value: _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount)}(
               _split.projectId,
               _split.beneficiary,
               0,
