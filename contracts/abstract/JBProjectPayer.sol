@@ -10,82 +10,103 @@ import './../libraries/JBTokens.sol';
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
 error INSUFFICIENT_BALANCE();
-error PROJECT_NOT_FOUND();
 error TERMINAL_NOT_FOUND();
+error DEFAULT_PROJECT_NOT_FOUND();
 
 /** 
-  @notice A contract that inherits from JuiceboxProject can use Juicebox as a business-model-as-a-service.
-  @dev The owner of the contract makes admin decisions such as:
-    - Which address is the funding cycle owner, which can withdraw funds from the funding cycle.
-    - Should this project's Tickets be migrated to a new TerminalV1. 
+  @notice A contract that sends funds to a Juicebox project.
 */
-abstract contract JBProject is Ownable {
-  /// @notice The direct deposit terminals.
+abstract contract JBProjectPayer is Ownable {
+  event SetDefaultProjectId(uint256 projectId, address caller);
+
+  /**
+    @notice 
+    A contract storing directories of terminals and controllers for each project.
+  */
   IJBDirectory public immutable directory;
 
-  /// @notice The ID of the project that should be used to forward this contract's received payments.
-  uint256 public projectId;
+  /** 
+    @notice 
+    The ID of the project that should be used to forward this contract's received payments.
+  */
+  uint256 public defaultProjectId;
 
   /** 
-    @param _projectId The ID of the project that should be used to forward this contract's received payments.
-    @param _directory A directory of a project's current Juicebox terminal to receive payments in.
+    @param _defaultProjectId The ID of the project that should be used to forward this contract's received payments.
+    @param _directory A contract storing directories of terminals and controllers for each project.
   */
-  constructor(uint256 _projectId, IJBDirectory _directory) {
-    projectId = _projectId;
+  constructor(uint256 _defaultProjectId, IJBDirectory _directory) {
     directory = _directory;
+    defaultProjectId = _defaultProjectId;
   }
 
   /** 
     Received funds go straight to the project.
   */
   receive() external payable {
-    _pay(msg.sender, '', false, JBTokens.ETH);
+    if (defaultProjectId == 0) revert DEFAULT_PROJECT_NOT_FOUND();
+    _pay(defaultProjectId, msg.value, msg.sender, '', false, JBTokens.ETH, bytes(''));
   }
 
   /** 
     @notice Allows the project that is being managed to be set.
     @param _projectId The ID of the project that is being managed.
   */
-  function setProjectId(uint256 _projectId) external onlyOwner {
-    projectId = _projectId;
+  function setDefaultProjectId(uint256 _projectId) external onlyOwner {
+    defaultProjectId = _projectId;
+    emit SetDefaultProjectId(_projectId, msg.sender);
   }
 
   /** 
-    @notice Make a payment to this project.
+    @notice 
+    Make a payment to this project.
+
+    @param _projectId The ID of the project that is being paid.
     @param _beneficiary The address who will receive tickets from this fee.
     @param _memo A memo that will be included in the published event.
     @param _preferClaimedTokens Whether ERC20's should be claimed automatically if they have been issued.
     @param _token The token to pay in.
+    @param _delegateMetadata Bytes to send along with payments to the funding cycle's pay delegate.
   */
   function pay(
+    uint256 _projectId,
     address _beneficiary,
     string memory _memo,
     bool _preferClaimedTokens,
-    address _token
+    address _token,
+    bytes memory _delegateMetadata
   ) external payable {
-    _pay(_beneficiary, _memo, _preferClaimedTokens, _token);
+    _pay(
+      _projectId,
+      msg.value,
+      _beneficiary,
+      _memo,
+      _preferClaimedTokens,
+      _token,
+      _delegateMetadata
+    );
   }
 
   /** 
-    @notice Take a fee for this project from this contract.
+    @notice 
+    Pay a project.
+
     @param _projectId The ID of the project being funded.
     @param _amount The payment amount.
     @param _beneficiary The address who will receive tickets from this fee.
     @param _memo A memo that will be included in the published event.
     @param _preferClaimedTokens Whether ERC20's should be claimed automatically if they have been issued.
+    @param _delegateMetadata Bytes to send along with payments to the funding cycle's pay delegate.
   */
-  function _fundTreasury(
+  function _pay(
     uint256 _projectId,
     uint256 _amount,
     address _beneficiary,
     string memory _memo,
     bool _preferClaimedTokens,
-    address _token
+    address _token,
+    bytes memory _delegateMetadata
   ) internal {
-    if (_projectId == 0) {
-      revert PROJECT_NOT_FOUND();
-    }
-
     // Find the terminal for this contract's project.
     IJBTerminal _terminal = directory.primaryTerminalOf(_projectId, _token);
 
@@ -94,7 +115,7 @@ abstract contract JBProject is Ownable {
       revert TERMINAL_NOT_FOUND();
     }
 
-    // There must be enough funds in the contract to take the fee.
+    // There must be enough funds in the contract to fund the treasury.
     if (address(this).balance < _amount) {
       revert INSUFFICIENT_BALANCE();
     }
@@ -106,38 +127,7 @@ abstract contract JBProject is Ownable {
       0,
       _preferClaimedTokens,
       _memo,
-      bytes('')
-    );
-  }
-
-  /** 
-    @notice See the documentation from `pay`.
-  */
-  function _pay(
-    address _beneficiary,
-    string memory _memo,
-    bool _preferClaimedTokens,
-    address _token
-  ) private {
-    if (projectId == 0) {
-      revert PROJECT_NOT_FOUND();
-    }
-
-    // Get the terminal for this contract's project.
-    IJBTerminal _terminal = directory.primaryTerminalOf(projectId, _token);
-
-    // There must be a terminal.
-    if (_terminal == IJBTerminal(address(0))) {
-      revert TERMINAL_NOT_FOUND();
-    }
-
-    _terminal.pay{value: msg.value}(
-      projectId,
-      _beneficiary,
-      0,
-      _preferClaimedTokens,
-      _memo,
-      bytes('')
+      _delegateMetadata
     );
   }
 }
