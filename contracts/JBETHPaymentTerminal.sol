@@ -306,7 +306,7 @@ contract JBETHPaymentTerminal is
     uint256 _feeAmount;
     uint256 _leftoverDistributionAmount;
 
-    // Prevents stack too deep.
+    // Scoped section prevents stack too deep. _feeDiscount and _feeEligibleDistributionAmount only used within scope.
     {
       // Get the amount of discount that should be applied to any fees take.
       uint256 _feeDiscount = _getFeeDiscount(_projectId);
@@ -776,32 +776,6 @@ contract JBETHPaymentTerminal is
       : _terminal.pay{value: _amount}(1, _beneficiary, 0, false, '', bytes('')); // Use the external pay call of the correct terminal.
   }
 
-  /** 
-    @notice 
-    Returns the fee amount based on the provided amount for the specified project.
-
-    @param _amount The amount that the fee is based on.
-    @param _feeDiscount The percentage discount that should be applied out of the max amount.
-
-    @return The amount of the fee.
-  */
-  function _getFeeAmount(uint256 _amount, uint256 _feeDiscount) private view returns (uint256) {
-    // Calculate the discounted fee.
-    uint256 _discountedFee = fee - PRBMath.mulDiv(fee, _feeDiscount, JBConstants.MAX_FEE_DISCOUNT);
-
-    // The amount of ETH from the _amount to pay as a fee.
-    return
-      _amount - PRBMath.mulDiv(_amount, JBConstants.MAX_FEE, _discountedFee + JBConstants.MAX_FEE);
-  }
-
-  function _getFeeDiscount(uint256 _projectId) private view returns (uint256 feeDiscount) {
-    // Get the fee discount.
-    feeDiscount = feeGauge == IJBFeeGauge(address(0)) ? 0 : feeGauge.currentDiscountFor(_projectId);
-
-    // Set the discounted fee if its valid.
-    if (feeDiscount > JBConstants.MAX_FEE_DISCOUNT) feeDiscount = 0;
-  }
-
   /**
     @notice
     See the documentation for 'pay'.
@@ -876,5 +850,39 @@ contract JBETHPaymentTerminal is
         _amount = 0;
       }
     }
+  }
+
+  /** 
+    @notice 
+    Returns the fee amount based on the provided amount for the specified project.
+
+    @param _amount The amount that the fee is based on.
+    @param _feeDiscount The percentage discount that should be applied out of the max amount.
+
+    @return The amount of the fee.
+  */
+  function _getFeeAmount(uint256 _amount, uint256 _feeDiscount) private view returns (uint256) {
+    // Calculate the discounted fee.
+    uint256 _discountedFee = fee - PRBMath.mulDiv(fee, _feeDiscount, JBConstants.MAX_FEE_DISCOUNT);
+
+    // The amount of ETH from the _amount to pay as a fee.
+    return
+      _amount - PRBMath.mulDiv(_amount, JBConstants.MAX_FEE, _discountedFee + JBConstants.MAX_FEE);
+  }
+
+  /** 
+    @notice
+    Get the fee discount from the fee gauge for the specified project.
+
+    @param _projectId The ID of the project to get a fee discount for.
+    
+    @return feeDiscount The fee discount, which should be interpreted as a percentage out of the max value.
+  */
+  function _getFeeDiscount(uint256 _projectId) private view returns (uint256 feeDiscount) {
+    // Get the fee discount.
+    feeDiscount = feeGauge == IJBFeeGauge(address(0)) ? 0 : feeGauge.currentDiscountFor(_projectId);
+
+    // Set the discounted fee if its valid.
+    if (feeDiscount > JBConstants.MAX_FEE_DISCOUNT) feeDiscount = 0;
   }
 }
