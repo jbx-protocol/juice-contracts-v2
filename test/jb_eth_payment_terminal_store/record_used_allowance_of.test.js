@@ -250,7 +250,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       jbEthPaymentTerminalStore
         .connect(terminal)
         .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
-    ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
+    ).to.be.revertedWith(errors.INADEQUATE_WITHDRAW_AMOUNT);
   });
 
   it(`Can't record allowance if withdrawnAmount > overflow`, async function () {
