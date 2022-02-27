@@ -163,12 +163,15 @@ contract TestAllowance is TestBaseWorkflow {
 
     evm.prank(_projectOwner);
 
-    if (ALLOWANCE == 0) // Comes first in the flow (else to not expect 2 exceptions)
+    if (ALLOWANCE == 0)
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_CONTROLLER_ALLOWANCE()'));
 
-    else if (ALLOWANCE > BALANCE || TARGET >= BALANCE) // Too much allowance or no overflow ?
-      evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
+    else if (ALLOWANCE > BALANCE)
+      evm.expectRevert(abi.encodeWithSignature('INADEQUATE_WITHDRAW_AMOUNT()'));
 
+    else if (TARGET >= BALANCE) // Too much to withdraw or no overflow ?
+      evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
+    
     terminal.useAllowanceOf(
       projectId,
       ALLOWANCE,
@@ -176,7 +179,8 @@ contract TestAllowance is TestBaseWorkflow {
       0, // Min wei out
       payable(msg.sender) // Beneficiary
     );
-    if (BALANCE !=0  && BALANCE > TARGET) assertEq((msg.sender).balance, ALLOWANCE);
+
+    if (BALANCE !=0  && BALANCE > TARGET && ALLOWANCE < BALANCE && TARGET < BALANCE) assertEq((msg.sender).balance, ALLOWANCE);
 
 
     evm.prank(_projectOwner);
