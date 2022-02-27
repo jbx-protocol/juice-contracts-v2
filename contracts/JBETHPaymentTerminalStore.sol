@@ -474,6 +474,11 @@ contract JBETHPaymentTerminalStore {
       ? _amount
       : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, JBCurrencies.ETH));
 
+    // The amount being withdrawn must be at least as much as was expected.
+    if (_minReturnedWei > withdrawnAmount || balanceOf[_projectId] < withdrawnAmount) {
+      revert INADEQUATE_WITHDRAW_AMOUNT();
+    }
+
     // Get the current funding target
     uint256 distributionLimit = directory.controllerOf(_projectId).distributionLimitOf(
       _projectId,
@@ -505,11 +510,6 @@ contract JBETHPaymentTerminalStore {
       ) {
         revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
       }
-    }
-
-    // The amount being withdrawn must be at least as much as was expected.
-    if (_minReturnedWei > withdrawnAmount) {
-      revert INADEQUATE_WITHDRAW_AMOUNT();
     }
 
     // Store the incremented value.
