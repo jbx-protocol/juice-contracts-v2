@@ -32,9 +32,9 @@ library JBConstants {
 
   /** 
     @notice
-    Maximum fee rate as a percentage out of 200.
+    Maximum fee rate as a percentage out of 1000000000
   */
-  uint256 public constant MAX_FEE = 200;
+  uint256 public constant MAX_FEE = 1000000000;
 
   /** 
     @notice

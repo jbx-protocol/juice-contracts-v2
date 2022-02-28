@@ -68,7 +68,7 @@ describe('JBETHPaymentTerminal::setFee(...)', function () {
 
   it("Can't set fee above 5%", async function () {
     const { jbEthPaymentTerminal, terminalOwner } = await setup();
-    await expect(jbEthPaymentTerminal.connect(terminalOwner).setFee(11)) // 5.5%
+    await expect(jbEthPaymentTerminal.connect(terminalOwner).setFee(50_000_001)) // 5.0000001% (out of 1,000,000,000)
       .to.be.revertedWith(errors.FEE_TOO_HIGH);
   });
 });
