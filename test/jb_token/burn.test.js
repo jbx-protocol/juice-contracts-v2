@@ -26,7 +26,7 @@ describe('JBToken::burn(...)', function () {
       .withArgs(addr.address, ethers.constants.AddressZero, numTokens);
 
     // overloaded functions need to be called using the full function signature
-    const balance = await jbToken['balanceOf(uint256,address)'](PROJECT_ID, addr.address);
+    const balance = await jbToken['balanceOf(address,uint256)'](addr.address, PROJECT_ID);
     expect(balance).to.equal(startingBalance - numTokens);
   });
 

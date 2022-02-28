@@ -128,7 +128,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     IJBToken _token = tokenOf[_projectId];
 
     // If the project has issued a token, add the holder's balance to the total.
-    if (_token != IJBToken(address(0))) balance = balance + _token.balanceOf(_projectId, _holder);
+    if (_token != IJBToken(address(0))) balance = balance + _token.balanceOf(_holder, _projectId);
   }
 
   //*********************************************************************//
@@ -300,7 +300,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     // Get a reference to the number of tokens there are.
     uint256 _claimedBalance = _token == IJBToken(address(0))
       ? 0
-      : _token.balanceOf(_projectId, _holder);
+      : _token.balanceOf(_holder, _projectId);
 
     if (
       (_amount >= _claimedBalance || _amount >= _unclaimedBalance) &&

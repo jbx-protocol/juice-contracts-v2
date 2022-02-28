@@ -15,7 +15,7 @@ contract JBToken is IJBToken, ERC20Votes, Ownable {
     return super.totalSupply();
   }
 
-  function balanceOf(uint256, address _account) external view override returns (uint256) {
+  function balanceOf(address _account, uint256) external view override returns (uint256) {
     return super.balanceOf(_account);
   }
 
@@ -94,5 +94,23 @@ contract JBToken is IJBToken, ERC20Votes, Ownable {
     onlyOwner
   {
     return super.transferOwnership(_newOwner);
+  }
+
+  /** 
+    @notice
+    Transfer tokens between accounts.
+
+    @param _from The originating address.
+    @param _to The destination address.
+    @param _amount The amount of the transfer.
+
+    @return A flag indicating a successful transfer.
+  */
+  function transferFrom(
+    address _from,
+    address _to,
+    uint256 _amount
+  ) public override(ERC20, IJBToken) returns (bool) {
+    return super.transferFrom(_from, _to, _amount);
   }
 }
