@@ -166,10 +166,7 @@ contract TestAllowance is TestBaseWorkflow {
     if (ALLOWANCE == 0)
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_CONTROLLER_ALLOWANCE()'));
 
-    else if (ALLOWANCE > BALANCE)
-      evm.expectRevert(abi.encodeWithSignature('INADEQUATE_WITHDRAW_AMOUNT()'));
-
-    else if (TARGET >= BALANCE) // Too much to withdraw or no overflow ?
+    else if (TARGET >= BALANCE || ALLOWANCE > BALANCE) // Too much to withdraw or no overflow ?
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
     
     terminal.useAllowanceOf(
