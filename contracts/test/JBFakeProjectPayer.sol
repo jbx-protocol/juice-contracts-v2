@@ -3,15 +3,15 @@
 pragma solidity 0.8.6;
 
 // Inheritance
-import '../abstract/JBProject.sol';
+import '../abstract/JBProjectPayer.sol';
 
 /**
   @dev 
   Fake Juicebox project used for testing.
 */
-contract JBFakeProject is JBProject {
+contract JBFakeProjectPayer is JBProjectPayer {
   // solhint-disable-next-line no-empty-blocks
-  constructor(uint256 _projectId, IJBDirectory _directory) JBProject(_projectId, _directory) {}
+  constructor(uint256 _projectId, IJBDirectory _directory) JBProjectPayer(_projectId, _directory) {}
 
   /**
     @dev
@@ -24,12 +24,13 @@ contract JBFakeProject is JBProject {
     address _beneficiary,
     string memory _memo,
     bool _preferClaimedTokens,
-    address _token
+    address _token,
+    bytes memory _delegateMetadata
   ) external payable {
     // Mint NFT, etc.
     // ...
 
     // Fund Juicebox treasury.
-    _fundTreasury(_projectId, _amount, _beneficiary, _memo, _preferClaimedTokens, _token);
+    _pay(_projectId, _amount, _beneficiary, _memo, _preferClaimedTokens, _token, _delegateMetadata);
   }
 }
