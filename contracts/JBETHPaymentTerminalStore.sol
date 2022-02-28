@@ -370,10 +370,10 @@ contract JBETHPaymentTerminalStore {
 
     // Amount must be within what is still distributable.
     uint256 _distributionLimitOf = directory.controllerOf(_projectId).distributionLimitOf(
-        _projectId,
-        fundingCycle.configuration,
-        terminal
-      );
+      _projectId,
+      fundingCycle.configuration,
+      terminal
+    );
 
     if (_newUsedDistributionLimitOf > _distributionLimitOf || _distributionLimitOf == 0) {
       revert DISTRIBUTION_AMOUNT_LIMIT_REACHED();
@@ -448,12 +448,12 @@ contract JBETHPaymentTerminalStore {
 
     // There must be sufficient allowance available.
     uint256 _allowanceOf = directory.controllerOf(_projectId).overflowAllowanceOf(
-        _projectId,
-        fundingCycle.configuration,
-        terminal
-      );
+      _projectId,
+      fundingCycle.configuration,
+      terminal
+    );
 
-    if(_newUsedOverflowAllowanceOf > _allowanceOf || _allowanceOf == 0) {
+    if (_newUsedOverflowAllowanceOf > _allowanceOf || _allowanceOf == 0) {
       revert INADEQUATE_CONTROLLER_ALLOWANCE();
     }
 
@@ -474,23 +474,31 @@ contract JBETHPaymentTerminalStore {
       ? _amount
       : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, JBCurrencies.ETH));
 
-    // Get the current funding target
-    uint256 distributionLimit =
-      directory.controllerOf(_projectId).distributionLimitOf(
-        _projectId,
-        fundingCycle.configuration,
-        terminal
-      );
+    // The project balance should be bigger than the amount withdrawn from the overflow 
+    if (balanceOf[_projectId] < withdrawnAmount) {
+      revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
+    }
 
-    if(distributionLimit > 0) {
-      uint256 _leftToDistribute = distributionLimit - usedDistributionLimitOf[_projectId][fundingCycle.number];
+    // The amount being withdrawn must be at least as much as was expected.
+    if (_minReturnedWei > withdrawnAmount) {
+      revert INADEQUATE_WITHDRAW_AMOUNT();
+    }
+
+    // Get the current funding target
+    uint256 distributionLimit = directory.controllerOf(_projectId).distributionLimitOf(
+      _projectId,
+      fundingCycle.configuration,
+      terminal
+    );
+
+    if (distributionLimit > 0) {
+      uint256 _leftToDistribute = distributionLimit -
+        usedDistributionLimitOf[_projectId][fundingCycle.number];
 
       // Get the distribution limit currency (which might or might not be the same as the overflow allowance)
-      uint256 _distributionLimitCurrency = directory.controllerOf(_projectId).distributionLimitCurrencyOf(
-          _projectId,
-          fundingCycle.configuration,
-          terminal
-        );
+      uint256 _distributionLimitCurrency = directory
+        .controllerOf(_projectId)
+        .distributionLimitCurrencyOf(_projectId, fundingCycle.configuration, terminal);
 
       // Convert the remaining to distribute into wei, if needed
       _leftToDistribute = (_distributionLimitCurrency == JBCurrencies.ETH)
@@ -501,14 +509,12 @@ contract JBETHPaymentTerminalStore {
         );
 
       // The amount being withdrawn must be available in the overflow.
-      if (_leftToDistribute > balanceOf[_projectId] || withdrawnAmount > balanceOf[_projectId] - _leftToDistribute) {
+      if (
+        _leftToDistribute > balanceOf[_projectId] ||
+        withdrawnAmount > balanceOf[_projectId] - _leftToDistribute
+      ) {
         revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
       }
-    }
-
-    // The amount being withdrawn must be at least as much as was expected.
-    if (_minReturnedWei > withdrawnAmount) {
-      revert INADEQUATE_WITHDRAW_AMOUNT();
     }
 
     // Store the incremented value.

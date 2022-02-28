@@ -3,7 +3,6 @@
 pragma solidity 0.8.6;
 
 import '@paulrberg/contracts/math/PRBMath.sol';
-import '@paulrberg/contracts/math/PRBMathUD60x18.sol';
 
 import './libraries/JBConstants.sol';
 import './libraries/JBOperations.sol';

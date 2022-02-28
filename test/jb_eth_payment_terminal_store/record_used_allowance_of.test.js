@@ -111,6 +111,14 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(AMOUNT);
+    
+    await mockJbController.mock.overflowAllowanceCurrencyOf
+      .withArgs(PROJECT_ID, timestamp, terminal.address)
+      .returns(CURRENCY_USD);
+
+    await mockJbController.mock.distributionLimitOf
+      .withArgs(PROJECT_ID, timestamp, terminal.address)
+      .returns(0);
 
     await mockJbController.mock.overflowAllowanceCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
@@ -166,6 +174,10 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await mockJbController.mock.overflowAllowanceCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_USD);
+    
+    await mockJbController.mock.overflowAllowanceOf
+      .withArgs(PROJECT_ID, timestamp, terminal.address)
+      .returns(AMOUNT);
 
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
@@ -250,7 +262,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       jbEthPaymentTerminalStore
         .connect(terminal)
         .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
-    ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
+    ).to.be.revertedWith(errors.INADEQUATE_WITHDRAW_AMOUNT);
   });
 
   it(`Can't record allowance if withdrawnAmount > overflow`, async function () {
@@ -324,7 +336,6 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await mockJbController.mock.overflowAllowanceCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
       .returns(CURRENCY_ETH);
-
     await mockJbPrices.mock.priceFor
       .withArgs(CURRENCY_ETH, CURRENCY_ETH)
       .returns(ethers.FixedNumber.from(1));

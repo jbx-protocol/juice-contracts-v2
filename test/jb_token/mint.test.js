@@ -24,7 +24,7 @@ describe('JBToken::mint(...)', function () {
       .withArgs(ethers.constants.AddressZero, addr.address, numTokens);
 
     // overloaded functions need to be called using the full function signature
-    const balance = await jbToken['balanceOf(uint256,address)'](PROJECT_ID, addr.address);
+    const balance = await jbToken['balanceOf(address,uint256)'](addr.address, PROJECT_ID);
     expect(balance).to.equal(numTokens);
 
     const supply = await jbToken['totalSupply(uint256)'](PROJECT_ID);
