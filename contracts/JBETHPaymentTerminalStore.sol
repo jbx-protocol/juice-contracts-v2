@@ -474,8 +474,13 @@ contract JBETHPaymentTerminalStore {
       ? _amount
       : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, JBCurrencies.ETH));
 
+    // The project balance should be bigger than the amount withdrawn from the overflow 
+    if (balanceOf[_projectId] < withdrawnAmount) {
+      revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
+    }
+
     // The amount being withdrawn must be at least as much as was expected.
-    if (_minReturnedWei > withdrawnAmount || balanceOf[_projectId] < withdrawnAmount) {
+    if (_minReturnedWei > withdrawnAmount) {
       revert INADEQUATE_WITHDRAW_AMOUNT();
     }
 
