@@ -19,3 +19,4 @@ coverage.json
 
 # VSCode
 workspace.code-workspace
+.vscode/
