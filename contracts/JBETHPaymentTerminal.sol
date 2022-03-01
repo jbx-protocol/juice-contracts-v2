@@ -327,7 +327,7 @@ contract JBETHPaymentTerminal is
       _feeEligibleDistributionAmount += _leftoverDistributionAmount;
 
       // Take the fee.
-      _feeAmount = fee == 0 || _projectId == 1
+      _feeAmount = fee == 0 || _feeEligibleDistributionAmount == 0 || _projectId == 1
         ? 0
         : _takeFeeFrom(
           _projectId,
