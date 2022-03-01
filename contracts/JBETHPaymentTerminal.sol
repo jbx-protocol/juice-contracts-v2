@@ -673,7 +673,7 @@ contract JBETHPaymentTerminal is
           // This distribution is eligible for a fee since the funds are leaving the ecosystem.
           feeEligibleDistributionAmount += _payoutAmount;
 
-          _split.allocator.allocate{value: _payoutAmount}(
+          _split.allocator.allocate{value: _netPayoutAmount}(
             _netPayoutAmount,
             _projectId,
             JBSplitsGroups.ETH_PAYOUT,
