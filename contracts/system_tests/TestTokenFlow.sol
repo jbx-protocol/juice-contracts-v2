@@ -3,10 +3,7 @@ pragma solidity 0.8.6;
 
 import './helpers/TestBaseWorkflow.sol';
 
-/**
-* This system test file verifies the following flow:
-* launch project → issue token → change token → mint token → burn token
-*/
+/// @notice This file tests JBToken related flows
 contract TestTokenFlow is TestBaseWorkflow {
   JBController private _controller;
   JBTokenStore private _tokenStore;
@@ -70,7 +67,16 @@ contract TestTokenFlow is TestBaseWorkflow {
     );
   }
 
-  function testTokenFlow() public {
+  /**
+   * @notice tests the following flow:
+   * launch project → issue token → change token → mint token → burn token
+   */
+  function testFuzzTokenFlow(
+    uint256 mintAmount,
+    uint256 burnAmount,
+    bool mintPreferClaimed,
+    bool burnPreferClaimed
+  ) public {
     // calls will originate from projectOwner addr
     evm.startPrank(_projectOwner);
 
@@ -87,21 +93,84 @@ contract TestTokenFlow is TestBaseWorkflow {
     // confirm the project's new JBToken
     assertEq(address(_tokenStore.tokenOf(_projectId)), address(_newToken));
 
-    // mint tokens to beneficiary addr
     address _beneficiary = address(1234);
-    uint256 _tokenCount = 1000000;
-    _controller.mintTokensOf(_projectId, _tokenCount, _beneficiary, /* _memo */ 'Mint memo', /* _preferClaimedTokens */ true, _reservedRate);
+    uint256 _expectedTokenBalance = 0;
+    uint256 _beneficiaryTokenAmount = mintAmount / 2; // 50% reserved rate results in half the mintAmount
+
+    if (mintAmount == 0) evm.expectRevert(abi.encodeWithSignature('ZERO_TOKENS_TO_MINT()'));
+    else if (_beneficiaryTokenAmount == 0)
+      evm.expectRevert(abi.encodeWithSignature('TOKEN_AMOUNT_ZERO()'));
+    else if (_beneficiaryTokenAmount > type(uint224).max && mintPreferClaimed)
+      evm.expectRevert('ERC20Votes: total supply risks overflowing votes');
+    else _expectedTokenBalance = _beneficiaryTokenAmount;
+
+    // mint tokens to beneficiary addr
+    _controller.mintTokensOf(
+      _projectId,
+      mintAmount,
+      _beneficiary,
+      'Mint memo',
+      mintPreferClaimed,
+      _reservedRate
+    );
 
     // total token balance should be half of token count due to 50% reserved rate
-    uint256 _balance = _tokenStore.balanceOf(_beneficiary, _projectId);
-    assertEq(_balance, _tokenCount / 2);
+    assertEq(_tokenStore.balanceOf(_beneficiary, _projectId), _expectedTokenBalance);
+
+    if (burnAmount == 0) evm.expectRevert(abi.encodeWithSignature('NO_BURNABLE_TOKENS()'));
+    else if (burnAmount > _expectedTokenBalance)
+      evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_FUNDS()'));
+    else _expectedTokenBalance = _expectedTokenBalance - burnAmount;
 
     // burn tokens from beneficiary addr
     // next call will originate from holder addr
     evm.prank(_beneficiary);
-    _controller.burnTokensOf(_beneficiary, _projectId, /* _tokenCount */ 1, /* _memo */ 'Burn memo', /* _preferClaimedTokens */ true);
+    _controller.burnTokensOf(
+      _beneficiary,
+      _projectId,
+      /* _tokenCount */
+      burnAmount,
+      'Burn memo',
+      burnPreferClaimed
+    );
 
-    // total balance of tokens should be 1 less
-    assertEq(_tokenStore.balanceOf(_beneficiary, _projectId), _balance - 1);
+    // total balance of tokens should be updated
+    assertEq(_tokenStore.balanceOf(_beneficiary, _projectId), _expectedTokenBalance);
   }
+
+  /**
+   * @notice tests the corner case where minting large amounts of unclaimed and claimed tokens can cause overflows:
+   *
+   */
+  // function testTokenBalanceOverflows() public {
+  //   // calls will originate from projectOwner addr
+  //   evm.startPrank(_projectOwner);
+
+  //   // issue an ERC-20 token for project
+  //   _controller.issueTokenFor(_projectId, 'TestName', 'TestSymbol');
+
+  //   address _beneficiary = address(1234);
+
+  //   // mint claimed tokens to beneficiary addr
+  //   _controller.mintTokensOf(
+  //     _projectId,
+  //     type(uint224).max,
+  //     _beneficiary,
+  //     'Mint memo',
+  //     true,
+  //     _reservedRate
+  //   );
+
+  //   // mint unclaimed tokens to beneficiary addr
+  //   _controller.mintTokensOf(
+  //     _projectId,
+  //     type(uint256).max,
+  //     _beneficiary,
+  //     'Mint memo',
+  //     false,
+  //     0
+  //   );
+
+  //   _tokenStore.claimFor(_beneficiary, _projectId, type(uint256).max); // should overflow, WIP
+  // }
 }
