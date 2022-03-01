@@ -663,7 +663,8 @@ contract JBETHPaymentTerminal is
         JBConstants.SPLITS_TOTAL_PERCENT
       );
 
-      uint256 _netPayoutAmount = _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount);
+      // The payout amount substracting any incurred fees (the platform project doesn't pays fee to itself)
+      uint256 _netPayoutAmount = _projectId == 1 ? _payoutAmount : _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount);
 
       if (_payoutAmount > 0) {
         // Transfer ETH to the mod.
@@ -690,8 +691,9 @@ contract JBETHPaymentTerminal is
 
           // Save gas if this contract is being used as the terminal.
           if (_terminal == this) {
+            _netPayoutAmount = _payoutAmount; // This distribution is not eligible for a fee, reassigned for the event
             _pay(
-              _payoutAmount,
+              _netPayoutAmount,
               address(this),
               _split.projectId,
               _split.beneficiary,
@@ -700,7 +702,6 @@ contract JBETHPaymentTerminal is
               '',
               bytes('')
             );
-            _netPayoutAmount = _payoutAmount; // For the event
           } else {
             // This distribution is eligible for a fee since the funds are leaving this contract.
             feeEligibleDistributionAmount += _payoutAmount;
