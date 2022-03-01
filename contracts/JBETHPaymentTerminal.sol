@@ -663,6 +663,8 @@ contract JBETHPaymentTerminal is
         JBConstants.SPLITS_TOTAL_PERCENT
       );
 
+      uint256 _netPayoutAmount = _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount);
+
       if (_payoutAmount > 0) {
         // Transfer ETH to the mod.
         // If there's an allocator set, transfer to its `allocate` function.
@@ -671,7 +673,7 @@ contract JBETHPaymentTerminal is
           feeEligibleDistributionAmount += _payoutAmount;
 
           _split.allocator.allocate{value: _payoutAmount}(
-            _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount),
+            _netPayoutAmount,
             _projectId,
             JBSplitsGroups.ETH_PAYOUT,
             _split
@@ -698,11 +700,12 @@ contract JBETHPaymentTerminal is
               '',
               bytes('')
             );
+            _netPayoutAmount = _payoutAmount; // For the event
           } else {
             // This distribution is eligible for a fee since the funds are leaving this contract.
             feeEligibleDistributionAmount += _payoutAmount;
 
-            _terminal.pay{value: _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount)}(
+            _terminal.pay{value: _netPayoutAmount}(
               _split.projectId,
               _split.beneficiary,
               0,
@@ -718,7 +721,7 @@ contract JBETHPaymentTerminal is
           // Otherwise, send the funds directly to the beneficiary.
           Address.sendValue(
             _split.beneficiary,
-            _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount)
+            _netPayoutAmount
           );
         }
 
@@ -731,7 +734,7 @@ contract JBETHPaymentTerminal is
         _fundingCycle.number,
         _projectId,
         _split,
-        _payoutAmount,
+        _netPayoutAmount,
         msg.sender
       );
     }
