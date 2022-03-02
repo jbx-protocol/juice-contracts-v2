@@ -339,7 +339,7 @@ contract JBETHPaymentTerminal is
       _feeEligibleDistributionAmount += _leftoverDistributionAmount;
 
       // Take the fee.
-      _feeAmount = fee == 0 || _feeEligibleDistributionAmount == 0 || _projectId == 1
+      _feeAmount = _projectId == 1 || _feeEligibleDistributionAmount == 0 || fee == 0
         ? 0
         : _takeFeeFrom(
           _projectId,
@@ -690,7 +690,7 @@ contract JBETHPaymentTerminal is
         JBConstants.SPLITS_TOTAL_PERCENT
       );
 
-      // The payout amount substracting any incurred fees (the platform project doesn't pays fee to itself)
+      // The payout amount substracting any incurred fees (the platform project doesn't pay fee to itself)
       uint256 _netPayoutAmount = _projectId == 1
         ? _payoutAmount
         : _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount);
