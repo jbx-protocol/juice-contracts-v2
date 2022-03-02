@@ -14,10 +14,8 @@ import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.s
 
 describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
   const AMOUNT = 50000;
-  const DEFAULT_FEE = 10; // 5%
-  const FEE_DISCOUNT = 500000; // 50%
-
-  const AMOUNT_MINUS_FEES = Math.floor((AMOUNT * 200) / (DEFAULT_FEE + 200));
+  const DEFAULT_FEE =   50000000; // 5%
+  const FEE_DISCOUNT = 500000000; // 50%
 
   const FUNDING_CYCLE_NUM = 1;
   const JUICEBOX_PROJECT_ID = 1;
@@ -25,7 +23,9 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
   const PROJECT_ID = 13;
   const WEIGHT = 1000;
 
+  let MAX_FEE;
   let MAX_FEE_DISCOUNT;
+  let AMOUNT_MINUS_FEES;
 
   async function setup() {
     const [deployer, beneficiary, otherCaller, projectOwner, terminalOwner] =
@@ -77,6 +77,9 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
     const jbConstantsFactory = await ethers.getContractFactory('JBConstants');
     const jbConstants = await jbConstantsFactory.deploy();
     MAX_FEE_DISCOUNT = await jbConstants.MAX_FEE_DISCOUNT();
+    MAX_FEE = (await jbConstants.MAX_FEE()).toNumber();
+
+    AMOUNT_MINUS_FEES = Math.floor((AMOUNT * MAX_FEE) / (DEFAULT_FEE + MAX_FEE));
 
     let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
     let jbOperations = await jbOperationsFactory.deploy();
@@ -339,7 +342,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
 
     const DISCOUNTED_FEE =
       DEFAULT_FEE - Math.floor((DEFAULT_FEE * FEE_DISCOUNT) / MAX_FEE_DISCOUNT);
-    const AMOUNT_MINUS_DISCOUNTED_FEES = Math.floor((AMOUNT * 200) / (200 + DISCOUNTED_FEE));
+    const AMOUNT_MINUS_DISCOUNTED_FEES = Math.floor((AMOUNT * MAX_FEE) / (MAX_FEE + DISCOUNTED_FEE));
 
     await mockJbFeeGauge.mock.currentDiscountFor.withArgs(PROJECT_ID).returns(FEE_DISCOUNT);
 

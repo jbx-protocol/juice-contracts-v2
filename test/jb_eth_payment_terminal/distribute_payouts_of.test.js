@@ -20,7 +20,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
 
   const AMOUNT_DISTRIBUTED = 1000000000000;
 
-  const DEFAULT_FEE = 10; // 5%
+  const DEFAULT_FEE =   50000000; // 5%
   const FEE_DISCOUNT = 500000000; // 50%
 
   const CURRENCY = 1;

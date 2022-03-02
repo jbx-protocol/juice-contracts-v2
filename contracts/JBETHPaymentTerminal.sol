@@ -70,7 +70,7 @@ contract JBETHPaymentTerminal is
     @notice
     Maximum fee that can be set for a funding cycle configuration.
   */
-  uint256 private constant _FEE_CAP = 10;
+  uint256 private constant _FEE_CAP = 50_000_000;
 
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
@@ -127,9 +127,9 @@ contract JBETHPaymentTerminal is
     The platform fee percent.
 
     @dev
-    Out of MAX_FEE.
+    Out of MAX_FEE (50_000_000 / 1_000_000_000)
   */
-  uint256 public override fee = 10;
+  uint256 public override fee = 50_000_000; // 5%
 
   /**
     @notice
@@ -795,7 +795,7 @@ contract JBETHPaymentTerminal is
   ) private returns (uint256 feeAmount) {
     feeAmount = _getFeeAmount(_amount, _feeDiscount);
     _fundingCycle.shouldHoldFees()
-      ? _heldFeesOf[_projectId].push(JBFee(_amount, uint8(fee), _beneficiary))
+      ? _heldFeesOf[_projectId].push(JBFee(_amount, uint32(fee), _beneficiary))
       : _processFee(feeAmount, _beneficiary); // Take the fee.
   }
 
