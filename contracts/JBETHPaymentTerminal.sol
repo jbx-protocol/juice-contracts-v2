@@ -70,7 +70,7 @@ contract JBETHPaymentTerminal is
     @notice
     Maximum fee that can be set for a funding cycle configuration.
   */
-  uint256 private constant _FEE_CAP = 50_000_000;
+  uint256 private constant _FEE_CAP = 10;
 
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
@@ -123,7 +123,7 @@ contract JBETHPaymentTerminal is
     The platform fee percent.
 
     @dev
-    Out of MAX_FEE (50_000_000 / 1_000_000_000)
+    Out of MAX_FEE.
   */
   uint256 public override fee = 50_000_000; // 5%
 
@@ -542,12 +542,7 @@ contract JBETHPaymentTerminal is
     // Process each fee.
     for (uint256 _i = 0; _i < _heldFees.length; _i++)
       _takeFee(
-        _heldFees[_i].amount -
-          PRBMath.mulDiv(
-            _heldFees[_i].amount,
-            JBConstants.MAX_FEE,
-            _heldFees[_i].fee + JBConstants.MAX_FEE
-          ),
+        _heldFees[_i].amount - PRBMath.mulDiv(_heldFees[_i].amount, JBConstants.MAX_FEE, _heldFees[_i].fee + JBConstants.MAX_FEE),
         _heldFees[_i].beneficiary
       );
 
@@ -726,9 +721,7 @@ contract JBETHPaymentTerminal is
     uint256 _discountedFee = fee - PRBMath.mulDiv(fee, _feeDiscount, JBConstants.MAX_FEE_DISCOUNT);
 
     // The amount of ETH from the _amount to pay as a fee.
-    feeAmount =
-      _amount -
-      PRBMath.mulDiv(_amount, JBConstants.MAX_FEE, _discountedFee + JBConstants.MAX_FEE);
+    feeAmount = _amount - PRBMath.mulDiv(_amount, JBConstants.MAX_FEE, _discountedFee + JBConstants.MAX_FEE);
 
     // Nothing to do if there's no fee to take.
     if (feeAmount == 0) return 0;
