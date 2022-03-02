@@ -77,6 +77,8 @@ interface IJBETHPaymentTerminal {
 
   event SetFeeGauge(IJBFeeGauge feeGauge, address caller);
 
+  event SetFeelessTerminal(IJBTerminal terminal, address caller);
+
   function projects() external view returns (IJBProjects);
 
   function splitsStore() external view returns (IJBSplitsStore);
@@ -88,6 +90,8 @@ interface IJBETHPaymentTerminal {
   function fee() external view returns (uint256);
 
   function feeGauge() external view returns (IJBFeeGauge);
+
+  function isFeelessTerminal(IJBTerminal _terminal) external view returns (bool);
 
   function distributePayoutsOf(
     uint256 _projectId,
@@ -116,4 +120,12 @@ interface IJBETHPaymentTerminal {
   ) external;
 
   function migrate(uint256 _projectId, IJBTerminal _to) external;
+
+  function processFees(uint256 _projectId) external;
+
+  function setFee(uint256 _fee) external;
+
+  function setFeeGauge(IJBFeeGauge _feeGauge) external;
+
+  function toggleFeelessTerminal(IJBTerminal _terminal) external;
 }

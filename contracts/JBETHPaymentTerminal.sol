@@ -106,6 +106,10 @@ contract JBETHPaymentTerminal is
   */
   IJBSplitsStore public immutable override splitsStore;
 
+  //*********************************************************************//
+  // --------------------- public stored properties -------------------- //
+  //*********************************************************************//
+
   /**
     @notice
     The contract that stores and manages the terminal's data.
@@ -132,6 +136,14 @@ contract JBETHPaymentTerminal is
     The data source that returns a discount to apply to a project's fee.
   */
   IJBFeeGauge public override feeGauge;
+
+  /**
+    @notice
+    Terminals that can be paid towards without incurring a fee.
+
+    _termainl The terminal that can be paid toward.
+  */
+  mapping(IJBTerminal => bool) public override isFeelessTerminal;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -553,6 +565,7 @@ contract JBETHPaymentTerminal is
   */
   function processFees(uint256 _projectId)
     external
+    override
     requirePermissionAllowingOverride(
       projects.ownerOf(_projectId),
       _projectId,
@@ -591,7 +604,7 @@ contract JBETHPaymentTerminal is
 
     @param _fee The new fee.
   */
-  function setFee(uint256 _fee) external onlyOwner {
+  function setFee(uint256 _fee) external override onlyOwner {
     // The max fee is 5%.
     if (_fee > _FEE_CAP) {
       revert FEE_TOO_HIGH();
@@ -612,11 +625,25 @@ contract JBETHPaymentTerminal is
 
     @param _feeGauge The new fee gauge.
   */
-  function setFeeGauge(IJBFeeGauge _feeGauge) external onlyOwner {
+  function setFeeGauge(IJBFeeGauge _feeGauge) external override onlyOwner {
     // Store the new fee gauge.
     feeGauge = _feeGauge;
 
     emit SetFeeGauge(_feeGauge, msg.sender);
+  }
+
+  /**
+    @notice
+    Toggles whether projects operating on this terminal can pay projects operating on other terminals without incurring a fee.
+
+    @dev
+    Only the owner of this contract can change the fee.
+
+    @param _terminal The terminal that can be paid towards while still bypassing fees.
+  */
+  function toggleFeelessTerminal(IJBTerminal _terminal) external override onlyOwner {
+    isFeelessTerminal[_terminal] = !isFeelessTerminal[_terminal];
+    emit SetFeelessTerminal(_terminal, msg.sender);
   }
 
   //*********************************************************************//
@@ -664,7 +691,9 @@ contract JBETHPaymentTerminal is
       );
 
       // The payout amount substracting any incurred fees (the platform project doesn't pays fee to itself)
-      uint256 _netPayoutAmount = _projectId == 1 ? _payoutAmount : _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount);
+      uint256 _netPayoutAmount = _projectId == 1
+        ? _payoutAmount
+        : _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount);
 
       if (_payoutAmount > 0) {
         // Transfer ETH to the mod.
@@ -691,7 +720,9 @@ contract JBETHPaymentTerminal is
 
           // Save gas if this contract is being used as the terminal.
           if (_terminal == this) {
-            _netPayoutAmount = _payoutAmount; // This distribution is not eligible for a fee, reassigned for the event
+            // This distribution is not eligible for a fee.
+            _netPayoutAmount = _payoutAmount;
+
             _pay(
               _netPayoutAmount,
               address(this),
@@ -703,8 +734,13 @@ contract JBETHPaymentTerminal is
               bytes('')
             );
           } else {
-            // This distribution is eligible for a fee since the funds are leaving this contract.
-            feeEligibleDistributionAmount += _payoutAmount;
+            // If the terminal is set as feeless, this distribution is not eligible for a fee.
+            if (isFeelessTerminal[_terminal]) {
+              _netPayoutAmount = _payoutAmount;
+            } else {
+              // This distribution is eligible for a fee since the funds are leaving this contract and the terminal isn't listed as feeless.
+              feeEligibleDistributionAmount += _payoutAmount;
+            }
 
             _terminal.pay{value: _netPayoutAmount}(
               _split.projectId,
@@ -720,10 +756,7 @@ contract JBETHPaymentTerminal is
           feeEligibleDistributionAmount += _payoutAmount;
 
           // Otherwise, send the funds directly to the beneficiary.
-          Address.sendValue(
-            _split.beneficiary,
-            _netPayoutAmount
-          );
+          Address.sendValue(_split.beneficiary, _netPayoutAmount);
         }
 
         // Subtract from the amount to be sent to the beneficiary.
