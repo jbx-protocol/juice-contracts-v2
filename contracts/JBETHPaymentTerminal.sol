@@ -106,6 +106,10 @@ contract JBETHPaymentTerminal is
   */
   IJBSplitsStore public immutable override splitsStore;
 
+  //*********************************************************************//
+  // --------------------- public stored properties -------------------- //
+  //*********************************************************************//
+
   /**
     @notice
     The contract that stores and manages the terminal's data.
@@ -132,6 +136,14 @@ contract JBETHPaymentTerminal is
     The data source that returns a discount to apply to a project's fee.
   */
   IJBFeeGauge public override feeGauge;
+
+  /**
+    @notice
+    Terminals that can be paid towards without incurring a fee.
+
+    _termainl The terminal that can be paid toward.
+  */
+  mapping(IJBTerminal => bool) public override isFeelessTerminal;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -302,24 +314,48 @@ contract JBETHPaymentTerminal is
     // and receive any extra distributable funds not allocated to payout splits.
     address payable _projectOwner = payable(projects.ownerOf(_projectId));
 
-    // Take a fee from the _distributedAmount, if needed.
-    // The project's owner will be the beneficiary of the resulting minted tokens from platform project.
-    // The platform project's ID is 1.
-    uint256 _feeAmount = fee == 0 || _projectId == 1
-      ? 0
-      : _takeFeeFrom(_projectId, _fundingCycle, _distributedAmount, _projectOwner);
+    // Define variables that will be needed outside scoped section below.
+    uint256 _feeAmount;
+    uint256 _leftoverDistributionAmount;
 
-    // Payout to splits and get a reference to the leftover transfer amount after all mods have been paid.
-    // The net transfer amount is the withdrawn amount minus the fee.
-    uint256 _leftoverDistributionAmount = _distributeToPayoutSplitsOf(
-      _projectId,
-      _fundingCycle,
-      _distributedAmount - _feeAmount
-    );
+    // Scoped section prevents stack too deep. _feeDiscount and _feeEligibleDistributionAmount only used within scope.
+    {
+      // Get the amount of discount that should be applied to any fees take.
+      uint256 _feeDiscount = _getFeeDiscount(_projectId);
 
-    // Transfer any remaining balance to the project owner.
-    if (_leftoverDistributionAmount > 0)
-      Address.sendValue(_projectOwner, _leftoverDistributionAmount);
+      uint256 _feeEligibleDistributionAmount;
+
+      // Payout to splits and get a reference to the leftover transfer amount after all mods have been paid.
+      // Also get a reference to the amount that was distributed that is eligible to have fees taken.
+      // The net transfer amount is the withdrawn amount minus the fee.
+      (_leftoverDistributionAmount, _feeEligibleDistributionAmount) = _distributeToPayoutSplitsOf(
+        _projectId,
+        _fundingCycle,
+        _distributedAmount,
+        _feeDiscount
+      );
+
+      // Leftover distribution amount is also eligible for a fee since the funds are going out of the ecosystem to _beneficiary.
+      _feeEligibleDistributionAmount += _leftoverDistributionAmount;
+
+      // Take the fee.
+      _feeAmount = _projectId == 1 || _feeEligibleDistributionAmount == 0 || fee == 0
+        ? 0
+        : _takeFeeFrom(
+          _projectId,
+          _fundingCycle,
+          _feeEligibleDistributionAmount,
+          _projectOwner,
+          _feeDiscount
+        );
+
+      // Transfer any remaining balance to the project owner.
+      if (_leftoverDistributionAmount > 0)
+        Address.sendValue(
+          _projectOwner,
+          _leftoverDistributionAmount - _getFeeAmount(_leftoverDistributionAmount, _feeDiscount)
+        );
+    }
 
     emit DistributePayouts(
       _fundingCycle.configuration,
@@ -370,11 +406,12 @@ contract JBETHPaymentTerminal is
     // and receive any extra distributable funds not allocated to payout splits.
     address payable _projectOwner = payable(projects.ownerOf(_projectId));
 
+    uint256 _feeDiscount = _getFeeDiscount(_projectId);
+
     // Take a fee from the _withdrawnAmount, if needed.
-    // The project's owner will be the beneficiary.
-    uint256 _feeAmount = fee == 0 || _projectId == 1 // The platform project's ID is 1.
+    uint256 _feeAmount = fee == 0 || _projectId == 1
       ? 0
-      : _takeFeeFrom(_projectId, _fundingCycle, _withdrawnAmount, _projectOwner);
+      : _takeFeeFrom(_projectId, _fundingCycle, _withdrawnAmount, _projectOwner, _feeDiscount);
 
     // Transfer any remaining balance to the project owner.
     Address.sendValue(_beneficiary, _withdrawnAmount - _feeAmount);
@@ -528,6 +565,7 @@ contract JBETHPaymentTerminal is
   */
   function processFees(uint256 _projectId)
     external
+    override
     requirePermissionAllowingOverride(
       projects.ownerOf(_projectId),
       _projectId,
@@ -541,7 +579,7 @@ contract JBETHPaymentTerminal is
 
     // Process each fee.
     for (uint256 _i = 0; _i < _heldFees.length; _i++)
-      _takeFee(
+      _processFee(
         _heldFees[_i].amount -
           PRBMath.mulDiv(
             _heldFees[_i].amount,
@@ -566,7 +604,7 @@ contract JBETHPaymentTerminal is
 
     @param _fee The new fee.
   */
-  function setFee(uint256 _fee) external onlyOwner {
+  function setFee(uint256 _fee) external override onlyOwner {
     // The max fee is 5%.
     if (_fee > _FEE_CAP) {
       revert FEE_TOO_HIGH();
@@ -587,11 +625,25 @@ contract JBETHPaymentTerminal is
 
     @param _feeGauge The new fee gauge.
   */
-  function setFeeGauge(IJBFeeGauge _feeGauge) external onlyOwner {
+  function setFeeGauge(IJBFeeGauge _feeGauge) external override onlyOwner {
     // Store the new fee gauge.
     feeGauge = _feeGauge;
 
     emit SetFeeGauge(_feeGauge, msg.sender);
+  }
+
+  /**
+    @notice
+    Toggles whether projects operating on this terminal can pay projects operating on other terminals without incurring a fee.
+
+    @dev
+    Only the owner of this contract can change the fee.
+
+    @param _terminal The terminal that can be paid towards while still bypassing fees.
+  */
+  function toggleFeelessTerminal(IJBTerminal _terminal) external override onlyOwner {
+    isFeelessTerminal[_terminal] = !isFeelessTerminal[_terminal];
+    emit SetFeelessTerminal(_terminal, msg.sender);
   }
 
   //*********************************************************************//
@@ -605,14 +657,17 @@ contract JBETHPaymentTerminal is
     @param _projectId The ID of the project for which payout splits are being distributed.
     @param _fundingCycle The funding cycle during which the distribution is being made.
     @param _amount The total amount being distributed.
+    @param _feeDiscount The amount of discount to apply to the fee, out of the MAX_FEE.
 
     @return leftoverAmount If the leftover amount if the splits don't add up to 100%.
+    @return feeEligibleDistributionAmount The total amount of distributions that are eligible to have fees taken from.
   */
   function _distributeToPayoutSplitsOf(
     uint256 _projectId,
     JBFundingCycle memory _fundingCycle,
-    uint256 _amount
-  ) private returns (uint256 leftoverAmount) {
+    uint256 _amount,
+    uint256 _feeDiscount
+  ) private returns (uint256 leftoverAmount, uint256 feeEligibleDistributionAmount) {
     // Set the leftover amount to the initial amount.
     leftoverAmount = _amount;
 
@@ -635,12 +690,20 @@ contract JBETHPaymentTerminal is
         JBConstants.SPLITS_TOTAL_PERCENT
       );
 
+      // The payout amount substracting any incurred fees (the platform project doesn't pay fee to itself)
+      uint256 _netPayoutAmount = _projectId == 1
+        ? _payoutAmount
+        : _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount);
+
       if (_payoutAmount > 0) {
         // Transfer ETH to the mod.
         // If there's an allocator set, transfer to its `allocate` function.
         if (_split.allocator != IJBSplitAllocator(address(0))) {
-          _split.allocator.allocate{value: _payoutAmount}(
-            _payoutAmount,
+          // This distribution is eligible for a fee since the funds are leaving the ecosystem.
+          feeEligibleDistributionAmount += _payoutAmount;
+
+          _split.allocator.allocate{value: _netPayoutAmount}(
+            _netPayoutAmount,
             _projectId,
             JBSplitsGroups.ETH_PAYOUT,
             _split
@@ -657,8 +720,11 @@ contract JBETHPaymentTerminal is
 
           // Save gas if this contract is being used as the terminal.
           if (_terminal == this) {
+            // This distribution is not eligible for a fee.
+            _netPayoutAmount = _payoutAmount;
+
             _pay(
-              _payoutAmount,
+              _netPayoutAmount,
               address(this),
               _split.projectId,
               _split.beneficiary,
@@ -668,7 +734,15 @@ contract JBETHPaymentTerminal is
               bytes('')
             );
           } else {
-            _terminal.pay{value: _payoutAmount}(
+            // If the terminal is set as feeless, this distribution is not eligible for a fee.
+            if (isFeelessTerminal[_terminal]) {
+              _netPayoutAmount = _payoutAmount;
+            } else {
+              // This distribution is eligible for a fee since the funds are leaving this contract and the terminal isn't listed as feeless.
+              feeEligibleDistributionAmount += _payoutAmount;
+            }
+
+            _terminal.pay{value: _netPayoutAmount}(
               _split.projectId,
               _split.beneficiary,
               0,
@@ -678,8 +752,11 @@ contract JBETHPaymentTerminal is
             );
           }
         } else {
+          // This distribution is eligible for a fee since the funds are leaving the ecosystem.
+          feeEligibleDistributionAmount += _payoutAmount;
+
           // Otherwise, send the funds directly to the beneficiary.
-          Address.sendValue(_split.beneficiary, _payoutAmount);
+          Address.sendValue(_split.beneficiary, _netPayoutAmount);
         }
 
         // Subtract from the amount to be sent to the beneficiary.
@@ -691,7 +768,7 @@ contract JBETHPaymentTerminal is
         _fundingCycle.number,
         _projectId,
         _split,
-        _payoutAmount,
+        _netPayoutAmount,
         msg.sender
       );
     }
@@ -703,8 +780,9 @@ contract JBETHPaymentTerminal is
 
     @param _projectId The ID of the project having fees taken from.
     @param _fundingCycle The funding cycle during which the fee is being taken.
-    @param _amount The amount to take a fee from.
+    @param _amount The amount of the fee to take.
     @param _beneficiary The address to print the platforms tokens for.
+    @param _feeDiscount The amount of discount to apply to the fee, out of the MAX_FEE.
 
     @return feeAmount The amount of the fee taken.
   */
@@ -712,30 +790,13 @@ contract JBETHPaymentTerminal is
     uint256 _projectId,
     JBFundingCycle memory _fundingCycle,
     uint256 _amount,
-    address _beneficiary
+    address _beneficiary,
+    uint256 _feeDiscount
   ) private returns (uint256 feeAmount) {
-    // Get the fee discount.
-    uint256 _feeDiscount = feeGauge == IJBFeeGauge(address(0))
-      ? 0
-      : feeGauge.currentDiscountFor(_projectId);
-
-    // Set the discounted fee if its valid.
-    if (_feeDiscount > JBConstants.MAX_FEE_DISCOUNT) _feeDiscount = 0;
-
-    // Calculate the discounted fee.
-    uint256 _discountedFee = fee - PRBMath.mulDiv(fee, _feeDiscount, JBConstants.MAX_FEE_DISCOUNT);
-
-    // The amount of ETH from the _amount to pay as a fee.
-    feeAmount =
-      _amount -
-      PRBMath.mulDiv(_amount, JBConstants.MAX_FEE, _discountedFee + JBConstants.MAX_FEE);
-
-    // Nothing to do if there's no fee to take.
-    if (feeAmount == 0) return 0;
-
+    feeAmount = _getFeeAmount(_amount, _feeDiscount);
     _fundingCycle.shouldHoldFees()
       ? _heldFeesOf[_projectId].push(JBFee(_amount, uint32(fee), _beneficiary))
-      : _takeFee(feeAmount, _beneficiary); // Take the fee.
+      : _processFee(feeAmount, _beneficiary); // Take the fee.
   }
 
   /**
@@ -745,7 +806,7 @@ contract JBETHPaymentTerminal is
     @param _amount The fee amount.
     @param _beneficiary The address to print the platforms tokens for.
   */
-  function _takeFee(uint256 _amount, address _beneficiary) private {
+  function _processFee(uint256 _amount, address _beneficiary) private {
     // Get the terminal for the protocol project.
     IJBTerminal _terminal = directory.primaryTerminalOf(1, token);
 
@@ -829,5 +890,39 @@ contract JBETHPaymentTerminal is
         _amount = 0;
       }
     }
+  }
+
+  /** 
+    @notice 
+    Returns the fee amount based on the provided amount for the specified project.
+
+    @param _amount The amount that the fee is based on.
+    @param _feeDiscount The percentage discount that should be applied out of the max amount.
+
+    @return The amount of the fee.
+  */
+  function _getFeeAmount(uint256 _amount, uint256 _feeDiscount) private view returns (uint256) {
+    // Calculate the discounted fee.
+    uint256 _discountedFee = fee - PRBMath.mulDiv(fee, _feeDiscount, JBConstants.MAX_FEE_DISCOUNT);
+
+    // The amount of ETH from the _amount to pay as a fee.
+    return
+      _amount - PRBMath.mulDiv(_amount, JBConstants.MAX_FEE, _discountedFee + JBConstants.MAX_FEE);
+  }
+
+  /** 
+    @notice
+    Get the fee discount from the fee gauge for the specified project.
+
+    @param _projectId The ID of the project to get a fee discount for.
+    
+    @return feeDiscount The fee discount, which should be interpreted as a percentage out of the max value.
+  */
+  function _getFeeDiscount(uint256 _projectId) private view returns (uint256 feeDiscount) {
+    // Get the fee discount.
+    feeDiscount = feeGauge == IJBFeeGauge(address(0)) ? 0 : feeGauge.currentDiscountFor(_projectId);
+
+    // Set the discounted fee if its valid.
+    if (feeDiscount > JBConstants.MAX_FEE_DISCOUNT) feeDiscount = 0;
   }
 }
