@@ -425,7 +425,7 @@ abstract contract JBPaymentTerminal is
 
     // Get a reference to the project owner, which will receive tokens from paying the platform fee
     // and receive any extra distributable funds not allocated to payout splits.
-    address _projectOwner = payable(projects.ownerOf(_projectId));
+    address _projectOwner = projects.ownerOf(_projectId);
 
     uint256 _feeDiscount = _getFeeDiscount(_projectId);
 
