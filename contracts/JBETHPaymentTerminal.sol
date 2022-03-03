@@ -12,7 +12,7 @@ import './JBPaymentTerminal.sol';
 //*********************************************************************//
 error DAWG_WTF();
 
-contract JBERC20PaymentTerminal is JBPaymentTerminal {
+contract JBETHPaymentTerminal is JBPaymentTerminal {
   constructor(
     IJBOperatorStore _operatorStore,
     IJBProjects _projects,
@@ -46,6 +46,6 @@ contract JBERC20PaymentTerminal is JBPaymentTerminal {
   }
 
   function _beforeTransferTo(address _to, uint256 _amount) internal override {
-    IERC20(token).approve(_to, _amount);
+    // nothing to do. shouldn't ever get called.
   }
 }
