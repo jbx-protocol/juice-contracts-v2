@@ -22,22 +22,28 @@ To get set up:
 
 1. Install [Foundry](https://github.com/gakonst/foundry).
 
-2. Build the contracts:
+2. Install external lib(s)
+
+```bash
+git submodule update --init
+```
+
+3. Build the contracts:
 
 ```bash
 forge build
 ```
 
-3. Run tests:
+4. Run tests:
 
 ```bash
 forge test -vvv
 ```
 
-4. Update Forge periodically:
+5. Update Foundry periodically:
 
 ```bash
-forge update
+foundryup
 ```
 
 Resources:

@@ -120,6 +120,9 @@ contract TestBaseWorkflow is DSTest {
 
   // Deploys and initializes contracts for testing.
   function setUp() public virtual {
+    // Labels
+    evm.label(_multisig, 'multisig');
+
     // JBOperatorStore
     _jbOperatorStore = new JBOperatorStore();
     // JBProjects
