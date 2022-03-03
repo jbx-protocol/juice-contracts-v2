@@ -262,9 +262,7 @@ abstract contract JBPaymentTerminal is
     @notice
     Contribute ETH to a project.
 
-    @dev
-    The msg.value is the amount of the contribution in wei. The _amount param is ignored.
-
+    @param _amount The amount of the payment being received. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
     @param _projectId The ID of the project being paid.
     @param _beneficiary The address to mint tokens for and pass along to the funding cycle's data source and delegate.
     @param _minReturnedTokens The minimum number of tokens expected in return.
@@ -427,7 +425,7 @@ abstract contract JBPaymentTerminal is
 
     // Get a reference to the project owner, which will receive tokens from paying the platform fee
     // and receive any extra distributable funds not allocated to payout splits.
-    address payable _projectOwner = payable(projects.ownerOf(_projectId));
+    address _projectOwner = payable(projects.ownerOf(_projectId));
 
     uint256 _feeDiscount = _getFeeDiscount(_projectId);
 
@@ -436,7 +434,7 @@ abstract contract JBPaymentTerminal is
       ? 0
       : _takeFeeFrom(_projectId, _fundingCycle, _withdrawnAmount, _projectOwner, _feeDiscount);
 
-    // Transfer any remaining balance to the project owner.
+    // Transfer any remaining balance to the beneficiary.
     _transferFrom(address(this), _beneficiary, _withdrawnAmount - _feeAmount);
 
     emit UseAllowance(
@@ -559,7 +557,7 @@ abstract contract JBPaymentTerminal is
     @notice
     Receives funds belonging to the specified project.
 
-    @param _amount The amount of tokens to add.
+    @param _amount The amount of tokens to add. If this is an ETH terminal, this is ignored and msg.value is used instead.
     @param _projectId The ID of the project to which the funds received belong.
     @param _memo A memo to pass along to the emitted event.
   */
