@@ -8,7 +8,7 @@ interface IJBTerminal {
 
   function jbCurrency() external view returns (uint256);
 
-  function ethBalanceOf(uint256 _projectId) external view returns (uint256);
+  function balanceOf(uint256 _projectId) external view returns (uint256);
 
   function remainingDistributionLimitOf(
     uint256 _projectId,

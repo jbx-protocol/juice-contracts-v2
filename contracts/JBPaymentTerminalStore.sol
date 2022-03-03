@@ -808,9 +808,11 @@ contract JBPaymentTerminalStore {
     return _balanceOf <= _ethDistributionRemaining ? 0 : _balanceOf - _ethDistributionRemaining;
   }
 
+  function currencyBalanceOf(uint256 _projectId, uint256 _currency) external {}
+
   /**
     @notice
-    Gets the amount that is overflowing across all terminals when measured from the specified funding cycle.
+    Gets the amount that is overflowing across all terminals in terms of this store's terminal's currency when measured from the specified funding cycle.
 
     @dev
     This amount changes as the price of the token changes in relation to the currency being used to measure the distribution limits.
@@ -828,12 +830,25 @@ contract JBPaymentTerminalStore {
     // Get a reference to the project's terminals.
     IJBTerminal[] memory _terminals = directory.terminalsOf(_projectId);
 
-    // Keep a reference to the current eth balance of the project across all terminals, and the current eth distribution limit across all terminals.
-    uint256 _ethBalanceOf;
-    uint256 _ethDistributionLimitRemaining;
+    // Keep a reference to the current balance of the project across all terminals in terms of the terminal's currency,
+    // and the current distribution limit across all terminals in terms of the terminal's currency.
+    uint256 _currencyBalanceOf;
+    uint256 _currencyDistributionLimitRemaining;
 
     for (uint256 _i = 0; _i < _terminals.length; _i++) {
-      _ethBalanceOf = _ethBalanceOf + _terminals[_i].ethBalanceOf(_projectId);
+      // Get the balance of the terminal being iterated on.
+      uint256 _someTerminalBalanceOf = _currencyBalanceOf + _terminals[_i].balanceOf(_projectId);
+
+      // Get the currency of the terminal being iterated on.
+      uint256 _someTerminalCurrency = _terminals[_i].jbCurrency();
+
+      // Get the balance of the terminal in terms of this store's terminal's currency.
+      _currencyBalanceOf = (_someTerminalCurrency == _terminalCurrency)
+        ? _someTerminalBalanceOf
+        : PRBMathUD60x18.div(
+          _someTerminalBalanceOf,
+          prices.priceFor(_someTerminalCurrency, _terminalCurrency)
+        );
 
       // Get a reference to the amount still withdrawable during the funding cycle.
       uint256 _distributionRemaining = _terminals[_i].remainingDistributionLimitOf(
@@ -850,8 +865,8 @@ contract JBPaymentTerminalStore {
       );
 
       // Convert the _distributionRemaining to this store's terminal's token.
-      _ethDistributionLimitRemaining =
-        _ethDistributionLimitRemaining +
+      _currencyDistributionLimitRemaining =
+        _currencyDistributionLimitRemaining +
         (
           _distributionRemaining == 0 ? 0 : (_currency == _terminalCurrency)
             ? _distributionRemaining
@@ -864,8 +879,8 @@ contract JBPaymentTerminalStore {
 
     // Overflow is the balance of this project minus the amount that can still be distributed.
     return
-      _ethBalanceOf <= _ethDistributionLimitRemaining
+      _currencyBalanceOf <= _currencyDistributionLimitRemaining
         ? 0
-        : _ethBalanceOf - _ethDistributionLimitRemaining;
+        : _currencyBalanceOf - _currencyDistributionLimitRemaining;
   }
 }

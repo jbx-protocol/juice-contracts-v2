@@ -159,7 +159,7 @@ contract JBETHPaymentTerminal is
 
     @return The ETH balance.
   */
-  function ethBalanceOf(uint256 _projectId) external view override returns (uint256) {
+  function balanceOf(uint256 _projectId) external view override returns (uint256) {
     // The store's balance is already in ETH.
     return store.balanceOf(_projectId);
   }
