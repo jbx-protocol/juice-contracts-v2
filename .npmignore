@@ -9,3 +9,4 @@
 !/contracts/**
 # ... except tests
 /contracts/test/**
+/contracts/system_tests/**
