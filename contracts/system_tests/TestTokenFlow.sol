@@ -68,7 +68,7 @@ contract TestTokenFlow is TestBaseWorkflow {
   }
 
   /**
-   * @notice tests the following flow:
+   * @notice tests the following flow with fuzzed values:
    * launch project → issue token → change token → mint token → burn token
    */
   function testFuzzTokenFlow(
@@ -139,38 +139,80 @@ contract TestTokenFlow is TestBaseWorkflow {
   }
 
   /**
-   * @notice tests the corner case where minting large amounts of unclaimed and claimed tokens can cause overflows:
-   *
+   * @notice tests the following corner case:
+   * launch project → issue token → mint max claimed tokens → mint max unclaimed tokens → try to claim unclaimed tokens
    */
-  // function testTokenBalanceOverflows() public {
-  //   // calls will originate from projectOwner addr
-  //   evm.startPrank(_projectOwner);
+  function testLargeTokenClaimFlow() public {
+    // calls will originate from projectOwner addr
+    evm.startPrank(_projectOwner);
 
-  //   // issue an ERC-20 token for project
-  //   _controller.issueTokenFor(_projectId, 'TestName', 'TestSymbol');
+    // issue an ERC-20 token for project
+    _controller.issueTokenFor(_projectId, 'TestName', 'TestSymbol');
 
-  //   address _beneficiary = address(1234);
+    address _beneficiary = address(1234);
 
-  //   // mint claimed tokens to beneficiary addr
-  //   _controller.mintTokensOf(
-  //     _projectId,
-  //     type(uint224).max,
-  //     _beneficiary,
-  //     'Mint memo',
-  //     true,
-  //     _reservedRate
-  //   );
+    // mint claimed tokens to beneficiary addr
+    _controller.mintTokensOf(
+      _projectId,
+      type(uint224).max,
+      _beneficiary,
+      'Mint memo',
+      true,
+      0
+    );
 
-  //   // mint unclaimed tokens to beneficiary addr
-  //   _controller.mintTokensOf(
-  //     _projectId,
-  //     type(uint256).max,
-  //     _beneficiary,
-  //     'Mint memo',
-  //     false,
-  //     0
-  //   );
+    // mint unclaimed tokens to beneficiary addr
+    _controller.mintTokensOf(
+      _projectId,
+      type(uint256).max,
+      _beneficiary,
+      'Mint memo',
+      false,
+      0
+    );
 
-  //   _tokenStore.claimFor(_beneficiary, _projectId, type(uint256).max); // should overflow, WIP
-  // }
+    // try to claim the unclaimed tokens
+    evm.expectRevert('ERC20Votes: total supply risks overflowing votes');
+    _tokenStore.claimFor(_beneficiary, _projectId, /* _amount */ 1);
+  }
+
+  /**
+   * @notice tests the following corner case:
+   * launch project → issue token → mint unclaimed tokens → switch to new token → claim unclaimed tokens of the new token
+   */
+  function testTokenChangeFlow() public {
+    // calls will originate from projectOwner addr
+    evm.startPrank(_projectOwner);
+
+    // issue an ERC-20 token for project
+    _controller.issueTokenFor(_projectId, 'TestName', 'TestSymbol');
+
+    address _beneficiary = address(1234);
+
+    // mint unclaimed tokens to beneficiary addr
+    _controller.mintTokensOf(
+      _projectId,
+      type(uint256).max,
+      _beneficiary,
+      'Mint memo',
+      false,
+      0
+    );
+
+    // create a new IJBToken and change it's owner to the tokenStore
+    IJBToken _newToken = new JBToken('NewTestName', 'NewTestSymbol');
+    _newToken.transferOwnership(address(_tokenStore));
+
+    // change the projects token to _newToken
+    _controller.changeTokenOf(_projectId, _newToken, address(0));
+
+    // claim and mint the max possible amount of unclaimed tokens
+    _tokenStore.claimFor(_beneficiary, _projectId, type(uint224).max);
+
+    // total token balanced should be updated
+    assertEq(_newToken.balanceOf(_beneficiary, _projectId), type(uint224).max);
+    assertEq(_tokenStore.unclaimedBalanceOf(_beneficiary, _projectId), type(uint256).max - type(uint224).max);
+    assertEq(_tokenStore.unclaimedTotalSupplyOf(_projectId), type(uint256).max - type(uint224).max);
+    assertEq(_tokenStore.balanceOf(_beneficiary, _projectId), type(uint256).max);
+  }
 }
