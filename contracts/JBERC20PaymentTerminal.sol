@@ -11,6 +11,7 @@ contract JBERC20PaymentTerminal is JBPaymentTerminal {
   constructor(
     IERC20 _token,
     uint256 _currency,
+    uint256 _baseWeightCurrency,
     IJBOperatorStore _operatorStore,
     IJBProjects _projects,
     IJBDirectory _directory,
@@ -21,6 +22,7 @@ contract JBERC20PaymentTerminal is JBPaymentTerminal {
     JBPaymentTerminal(
       address(_token),
       _currency,
+      _baseWeightCurrency,
       _operatorStore,
       _projects,
       _directory,

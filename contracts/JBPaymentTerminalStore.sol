@@ -58,6 +58,8 @@ contract JBPaymentTerminalStore {
 
   uint256 private _terminalCurrency;
 
+  uint256 private _terminalBaseWeightCurrency;
+
   /**
     @notice
     The Projects contract which mints ERC-721's that represent project ownership and transfers.
@@ -299,9 +301,14 @@ contract JBPaymentTerminalStore {
 
       // Amount and weight must be non-zero in order to mint tokens.
       if (weight > 0) {
+        uint256 _weightDivisor = (_terminalBaseWeightCurrency > 0 &&
+          _terminalBaseWeightCurrency != _terminalCurrency)
+          ? prices.priceFor(_terminalCurrency, _terminalBaseWeightCurrency)
+          : 1;
+
         tokenCount = directory.controllerOf(_projectId).mintTokensOf(
           _projectId,
-          PRBMathUD60x18.mul(_amount, weight), // Multiply the amount by the weight to determine the amount of tokens to mint
+          PRBMath.mulDiv(_amount, weight, _weightDivisor), // Multiply the amount by the weight to determine the amount of tokens to mint
           address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
           '',
           (_preferClaimedTokensAndBeneficiary & 1) == 1,
@@ -693,7 +700,9 @@ contract JBPaymentTerminalStore {
     terminal = _terminal;
 
     // Set the terminal currency;
-    _terminalCurrency = _terminal.jbCurrency();
+    _terminalCurrency = _terminal.currency();
+
+    _terminalBaseWeightCurrency = _terminal.baseWeightCurrency();
   }
 
   //*********************************************************************//
@@ -840,7 +849,7 @@ contract JBPaymentTerminalStore {
       uint256 _someTerminalBalanceOf = _currencyBalanceOf + _terminals[_i].balanceOf(_projectId);
 
       // Get the currency of the terminal being iterated on.
-      uint256 _someTerminalCurrency = _terminals[_i].jbCurrency();
+      uint256 _someTerminalCurrency = _terminals[_i].currency();
 
       // Get the balance of the terminal in terms of this store's terminal's currency.
       _currencyBalanceOf = (_someTerminalCurrency == _terminalCurrency)

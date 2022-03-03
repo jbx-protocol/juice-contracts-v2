@@ -14,6 +14,7 @@ error DAWG_WTF();
 
 contract JBETHPaymentTerminal is JBPaymentTerminal {
   constructor(
+    uint256 _baseWeightCurrency,
     IJBOperatorStore _operatorStore,
     IJBProjects _projects,
     IJBDirectory _directory,
@@ -24,6 +25,7 @@ contract JBETHPaymentTerminal is JBPaymentTerminal {
     JBPaymentTerminal(
       JBTokens.ETH,
       JBCurrencies.ETH,
+      _baseWeightCurrency,
       _operatorStore,
       _projects,
       _directory,

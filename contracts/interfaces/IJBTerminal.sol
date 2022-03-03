@@ -6,7 +6,9 @@ import './IJBDirectory.sol';
 interface IJBTerminal {
   function token() external view returns (address);
 
-  function jbCurrency() external view returns (uint256);
+  function currency() external view returns (uint256);
+
+  function baseWeightCurrency() external view returns (uint256);
 
   function balanceOf(uint256 _projectId) external view returns (uint256);
 

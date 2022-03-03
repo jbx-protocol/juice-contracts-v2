@@ -148,9 +148,15 @@ abstract contract JBPaymentTerminal is
 
   /**
     @notice
-    The currency to use for resolving price feeds.
+    The currency to use when resolving price feeds for this terminal.
   */
-  uint256 public override jbCurrency;
+  uint256 public override currency;
+
+  /**
+    @notice
+    The currency to base token issuance on.
+  */
+  uint256 public override baseWeightCurrency;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -223,6 +229,7 @@ abstract contract JBPaymentTerminal is
   /**
     @param _token The token that this terminal manages.
     @param _currency The currency that this terminal's token adheres to for price feeds.
+    @param _baseWeightCurrency The currency to base token issuance on.
     @param _operatorStore A contract storing operator assignments.
     @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
     @param _directory A contract storing directories of terminals and controllers for each project.
@@ -233,6 +240,7 @@ abstract contract JBPaymentTerminal is
   constructor(
     address _token,
     uint256 _currency,
+    uint256 _baseWeightCurrency,
     IJBOperatorStore _operatorStore,
     IJBProjects _projects,
     IJBDirectory _directory,
@@ -241,7 +249,8 @@ abstract contract JBPaymentTerminal is
     address _owner
   ) JBOperatable(_operatorStore) {
     token = _token;
-    jbCurrency = _currency;
+    baseWeightCurrency = _baseWeightCurrency;
+    currency = _currency;
     projects = _projects;
     directory = _directory;
     splitsStore = _splitsStore;
