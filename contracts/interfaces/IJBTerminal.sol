@@ -6,6 +6,8 @@ import './IJBDirectory.sol';
 interface IJBTerminal {
   function token() external view returns (address);
 
+  function jbCurrency() external view returns (uint256);
+
   function ethBalanceOf(uint256 _projectId) external view returns (uint256);
 
   function remainingDistributionLimitOf(
@@ -17,6 +19,7 @@ interface IJBTerminal {
   function delegate() external view returns (address);
 
   function pay(
+    uint256 _amount,
     uint256 _projectId,
     address _beneficiary,
     uint256 _minReturnedTokens,

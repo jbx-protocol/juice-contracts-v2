@@ -11,7 +11,7 @@ import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
 import './libraries/JBTokens.sol';
 
-import './JBETHPaymentTerminalStore.sol';
+import './JBPaymentTerminalStore.sol';
 
 // Inheritance
 import './interfaces/IJBETHPaymentTerminal.sol';
@@ -114,7 +114,7 @@ contract JBETHPaymentTerminal is
     @notice
     The contract that stores and manages the terminal's data.
   */
-  JBETHPaymentTerminalStore public immutable store;
+  JBPaymentTerminalStore public immutable store;
 
   /**
     @notice
@@ -144,6 +144,8 @@ contract JBETHPaymentTerminal is
     _termainl The terminal that can be paid toward.
   */
   mapping(IJBTerminal => bool) public override isFeelessTerminal;
+
+  uint256 public override jbCurrency = JBCurrencies.ETH;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -226,7 +228,7 @@ contract JBETHPaymentTerminal is
     IJBProjects _projects,
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
-    JBETHPaymentTerminalStore _store,
+    JBPaymentTerminalStore _store,
     address _owner
   ) JBOperatable(_operatorStore) {
     projects = _projects;
@@ -250,7 +252,7 @@ contract JBETHPaymentTerminal is
     Contribute ETH to a project.
 
     @dev
-    The msg.value is the amount of the contribution in wei.
+    The msg.value is the amount of the contribution in wei. The _amount param is ignored.
 
     @param _projectId The ID of the project being paid.
     @param _beneficiary The address to mint tokens for and pass along to the funding cycle's data source and delegate.
@@ -260,6 +262,7 @@ contract JBETHPaymentTerminal is
     @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
   */
   function pay(
+    uint256,
     uint256 _projectId,
     address _beneficiary,
     uint256 _minReturnedTokens,
@@ -743,6 +746,7 @@ contract JBETHPaymentTerminal is
             }
 
             _terminal.pay{value: _netPayoutAmount}(
+              0, // ignored.
               _split.projectId,
               _split.beneficiary,
               0,
@@ -813,7 +817,15 @@ contract JBETHPaymentTerminal is
     // When processing the admin fee, save gas if the admin is using this contract as its terminal.
     _terminal == this
       ? _pay(_amount, address(this), 1, _beneficiary, 0, false, '', bytes('')) // Use the local pay call.
-      : _terminal.pay{value: _amount}(1, _beneficiary, 0, false, '', bytes('')); // Use the external pay call of the correct terminal.
+      : _terminal.pay{value: _amount}(
+        0, // ignored,
+        1,
+        _beneficiary,
+        0,
+        false,
+        '',
+        bytes('')
+      ); // Use the external pay call of the correct terminal.
   }
 
   /**
