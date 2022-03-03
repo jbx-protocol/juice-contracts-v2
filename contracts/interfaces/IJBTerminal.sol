@@ -28,5 +28,9 @@ interface IJBTerminal {
     bytes calldata _delegateMetadata
   ) external payable;
 
-  function addToBalanceOf(uint256 _projectId, string memory _memo) external payable;
+  function addToBalanceOf(
+    uint256 _amount,
+    uint256 _projectId,
+    string memory _memo
+  ) external payable;
 }

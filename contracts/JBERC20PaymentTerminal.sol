@@ -2,7 +2,7 @@
 /* solhint-disable comprehensive-interface*/
 pragma solidity 0.8.6;
 
-import '@openzeppelin/contracts/utils/Address.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 
 import './libraries/JBConstants.sol';
@@ -30,10 +30,11 @@ error REDEEM_TO_ZERO_ADDRESS();
 error TERMINAL_IN_SPLIT_ZERO_ADDRESS();
 error TERMINAL_TOKENS_INCOMPATIBLE();
 error ZERO_VALUE_SENT();
+error WTF_U_DOIN();
 
 /**
   @notice
-  This contract manages all inflows and outflows of ETH funds into the Juicebox ecosystem.
+  This contract manages all inflows and outflows of any ERC20 funds into the Juicebox ecosystem.
 
   @dev
   A project can transfer its funds, along with the power to reconfigure and mint/burn their tokens, from this contract to another allowed terminal contract at any time.
@@ -44,7 +45,7 @@ error ZERO_VALUE_SENT();
   JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
   ReentrencyGuard - several function in this contract shouldn't be accessible recursively.
 */
-contract JBETHPaymentTerminal is
+contract JBERC20PaymentTerminal is
   IJBPaymentTerminal,
   IJBTerminal,
   JBOperatable,
@@ -120,7 +121,7 @@ contract JBETHPaymentTerminal is
     @notice
     The token that this terminal accepts.
   */
-  address public immutable override token = JBTokens.ETH;
+  address public immutable override token;
 
   /**
     @notice
@@ -216,6 +217,8 @@ contract JBETHPaymentTerminal is
   //*********************************************************************//
 
   /**
+    @param _token The token that this terminal manages.
+    @param _currency The currency that this terminal's token adheres to for price feeds.
     @param _operatorStore A contract storing operator assignments.
     @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
     @param _directory A contract storing directories of terminals and controllers for each project.
@@ -224,6 +227,8 @@ contract JBETHPaymentTerminal is
     @param _owner The address that will own this contract.
   */
   constructor(
+    IERC20 _token,
+    uint256 _currency,
     IJBOperatorStore _operatorStore,
     IJBProjects _projects,
     IJBDirectory _directory,
@@ -231,6 +236,8 @@ contract JBETHPaymentTerminal is
     JBPaymentTerminalStore _store,
     address _owner
   ) JBOperatable(_operatorStore) {
+    token = address(_token);
+    jbCurrency = _currency;
     projects = _projects;
     directory = _directory;
     splitsStore = _splitsStore;
@@ -262,7 +269,7 @@ contract JBETHPaymentTerminal is
     @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
   */
   function pay(
-    uint256,
+    uint256 _amount,
     uint256 _projectId,
     address _beneficiary,
     uint256 _minReturnedTokens,
@@ -270,9 +277,17 @@ contract JBETHPaymentTerminal is
     string calldata _memo,
     bytes calldata _delegateMetadata
   ) external payable override nonReentrant isTerminalOfProject(_projectId) {
+    // ETH shouldn't be sent.
+    if (msg.value > 0) {
+      revert WTF_U_DOIN();
+    }
+
+    // Transfer tokens to this terminal from the msg sender.
+    IERC20(token).transferFrom(msg.sender, address(this), _amount);
+
     return
       _pay(
-        msg.value,
+        _amount,
         msg.sender,
         _projectId,
         _beneficiary,
@@ -296,13 +311,13 @@ contract JBETHPaymentTerminal is
     @param _projectId The ID of the project having its payouts distributed.
     @param _amount The amount being distributed.
     @param _currency The expected currency of the amount being distributed. Must match the project's current funding cycle's currency.
-    @param _minReturnedAmount The minimum number of tokens that the amount should be valued at.
+    @param _minReturnedWei The minimum number of wei that the amount should be valued at.
   */
   function distributePayoutsOf(
     uint256 _projectId,
     uint256 _amount,
     uint256 _currency,
-    uint256 _minReturnedAmount,
+    uint256 _minReturnedWei,
     string memory _memo
   ) external override nonReentrant {
     // Record the distribution.
@@ -310,7 +325,7 @@ contract JBETHPaymentTerminal is
       _projectId,
       _amount,
       _currency,
-      _minReturnedAmount
+      _minReturnedWei
     );
 
     // Get a reference to the project owner, which will receive tokens from paying the platform fee
@@ -354,7 +369,8 @@ contract JBETHPaymentTerminal is
 
       // Transfer any remaining balance to the project owner.
       if (_leftoverDistributionAmount > 0)
-        Address.sendValue(
+        IERC20(token).transferFrom(
+          address(this),
           _projectOwner,
           _leftoverDistributionAmount - _getFeeAmount(_leftoverDistributionAmount, _feeDiscount)
         );
@@ -389,7 +405,7 @@ contract JBETHPaymentTerminal is
     uint256 _projectId,
     uint256 _amount,
     uint256 _currency,
-    uint256 _minReturnedAmount,
+    uint256 _minReturnedWei,
     address payable _beneficiary
   )
     external
@@ -402,7 +418,7 @@ contract JBETHPaymentTerminal is
       _projectId,
       _amount,
       _currency,
-      _minReturnedAmount
+      _minReturnedWei
     );
 
     // Get a reference to the project owner, which will receive tokens from paying the platform fee
@@ -417,7 +433,7 @@ contract JBETHPaymentTerminal is
       : _takeFeeFrom(_projectId, _fundingCycle, _withdrawnAmount, _projectOwner, _feeDiscount);
 
     // Transfer any remaining balance to the project owner.
-    Address.sendValue(_beneficiary, _withdrawnAmount - _feeAmount);
+    IERC20(token).transferFrom(address(this), _beneficiary, _withdrawnAmount - _feeAmount);
 
     emit UseAllowance(
       _fundingCycle.configuration,
@@ -441,7 +457,7 @@ contract JBETHPaymentTerminal is
     @param _holder The account to redeem tokens for.
     @param _projectId The ID of the project to which the tokens being redeemed belong.
     @param _tokenCount The number of tokens to redeem.
-    @param _minReturnedAmount The minimum amount of tokens expected in return.
+    @param _minReturnedWei The minimum amount of Wei expected in return.
     @param _beneficiary The address to send the ETH to. Send the address this contract to burn the count.
     @param _memo A memo to pass along to the emitted event.
     @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
@@ -452,7 +468,7 @@ contract JBETHPaymentTerminal is
     address _holder,
     uint256 _projectId,
     uint256 _tokenCount,
-    uint256 _minReturnedAmount,
+    uint256 _minReturnedWei,
     address payable _beneficiary,
     string memory _memo,
     bytes memory _delegateMetadata
@@ -476,14 +492,14 @@ contract JBETHPaymentTerminal is
       _holder,
       _projectId,
       _tokenCount,
-      _minReturnedAmount,
+      _minReturnedWei,
       _beneficiary,
       _memo,
       _delegateMetadata
     );
 
     // Send the claimed funds to the beneficiary.
-    if (reclaimAmount > 0) Address.sendValue(_beneficiary, reclaimAmount);
+    if (reclaimAmount > 0) IERC20(token).transferFrom(address(this), _beneficiary, reclaimAmount);
 
     emit RedeemTokens(
       _fundingCycle.configuration,
@@ -522,13 +538,13 @@ contract JBETHPaymentTerminal is
     // Record the migration in the store.
     uint256 _balance = store.recordMigration(_projectId);
 
-    if (_balance > 0)
+    if (_balance > 0) {
+      // Approve the terminal being migrated to pulling tokens from this terminal.
+      IERC20(token).approve(address(_to), _balance);
+
       // Withdraw the balance to transfer to the new terminal;
-      _to.addToBalanceOf{value: _balance}(
-        0, // ignored since ETH is sent in msg.value
-        _projectId,
-        ''
-      );
+      _to.addToBalanceOf(_balance, _projectId, '');
+    }
 
     emit Migrate(_projectId, _to, _balance, msg.sender);
   }
@@ -537,21 +553,22 @@ contract JBETHPaymentTerminal is
     @notice
     Receives funds belonging to the specified project.
 
-    @dev
-    The msg.value is the amount being added in wei. The _amount param is ignored.
-
+    @param _amount The amount of tokens to add.
     @param _projectId The ID of the project to which the funds received belong.
     @param _memo A memo to pass along to the emitted event.
   */
   function addToBalanceOf(
-    uint256,
+    uint256 _amount,
     uint256 _projectId,
     string memory _memo
   ) external payable override nonReentrant isTerminalOfProject(_projectId) {
     // Amount must be greater than 0.
-    if (msg.value == 0) {
+    if (_amount == 0) {
       revert ZERO_VALUE_SENT();
     }
+
+    // Transfer tokens to this terminal from the msg sender.
+    IERC20(token).transferFrom(msg.sender, address(this), _amount);
 
     // Record the added funds.
     store.recordAddedBalanceFor(_projectId, msg.value);
@@ -765,7 +782,7 @@ contract JBETHPaymentTerminal is
           feeEligibleDistributionAmount += _payoutAmount;
 
           // Otherwise, send the funds directly to the beneficiary.
-          Address.sendValue(_split.beneficiary, _netPayoutAmount);
+          IERC20(token).transferFrom(address(this), _split.beneficiary, _netPayoutAmount);
         }
 
         // Subtract from the amount to be sent to the beneficiary.
@@ -820,17 +837,13 @@ contract JBETHPaymentTerminal is
     IJBTerminal _terminal = directory.primaryTerminalOf(1, token);
 
     // When processing the admin fee, save gas if the admin is using this contract as its terminal.
-    _terminal == this
-      ? _pay(_amount, address(this), 1, _beneficiary, 0, false, '', bytes('')) // Use the local pay call.
-      : _terminal.pay{value: _amount}(
-        0, // ignored,
-        1,
-        _beneficiary,
-        0,
-        false,
-        '',
-        bytes('')
-      ); // Use the external pay call of the correct terminal.
+    if (_terminal == this) {
+      _pay(_amount, address(this), 1, _beneficiary, 0, false, '', bytes('')); // Use the local pay call.
+    } else {
+      // Allow the terminal receiving the fee payment to pull tokens from this terminal.
+      IERC20(token).approve(address(_terminal), _amount);
+      _terminal.pay(_amount, 1, _beneficiary, 0, false, '', bytes('')); // Use the external pay call of the correct terminal.
+    }
   }
 
   /**

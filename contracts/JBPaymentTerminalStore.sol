@@ -342,7 +342,7 @@ contract JBPaymentTerminalStore {
     @param _projectId The ID of the project that is having funds distributed.
     @param _amount The amount being distributed as a fixed point number.
     @param _currency The expected currency of the `_amount` being tapped. This must match the project's current funding cycle's currency.
-    @param _minReturnedWei The minimum number of wei that should be distributed.
+    @param _minReturnedAmount The minimum number of tokens that should be distributed.
 
     @return fundingCycle The funding cycle during which the withdrawal was made.
     @return distributedAmount The amount distribution in wei.
@@ -351,7 +351,7 @@ contract JBPaymentTerminalStore {
     uint256 _projectId,
     uint256 _amount,
     uint256 _currency,
-    uint256 _minReturnedWei
+    uint256 _minReturnedAmount
   )
     external
     onlyAssociatedPaymentTerminal
@@ -403,7 +403,7 @@ contract JBPaymentTerminalStore {
     }
 
     // The amount being distributed must be at least as much as was expected.
-    if (_minReturnedWei > distributedAmount) {
+    if (_minReturnedAmount > distributedAmount) {
       revert INADEQUATE_WITHDRAW_AMOUNT();
     }
 
@@ -424,7 +424,7 @@ contract JBPaymentTerminalStore {
     @param _projectId The ID of the project to use the allowance of.
     @param _amount The amount of the allowance to use as a fixed point number.
     @param _currency The currency of the `_amount` value. Must match the funding cycle's currency.
-    @param _minReturnedWei The amount of wei that is expected to be withdrawn.
+    @param _minReturnedAmount The amount of tokens that is expected to be withdrawn.
 
     @return fundingCycle The funding cycle during which the withdrawal is being made.
     @return withdrawnAmount The amount withdrawn in wei.
@@ -433,7 +433,7 @@ contract JBPaymentTerminalStore {
     uint256 _projectId,
     uint256 _amount,
     uint256 _currency,
-    uint256 _minReturnedWei
+    uint256 _minReturnedAmount
   )
     external
     onlyAssociatedPaymentTerminal
@@ -481,7 +481,7 @@ contract JBPaymentTerminalStore {
     }
 
     // The amount being withdrawn must be at least as much as was expected.
-    if (_minReturnedWei > withdrawnAmount) {
+    if (_minReturnedAmount > withdrawnAmount) {
       revert INADEQUATE_WITHDRAW_AMOUNT();
     }
 
@@ -535,7 +535,7 @@ contract JBPaymentTerminalStore {
     @param _holder The account that is having its tokens redeemed.
     @param _projectId The ID of the project to which the tokens being redeemed belong.
     @param _tokenCount The number of tokens to redeem.
-    @param _minReturnedWei The minimum amount of wei expected in return.
+    @param _minReturnedAmount The minimum amount of tokens expected in return.
     @param _beneficiary The address that will benefit from the claimed amount.
     @param _memo A memo to pass along to the emitted event.
     @param _delegateMetadata Bytes to send along to the delegate, if one is used.
@@ -548,7 +548,7 @@ contract JBPaymentTerminalStore {
     address _holder,
     uint256 _projectId,
     uint256 _tokenCount,
-    uint256 _minReturnedWei,
+    uint256 _minReturnedAmount,
     address payable _beneficiary,
     string memory _memo,
     bytes memory _delegateMetadata
@@ -601,7 +601,7 @@ contract JBPaymentTerminalStore {
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
     }
     // The amount being claimed must be at least as much as was expected.
-    if (reclaimAmount < _minReturnedWei) {
+    if (reclaimAmount < _minReturnedAmount) {
       revert INADEQUATE_CLAIM_AMOUNT();
     }
 
