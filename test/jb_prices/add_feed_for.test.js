@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { compilerOutput } from '@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json';
+// import { compilerOutput } from '@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json';
+import jbChainlinkPriceFeed from '../../artifacts/contracts/JBChainlinkPriceFeed.sol/JBChainlinkPriceFeed.json';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import errors from '../helpers/errors.json';
 
@@ -8,7 +9,7 @@ describe('JBPrices::addFeed(...)', function () {
   let deployer;
   let addrs;
 
-  let aggregatorV3Contract;
+  let priceFeed;
 
   let jbPricesFactory;
   let jbPrices;
@@ -16,7 +17,7 @@ describe('JBPrices::addFeed(...)', function () {
   beforeEach(async function () {
     [deployer, ...addrs] = await ethers.getSigners();
 
-    aggregatorV3Contract = await deployMockContract(deployer, compilerOutput.abi);
+    priceFeed = await deployMockContract(deployer, jbChainlinkPriceFeed.abi);
 
     jbPricesFactory = await ethers.getContractFactory('JBPrices');
     jbPrices = await jbPricesFactory.deploy(deployer.address);
@@ -29,23 +30,23 @@ describe('JBPrices::addFeed(...)', function () {
     // Add a feed for an arbitrary currency.
     let tx = await jbPrices
       .connect(deployer)
-      .addFeedFor(currency, base, aggregatorV3Contract.address);
+      .addFeedFor(currency, base, priceFeed.address);
 
     // Expect an event to have been emitted.
     await expect(tx)
       .to.emit(jbPrices, 'AddFeed')
-      .withArgs(currency, base, aggregatorV3Contract.address);
+      .withArgs(currency, base, priceFeed.address);
 
     // Get the stored feed.
     const storedFeed = await jbPrices.feedFor(currency, base);
 
     // Expect the stored feed values to match.
-    expect(storedFeed).to.equal(aggregatorV3Contract.address);
+    expect(storedFeed).to.equal(priceFeed.address);
 
     // Try to add the same feed again. It should fail with an error indicating that it already
     // exists.
     await expect(
-      jbPrices.connect(deployer).addFeedFor(currency, base, aggregatorV3Contract.address),
+      jbPrices.connect(deployer).addFeedFor(currency, base, priceFeed.address),
     ).to.be.revertedWith(errors.PRICE_FEED_ALREADY_EXISTS);
   });
 
@@ -53,7 +54,7 @@ describe('JBPrices::addFeed(...)', function () {
     await expect(
       jbPrices
         .connect(addrs[0]) // Arbitrary address.
-        .addFeedFor(/*currency=*/ 1, /*base=*/ 2, aggregatorV3Contract.address),
+        .addFeedFor(/*currency=*/ 1, /*base=*/ 2, priceFeed.address),
     ).to.be.revertedWith('Ownable: caller is not the owner');
   });
 });

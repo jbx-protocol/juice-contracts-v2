@@ -43,14 +43,14 @@ contract JBPrices is IJBPrices, Ownable {
   //*********************************************************************//
 
   /** 
-      @notice 
-      Gets the current price of the provided currency in terms of the provided base currency.
-      
-      @param _currency The currency to get a price for.
-      @param _base The currency to base the price on.
-      
-      @return The price of the currency in terms of the base, with 18 decimals.
-    */
+    @notice 
+    Gets the current price of the provided currency in terms of the provided base currency.
+    
+    @param _currency The currency to get a price for.
+    @param _base The currency to base the price on.
+    
+    @return The price of the currency in terms of the base, with 18 decimals.
+  */
   function priceFor(uint256 _currency, uint256 _base) external view override returns (uint256) {
     // If the currency is the base, return 1 since they are priced the same.
     if (_currency == _base) return 10**TARGET_DECIMALS;
