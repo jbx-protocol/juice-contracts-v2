@@ -63,7 +63,7 @@ contract JBPrices is IJBPrices, Ownable {
       revert PRICE_FEED_NOT_FOUND();
     }
 
-    // Return the price.
+    // Get the price.
     return _feed.getPrice(TARGET_DECIMALS);
   }
 
