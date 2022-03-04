@@ -10,7 +10,7 @@ contract JB3DayReconfigurationBufferBallot is IJBFundingCycleBallot {
   // --- public stored properties --- //
 
   /// @notice The number of seconds that must pass for a funding cycle reconfiguration to become active.
-  uint256 public constant DELAY = 259200; // 3 days
+  uint256 constant DELAY = 259200; // 3 days
 
   // --- external views --- //
 
@@ -20,7 +20,7 @@ contract JB3DayReconfigurationBufferBallot is IJBFundingCycleBallot {
 
     @dev A ballot should not be considered final until the duration has passed.
 
-    @return The durection in seconds.
+    @return The duration in seconds.
   */
   function duration() external pure override returns (uint256) {
     return DELAY;
