@@ -51,7 +51,6 @@ contract JBETHPaymentTerminal is JBPaymentTerminal {
     Address.sendValue(_to, _amount);
   }
 
-  function _beforeTransferTo(address _to, uint256 _amount) internal override {
-    // nothing to do. shouldn't ever get called.
-  }
+  // solhint-disable-next-line no-empty-blocks
+  function _beforeTransferTo(address _to, uint256 _amount) internal override {}
 }
