@@ -158,6 +158,8 @@ abstract contract JBPaymentTerminal is
   */
   uint256 public override baseWeightCurrency;
 
+  uint256 public payoutSplitsGroup;
+
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
   //*********************************************************************//
@@ -230,6 +232,7 @@ abstract contract JBPaymentTerminal is
     @param _token The token that this terminal manages.
     @param _currency The currency that this terminal's token adheres to for price feeds.
     @param _baseWeightCurrency The currency to base token issuance on.
+    @param _payoutSplitsGroup The group that denotes payout splits from this terminal in the splits store.
     @param _operatorStore A contract storing operator assignments.
     @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
     @param _directory A contract storing directories of terminals and controllers for each project.
@@ -241,6 +244,7 @@ abstract contract JBPaymentTerminal is
     address _token,
     uint256 _currency,
     uint256 _baseWeightCurrency,
+    uint256 _payoutSplitsGroup,
     IJBOperatorStore _operatorStore,
     IJBProjects _projects,
     IJBDirectory _directory,
@@ -250,6 +254,7 @@ abstract contract JBPaymentTerminal is
   ) JBOperatable(_operatorStore) {
     token = _token;
     baseWeightCurrency = _baseWeightCurrency;
+    payoutSplitsGroup = _payoutSplitsGroup;
     currency = _currency;
     projects = _projects;
     directory = _directory;
@@ -707,7 +712,7 @@ abstract contract JBPaymentTerminal is
     JBSplit[] memory _splits = splitsStore.splitsOf(
       _projectId,
       _fundingCycle.configuration,
-      JBSplitsGroups.ETH_PAYOUT
+      payoutSplitsGroup
     );
 
     //Transfer between all splits.
@@ -737,7 +742,7 @@ abstract contract JBPaymentTerminal is
           _split.allocator.allocate{value: _netPayoutAmount}(
             _netPayoutAmount,
             _projectId,
-            JBSplitsGroups.ETH_PAYOUT,
+            payoutSplitsGroup,
             _split
           );
           // Otherwise, if a project is specified, make a payment to it.
