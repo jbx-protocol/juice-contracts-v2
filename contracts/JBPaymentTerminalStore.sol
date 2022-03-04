@@ -817,8 +817,6 @@ contract JBPaymentTerminalStore {
     return _balanceOf <= _ethDistributionRemaining ? 0 : _balanceOf - _ethDistributionRemaining;
   }
 
-  function currencyBalanceOf(uint256 _projectId, uint256 _currency) external {}
-
   /**
     @notice
     Gets the amount that is overflowing across all terminals in terms of this store's terminal's currency when measured from the specified funding cycle.
