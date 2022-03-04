@@ -30,7 +30,10 @@ contract JBERC20PaymentTerminal is JBPaymentTerminal {
       _store,
       _owner
     )
-  {}
+  // solhint-disable-next-line no-empty-blocks
+  {
+
+  }
 
   function _transferFrom(
     address _from,
