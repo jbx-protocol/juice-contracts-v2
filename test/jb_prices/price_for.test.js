@@ -1,12 +1,11 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-// import { compilerOutput } from '@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json';
 import jbChainlinkPriceFeed from '../../artifacts/contracts/JBChainlinkPriceFeed.sol/JBChainlinkPriceFeed.json';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { BigNumber } from '@ethersproject/bignumber';
 import errors from '../helpers/errors.json';
 
-describe.only('JBPrices::priceFor(...)', function () {
+describe('JBPrices::priceFor(...)', function () {
   let deployer;
   let addrs;
 

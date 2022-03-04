@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-// import { compilerOutput } from '@chainlink/contracts/abi/v0.6/AggregatorV3Interface.json';
 import jbChainlinkPriceFeed from '../../artifacts/contracts/JBChainlinkPriceFeed.sol/JBChainlinkPriceFeed.json';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import errors from '../helpers/errors.json';
