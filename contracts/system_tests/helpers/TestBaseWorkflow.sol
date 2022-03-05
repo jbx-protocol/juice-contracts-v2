@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './DSTest.sol';
 import './hevm.sol';
+import '../../../lib/ds-test/src/test.sol';
 
 import '../../JBController.sol';
 import '../../JBDirectory.sol';
@@ -122,6 +122,9 @@ contract TestBaseWorkflow is DSTest {
 
   // Deploys and initializes contracts for testing.
   function setUp() public virtual {
+    // Labels
+    evm.label(_multisig, 'multisig');
+
     // JBOperatorStore
     _jbOperatorStore = new JBOperatorStore();
     // JBProjects

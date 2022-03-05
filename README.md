@@ -22,20 +22,33 @@ To get set up:
 
 1. Install [Foundry](https://github.com/gakonst/foundry).
 
-2. Build the contracts:
+2. Install external lib(s)
+
+```bash
+git submodule update --init
+```
+
+3. Build the contracts:
 
 ```bash
 forge build
 ```
 
-3. Run tests:
+4. Run tests:
 
 ```bash
-forge test
+forge test -vvv
+```
+
+5. Update Foundry periodically:
+
+```bash
+foundryup
 ```
 
 Resources:
-* [Forge guide](https://onbjerg.github.io/foundry-book/forge)
+
+- [Forge guide](https://onbjerg.github.io/foundry-book/forge)
 
 ### Coverage
 
@@ -46,8 +59,9 @@ node --require esm ./node_modules/.bin/hardhat coverage --network hardhat
 ```
 
 A few notes:
-* Hardhat doesn't support [esm](https://nodejs.org/api/esm.html) yet, hence running manually with node.
-* We are currently using a forked version of [solidity-coverage](https://www.npmjs.com/package/solidity-coverage) that includes optimizer settings. Ideally we will move to the maintained version after this is fixed on their end.
+
+- Hardhat doesn't support [esm](https://nodejs.org/api/esm.html) yet, hence running manually with node.
+- We are currently using a forked version of [solidity-coverage](https://www.npmjs.com/package/solidity-coverage) that includes optimizer settings. Ideally we will move to the maintained version after this is fixed on their end.
 
 ## Deploy
 
