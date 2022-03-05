@@ -108,7 +108,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
         /* beneficiary */ beneficiary.address,
         /* memo */ '',
         /* preferClaimedTokens */ false,
-        /* reservedRate */ reservedRate,
+        /* useReservedRate */ true,
       )
       .returns(WEIGHTED_AMOUNT);
 
@@ -194,7 +194,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
         /* beneficiary */ beneficiary.address,
         /* memo */ '',
         /* preferClaimedTokens */ false,
-        /* reservedRate */ reservedRate,
+        /* useReservedRate */ true,
       )
       .returns(WEIGHTED_AMOUNT);
 
@@ -474,7 +474,7 @@ describe('JBETHPaymentTerminalStore::recordPaymentFrom(...)', function () {
         /* beneficiary */ beneficiary.address,
         /* memo */ '',
         /* preferClaimedTokens */ false,
-        /* reservedRate */ reservedRate,
+        /* useReservedRate */ true,
       )
       .returns(WEIGHTED_AMOUNT);
 

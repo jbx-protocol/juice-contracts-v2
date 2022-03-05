@@ -304,7 +304,7 @@ contract JBETHPaymentTerminalStore {
           address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
           '',
           (_preferClaimedTokensAndBeneficiary & 1) == 1,
-          fundingCycle.reservedRate()
+          true
         );
       }
     }
@@ -474,7 +474,7 @@ contract JBETHPaymentTerminalStore {
       ? _amount
       : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, JBCurrencies.ETH));
 
-    // The project balance should be bigger than the amount withdrawn from the overflow 
+    // The project balance should be bigger than the amount withdrawn from the overflow
     if (balanceOf[_projectId] < withdrawnAmount) {
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
     }
