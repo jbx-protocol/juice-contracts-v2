@@ -158,7 +158,11 @@ abstract contract JBPaymentTerminal is
   */
   uint256 public override baseWeightCurrency;
 
-  uint256 public payoutSplitsGroup;
+  /**
+    @notice
+    The group that payout splits coming from this terminal are identified by.
+  */
+  uint256 public override payoutSplitsGroup;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //

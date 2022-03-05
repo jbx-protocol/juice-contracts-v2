@@ -10,15 +10,17 @@ interface IJBTerminal {
 
   function baseWeightCurrency() external view returns (uint256);
 
+  function payoutSplitsGroup() external view returns (uint256);
+
   function balanceOf(uint256 _projectId) external view returns (uint256);
+
+  function delegate() external view returns (address);
 
   function remainingDistributionLimitOf(
     uint256 _projectId,
     uint256 _fundingCycleConfiguration,
     uint256 _fundingCycleNumber
   ) external view returns (uint256);
-
-  function delegate() external view returns (address);
 
   function pay(
     uint256 _amount,
