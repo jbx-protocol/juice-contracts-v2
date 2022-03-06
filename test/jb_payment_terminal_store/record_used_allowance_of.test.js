@@ -13,7 +13,7 @@ import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPric
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
+describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
   const PROJECT_ID = 2;
   const AMOUNT = ethers.FixedNumber.fromString('4398541.345');
   const WEIGHT = ethers.FixedNumber.fromString('900000000.23411');
@@ -33,10 +33,10 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     const CURRENCY_ETH = await jbCurrencies.ETH();
     const CURRENCY_USD = await jbCurrencies.USD();
 
-    const jbEthPaymentTerminalStoreFactory = await ethers.getContractFactory(
-      'JBETHPaymentTerminalStore',
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
+      'JBPaymentTerminalStore',
     );
-    const jbEthPaymentTerminalStore = await jbEthPaymentTerminalStoreFactory.deploy(
+    const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbPrices.address,
       mockJbProjects.address,
       mockJbDirectory.address,
@@ -51,7 +51,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     /* Common mocks */
 
     // Set terminal address
-    await jbEthPaymentTerminalStore.claimFor(terminal.address);
+    await JBPaymentTerminalStore.claimFor(terminal.address);
 
     // Set controller address
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
@@ -74,7 +74,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       addr,
       mockJbController,
       mockJbPrices,
-      jbEthPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
       CURRENCY_USD,
@@ -86,7 +86,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       terminal,
       mockJbController,
       mockJbPrices,
-      jbEthPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
       CURRENCY_USD,
@@ -96,7 +96,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     const amountInWei = AMOUNT.divUnsafe(usdToEthPrice);
 
     // Add to balance beforehand
-    await jbEthPaymentTerminalStore
+    await JBPaymentTerminalStore
       .connect(terminal)
       .recordAddedBalanceFor(PROJECT_ID, amountInWei);
 
@@ -123,31 +123,31 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await mockJbPrices.mock.priceFor.withArgs(CURRENCY_USD, CURRENCY_ETH).returns(usdToEthPrice);
 
     // Pre-checks
-    expect(await jbEthPaymentTerminalStore.usedOverflowAllowanceOf(PROJECT_ID, timestamp)).to.equal(
+    expect(await JBPaymentTerminalStore.usedOverflowAllowanceOf(PROJECT_ID, timestamp)).to.equal(
       0,
     );
-    expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(amountInWei);
+    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(amountInWei);
 
     // Record the used allowance
-    await jbEthPaymentTerminalStore
+    await JBPaymentTerminalStore
       .connect(terminal)
       .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD, /* minReturnedWei */ amountInWei);
 
     // Post-checks
-    expect(await jbEthPaymentTerminalStore.usedOverflowAllowanceOf(PROJECT_ID, timestamp)).to.equal(
+    expect(await JBPaymentTerminalStore.usedOverflowAllowanceOf(PROJECT_ID, timestamp)).to.equal(
       AMOUNT,
     );
-    expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(0);
+    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(0);
   });
 
   /* Sad path tests */
 
   it(`Can't record allowance without terminal access`, async function () {
-    const { addr, jbEthPaymentTerminalStore, CURRENCY_ETH } = await setup();
+    const { addr, JBPaymentTerminalStore, CURRENCY_ETH } = await setup();
 
     // Record the used allowance
     await expect(
-      jbEthPaymentTerminalStore
+      JBPaymentTerminalStore
         .connect(addr)
         .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
     ).to.be.revertedWith(errors.UNAUTHORIZED);
@@ -157,7 +157,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     const {
       terminal,
       mockJbController,
-      jbEthPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
       CURRENCY_USD,
@@ -173,7 +173,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
 
     // Record the used allowance
     await expect(
-      jbEthPaymentTerminalStore
+      JBPaymentTerminalStore
         .connect(terminal)
         .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
     ).to.be.revertedWith(errors.CURRENCY_MISMATCH);
@@ -184,13 +184,13 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       terminal,
       mockJbController,
       mockJbPrices,
-      jbEthPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     } = await setup();
 
     // Add to balance beforehand
-    await jbEthPaymentTerminalStore.connect(terminal).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
+    await JBPaymentTerminalStore.connect(terminal).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
 
     await mockJbController.mock.overflowAllowanceCurrencyOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
@@ -207,7 +207,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
 
     // Record the used allowance
     await expect(
-      jbEthPaymentTerminalStore
+      JBPaymentTerminalStore
         .connect(terminal)
         .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
     ).to.be.revertedWith(errors.INADEQUATE_CONTROLLER_ALLOWANCE);
@@ -218,7 +218,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       terminal,
       mockJbController,
       mockJbPrices,
-      jbEthPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     } = await setup();
@@ -247,7 +247,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     // Note: We didn't add an initial balance to the store
     // Record the used allowance
     await expect(
-      jbEthPaymentTerminalStore
+      JBPaymentTerminalStore
         .connect(terminal)
         .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
@@ -258,7 +258,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       terminal,
       mockJbController,
       mockJbPrices,
-      jbEthPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     } = await setup();
@@ -266,7 +266,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     // Add to balance beforehand
     const smallBalance = AMOUNT.subUnsafe(ethers.FixedNumber.from(1));
 
-    await jbEthPaymentTerminalStore.connect(terminal).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
+    await JBPaymentTerminalStore.connect(terminal).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
 
     // Leave a small overflow
     await mockJbController.mock.distributionLimitOf
@@ -291,7 +291,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
 
     // Record the used allowance
     await expect(
-      jbEthPaymentTerminalStore
+      JBPaymentTerminalStore
         .connect(terminal)
         .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
@@ -302,12 +302,12 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       terminal,
       mockJbController,
       mockJbPrices,
-      jbEthPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     } = await setup();
 
-    await jbEthPaymentTerminalStore.connect(terminal).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
+    await JBPaymentTerminalStore.connect(terminal).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
 
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, terminal.address)
@@ -332,7 +332,7 @@ describe('JBETHPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     // Record the used allowance
     const minReturnedWei = AMOUNT.addUnsafe(ethers.FixedNumber.from(1));
     await expect(
-      jbEthPaymentTerminalStore.connect(terminal).recordUsedAllowanceOf(
+      JBPaymentTerminalStore.connect(terminal).recordUsedAllowanceOf(
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,

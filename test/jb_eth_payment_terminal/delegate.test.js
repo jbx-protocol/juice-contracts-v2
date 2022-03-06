@@ -4,7 +4,7 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
-import jbEthPaymentTerminalStore from '../../artifacts/contracts/JBETHPaymentTerminalStore.sol/JBETHPaymentTerminalStore.json';
+import jbPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalStore.sol/JBPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorStore.sol/IJBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
@@ -15,13 +15,13 @@ describe('JBETHPaymentTerminal::delegate(...)', function () {
 
     let [
       mockJbDirectory,
-      mockJbEthPaymentTerminalStore,
+      mockJbPaymentTerminalStore,
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
-      deployMockContract(deployer, jbEthPaymentTerminalStore.abi),
+      deployMockContract(deployer, jbPaymentTerminalStore.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
@@ -35,7 +35,7 @@ describe('JBETHPaymentTerminal::delegate(...)', function () {
       nonce: currentNonce + 1,
     });
 
-    await mockJbEthPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
+    await mockJbPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
 
     let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
@@ -44,19 +44,19 @@ describe('JBETHPaymentTerminal::delegate(...)', function () {
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
-        mockJbEthPaymentTerminalStore.address,
+        mockJBPaymentTerminalStore.address,
         terminalOwner.address,
       );
 
     return {
       jbEthPaymentTerminal,
-      mockJbEthPaymentTerminalStore,
+      mockJBPaymentTerminalStore,
     };
   }
 
   it('Should return the delegate store of the terminal', async function () {
-    const { jbEthPaymentTerminal, mockJbEthPaymentTerminalStore } = await setup();
+    const { jbEthPaymentTerminal, mockJBPaymentTerminalStore } = await setup();
 
-    expect(await jbEthPaymentTerminal.delegate()).to.equal(mockJbEthPaymentTerminalStore.address);
+    expect(await jbEthPaymentTerminal.delegate()).to.equal(mockJBPaymentTerminalStore.address);
   });
 });

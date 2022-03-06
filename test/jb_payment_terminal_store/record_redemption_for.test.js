@@ -15,7 +15,7 @@ import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPric
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
+describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
   const PROJECT_ID = 2;
   const AMOUNT = ethers.FixedNumber.fromString('4398541.345');
   const WEIGHT = ethers.FixedNumber.fromString('900000000.23411');
@@ -39,10 +39,10 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
     const jbCurrencies = await jbCurrenciesFactory.deploy();
     const CURRENCY_ETH = await jbCurrencies.ETH();
 
-    const jbEthPaymentTerminalStoreFactory = await ethers.getContractFactory(
-      'JBETHPaymentTerminalStore',
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
+      'JBPaymentTerminalStore',
     );
-    const jbEthPaymentTerminalStore = await jbEthPaymentTerminalStoreFactory.deploy(
+    const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbPrices.address,
       mockJbProjects.address,
       mockJbDirectory.address,
@@ -57,7 +57,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
     /* Common mocks */
 
     // Set terminal address
-    await jbEthPaymentTerminalStore.claimFor(terminal.address);
+    await JBPaymentTerminalStore.claimFor(terminal.address);
 
     return {
       terminal,
@@ -69,7 +69,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbFundingCycleDataSource,
       mockJbTokenStore,
       mockJbRedemptionDelegate,
-      jbEthPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     };
@@ -86,7 +86,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbTokenStore,
-      jbEthPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     } = await setup();
@@ -137,14 +137,14 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     // Add to balance beforehand to have sufficient overflow
     const startingBalance = AMOUNT.mulUnsafe(ethers.FixedNumber.from(2));
-    await jbEthPaymentTerminalStore
+    await JBPaymentTerminalStore
       .connect(terminal)
       .recordAddedBalanceFor(PROJECT_ID, startingBalance);
 
-    expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
+    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
 
     // Record redemption
-    await jbEthPaymentTerminalStore
+    await JBPaymentTerminalStore
       .connect(terminal)
       .recordRedemptionFor(
         /* holder */ holder.address,
@@ -157,7 +157,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
       );
 
     // Expect recorded balance to decrease by redeemed amount
-    expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(
+    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(
       startingBalance.subUnsafe(AMOUNT),
     );
   });
@@ -171,7 +171,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbTokenStore,
-      jbEthPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     } = await setup();
@@ -220,10 +220,10 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
     // No balance.
     const startingBalance = 0;
 
-    expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
+    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
 
     // Record redemption
-    await jbEthPaymentTerminalStore
+    await JBPaymentTerminalStore
       .connect(terminal)
       .recordRedemptionFor(
         /* holder */ holder.address,
@@ -236,7 +236,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
       );
 
     // Expect recorded balance to not have changed
-    expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
+    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
   });
 
   it('Should record redemption without a claim amount', async function () {
@@ -248,7 +248,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbTokenStore,
-      jbEthPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     } = await setup();
@@ -300,10 +300,10 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
     // No balance
     const startingBalance = 0;
 
-    expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
+    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
 
     // Record redemption
-    await jbEthPaymentTerminalStore
+    await JBPaymentTerminalStore
       .connect(terminal)
       .recordRedemptionFor(
         /* holder */ holder.address,
@@ -316,7 +316,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
       );
 
     // Expect recorded balance to not have changed
-    expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
+    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
   });
 
   it('Should record redemption with a datasource and emit event', async function () {
@@ -330,7 +330,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTokenStore,
       mockJbFundingCycleDataSource,
       mockJbRedemptionDelegate,
-      jbEthPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
     } = await setup();
 
@@ -399,14 +399,14 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     // Add to balance beforehand to have sufficient overflow
     const startingBalance = AMOUNT.mulUnsafe(ethers.FixedNumber.from(2));
-    await jbEthPaymentTerminalStore
+    await JBPaymentTerminalStore
       .connect(terminal)
       .recordAddedBalanceFor(PROJECT_ID, startingBalance);
 
-    expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
+    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
 
     // Record redemption
-    const tx = await jbEthPaymentTerminalStore
+    const tx = await JBPaymentTerminalStore
       .connect(terminal)
       .recordRedemptionFor(
         /* holder */ holder.address,
@@ -419,7 +419,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
       );
 
     await expect(tx)
-      .to.emit(jbEthPaymentTerminalStore, 'DelegateDidRedeem')
+      .to.emit(JBPaymentTerminalStore, 'DelegateDidRedeem')
       .withArgs(mockJbRedemptionDelegate.address, [
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
@@ -431,7 +431,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
       ]);
 
     // Expect recorded balance to decrease by redeemed amount
-    expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(
+    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(
       startingBalance.subUnsafe(AMOUNT),
     );
   });
@@ -439,11 +439,11 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
   /* Sad path tests */
 
   it(`Can't record redemption without terminal access`, async function () {
-    const { holder, beneficiary, jbEthPaymentTerminalStore } = await setup();
+    const { holder, beneficiary, JBPaymentTerminalStore } = await setup();
 
     // Record redemption
     await expect(
-      jbEthPaymentTerminalStore
+      JBPaymentTerminalStore
         .connect(holder)
         .recordRedemptionFor(
           /* holder */ holder.address,
@@ -458,14 +458,14 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
   });
 
   it(`Can't record redemption if token total balance < tokenCount`, async function () {
-    const { terminal, holder, beneficiary, mockJbTokenStore, jbEthPaymentTerminalStore } =
+    const { terminal, holder, beneficiary, mockJbTokenStore, JBPaymentTerminalStore } =
       await setup();
 
     await mockJbTokenStore.mock.balanceOf.withArgs(holder.address, PROJECT_ID).returns(0); // Token total balance set to 0
 
     // Record redemption
     await expect(
-      jbEthPaymentTerminalStore
+      JBPaymentTerminalStore
         .connect(terminal)
         .recordRedemptionFor(
           /* holder */ holder.address,
@@ -487,7 +487,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbFundingCycleStore,
       mockJbTokenStore,
       mockJbFundingCycleDataSource,
-      jbEthPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
     } = await setup();
 
@@ -521,7 +521,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     // Record redemption
     await expect(
-      jbEthPaymentTerminalStore
+      JBPaymentTerminalStore
         .connect(terminal)
         .recordRedemptionFor(
           /* holder */ holder.address,
@@ -544,7 +544,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTokenStore,
       mockJbFundingCycleDataSource,
       mockJbRedemptionDelegate,
-      jbEthPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
     } = await setup();
 
@@ -595,7 +595,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
     // Note: The store has 0 balance because we haven't added anything to it
     // Record redemption
     await expect(
-      jbEthPaymentTerminalStore
+      JBPaymentTerminalStore
         .connect(terminal)
         .recordRedemptionFor(
           /* holder */ holder.address,
@@ -618,7 +618,7 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTokenStore,
       mockJbFundingCycleDataSource,
       mockJbRedemptionDelegate,
-      jbEthPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
     } = await setup();
 
@@ -668,13 +668,13 @@ describe('JBETHPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     // Add to balance beforehand to have sufficient overflow
     const startingBalance = AMOUNT.mulUnsafe(ethers.FixedNumber.from(2));
-    await jbEthPaymentTerminalStore
+    await JBPaymentTerminalStore
       .connect(terminal)
       .recordAddedBalanceFor(PROJECT_ID, startingBalance);
 
     // Record redemption
     await expect(
-      jbEthPaymentTerminalStore.connect(terminal).recordRedemptionFor(
+      JBPaymentTerminalStore.connect(terminal).recordRedemptionFor(
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
         /* tokenCount */ AMOUNT,

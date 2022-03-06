@@ -4,7 +4,7 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
-import jbEthPaymentTerminalStore from '../../artifacts/contracts/JBETHPaymentTerminalStore.sol/JBETHPaymentTerminalStore.json';
+import JBPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalStore.sol/JBPaymentTerminalStore.json';
 import jbFeeGauge from '../../artifacts/contracts/interfaces/IJBFeeGauge.sol/IJBFeeGauge.json';
 import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorStore.sol/IJBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
@@ -16,14 +16,14 @@ describe('JBETHPaymentTerminal::setFeeGauge(...)', function () {
 
     let [
       mockJbDirectory,
-      mockJbEthPaymentTerminalStore,
+      mockJBPaymentTerminalStore,
       mockJbFeeGauge,
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
-      deployMockContract(deployer, jbEthPaymentTerminalStore.abi),
+      deployMockContract(deployer, JBPaymentTerminalStore.abi),
       deployMockContract(deployer, jbFeeGauge.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
@@ -38,7 +38,7 @@ describe('JBETHPaymentTerminal::setFeeGauge(...)', function () {
       nonce: currentNonce + 1,
     });
 
-    await mockJbEthPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
+    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
 
     let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
@@ -47,7 +47,7 @@ describe('JBETHPaymentTerminal::setFeeGauge(...)', function () {
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
-        mockJbEthPaymentTerminalStore.address,
+        mockJBPaymentTerminalStore.address,
         terminalOwner.address,
       );
 

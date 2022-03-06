@@ -7,7 +7,7 @@ import errors from '../helpers/errors.json';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import JbEthPaymentTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
-import jbEthPaymentTerminalStore from '../../artifacts/contracts/JBETHPaymentTerminalStore.sol/JBETHPaymentTerminalStore.json';
+import jbPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalStore.sol/JBPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
@@ -39,14 +39,14 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
     let [
       mockJbDirectory,
       mockJbEthPaymentTerminal,
-      mockJbEthPaymentTerminalStore,
+      mockJbPaymentTerminalStore,
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
       deployMockContract(deployer, JbEthPaymentTerminal.abi),
-      deployMockContract(deployer, jbEthPaymentTerminalStore.abi),
+      deployMockContract(deployer, jbPaymentTerminalStore.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
@@ -60,7 +60,7 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
       nonce: currentNonce + 1,
     });
 
-    await mockJbEthPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
+    await mockJbPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
 
     let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
@@ -69,7 +69,7 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
-        mockJbEthPaymentTerminalStore.address,
+        mockJbPaymentTerminalStore.address,
         terminalOwner.address,
       );
 
@@ -89,7 +89,7 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
       .withArgs(PROJECT_ID, jbEthPaymentTerminal.address)
       .returns(true);
 
-    await mockJbEthPaymentTerminalStore.mock.recordDistributionFor
+    await mockJbPaymentTerminalStore.mock.recordDistributionFor
       .withArgs(PROJECT_ID, AMOUNT, CURRENCY, 0)
       .returns(
         {
@@ -108,7 +108,7 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
-    await mockJbEthPaymentTerminalStore.mock.recordAddedBalanceFor
+    await mockJbPaymentTerminalStore.mock.recordAddedBalanceFor
       .withArgs(PROJECT_ID, AMOUNT)
       .returns(fundingCycle);
 
@@ -125,7 +125,7 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
       jbEthPaymentTerminal,
       mockJbDirectory,
       mockJbEthPaymentTerminal,
-      mockJbEthPaymentTerminalStore,
+      mockJbPaymentTerminalStore,
       mockJbOperatorStore,
       mockJbSplitsStore,
       timestamp,
@@ -174,7 +174,7 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
       jbEthPaymentTerminal,
       timestamp,
       mockJbSplitsStore,
-      mockJbEthPaymentTerminalStore,
+      mockJbPaymentTerminalStore,
       fundingCycle,
     } = await setup();
     const splits = makeSplits({
@@ -190,7 +190,7 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
       .connect(caller)
       .distributePayoutsOf(PROJECT_ID, AMOUNT, ETH_PAYOUT_INDEX, MIN_TOKEN_REQUESTED, MEMO);
 
-    await mockJbEthPaymentTerminalStore.mock.recordAddedBalanceFor
+    await mockJbPaymentTerminalStore.mock.recordAddedBalanceFor
       .withArgs(PROJECT_ID, 1)
       .returns(fundingCycle);
 
@@ -214,7 +214,7 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
       jbEthPaymentTerminal,
       timestamp,
       mockJbSplitsStore,
-      mockJbEthPaymentTerminalStore,
+      mockJbPaymentTerminalStore,
       fundingCycle,
     } = await setup();
     const splits = makeSplits({
@@ -226,7 +226,7 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
       .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
       .returns(splits);
 
-    await mockJbEthPaymentTerminalStore.mock.recordDistributionFor
+    await mockJbPaymentTerminalStore.mock.recordDistributionFor
       .withArgs(PROJECT_ID, AMOUNT.div(2), CURRENCY, 0)
       .returns(
         {
@@ -251,7 +251,7 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
       .connect(caller)
       .distributePayoutsOf(PROJECT_ID, AMOUNT.div(2), ETH_PAYOUT_INDEX, MIN_TOKEN_REQUESTED, MEMO);
 
-    await mockJbEthPaymentTerminalStore.mock.recordAddedBalanceFor
+    await mockJbPaymentTerminalStore.mock.recordAddedBalanceFor
       .withArgs(PROJECT_ID, 10)
       .returns(fundingCycle);
 
