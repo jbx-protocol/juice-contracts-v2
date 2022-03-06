@@ -751,12 +751,18 @@ contract JBETHPaymentTerminal is
               bytes('')
             );
           }
+        } else if (_split.beneficiary != address(0)) {
+          // This distribution is eligible for a fee since the funds are leaving the ecosystem.
+          feeEligibleDistributionAmount += _payoutAmount;
+
+          // Otherwise if there's a beneficiary, send the funds directly to the beneficiary.
+          Address.sendValue(_split.beneficiary, _netPayoutAmount);
         } else {
           // This distribution is eligible for a fee since the funds are leaving the ecosystem.
           feeEligibleDistributionAmount += _payoutAmount;
 
-          // Otherwise, send the funds directly to the beneficiary.
-          Address.sendValue(_split.beneficiary, _netPayoutAmount);
+          // Otherwise, send the funds directly to the msg.sender.
+          Address.sendValue(payable(msg.sender), _netPayoutAmount);
         }
 
         // Subtract from the amount to be sent to the beneficiary.

@@ -198,14 +198,6 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
         revert INVALID_PROJECT_ID();
       }
 
-      // The allocator and the beneficiary shouldn't both be the zero address.
-      if (
-        _splits[_i].allocator == IJBSplitAllocator(address(0)) &&
-        _splits[_i].beneficiary == address(0)
-      ) {
-        revert ALLOCATOR_AND_BENEFICIARY_ZERO_ADDRESS();
-      }
-
       // Add to the total percents.
       _percentTotal = _percentTotal + _splits[_i].percent;
 

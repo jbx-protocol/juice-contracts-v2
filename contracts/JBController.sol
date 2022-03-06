@@ -820,12 +820,14 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
       // Mints tokens for the split if needed.
       if (_tokenCount > 0) {
         tokenStore.mintFor(
-          // If an allocator is set in the splits, set it as the beneficiary. Otherwise if a projectId is set in the split, set the project's owner as the beneficiary. Otherwise use the split's beneficiary.
+          // If an allocator is set in the splits, set it as the beneficiary. Otherwise if a projectId is set in the split, set the project's owner as the beneficiary. If the split has a beneficiary send to the split's beneficiary. Otherwise send to the msg.sender.
           _split.allocator != IJBSplitAllocator(address(0))
             ? address(_split.allocator)
             : _split.projectId != 0
             ? projects.ownerOf(_split.projectId)
-            : _split.beneficiary,
+            : _split.beneficiary != address(0)
+            ? _split.beneficiary
+            : msg.sender,
           _projectId,
           _tokenCount,
           _split.preferClaimed
