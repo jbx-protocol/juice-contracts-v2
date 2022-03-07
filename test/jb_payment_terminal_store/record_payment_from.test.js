@@ -16,11 +16,11 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe.only('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
+describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
   const PROJECT_ID = 2;
-  const AMOUNT = ethers.FixedNumber.fromString('4398541.345');
-  const WEIGHT = ethers.FixedNumber.fromString('900000000.23411');
-  const WEIGHTED_AMOUNT = WEIGHT.mulUnsafe(AMOUNT);
+  const AMOUNT = ethers.BigNumber.from('4398541');
+  const WEIGHT = ethers.BigNumber.from('900000000');
+  const WEIGHTED_AMOUNT = WEIGHT.mul(AMOUNT);
   const CURRENCY = 1;
   const BASE_CURRENCY = 0;
 
@@ -460,7 +460,7 @@ describe.only('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     } = await setup();
 
     const reservedRate = 0;
-    const minReturnedAmt = WEIGHTED_AMOUNT.addUnsafe(ethers.FixedNumber.from(1));
+    const minReturnedAmt = WEIGHTED_AMOUNT.add(ethers.FixedNumber.from(1));
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj

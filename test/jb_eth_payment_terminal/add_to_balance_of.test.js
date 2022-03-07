@@ -15,10 +15,10 @@ import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsS
 describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
   const PROJECT_ID = 2;
   const AMOUNT = ethers.utils.parseEther('10');
-  const CURRENCY = 1;
   const MIN_TOKEN_REQUESTED = 0;
   const MEMO = 'Memo Test';
 
+  let CURRENCY_ETH;
   let ETH_PAYOUT_INDEX;
 
   before(async function () {
@@ -26,6 +26,10 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
     let jbSplitsGroups = await jbSplitsGroupsFactory.deploy();
 
     ETH_PAYOUT_INDEX = await jbSplitsGroups.ETH_PAYOUT();
+
+    const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
+    const jbCurrencies = await jbCurrenciesFactory.deploy();
+    CURRENCY_ETH = await jbCurrencies.ETH();
   });
 
   async function setup() {
@@ -65,6 +69,7 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
     let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
       .deploy(
+        /*base weight currency*/CURRENCY_ETH,
         mockJbOperatorStore.address,
         mockJbProjects.address,
         mockJbDirectory.address,
@@ -90,7 +95,7 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
       .returns(true);
 
     await mockJbPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT, CURRENCY, 0)
+      .withArgs(PROJECT_ID, AMOUNT, CURRENCY_ETH, 0)
       .returns(
         {
           number: 1,
@@ -227,7 +232,7 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
       .returns(splits);
 
     await mockJbPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT.div(2), CURRENCY, 0)
+      .withArgs(PROJECT_ID, AMOUNT.div(2), CURRENCY_ETH, 0)
       .returns(
         {
           number: 1,
