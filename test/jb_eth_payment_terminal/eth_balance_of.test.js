@@ -30,6 +30,10 @@ describe('JBETHPaymentTerminal::ethBalanceOf(...)', function () {
       deployMockContract(deployer, jbSplitsStore.abi),
     ]);
 
+    const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
+    const jbCurrencies = await jbCurrenciesFactory.deploy();
+    const CURRENCY_ETH = await jbCurrencies.ETH();
+
     let jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
 
     const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
@@ -43,6 +47,7 @@ describe('JBETHPaymentTerminal::ethBalanceOf(...)', function () {
     let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
       .deploy(
+        CURRENCY_ETH,
         mockJbOperatorStore.address,
         mockJbProjects.address,
         mockJbDirectory.address,
@@ -64,6 +69,6 @@ describe('JBETHPaymentTerminal::ethBalanceOf(...)', function () {
 
     await mockJBPaymentTerminalStore.mock.balanceOf.withArgs(PROJECT_ID).returns(BALANCE);
 
-    expect(await jbEthPaymentTerminal.ethBalanceOf(PROJECT_ID)).to.equal(BALANCE);
+    expect(await jbEthPaymentTerminal.balanceOf(PROJECT_ID)).to.equal(BALANCE);
   });
 });
