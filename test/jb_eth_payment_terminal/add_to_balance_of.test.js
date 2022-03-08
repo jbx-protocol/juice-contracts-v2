@@ -163,7 +163,7 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
     expect(
       await jbEthPaymentTerminal
         .connect(caller)
-        .addToBalanceOf(PROJECT_ID, MEMO, { value: AMOUNT }),
+        .addToBalanceOf(AMOUNT, PROJECT_ID, MEMO, { value: AMOUNT }),
     )
       .to.emit(jbEthPaymentTerminal, 'AddToBalance')
       .withArgs(PROJECT_ID, AMOUNT, MEMO, caller.address);
@@ -202,7 +202,7 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
     let heldFeeBefore = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
 
     expect(
-      await jbEthPaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, MEMO, { value: 1 }),
+      await jbEthPaymentTerminal.connect(caller).addToBalanceOf(1, PROJECT_ID, MEMO, { value: 1 }),
     )
       .to.emit(jbEthPaymentTerminal, 'AddToBalance')
       .withArgs(PROJECT_ID, 1, MEMO, caller.address);
@@ -263,40 +263,13 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
     let heldFeeBefore = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
 
     expect(
-      await jbEthPaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, MEMO, { value: 10 }),
+      await jbEthPaymentTerminal.connect(caller).addToBalanceOf(10, PROJECT_ID, MEMO, { value: 10 }),
     )
       .to.emit(jbEthPaymentTerminal, 'AddToBalance')
       .withArgs(PROJECT_ID, 10, MEMO, caller.address);
 
     let heldFeeAfter = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
     expect(heldFeeAfter[0].amount).to.equal(heldFeeBefore[0].amount.sub(10));
-  });
-
-  it("Can't add 0 ethers to the project balance", async function () {
-    const {
-      caller,
-      beneficiaryOne,
-      beneficiaryTwo,
-      jbEthPaymentTerminal,
-      timestamp,
-      mockJbSplitsStore,
-    } = await setup();
-    const splits = makeSplits({
-      count: 2,
-      beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
-    });
-
-    await mockJbSplitsStore.mock.splitsOf
-      .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
-      .returns(splits);
-
-    await jbEthPaymentTerminal
-      .connect(caller)
-      .distributePayoutsOf(PROJECT_ID, AMOUNT, ETH_PAYOUT_INDEX, MIN_TOKEN_REQUESTED, MEMO);
-
-    await expect(
-      jbEthPaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, MEMO, { value: 0 }),
-    ).to.be.revertedWith(errors.ZERO_VALUE_SENT);
   });
 
   it("Can't add to balance if terminal doesn't belong to project", async function () {
@@ -308,7 +281,7 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
       .returns(false);
 
     await expect(
-      jbEthPaymentTerminal.connect(caller).addToBalanceOf(otherProjectId, MEMO, { value: 0 }),
+      jbEthPaymentTerminal.connect(caller).addToBalanceOf(AMOUNT, otherProjectId, MEMO, { value: 0 }),
     ).to.be.revertedWith(errors.PROJECT_TERMINAL_MISMATCH);
   });
 });

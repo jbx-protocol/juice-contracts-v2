@@ -27,6 +27,10 @@ describe('JBETHPaymentTerminal::delegate(...)', function () {
       deployMockContract(deployer, jbSplitsStore.abi),
     ]);
 
+    const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
+    const jbCurrencies = await jbCurrenciesFactory.deploy();
+    const CURRENCY_ETH = await jbCurrencies.ETH();
+
     let jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
 
     const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
@@ -40,23 +44,24 @@ describe('JBETHPaymentTerminal::delegate(...)', function () {
     let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
       .deploy(
+        /*base weight currency*/CURRENCY_ETH,
         mockJbOperatorStore.address,
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
-        mockJBPaymentTerminalStore.address,
+        mockJbPaymentTerminalStore.address,
         terminalOwner.address,
       );
 
     return {
       jbEthPaymentTerminal,
-      mockJBPaymentTerminalStore,
+      mockJbPaymentTerminalStore,
     };
   }
 
   it('Should return the delegate store of the terminal', async function () {
-    const { jbEthPaymentTerminal, mockJBPaymentTerminalStore } = await setup();
+    const { jbEthPaymentTerminal, mockJbPaymentTerminalStore } = await setup();
 
-    expect(await jbEthPaymentTerminal.delegate()).to.equal(mockJBPaymentTerminalStore.address);
+    expect(await jbEthPaymentTerminal.delegate()).to.equal(mockJbPaymentTerminalStore.address);
   });
 });
