@@ -93,6 +93,10 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       deployMockContract(deployer, jbSplitsStore.abi),
     ]);
 
+    const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
+    const jbCurrencies = await jbCurrenciesFactory.deploy();
+    const CURRENCY_ETH = await jbCurrencies.ETH();
+
     let jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
 
     const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
@@ -106,6 +110,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
     let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
       .deploy(
+        CURRENCY_ETH,
         mockJbOperatorStore.address,
         mockJbProjects.address,
         mockJbDirectory.address,
@@ -530,6 +535,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
 
     await mockJbEthPaymentTerminal.mock.pay
       .withArgs(
+        AMOUNT_DISTRIBUTED,
         1, //JBX Dao
         projectOwner.address,
         0,
@@ -539,14 +545,15 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       )
       .returns();
 
-    await Promise.all(
+      await Promise.all(
       splits.map(async (split) => {
         await mockJbEthPaymentTerminal.mock.pay
           .withArgs(
-            split.projectId, //JBX Dao
-            split.beneficiary,
+            0, // 0 if fee is in ETH (as the amount is then in msg.value)
+            1, //JBX Dao
+            projectOwner.address,
             0,
-            split.preferClaimed,
+            false,
             '',
             '0x',
           )
@@ -627,6 +634,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       splits.map(async (split) => {
         await mockJbEthPaymentTerminal.mock.pay
           .withArgs(
+            0,
             split.projectId,
             split.beneficiary,
             /*minReturnedToken*/ 0,
@@ -843,10 +851,11 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
 
     await mockJbEthPaymentTerminal.mock.pay
       .withArgs(
+        0, // 0 if fee is in ETH (as the amount is then in msg.value)
         1, //JBX Dao
         projectOwner.address,
         0,
-        /*preferedClaimedToken*/ false,
+        false,
         '',
         '0x',
       )
@@ -856,6 +865,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       splits.map(async (split) => {
         await mockJbEthPaymentTerminal.mock.pay
           .withArgs(
+            0, // Ignored in JBETHTerminal (token amount)
             split.projectId, //JBX Dao
             split.beneficiary,
             0,
@@ -951,10 +961,11 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
 
     await mockJbEthPaymentTerminal.mock.pay
       .withArgs(
+        0, // 0 if fee is in ETH (as the amount is then in msg.value)
         1, //JBX Dao
         projectOwner.address,
         0,
-        /*preferedClaimedToken*/ false,
+        false,
         '',
         '0x',
       )
@@ -964,6 +975,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       splits.map(async (split) => {
         await mockJbEthPaymentTerminal.mock.pay
           .withArgs(
+            0,
             1, //JBX Dao
             split.beneficiary,
             0,
@@ -1131,6 +1143,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       splits.map(async (split) => {
         await mockJbEthPaymentTerminal.mock.pay
           .withArgs(
+            0,
             split.projectId,
             split.beneficiary,
             /*minReturnedToken*/ 0,
@@ -1326,7 +1339,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
     await Promise.all(
       splits.map(async (split) => {
         await mockJbEthPaymentTerminal.mock.pay
-          .withArgs(split.projectId, split.beneficiary, 0, split.preferClaimed, '', '0x')
+          .withArgs(0, split.projectId, split.beneficiary, 0, split.preferClaimed, '', '0x')
           .returns();
       }),
     );
