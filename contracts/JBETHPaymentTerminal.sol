@@ -10,7 +10,6 @@ import './JBPaymentTerminal.sol';
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
 //*********************************************************************//
-error DAWG_WTF();
 
 contract JBETHPaymentTerminal is JBPaymentTerminal {
   constructor(
@@ -44,10 +43,6 @@ contract JBETHPaymentTerminal is JBPaymentTerminal {
     address payable _to,
     uint256 _amount
   ) internal override {
-    if (_from != address(this)) {
-      revert DAWG_WTF();
-    }
-
     Address.sendValue(_to, _amount);
   }
 

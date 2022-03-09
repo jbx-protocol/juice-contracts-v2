@@ -51,6 +51,10 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
       deployMockContract(deployer, jbSplitsStore.abi),
     ]);
 
+    const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
+    const jbCurrencies = await jbCurrenciesFactory.deploy();
+    const CURRENCY_ETH = await jbCurrencies.ETH();
+
     const jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
     const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
     const futureTerminalAddress = ethers.utils.getContractAddress({
@@ -62,6 +66,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
     const jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
       .deploy(
+        CURRENCY_ETH,
         mockJbOperatorStore.address,
         mockJbProjects.address,
         mockJbDirectory.address,
@@ -69,10 +74,6 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
         mockJBPaymentTerminalStore.address,
         terminalOwner.address,
       );
-
-    const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
-    const jbCurrencies = await jbCurrenciesFactory.deploy();
-    const CURRENCY_ETH = await jbCurrencies.ETH();
 
     const jbConstantsFactory = await ethers.getContractFactory('JBConstants');
     const jbConstants = await jbConstantsFactory.deploy();

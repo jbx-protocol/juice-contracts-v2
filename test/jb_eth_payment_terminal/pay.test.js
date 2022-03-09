@@ -40,6 +40,10 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
       deployMockContract(deployer, jbSplitsStore.abi),
     ]);
 
+    const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
+    const jbCurrencies = await jbCurrenciesFactory.deploy();
+    const CURRENCY_ETH = await jbCurrencies.ETH();
+
     let jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
 
     const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
@@ -53,6 +57,7 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
     let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
       .deploy(
+        CURRENCY_ETH,
         mockJbOperatorStore.address,
         mockJbProjects.address,
         mockJbDirectory.address,
@@ -113,6 +118,7 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
       await jbEthPaymentTerminal
         .connect(caller)
         .pay(
+          ETH_TO_PAY,
           PROJECT_ID,
           caller.address,
           MIN_TOKEN_REQUESTED,
@@ -143,6 +149,7 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
       jbEthPaymentTerminal
         .connect(caller)
         .pay(
+          ETH_TO_PAY,
           PROJECT_ID,
           ethers.constants.AddressZero,
           MIN_TOKEN_REQUESTED,
@@ -166,6 +173,7 @@ describe('JBETHPaymentTerminal::pay(...)', function () {
       jbEthPaymentTerminal
         .connect(caller)
         .pay(
+          ETH_TO_PAY,
           otherProjectId,
           ethers.constants.AddressZero,
           MIN_TOKEN_REQUESTED,
