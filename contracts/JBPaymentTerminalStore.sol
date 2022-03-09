@@ -44,14 +44,6 @@ contract JBPaymentTerminalStore {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
-  // A modifier only allowing the associated payment terminal to access the function.
-  modifier onlyAssociatedPaymentTerminal() {
-    if (msg.sender != address(terminal)) {
-      revert PAYMENT_TERMINAL_UNAUTHORIZED();
-    }
-    _;
-  }
-
   event DelegateDidPay(IJBPayDelegate indexed delegate, JBDidPayData data);
 
   event DelegateDidRedeem(IJBRedemptionDelegate indexed delegate, JBDidRedeemData data);
@@ -90,12 +82,6 @@ contract JBPaymentTerminalStore {
   */
   IJBPrices public immutable prices;
 
-  /**
-    @notice
-    The associated payment terminal for which this contract stores data.
-  */
-  IJBTerminal public terminal;
-
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
@@ -106,7 +92,7 @@ contract JBPaymentTerminalStore {
 
     _projectId The ID of the project to get the balance of.
   */
-  mapping(uint256 => uint256) public balanceOf;
+  mapping(IJBTerminal => mapping(uint256 => uint256)) public balanceOf;
 
   /**
     @notice
@@ -118,7 +104,8 @@ contract JBPaymentTerminalStore {
     _projectId The ID of the project to get the used overflow allowance of.
     _configuration The configuration of the during which the allowance applies.
   */
-  mapping(uint256 => mapping(uint256 => uint256)) public usedOverflowAllowanceOf;
+  mapping(IJBTerminal => mapping(uint256 => mapping(uint256 => uint256)))
+    public usedOverflowAllowanceOf;
 
   /**
     @notice
@@ -130,7 +117,8 @@ contract JBPaymentTerminalStore {
     _projectId The ID of the project to get the used distribution limit of.
     _fundingCycleNumber The number representing the funding cycle.
   */
-  mapping(uint256 => mapping(uint256 => uint256)) public usedDistributionLimitOf;
+  mapping(IJBTerminal => mapping(uint256 => mapping(uint256 => uint256)))
+    public usedDistributionLimitOf;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -251,7 +239,6 @@ contract JBPaymentTerminalStore {
     bytes memory _delegateMetadata
   )
     external
-    onlyAssociatedPaymentTerminal
     returns (
       JBFundingCycle memory fundingCycle,
       uint256 weight,
@@ -297,7 +284,9 @@ contract JBPaymentTerminalStore {
 
     if (_amount > 0) {
       // Add the amount to the token balance of the project if needed.
-      balanceOf[_projectId] = balanceOf[_projectId] + _amount;
+      balanceOf[IJBTerminal(msg.sender)][_projectId] =
+        balanceOf[IJBTerminal(msg.sender)][_projectId] +
+        _amount;
 
       // Amount and weight must be non-zero in order to mint tokens.
       if (weight > 0) {
@@ -359,11 +348,7 @@ contract JBPaymentTerminalStore {
     uint256 _amount,
     uint256 _currency,
     uint256 _minReturnedAmount
-  )
-    external
-    onlyAssociatedPaymentTerminal
-    returns (JBFundingCycle memory fundingCycle, uint256 distributedAmount)
-  {
+  ) external returns (JBFundingCycle memory fundingCycle, uint256 distributedAmount) {
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
@@ -373,14 +358,15 @@ contract JBPaymentTerminalStore {
     }
 
     // The new total amount that has been distributed during this funding cycle.
-    uint256 _newUsedDistributionLimitOf = usedDistributionLimitOf[_projectId][fundingCycle.number] +
-      _amount;
+    uint256 _newUsedDistributionLimitOf = usedDistributionLimitOf[IJBTerminal(msg.sender)][
+      _projectId
+    ][fundingCycle.number] + _amount;
 
     // Amount must be within what is still distributable.
     uint256 _distributionLimitOf = directory.controllerOf(_projectId).distributionLimitOf(
       _projectId,
       fundingCycle.configuration,
-      terminal
+      IJBTerminal(msg.sender)
     );
 
     if (_newUsedDistributionLimitOf > _distributionLimitOf || _distributionLimitOf == 0) {
@@ -393,7 +379,7 @@ contract JBPaymentTerminalStore {
       directory.controllerOf(_projectId).distributionLimitCurrencyOf(
         _projectId,
         fundingCycle.configuration,
-        terminal
+        IJBTerminal(msg.sender)
       )
     ) {
       revert CURRENCY_MISMATCH();
@@ -405,7 +391,7 @@ contract JBPaymentTerminalStore {
       : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, _terminalCurrency));
 
     // The amount being distributed must be available.
-    if (distributedAmount > balanceOf[_projectId]) {
+    if (distributedAmount > balanceOf[IJBTerminal(msg.sender)][_projectId]) {
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
     }
 
@@ -415,10 +401,14 @@ contract JBPaymentTerminalStore {
     }
 
     // Store the new amount.
-    usedDistributionLimitOf[_projectId][fundingCycle.number] = _newUsedDistributionLimitOf;
+    usedDistributionLimitOf[IJBTerminal(msg.sender)][_projectId][
+      fundingCycle.number
+    ] = _newUsedDistributionLimitOf;
 
     // Removed the distributed funds from the project's token balance.
-    balanceOf[_projectId] = balanceOf[_projectId] - distributedAmount;
+    balanceOf[IJBTerminal(msg.sender)][_projectId] =
+      balanceOf[IJBTerminal(msg.sender)][_projectId] -
+      distributedAmount;
   }
 
   /**
@@ -441,24 +431,20 @@ contract JBPaymentTerminalStore {
     uint256 _amount,
     uint256 _currency,
     uint256 _minReturnedAmount
-  )
-    external
-    onlyAssociatedPaymentTerminal
-    returns (JBFundingCycle memory fundingCycle, uint256 withdrawnAmount)
-  {
+  ) external returns (JBFundingCycle memory fundingCycle, uint256 withdrawnAmount) {
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Get a reference to the new used overflow allowance.
-    uint256 _newUsedOverflowAllowanceOf = usedOverflowAllowanceOf[_projectId][
-      fundingCycle.configuration
-    ] + _amount;
+    uint256 _newUsedOverflowAllowanceOf = usedOverflowAllowanceOf[IJBTerminal(msg.sender)][
+      _projectId
+    ][fundingCycle.configuration] + _amount;
 
     // There must be sufficient allowance available.
     uint256 _allowanceOf = directory.controllerOf(_projectId).overflowAllowanceOf(
       _projectId,
       fundingCycle.configuration,
-      terminal
+      IJBTerminal(msg.sender)
     );
 
     if (_newUsedOverflowAllowanceOf > _allowanceOf || _allowanceOf == 0) {
@@ -471,7 +457,7 @@ contract JBPaymentTerminalStore {
       directory.controllerOf(_projectId).overflowAllowanceCurrencyOf(
         _projectId,
         fundingCycle.configuration,
-        terminal
+        IJBTerminal(msg.sender)
       )
     ) {
       revert CURRENCY_MISMATCH();
@@ -483,7 +469,7 @@ contract JBPaymentTerminalStore {
       : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, _terminalCurrency));
 
     // The project balance should be bigger than the amount withdrawn from the overflow
-    if (balanceOf[_projectId] < withdrawnAmount) {
+    if (balanceOf[IJBTerminal(msg.sender)][_projectId] < withdrawnAmount) {
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
     }
 
@@ -496,17 +482,21 @@ contract JBPaymentTerminalStore {
     uint256 distributionLimit = directory.controllerOf(_projectId).distributionLimitOf(
       _projectId,
       fundingCycle.configuration,
-      terminal
+      IJBTerminal(msg.sender)
     );
 
     if (distributionLimit > 0) {
       uint256 _leftToDistribute = distributionLimit -
-        usedDistributionLimitOf[_projectId][fundingCycle.number];
+        usedDistributionLimitOf[IJBTerminal(msg.sender)][_projectId][fundingCycle.number];
 
       // Get the distribution limit currency (which might or might not be the same as the overflow allowance)
       uint256 _distributionLimitCurrency = directory
         .controllerOf(_projectId)
-        .distributionLimitCurrencyOf(_projectId, fundingCycle.configuration, terminal);
+        .distributionLimitCurrencyOf(
+          _projectId,
+          fundingCycle.configuration,
+          IJBTerminal(msg.sender)
+        );
 
       // Convert the remaining to distribute into this store's terminal's token.
       _leftToDistribute = (_distributionLimitCurrency == _terminalCurrency)
@@ -518,18 +508,22 @@ contract JBPaymentTerminalStore {
 
       // The amount being withdrawn must be available in the overflow.
       if (
-        _leftToDistribute > balanceOf[_projectId] ||
-        withdrawnAmount > balanceOf[_projectId] - _leftToDistribute
+        _leftToDistribute > balanceOf[IJBTerminal(msg.sender)][_projectId] ||
+        withdrawnAmount > balanceOf[IJBTerminal(msg.sender)][_projectId] - _leftToDistribute
       ) {
         revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
       }
     }
 
     // Store the incremented value.
-    usedOverflowAllowanceOf[_projectId][fundingCycle.configuration] = _newUsedOverflowAllowanceOf;
+    usedOverflowAllowanceOf[IJBTerminal(msg.sender)][_projectId][
+      fundingCycle.configuration
+    ] = _newUsedOverflowAllowanceOf;
 
     // Update the project's token balance.
-    balanceOf[_projectId] = balanceOf[_projectId] - withdrawnAmount;
+    balanceOf[IJBTerminal(msg.sender)][_projectId] =
+      balanceOf[IJBTerminal(msg.sender)][_projectId] -
+      withdrawnAmount;
   }
 
   /**
@@ -561,7 +555,6 @@ contract JBPaymentTerminalStore {
     bytes memory _delegateMetadata
   )
     external
-    onlyAssociatedPaymentTerminal
     returns (
       JBFundingCycle memory fundingCycle,
       uint256 reclaimAmount,
@@ -604,7 +597,7 @@ contract JBPaymentTerminalStore {
     }
 
     // The amount being claimed must be within the project's balance.
-    if (reclaimAmount > balanceOf[_projectId]) {
+    if (reclaimAmount > balanceOf[IJBTerminal(msg.sender)][_projectId]) {
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
     }
     // The amount being claimed must be at least as much as was expected.
@@ -617,7 +610,10 @@ contract JBPaymentTerminalStore {
       directory.controllerOf(_projectId).burnTokensOf(_holder, _projectId, _tokenCount, '', false);
 
     // Remove the redeemed funds from the project's balance.
-    if (reclaimAmount > 0) balanceOf[_projectId] = balanceOf[_projectId] - reclaimAmount;
+    if (reclaimAmount > 0)
+      balanceOf[IJBTerminal(msg.sender)][_projectId] =
+        balanceOf[IJBTerminal(msg.sender)][_projectId] -
+        reclaimAmount;
 
     // If a delegate was returned by the data source, issue a callback to it.
     if (_delegate != IJBRedemptionDelegate(address(0))) {
@@ -649,14 +645,15 @@ contract JBPaymentTerminalStore {
   */
   function recordAddedBalanceFor(uint256 _projectId, uint256 _amount)
     external
-    onlyAssociatedPaymentTerminal
     returns (JBFundingCycle memory fundingCycle)
   {
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Increment the balance.
-    balanceOf[_projectId] = balanceOf[_projectId] + _amount;
+    balanceOf[IJBTerminal(msg.sender)][_projectId] =
+      balanceOf[IJBTerminal(msg.sender)][_projectId] +
+      _amount;
   }
 
   /**
@@ -667,11 +664,7 @@ contract JBPaymentTerminalStore {
 
     @return balance The project's current balance.
   */
-  function recordMigration(uint256 _projectId)
-    external
-    onlyAssociatedPaymentTerminal
-    returns (uint256 balance)
-  {
+  function recordMigration(uint256 _projectId) external returns (uint256 balance) {
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
@@ -681,28 +674,10 @@ contract JBPaymentTerminalStore {
     }
 
     // Return the current balance.
-    balance = balanceOf[_projectId];
+    balance = balanceOf[IJBTerminal(msg.sender)][_projectId];
 
     // Set the balance to 0.
-    balanceOf[_projectId] = 0;
-  }
-
-  /**
-    @notice
-    Allows this store to be claimed by an address so that it recognized the address as its terminal.
-  */
-  function claimFor(IJBTerminal _terminal) external {
-    // This store can only be claimed once.
-    if (terminal != IJBTerminal(address(0))) {
-      revert STORE_ALREADY_CLAIMED();
-    }
-    // Set the terminal.
-    terminal = _terminal;
-
-    // Set the terminal currency;
-    _terminalCurrency = _terminal.currency();
-
-    _terminalBaseWeightCurrency = _terminal.baseWeightCurrency();
+    balanceOf[IJBTerminal(msg.sender)][_projectId] = 0;
   }
 
   //*********************************************************************//
@@ -787,7 +762,7 @@ contract JBPaymentTerminalStore {
     returns (uint256)
   {
     // Get the current balance of the project.
-    uint256 _balanceOf = balanceOf[_projectId];
+    uint256 _balanceOf = balanceOf[IJBTerminal(msg.sender)][_projectId];
 
     // If there's no balance, there's no overflow.
     if (_balanceOf == 0) return 0;
@@ -796,14 +771,14 @@ contract JBPaymentTerminalStore {
     uint256 _distributionRemaining = directory.controllerOf(_projectId).distributionLimitOf(
       _projectId,
       _fundingCycle.configuration,
-      terminal
-    ) - usedDistributionLimitOf[_projectId][_fundingCycle.number];
+      IJBTerminal(msg.sender)
+    ) - usedDistributionLimitOf[IJBTerminal(msg.sender)][_projectId][_fundingCycle.number];
 
     // Get a reference to the current funding cycle's currency for this terminal.
     uint256 _currency = directory.controllerOf(_projectId).distributionLimitCurrencyOf(
       _projectId,
       _fundingCycle.configuration,
-      terminal
+      IJBTerminal(msg.sender)
     );
 
     // Convert the _distributionRemaining to this store's terminal's currency.

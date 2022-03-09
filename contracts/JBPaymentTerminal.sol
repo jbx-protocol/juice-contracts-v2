@@ -178,7 +178,7 @@ abstract contract JBPaymentTerminal is
   */
   function balanceOf(uint256 _projectId) external view override returns (uint256) {
     // The store's balance is already in ETH.
-    return store.balanceOf(_projectId);
+    return store.balanceOf(this, _projectId);
   }
 
   /**
@@ -202,7 +202,7 @@ abstract contract JBPaymentTerminal is
         _projectId,
         _fundingCycleConfiguration,
         this
-      ) - store.usedDistributionLimitOf(_projectId, _fundingCycleNumber);
+      ) - store.usedDistributionLimitOf(this, _projectId, _fundingCycleNumber);
   }
 
   /**
@@ -263,10 +263,6 @@ abstract contract JBPaymentTerminal is
     projects = _projects;
     directory = _directory;
     splitsStore = _splitsStore;
-
-    // Claim the store so that it recognizes this terminal as the one that can access it.
-    _store.claimFor(this);
-
     store = _store;
 
     transferOwnership(_owner);
