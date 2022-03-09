@@ -128,15 +128,20 @@ contract JBPaymentTerminalStore {
     @notice
     Gets the current overflowed amount (in the terminal's currency) in this terminal for a specified project.
 
+    @param _terminal The terminal for which the overflow is being calculated.
     @param _projectId The ID of the project to get overflow for.
 
     @return The current amount of overflow that project has in this terminal.
   */
-  function currentOverflowOf(uint256 _projectId) external view returns (uint256) {
+  function currentOverflowOf(IJBTerminal _terminal, uint256 _projectId)
+    external
+    view
+    returns (uint256)
+  {
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-    return _overflowDuring(_projectId, _fundingCycle);
+    return _overflowDuring(_terminal, _projectId, _fundingCycle);
   }
 
   /**
@@ -160,17 +165,24 @@ contract JBPaymentTerminalStore {
 
     @dev If the project has an active funding cycle reconfiguration ballot, the project's ballot redemption rate is used.
 
+    @param _terminal The terminal from which the overflow is being calculated.
     @param _projectId The ID of the project to get a reclaimable amount for.
     @param _tokenCount The number of tokens to make the calculation with.
 
     @return The amount of overflowed tokens that can be reclaimed.
   */
-  function reclaimableOverflowOf(uint256 _projectId, uint256 _tokenCount)
-    external
-    view
-    returns (uint256)
-  {
-    return _reclaimableOverflowOf(_projectId, fundingCycleStore.currentOf(_projectId), _tokenCount);
+  function reclaimableOverflowOf(
+    IJBTerminal _terminal,
+    uint256 _projectId,
+    uint256 _tokenCount
+  ) external view returns (uint256) {
+    return
+      _reclaimableOverflowOf(
+        _terminal,
+        _projectId,
+        fundingCycleStore.currentOf(_projectId),
+        _tokenCount
+      );
   }
 
   //*********************************************************************//
@@ -592,7 +604,12 @@ contract JBPaymentTerminalStore {
         )
       );
     } else {
-      reclaimAmount = _reclaimableOverflowOf(_projectId, fundingCycle, _tokenCount);
+      reclaimAmount = _reclaimableOverflowOf(
+        IJBTerminal(msg.sender),
+        _projectId,
+        fundingCycle,
+        _tokenCount
+      );
       memo = _memo;
     }
 
@@ -689,6 +706,7 @@ contract JBPaymentTerminalStore {
     See docs for `reclaimableOverflowOf`
   */
   function _reclaimableOverflowOf(
+    IJBTerminal _terminal,
     uint256 _projectId,
     JBFundingCycle memory _fundingCycle,
     uint256 _tokenCount
@@ -696,7 +714,7 @@ contract JBPaymentTerminalStore {
     // Get the amount of current overflow.
     // Use the local overflow if the funding cycle specifies that it should be used. Otherwise use the project's total overflow across all of its terminals.
     uint256 _currentOverflow = _fundingCycle.shouldUseLocalBalanceForRedemptions()
-      ? _overflowDuring(_projectId, _fundingCycle)
+      ? _overflowDuring(_terminal, _projectId, _fundingCycle)
       : _totalOverflowDuring(_projectId, _fundingCycle);
 
     // If there is no overflow, nothing is claimable.
@@ -751,18 +769,19 @@ contract JBPaymentTerminalStore {
     @dev
     This amount changes as the price of the terminal's token changes in relation to the currency being used to measure the distribution limit.
 
+    @param _terminal The terminal for which the overflow is being calculated.
     @param _projectId The ID of the project to get overflow for.
     @param _fundingCycle The ID of the funding cycle to base the overflow on.
 
     @return overflow The overflow of funds.
   */
-  function _overflowDuring(uint256 _projectId, JBFundingCycle memory _fundingCycle)
-    private
-    view
-    returns (uint256)
-  {
+  function _overflowDuring(
+    IJBTerminal _terminal,
+    uint256 _projectId,
+    JBFundingCycle memory _fundingCycle
+  ) private view returns (uint256) {
     // Get the current balance of the project.
-    uint256 _balanceOf = balanceOf[IJBTerminal(msg.sender)][_projectId];
+    uint256 _balanceOf = balanceOf[_terminal][_projectId];
 
     // If there's no balance, there's no overflow.
     if (_balanceOf == 0) return 0;
@@ -771,14 +790,14 @@ contract JBPaymentTerminalStore {
     uint256 _distributionRemaining = directory.controllerOf(_projectId).distributionLimitOf(
       _projectId,
       _fundingCycle.configuration,
-      IJBTerminal(msg.sender)
-    ) - usedDistributionLimitOf[IJBTerminal(msg.sender)][_projectId][_fundingCycle.number];
+      _terminal
+    ) - usedDistributionLimitOf[_terminal][_projectId][_fundingCycle.number];
 
     // Get a reference to the current funding cycle's currency for this terminal.
     uint256 _currency = directory.controllerOf(_projectId).distributionLimitCurrencyOf(
       _projectId,
       _fundingCycle.configuration,
-      IJBTerminal(msg.sender)
+      _terminal
     );
 
     // Convert the _distributionRemaining to this store's terminal's currency.
