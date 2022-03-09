@@ -9,7 +9,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 
-describe('JBETHPaymentTerminal::ethBalanceOf(...)', function () {
+describe('JBETHPaymentTerminal::balanceOf(...)', function () {
   const PROJECT_ID = 13;
   const BALANCE = 100;
 
@@ -37,12 +37,6 @@ describe('JBETHPaymentTerminal::ethBalanceOf(...)', function () {
     let jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
 
     const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
-    const futureTerminalAddress = ethers.utils.getContractAddress({
-      from: deployer.address,
-      nonce: currentNonce + 1,
-    });
-
-    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
 
     let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
@@ -67,7 +61,7 @@ describe('JBETHPaymentTerminal::ethBalanceOf(...)', function () {
   it('Should return the balance of the project', async function () {
     const { jbEthPaymentTerminal, mockJBPaymentTerminalStore } = await setup();
 
-    await mockJBPaymentTerminalStore.mock.balanceOf.withArgs(PROJECT_ID).returns(BALANCE);
+    await mockJBPaymentTerminalStore.mock.balanceOf.withArgs(jbEthPaymentTerminal.address, PROJECT_ID).returns(BALANCE);
 
     expect(await jbEthPaymentTerminal.balanceOf(PROJECT_ID)).to.equal(BALANCE);
   });

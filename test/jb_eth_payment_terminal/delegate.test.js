@@ -39,8 +39,6 @@ describe('JBETHPaymentTerminal::delegate(...)', function () {
       nonce: currentNonce + 1,
     });
 
-    await mockJbPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
-
     let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
       .deploy(

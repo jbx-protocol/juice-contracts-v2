@@ -52,10 +52,6 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
     const timestamp = block.timestamp;
 
     await mockJbTerminal.mock.currency.returns(CURRENCY);
-    await mockJbTerminal.mock.baseWeightCurrency.returns(BASE_CURRENCY);
-
-    // Set terminal address
-    await JBPaymentTerminalStore.claimFor(mockJbTerminal.address);
 
     return {
       mockJbTerminal,
@@ -116,7 +112,7 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
       .recordAddedBalanceFor(PROJECT_ID, startingBalance);
 
     // Get current overflow
-    expect(await JBPaymentTerminalStore.currentOverflowOf(PROJECT_ID)).to.equal(AMOUNT);
+    expect(await JBPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID, CURRENCY)).to.equal(AMOUNT);
   });
 
   it('Should return 0 overflow if ETH balance < distribution remaining', async function () {
@@ -153,11 +149,11 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
       .returns(AMOUNT);
 
     // Get current overflow
-    expect(await JBPaymentTerminalStore.currentOverflowOf(PROJECT_ID)).to.equal(0);
+    expect(await JBPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID, CURRENCY)).to.equal(0);
   });
 
   it('Should return 0 overflow if ETH balance is 0', async function () {
-    const { mockJbFundingCycleStore, JBPaymentTerminalStore, timestamp } = await setup();
+    const { mockJbFundingCycleStore, mockJbTerminal, JBPaymentTerminalStore, timestamp } = await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       number: 1,
@@ -172,6 +168,6 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
     });
 
     // Get current overflow
-    expect(await JBPaymentTerminalStore.currentOverflowOf(PROJECT_ID)).to.equal(0);
+    expect(await JBPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID, CURRENCY)).to.equal(0);
   });
 });

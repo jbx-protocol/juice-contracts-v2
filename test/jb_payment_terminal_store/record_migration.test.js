@@ -46,10 +46,6 @@ describe('JBPaymentTerminalStore::recordMigration(...)', function () {
     const timestamp = block.timestamp;
 
     await mockJbTerminal.mock.currency.returns(CURRENCY);
-    await mockJbTerminal.mock.baseWeightCurrency.returns(BASE_CURRENCY);  
-
-    // Set mockJbTerminal address
-    await JBPaymentTerminalStore.claimFor(mockJbTerminal.address);
 
     const mockJbTerminalSigner = await impersonateAccount(mockJbTerminal.address);
 
@@ -85,28 +81,7 @@ describe('JBPaymentTerminalStore::recordMigration(...)', function () {
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordMigration(PROJECT_ID);
 
     // Current balance should be set to 0
-    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(0);
-  });
-
-  it(`Can't record migration without mockJbTerminal access`, async function () {
-    const { mockJbFundingCycleStore, JBPaymentTerminalStore, timestamp } = await setup();
-
-    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      number: 1,
-      configuration: timestamp,
-      basedOn: timestamp,
-      start: timestamp,
-      duration: 0,
-      weight: WEIGHT,
-      discountRate: 0,
-      ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowTerminalMigration: 0 }),
-    });
-
-    // Record migration
-    await expect(JBPaymentTerminalStore.recordMigration(PROJECT_ID)).to.be.revertedWith(
-      errors.UNAUTHORIZED,
-    );
+    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(0);
   });
 
   it(`Can't record migration with allowTerminalMigration flag disabled`, async function () {

@@ -42,8 +42,6 @@ describe('JBETHPaymentTerminal::toggleFeelessTerminal(...)', function () {
       nonce: currentNonce + 1,
     });
 
-    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
-
     let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
       .deploy(
@@ -70,7 +68,7 @@ describe('JBETHPaymentTerminal::toggleFeelessTerminal(...)', function () {
     expect(await jbEthPaymentTerminal.connect(terminalOwner).toggleFeelessTerminal(mockJbEthPaymentTerminal.address))
       .to.emit(jbEthPaymentTerminal, 'SetFeelessTerminal')
       .withArgs(mockJbEthPaymentTerminal.address, terminalOwner.address);
-    
+
     expect(await jbEthPaymentTerminal.isFeelessTerminal(mockJbEthPaymentTerminal.address)).to.be.true;
   });
 
@@ -82,7 +80,7 @@ describe('JBETHPaymentTerminal::toggleFeelessTerminal(...)', function () {
     expect(await jbEthPaymentTerminal.connect(terminalOwner).toggleFeelessTerminal(mockJbEthPaymentTerminal.address))
       .to.emit(jbEthPaymentTerminal, 'SetFeelessTerminal')
       .withArgs(mockJbEthPaymentTerminal.address, terminalOwner.address);
-    
+
     expect(await jbEthPaymentTerminal.isFeelessTerminal(mockJbEthPaymentTerminal.address)).to.be.false;
   });
 });

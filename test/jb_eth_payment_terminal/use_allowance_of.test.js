@@ -14,7 +14,7 @@ import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.s
 
 describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
   const AMOUNT = 50000;
-  const DEFAULT_FEE =   50000000; // 5%
+  const DEFAULT_FEE = 50000000; // 5%
   const FEE_DISCOUNT = 500000000; // 50%
 
   const FUNDING_CYCLE_NUM = 1;
@@ -61,7 +61,6 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
       from: deployer.address,
       nonce: currentNonce + 1,
     });
-    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
 
     const jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)

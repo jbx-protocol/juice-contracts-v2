@@ -35,7 +35,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       jbFundingCycleDataSource.abi,
     );
     const mockJbRedemptionDelegate = await deployMockContract(deployer, jbRedemptionDelegate.abi);
-    const mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);  
+    const mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
     const mockJbTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
     const mockJbController = await deployMockContract(deployer, jbController.abi);
 
@@ -61,10 +61,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     /* Common mocks */
 
     await mockJbTerminal.mock.currency.returns(CURRENCY);
-    await mockJbTerminal.mock.baseWeightCurrency.returns(BASE_CURRENCY);  
-
-    // Set mockJbTerminal address
-    await JBPaymentTerminalStore.claimFor(mockJbTerminal.address);
+    await mockJbTerminal.mock.baseWeightCurrency.returns(BASE_CURRENCY);
 
     const mockJbTerminalSigner = await impersonateAccount(mockJbTerminal.address);
 
@@ -152,7 +149,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       .connect(mockJbTerminalSigner)
       .recordAddedBalanceFor(PROJECT_ID, startingBalance);
 
-    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
+    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(startingBalance);
 
     // Record redemption
     await JBPaymentTerminalStore
@@ -168,7 +165,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       );
 
     // Expect recorded balance to decrease by redeemed amount
-    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(
+    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(
       startingBalance.sub(AMOUNT),
     );
   });
@@ -232,7 +229,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     // No balance.
     const startingBalance = 0;
 
-    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
+    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(startingBalance);
 
     // Record redemption
     await JBPaymentTerminalStore
@@ -248,7 +245,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       );
 
     // Expect recorded balance to not have changed
-    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
+    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(startingBalance);
   });
 
   it('Should record redemption without a claim amount', async function () {
@@ -313,7 +310,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     // No balance
     const startingBalance = 0;
 
-    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
+    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(startingBalance);
 
     // Record redemption
     await JBPaymentTerminalStore
@@ -329,7 +326,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       );
 
     // Expect recorded balance to not have changed
-    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
+    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(startingBalance);
   });
 
   it('Should record redemption with a datasource and emit event', async function () {
@@ -416,7 +413,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       .connect(mockJbTerminalSigner)
       .recordAddedBalanceFor(PROJECT_ID, startingBalance);
 
-    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(startingBalance);
+    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(startingBalance);
 
     // Record redemption
     const tx = await JBPaymentTerminalStore
@@ -444,31 +441,12 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       ]);
 
     // Expect recorded balance to decrease by redeemed amount
-    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(
+    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(
       startingBalance.sub(AMOUNT),
     );
   });
 
   /* Sad path tests */
-
-  it(`Can't record redemption without mockJbTerminal access`, async function () {
-    const { holder, beneficiary, JBPaymentTerminalStore } = await setup();
-
-    // Record redemption
-    await expect(
-      JBPaymentTerminalStore
-        .connect(holder)
-        .recordRedemptionFor(
-          /* holder */ holder.address,
-          /* projectId */ PROJECT_ID,
-          /* tokenCount */ AMOUNT,
-          /* minReturnedWei */ AMOUNT,
-          /* beneficiary */ beneficiary.address,
-          /* memo */ 'test',
-          /* delegateMetadata */ 0,
-        ),
-    ).to.be.revertedWith(errors.UNAUTHORIZED);
-  });
 
   it(`Can't record redemption if token total balance < tokenCount`, async function () {
     const { holder, beneficiary, mockJbTerminalSigner, mockJbTokenStore, JBPaymentTerminalStore } =

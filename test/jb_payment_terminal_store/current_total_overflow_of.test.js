@@ -51,13 +51,8 @@ describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
     const timestamp = block.timestamp;
 
     await mockJbTerminalA.mock.currency.returns(CURRENCY_ETH);
-    await mockJbTerminalA.mock.baseWeightCurrency.returns(CURRENCY_ETH);
 
     await mockJbTerminalB.mock.currency.returns(CURRENCY_USD);
-    await mockJbTerminalB.mock.baseWeightCurrency.returns(CURRENCY_USD);
-
-    // Set terminal address
-    await JBPaymentTerminalStore.claimFor(mockJbTerminalA.address);
 
     return {
       mockJbTerminalA,
@@ -128,7 +123,7 @@ describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
       .returns(ethers.FixedNumber.from(1));
 
     // Get total overflow across both terminals; should equal AMOUNT + AMOUNT
-    expect(await JBPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID)).to.equal(
+    expect(await JBPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, CURRENCY_ETH)).to.equal(
       AMOUNT.addUnsafe(AMOUNT),
     );
   });
@@ -187,6 +182,6 @@ describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
       .returns(ethers.FixedNumber.from(1));
 
     // Get total overflow across both terminals
-    expect(await JBPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID)).to.equal(0);
+    expect(await JBPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, CURRENCY_ETH)).to.equal(0);
   });
 });

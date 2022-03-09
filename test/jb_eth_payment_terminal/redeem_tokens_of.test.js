@@ -49,7 +49,6 @@ describe('JBETHPaymentTerminal::redeemTokensOf(...)', function () {
       from: deployer.address,
       nonce: currentNonce + 1,
     });
-    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
 
     const jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)

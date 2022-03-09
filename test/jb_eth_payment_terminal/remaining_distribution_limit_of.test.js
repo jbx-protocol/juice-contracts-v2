@@ -44,12 +44,6 @@ describe('JBETHPaymentTerminal::remainingDistributionLimitOf(...)', function () 
     let jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
 
     const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
-    const futureTerminalAddress = ethers.utils.getContractAddress({
-      from: deployer.address,
-      nonce: currentNonce + 1,
-    });
-
-    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
 
     let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
@@ -90,7 +84,7 @@ describe('JBETHPaymentTerminal::remainingDistributionLimitOf(...)', function () 
       .returns(BALANCE);
 
     await mockJBPaymentTerminalStore.mock.usedDistributionLimitOf
-      .withArgs(PROJECT_ID, FUNDING_CYCLE_NUMBER)
+      .withArgs(jbEthPaymentTerminal.address, PROJECT_ID, FUNDING_CYCLE_NUMBER)
       .returns(BALANCE);
 
     expect(

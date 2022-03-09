@@ -20,7 +20,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
 
   const AMOUNT_DISTRIBUTED = 1000000000000;
 
-  const DEFAULT_FEE =   50000000; // 5%
+  const DEFAULT_FEE = 50000000; // 5%
   const FEE_DISCOUNT = 500000000; // 50%
 
   const CURRENCY = 1;
@@ -104,8 +104,6 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       from: deployer.address,
       nonce: currentNonce + 1,
     });
-
-    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
 
     let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
@@ -545,7 +543,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       )
       .returns();
 
-      await Promise.all(
+    await Promise.all(
       splits.map(async (split) => {
         await mockJbEthPaymentTerminal.mock.pay
           .withArgs(
@@ -621,15 +619,15 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
       mockJbSplitsStore,
     } = await setup();
     const splits = makeSplits({ count: 2, projectId: OTHER_PROJECT_ID });
-  
+
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(OTHER_PROJECT_ID, ETH_ADDRESS)
       .returns(mockJbEthPaymentTerminal.address);
-  
+
     await mockJbSplitsStore.mock.splitsOf
       .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
       .returns(splits);
-  
+
     await Promise.all(
       splits.map(async (split) => {
         await mockJbEthPaymentTerminal.mock.pay
@@ -645,9 +643,9 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
           .returns();
       }),
     );
-  
+
     await jbEthPaymentTerminal.connect(terminalOwner).toggleFeelessTerminal(mockJbEthPaymentTerminal.address);
-  
+
     let tx = await jbEthPaymentTerminal
       .connect(caller)
       .distributePayoutsOf(
@@ -657,7 +655,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
-  
+
     await Promise.all(
       splits.map(async (split) => {
         await expect(tx)
@@ -681,7 +679,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
           );
       }),
     );
-  
+
     expect(await tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
@@ -1426,7 +1424,7 @@ describe('JBETHPaymentTerminal::distributePayoutsOf(...)', function () {
         /*_distributedAmount*/ AMOUNT_DISTRIBUTED,
         /*_feeAmount*/ 0,
         /*_leftoverDistributionAmount*/ AMOUNT_DISTRIBUTED -
-          ((AMOUNT_DISTRIBUTED * PERCENT) / SPLITS_TOTAL_PERCENT) * splits.length,
+        ((AMOUNT_DISTRIBUTED * PERCENT) / SPLITS_TOTAL_PERCENT) * splits.length,
         MEMO,
         caller.address,
       );
