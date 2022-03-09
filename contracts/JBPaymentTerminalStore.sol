@@ -86,6 +86,7 @@ contract JBPaymentTerminalStore {
     @notice
     The amount of tokens that each project has.
 
+    _terminalOf The terminal to which the balance applies.
     _projectId The ID of the project to get the balance of.
   */
   mapping(IJBTerminal => mapping(uint256 => uint256)) public balanceOf;
@@ -97,6 +98,7 @@ contract JBPaymentTerminalStore {
     @dev
     Increases as projects use their allowance.
 
+    _terminalOf The terminal to which the overflow allowance applies.
     _projectId The ID of the project to get the used overflow allowance of.
     _configuration The configuration of the during which the allowance applies.
   */
@@ -110,6 +112,7 @@ contract JBPaymentTerminalStore {
     @dev
     Increases as projects use their distribution limit.
 
+    _terminalOf The terminal to which the used distribution limit applies.
     _projectId The ID of the project to get the used distribution limit of.
     _fundingCycleNumber The number representing the funding cycle.
   */
