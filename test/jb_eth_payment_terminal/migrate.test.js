@@ -11,7 +11,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 
-describe.only('JBETHPaymentTerminal::migrate(...)', function () {
+describe('JBETHPaymentTerminal::migrate(...)', function () {
   const PROJECT_ID = 2;
   const CURRENT_TERMINAL_BALANCE = ethers.utils.parseEther('10');
 
@@ -47,6 +47,10 @@ describe.only('JBETHPaymentTerminal::migrate(...)', function () {
     const jbCurrencies = await jbCurrenciesFactory.deploy();
     const CURRENCY_ETH = await jbCurrencies.ETH();
 
+    const jbTokensFactory = await ethers.getContractFactory('JBTokens');
+    const jbTokens = await jbTokensFactory.deploy();
+    const TOKEN_ETH = await jbTokens.ETH();
+
     let jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
 
     const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
@@ -80,9 +84,10 @@ describe.only('JBETHPaymentTerminal::migrate(...)', function () {
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
-    await mockJbEthPaymentTerminal.mock.token.returns(CURRENCY_ETH);
+    await mockJbEthPaymentTerminal.mock.token.returns(TOKEN_ETH);
 
-    await mockJbEthPaymentTerminal.mock.addToBalanceOf.withArgs(CURRENT_TERMINAL_BALANCE, PROJECT_ID, '').returns();
+    // addToBalanceOf _amount is 0 if ETH terminal
+    await mockJbEthPaymentTerminal.mock.addToBalanceOf.withArgs(/*CURRENT_TERMINAL_BALANCE*/0, PROJECT_ID, '').returns();
 
     await setBalance(jbEthPaymentTerminal.address, CURRENT_TERMINAL_BALANCE);
 
