@@ -3,7 +3,7 @@ pragma solidity 0.8.6;
 
 import './helpers/TestBaseWorkflow.sol';
 
-contract TestAllowance is TestBaseWorkflow {
+contract TestERC20Terminal is TestBaseWorkflow {
   JBController controller;
   JBProjectMetadata _projectMetadata;
   JBFundingCycleData _data;
@@ -128,87 +128,4 @@ contract TestAllowance is TestBaseWorkflow {
     assertEq(_tokenStore.balanceOf(msg.sender, projectId), 0);
   }
 
-  function testFuzzAllowance(uint248 ALLOWANCE, uint248 TARGET, uint96 BALANCE) public {
-    JBETHPaymentTerminal terminal = jbETHPaymentTerminal();
-
-    _fundAccessConstraints.push(
-      JBFundAccessConstraints({
-        terminal: jbETHPaymentTerminal(),
-        distributionLimit: TARGET,
-        overflowAllowance: ALLOWANCE,
-        distributionLimitCurrency: 1, // Currency = ETH
-        overflowAllowanceCurrency: 1
-      })
-    );
-
-    uint256 projectId = controller.launchProjectFor(
-      _projectOwner,
-      _projectMetadata,
-      _data,
-      _metadata,
-      block.timestamp,
-      _groupedSplits,
-      _fundAccessConstraints,
-      _terminals
-    );
-
-    terminal.pay{value: BALANCE}(BALANCE, projectId, msg.sender, 0, false, 'Forge test', new bytes(0));
-
-    // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
-    uint256 _userTokenBalance = PRBMathUD60x18.mul(BALANCE, WEIGHT) / 2;
-    if(BALANCE != 0) assertEq(_tokenStore.balanceOf(msg.sender, projectId), _userTokenBalance);
-
-    // verify: ETH balance in terminal should be up to date
-    assertEq(terminal.balanceOf(projectId), BALANCE);
-
-    evm.prank(_projectOwner);
-
-    if (ALLOWANCE == 0)
-      evm.expectRevert(abi.encodeWithSignature('INADEQUATE_CONTROLLER_ALLOWANCE()'));
-
-    else if (TARGET >= BALANCE || ALLOWANCE > BALANCE) // Too much to withdraw or no overflow ?
-      evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
-    
-    terminal.useAllowanceOf(
-      projectId,
-      ALLOWANCE,
-      1, // Currency
-      0, // Min wei out
-      payable(msg.sender) // Beneficiary
-    );
-
-    if (BALANCE !=0  && BALANCE > TARGET && ALLOWANCE < BALANCE && TARGET < BALANCE) assertEq((msg.sender).balance, ALLOWANCE);
-
-
-    evm.prank(_projectOwner);
-    if (TARGET > BALANCE)
-      evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
-    
-    if (TARGET == 0)
-      evm.expectRevert(abi.encodeWithSignature('DISTRIBUTION_AMOUNT_LIMIT_REACHED()'));
-
-    terminal.distributePayoutsOf(
-      projectId,
-      TARGET,
-      1, // Currency
-      0, // Min wei out
-      'Foundry payment' // Memo
-    );
-    if (BALANCE !=0 && BALANCE > TARGET) assertEq(_projectOwner.balance, TARGET);
-
-    evm.prank(msg.sender);
-
-    if (BALANCE == 0)
-      evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_TOKENS()'));
-
-    terminal.redeemTokensOf(
-      msg.sender,
-      projectId,
-      1, // Currency
-      0, // Min wei out
-      payable(msg.sender),
-      'gimme my money back',
-      new bytes(0)
-    );
-  }
 }
