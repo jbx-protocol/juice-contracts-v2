@@ -31,6 +31,9 @@ error TERMINAL_IN_SPLIT_ZERO_ADDRESS();
 error TERMINAL_TOKENS_INCOMPATIBLE();
 error ZERO_VALUE_SENT();
 error NO_MSG_VALUE_ALLOWED();
+error INADEQUATE_TOKEN_COUNT();
+error INADEQUATE_DISTRIBUTION_AMOUNT();
+error INADEQUATE_RECLAIM_AMOUNT();
 
 /**
   @notice
@@ -331,9 +334,11 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordDistributionFor(
       _projectId,
       _amount,
-      _currency,
-      _minReturnedTokens
+      _currency
     );
+
+    // The amount being distributed must be at least as much as was expected.
+    if (_distributedAmount < _minReturnedTokens) revert INADEQUATE_DISTRIBUTION_AMOUNT();
 
     // Get a reference to the project owner, which will receive tokens from paying the platform fee
     // and receive any extra distributable funds not allocated to payout splits.
@@ -426,12 +431,14 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.USE_ALLOWANCE)
   {
     // Record the use of the allowance.
-    (JBFundingCycle memory _fundingCycle, uint256 _withdrawnAmount) = store.recordUsedAllowanceOf(
+    (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordUsedAllowanceOf(
       _projectId,
       _amount,
-      _currency,
-      _minReturnedTokens
+      _currency
     );
+
+    // The amount being withdrawn must be at least as much as was expected.
+    if (_distributedAmount < _minReturnedTokens) revert INADEQUATE_DISTRIBUTION_AMOUNT();
 
     // Define variables that will be needed outside the scoped section below.
     uint256 _feeAmount;
@@ -447,23 +454,26 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
       // Take a fee from the `_withdrawnAmount`, if needed.
       _feeAmount = fee == 0 || _projectId == 1
         ? 0
-        : _takeFeeFrom(_projectId, _fundingCycle, _withdrawnAmount, _projectOwner, _feeDiscount);
+        : _takeFeeFrom(_projectId, _fundingCycle, _distributedAmount, _projectOwner, _feeDiscount);
     }
 
-    // The net amount is the withdrawn amount without the fee.
-    uint256 _netAmount = _withdrawnAmount - _feeAmount;
+    // Scoped section prevents stack too deep. `_netAmount` only used within scope.
+    {
+      // The net amount is the withdrawn amount without the fee.
+      uint256 _netAmount = _distributedAmount - _feeAmount;
 
-    // Transfer any remaining balance to the beneficiary.
-    if (_netAmount > 0) _transferFrom(address(this), _beneficiary, _netAmount);
+      // Transfer any remaining balance to the beneficiary.
+      if (_netAmount > 0) _transferFrom(address(this), _beneficiary, _netAmount);
+    }
 
     emit UseAllowance(
       _fundingCycle.configuration,
       _fundingCycle.number,
       _projectId,
       _beneficiary,
-      _withdrawnAmount,
+      _amount,
+      _distributedAmount,
       _feeAmount,
-      _netAmount,
       _memo,
       msg.sender
     );
@@ -516,10 +526,12 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
         _holder,
         _projectId,
         _tokenCount,
-        _minReturnedTokens,
         _beneficiary,
         _memo
       );
+
+      // The amount being reclaimed must be at least as much as was expected.
+      if (reclaimAmount < _minReturnedTokens) revert INADEQUATE_RECLAIM_AMOUNT();
 
       // Redeem the project tokens, which burns them.
       if (_tokenCount > 0)
@@ -937,7 +949,6 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
         _amount,
         _projectId,
         _beneficiary,
-        _minReturnedTokens,
         _memo
       );
 
@@ -952,6 +963,9 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
           _preferClaimedTokens,
           true
         );
+
+      // The token count for the beneficiary must be greater than or equal to the minimum expected.
+      if (_beneficiaryTokenCount < _minReturnedTokens) revert INADEQUATE_TOKEN_COUNT();
 
       // If a delegate was returned by the data source, issue a callback to it.
       if (_delegate != IJBPayDelegate(address(0))) {

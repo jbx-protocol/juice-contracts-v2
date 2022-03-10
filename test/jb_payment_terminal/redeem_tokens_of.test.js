@@ -15,8 +15,8 @@ import jbRedemptionDelegate from '../../artifacts/contracts/interfaces/IJBRedemp
 
 describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
   const AMOUNT = 50000;
-  const MIN_RETURNED_AMOUNT = 40000;
-  const RECLAIM_AMOUNT = 30000;
+  const RECLAIM_AMOUNT = 40000;
+  const MIN_RETURNED_AMOUNT = 30000;
   const FUNDING_CYCLE_NUM = 1;
   const MEMO = 'test memo';
   const ADJUSTED_MEMO = 'test test memo';
@@ -129,7 +129,6 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         holder.address,
         PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
         beneficiary.address,
         MEMO
       )
@@ -190,7 +189,6 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         holder.address,
         PROJECT_ID,
         /* tokenCount */ 0,
-        /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
         beneficiary.address,
         MEMO
       )
@@ -259,7 +257,6 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         holder.address,
         PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
         beneficiary.address,
         MEMO
       )
@@ -354,7 +351,6 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         holder.address,
         PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
         beneficiary.address,
         MEMO
       )
@@ -370,7 +366,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         holder.address,
         PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
+        /* minReturnedTokens */ 0,
         beneficiary.address,
         MEMO,
         DELEGATE_METADATA,
@@ -436,5 +432,47 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         /* delegateMetadata */ 0,
       ),
     ).to.be.revertedWith(errors.REDEEM_TO_ZERO_ADDRESS);
+  });
+  it("Can't redeem if reclaim amount is less than expected", async function () {
+    const {
+      beneficiary,
+      fundingCycle,
+      holder,
+      jbEthPaymentTerminal,
+      mockJBPaymentTerminalStore,
+      mockJbDirectory,
+      mockJbController,
+      timestamp,
+    } = await setup();
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
+    await mockJbController.mock.burnTokensOf
+      .withArgs(holder.address, PROJECT_ID, AMOUNT, /* memo */ '', /* preferClaimedTokens */ false)
+      .returns();
+
+    // Keep it simple and let 1 token exchange for 1 wei
+    await mockJBPaymentTerminalStore.mock.recordRedemptionFor
+      .withArgs(
+        holder.address,
+        PROJECT_ID,
+        /* tokenCount */ AMOUNT,
+        beneficiary.address,
+        MEMO
+      )
+      .returns(fundingCycle, /* reclaimAmount */ 0, /* delegate */ ethers.constants.AddressZero, ADJUSTED_MEMO); // Set reclaimAmount to 0
+
+    await expect(
+      jbEthPaymentTerminal
+        .connect(holder)
+        .redeemTokensOf(
+          holder.address,
+          PROJECT_ID,
+        /* tokenCount */ AMOUNT,
+        /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
+          beneficiary.address,
+          MEMO,
+          DELEGATE_METADATA,
+        ),
+    ).to.be.revertedWith(errors.INADEQUATE_RECLAIM_AMOUNT);
   });
 });

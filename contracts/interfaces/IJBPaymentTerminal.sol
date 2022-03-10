@@ -38,8 +38,8 @@ interface IJBPaymentTerminal is IJBTerminal {
     uint256 indexed projectId,
     address beneficiary,
     uint256 amount,
+    uint256 distributedAmount,
     uint256 feeAmount,
-    uint256 transferAmount,
     string memo,
     address caller
   );

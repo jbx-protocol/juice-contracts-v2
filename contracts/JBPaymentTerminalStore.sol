@@ -22,11 +22,8 @@ error DISTRIBUTION_AMOUNT_LIMIT_REACHED();
 error FUNDING_CYCLE_PAYMENT_PAUSED();
 error FUNDING_CYCLE_DISTRIBUTION_PAUSED();
 error FUNDING_CYCLE_REDEEM_PAUSED();
-error INADEQUATE_CLAIM_AMOUNT();
 error INADEQUATE_CONTROLLER_ALLOWANCE();
 error INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
-error INADEQUATE_TOKEN_COUNT();
-error INADEQUATE_WITHDRAW_AMOUNT();
 error INSUFFICIENT_TOKENS();
 error INVALID_FUNDING_CYCLE();
 error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
@@ -248,7 +245,6 @@ contract JBPaymentTerminalStore {
     @param _amount The amount of terminal tokens being paid, as a fixed point number with 18 decimals.
     @param _projectId The ID of the project being paid.
     @param _beneficiary The address that should receive benefits from the payment.
-    @param _minReturnedTokens The minimum number of project tokens expected to be minted in return, as a fixed point number with 18 decimals.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.
 
     @return fundingCycle The project's funding cycle during which payment was made.
@@ -262,7 +258,6 @@ contract JBPaymentTerminalStore {
     uint256 _amount,
     uint256 _projectId,
     address _beneficiary,
-    uint256 _minReturnedTokens,
     string memory _memo
   )
     external
@@ -327,10 +322,6 @@ contract JBPaymentTerminalStore {
 
     // Find the number of tokens to mint.
     tokenCount = PRBMath.mulDiv(_amount, weight, _weightRatio);
-
-    //TODO this should take reserved into account;
-    // The token count for the beneficiary must be greater than or equal to the minimum expected.
-    if (tokenCount < _minReturnedTokens) revert INADEQUATE_TOKEN_COUNT();
   }
 
   /**
@@ -343,7 +334,6 @@ contract JBPaymentTerminalStore {
     @param _projectId The ID of the project that is having funds distributed.
     @param _amount The amount of terminal tokens to use from the distribution limit, as a fixed point number with 18 decimals.
     @param _currency The expected currency of the `_amount` being distributed. This must match the project's current funding cycle's currency.
-    @param _minReturnedTokens The minimum number of terminal tokens that should be distributed in terms of the msg.sender's currency, as a fixed point number with 18 decimals.
 
     @return fundingCycle The funding cycle during which the distribution was made.
     @return distributedAmount The amount of terminal tokens distributed.
@@ -351,8 +341,7 @@ contract JBPaymentTerminalStore {
   function recordDistributionFor(
     uint256 _projectId,
     uint256 _amount,
-    uint256 _currency,
-    uint256 _minReturnedTokens
+    uint256 _currency
   ) external returns (JBFundingCycle memory fundingCycle, uint256 distributedAmount) {
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
@@ -397,9 +386,6 @@ contract JBPaymentTerminalStore {
     if (distributedAmount > balanceOf[IJBTerminal(msg.sender)][_projectId])
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
 
-    // The amount being distributed must be at least as much as was expected.
-    if (_minReturnedTokens > distributedAmount) revert INADEQUATE_WITHDRAW_AMOUNT();
-
     // Store the new amount.
     usedDistributionLimitOf[IJBTerminal(msg.sender)][_projectId][
       fundingCycle.number
@@ -421,7 +407,6 @@ contract JBPaymentTerminalStore {
     @param _projectId The ID of the project to use the allowance of.
     @param _amount The amount of terminal tokens to use from the allowance, as a fixed point number with 18 decimals.
     @param _currency The currency of the `_amount` value. Must match the funding cycle's currency.
-    @param _minReturnedTokens The amount of terminal tokens that is expected to be used in terms of the msg.senders currency.
 
     @return fundingCycle The funding cycle during which the withdrawal is being made.
     @return withdrawnAmount The amount terminal tokens used, as a fixed point number with 18 decimals.
@@ -429,8 +414,7 @@ contract JBPaymentTerminalStore {
   function recordUsedAllowanceOf(
     uint256 _projectId,
     uint256 _amount,
-    uint256 _currency,
-    uint256 _minReturnedTokens
+    uint256 _currency
   ) external returns (JBFundingCycle memory fundingCycle, uint256 withdrawnAmount) {
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
@@ -471,9 +455,6 @@ contract JBPaymentTerminalStore {
     // The project balance should be bigger than the amount withdrawn from the overflow
     if (balanceOf[IJBTerminal(msg.sender)][_projectId] < withdrawnAmount)
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
-
-    // The amount being withdrawn must be at least as much as was expected.
-    if (_minReturnedTokens > withdrawnAmount) revert INADEQUATE_WITHDRAW_AMOUNT();
 
     // Get the current funding target
     uint256 distributionLimit = directory.controllerOf(_projectId).distributionLimitOf(
@@ -531,7 +512,6 @@ contract JBPaymentTerminalStore {
     @param _holder The account that is having its tokens redeemed.
     @param _projectId The ID of the project to which the tokens being redeemed belong.
     @param _tokenCount The number of project tokens to redeem, as a fixed point number with 18 decimals.
-    @param _minReturnedTokens The minimum amount of terminal tokens expected in return in terms of the msg.senders currency, as a fixed point number with 18 decimals.
     @param _beneficiary The address that will benefit from the claimed amount.
     @param _memo A memo to pass along to the emitted event.
 
@@ -544,7 +524,6 @@ contract JBPaymentTerminalStore {
     address _holder,
     uint256 _projectId,
     uint256 _tokenCount,
-    uint256 _minReturnedTokens,
     address payable _beneficiary,
     string memory _memo
   )
@@ -592,9 +571,6 @@ contract JBPaymentTerminalStore {
     // The amount being reclaimed must be within the project's balance.
     if (reclaimAmount > balanceOf[IJBTerminal(msg.sender)][_projectId])
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
-
-    // The amount being reclaimed must be at least as much as was expected.
-    if (reclaimAmount < _minReturnedTokens) revert INADEQUATE_CLAIM_AMOUNT();
 
     // Remove the reclaimed funds from the project's balance.
     if (reclaimAmount > 0)

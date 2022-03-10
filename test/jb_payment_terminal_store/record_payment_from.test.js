@@ -20,7 +20,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
   const AMOUNT = ethers.BigNumber.from('4398541').mul(ethers.BigNumber.from(10).pow(18));
   const WEIGHT = ethers.BigNumber.from('90000').mul(ethers.BigNumber.from(10).pow(18));
-  const WEIGHTED_AMOUNT = ethers.BigNumber.from('4398541').mul(ethers.BigNumber.from('90000')).mul(ethers.BigNumber.from(10).pow(18));
 
   const CURRENCY = 1;
   const BASE_CURRENCY = 1;
@@ -115,7 +114,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         AMOUNT,
         PROJECT_ID,
         beneficiary.address,
-        /* minReturnedTokens */ 0,
         /* memo */ 'test'
       );
 
@@ -157,7 +155,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         AMOUNT,
         PROJECT_ID,
         beneficiary.address,
-        /* minReturnedTokens */ 0,
         /* memo */ 'test'
       );
 
@@ -226,7 +223,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         /* amount */ AMOUNT,
         /* projectId */ PROJECT_ID,
         beneficiary.address,
-        /* minReturnedTokens */ 0,
         /* memo */ memo
       );
 
@@ -269,7 +265,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         AMOUNT,
         PROJECT_ID,
         beneficiary.address,
-        /* minReturnedTokens */ 0,
         /* memo */ 'test'
       );
 
@@ -320,7 +315,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         AMOUNT,
         PROJECT_ID,
         beneficiary.address,
-        /* minReturnedTokens */ 0,
         /* memo */ 'test'
       );
 
@@ -387,7 +381,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         /* amount */ 0,
         /* projectId */ PROJECT_ID,
         beneficiary.address,
-        /* minReturnedTokens */ 0,
         /* memo */ memo
       );
 
@@ -425,7 +418,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
           AMOUNT,
           PROJECT_ID,
           beneficiary.address,
-          /* minReturnedTokens */ 0,
           /* memo */ 'test'
         ),
     ).to.be.revertedWith(errors.INVALID_FUNDING_CYCLE);
@@ -457,48 +449,8 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
           AMOUNT,
           PROJECT_ID,
           beneficiary.address,
-          /* minReturnedTokens */ 0,
           /* memo */ 'test'
         ),
     ).to.be.revertedWith(errors.FUNDING_CYCLE_PAYMENT_PAUSED);
-  });
-
-  it(`Can't record payment if tokens minted < minReturnedTokens`, async function () {
-    const {
-      mockJbTerminalSigner,
-      payer,
-      beneficiary,
-      mockJbFundingCycleStore,
-      JBPaymentTerminalStore,
-      timestamp,
-    } = await setup();
-
-    const reservedRate = 0;
-    const minReturnedAmt = WEIGHTED_AMOUNT.add(ethers.FixedNumber.from(1));
-
-    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      // mock JBFundingCycle obj
-      number: 1,
-      configuration: timestamp,
-      basedOn: timestamp,
-      start: timestamp,
-      duration: 0,
-      weight: WEIGHT,
-      discountRate: 0,
-      ballot: payer.address,
-      metadata: packFundingCycleMetadata({ pausePay: 0, reservedRate: reservedRate }),
-    });
-
-    // Record the payment
-    await expect(
-      JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
-        /* payer */ payer.address,
-        AMOUNT,
-        PROJECT_ID,
-        beneficiary.address,
-        /* minReturnedTokens */ ethers.FixedNumber.from(minReturnedAmt), // Set intentionally larger
-        /* memo */ 'test'
-      ),
-    ).to.be.revertedWith(errors.INADEQUATE_TOKEN_COUNT);
   });
 });

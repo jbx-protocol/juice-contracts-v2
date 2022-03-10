@@ -100,7 +100,6 @@ describe('JBPaymentTerminal::pay(...)', function () {
         ETH_TO_PAY,
         PROJECT_ID,
         beneficiary.address,
-        MIN_TOKEN_REQUESTED,
         MEMO
       )
       .returns(
@@ -204,7 +203,6 @@ describe('JBPaymentTerminal::pay(...)', function () {
         ETH_TO_PAY,
         PROJECT_ID,
         beneficiary.address,
-        MIN_TOKEN_REQUESTED,
         MEMO
       )
       .returns(
@@ -319,7 +317,6 @@ describe('JBPaymentTerminal::pay(...)', function () {
         ETH_TO_PAY,
         PROJECT_ID,
         beneficiary.address,
-        MIN_TOKEN_REQUESTED,
         MEMO
       )
       .returns(
@@ -347,7 +344,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
         ETH_TO_PAY + 1,
         PROJECT_ID,
         beneficiary.address,
-        MIN_TOKEN_REQUESTED,
+        0,
         PREFER_CLAIMED_TOKENS,
         MEMO,
         DELEGATE_METADATA,
@@ -446,5 +443,50 @@ describe('JBPaymentTerminal::pay(...)', function () {
           { value: ETH_TO_PAY },
         ),
     ).to.be.revertedWith(errors.PROJECT_TERMINAL_MISMATCH);
+  });
+  it("Can't pay if minted tokens for beneficiary is less than expected", async function () {
+    const { caller, jbEthPaymentTerminal, mockJBPaymentTerminalStore, beneficiary, timestamp } = await setup();
+
+    await mockJBPaymentTerminalStore.mock.recordPaymentFrom
+      .withArgs(
+        caller.address,
+        ETH_TO_PAY,
+        PROJECT_ID,
+        beneficiary.address,
+        MEMO
+      )
+      .returns(
+        {
+          // mock JBFundingCycle obj
+          number: 1,
+          configuration: timestamp,
+          basedOn: timestamp,
+          start: timestamp,
+          duration: 0,
+          weight: 0,
+          discountRate: 0,
+          ballot: ethers.constants.AddressZero,
+          metadata: packFundingCycleMetadata(),
+        },
+        ADJUSTED_WEIGHT,
+        0,
+        ethers.constants.AddressZero,
+        ADJUSTED_MEMO,
+      );
+
+    await expect(
+      jbEthPaymentTerminal
+        .connect(caller)
+        .pay(
+          ETH_TO_PAY + 1,
+          PROJECT_ID,
+          beneficiary.address,
+          MIN_TOKEN_REQUESTED,
+          PREFER_CLAIMED_TOKENS,
+          MEMO,
+          DELEGATE_METADATA,
+          { value: ETH_TO_PAY },
+        ),
+    ).to.be.revertedWith(errors.INADEQUATE_TOKEN_COUNT);
   });
 });
