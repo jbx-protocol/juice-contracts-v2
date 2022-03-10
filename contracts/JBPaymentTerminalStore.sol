@@ -41,9 +41,13 @@ contract JBPaymentTerminalStore {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
-  event DelegateDidPay(IJBPayDelegate indexed delegate, JBDidPayData data);
+  event DelegateDidPay(IJBPayDelegate indexed delegate, JBDidPayData data, address caller);
 
-  event DelegateDidRedeem(IJBRedemptionDelegate indexed delegate, JBDidRedeemData data);
+  event DelegateDidRedeem(
+    IJBRedemptionDelegate indexed delegate,
+    JBDidRedeemData data,
+    address caller
+  );
 
   /**
     @notice
@@ -322,14 +326,22 @@ contract JBPaymentTerminalStore {
 
       // Amount and weight must be non-zero in order to mint tokens.
       if (weight > 0) {
-        // If the terminal should base its weight on a different currency from the terminal's currency, determine the factor.
-        uint256 _weightRatio = IJBTerminal(msg.sender).baseWeightCurrency() !=
-          IJBTerminal(msg.sender).currency()
-          ? prices.priceFor(
-            IJBTerminal(msg.sender).currency(),
-            IJBTerminal(msg.sender).baseWeightCurrency()
-          )
-          : 1E18;
+        // Define variables that will be needed outside the scoped section below.
+        uint256 _weightRatio;
+
+        // Scoped section prevents stack too deep. `_terminalCurrency` and `_terminalBaseWeightCurrency` only used within scope.
+        {
+          // Get a referenece to the terminal's currency.
+          uint256 _terminalCurrency = IJBTerminal(msg.sender).currency();
+
+          // Get a referenece to the terminal's base weight currency.
+          uint256 _terminalBaseWeightCurrency = IJBTerminal(msg.sender).baseWeightCurrency();
+
+          // If the terminal should base its weight on a different currency from the terminal's currency, determine the factor.
+          _weightRatio = _terminalCurrency == _terminalBaseWeightCurrency
+            ? 1E18
+            : prices.priceFor(_terminalCurrency, _terminalBaseWeightCurrency);
+        }
 
         // Mint the tokens.
         tokenCount = directory.controllerOf(_projectId).mintTokensOf(
@@ -359,7 +371,7 @@ contract JBPaymentTerminalStore {
         _delegateMetadata
       );
       _delegate.didPay(_data);
-      emit DelegateDidPay(_delegate, _data);
+      emit DelegateDidPay(_delegate, _data, msg.sender);
     }
   }
 
@@ -415,10 +427,13 @@ contract JBPaymentTerminalStore {
       )
     ) revert CURRENCY_MISMATCH();
 
+    // Get a referenece to the terminal's currency.
+    uint256 _terminalCurrency = IJBTerminal(msg.sender).currency();
+
     // Convert the amount to this store's terminal's token.
-    distributedAmount = (_currency == IJBTerminal(msg.sender).currency())
+    distributedAmount = (_currency == _terminalCurrency)
       ? _amount
-      : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, IJBTerminal(msg.sender).currency()));
+      : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, _terminalCurrency));
 
     // The amount being distributed must be available.
     if (distributedAmount > balanceOf[IJBTerminal(msg.sender)][_projectId])
@@ -487,10 +502,13 @@ contract JBPaymentTerminalStore {
       )
     ) revert CURRENCY_MISMATCH();
 
+    // Get a referenece to the terminal's currency.
+    uint256 _terminalCurrency = IJBTerminal(msg.sender).currency();
+
     // Convert the amount to this store's terminal's token.
-    withdrawnAmount = (_currency == IJBTerminal(msg.sender).currency())
+    withdrawnAmount = (_currency == _terminalCurrency)
       ? _amount
-      : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, IJBTerminal(msg.sender).currency()));
+      : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, _terminalCurrency));
 
     // The project balance should be bigger than the amount withdrawn from the overflow
     if (balanceOf[IJBTerminal(msg.sender)][_projectId] < withdrawnAmount)
@@ -520,11 +538,11 @@ contract JBPaymentTerminalStore {
         );
 
       // Convert the remaining to distribute into this store's terminal's token.
-      _leftToDistribute = (_distributionLimitCurrency == IJBTerminal(msg.sender).currency())
+      _leftToDistribute = (_distributionLimitCurrency == _terminalCurrency)
         ? _leftToDistribute
         : PRBMathUD60x18.div(
           _leftToDistribute,
-          prices.priceFor(_distributionLimitCurrency, IJBTerminal(msg.sender).currency())
+          prices.priceFor(_distributionLimitCurrency, _terminalCurrency)
         );
 
       // The amount being withdrawn must be available in the overflow.
@@ -646,7 +664,7 @@ contract JBPaymentTerminalStore {
         _delegateMetadata
       );
       _delegate.didRedeem(_data);
-      emit DelegateDidRedeem(_delegate, _data);
+      emit DelegateDidRedeem(_delegate, _data, msg.sender);
     }
   }
 
@@ -691,9 +709,7 @@ contract JBPaymentTerminalStore {
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Migration must be allowed
-    if (!_fundingCycle.terminalMigrationAllowed()) {
-      revert PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
-    }
+    if (!_fundingCycle.terminalMigrationAllowed()) revert PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
 
     // Return the current balance.
     balance = balanceOf[IJBTerminal(msg.sender)][_projectId];

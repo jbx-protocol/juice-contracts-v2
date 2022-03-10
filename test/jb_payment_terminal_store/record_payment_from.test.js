@@ -303,7 +303,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         /* beneficiary */ beneficiary.address,
         /* memo */ newMemo,
         /* delegateMetadata */ ethers.BigNumber.from(delegateMetadata),
-      ]);
+      ], mockJbTerminalSigner.address);
 
     // Expect recorded balance to change
     expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(AMOUNT);
@@ -525,7 +525,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         /* beneficiary */ beneficiary.address,
         /* memo */ newMemo,
         /* delegateMetadata */ ethers.BigNumber.from(delegateMetadata),
-      ]);
+      ], mockJbTerminalSigner.address);
   });
 
   /* Sad path tests */

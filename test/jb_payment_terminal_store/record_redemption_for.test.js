@@ -438,7 +438,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* beneficiary */ beneficiary.address,
         /* memo */ newMemo,
         /* delegateMetadata */ ethers.BigNumber.from(delegateMetadata),
-      ]);
+      ], mockJbTerminalSigner.address);
 
     // Expect recorded balance to decrease by redeemed amount
     expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(
