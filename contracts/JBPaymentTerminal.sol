@@ -30,7 +30,7 @@ error REDEEM_TO_ZERO_ADDRESS();
 error TERMINAL_IN_SPLIT_ZERO_ADDRESS();
 error TERMINAL_TOKENS_INCOMPATIBLE();
 error ZERO_VALUE_SENT();
-error WTF_U_DOIN();
+error NO_MSG_VALUE_ALLOWED();
 
 /**
   @notice
@@ -299,10 +299,12 @@ abstract contract JBPaymentTerminal is
   ) external payable override nonReentrant isTerminalOfProject(_projectId) {
     // ETH shouldn't be sent.
     if (token != JBTokens.ETH) {
-      if (msg.value > 0) revert WTF_U_DOIN();
+      if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
 
       // Transfer tokens to this terminal from the msg sender.
       _transferFrom(msg.sender, payable(address(this)), _amount);
+    } else {
+      _amount = msg.value;
     }
 
     return
@@ -587,11 +589,14 @@ abstract contract JBPaymentTerminal is
     if (token != JBTokens.ETH) {
       // Amount must be greater than 0.
       if (msg.value > 0) {
-        revert WTF_U_DOIN();
+        revert NO_MSG_VALUE_ALLOWED();
       }
       // Transfer tokens to this terminal from the msg sender.
       _transferFrom(msg.sender, payable(address(this)), _amount);
+    } else {
+      _amount = msg.value;
     }
+
     _addToBalance(_amount, _projectId, _memo);
   }
 

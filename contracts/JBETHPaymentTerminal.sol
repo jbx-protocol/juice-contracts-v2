@@ -39,7 +39,7 @@ contract JBETHPaymentTerminal is JBPaymentTerminal {
   }
 
   function _transferFrom(
-    address _from,
+    address,
     address payable _to,
     uint256 _amount
   ) internal override {

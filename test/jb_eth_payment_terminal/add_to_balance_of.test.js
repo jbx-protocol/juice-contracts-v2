@@ -11,6 +11,7 @@ import jbPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalS
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
+import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 
 describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
   const PROJECT_ID = 2;
@@ -40,6 +41,8 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
     const block = await ethers.provider.getBlock(blockNum);
     const timestamp = block.timestamp;
 
+    const SPLITS_GROUP = 1;
+
     let [
       mockJbDirectory,
       mockJbEthPaymentTerminal,
@@ -57,8 +60,11 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
     ]);
 
     let jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
+    let jbErc20TerminalFactory = await ethers.getContractFactory('JBERC20PaymentTerminal', deployer);
+    const mockJbToken = await deployMockContract(deployer, jbToken.abi);
+    const NON_ETH_TOKEN = mockJbToken.address;
 
-    const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
+    let currentNonce = await ethers.provider.getTransactionCount(deployer.address);
     const futureTerminalAddress = ethers.utils.getContractAddress({
       from: deployer.address,
       nonce: currentNonce + 1,
@@ -70,6 +76,30 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
       .connect(deployer)
       .deploy(
         /*base weight currency*/CURRENCY_ETH,
+        mockJbOperatorStore.address,
+        mockJbProjects.address,
+        mockJbDirectory.address,
+        mockJbSplitsStore.address,
+        mockJbPaymentTerminalStore.address,
+        terminalOwner.address,
+      );
+
+    currentNonce = await ethers.provider.getTransactionCount(deployer.address);
+
+    const futureOtherCurrencyTerminalAddress = ethers.utils.getContractAddress({
+      from: deployer.address,
+      nonce: currentNonce + 1,
+    });
+
+    await mockJbPaymentTerminalStore.mock.claimFor.withArgs(futureOtherCurrencyTerminalAddress).returns();
+
+    let jbErc20PaymentTerminal = await jbErc20TerminalFactory
+      .connect(deployer)
+      .deploy(
+        NON_ETH_TOKEN,
+        CURRENCY_ETH,
+        CURRENCY_ETH,
+        SPLITS_GROUP,
         mockJbOperatorStore.address,
         mockJbProjects.address,
         mockJbDirectory.address,
@@ -92,6 +122,10 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
 
     await mockJbDirectory.mock.isTerminalOf
       .withArgs(PROJECT_ID, jbEthPaymentTerminal.address)
+      .returns(true);
+
+    await mockJbDirectory.mock.isTerminalOf
+      .withArgs(PROJECT_ID, jbErc20PaymentTerminal.address)
       .returns(true);
 
     await mockJbPaymentTerminalStore.mock.recordDistributionFor
@@ -128,9 +162,11 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
       beneficiaryTwo,
       addrs,
       jbEthPaymentTerminal,
+      jbErc20PaymentTerminal,
       mockJbDirectory,
       mockJbEthPaymentTerminal,
       mockJbPaymentTerminalStore,
+      mockJbToken,
       mockJbOperatorStore,
       mockJbSplitsStore,
       timestamp,
@@ -169,6 +205,38 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
       .withArgs(PROJECT_ID, AMOUNT, MEMO, caller.address);
 
     expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([]);
+  });
+  it('Should work with eth terminal with non msg.value amount sent', async function () {
+    const {
+      caller,
+      jbEthPaymentTerminal,
+      mockJbPaymentTerminalStore,
+      fundingCycle
+    } = await setup();
+    await mockJbPaymentTerminalStore.mock.recordAddedBalanceFor
+      .withArgs(PROJECT_ID, AMOUNT)
+      .returns(fundingCycle);
+
+    await jbEthPaymentTerminal
+      .connect(caller)
+      .addToBalanceOf(AMOUNT + 1, PROJECT_ID, MEMO, { value: AMOUNT });
+  });
+  it('Should work with non-eth terminal if no value is sent', async function () {
+    const {
+      caller,
+      jbErc20PaymentTerminal,
+      mockJbToken,
+      mockJbPaymentTerminalStore,
+      fundingCycle
+    } = await setup();
+    await mockJbPaymentTerminalStore.mock.recordAddedBalanceFor
+      .withArgs(PROJECT_ID, AMOUNT)
+      .returns(fundingCycle);
+
+    await mockJbToken.mock.transferFrom.withArgs(caller.address, jbErc20PaymentTerminal.address, AMOUNT).returns(0);
+    await jbErc20PaymentTerminal
+      .connect(caller)
+      .addToBalanceOf(AMOUNT, PROJECT_ID, MEMO, { value: 0 });
   });
 
   it('Should add to the project balance, refund a held fee by substracting the amount from the held fee amount and emit event', async function () {
@@ -271,7 +339,17 @@ describe('JBETHPaymentTerminal::addToBalanceOf(...)', function () {
     let heldFeeAfter = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
     expect(heldFeeAfter[0].amount).to.equal(heldFeeBefore[0].amount.sub(10));
   });
+  it("Can't add with value if terminal token isn't ETH", async function () {
+    const { caller, jbErc20PaymentTerminal } = await setup();
 
+    await expect(
+      jbErc20PaymentTerminal
+        .connect(caller)
+        .addToBalanceOf(AMOUNT, PROJECT_ID, MEMO,
+          { value: 10 },
+        ),
+    ).to.be.revertedWith(errors.NO_MSG_VALUE_ALLOWED);
+  });
   it("Can't add to balance if terminal doesn't belong to project", async function () {
     const { caller, jbEthPaymentTerminal, mockJbDirectory } = await setup();
 
