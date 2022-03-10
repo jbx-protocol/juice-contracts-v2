@@ -4,27 +4,27 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
-import JbEthPaymentTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
 import JBPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalStore.sol/JBPaymentTerminalStore.json';
+import jbFeeGauge from '../../artifacts/contracts/interfaces/IJBFeeGauge.sol/IJBFeeGauge.json';
 import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorStore.sol/IJBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
 
-describe('JBETHPaymentTerminal::toggleFeelessTerminal(...)', function () {
+describe('JBPaymentTerminal::setFeeGauge(...)', function () {
   async function setup() {
     let [deployer, terminalOwner, caller] = await ethers.getSigners();
 
     let [
       mockJbDirectory,
-      mockJbEthPaymentTerminal,
       mockJBPaymentTerminalStore,
+      mockJbFeeGauge,
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
-      deployMockContract(deployer, JbEthPaymentTerminal.abi),
       deployMockContract(deployer, JBPaymentTerminalStore.abi),
+      deployMockContract(deployer, jbFeeGauge.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
@@ -58,29 +58,22 @@ describe('JBETHPaymentTerminal::toggleFeelessTerminal(...)', function () {
       terminalOwner,
       caller,
       jbEthPaymentTerminal,
-      mockJbEthPaymentTerminal,
+      mockJbFeeGauge,
     };
   }
 
-  it('Should add a terminal as feeless and emit event, if the terminal was not feeless before', async function () {
-    const { terminalOwner, jbEthPaymentTerminal, mockJbEthPaymentTerminal } = await setup();
+  it('Should set the fee gauge and emit event if caller is terminal owner', async function () {
+    const { terminalOwner, jbEthPaymentTerminal, mockJbFeeGauge } = await setup();
 
-    expect(await jbEthPaymentTerminal.connect(terminalOwner).toggleFeelessTerminal(mockJbEthPaymentTerminal.address))
-      .to.emit(jbEthPaymentTerminal, 'SetFeelessTerminal')
-      .withArgs(mockJbEthPaymentTerminal.address, terminalOwner.address);
-
-    expect(await jbEthPaymentTerminal.isFeelessTerminal(mockJbEthPaymentTerminal.address)).to.be.true;
+    expect(await jbEthPaymentTerminal.connect(terminalOwner).setFeeGauge(mockJbFeeGauge.address))
+      .to.emit(jbEthPaymentTerminal, 'SetFeeGauge')
+      .withArgs(mockJbFeeGauge.address, terminalOwner.address);
   });
+  it("Can't set the fee gauge if caller is not the terminal owner", async function () {
+    const { caller, jbEthPaymentTerminal, mockJbFeeGauge } = await setup();
 
-  it('Should remove a terminal as feeless and emit event, if the terminal was feeless before', async function () {
-    const { terminalOwner, jbEthPaymentTerminal, mockJbEthPaymentTerminal } = await setup();
-
-    await jbEthPaymentTerminal.connect(terminalOwner).toggleFeelessTerminal(mockJbEthPaymentTerminal.address);
-
-    expect(await jbEthPaymentTerminal.connect(terminalOwner).toggleFeelessTerminal(mockJbEthPaymentTerminal.address))
-      .to.emit(jbEthPaymentTerminal, 'SetFeelessTerminal')
-      .withArgs(mockJbEthPaymentTerminal.address, terminalOwner.address);
-
-    expect(await jbEthPaymentTerminal.isFeelessTerminal(mockJbEthPaymentTerminal.address)).to.be.false;
+    await expect(
+      jbEthPaymentTerminal.connect(caller).setFeeGauge(mockJbFeeGauge.address),
+    ).to.be.revertedWith('Ownable: caller is not the owner');
   });
 });

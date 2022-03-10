@@ -9,7 +9,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 
-describe('JBERC20PaymentTerminal::ethBalanceOf(...)', function () {
+describe('JBPaymentTerminal::balanceOf(...)', function () {
   const PROJECT_ID = 13;
   const BALANCE = 100;
 
@@ -34,17 +34,11 @@ describe('JBERC20PaymentTerminal::ethBalanceOf(...)', function () {
     const jbCurrencies = await jbCurrenciesFactory.deploy();
     const CURRENCY_ETH = await jbCurrencies.ETH();
 
-    let jbTerminalFactory = await ethers.getContractFactory('JBERC20PaymentTerminal', deployer);
+    let jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
 
     const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
-    const futureTerminalAddress = ethers.utils.getContractAddress({
-      from: deployer.address,
-      nonce: currentNonce + 1,
-    });
 
-    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
-
-    let jbERC20PaymentTerminal = await jbTerminalFactory
+    let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
       .deploy(
         CURRENCY_ETH,
@@ -59,16 +53,16 @@ describe('JBERC20PaymentTerminal::ethBalanceOf(...)', function () {
     return {
       terminalOwner,
       addrs,
-      jbERC20PaymentTerminal,
+      jbEthPaymentTerminal,
       mockJBPaymentTerminalStore,
     };
   }
 
   it('Should return the balance of the project', async function () {
-    const { jbERC20PaymentTerminal, mockJBPaymentTerminalStore } = await setup();
+    const { jbEthPaymentTerminal, mockJBPaymentTerminalStore } = await setup();
 
-    await mockJBPaymentTerminalStore.mock.balanceOf.withArgs(PROJECT_ID).returns(BALANCE);
+    await mockJBPaymentTerminalStore.mock.balanceOf.withArgs(jbEthPaymentTerminal.address, PROJECT_ID).returns(BALANCE);
 
-    expect(await jbERC20PaymentTerminal.balanceOf(PROJECT_ID)).to.equal(BALANCE);
+    expect(await jbEthPaymentTerminal.balanceOf(PROJECT_ID)).to.equal(BALANCE);
   });
 });

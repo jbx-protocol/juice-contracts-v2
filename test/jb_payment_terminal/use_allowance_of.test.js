@@ -12,9 +12,9 @@ import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorSt
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
 
-describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
+describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
   const AMOUNT = 50000;
-  const DEFAULT_FEE =   50000000; // 5%
+  const DEFAULT_FEE = 50000000; // 5%
   const FEE_DISCOUNT = 500000000; // 50%
 
   const FUNDING_CYCLE_NUM = 1;
@@ -51,17 +51,21 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
       deployMockContract(deployer, jbSplitsStore.abi),
     ]);
 
-    const jbTerminalFactory = await ethers.getContractFactory('JBERC20PaymentTerminal', deployer);
+    const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
+    const jbCurrencies = await jbCurrenciesFactory.deploy();
+    const CURRENCY_ETH = await jbCurrencies.ETH();
+
+    const jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
     const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
     const futureTerminalAddress = ethers.utils.getContractAddress({
       from: deployer.address,
       nonce: currentNonce + 1,
     });
-    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
 
-    const jbERC20PaymentTerminal = await jbTerminalFactory
+    const jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
       .deploy(
+        CURRENCY_ETH,
         mockJbOperatorStore.address,
         mockJbProjects.address,
         mockJbDirectory.address,
@@ -69,10 +73,6 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
         mockJBPaymentTerminalStore.address,
         terminalOwner.address,
       );
-
-    const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
-    const jbCurrencies = await jbCurrenciesFactory.deploy();
-    const CURRENCY_ETH = await jbCurrencies.ETH();
 
     const jbConstantsFactory = await ethers.getContractFactory('JBConstants');
     const jbConstants = await jbConstantsFactory.deploy();
@@ -126,7 +126,7 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
       beneficiary,
       CURRENCY_ETH,
       ETH_ADDRESS,
-      jbERC20PaymentTerminal,
+      jbEthPaymentTerminal,
       fundingCycle,
       mockJbDirectory,
       mockJBPaymentTerminalStore,
@@ -144,7 +144,7 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
       beneficiary,
       CURRENCY_ETH,
       fundingCycle,
-      jbERC20PaymentTerminal,
+      jbEthPaymentTerminal,
       mockJBPaymentTerminalStore,
       projectOwner,
       terminalOwner,
@@ -156,14 +156,14 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
       .returns(fundingCycle, AMOUNT);
 
     // Give terminal sufficient ETH
-    await setBalance(jbERC20PaymentTerminal.address, AMOUNT);
+    await setBalance(jbEthPaymentTerminal.address, AMOUNT);
 
     const initialBeneficiaryBalance = await ethers.provider.getBalance(beneficiary.address);
 
     // Set fee to zero
-    await jbERC20PaymentTerminal.connect(terminalOwner).setFee(0);
+    await jbEthPaymentTerminal.connect(terminalOwner).setFee(0);
 
-    const tx = await jbERC20PaymentTerminal
+    const tx = await jbEthPaymentTerminal
       .connect(projectOwner)
       .useAllowanceOf(
         PROJECT_ID,
@@ -171,10 +171,11 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
         CURRENCY_ETH,
         /* minReturnedWei */ AMOUNT,
         beneficiary.address,
+        MEMO
       );
 
     expect(await tx)
-      .to.emit(jbERC20PaymentTerminal, 'UseAllowance')
+      .to.emit(jbEthPaymentTerminal, 'UseAllowance')
       .withArgs(
         /* _fundingCycle.configuration */ timestamp,
         /* _fundingCycle.number */ FUNDING_CYCLE_NUM,
@@ -183,11 +184,12 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
         /* _withdrawnAmount */ AMOUNT,
         /* _feeAmount */ 0,
         /* _withdrawnAmount - _feeAmount */ AMOUNT,
+        MEMO,
         /* msg.sender */ projectOwner.address,
       );
 
     // Terminal should be out of ETH
-    expect(await ethers.provider.getBalance(jbERC20PaymentTerminal.address)).to.equal(0);
+    expect(await ethers.provider.getBalance(jbEthPaymentTerminal.address)).to.equal(0);
 
     // Beneficiary should have a larger balance
     expect(await ethers.provider.getBalance(beneficiary.address)).to.equal(
@@ -195,12 +197,42 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
     );
   });
 
+  it('Should work with no amount', async function () {
+    const {
+      beneficiary,
+      CURRENCY_ETH,
+      jbEthPaymentTerminal,
+      mockJBPaymentTerminalStore,
+      projectOwner,
+      terminalOwner,
+      fundingCycle
+    } = await setup();
+
+    await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT)
+      .returns(fundingCycle, 0);
+
+    // Set fee to zero
+    await jbEthPaymentTerminal.connect(terminalOwner).setFee(0);
+
+    await jbEthPaymentTerminal
+      .connect(projectOwner)
+      .useAllowanceOf(
+        PROJECT_ID,
+        /* amount */ AMOUNT,
+        CURRENCY_ETH,
+        /* minReturnedWei */ AMOUNT,
+        beneficiary.address,
+        MEMO
+      );
+  });
+
   it('Should send funds from overflow, without fees for Juicebox project, and emit event', async function () {
     const {
       beneficiary,
       CURRENCY_ETH,
       fundingCycle,
-      jbERC20PaymentTerminal,
+      jbEthPaymentTerminal,
       mockJBPaymentTerminalStore,
       projectOwner,
       terminalOwner,
@@ -212,14 +244,14 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
       .returns(fundingCycle, AMOUNT);
 
     // Give terminal sufficient ETH
-    await setBalance(jbERC20PaymentTerminal.address, AMOUNT);
+    await setBalance(jbEthPaymentTerminal.address, AMOUNT);
 
     const initialBeneficiaryBalance = await ethers.provider.getBalance(beneficiary.address);
 
     // Set fee to default 5% - won't be applied though
-    await jbERC20PaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
+    await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
 
-    const tx = await jbERC20PaymentTerminal
+    const tx = await jbEthPaymentTerminal
       .connect(projectOwner)
       .useAllowanceOf(
         JUICEBOX_PROJECT_ID,
@@ -227,10 +259,11 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
         CURRENCY_ETH,
         /* minReturnedWei */ AMOUNT,
         beneficiary.address,
+        MEMO
       );
 
     expect(await tx)
-      .to.emit(jbERC20PaymentTerminal, 'UseAllowance')
+      .to.emit(jbEthPaymentTerminal, 'UseAllowance')
       .withArgs(
         /* _fundingCycle.configuration */ timestamp,
         /* _fundingCycle.number */ FUNDING_CYCLE_NUM,
@@ -239,11 +272,12 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
         /* _withdrawnAmount */ AMOUNT,
         /* _feeAmount */ 0,
         /* _withdrawnAmount - _feeAmount */ AMOUNT,
+        MEMO,
         /* msg.sender */ projectOwner.address,
       );
 
     // Terminal should be out of ETH
-    expect(await ethers.provider.getBalance(jbERC20PaymentTerminal.address)).to.equal(0);
+    expect(await ethers.provider.getBalance(jbEthPaymentTerminal.address)).to.equal(0);
 
     // Beneficiary should have a larger balance
     expect(await ethers.provider.getBalance(beneficiary.address)).to.equal(
@@ -257,7 +291,7 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
       CURRENCY_ETH,
       ETH_ADDRESS,
       fundingCycle,
-      jbERC20PaymentTerminal,
+      jbEthPaymentTerminal,
       mockJbDirectory,
       mockJBPaymentTerminalStore,
       projectOwner,
@@ -271,7 +305,7 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
 
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
-        jbERC20PaymentTerminal.address,
+        jbEthPaymentTerminal.address,
         AMOUNT - AMOUNT_MINUS_FEES,
         JUICEBOX_PROJECT_ID,
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
@@ -279,21 +313,21 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
         /* memo */ '',
         /* delegateMetadata */ '0x',
       )
-      .returns(fundingCycle, WEIGHT, AMOUNT, MEMO);
+      .returns(fundingCycle, WEIGHT, AMOUNT, '');
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)
-      .returns(jbERC20PaymentTerminal.address);
+      .returns(jbEthPaymentTerminal.address);
 
     // Give terminal sufficient ETH
-    await setBalance(jbERC20PaymentTerminal.address, AMOUNT_MINUS_FEES);
+    await setBalance(jbEthPaymentTerminal.address, AMOUNT_MINUS_FEES);
 
     const initialBeneficiaryBalance = await ethers.provider.getBalance(beneficiary.address);
 
     // Set fee to default 5%
-    await jbERC20PaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
+    await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
 
-    const tx = await jbERC20PaymentTerminal
+    const tx = await jbEthPaymentTerminal
       .connect(projectOwner)
       .useAllowanceOf(
         PROJECT_ID,
@@ -301,10 +335,11 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
         CURRENCY_ETH,
         /* minReturnedWei */ AMOUNT,
         beneficiary.address,
+        MEMO
       );
 
     expect(await tx)
-      .to.emit(jbERC20PaymentTerminal, 'UseAllowance')
+      .to.emit(jbEthPaymentTerminal, 'UseAllowance')
       .withArgs(
         /* _fundingCycle.configuration */ timestamp,
         /* _fundingCycle.number */ FUNDING_CYCLE_NUM,
@@ -313,11 +348,12 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
         /* _withdrawnAmount */ AMOUNT,
         /* _feeAmount */ AMOUNT - AMOUNT_MINUS_FEES,
         /* _withdrawnAmount - _feeAmount */ AMOUNT_MINUS_FEES,
+        MEMO,
         /* msg.sender */ projectOwner.address,
       );
 
     // Terminal should be out of ETH
-    expect(await ethers.provider.getBalance(jbERC20PaymentTerminal.address)).to.equal(0);
+    expect(await ethers.provider.getBalance(jbEthPaymentTerminal.address)).to.equal(0);
 
     // Beneficiary should have a larger balance
     expect(await ethers.provider.getBalance(beneficiary.address)).to.equal(
@@ -331,7 +367,7 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
       CURRENCY_ETH,
       ETH_ADDRESS,
       fundingCycle,
-      jbERC20PaymentTerminal,
+      jbEthPaymentTerminal,
       mockJbDirectory,
       mockJBPaymentTerminalStore,
       mockJbFeeGauge,
@@ -352,7 +388,7 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
 
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
-        jbERC20PaymentTerminal.address,
+        jbEthPaymentTerminal.address,
         AMOUNT - AMOUNT_MINUS_DISCOUNTED_FEES,
         JUICEBOX_PROJECT_ID,
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
@@ -360,23 +396,23 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
         /* memo */ '',
         /* delegateMetadata */ '0x',
       )
-      .returns(fundingCycle, WEIGHT, AMOUNT, MEMO);
+      .returns(fundingCycle, WEIGHT, AMOUNT, '');
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)
-      .returns(jbERC20PaymentTerminal.address);
+      .returns(jbEthPaymentTerminal.address);
 
     // Give terminal sufficient ETH
-    await setBalance(jbERC20PaymentTerminal.address, AMOUNT_MINUS_DISCOUNTED_FEES);
+    await setBalance(jbEthPaymentTerminal.address, AMOUNT_MINUS_DISCOUNTED_FEES);
 
     const initialBeneficiaryBalance = await ethers.provider.getBalance(beneficiary.address);
 
     // Set fee to default 5%
-    await jbERC20PaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
+    await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
 
-    await jbERC20PaymentTerminal.connect(terminalOwner).setFeeGauge(mockJbFeeGauge.address);
+    await jbEthPaymentTerminal.connect(terminalOwner).setFeeGauge(mockJbFeeGauge.address);
 
-    const tx = await jbERC20PaymentTerminal
+    const tx = await jbEthPaymentTerminal
       .connect(projectOwner)
       .useAllowanceOf(
         PROJECT_ID,
@@ -384,10 +420,11 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
         CURRENCY_ETH,
         /* minReturnedWei */ AMOUNT,
         beneficiary.address,
+        MEMO
       );
 
     expect(await tx)
-      .to.emit(jbERC20PaymentTerminal, 'UseAllowance')
+      .to.emit(jbEthPaymentTerminal, 'UseAllowance')
       .withArgs(
         /* _fundingCycle.configuration */ timestamp,
         /* _fundingCycle.number */ FUNDING_CYCLE_NUM,
@@ -396,11 +433,12 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
         /* _withdrawnAmount */ AMOUNT,
         /* _feeAmount */ AMOUNT - AMOUNT_MINUS_DISCOUNTED_FEES,
         /* _withdrawnAmount - _feeAmount */ AMOUNT_MINUS_DISCOUNTED_FEES,
+        MEMO,
         /* msg.sender */ projectOwner.address,
       );
 
     // Terminal should be out of ETH
-    expect(await ethers.provider.getBalance(jbERC20PaymentTerminal.address)).to.equal(0);
+    expect(await ethers.provider.getBalance(jbEthPaymentTerminal.address)).to.equal(0);
 
     // Beneficiary should have a larger balance
     expect(await ethers.provider.getBalance(beneficiary.address)).to.equal(
@@ -414,7 +452,7 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
       CURRENCY_ETH,
       ETH_ADDRESS,
       fundingCycle,
-      jbERC20PaymentTerminal,
+      jbEthPaymentTerminal,
       mockJbDirectory,
       mockJBPaymentTerminalStore,
       mockJbFeeGauge,
@@ -431,7 +469,7 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
 
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
-        jbERC20PaymentTerminal.address,
+        jbEthPaymentTerminal.address,
         AMOUNT - AMOUNT_MINUS_FEES,
         JUICEBOX_PROJECT_ID,
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
@@ -439,23 +477,23 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
         /* memo */ '',
         /* delegateMetadata */ '0x',
       )
-      .returns(fundingCycle, WEIGHT, AMOUNT, MEMO);
+      .returns(fundingCycle, WEIGHT, AMOUNT, '');
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)
-      .returns(jbERC20PaymentTerminal.address);
+      .returns(jbEthPaymentTerminal.address);
 
     // Give terminal sufficient ETH
-    await setBalance(jbERC20PaymentTerminal.address, AMOUNT_MINUS_FEES);
+    await setBalance(jbEthPaymentTerminal.address, AMOUNT_MINUS_FEES);
 
     const initialBeneficiaryBalance = await ethers.provider.getBalance(beneficiary.address);
 
-    await jbERC20PaymentTerminal.connect(terminalOwner).setFeeGauge(mockJbFeeGauge.address);
+    await jbEthPaymentTerminal.connect(terminalOwner).setFeeGauge(mockJbFeeGauge.address);
 
     // Set fee to default 5%
-    await jbERC20PaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
+    await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
 
-    const tx = await jbERC20PaymentTerminal
+    const tx = await jbEthPaymentTerminal
       .connect(projectOwner)
       .useAllowanceOf(
         PROJECT_ID,
@@ -463,10 +501,11 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
         CURRENCY_ETH,
         /* minReturnedWei */ AMOUNT,
         beneficiary.address,
+        MEMO
       );
 
     expect(await tx)
-      .to.emit(jbERC20PaymentTerminal, 'UseAllowance')
+      .to.emit(jbEthPaymentTerminal, 'UseAllowance')
       .withArgs(
         /* _fundingCycle.configuration */ timestamp,
         /* _fundingCycle.number */ FUNDING_CYCLE_NUM,
@@ -475,11 +514,12 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
         /* _withdrawnAmount */ AMOUNT,
         /* _feeAmount */ AMOUNT - AMOUNT_MINUS_FEES,
         /* _withdrawnAmount - _feeAmount */ AMOUNT_MINUS_FEES,
+        MEMO,
         /* msg.sender */ projectOwner.address,
       );
 
     // Terminal should be out of ETH
-    expect(await ethers.provider.getBalance(jbERC20PaymentTerminal.address)).to.equal(0);
+    expect(await ethers.provider.getBalance(jbEthPaymentTerminal.address)).to.equal(0);
 
     // Beneficiary should have a larger balance
     expect(await ethers.provider.getBalance(beneficiary.address)).to.equal(
@@ -492,7 +532,7 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
       beneficiary,
       CURRENCY_ETH,
       ETH_ADDRESS,
-      jbERC20PaymentTerminal,
+      jbEthPaymentTerminal,
       mockJbDirectory,
       mockJBPaymentTerminalStore,
       projectOwner,
@@ -518,7 +558,7 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
 
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
-        jbERC20PaymentTerminal.address,
+        jbEthPaymentTerminal.address,
         AMOUNT - AMOUNT_MINUS_FEES,
         JUICEBOX_PROJECT_ID,
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
@@ -526,20 +566,20 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
         /* memo */ '',
         /* delegateMetadata */ '0x',
       )
-      .returns(newFundingCycle, WEIGHT, AMOUNT, MEMO);
+      .returns(newFundingCycle, WEIGHT, AMOUNT, '');
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)
-      .returns(jbERC20PaymentTerminal.address);
+      .returns(jbEthPaymentTerminal.address);
 
     // Give terminal sufficient ETH
-    await setBalance(jbERC20PaymentTerminal.address, AMOUNT_MINUS_FEES);
+    await setBalance(jbEthPaymentTerminal.address, AMOUNT_MINUS_FEES);
 
     // Set fee to default 5%
-    await jbERC20PaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
+    await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
 
     // Use allowance and hold fee
-    await jbERC20PaymentTerminal
+    await jbEthPaymentTerminal
       .connect(projectOwner)
       .useAllowanceOf(
         PROJECT_ID,
@@ -547,17 +587,18 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
         CURRENCY_ETH,
         /* minReturnedWei */ AMOUNT,
         beneficiary.address,
+        MEMO,
       );
 
     // Should be holding fees in the contract
-    expect(await jbERC20PaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([
+    expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([
       [ethers.BigNumber.from(AMOUNT), DEFAULT_FEE, projectOwner.address],
     ]);
 
     // Process held fees
-    const tx = await jbERC20PaymentTerminal.connect(projectOwner).processFees(PROJECT_ID);
+    const tx = await jbEthPaymentTerminal.connect(projectOwner).processFees(PROJECT_ID);
 
-    expect(await tx).to.emit(jbERC20PaymentTerminal, 'ProcessFees');
+    expect(await tx).to.emit(jbEthPaymentTerminal, 'ProcessFees');
     /** @dev Chai matchers can't seem to match these args even though I've inspected the data inside to be exactly the same. */
     // .withArgs(
     //   PROJECT_ID,
@@ -573,17 +614,17 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
     // );
 
     // Held fees shoudn't exist after being processed
-    expect(await jbERC20PaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([]);
+    expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([]);
   });
 
   it(`Can't send funds from overflow without project access`, async function () {
-    const { beneficiary, CURRENCY_ETH, jbERC20PaymentTerminal, mockJbOperatorStore, otherCaller } =
+    const { beneficiary, CURRENCY_ETH, jbEthPaymentTerminal, mockJbOperatorStore, otherCaller } =
       await setup();
 
     await mockJbOperatorStore.mock.hasPermission.returns(false);
 
     await expect(
-      jbERC20PaymentTerminal
+      jbEthPaymentTerminal
         .connect(otherCaller)
         .useAllowanceOf(
           PROJECT_ID,
@@ -591,6 +632,7 @@ describe('JBERC20PaymentTerminal::useAllowanceOf(...)', function () {
           CURRENCY_ETH,
           /* minReturnedWei */ AMOUNT,
           beneficiary.address,
+          MEMO,
         ),
     ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
