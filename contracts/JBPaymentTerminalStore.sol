@@ -35,10 +35,7 @@ error STORE_ALREADY_CLAIMED();
 
 /**
   @notice
-  This contract manages all bookkeeping for inflows and outflows of a particular token for a terminal.
-
-  @dev
-  Aside from the public view methods, the external methods should be called by the associated terminal.
+  This contract manages all bookkeeping for inflows and outflows of a particular token for any IJBTerminal msg.sender.
 */
 contract JBPaymentTerminalStore {
   // A library that parses the packed funding cycle metadata into a friendlier format.
@@ -84,7 +81,10 @@ contract JBPaymentTerminalStore {
 
   /**
     @notice
-    The amount of tokens that each project has.
+    The amount of tokens that each project has for each terminal, in terms of the terminal's token.
+
+    @dev
+    The balance is represented as a fixed point number with 18 decimals.
 
     _terminalOf The terminal to which the balance applies.
     _projectId The ID of the project to get the balance of.
@@ -93,10 +93,13 @@ contract JBPaymentTerminalStore {
 
   /**
     @notice
-    The amount of tokens overflow (in the terminal's currency) that a project has used from its allowance during the current funding cycle configuration.
+    The amount of overflow (in the terminal's currency) that a project has used from its allowance during the current funding cycle configuration for each terminal, in terms of the terminal's token.
 
     @dev
     Increases as projects use their allowance.
+
+    @dev
+    The used allowance is represented as a fixed point number with 18 decimals.
 
     _terminalOf The terminal to which the overflow allowance applies.
     _projectId The ID of the project to get the used overflow allowance of.
@@ -107,10 +110,13 @@ contract JBPaymentTerminalStore {
 
   /**
     @notice
-    The amount of tokens that a project has distributed from its limit during the current funding cycle.
+    The amount of tokens that a project has distributed from its limit during the current funding cycle for each terminal, in terms of the terminal's token.
 
     @dev
     Increases as projects use their distribution limit.
+
+    @dev
+    The used distribution limit is represented as a fixed point number with 18 decimals.
 
     _terminalOf The terminal to which the used distribution limit applies.
     _projectId The ID of the project to get the used distribution limit of.
@@ -125,7 +131,10 @@ contract JBPaymentTerminalStore {
 
   /**
     @notice
-    Gets the current overflowed amount (in the terminal's currency) in this terminal for a specified project.
+    Gets the current overflowed amount in a terminal for a specified project.
+
+    @dev
+    The current overflow is represented as a fixed point number with 18 decimals.
 
     @param _terminal The terminal for which the overflow is being calculated.
     @param _projectId The ID of the project to get overflow for.
@@ -146,7 +155,10 @@ contract JBPaymentTerminalStore {
 
   /**
     @notice
-    Gets the current overflowed amount (in the terminal's currency) for a specified project across all terminals.
+    Gets the current overflowed amount for a specified project across all terminals.
+
+    @dev
+    The current total overflow is represented as a fixed point number with 18 decimals.
 
     @param _projectId The ID of the project to get total overflow for.
     @param _currency The currency index relative to which the total overflow will be measured.
@@ -168,11 +180,15 @@ contract JBPaymentTerminalStore {
     @notice
     The amount of overflowed tokens that can be reclaimed by the specified number of tokens.
 
-    @dev If the project has an active funding cycle reconfiguration ballot, the project's ballot redemption rate is used.
+    @dev 
+    If the project has an active funding cycle reconfiguration ballot, the project's ballot redemption rate is used.
+
+    @dev
+    The reclaimable overflow is represented as a fixed point number with 18 decimals.
 
     @param _terminal The terminal from which the overflow is being calculated.
     @param _projectId The ID of the project to get a reclaimable amount for.
-    @param _tokenCount The number of tokens to make the calculation with.
+    @param _tokenCount The number of tokens to make the calculation with, as a fixed point number with 18 decimals.
     @param _currency The currency index relative to which the current overflow will be measured.
 
     @return The amount of overflowed tokens that can be reclaimed.
@@ -230,23 +246,23 @@ contract JBPaymentTerminalStore {
     Mint's the project's tokens according to values provided by a configured data source. If no data source is configured, mints tokens proportional to the amount of the contribution.
 
     @dev
-    Only the associated payment terminal can record a payment.
+    The msg.sender must be an IJBTerminal. The amount specified in the params is in terms of the msg.senders tokens.
 
     @param _payer The original address that sent the payment to the terminal.
-    @param _amount The amount that is being paid in wei.
+    @param _amount The amount of terminal tokens being paid, as a fixed point number with 18 decimals.
     @param _projectId The ID of the project being paid.
     @param _preferClaimedTokensAndBeneficiary Two properties are included in this packed uint256:
       The first bit contains the flag indicating whether the request prefers to issue tokens claimed as ERC-20s.
       The remaining bits contains the address that should receive benefits from the payment.
 
       This design is necessary two prevent a "Stack too deep" compiler error that comes up if the variables are declared seperately.
-    @param _minReturnedTokens The minimum number of tokens expected to be minted in return.
-    @param _memo A memo that will be included in the published event.
+    @param _minReturnedTokens The minimum number of project tokens expected to be minted in return, as a fixed point number with 18 decimals.
+    @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.
     @param _delegateMetadata Bytes to send along to the delegate, if one is used.
 
     @return fundingCycle The project's funding cycle during which payment was made.
-    @return weight The weight according to which new token supply was minted.
-    @return tokenCount The number of tokens that were minted.
+    @return weight The weight according to which new token supply was minted, as a fixed point number with 18 decimals.
+    @return tokenCount The number of project tokens that were minted, as a fixed point number with 18 decimals.
     @return memo A memo that should be passed along to the emitted event.
   */
   function recordPaymentFrom(
@@ -270,14 +286,10 @@ contract JBPaymentTerminalStore {
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // The project must have a funding cycle configured.
-    if (fundingCycle.number == 0) {
-      revert INVALID_FUNDING_CYCLE();
-    }
+    if (fundingCycle.number == 0) revert INVALID_FUNDING_CYCLE();
 
     // Must not be paused.
-    if (fundingCycle.payPaused()) {
-      revert FUNDING_CYCLE_PAYMENT_PAUSED();
-    }
+    if (fundingCycle.payPaused()) revert FUNDING_CYCLE_PAYMENT_PAUSED();
 
     // Save a reference to the delegate to use.
     IJBPayDelegate _delegate;
@@ -319,6 +331,7 @@ contract JBPaymentTerminalStore {
           )
           : 1E18;
 
+        // Mint the tokens.
         tokenCount = directory.controllerOf(_projectId).mintTokensOf(
           _projectId,
           PRBMath.mulDiv(_amount, weight, _weightRatio), // Multiply the amount by the weight to determine the amount of tokens to mint
@@ -331,9 +344,7 @@ contract JBPaymentTerminalStore {
     }
 
     // The token count for the beneficiary must be greater than or equal to the minimum expected.
-    if (tokenCount < _minReturnedTokens) {
-      revert INADEQUATE_TOKEN_COUNT();
-    }
+    if (tokenCount < _minReturnedTokens) revert INADEQUATE_TOKEN_COUNT();
 
     // If a delegate was returned by the data source, issue a callback to it.
     if (_delegate != IJBPayDelegate(address(0))) {
@@ -357,29 +368,27 @@ contract JBPaymentTerminalStore {
     Records newly distributed funds for a project.
 
     @dev
-    Only the associated payment terminal can record a distribution.
+    The msg.sender must be an IJBTerminal. The amount specified in the params is in terms of the msg.senders tokens.
 
     @param _projectId The ID of the project that is having funds distributed.
-    @param _amount The amount being distributed as a fixed point number.
-    @param _currency The expected currency of the `_amount` being tapped. This must match the project's current funding cycle's currency.
-    @param _minReturnedAmount The minimum number of tokens that should be distributed.
+    @param _amount The amount of terminal tokens to use from the distribution limit, as a fixed point number with 18 decimals.
+    @param _currency The expected currency of the `_amount` being distributed. This must match the project's current funding cycle's currency.
+    @param _minReturnedTokens The minimum number of terminal tokens that should be distributed in terms of the msg.sender's currency, as a fixed point number with 18 decimals.
 
-    @return fundingCycle The funding cycle during which the withdrawal was made.
-    @return distributedAmount The amount distribution in wei.
+    @return fundingCycle The funding cycle during which the distribution was made.
+    @return distributedAmount The amount of terminal tokens distributed.
   */
   function recordDistributionFor(
     uint256 _projectId,
     uint256 _amount,
     uint256 _currency,
-    uint256 _minReturnedAmount
+    uint256 _minReturnedTokens
   ) external returns (JBFundingCycle memory fundingCycle, uint256 distributedAmount) {
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // The funding cycle must not be configured to have distributions paused.
-    if (fundingCycle.distributionsPaused()) {
-      revert FUNDING_CYCLE_DISTRIBUTION_PAUSED();
-    }
+    if (fundingCycle.distributionsPaused()) revert FUNDING_CYCLE_DISTRIBUTION_PAUSED();
 
     // The new total amount that has been distributed during this funding cycle.
     uint256 _newUsedDistributionLimitOf = usedDistributionLimitOf[IJBTerminal(msg.sender)][
@@ -393,9 +402,8 @@ contract JBPaymentTerminalStore {
       IJBTerminal(msg.sender)
     );
 
-    if (_newUsedDistributionLimitOf > _distributionLimitOf || _distributionLimitOf == 0) {
+    if (_newUsedDistributionLimitOf > _distributionLimitOf || _distributionLimitOf == 0)
       revert DISTRIBUTION_AMOUNT_LIMIT_REACHED();
-    }
 
     // Make sure the currencies match.
     if (
@@ -405,9 +413,7 @@ contract JBPaymentTerminalStore {
         fundingCycle.configuration,
         IJBTerminal(msg.sender)
       )
-    ) {
-      revert CURRENCY_MISMATCH();
-    }
+    ) revert CURRENCY_MISMATCH();
 
     // Convert the amount to this store's terminal's token.
     distributedAmount = (_currency == IJBTerminal(msg.sender).currency())
@@ -415,14 +421,11 @@ contract JBPaymentTerminalStore {
       : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, IJBTerminal(msg.sender).currency()));
 
     // The amount being distributed must be available.
-    if (distributedAmount > balanceOf[IJBTerminal(msg.sender)][_projectId]) {
+    if (distributedAmount > balanceOf[IJBTerminal(msg.sender)][_projectId])
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
-    }
 
     // The amount being distributed must be at least as much as was expected.
-    if (_minReturnedAmount > distributedAmount) {
-      revert INADEQUATE_WITHDRAW_AMOUNT();
-    }
+    if (_minReturnedTokens > distributedAmount) revert INADEQUATE_WITHDRAW_AMOUNT();
 
     // Store the new amount.
     usedDistributionLimitOf[IJBTerminal(msg.sender)][_projectId][
@@ -440,21 +443,21 @@ contract JBPaymentTerminalStore {
     Records newly used allowance funds of a project.
 
     @dev
-    Only the associated payment terminal can record a used allowance.
+    The msg.sender must be an IJBTerminal. The amount specified in the params is in terms of the msg.senders tokens.
 
     @param _projectId The ID of the project to use the allowance of.
-    @param _amount The amount of the allowance to use as a fixed point number.
+    @param _amount The amount of terminal tokens to use from the allowance, as a fixed point number with 18 decimals.
     @param _currency The currency of the `_amount` value. Must match the funding cycle's currency.
-    @param _minReturnedAmount The amount of tokens that is expected to be withdrawn.
+    @param _minReturnedTokens The amount of terminal tokens that is expected to be used in terms of the msg.senders currency.
 
     @return fundingCycle The funding cycle during which the withdrawal is being made.
-    @return withdrawnAmount The amount withdrawn in wei.
+    @return withdrawnAmount The amount terminal tokens used, as a fixed point number with 18 decimals.
   */
   function recordUsedAllowanceOf(
     uint256 _projectId,
     uint256 _amount,
     uint256 _currency,
-    uint256 _minReturnedAmount
+    uint256 _minReturnedTokens
   ) external returns (JBFundingCycle memory fundingCycle, uint256 withdrawnAmount) {
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
@@ -471,9 +474,8 @@ contract JBPaymentTerminalStore {
       IJBTerminal(msg.sender)
     );
 
-    if (_newUsedOverflowAllowanceOf > _allowanceOf || _allowanceOf == 0) {
+    if (_newUsedOverflowAllowanceOf > _allowanceOf || _allowanceOf == 0)
       revert INADEQUATE_CONTROLLER_ALLOWANCE();
-    }
 
     // Make sure the currencies match.
     if (
@@ -483,9 +485,7 @@ contract JBPaymentTerminalStore {
         fundingCycle.configuration,
         IJBTerminal(msg.sender)
       )
-    ) {
-      revert CURRENCY_MISMATCH();
-    }
+    ) revert CURRENCY_MISMATCH();
 
     // Convert the amount to this store's terminal's token.
     withdrawnAmount = (_currency == IJBTerminal(msg.sender).currency())
@@ -493,14 +493,11 @@ contract JBPaymentTerminalStore {
       : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, IJBTerminal(msg.sender).currency()));
 
     // The project balance should be bigger than the amount withdrawn from the overflow
-    if (balanceOf[IJBTerminal(msg.sender)][_projectId] < withdrawnAmount) {
+    if (balanceOf[IJBTerminal(msg.sender)][_projectId] < withdrawnAmount)
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
-    }
 
     // The amount being withdrawn must be at least as much as was expected.
-    if (_minReturnedAmount > withdrawnAmount) {
-      revert INADEQUATE_WITHDRAW_AMOUNT();
-    }
+    if (_minReturnedTokens > withdrawnAmount) revert INADEQUATE_WITHDRAW_AMOUNT();
 
     // Get the current funding target
     uint256 distributionLimit = directory.controllerOf(_projectId).distributionLimitOf(
@@ -534,9 +531,7 @@ contract JBPaymentTerminalStore {
       if (
         _leftToDistribute > balanceOf[IJBTerminal(msg.sender)][_projectId] ||
         withdrawnAmount > balanceOf[IJBTerminal(msg.sender)][_projectId] - _leftToDistribute
-      ) {
-        revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
-      }
+      ) revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
     }
 
     // Store the incremented value.
@@ -555,25 +550,25 @@ contract JBPaymentTerminalStore {
     Records newly redeemed tokens of a project.
 
     @dev
-    Only the associated payment terminal can record a redemption.
+    The msg.sender must be an IJBTerminal. The amount specified in the params is in terms of the msg.senders tokens.
 
     @param _holder The account that is having its tokens redeemed.
     @param _projectId The ID of the project to which the tokens being redeemed belong.
-    @param _tokenCount The number of tokens to redeem.
-    @param _minReturnedAmount The minimum amount of tokens expected in return.
+    @param _tokenCount The number of project tokens to redeem, as a fixed point number with 18 decimals.
+    @param _minReturnedTokens The minimum amount of terminal tokens expected in return in terms of the msg.senders currency, as a fixed point number with 18 decimals.
     @param _beneficiary The address that will benefit from the claimed amount.
     @param _memo A memo to pass along to the emitted event.
     @param _delegateMetadata Bytes to send along to the delegate, if one is used.
 
     @return fundingCycle The funding cycle during which the redemption was made.
-    @return reclaimAmount The amount of wei reclaimed.
+    @return reclaimAmount The amount of terminal tokens reclaimed, as a fixed point number with 18 decimals.
     @return memo A memo that should be passed along to the emitted event.
   */
   function recordRedemptionFor(
     address _holder,
     uint256 _projectId,
     uint256 _tokenCount,
-    uint256 _minReturnedAmount,
+    uint256 _minReturnedTokens,
     address payable _beneficiary,
     string memory _memo,
     bytes memory _delegateMetadata
@@ -586,17 +581,13 @@ contract JBPaymentTerminalStore {
     )
   {
     // The holder must have the specified number of the project's tokens.
-    if (tokenStore.balanceOf(_holder, _projectId) < _tokenCount) {
-      revert INSUFFICIENT_TOKENS();
-    }
+    if (tokenStore.balanceOf(_holder, _projectId) < _tokenCount) revert INSUFFICIENT_TOKENS();
 
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // The current funding cycle must not be paused.
-    if (fundingCycle.redeemPaused()) {
-      revert FUNDING_CYCLE_REDEEM_PAUSED();
-    }
+    if (fundingCycle.redeemPaused()) revert FUNDING_CYCLE_REDEEM_PAUSED();
 
     // Save a reference to the delegate to use.
     IJBRedemptionDelegate _delegate;
@@ -626,20 +617,18 @@ contract JBPaymentTerminalStore {
       memo = _memo;
     }
 
-    // The amount being claimed must be within the project's balance.
-    if (reclaimAmount > balanceOf[IJBTerminal(msg.sender)][_projectId]) {
+    // The amount being reclaimed must be within the project's balance.
+    if (reclaimAmount > balanceOf[IJBTerminal(msg.sender)][_projectId])
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
-    }
-    // The amount being claimed must be at least as much as was expected.
-    if (reclaimAmount < _minReturnedAmount) {
-      revert INADEQUATE_CLAIM_AMOUNT();
-    }
 
-    // Redeem the tokens, which burns them.
+    // The amount being reclaimed must be at least as much as was expected.
+    if (reclaimAmount < _minReturnedTokens) revert INADEQUATE_CLAIM_AMOUNT();
+
+    // Redeem the project tokens, which burns them.
     if (_tokenCount > 0)
       directory.controllerOf(_projectId).burnTokensOf(_holder, _projectId, _tokenCount, '', false);
 
-    // Remove the redeemed funds from the project's balance.
+    // Remove the reclaimed funds from the project's balance.
     if (reclaimAmount > 0)
       balanceOf[IJBTerminal(msg.sender)][_projectId] =
         balanceOf[IJBTerminal(msg.sender)][_projectId] -
@@ -666,10 +655,10 @@ contract JBPaymentTerminalStore {
     Records newly added funds for the project.
 
     @dev
-    Only the associated payment terminal can record an added balance.
+    The msg.sender must be an IJBTerminal. The amount specified in the params is in terms of the msg.senders tokens.
 
     @param _projectId The ID of the project to which the funds being added belong.
-    @param _amount The amount added, in wei.
+    @param _amount The amount of temrinal tokens added, as a fixed point number with 18 decimals.
 
     @return fundingCycle The current funding cycle for the project.
   */
@@ -688,11 +677,14 @@ contract JBPaymentTerminalStore {
 
   /**
     @notice
-    Records the migration of this terminal to another.
+    Records the migration of funds from this store.
+
+    @dev
+    The msg.sender must be an IJBTerminal. The amount returned is in terms of the msg.senders tokens.
 
     @param _projectId The ID of the project being migrated.
 
-    @return balance The project's current balance.
+    @return balance The project's current terminal token balance, as a fixed point number with 18 decimals.
   */
   function recordMigration(uint256 _projectId) external returns (uint256 balance) {
     // Get a reference to the project's current funding cycle.
@@ -763,6 +755,7 @@ contract JBPaymentTerminalStore {
 
     // These conditions are all part of the same curve. Edge conditions are separated because fewer operation are necessary.
     if (_redemptionRate == JBConstants.MAX_REDEMPTION_RATE) return _base;
+
     return
       PRBMath.mulDiv(
         _base,
@@ -788,7 +781,7 @@ contract JBPaymentTerminalStore {
     @param _fundingCycle The ID of the funding cycle to base the overflow on.
     @param _currency The currency index relative to which the total overflow will be measured.
 
-    @return overflow The overflow of funds.
+    @return overflow The overflow of funds, as a fixed point number with 18 decimals.
   */
   function _overflowDuring(
     IJBTerminal _terminal,
@@ -839,7 +832,7 @@ contract JBPaymentTerminalStore {
     @param _fundingCycle The ID of the funding cycle to base the overflow on.
     @param _currency The currency index relative to which the total overflow will be measured.
 
-    @return overflow The overflow of funds.
+    @return overflow The overflow of funds, as a fixed point number with 18 decimals
   */
   function _totalOverflowDuring(
     uint256 _projectId,
