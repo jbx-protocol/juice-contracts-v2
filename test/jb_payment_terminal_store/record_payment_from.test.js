@@ -144,6 +144,60 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     // Expect recorded balance to change
     expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(AMOUNT);
   });
+  it('Should record payment with no weight', async function () {
+    const {
+      mockJbTerminalSigner,
+      payer,
+      beneficiary,
+      mockJbController,
+      mockJbDirectory,
+      mockJbFundingCycleStore,
+      JBPaymentTerminalStore,
+      mockJbTerminal,
+      timestamp,
+    } = await setup();
+
+    // Set mockJbTerminal address
+    await JBPaymentTerminalStore.claimFor(mockJbTerminal.address);
+
+    const reservedRate = 0;
+
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      // mock JBFundingCycle obj
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: 0,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({ pausePay: 0, reservedRate: reservedRate }),
+    });
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
+
+    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(0);
+
+    // Record the payment
+    const preferClaimedTokensBigNum = ethers.BigNumber.from(0); // false
+    const beneficiaryBigNum = ethers.BigNumber.from(beneficiary.address).shl(1); // addr shifted left by 1
+    await JBPaymentTerminalStore
+      .connect(mockJbTerminalSigner)
+      .recordPaymentFrom(
+        /* payer */ payer.address,
+        AMOUNT,
+        PROJECT_ID,
+        /* preferClaimedTokensAndBeneficiary */ preferClaimedTokensBigNum.or(beneficiaryBigNum),
+        /* minReturnedTokens */ 0,
+        /* memo */ 'test',
+        /* delegateMetadata */ 0,
+      );
+
+    // Expect recorded balance to change
+    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(AMOUNT);
+  });
+
 
   it('Should record payment with a datasource and emit event', async function () {
     const {
