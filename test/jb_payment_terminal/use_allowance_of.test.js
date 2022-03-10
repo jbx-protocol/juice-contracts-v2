@@ -310,10 +310,9 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
         JUICEBOX_PROJECT_ID,
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
         /* minReturnedTokens */ 0,
-        /* memo */ '',
-        /* delegateMetadata */ '0x',
+        /* memo */ ''
       )
-      .returns(fundingCycle, WEIGHT, AMOUNT, '');
+      .returns(fundingCycle, WEIGHT, AMOUNT, /* delegate */ ethers.constants.AddressZero, '');
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)
@@ -394,9 +393,8 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
         /* minReturnedTokens */ 0,
         /* memo */ '',
-        /* delegateMetadata */ '0x',
       )
-      .returns(fundingCycle, WEIGHT, AMOUNT, '');
+      .returns(fundingCycle, WEIGHT, AMOUNT, /* delegate */ ethers.constants.AddressZero, '');
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)
@@ -474,10 +472,9 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
         JUICEBOX_PROJECT_ID,
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
         /* minReturnedTokens */ 0,
-        /* memo */ '',
-        /* delegateMetadata */ '0x',
+        /* memo */ ''
       )
-      .returns(fundingCycle, WEIGHT, AMOUNT, '');
+      .returns(fundingCycle, WEIGHT, AMOUNT, /* delegate */ ethers.constants.AddressZero, '');
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)
@@ -563,10 +560,9 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
         JUICEBOX_PROJECT_ID,
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
         /* minReturnedTokens */ 0,
-        /* memo */ '',
-        /* delegateMetadata */ '0x',
+        /* memo */ ''
       )
-      .returns(newFundingCycle, WEIGHT, AMOUNT, '');
+      .returns(newFundingCycle, WEIGHT, AMOUNT, /* delegate */ ethers.constants.AddressZero, '');
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)

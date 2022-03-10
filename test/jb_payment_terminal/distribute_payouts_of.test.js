@@ -343,10 +343,9 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
             /*preferedCLaimed | uint160(beneficiary)<<1 and preferedClaimed=false hard coded*/
             ethers.BigNumber.from(0).or(ethers.BigNumber.from(split.beneficiary).shl(1)),
             /*_minReturnedTokens*/ 0,
-            '',
-            /*DELEGATE_METADATA*/ '0x',
+            ''
           )
-          .returns(fundingCycle, 0, 0, '');
+          .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
       }),
     );
 
@@ -706,10 +705,9 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
         /*preferedCLaimed | uint160(beneficiary)<<1 and preferedClaimed=false hard coded*/
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
         /*_minReturnedTokens*/ 0, //hard coded
-        '',
-        /*DELEGATE_METADATA*/ '0x',
+        ''
       )
-      .returns(fundingCycle, 0, 0, '');
+      .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
 
     await Promise.all(
       splits.map(async (split) => {
@@ -721,10 +719,9 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
             /*preferedCLaimed | uint160(beneficiary)<<1 and preferedClaimed=false hard coded*/
             ethers.BigNumber.from(0).or(ethers.BigNumber.from(split.beneficiary).shl(1)),
             /*_minReturnedTokens*/ 0, //hard coded
-            '',
-            /*DELEGATE_METADATA*/ '0x',
+            ''
           )
-          .returns(fundingCycle, 0, 0, '');
+          .returns(fundingCycle, 0, 0,/* delegate */ ethers.constants.AddressZero, '');
       }),
     );
 
@@ -1225,10 +1222,9 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
               ethers.BigNumber.from(split.beneficiary).shl(1),
             ),
             /*_minReturnedTokens*/ 0,
-            '',
-            /*DELEGATE_METADATA*/ '0x',
+            ''
           )
-          .returns(fundingCycle, 0, 0, '');
+          .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
       }),
     );
 
@@ -1444,10 +1440,9 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
         //preferedCLaimed | uint160(beneficiary)<<1 and preferedClaimed=false hard coded
         ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
         /*_minReturnedTokens*/ 0, //hard coded
-        '',
-        /*DELEGATE_METADATA*/ '0x',
+        ''
       )
-      .returns(fundingCycle, 0, 0, '');
+      .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
 
     let tx = await jbEthPaymentTerminal
       .connect(caller)

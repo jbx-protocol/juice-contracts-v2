@@ -10,13 +10,18 @@ import JBPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalS
 import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorStore.sol/IJBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
+import jbRedemptionDelegate from '../../artifacts/contracts/interfaces/IJBRedemptionDelegate.sol/IJBRedemptionDelegate.json';
 
 describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
   const AMOUNT = 50000;
+  const MIN_RETURNED_AMOUNT = 40000;
+  const RECLAIM_AMOUNT = 30000;
   const FUNDING_CYCLE_NUM = 1;
   const MEMO = 'test memo';
+  const ADJUSTED_MEMO = 'test test memo';
   const PROJECT_ID = 13;
   const WEIGHT = 1000;
+  const DELEGATE_METADATA = ethers.utils.randomBytes(32);
 
   async function setup() {
     const [deployer, beneficiary, holder, otherCaller, terminalOwner] = await ethers.getSigners();
@@ -31,12 +36,14 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
+      mockJbRedemptionDelegate
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
       deployMockContract(deployer, JBPaymentTerminalStore.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
+      deployMockContract(deployer, jbRedemptionDelegate.abi)
     ]);
 
     const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
@@ -88,6 +95,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
       fundingCycle,
       mockJBPaymentTerminalStore,
       mockJbOperatorStore,
+      mockJbRedemptionDelegate,
       otherCaller,
       timestamp,
     };
@@ -109,14 +117,13 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         holder.address,
         PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        /* minReturnedTokens */ AMOUNT,
+        /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
         beneficiary.address,
-        MEMO,
-        /* delegateMetadata */ 0,
+        MEMO
       )
-      .returns(fundingCycle, /* reclaimAmount */ AMOUNT, MEMO);
+      .returns(fundingCycle, /* reclaimAmount */ RECLAIM_AMOUNT, /* delegate */ ethers.constants.AddressZero, ADJUSTED_MEMO);
 
-    await setBalance(jbEthPaymentTerminal.address, AMOUNT);
+    await setBalance(jbEthPaymentTerminal.address, RECLAIM_AMOUNT);
 
     const initialBeneficiaryBalance = await ethers.provider.getBalance(beneficiary.address);
 
@@ -126,10 +133,10 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         holder.address,
         PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        /* minReturnedTokens */ AMOUNT,
+        /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
         beneficiary.address,
         MEMO,
-        /* delegateMetadata */ 0,
+        DELEGATE_METADATA,
       );
 
     expect(await tx)
@@ -141,8 +148,8 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         /* _holder */ holder.address,
         /* _beneficiary */ beneficiary.address,
         /* _tokenCount */ AMOUNT,
-        /* reclaimAmount */ AMOUNT,
-        /* memo */ MEMO,
+        /* reclaimAmount */ RECLAIM_AMOUNT,
+        /* memo */ ADJUSTED_MEMO,
         /* msg.sender */ holder.address,
       );
 
@@ -151,7 +158,96 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
 
     // Beneficiary should have a larger balance
     expect(await ethers.provider.getBalance(beneficiary.address)).to.equal(
-      initialBeneficiaryBalance.add(AMOUNT),
+      initialBeneficiaryBalance.add(RECLAIM_AMOUNT),
+    );
+  });
+
+  it('Should redeem tokens and call delegate fn and emit delegate event', async function () {
+    const {
+      beneficiary,
+      fundingCycle,
+      holder,
+      jbEthPaymentTerminal,
+      mockJBPaymentTerminalStore,
+      mockJbRedemptionDelegate,
+      timestamp,
+    } = await setup();
+
+    // Keep it simple and let 1 token exchange for 1 wei
+    await mockJBPaymentTerminalStore.mock.recordRedemptionFor
+      .withArgs(
+        holder.address,
+        PROJECT_ID,
+        /* tokenCount */ AMOUNT,
+        /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
+        beneficiary.address,
+        MEMO
+      )
+      .returns(fundingCycle, /* reclaimAmount */ RECLAIM_AMOUNT, /* delegate */ mockJbRedemptionDelegate.address, ADJUSTED_MEMO);
+
+    await mockJbRedemptionDelegate.mock.didRedeem
+      .withArgs({
+        // JBDidRedeemData obj
+        holder: holder.address,
+        projectId: PROJECT_ID,
+        tokenCount: AMOUNT,
+        reclaimedAmount: RECLAIM_AMOUNT,
+        beneficiary: beneficiary.address,
+        memo: ADJUSTED_MEMO,
+        metadata: DELEGATE_METADATA,
+      })
+      .returns();
+
+    await setBalance(jbEthPaymentTerminal.address, RECLAIM_AMOUNT);
+
+    const initialBeneficiaryBalance = await ethers.provider.getBalance(beneficiary.address);
+
+    const tx = await jbEthPaymentTerminal
+      .connect(holder)
+      .redeemTokensOf(
+        holder.address,
+        PROJECT_ID,
+        /* tokenCount */ AMOUNT,
+        /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
+        beneficiary.address,
+        MEMO,
+        DELEGATE_METADATA,
+      );
+
+    expect(await tx)
+      .to.emit(jbEthPaymentTerminal, 'DelegateDidRedeem')
+      .withArgs(mockJbRedemptionDelegate.address, [
+        /* _holder */ holder.address,
+        /* _projectId */ PROJECT_ID,
+        /* _tokenCount */ AMOUNT,
+        /* reclaimAmount */ RECLAIM_AMOUNT,
+        /* _beneficiary */ beneficiary.address,
+        /* memo */ ADJUSTED_MEMO,
+        ethers.BigNumber.from(DELEGATE_METADATA)
+      ],
+        /* msg.sender */ holder.address
+      );
+
+    expect(await tx)
+      .to.emit(jbEthPaymentTerminal, 'RedeemTokens')
+      .withArgs(
+        /* _fundingCycle.configuration */ timestamp,
+        /* _fundingCycle.number */ FUNDING_CYCLE_NUM,
+        /* _projectId */ PROJECT_ID,
+        /* _holder */ holder.address,
+        /* _beneficiary */ beneficiary.address,
+        /* _tokenCount */ AMOUNT,
+        /* reclaimAmount */ RECLAIM_AMOUNT,
+        /* memo */ ADJUSTED_MEMO,
+        /* msg.sender */ holder.address,
+      );
+
+    // Terminal should be out of ETH
+    expect(await ethers.provider.getBalance(jbEthPaymentTerminal.address)).to.equal(0);
+
+    // Beneficiary should have a larger balance
+    expect(await ethers.provider.getBalance(beneficiary.address)).to.equal(
+      initialBeneficiaryBalance.add(RECLAIM_AMOUNT),
     );
   });
 
@@ -171,12 +267,11 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         holder.address,
         PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        /* minReturnedTokens */ AMOUNT,
+        /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
         beneficiary.address,
-        MEMO,
-        /* delegateMetadata */ 0,
+        MEMO
       )
-      .returns(fundingCycle, /* reclaimAmount */ 0, MEMO); // Set reclaimAmount to 0
+      .returns(fundingCycle, /* reclaimAmount */ 0, /* delegate */ ethers.constants.AddressZero, ADJUSTED_MEMO); // Set reclaimAmount to 0
 
     await setBalance(jbEthPaymentTerminal.address, AMOUNT);
 
@@ -188,10 +283,10 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         holder.address,
         PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        /* minReturnedTokens */ AMOUNT,
+        /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
         beneficiary.address,
         MEMO,
-        /* delegateMetadata */ 0,
+        DELEGATE_METADATA,
       );
 
     expect(await tx)
@@ -204,7 +299,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         /* _beneficiary */ beneficiary.address,
         /* _tokenCount */ AMOUNT,
         /* reclaimAmount */ 0,
-        /* memo */ MEMO,
+        /* memo */ ADJUSTED_MEMO,
         /* msg.sender */ holder.address,
       );
 

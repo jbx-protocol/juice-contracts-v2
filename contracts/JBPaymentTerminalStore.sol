@@ -258,7 +258,7 @@ contract JBPaymentTerminalStore {
     @return fundingCycle The project's funding cycle during which payment was made.
     @return weight The weight according to which new token supply was minted, as a fixed point number with 18 decimals.
     @return tokenCount The number of project tokens that were minted, as a fixed point number with 18 decimals.
-    @return delegate TODO
+    @return delegate A delegate contract to use for subsequent calls.
     @return memo A memo that should be passed along to the emitted event.
   */
   function recordPaymentFrom(
@@ -551,7 +551,7 @@ contract JBPaymentTerminalStore {
 
     @return fundingCycle The funding cycle during which the redemption was made.
     @return reclaimAmount The amount of terminal tokens reclaimed, as a fixed point number with 18 decimals.
-    @return delegate TODO
+    @return delegate A delegate contract to use for subsequent calls.
     @return memo A memo that should be passed along to the emitted event.
   */
   function recordRedemptionFor(
