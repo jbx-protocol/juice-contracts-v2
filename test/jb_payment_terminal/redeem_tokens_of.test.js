@@ -5,6 +5,7 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { setBalance } from '../helpers/utils';
 import errors from '../helpers/errors.json';
 
+import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
 import JBPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalStore.sol/JBPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorStore.sol/IJBOperatorStore.json';
@@ -36,14 +37,16 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
-      mockJbRedemptionDelegate
+      mockJbRedemptionDelegate,
+      mockJbController
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
       deployMockContract(deployer, JBPaymentTerminalStore.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
-      deployMockContract(deployer, jbRedemptionDelegate.abi)
+      deployMockContract(deployer, jbRedemptionDelegate.abi),
+      deployMockContract(deployer, jbController.abi)
     ]);
 
     const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
@@ -96,6 +99,8 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
       mockJBPaymentTerminalStore,
       mockJbOperatorStore,
       mockJbRedemptionDelegate,
+      mockJbController,
+      mockJbDirectory,
       otherCaller,
       timestamp,
     };
@@ -108,8 +113,15 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
       holder,
       jbEthPaymentTerminal,
       mockJBPaymentTerminalStore,
+      mockJbController,
+      mockJbDirectory,
       timestamp,
     } = await setup();
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
+    await mockJbController.mock.burnTokensOf
+      .withArgs(holder.address, PROJECT_ID, AMOUNT, /* memo */ '', /* preferClaimedTokens */ false)
+      .returns();
 
     // Keep it simple and let 1 token exchange for 1 wei
     await mockJBPaymentTerminalStore.mock.recordRedemptionFor
@@ -162,6 +174,67 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
     );
   });
 
+  it('Should work if no burning necessary', async function () {
+    const {
+      beneficiary,
+      fundingCycle,
+      holder,
+      jbEthPaymentTerminal,
+      mockJBPaymentTerminalStore,
+      timestamp,
+    } = await setup();
+
+    // Keep it simple and let 1 token exchange for 1 wei
+    await mockJBPaymentTerminalStore.mock.recordRedemptionFor
+      .withArgs(
+        holder.address,
+        PROJECT_ID,
+        /* tokenCount */ 0,
+        /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
+        beneficiary.address,
+        MEMO
+      )
+      .returns(fundingCycle, /* reclaimAmount */ RECLAIM_AMOUNT, /* delegate */ ethers.constants.AddressZero, ADJUSTED_MEMO);
+
+    await setBalance(jbEthPaymentTerminal.address, RECLAIM_AMOUNT);
+
+    const initialBeneficiaryBalance = await ethers.provider.getBalance(beneficiary.address);
+
+    const tx = await jbEthPaymentTerminal
+      .connect(holder)
+      .redeemTokensOf(
+        holder.address,
+        PROJECT_ID,
+        /* tokenCount */ 0,
+        /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
+        beneficiary.address,
+        MEMO,
+        DELEGATE_METADATA,
+      );
+
+    expect(await tx)
+      .to.emit(jbEthPaymentTerminal, 'RedeemTokens')
+      .withArgs(
+        /* _fundingCycle.configuration */ timestamp,
+        /* _fundingCycle.number */ FUNDING_CYCLE_NUM,
+        /* _projectId */ PROJECT_ID,
+        /* _holder */ holder.address,
+        /* _beneficiary */ beneficiary.address,
+        /* _tokenCount */ 0,
+        /* reclaimAmount */ RECLAIM_AMOUNT,
+        /* memo */ ADJUSTED_MEMO,
+        /* msg.sender */ holder.address,
+      );
+
+    // Terminal should be out of ETH
+    expect(await ethers.provider.getBalance(jbEthPaymentTerminal.address)).to.equal(0);
+
+    // Beneficiary should have a larger balance
+    expect(await ethers.provider.getBalance(beneficiary.address)).to.equal(
+      initialBeneficiaryBalance.add(RECLAIM_AMOUNT),
+    );
+  });
+
   it('Should redeem tokens and call delegate fn and emit delegate event', async function () {
     const {
       beneficiary,
@@ -170,8 +243,15 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
       jbEthPaymentTerminal,
       mockJBPaymentTerminalStore,
       mockJbRedemptionDelegate,
+      mockJbDirectory,
+      mockJbController,
       timestamp,
     } = await setup();
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
+    await mockJbController.mock.burnTokensOf
+      .withArgs(holder.address, PROJECT_ID, AMOUNT, /* memo */ '', /* preferClaimedTokens */ false)
+      .returns();
 
     // Keep it simple and let 1 token exchange for 1 wei
     await mockJBPaymentTerminalStore.mock.recordRedemptionFor
@@ -258,8 +338,15 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
       holder,
       jbEthPaymentTerminal,
       mockJBPaymentTerminalStore,
+      mockJbDirectory,
+      mockJbController,
       timestamp,
     } = await setup();
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
+    await mockJbController.mock.burnTokensOf
+      .withArgs(holder.address, PROJECT_ID, AMOUNT, /* memo */ '', /* preferClaimedTokens */ false)
+      .returns();
 
     // Keep it simple and let 1 token exchange for 1 wei
     await mockJBPaymentTerminalStore.mock.recordRedemptionFor

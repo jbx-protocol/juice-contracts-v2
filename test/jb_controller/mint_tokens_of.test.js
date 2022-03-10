@@ -66,7 +66,7 @@ describe('JBController::mintTokensOf(...)', function () {
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
-    await mockJbDirectory.mock.isTerminalDelegateOf
+    await mockJbDirectory.mock.isTerminalOf
       .withArgs(PROJECT_ID, projectOwner.address)
       .returns(false);
 
@@ -144,7 +144,7 @@ describe('JBController::mintTokensOf(...)', function () {
       .withArgs(caller.address, projectOwner.address, PROJECT_ID, MINT_INDEX)
       .returns(true);
 
-    await mockJbDirectory.mock.isTerminalDelegateOf
+    await mockJbDirectory.mock.isTerminalOf
       .withArgs(PROJECT_ID, caller.address)
       .returns(false);
 
@@ -184,7 +184,7 @@ describe('JBController::mintTokensOf(...)', function () {
       .withArgs(terminalSigner.address, projectOwner.address, 0, MINT_INDEX)
       .returns(false);
 
-    await mockJbDirectory.mock.isTerminalDelegateOf
+    await mockJbDirectory.mock.isTerminalOf
       .withArgs(PROJECT_ID, terminalSigner.address)
       .returns(true);
 
@@ -265,7 +265,7 @@ describe('JBController::mintTokensOf(...)', function () {
       .withArgs(terminalSigner.address, projectOwner.address, 0, MINT_INDEX)
       .returns(false);
 
-    await mockJbDirectory.mock.isTerminalDelegateOf
+    await mockJbDirectory.mock.isTerminalOf
       .withArgs(PROJECT_ID, terminalSigner.address)
       .returns(true);
 

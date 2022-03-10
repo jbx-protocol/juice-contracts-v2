@@ -340,8 +340,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
             jbEthPaymentTerminal.address,
             /*amount paid*/ Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             split.projectId,
-            /*preferedCLaimed | uint160(beneficiary)<<1 and preferedClaimed=false hard coded*/
-            ethers.BigNumber.from(0).or(ethers.BigNumber.from(split.beneficiary).shl(1)),
+            split.beneficiary,
             /*_minReturnedTokens*/ 0,
             ''
           )
@@ -702,8 +701,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
         jbEthPaymentTerminal.address,
         AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES,
         /*CURRENCY*/ 1,
-        /*preferedCLaimed | uint160(beneficiary)<<1 and preferedClaimed=false hard coded*/
-        ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
+        projectOwner.address,
         /*_minReturnedTokens*/ 0, //hard coded
         ''
       )
@@ -716,8 +714,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
             jbEthPaymentTerminal.address,
             /*amount paid*/ Math.floor((AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT),
             split.projectId,
-            /*preferedCLaimed | uint160(beneficiary)<<1 and preferedClaimed=false hard coded*/
-            ethers.BigNumber.from(0).or(ethers.BigNumber.from(split.beneficiary).shl(1)),
+            split.beneficiary,
             /*_minReturnedTokens*/ 0, //hard coded
             ''
           )
@@ -1218,9 +1215,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
             jbEthPaymentTerminal.address,
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             split.projectId,
-            ethers.BigNumber.from(split.preferClaimed == true ? 1 : 0).or(
-              ethers.BigNumber.from(split.beneficiary).shl(1),
-            ),
+            split.beneficiary,
             /*_minReturnedTokens*/ 0,
             ''
           )
@@ -1437,8 +1432,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
         caller.address,
         0,
         /*CURRENCY*/ 1,
-        //preferedCLaimed | uint160(beneficiary)<<1 and preferedClaimed=false hard coded
-        ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
+        projectOwner.address,
         /*_minReturnedTokens*/ 0, //hard coded
         ''
       )

@@ -397,9 +397,8 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     returns (uint256 configuration)
   {
     // If there is a previous configuration, reconfigureFundingCyclesOf should be called instead
-    if (fundingCycleStore.latestConfigurationOf(_projectId) != 0) {
+    if (fundingCycleStore.latestConfigurationOf(_projectId) != 0)
       revert FUNDING_CYCLE_ALREADY_LAUNCHED();
-    }
 
     // Set this contract as the project's controller in the directory.
     directory.setControllerOf(_projectId, this);
@@ -509,9 +508,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // The current funding cycle must not be paused.
-    if (!_fundingCycle.changeTokenAllowed()) {
-      revert CHANGE_TOKEN_NOT_ALLOWED();
-    }
+    if (!_fundingCycle.changeTokenAllowed()) revert CHANGE_TOKEN_NOT_ALLOWED();
 
     // Change the token in the store.
     tokenStore.changeFor(_projectId, _token, _newOwner);
@@ -548,14 +545,12 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
       projects.ownerOf(_projectId),
       _projectId,
       JBOperations.MINT,
-      directory.isTerminalDelegateOf(_projectId, msg.sender)
+      directory.isTerminalOf(_projectId, IJBTerminal(msg.sender))
     )
     returns (uint256 beneficiaryTokenCount)
   {
     // There should be tokens to mint.
-    if (_tokenCount == 0) {
-      revert ZERO_TOKENS_TO_MINT();
-    }
+    if (_tokenCount == 0) revert ZERO_TOKENS_TO_MINT();
 
     // Define variables that will be needed outside scoped section below.
     uint256 _reservedRate;
@@ -565,10 +560,10 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
       // Get a reference to the project's current funding cycle.
       JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-      // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
-      if (_fundingCycle.mintPaused() && !directory.isTerminalDelegateOf(_projectId, msg.sender)) {
-        revert MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE();
-      }
+      // If the message sender is not a terminal, the current funding cycle must not be paused.
+      if (
+        _fundingCycle.mintPaused() && !directory.isTerminalOf(_projectId, IJBTerminal(msg.sender))
+      ) revert MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE();
 
       // Determine the reserved rate to use.
       _reservedRate = _useReservedRate ? _fundingCycle.reservedRate() : 0;
@@ -627,21 +622,18 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
       _holder,
       _projectId,
       JBOperations.BURN,
-      directory.isTerminalDelegateOf(_projectId, msg.sender)
+      directory.isTerminalOf(_projectId, IJBTerminal(msg.sender))
     )
   {
     // There should be tokens to burn
-    if (_tokenCount == 0) {
-      revert NO_BURNABLE_TOKENS();
-    }
+    if (_tokenCount == 0) revert NO_BURNABLE_TOKENS();
 
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-    // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
-    if (_fundingCycle.burnPaused() && !directory.isTerminalDelegateOf(_projectId, msg.sender)) {
+    // If the message sender is not a terminal, the current funding cycle must not be paused.
+    if (_fundingCycle.burnPaused() && !directory.isTerminalOf(_projectId, IJBTerminal(msg.sender)))
       revert BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE();
-    }
 
     // Update the token tracker so that reserved tokens will still be correctly mintable.
     _processedTokenTrackerOf[_projectId] =
@@ -679,9 +671,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
   */
   function prepForMigrationOf(uint256 _projectId, IJBController) external override {
     // This controller must not be the project's current controller.
-    if (directory.controllerOf(_projectId) == this) {
-      revert CANT_MIGRATE_TO_CURRENT_CONTROLLER();
-    }
+    if (directory.controllerOf(_projectId) == this) revert CANT_MIGRATE_TO_CURRENT_CONTROLLER();
 
     // Set the tracker as the total supply.
     _processedTokenTrackerOf[_projectId] = int256(tokenStore.totalSupplyOf(_projectId));
@@ -703,17 +693,13 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     nonReentrant
   {
     // This controller must be the project's current controller.
-    if (directory.controllerOf(_projectId) != this) {
-      revert CALLER_NOT_CURRENT_CONTROLLER();
-    }
+    if (directory.controllerOf(_projectId) != this) revert CALLER_NOT_CURRENT_CONTROLLER();
 
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Migration must be allowed
-    if (!_fundingCycle.controllerMigrationAllowed()) {
-      revert MIGRATION_NOT_ALLOWED();
-    }
+    if (!_fundingCycle.controllerMigrationAllowed()) revert MIGRATION_NOT_ALLOWED();
 
     // All reserved tokens must be minted before migrating.
     if (uint256(_processedTokenTrackerOf[_projectId]) != tokenStore.totalSupplyOf(_projectId))
@@ -903,17 +889,13 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints
   ) private returns (uint256) {
-    if (_metadata.reservedRate > JBConstants.MAX_RESERVED_RATE) {
-      revert INVALID_RESERVED_RATE();
-    }
+    if (_metadata.reservedRate > JBConstants.MAX_RESERVED_RATE) revert INVALID_RESERVED_RATE();
 
-    if (_metadata.redemptionRate > JBConstants.MAX_REDEMPTION_RATE) {
+    if (_metadata.redemptionRate > JBConstants.MAX_REDEMPTION_RATE)
       revert INVALID_REDEMPTION_RATE();
-    }
 
-    if (_metadata.ballotRedemptionRate > JBConstants.MAX_REDEMPTION_RATE) {
+    if (_metadata.ballotRedemptionRate > JBConstants.MAX_REDEMPTION_RATE)
       revert INVALID_BALLOT_REDEMPTION_RATE();
-    }
 
     // Configure the funding cycle's properties.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.configureFor(
@@ -950,18 +932,16 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
         revert BAD_OVERFLOW_ALLOWANCE_CURRENCY();
 
       // Set the distribution limit if there is one.
-      if (_constraints.distributionLimit > 0) {
+      if (_constraints.distributionLimit > 0)
         _packedDistributionLimitDataOf[_projectId][_fundingCycle.configuration][
           _constraints.terminal
         ] = _constraints.distributionLimit | (_constraints.distributionLimitCurrency << 248);
-      }
 
       // Set the overflow allowance if there is one.
-      if (_constraints.overflowAllowance > 0) {
+      if (_constraints.overflowAllowance > 0)
         _packedOverflowAllowanceDataOf[_projectId][_fundingCycle.configuration][
           _constraints.terminal
         ] = _constraints.overflowAllowance | (_constraints.overflowAllowanceCurrency << 248);
-      }
 
       emit SetFundAccessConstraints(
         _fundingCycle.configuration,

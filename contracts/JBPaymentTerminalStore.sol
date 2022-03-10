@@ -247,11 +247,7 @@ contract JBPaymentTerminalStore {
     @param _payer The original address that sent the payment to the terminal.
     @param _amount The amount of terminal tokens being paid, as a fixed point number with 18 decimals.
     @param _projectId The ID of the project being paid.
-    @param _preferClaimedTokensAndBeneficiary Two properties are included in this packed uint256:
-      The first bit contains the flag indicating whether the request prefers to issue tokens claimed as ERC-20s.
-      The remaining bits contains the address that should receive benefits from the payment.
-
-      This design is necessary two prevent a "Stack too deep" compiler error that comes up if the variables are declared seperately.
+    @param _beneficiary The address that should receive benefits from the payment.
     @param _minReturnedTokens The minimum number of project tokens expected to be minted in return, as a fixed point number with 18 decimals.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.
 
@@ -265,7 +261,7 @@ contract JBPaymentTerminalStore {
     address _payer,
     uint256 _amount,
     uint256 _projectId,
-    uint256 _preferClaimedTokensAndBeneficiary,
+    address _beneficiary,
     uint256 _minReturnedTokens,
     string memory _memo
   )
@@ -296,7 +292,7 @@ contract JBPaymentTerminalStore {
           _projectId,
           fundingCycle.weight,
           fundingCycle.reservedRate(),
-          address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
+          _beneficiary,
           _memo
         )
       );
@@ -306,43 +302,33 @@ contract JBPaymentTerminalStore {
       memo = _memo;
     }
 
-    if (_amount > 0) {
-      // Add the amount to the token balance of the project if needed.
-      balanceOf[IJBTerminal(msg.sender)][_projectId] =
-        balanceOf[IJBTerminal(msg.sender)][_projectId] +
-        _amount;
+    // If there's no amount being recorded, there's nothing left to do.
+    if (_amount == 0) return (fundingCycle, weight, 0, delegate, memo);
 
-      // Amount and weight must be non-zero in order to mint tokens.
-      if (weight > 0) {
-        // Define variables that will be needed outside the scoped section below.
-        uint256 _weightRatio;
+    // Add the amount to the token balance of the project if needed.
+    balanceOf[IJBTerminal(msg.sender)][_projectId] =
+      balanceOf[IJBTerminal(msg.sender)][_projectId] +
+      _amount;
 
-        // Scoped section prevents stack too deep. `_terminalCurrency` and `_terminalBaseWeightCurrency` only used within scope.
-        {
-          // Get a referenece to the terminal's currency.
-          uint256 _terminalCurrency = IJBTerminal(msg.sender).currency();
+    // If there's no weight, token count must be 0 so there's nothing left to do.
+    if (weight == 0) return (fundingCycle, weight, 0, delegate, memo);
 
-          // Get a referenece to the terminal's base weight currency.
-          uint256 _terminalBaseWeightCurrency = IJBTerminal(msg.sender).baseWeightCurrency();
+    // Get a referenece to the terminal's currency.
+    uint256 _terminalCurrency = IJBTerminal(msg.sender).currency();
 
-          // If the terminal should base its weight on a different currency from the terminal's currency, determine the factor.
-          _weightRatio = _terminalCurrency == _terminalBaseWeightCurrency
-            ? 1E18
-            : prices.priceFor(_terminalCurrency, _terminalBaseWeightCurrency);
-        }
+    // Get a referenece to the terminal's base weight currency.
+    uint256 _terminalBaseWeightCurrency = IJBTerminal(msg.sender).baseWeightCurrency();
 
-        // Mint the tokens.
-        tokenCount = directory.controllerOf(_projectId).mintTokensOf(
-          _projectId,
-          PRBMath.mulDiv(_amount, weight, _weightRatio), // Multiply the amount by the weight to determine the amount of tokens to mint
-          address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
-          '',
-          (_preferClaimedTokensAndBeneficiary & 1) == 1,
-          true
-        );
-      }
-    }
+    // If the terminal should base its weight on a different currency from the terminal's currency, determine the factor.
+    uint256 _weightRatio = _terminalCurrency == _terminalBaseWeightCurrency
+      ? 1E18
+      : prices.priceFor(_terminalCurrency, _terminalBaseWeightCurrency);
+    // }
 
+    // Find the number of tokens to mint.
+    tokenCount = PRBMath.mulDiv(_amount, weight, _weightRatio);
+
+    //TODO this should take reserved into account;
     // The token count for the beneficiary must be greater than or equal to the minimum expected.
     if (tokenCount < _minReturnedTokens) revert INADEQUATE_TOKEN_COUNT();
   }
@@ -609,10 +595,6 @@ contract JBPaymentTerminalStore {
 
     // The amount being reclaimed must be at least as much as was expected.
     if (reclaimAmount < _minReturnedTokens) revert INADEQUATE_CLAIM_AMOUNT();
-
-    // Redeem the project tokens, which burns them.
-    if (_tokenCount > 0)
-      directory.controllerOf(_projectId).burnTokensOf(_holder, _projectId, _tokenCount, '', false);
 
     // Remove the reclaimed funds from the project's balance.
     if (reclaimAmount > 0)

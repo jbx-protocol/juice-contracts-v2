@@ -215,17 +215,6 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     return _heldFeesOf[_projectId];
   }
 
-  /**
-    @notice
-    An address that serves as this terminal's delegate when making requests to ecosystem contracts.
-
-    @return The delegate address.
-  */
-  function delegate() external view override returns (address) {
-    // The store is the delegate.
-    return address(store);
-  }
-
   //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
@@ -531,6 +520,16 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
         _beneficiary,
         _memo
       );
+
+      // Redeem the project tokens, which burns them.
+      if (_tokenCount > 0)
+        directory.controllerOf(_projectId).burnTokensOf(
+          _holder,
+          _projectId,
+          _tokenCount,
+          '',
+          false
+        );
 
       // If a delegate was returned by the data source, issue a callback to it.
       if (_delegate != IJBRedemptionDelegate(address(0))) {
@@ -925,21 +924,34 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
 
     JBFundingCycle memory _fundingCycle;
     uint256 _weight;
-    uint256 _tokenCount;
+    uint256 _beneficiaryTokenCount;
 
-    // Scoped section prevents stack too deep. `_delegate` only used within scope.
+    // Scoped section prevents stack too deep. `_delegate` and `_tokenCount` only used within scope.
     {
       IJBPayDelegate _delegate;
+      uint256 _tokenCount;
 
       // Record the payment.
       (_fundingCycle, _weight, _tokenCount, _delegate, _memo) = store.recordPaymentFrom(
         _payer,
         _amount,
         _projectId,
-        (_preferClaimedTokens ? 1 : 0) | (uint256(uint160(_beneficiary)) << 1),
+        _beneficiary,
         _minReturnedTokens,
         _memo
       );
+
+      // Mint the tokens if needed.
+      if (_tokenCount > 0)
+        // Set token count to be the number of tokens minted for the beneficiary instead of the total amount.
+        _beneficiaryTokenCount = directory.controllerOf(_projectId).mintTokensOf(
+          _projectId,
+          _tokenCount,
+          _beneficiary,
+          '',
+          _preferClaimedTokens,
+          true
+        );
 
       // If a delegate was returned by the data source, issue a callback to it.
       if (_delegate != IJBPayDelegate(address(0))) {
@@ -948,7 +960,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
           _projectId,
           _amount,
           _weight,
-          _tokenCount,
+          _beneficiaryTokenCount,
           _beneficiary,
           _memo,
           _delegateMetadata
@@ -966,7 +978,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
       _beneficiary,
       _amount,
       _weight,
-      _tokenCount,
+      _beneficiaryTokenCount,
       _memo,
       msg.sender
     );

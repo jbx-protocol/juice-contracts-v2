@@ -30,7 +30,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
     const mockJbPrices = await deployMockContract(deployer, jbPrices.abi);
     const mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
-    const mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
     const mockJbFundingCycleStore = await deployMockContract(deployer, jBFundingCycleStore.abi);
     const mockJbFundingCycleDataSource = await deployMockContract(
       deployer,
@@ -39,6 +38,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     const mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
     const mockJbTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
     const mockJbController = await deployMockContract(deployer, jbController.abi);
+    const mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
 
     const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
       'JBPaymentTerminalStore',
@@ -68,7 +68,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       payer,
       beneficiary,
       mockJbController,
-      mockJbDirectory,
       mockJbPrices,
       mockJbFundingCycleStore,
       mockJbFundingCycleDataSource,
@@ -86,8 +85,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       mockJbTerminalSigner,
       payer,
       beneficiary,
-      mockJbController,
-      mockJbDirectory,
       mockJbFundingCycleStore,
       JBPaymentTerminalStore,
       timestamp,
@@ -108,31 +105,16 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       metadata: packFundingCycleMetadata({ pausePay: 0, reservedRate: reservedRate }),
     });
 
-    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
-
-    await mockJbController.mock.mintTokensOf
-      .withArgs(
-        PROJECT_ID,
-        WEIGHTED_AMOUNT,
-        /* beneficiary */ beneficiary.address,
-        /* memo */ '',
-        /* preferClaimedTokens */ false,
-        /* useReservedRate */ true,
-      )
-      .returns(WEIGHTED_AMOUNT);
-
     expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(0);
 
     // Record the payment
-    const preferClaimedTokensBigNum = ethers.BigNumber.from(0); // false
-    const beneficiaryBigNum = ethers.BigNumber.from(beneficiary.address).shl(1); // addr shifted left by 1
     await JBPaymentTerminalStore
       .connect(mockJbTerminalSigner)
       .recordPaymentFrom(
         /* payer */ payer.address,
         AMOUNT,
         PROJECT_ID,
-        /* preferClaimedTokensAndBeneficiary */ preferClaimedTokensBigNum.or(beneficiaryBigNum),
+        beneficiary.address,
         /* minReturnedTokens */ 0,
         /* memo */ 'test'
       );
@@ -145,11 +127,8 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       mockJbTerminalSigner,
       payer,
       beneficiary,
-      mockJbController,
-      mockJbDirectory,
       mockJbFundingCycleStore,
       JBPaymentTerminalStore,
-      mockJbTerminal,
       timestamp,
     } = await setup();
 
@@ -168,20 +147,16 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       metadata: packFundingCycleMetadata({ pausePay: 0, reservedRate: reservedRate }),
     });
 
-    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
-
     expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(0);
 
     // Record the payment
-    const preferClaimedTokensBigNum = ethers.BigNumber.from(0); // false
-    const beneficiaryBigNum = ethers.BigNumber.from(beneficiary.address).shl(1); // addr shifted left by 1
     await JBPaymentTerminalStore
       .connect(mockJbTerminalSigner)
       .recordPaymentFrom(
         /* payer */ payer.address,
         AMOUNT,
         PROJECT_ID,
-        /* preferClaimedTokensAndBeneficiary */ preferClaimedTokensBigNum.or(beneficiaryBigNum),
+        beneficiary.address,
         /* minReturnedTokens */ 0,
         /* memo */ 'test'
       );
@@ -196,8 +171,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       mockJbTerminalSigner,
       payer,
       beneficiary,
-      mockJbController,
-      mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbFundingCycleDataSource,
       JBPaymentTerminalStore,
@@ -227,8 +200,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       metadata: packedMetadata,
     });
 
-    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
-
     const newMemo = 'new memo';
     const delegate = addrs[0];
 
@@ -245,29 +216,16 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       })
       .returns(WEIGHT, newMemo, delegate.address);
 
-    await mockJbController.mock.mintTokensOf
-      .withArgs(
-        PROJECT_ID,
-        WEIGHTED_AMOUNT,
-        /* beneficiary */ beneficiary.address,
-        /* memo */ '',
-        /* preferClaimedTokens */ false,
-        /* useReservedRate */ true,
-      )
-      .returns(WEIGHTED_AMOUNT);
-
     expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(0);
 
     // Record the payment
-    const preferClaimedTokensBigNum = ethers.BigNumber.from(0); // false
-    const beneficiaryBigNum = ethers.BigNumber.from(beneficiary.address).shl(1); // addr shifted left by 1
-    const tx = await JBPaymentTerminalStore
+    await JBPaymentTerminalStore
       .connect(mockJbTerminalSigner)
       .recordPaymentFrom(
         /* payer */ payer.address,
         /* amount */ AMOUNT,
         /* projectId */ PROJECT_ID,
-        /* preferClaimedTokensAndBeneficiary */ preferClaimedTokensBigNum.or(beneficiaryBigNum),
+        beneficiary.address,
         /* minReturnedTokens */ 0,
         /* memo */ memo
       );
@@ -281,8 +239,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       mockJbTerminalSigner,
       payer,
       beneficiary,
-      mockJbController,
-      mockJbDirectory,
       mockJbFundingCycleStore,
       JBPaymentTerminalStore,
       timestamp,
@@ -303,20 +259,16 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       metadata: packFundingCycleMetadata({ pausePay: 0, reservedRate: reservedRate }),
     });
 
-    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
-
     expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(0);
 
     // Record the payment
-    const preferClaimedTokensBigNum = ethers.BigNumber.from(0); // false
-    const beneficiaryBigNum = ethers.BigNumber.from(beneficiary.address).shl(1); // addr shifted left by 1
     await JBPaymentTerminalStore
       .connect(mockJbTerminalSigner)
       .recordPaymentFrom(
         /* payer */ payer.address,
         AMOUNT,
         PROJECT_ID,
-        /* preferClaimedTokensAndBeneficiary */ preferClaimedTokensBigNum.or(beneficiaryBigNum),
+        beneficiary.address,
         /* minReturnedTokens */ 0,
         /* memo */ 'test'
       );
@@ -330,8 +282,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       mockJbTerminalSigner,
       payer,
       beneficiary,
-      mockJbController,
-      mockJbDirectory,
       mockJbFundingCycleStore,
       JBPaymentTerminalStore,
       mockJbTerminal,
@@ -347,8 +297,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
     await mockJbPrices.mock.priceFor.withArgs(CURRENCY, otherBaseCurrency).returns(conversionPrice.mul(ethers.BigNumber.from(10).pow(18)));
 
-    const ADAPTED_WEIGHTED_AMOUNT = WEIGHTED_AMOUNT.div(conversionPrice);
-
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
       number: 1,
@@ -362,31 +310,16 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       metadata: packFundingCycleMetadata({ pausePay: 0, reservedRate: reservedRate }),
     });
 
-    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
-
-    await mockJbController.mock.mintTokensOf
-      .withArgs(
-        PROJECT_ID,
-        ADAPTED_WEIGHTED_AMOUNT,
-        /* beneficiary */ beneficiary.address,
-        /* memo */ '',
-        /* preferClaimedTokens */ false,
-        /* reservedRate */ reservedRate,
-      )
-      .returns(ADAPTED_WEIGHTED_AMOUNT);
-
     expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(0);
 
     // Record the payment
-    const preferClaimedTokensBigNum = ethers.BigNumber.from(0); // false
-    const beneficiaryBigNum = ethers.BigNumber.from(beneficiary.address).shl(1); // addr shifted left by 1
     await JBPaymentTerminalStore
       .connect(mockJbTerminalSigner)
       .recordPaymentFrom(
         /* payer */ payer.address,
         AMOUNT,
         PROJECT_ID,
-        /* preferClaimedTokensAndBeneficiary */ preferClaimedTokensBigNum.or(beneficiaryBigNum),
+        beneficiary.address,
         /* minReturnedTokens */ 0,
         /* memo */ 'test'
       );
@@ -447,15 +380,13 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(0);
 
     // Record the payment
-    const preferClaimedTokensBigNum = ethers.BigNumber.from(0); // false
-    const beneficiaryBigNum = ethers.BigNumber.from(beneficiary.address).shl(1); // addr shifted left by 1
     const tx = await JBPaymentTerminalStore
       .connect(mockJbTerminalSigner).callStatic
       .recordPaymentFrom(
         /* payer */ payer.address,
         /* amount */ 0,
         /* projectId */ PROJECT_ID,
-        /* preferClaimedTokensAndBeneficiary */ preferClaimedTokensBigNum.or(beneficiaryBigNum),
+        beneficiary.address,
         /* minReturnedTokens */ 0,
         /* memo */ memo
       );
@@ -486,8 +417,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     });
 
     // Record the payment
-    const preferClaimedTokensBigNum = ethers.BigNumber.from(0); // false
-    const beneficiaryBigNum = ethers.BigNumber.from(beneficiary.address).shl(1); // addr shifted left by 1
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
@@ -495,7 +424,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
           /* payer */ payer.address,
           AMOUNT,
           PROJECT_ID,
-          /* preferClaimedTokensAndBeneficiary */ preferClaimedTokensBigNum.or(beneficiaryBigNum),
+          beneficiary.address,
           /* minReturnedTokens */ 0,
           /* memo */ 'test'
         ),
@@ -520,8 +449,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     });
 
     // Record the payment
-    const preferClaimedTokensBigNum = ethers.BigNumber.from(0); // false
-    const beneficiaryBigNum = ethers.BigNumber.from(beneficiary.address).shl(1); // addr shifted left by 1
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
@@ -529,7 +456,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
           /* payer */ payer.address,
           AMOUNT,
           PROJECT_ID,
-          /* preferClaimedTokensAndBeneficiary */ preferClaimedTokensBigNum.or(beneficiaryBigNum),
+          beneficiary.address,
           /* minReturnedTokens */ 0,
           /* memo */ 'test'
         ),
@@ -541,9 +468,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       mockJbTerminalSigner,
       payer,
       beneficiary,
-      mockJbController,
-      mockJbDirectory,
-      mockJbPrices,
       mockJbFundingCycleStore,
       JBPaymentTerminalStore,
       timestamp,
@@ -565,28 +489,13 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       metadata: packFundingCycleMetadata({ pausePay: 0, reservedRate: reservedRate }),
     });
 
-    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
-
-    await mockJbController.mock.mintTokensOf
-      .withArgs(
-        PROJECT_ID,
-        WEIGHTED_AMOUNT,
-        /* beneficiary */ beneficiary.address,
-        /* memo */ '',
-        /* preferClaimedTokens */ false,
-        /* useReservedRate */ true,
-      )
-      .returns(WEIGHTED_AMOUNT);
-
     // Record the payment
-    const preferClaimedTokensBigNum = ethers.BigNumber.from(0); // false
-    const beneficiaryBigNum = ethers.BigNumber.from(beneficiary.address).shl(1); // addr shifted left by 1
     await expect(
       JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
         /* payer */ payer.address,
         AMOUNT,
         PROJECT_ID,
-        /* preferClaimedTokensAndBeneficiary */ preferClaimedTokensBigNum.or(beneficiaryBigNum),
+        beneficiary.address,
         /* minReturnedTokens */ ethers.FixedNumber.from(minReturnedAmt), // Set intentionally larger
         /* memo */ 'test'
       ),

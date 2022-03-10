@@ -51,7 +51,7 @@ interface IJBPaymentTerminal is IJBTerminal {
     address beneficiary,
     uint256 amount,
     uint256 weight,
-    uint256 tokenCount,
+    uint256 beneficiaryTokenCount,
     string memo,
     address caller
   );

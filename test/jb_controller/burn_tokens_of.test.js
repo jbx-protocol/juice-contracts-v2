@@ -68,9 +68,9 @@ describe('JBController::burnTokenOf(...)', function () {
     await Promise.all([
       mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address),
 
-      mockJbDirectory.mock.isTerminalDelegateOf.withArgs(PROJECT_ID, holder.address).returns(false),
+      mockJbDirectory.mock.isTerminalOf.withArgs(PROJECT_ID, holder.address).returns(false),
 
-      mockJbDirectory.mock.isTerminalDelegateOf
+      mockJbDirectory.mock.isTerminalOf
         .withArgs(PROJECT_ID, projectOwner.address)
         .returns(false),
 
@@ -162,7 +162,7 @@ describe('JBController::burnTokenOf(...)', function () {
       .withArgs(caller.address, holder.address, PROJECT_ID, BURN_INDEX)
       .returns(true);
 
-    await mockJbDirectory.mock.isTerminalDelegateOf
+    await mockJbDirectory.mock.isTerminalOf
       .withArgs(PROJECT_ID, caller.address)
       .returns(false);
 
@@ -189,7 +189,7 @@ describe('JBController::burnTokenOf(...)', function () {
       .withArgs(terminalSigner.address, projectOwner.address, 0, BURN_INDEX)
       .returns(false);
 
-    await mockJbDirectory.mock.isTerminalDelegateOf
+    await mockJbDirectory.mock.isTerminalOf
       .withArgs(PROJECT_ID, terminalSigner.address)
       .returns(true);
 
@@ -256,7 +256,7 @@ describe('JBController::burnTokenOf(...)', function () {
       .withArgs(terminalSigner.address, projectOwner.address, 0, BURN_INDEX)
       .returns(false);
 
-    await mockJbDirectory.mock.isTerminalDelegateOf
+    await mockJbDirectory.mock.isTerminalOf
       .withArgs(PROJECT_ID, terminalSigner.address)
       .returns(true);
 

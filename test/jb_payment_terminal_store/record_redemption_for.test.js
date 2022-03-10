@@ -137,10 +137,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       .returns(0);
     /* End of mocks for _reclaimableOverflowOf private method */
 
-    await mockJbController.mock.burnTokensOf
-      .withArgs(holder.address, PROJECT_ID, AMOUNT, /* memo */ '', /* preferClaimedTokens */ false)
-      .returns();
-
     // Add to balance beforehand to have sufficient overflow
     const startingBalance = AMOUNT.mul(ethers.BigNumber.from(2));
     await JBPaymentTerminalStore
@@ -249,7 +245,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       holder,
       beneficiary,
       mockJbController,
-      mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbTerminal,
       mockJbTerminalSigner,
@@ -281,8 +276,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       metadata: packedMetadata,
     });
 
-    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
-
     /* Mocks for _reclaimableOverflowOf private method */
     await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
@@ -298,10 +291,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       .withArgs(PROJECT_ID, reservedRate)
       .returns(0);
     /* End of mocks for _reclaimableOverflowOf private method */
-
-    await mockJbController.mock.burnTokensOf
-      .withArgs(holder.address, PROJECT_ID, AMOUNT, /* memo */ '', /* preferClaimedTokens */ false)
-      .returns();
 
     // No balance
     const startingBalance = 0;
@@ -328,8 +317,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     const {
       holder,
       beneficiary,
-      mockJbController,
-      mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbTerminalSigner,
       mockJbTokenStore,
@@ -381,12 +368,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         memo: 'test'
       })
       .returns(AMOUNT, newMemo, delegate.address);
-
-    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
-
-    await mockJbController.mock.burnTokensOf
-      .withArgs(holder.address, PROJECT_ID, AMOUNT, /* memo */ '', /* preferClaimedTokens */ false)
-      .returns();
 
     // Add to balance beforehand to have sufficient overflow
     const startingBalance = AMOUNT.mul(ethers.FixedNumber.from(2));

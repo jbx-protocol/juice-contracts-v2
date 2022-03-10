@@ -308,11 +308,11 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
         jbEthPaymentTerminal.address,
         AMOUNT - AMOUNT_MINUS_FEES,
         JUICEBOX_PROJECT_ID,
-        ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
+        projectOwner.address,
         /* minReturnedTokens */ 0,
         /* memo */ ''
       )
-      .returns(fundingCycle, WEIGHT, AMOUNT, /* delegate */ ethers.constants.AddressZero, '');
+      .returns(fundingCycle, WEIGHT, 0, /* delegate */ ethers.constants.AddressZero, '');
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)
@@ -390,11 +390,11 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
         jbEthPaymentTerminal.address,
         AMOUNT - AMOUNT_MINUS_DISCOUNTED_FEES,
         JUICEBOX_PROJECT_ID,
-        ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
+        projectOwner.address,
         /* minReturnedTokens */ 0,
         /* memo */ '',
       )
-      .returns(fundingCycle, WEIGHT, AMOUNT, /* delegate */ ethers.constants.AddressZero, '');
+      .returns(fundingCycle, WEIGHT, 0, /* delegate */ ethers.constants.AddressZero, '');
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)
@@ -470,11 +470,11 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
         jbEthPaymentTerminal.address,
         AMOUNT - AMOUNT_MINUS_FEES,
         JUICEBOX_PROJECT_ID,
-        ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
+        projectOwner.address,
         /* minReturnedTokens */ 0,
         /* memo */ ''
       )
-      .returns(fundingCycle, WEIGHT, AMOUNT, /* delegate */ ethers.constants.AddressZero, '');
+      .returns(fundingCycle, WEIGHT, 0, /* delegate */ ethers.constants.AddressZero, '');
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)
@@ -558,11 +558,11 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
         jbEthPaymentTerminal.address,
         AMOUNT - AMOUNT_MINUS_FEES,
         JUICEBOX_PROJECT_ID,
-        ethers.BigNumber.from(0).or(ethers.BigNumber.from(projectOwner.address).shl(1)),
+        projectOwner.address,
         /* minReturnedTokens */ 0,
         /* memo */ ''
       )
-      .returns(newFundingCycle, WEIGHT, AMOUNT, /* delegate */ ethers.constants.AddressZero, '');
+      .returns(newFundingCycle, WEIGHT, 0, /* delegate */ ethers.constants.AddressZero, '');
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)
