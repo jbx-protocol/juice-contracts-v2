@@ -6,12 +6,12 @@ import { setBalance } from '../helpers/utils';
 import errors from '../helpers/errors.json';
 
 import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
-import jbEthPaymentTerminalStore from '../../artifacts/contracts/JBETHPaymentTerminalStore.sol/JBETHPaymentTerminalStore.json';
+import JBPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalStore.sol/JBPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorStore.sol/IJBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
 
-describe('JBETHPaymentTerminal::redeemTokensOf(...)', function () {
+describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
   const AMOUNT = 50000;
   const FUNDING_CYCLE_NUM = 1;
   const MEMO = 'test memo';
@@ -27,17 +27,21 @@ describe('JBETHPaymentTerminal::redeemTokensOf(...)', function () {
 
     const [
       mockJbDirectory,
-      mockJbEthPaymentTerminalStore,
+      mockJBPaymentTerminalStore,
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
-      deployMockContract(deployer, jbEthPaymentTerminalStore.abi),
+      deployMockContract(deployer, JBPaymentTerminalStore.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
     ]);
+
+    const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
+    const jbCurrencies = await jbCurrenciesFactory.deploy();
+    const CURRENCY_ETH = await jbCurrencies.ETH();
 
     const jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
     const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
@@ -45,16 +49,17 @@ describe('JBETHPaymentTerminal::redeemTokensOf(...)', function () {
       from: deployer.address,
       nonce: currentNonce + 1,
     });
-    await mockJbEthPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
+    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
 
     const jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
       .deploy(
+        CURRENCY_ETH,
         mockJbOperatorStore.address,
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
-        mockJbEthPaymentTerminalStore.address,
+        mockJBPaymentTerminalStore.address,
         terminalOwner.address,
       );
 
@@ -87,7 +92,7 @@ describe('JBETHPaymentTerminal::redeemTokensOf(...)', function () {
       holder,
       jbEthPaymentTerminal,
       fundingCycle,
-      mockJbEthPaymentTerminalStore,
+      mockJBPaymentTerminalStore,
       mockJbOperatorStore,
       otherCaller,
       timestamp,
@@ -100,12 +105,12 @@ describe('JBETHPaymentTerminal::redeemTokensOf(...)', function () {
       fundingCycle,
       holder,
       jbEthPaymentTerminal,
-      mockJbEthPaymentTerminalStore,
+      mockJBPaymentTerminalStore,
       timestamp,
     } = await setup();
 
     // Keep it simple and let 1 token exchange for 1 wei
-    await mockJbEthPaymentTerminalStore.mock.recordRedemptionFor
+    await mockJBPaymentTerminalStore.mock.recordRedemptionFor
       .withArgs(
         holder.address,
         PROJECT_ID,
@@ -162,12 +167,12 @@ describe('JBETHPaymentTerminal::redeemTokensOf(...)', function () {
       fundingCycle,
       holder,
       jbEthPaymentTerminal,
-      mockJbEthPaymentTerminalStore,
+      mockJBPaymentTerminalStore,
       timestamp,
     } = await setup();
 
     // Keep it simple and let 1 token exchange for 1 wei
-    await mockJbEthPaymentTerminalStore.mock.recordRedemptionFor
+    await mockJBPaymentTerminalStore.mock.recordRedemptionFor
       .withArgs(
         holder.address,
         PROJECT_ID,

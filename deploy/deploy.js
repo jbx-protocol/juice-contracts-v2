@@ -97,7 +97,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     await jbDirectoryContract.connect(signer).transferOwnership(multisigAddress);
   }
 
-  const JBETHPaymentTerminalStore = await deploy('JBETHPaymentTerminalStore', {
+  const JBPaymentTerminalStore = await deploy('JBPaymentTerminalStore', {
     ...baseDeployArgs,
     args: [
       JBPrices.address,
@@ -108,73 +108,74 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     ],
   });
 
-  const JBETHPaymentTerminal = await deploy('JBETHPaymentTerminal', {
-    ...baseDeployArgs,
-    args: [
-      JBOperatorStore.address,
-      JBProjects.address,
-      JBDirectory.address,
-      JBSplitStore.address,
-      JBETHPaymentTerminalStore.address,
-      multisigAddress,
-    ],
-  });
+  // const JBETHPaymentTerminal = await deploy('JBETHPaymentTerminal', {
+  //   ...baseDeployArgs,
+  //   args: [
+  //     0,
+  //     JBOperatorStore.address,
+  //     JBProjects.address,
+  //     JBDirectory.address,
+  //     JBSplitStore.address,
+  //     JBPaymentTerminalStore.address,
+  //     multisigAddress,
+  //   ],
+  // });
 
-  console.log('Deloying project...');
-  const jbControllerContract = new ethers.Contract(JBController.address, JBController.abi);
+  // console.log('Deploying project...');
+  // const jbControllerContract = new ethers.Contract(JBController.address, JBController.abi);
 
-  // Deploy the protocol project
-  await jbControllerContract.connect(signer).launchProjectFor(
-    /*owner*/ multisigAddress,
+  // // Deploy the protocol project
+  // await jbControllerContract.connect(signer).launchProjectFor(
+  //   /*owner*/ multisigAddress,
 
-    /* projectMetadata */
-    [/*content*/ '', /*domain*/ ethers.BigNumber.from(0)],
+  //   /* projectMetadata */
+  //   [/*content*/ '', /*domain*/ ethers.BigNumber.from(0)],
 
-    /*fundingCycleData*/
-    [
-      /*duration*/ ethers.BigNumber.from(1209600),
-      /*weight*/ ethers.BigNumber.from(10).pow(18).mul(1000000),
-      /*discountRate*/ ethers.BigNumber.from(40000000),
-      /*ballot*/ '0x0000000000000000000000000000000000000000',
-    ],
+  //   /*fundingCycleData*/
+  //   [
+  //     /*duration*/ ethers.BigNumber.from(1209600),
+  //     /*weight*/ ethers.BigNumber.from(10).pow(18).mul(1000000),
+  //     /*discountRate*/ ethers.BigNumber.from(40000000),
+  //     /*ballot*/ '0x0000000000000000000000000000000000000000',
+  //   ],
 
-    /*fundingCycleMetadata*/
-    [
-      /*reservedRate*/ ethers.BigNumber.from(5000),
-      /*redemptionRate*/ ethers.BigNumber.from(7000),
-      /*ballotRedemptionRate*/ ethers.BigNumber.from(7000),
-      /*pausePay*/ ethers.BigNumber.from(0),
-      /*pauseDistributions*/ ethers.BigNumber.from(0),
-      /*pauseRedeem*/ ethers.BigNumber.from(0),
-      /*pauseMint*/ ethers.BigNumber.from(1),
-      /*pauseBurn*/ ethers.BigNumber.from(0),
-      /*allowChangeToken*/ ethers.BigNumber.from(0),
-      /*allowTerminalMigration*/ ethers.BigNumber.from(0),
-      /*allowControllerMigration*/ ethers.BigNumber.from(0),
-      /*holdFees*/ ethers.BigNumber.from(0),
-      /*useLocalBalanceForRedemptions*/ ethers.BigNumber.from(0),
-      /*useDataSourceForPay*/ ethers.BigNumber.from(0),
-      /*useDataSourceForRedeem*/ ethers.BigNumber.from(0),
-      /*dataSource*/ '0x0000000000000000000000000000000000000000',
-    ],
+  //   /*fundingCycleMetadata*/
+  //   [
+  //     /*reservedRate*/ ethers.BigNumber.from(5000),
+  //     /*redemptionRate*/ ethers.BigNumber.from(7000),
+  //     /*ballotRedemptionRate*/ ethers.BigNumber.from(7000),
+  //     /*pausePay*/ ethers.BigNumber.from(0),
+  //     /*pauseDistributions*/ ethers.BigNumber.from(0),
+  //     /*pauseRedeem*/ ethers.BigNumber.from(0),
+  //     /*pauseMint*/ ethers.BigNumber.from(1),
+  //     /*pauseBurn*/ ethers.BigNumber.from(0),
+  //     /*allowChangeToken*/ ethers.BigNumber.from(0),
+  //     /*allowTerminalMigration*/ ethers.BigNumber.from(0),
+  //     /*allowControllerMigration*/ ethers.BigNumber.from(0),
+  //     /*holdFees*/ ethers.BigNumber.from(0),
+  //     /*useLocalBalanceForRedemptions*/ ethers.BigNumber.from(0),
+  //     /*useDataSourceForPay*/ ethers.BigNumber.from(0),
+  //     /*useDataSourceForRedeem*/ ethers.BigNumber.from(0),
+  //     /*dataSource*/ '0x0000000000000000000000000000000000000000',
+  //   ],
 
-    /*mustStartOnOrAfter*/ ethers.BigNumber.from(0),
+  //   /*mustStartOnOrAfter*/ ethers.BigNumber.from(0),
 
-    /*groupedSplits*/ [],
+  //   /*groupedSplits*/ [],
 
-    /*fundAccessConstraints*/
-    [
-      [
-        /*terminal*/ JBETHPaymentTerminal.address,
-        /*distributionLimit*/ ethers.BigNumber.from(0),
-        /*distributionLimitCurrency*/ ethers.BigNumber.from(1),
-        /*overflowAllowance*/ ethers.BigNumber.from(0),
-        /*overflowAllowanceCurrency*/ ethers.BigNumber.from(0),
-      ],
-    ],
+  //   /*fundAccessConstraints*/
+  //   [
+  //     [
+  //       /*terminal*/ JBETHPaymentTerminal.address,
+  //       /*distributionLimit*/ ethers.BigNumber.from(0),
+  //       /*distributionLimitCurrency*/ ethers.BigNumber.from(1),
+  //       /*overflowAllowance*/ ethers.BigNumber.from(0),
+  //       /*overflowAllowanceCurrency*/ ethers.BigNumber.from(0),
+  //     ],
+  //   ],
 
-    /*terminals*/ [JBETHPaymentTerminal.address],
-  );
+  //   /*terminals*/ [JBETHPaymentTerminal.address],
+  // );
 
   console.log('Done');
 };

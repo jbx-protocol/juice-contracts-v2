@@ -10,7 +10,6 @@ import './interfaces/IJBTokenStore.sol';
 import './interfaces/IJBTerminal.sol';
 
 import './libraries/JBConstants.sol';
-import './libraries/JBCurrencies.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
@@ -36,12 +35,12 @@ error STORE_ALREADY_CLAIMED();
 
 /**
   @notice
-  This contract manages all bookkeeping for inflows and outflows of funds for a terminal.
+  This contract manages all bookkeeping for inflows and outflows of a particular token for a terminal.
 
   @dev
   Aside from the public view methods, the external methods should be called by the associated terminal.
 */
-contract JBETHPaymentTerminalStore {
+contract JBPaymentTerminalStore {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
@@ -56,6 +55,10 @@ contract JBETHPaymentTerminalStore {
   event DelegateDidPay(IJBPayDelegate indexed delegate, JBDidPayData data);
 
   event DelegateDidRedeem(IJBRedemptionDelegate indexed delegate, JBDidRedeemData data);
+
+  uint256 private _terminalCurrency;
+
+  uint256 private _terminalBaseWeightCurrency;
 
   /**
     @notice
@@ -99,7 +102,7 @@ contract JBETHPaymentTerminalStore {
 
   /**
     @notice
-    The amount of ETH that each project has.
+    The amount of tokens that each project has.
 
     _projectId The ID of the project to get the balance of.
   */
@@ -107,7 +110,7 @@ contract JBETHPaymentTerminalStore {
 
   /**
     @notice
-    The amount of overflow (in the terminal's currency) that a project has used from its allowance during the current funding cycle configuration.
+    The amount of tokens overflow (in the terminal's currency) that a project has used from its allowance during the current funding cycle configuration.
 
     @dev
     Increases as projects use their allowance.
@@ -119,7 +122,7 @@ contract JBETHPaymentTerminalStore {
 
   /**
     @notice
-    The amount (in the terminal's currency) that a project has distributed from its limit during the current funding cycle.
+    The amount of tokens that a project has distributed from its limit during the current funding cycle.
 
     @dev
     Increases as projects use their distribution limit.
@@ -165,14 +168,14 @@ contract JBETHPaymentTerminalStore {
 
   /**
     @notice
-    The amount of overflowed ETH that can be reclaimed by the specified number of tokens.
+    The amount of overflowed tokens that can be reclaimed by the specified number of tokens.
 
     @dev If the project has an active funding cycle reconfiguration ballot, the project's ballot redemption rate is used.
 
     @param _projectId The ID of the project to get a reclaimable amount for.
     @param _tokenCount The number of tokens to make the calculation with.
 
-    @return The amount of overflowed ETH that can be reclaimed.
+    @return The amount of overflowed tokens that can be reclaimed.
   */
   function reclaimableOverflowOf(uint256 _projectId, uint256 _tokenCount)
     external
@@ -213,7 +216,7 @@ contract JBETHPaymentTerminalStore {
 
   /**
     @notice
-    Records newly contributed ETH to a project.
+    Records newly contributed tokens to a project.
 
     @dev
     Mint's the project's tokens according to values provided by a configured data source. If no data source is configured, mints tokens proportional to the amount of the contribution.
@@ -293,14 +296,18 @@ contract JBETHPaymentTerminalStore {
     }
 
     if (_amount > 0) {
-      // Add the amount to the ETH balance of the project if needed.
+      // Add the amount to the token balance of the project if needed.
       balanceOf[_projectId] = balanceOf[_projectId] + _amount;
 
       // Amount and weight must be non-zero in order to mint tokens.
       if (weight > 0) {
+        uint256 _weightDivisor = _terminalBaseWeightCurrency != _terminalCurrency
+          ? prices.priceFor(_terminalCurrency, _terminalBaseWeightCurrency)
+          : 1E18;
+
         tokenCount = directory.controllerOf(_projectId).mintTokensOf(
           _projectId,
-          PRBMathUD60x18.mul(_amount, weight), // Multiply the amount by the weight to determine the amount of tokens to mint
+          PRBMath.mulDiv(_amount, weight, _weightDivisor), // Multiply the amount by the weight to determine the amount of tokens to mint
           address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
           '',
           (_preferClaimedTokensAndBeneficiary & 1) == 1,
@@ -341,7 +348,7 @@ contract JBETHPaymentTerminalStore {
     @param _projectId The ID of the project that is having funds distributed.
     @param _amount The amount being distributed as a fixed point number.
     @param _currency The expected currency of the `_amount` being tapped. This must match the project's current funding cycle's currency.
-    @param _minReturnedWei The minimum number of wei that should be distributed.
+    @param _minReturnedAmount The minimum number of tokens that should be distributed.
 
     @return fundingCycle The funding cycle during which the withdrawal was made.
     @return distributedAmount The amount distribution in wei.
@@ -350,7 +357,7 @@ contract JBETHPaymentTerminalStore {
     uint256 _projectId,
     uint256 _amount,
     uint256 _currency,
-    uint256 _minReturnedWei
+    uint256 _minReturnedAmount
   )
     external
     onlyAssociatedPaymentTerminal
@@ -391,10 +398,10 @@ contract JBETHPaymentTerminalStore {
       revert CURRENCY_MISMATCH();
     }
 
-    // Convert the amount to wei.
-    distributedAmount = (_currency == JBCurrencies.ETH)
+    // Convert the amount to this store's terminal's token.
+    distributedAmount = (_currency == _terminalCurrency)
       ? _amount
-      : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, JBCurrencies.ETH));
+      : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, _terminalCurrency));
 
     // The amount being distributed must be available.
     if (distributedAmount > balanceOf[_projectId]) {
@@ -402,14 +409,14 @@ contract JBETHPaymentTerminalStore {
     }
 
     // The amount being distributed must be at least as much as was expected.
-    if (_minReturnedWei > distributedAmount) {
+    if (_minReturnedAmount > distributedAmount) {
       revert INADEQUATE_WITHDRAW_AMOUNT();
     }
 
     // Store the new amount.
     usedDistributionLimitOf[_projectId][fundingCycle.number] = _newUsedDistributionLimitOf;
 
-    // Removed the distributed funds from the project's ETH balance.
+    // Removed the distributed funds from the project's token balance.
     balanceOf[_projectId] = balanceOf[_projectId] - distributedAmount;
   }
 
@@ -423,7 +430,7 @@ contract JBETHPaymentTerminalStore {
     @param _projectId The ID of the project to use the allowance of.
     @param _amount The amount of the allowance to use as a fixed point number.
     @param _currency The currency of the `_amount` value. Must match the funding cycle's currency.
-    @param _minReturnedWei The amount of wei that is expected to be withdrawn.
+    @param _minReturnedAmount The amount of tokens that is expected to be withdrawn.
 
     @return fundingCycle The funding cycle during which the withdrawal is being made.
     @return withdrawnAmount The amount withdrawn in wei.
@@ -432,7 +439,7 @@ contract JBETHPaymentTerminalStore {
     uint256 _projectId,
     uint256 _amount,
     uint256 _currency,
-    uint256 _minReturnedWei
+    uint256 _minReturnedAmount
   )
     external
     onlyAssociatedPaymentTerminal
@@ -469,18 +476,18 @@ contract JBETHPaymentTerminalStore {
       revert CURRENCY_MISMATCH();
     }
 
-    // Convert the amount to wei.
-    withdrawnAmount = (_currency == JBCurrencies.ETH)
+    // Convert the amount to this store's terminal's token.
+    withdrawnAmount = (_currency == _terminalCurrency)
       ? _amount
-      : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, JBCurrencies.ETH));
+      : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, _terminalCurrency));
 
-    // The project balance should be bigger than the amount withdrawn from the overflow 
+    // The project balance should be bigger than the amount withdrawn from the overflow
     if (balanceOf[_projectId] < withdrawnAmount) {
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
     }
 
     // The amount being withdrawn must be at least as much as was expected.
-    if (_minReturnedWei > withdrawnAmount) {
+    if (_minReturnedAmount > withdrawnAmount) {
       revert INADEQUATE_WITHDRAW_AMOUNT();
     }
 
@@ -500,12 +507,12 @@ contract JBETHPaymentTerminalStore {
         .controllerOf(_projectId)
         .distributionLimitCurrencyOf(_projectId, fundingCycle.configuration, terminal);
 
-      // Convert the remaining to distribute into wei, if needed
-      _leftToDistribute = (_distributionLimitCurrency == JBCurrencies.ETH)
+      // Convert the remaining to distribute into this store's terminal's token.
+      _leftToDistribute = (_distributionLimitCurrency == _terminalCurrency)
         ? _leftToDistribute
         : PRBMathUD60x18.div(
           _leftToDistribute,
-          prices.priceFor(_distributionLimitCurrency, JBCurrencies.ETH)
+          prices.priceFor(_distributionLimitCurrency, _terminalCurrency)
         );
 
       // The amount being withdrawn must be available in the overflow.
@@ -520,7 +527,7 @@ contract JBETHPaymentTerminalStore {
     // Store the incremented value.
     usedOverflowAllowanceOf[_projectId][fundingCycle.configuration] = _newUsedOverflowAllowanceOf;
 
-    // Update the project's ETH balance.
+    // Update the project's token balance.
     balanceOf[_projectId] = balanceOf[_projectId] - withdrawnAmount;
   }
 
@@ -534,7 +541,7 @@ contract JBETHPaymentTerminalStore {
     @param _holder The account that is having its tokens redeemed.
     @param _projectId The ID of the project to which the tokens being redeemed belong.
     @param _tokenCount The number of tokens to redeem.
-    @param _minReturnedWei The minimum amount of wei expected in return.
+    @param _minReturnedAmount The minimum amount of tokens expected in return.
     @param _beneficiary The address that will benefit from the claimed amount.
     @param _memo A memo to pass along to the emitted event.
     @param _delegateMetadata Bytes to send along to the delegate, if one is used.
@@ -547,7 +554,7 @@ contract JBETHPaymentTerminalStore {
     address _holder,
     uint256 _projectId,
     uint256 _tokenCount,
-    uint256 _minReturnedWei,
+    uint256 _minReturnedAmount,
     address payable _beneficiary,
     string memory _memo,
     bytes memory _delegateMetadata
@@ -600,7 +607,7 @@ contract JBETHPaymentTerminalStore {
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
     }
     // The amount being claimed must be at least as much as was expected.
-    if (reclaimAmount < _minReturnedWei) {
+    if (reclaimAmount < _minReturnedAmount) {
       revert INADEQUATE_CLAIM_AMOUNT();
     }
 
@@ -690,6 +697,11 @@ contract JBETHPaymentTerminalStore {
     }
     // Set the terminal.
     terminal = _terminal;
+
+    // Set the terminal currency;
+    _terminalCurrency = _terminal.currency();
+
+    _terminalBaseWeightCurrency = _terminal.baseWeightCurrency();
   }
 
   //*********************************************************************//
@@ -761,7 +773,7 @@ contract JBETHPaymentTerminalStore {
     Gets the amount that is overflowing when measured from the specified funding cycle.
 
     @dev
-    This amount changes as the price of ETH changes in relation to the currency being used to measure the distribution limit.
+    This amount changes as the price of the terminal's token changes in relation to the currency being used to measure the distribution limit.
 
     @param _projectId The ID of the project to get overflow for.
     @param _fundingCycle The ID of the funding cycle to base the overflow on.
@@ -793,12 +805,12 @@ contract JBETHPaymentTerminalStore {
       terminal
     );
 
-    // Convert the _distributionRemaining to ETH.
+    // Convert the _distributionRemaining to this store's terminal's currency.
     uint256 _ethDistributionRemaining = _distributionRemaining == 0
       ? 0
-      : (_currency == JBCurrencies.ETH)
+      : (_currency == _terminalCurrency)
       ? _distributionRemaining
-      : PRBMathUD60x18.div(_distributionRemaining, prices.priceFor(_currency, JBCurrencies.ETH));
+      : PRBMathUD60x18.div(_distributionRemaining, prices.priceFor(_currency, _terminalCurrency));
 
     // Overflow is the balance of this project minus the amount that can still be distributed.
     return _balanceOf <= _ethDistributionRemaining ? 0 : _balanceOf - _ethDistributionRemaining;
@@ -806,10 +818,10 @@ contract JBETHPaymentTerminalStore {
 
   /**
     @notice
-    Gets the amount that is overflowing across all terminals when measured from the specified funding cycle.
+    Gets the amount that is overflowing across all terminals in terms of this store's terminal's currency when measured from the specified funding cycle.
 
     @dev
-    This amount changes as the price of ETH changes in relation to the currency being used to measure the distribution limits.
+    This amount changes as the price of the token changes in relation to the currency being used to measure the distribution limits.
 
     @param _projectId The ID of the project to get total overflow for.
     @param _fundingCycle The ID of the funding cycle to base the overflow on.
@@ -824,12 +836,25 @@ contract JBETHPaymentTerminalStore {
     // Get a reference to the project's terminals.
     IJBTerminal[] memory _terminals = directory.terminalsOf(_projectId);
 
-    // Keep a reference to the current eth balance of the project across all terminals, and the current eth distribution limit across all terminals.
-    uint256 _ethBalanceOf;
-    uint256 _ethDistributionLimitRemaining;
+    // Keep a reference to the current balance of the project across all terminals in terms of the terminal's currency,
+    // and the current distribution limit across all terminals in terms of the terminal's currency.
+    uint256 _currencyBalanceOf;
+    uint256 _currencyDistributionLimitRemaining;
 
     for (uint256 _i = 0; _i < _terminals.length; _i++) {
-      _ethBalanceOf = _ethBalanceOf + _terminals[_i].ethBalanceOf(_projectId);
+      // Get the balance of the terminal being iterated on.
+      uint256 _someTerminalBalanceOf = _currencyBalanceOf + _terminals[_i].balanceOf(_projectId);
+
+      // Get the currency of the terminal being iterated on.
+      uint256 _someTerminalCurrency = _terminals[_i].currency();
+
+      // Get the balance of the terminal in terms of this store's terminal's currency.
+      _currencyBalanceOf = (_someTerminalCurrency == _terminalCurrency)
+        ? _someTerminalBalanceOf
+        : PRBMathUD60x18.div(
+          _someTerminalBalanceOf,
+          prices.priceFor(_someTerminalCurrency, _terminalCurrency)
+        );
 
       // Get a reference to the amount still withdrawable during the funding cycle.
       uint256 _distributionRemaining = _terminals[_i].remainingDistributionLimitOf(
@@ -845,23 +870,23 @@ contract JBETHPaymentTerminalStore {
         _terminals[_i]
       );
 
-      // Convert the _distributionRemaining to ETH.
-      _ethDistributionLimitRemaining =
-        _ethDistributionLimitRemaining +
+      // Convert the _distributionRemaining to this store's terminal's token.
+      _currencyDistributionLimitRemaining =
+        _currencyDistributionLimitRemaining +
         (
-          _distributionRemaining == 0 ? 0 : (_currency == JBCurrencies.ETH)
+          _distributionRemaining == 0 ? 0 : (_currency == _terminalCurrency)
             ? _distributionRemaining
             : PRBMathUD60x18.div(
               _distributionRemaining,
-              prices.priceFor(_currency, JBCurrencies.ETH)
+              prices.priceFor(_currency, _terminalCurrency)
             )
         );
     }
 
     // Overflow is the balance of this project minus the amount that can still be distributed.
     return
-      _ethBalanceOf <= _ethDistributionLimitRemaining
+      _currencyBalanceOf <= _currencyDistributionLimitRemaining
         ? 0
-        : _ethBalanceOf - _ethDistributionLimitRemaining;
+        : _currencyBalanceOf - _currencyDistributionLimitRemaining;
   }
 }

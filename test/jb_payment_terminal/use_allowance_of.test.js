@@ -6,15 +6,15 @@ import errors from '../helpers/errors.json';
 import { packFundingCycleMetadata, setBalance } from '../helpers/utils.js';
 
 import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
-import jbEthPaymentTerminalStore from '../../artifacts/contracts/JBETHPaymentTerminalStore.sol/JBETHPaymentTerminalStore.json';
+import JBPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalStore.sol/JBPaymentTerminalStore.json';
 import jbFeeGauge from '../../artifacts/contracts/interfaces/IJBFeeGauge.sol/IJBFeeGauge.json';
 import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorStore.sol/IJBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
 
-describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
+describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
   const AMOUNT = 50000;
-  const DEFAULT_FEE =   50000000; // 5%
+  const DEFAULT_FEE = 50000000; // 5%
   const FEE_DISCOUNT = 500000000; // 50%
 
   const FUNDING_CYCLE_NUM = 1;
@@ -37,19 +37,23 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
 
     const [
       mockJbDirectory,
-      mockJbEthPaymentTerminalStore,
+      mockJBPaymentTerminalStore,
       mockJbFeeGauge,
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
-      deployMockContract(deployer, jbEthPaymentTerminalStore.abi),
+      deployMockContract(deployer, JBPaymentTerminalStore.abi),
       deployMockContract(deployer, jbFeeGauge.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
     ]);
+
+    const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
+    const jbCurrencies = await jbCurrenciesFactory.deploy();
+    const CURRENCY_ETH = await jbCurrencies.ETH();
 
     const jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
     const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
@@ -57,22 +61,19 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
       from: deployer.address,
       nonce: currentNonce + 1,
     });
-    await mockJbEthPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
+    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
 
     const jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
       .deploy(
+        CURRENCY_ETH,
         mockJbOperatorStore.address,
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
-        mockJbEthPaymentTerminalStore.address,
+        mockJBPaymentTerminalStore.address,
         terminalOwner.address,
       );
-
-    const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
-    const jbCurrencies = await jbCurrenciesFactory.deploy();
-    const CURRENCY_ETH = await jbCurrencies.ETH();
 
     const jbConstantsFactory = await ethers.getContractFactory('JBConstants');
     const jbConstants = await jbConstantsFactory.deploy();
@@ -129,7 +130,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
       jbEthPaymentTerminal,
       fundingCycle,
       mockJbDirectory,
-      mockJbEthPaymentTerminalStore,
+      mockJBPaymentTerminalStore,
       mockJbFeeGauge,
       mockJbOperatorStore,
       otherCaller,
@@ -145,13 +146,13 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
       CURRENCY_ETH,
       fundingCycle,
       jbEthPaymentTerminal,
-      mockJbEthPaymentTerminalStore,
+      mockJBPaymentTerminalStore,
       projectOwner,
       terminalOwner,
       timestamp,
     } = await setup();
 
-    await mockJbEthPaymentTerminalStore.mock.recordUsedAllowanceOf
+    await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
       .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT)
       .returns(fundingCycle, AMOUNT);
 
@@ -201,13 +202,13 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
       CURRENCY_ETH,
       fundingCycle,
       jbEthPaymentTerminal,
-      mockJbEthPaymentTerminalStore,
+      mockJBPaymentTerminalStore,
       projectOwner,
       terminalOwner,
       timestamp,
     } = await setup();
 
-    await mockJbEthPaymentTerminalStore.mock.recordUsedAllowanceOf
+    await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
       .withArgs(JUICEBOX_PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT)
       .returns(fundingCycle, AMOUNT);
 
@@ -259,17 +260,17 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
       fundingCycle,
       jbEthPaymentTerminal,
       mockJbDirectory,
-      mockJbEthPaymentTerminalStore,
+      mockJBPaymentTerminalStore,
       projectOwner,
       terminalOwner,
       timestamp,
     } = await setup();
 
-    await mockJbEthPaymentTerminalStore.mock.recordUsedAllowanceOf
+    await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
       .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT)
       .returns(fundingCycle, AMOUNT);
 
-    await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
+    await mockJBPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
         jbEthPaymentTerminal.address,
         AMOUNT - AMOUNT_MINUS_FEES,
@@ -333,7 +334,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
       fundingCycle,
       jbEthPaymentTerminal,
       mockJbDirectory,
-      mockJbEthPaymentTerminalStore,
+      mockJBPaymentTerminalStore,
       mockJbFeeGauge,
       projectOwner,
       terminalOwner,
@@ -346,11 +347,11 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
 
     await mockJbFeeGauge.mock.currentDiscountFor.withArgs(PROJECT_ID).returns(FEE_DISCOUNT);
 
-    await mockJbEthPaymentTerminalStore.mock.recordUsedAllowanceOf
+    await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
       .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT)
       .returns(fundingCycle, AMOUNT);
 
-    await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
+    await mockJBPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
         jbEthPaymentTerminal.address,
         AMOUNT - AMOUNT_MINUS_DISCOUNTED_FEES,
@@ -416,7 +417,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
       fundingCycle,
       jbEthPaymentTerminal,
       mockJbDirectory,
-      mockJbEthPaymentTerminalStore,
+      mockJBPaymentTerminalStore,
       mockJbFeeGauge,
       projectOwner,
       terminalOwner,
@@ -425,11 +426,11 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
 
     await mockJbFeeGauge.mock.currentDiscountFor.withArgs(PROJECT_ID).returns(MAX_FEE_DISCOUNT + 1);
 
-    await mockJbEthPaymentTerminalStore.mock.recordUsedAllowanceOf
+    await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
       .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT)
       .returns(fundingCycle, AMOUNT);
 
-    await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
+    await mockJBPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
         jbEthPaymentTerminal.address,
         AMOUNT - AMOUNT_MINUS_FEES,
@@ -494,7 +495,7 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
       ETH_ADDRESS,
       jbEthPaymentTerminal,
       mockJbDirectory,
-      mockJbEthPaymentTerminalStore,
+      mockJBPaymentTerminalStore,
       projectOwner,
       terminalOwner,
       timestamp,
@@ -512,11 +513,11 @@ describe('JBETHPaymentTerminal::useAllowanceOf(...)', function () {
       metadata: packFundingCycleMetadata({ holdFees: 1 }), // Hold fees
     };
 
-    await mockJbEthPaymentTerminalStore.mock.recordUsedAllowanceOf
+    await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
       .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT)
       .returns(newFundingCycle, AMOUNT);
 
-    await mockJbEthPaymentTerminalStore.mock.recordPaymentFrom
+    await mockJBPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
         jbEthPaymentTerminal.address,
         AMOUNT - AMOUNT_MINUS_FEES,

@@ -15,7 +15,7 @@ import './IJBFeeGauge.sol';
 
 import './../structs/JBFee.sol';
 
-interface IJBETHPaymentTerminal {
+interface IJBPaymentTerminal {
   event AddToBalance(uint256 indexed projectId, uint256 amount, string memo, address caller);
   event Migrate(uint256 indexed projectId, IJBTerminal indexed to, uint256 amount, address caller);
   event DistributePayouts(
@@ -77,6 +77,8 @@ interface IJBETHPaymentTerminal {
 
   event SetFeeGauge(IJBFeeGauge feeGauge, address caller);
 
+  event SetFeelessTerminal(IJBTerminal terminal, address caller);
+
   function projects() external view returns (IJBProjects);
 
   function splitsStore() external view returns (IJBSplitsStore);
@@ -89,11 +91,13 @@ interface IJBETHPaymentTerminal {
 
   function feeGauge() external view returns (IJBFeeGauge);
 
+  function isFeelessTerminal(IJBTerminal _terminal) external view returns (bool);
+
   function distributePayoutsOf(
     uint256 _projectId,
     uint256 _amount,
     uint256 _currency,
-    uint256 _minReturnedWei,
+    uint256 _minReturnedAmount,
     string memory _memo
   ) external;
 
@@ -101,7 +105,7 @@ interface IJBETHPaymentTerminal {
     address _holder,
     uint256 _projectId,
     uint256 _count,
-    uint256 _minReturnedWei,
+    uint256 _minReturnedAmount,
     address payable _beneficiary,
     string calldata _memo,
     bytes calldata _delegateMetadata
@@ -111,9 +115,17 @@ interface IJBETHPaymentTerminal {
     uint256 _projectId,
     uint256 _amount,
     uint256 _currency,
-    uint256 _minReturnedWei,
+    uint256 _minReturnedAmount,
     address payable _beneficiary
   ) external;
 
   function migrate(uint256 _projectId, IJBTerminal _to) external;
+
+  function processFees(uint256 _projectId) external;
+
+  function setFee(uint256 _fee) external;
+
+  function setFeeGauge(IJBFeeGauge _feeGauge) external;
+
+  function toggleFeelessTerminal(IJBTerminal _terminal) external;
 }

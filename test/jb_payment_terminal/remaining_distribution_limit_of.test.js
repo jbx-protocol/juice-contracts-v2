@@ -4,12 +4,12 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbController from '../../artifacts/contracts/JBController.sol/JBController.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import jbEthPaymentTerminalStore from '../../artifacts/contracts/JBETHPaymentTerminalStore.sol/JBETHPaymentTerminalStore.json';
+import JBPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalStore.sol/JBPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 
-describe('JBETHPaymentTerminal::remainingDistributionLimitOf(...)', function () {
+describe('JBPaymentTerminal::remainingDistributionLimitOf(...)', function () {
   const PROJECT_ID = 13;
   const FUNDING_CYCLE_NUMBER = 1;
   const BALANCE = 100;
@@ -24,18 +24,22 @@ describe('JBETHPaymentTerminal::remainingDistributionLimitOf(...)', function () 
     let [
       mockJbController,
       mockJbDirectory,
-      mockJbEthPaymentTerminalStore,
+      mockJBPaymentTerminalStore,
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
     ] = await Promise.all([
       deployMockContract(deployer, jbController.abi),
       deployMockContract(deployer, jbDirectory.abi),
-      deployMockContract(deployer, jbEthPaymentTerminalStore.abi),
+      deployMockContract(deployer, JBPaymentTerminalStore.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
     ]);
+
+    const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
+    const jbCurrencies = await jbCurrenciesFactory.deploy();
+    const CURRENCY_ETH = await jbCurrencies.ETH();
 
     let jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
 
@@ -45,16 +49,17 @@ describe('JBETHPaymentTerminal::remainingDistributionLimitOf(...)', function () 
       nonce: currentNonce + 1,
     });
 
-    await mockJbEthPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
+    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
 
     let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
       .deploy(
+        CURRENCY_ETH,
         mockJbOperatorStore.address,
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
-        mockJbEthPaymentTerminalStore.address,
+        mockJBPaymentTerminalStore.address,
         terminalOwner.address,
       );
 
@@ -63,7 +68,7 @@ describe('JBETHPaymentTerminal::remainingDistributionLimitOf(...)', function () 
       addrs,
       jbEthPaymentTerminal,
       mockJbDirectory,
-      mockJbEthPaymentTerminalStore,
+      mockJBPaymentTerminalStore,
       mockJbController,
       timestamp,
     };
@@ -74,7 +79,7 @@ describe('JBETHPaymentTerminal::remainingDistributionLimitOf(...)', function () 
       jbEthPaymentTerminal,
       mockJbDirectory,
       mockJbController,
-      mockJbEthPaymentTerminalStore,
+      mockJBPaymentTerminalStore,
       timestamp,
     } = await setup();
 
@@ -84,7 +89,7 @@ describe('JBETHPaymentTerminal::remainingDistributionLimitOf(...)', function () 
       .withArgs(PROJECT_ID, timestamp, jbEthPaymentTerminal.address)
       .returns(BALANCE);
 
-    await mockJbEthPaymentTerminalStore.mock.usedDistributionLimitOf
+    await mockJBPaymentTerminalStore.mock.usedDistributionLimitOf
       .withArgs(PROJECT_ID, FUNDING_CYCLE_NUMBER)
       .returns(BALANCE);
 

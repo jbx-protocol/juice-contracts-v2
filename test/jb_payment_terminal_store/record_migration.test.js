@@ -4,32 +4,36 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import errors from '../helpers/errors.json';
-import { packFundingCycleMetadata } from '../helpers/utils';
+import { packFundingCycleMetadata, impersonateAccount } from '../helpers/utils';
 
 import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
 import jBFundingCycleStore from '../../artifacts/contracts/interfaces/IJBFundingCycleStore.sol/IJBFundingCycleStore.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe('JBETHPaymentTerminalStore::recordMigration(...)', function () {
+describe('JBPaymentTerminalStore::recordMigration(...)', function () {
   const PROJECT_ID = 2;
   const AMOUNT = ethers.FixedNumber.fromString('4398541.345');
   const WEIGHT = ethers.FixedNumber.fromString('900000000.23411');
+  const CURRENCY = 1;
+  const BASE_CURRENCY = 0;
 
   async function setup() {
-    const [deployer, terminal] = await ethers.getSigners();
+    const [deployer] = await ethers.getSigners();
 
     const mockJbPrices = await deployMockContract(deployer, jbPrices.abi);
     const mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
     const mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
     const mockJbFundingCycleStore = await deployMockContract(deployer, jBFundingCycleStore.abi);
+    const mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
     const mockJbTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
 
-    const jbEthPaymentTerminalStoreFactory = await ethers.getContractFactory(
-      'JBETHPaymentTerminalStore',
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
+      'JBPaymentTerminalStore',
     );
-    const jbEthPaymentTerminalStore = await jbEthPaymentTerminalStoreFactory.deploy(
+    const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbPrices.address,
       mockJbProjects.address,
       mockJbDirectory.address,
@@ -41,19 +45,25 @@ describe('JBETHPaymentTerminalStore::recordMigration(...)', function () {
     const block = await ethers.provider.getBlock(blockNum);
     const timestamp = block.timestamp;
 
-    // Set terminal address
-    await jbEthPaymentTerminalStore.claimFor(terminal.address);
+    await mockJbTerminal.mock.currency.returns(CURRENCY);
+    await mockJbTerminal.mock.baseWeightCurrency.returns(BASE_CURRENCY);  
+
+    // Set mockJbTerminal address
+    await JBPaymentTerminalStore.claimFor(mockJbTerminal.address);
+
+    const mockJbTerminalSigner = await impersonateAccount(mockJbTerminal.address);
 
     return {
-      terminal,
+      mockJbTerminal,
+      mockJbTerminalSigner,
       mockJbFundingCycleStore,
-      jbEthPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
     };
   }
 
-  it('Should record migration with terminal access', async function () {
-    const { terminal, mockJbFundingCycleStore, jbEthPaymentTerminalStore, timestamp } =
+  it('Should record migration with mockJbTerminal access', async function () {
+    const { mockJbTerminalSigner, mockJbFundingCycleStore, JBPaymentTerminalStore, timestamp } =
       await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
@@ -69,17 +79,17 @@ describe('JBETHPaymentTerminalStore::recordMigration(...)', function () {
     });
 
     // Add to balance beforehand
-    await jbEthPaymentTerminalStore.connect(terminal).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
+    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
 
     // "Record migration"
-    await jbEthPaymentTerminalStore.connect(terminal).recordMigration(PROJECT_ID);
+    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordMigration(PROJECT_ID);
 
     // Current balance should be set to 0
-    expect(await jbEthPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(0);
+    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(0);
   });
 
-  it(`Can't record migration without terminal access`, async function () {
-    const { mockJbFundingCycleStore, jbEthPaymentTerminalStore, timestamp } = await setup();
+  it(`Can't record migration without mockJbTerminal access`, async function () {
+    const { mockJbFundingCycleStore, JBPaymentTerminalStore, timestamp } = await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       number: 1,
@@ -94,13 +104,13 @@ describe('JBETHPaymentTerminalStore::recordMigration(...)', function () {
     });
 
     // Record migration
-    await expect(jbEthPaymentTerminalStore.recordMigration(PROJECT_ID)).to.be.revertedWith(
+    await expect(JBPaymentTerminalStore.recordMigration(PROJECT_ID)).to.be.revertedWith(
       errors.UNAUTHORIZED,
     );
   });
 
   it(`Can't record migration with allowTerminalMigration flag disabled`, async function () {
-    const { terminal, mockJbFundingCycleStore, jbEthPaymentTerminalStore, timestamp } =
+    const { mockJbTerminalSigner, mockJbFundingCycleStore, JBPaymentTerminalStore, timestamp } =
       await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
@@ -117,7 +127,7 @@ describe('JBETHPaymentTerminalStore::recordMigration(...)', function () {
 
     // Record migration
     await expect(
-      jbEthPaymentTerminalStore.connect(terminal).recordMigration(PROJECT_ID),
+      JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordMigration(PROJECT_ID),
     ).to.be.revertedWith(errors.PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED);
   });
 });

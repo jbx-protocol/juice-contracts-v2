@@ -47,7 +47,7 @@ describe('JBProjectPayer::fundTreasury(...)', function () {
       .returns(mockJbTerminal.address);
 
     await mockJbTerminal.mock.pay
-      .withArgs(MISC_PROJECT_ID, BENEFICIARY, 0, PREFER_CLAIMED_TOKENS, MEMO, DELEGATE_METADATA)
+      .withArgs(AMOUNT, MISC_PROJECT_ID, BENEFICIARY, 0, PREFER_CLAIMED_TOKENS, MEMO, DELEGATE_METADATA)
       .returns();
 
     await expect(
