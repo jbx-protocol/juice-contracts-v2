@@ -338,7 +338,7 @@ contract JBPaymentTerminalStore {
           address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
           '',
           (_preferClaimedTokensAndBeneficiary & 1) == 1,
-          fundingCycle.reservedRate()
+          true
         );
       }
     }

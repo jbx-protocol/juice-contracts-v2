@@ -44,7 +44,6 @@ error CHANGE_TOKEN_NOT_ALLOWED();
 error FUNDING_CYCLE_ALREADY_LAUNCHED();
 error INVALID_BALLOT_REDEMPTION_RATE();
 error INVALID_RESERVED_RATE();
-error INVALID_RESERVED_RATE_AND_BENEFICIARY_ZERO_ADDRESS();
 error INVALID_REDEMPTION_RATE();
 error MIGRATION_NOT_ALLOWED();
 error MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE();
@@ -530,7 +529,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     @param _beneficiary The account that the tokens are being minted for.
     @param _memo A memo to pass along to the emitted event.
     @param _preferClaimedTokens A flag indicating whether ERC20's should be minted if they have been issued.
-    @param _reservedRate The reserved rate to use when minting tokens. A positive amount will reduce the token count minted to the beneficiary, instead being reserved for preprogrammed splits. This number is out of 10000.
+    @param _useReservedRate Whether to use the current funding cycle's reserved rate in the mint calculation.
 
     @return beneficiaryTokenCount The amount of tokens minted for the beneficiary.
   */
@@ -540,7 +539,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     address _beneficiary,
     string calldata _memo,
     bool _preferClaimedTokens,
-    uint256 _reservedRate
+    bool _useReservedRate
   )
     external
     override
@@ -553,26 +552,26 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     )
     returns (uint256 beneficiaryTokenCount)
   {
-    if (_reservedRate > JBConstants.MAX_RESERVED_RATE) {
-      revert INVALID_RESERVED_RATE();
-    }
-
-    // Can't send to the zero address.
-    if (_reservedRate != JBConstants.MAX_RESERVED_RATE && _beneficiary == address(0)) {
-      revert INVALID_RESERVED_RATE_AND_BENEFICIARY_ZERO_ADDRESS();
-    }
-
     // There should be tokens to mint.
     if (_tokenCount == 0) {
       revert ZERO_TOKENS_TO_MINT();
     }
 
-    // Get a reference to the project's current funding cycle.
-    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
+    // Define variables that will be needed outside scoped section below.
+    uint256 _reservedRate;
 
-    // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
-    if (_fundingCycle.mintPaused() && !directory.isTerminalDelegateOf(_projectId, msg.sender)) {
-      revert MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE();
+    // Scoped section prevents stack too deep. _feeDiscount and _feeEligibleDistributionAmount only used within scope.
+    {
+      // Get a reference to the project's current funding cycle.
+      JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
+
+      // If the message sender is not a terminal delegate, the current funding cycle must not be paused.
+      if (_fundingCycle.mintPaused() && !directory.isTerminalDelegateOf(_projectId, msg.sender)) {
+        revert MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE();
+      }
+
+      // Determine the reserved rate to use.
+      _reservedRate = _useReservedRate ? _fundingCycle.reservedRate() : 0;
     }
 
     if (_reservedRate == JBConstants.MAX_RESERVED_RATE) {

@@ -117,7 +117,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         /* beneficiary */ beneficiary.address,
         /* memo */ '',
         /* preferClaimedTokens */ false,
-        /* reservedRate */ reservedRate,
+        /* useReservedRate */ true,
       )
       .returns(WEIGHTED_AMOUNT);
 
@@ -252,7 +252,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         /* beneficiary */ beneficiary.address,
         /* memo */ '',
         /* preferClaimedTokens */ false,
-        /* reservedRate */ reservedRate,
+        /* useReservedRate */ true,
       )
       .returns(WEIGHTED_AMOUNT);
 
@@ -574,7 +574,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         /* beneficiary */ beneficiary.address,
         /* memo */ '',
         /* preferClaimedTokens */ false,
-        /* reservedRate */ reservedRate,
+        /* useReservedRate */ true,
       )
       .returns(WEIGHTED_AMOUNT);
 
