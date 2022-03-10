@@ -11,7 +11,7 @@ import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorSt
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
 
-describe('JBERC20PaymentTerminal::redeemTokensOf(...)', function () {
+describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
   const AMOUNT = 50000;
   const FUNDING_CYCLE_NUM = 1;
   const MEMO = 'test memo';
@@ -39,7 +39,11 @@ describe('JBERC20PaymentTerminal::redeemTokensOf(...)', function () {
       deployMockContract(deployer, jbSplitsStore.abi),
     ]);
 
-    const jbTerminalFactory = await ethers.getContractFactory('JBERC20PaymentTerminal', deployer);
+    const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
+    const jbCurrencies = await jbCurrenciesFactory.deploy();
+    const CURRENCY_ETH = await jbCurrencies.ETH();
+
+    const jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
     const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
     const futureTerminalAddress = ethers.utils.getContractAddress({
       from: deployer.address,
@@ -47,9 +51,10 @@ describe('JBERC20PaymentTerminal::redeemTokensOf(...)', function () {
     });
     await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
 
-    const jbERC20PaymentTerminal = await jbTerminalFactory
+    const jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
       .deploy(
+        CURRENCY_ETH,
         mockJbOperatorStore.address,
         mockJbProjects.address,
         mockJbDirectory.address,
@@ -85,7 +90,7 @@ describe('JBERC20PaymentTerminal::redeemTokensOf(...)', function () {
     return {
       beneficiary,
       holder,
-      jbERC20PaymentTerminal,
+      jbEthPaymentTerminal,
       fundingCycle,
       mockJBPaymentTerminalStore,
       mockJbOperatorStore,
@@ -99,7 +104,7 @@ describe('JBERC20PaymentTerminal::redeemTokensOf(...)', function () {
       beneficiary,
       fundingCycle,
       holder,
-      jbERC20PaymentTerminal,
+      jbEthPaymentTerminal,
       mockJBPaymentTerminalStore,
       timestamp,
     } = await setup();
@@ -117,11 +122,11 @@ describe('JBERC20PaymentTerminal::redeemTokensOf(...)', function () {
       )
       .returns(fundingCycle, /* reclaimAmount */ AMOUNT, MEMO);
 
-    await setBalance(jbERC20PaymentTerminal.address, AMOUNT);
+    await setBalance(jbEthPaymentTerminal.address, AMOUNT);
 
     const initialBeneficiaryBalance = await ethers.provider.getBalance(beneficiary.address);
 
-    const tx = await jbERC20PaymentTerminal
+    const tx = await jbEthPaymentTerminal
       .connect(holder)
       .redeemTokensOf(
         holder.address,
@@ -134,7 +139,7 @@ describe('JBERC20PaymentTerminal::redeemTokensOf(...)', function () {
       );
 
     expect(await tx)
-      .to.emit(jbERC20PaymentTerminal, 'RedeemTokens')
+      .to.emit(jbEthPaymentTerminal, 'RedeemTokens')
       .withArgs(
         /* _fundingCycle.configuration */ timestamp,
         /* _fundingCycle.number */ FUNDING_CYCLE_NUM,
@@ -148,7 +153,7 @@ describe('JBERC20PaymentTerminal::redeemTokensOf(...)', function () {
       );
 
     // Terminal should be out of ETH
-    expect(await ethers.provider.getBalance(jbERC20PaymentTerminal.address)).to.equal(0);
+    expect(await ethers.provider.getBalance(jbEthPaymentTerminal.address)).to.equal(0);
 
     // Beneficiary should have a larger balance
     expect(await ethers.provider.getBalance(beneficiary.address)).to.equal(
@@ -161,7 +166,7 @@ describe('JBERC20PaymentTerminal::redeemTokensOf(...)', function () {
       beneficiary,
       fundingCycle,
       holder,
-      jbERC20PaymentTerminal,
+      jbEthPaymentTerminal,
       mockJBPaymentTerminalStore,
       timestamp,
     } = await setup();
@@ -179,11 +184,11 @@ describe('JBERC20PaymentTerminal::redeemTokensOf(...)', function () {
       )
       .returns(fundingCycle, /* reclaimAmount */ 0, MEMO); // Set reclaimAmount to 0
 
-    await setBalance(jbERC20PaymentTerminal.address, AMOUNT);
+    await setBalance(jbEthPaymentTerminal.address, AMOUNT);
 
     const initialBeneficiaryBalance = await ethers.provider.getBalance(beneficiary.address);
 
-    const tx = await jbERC20PaymentTerminal
+    const tx = await jbEthPaymentTerminal
       .connect(holder)
       .redeemTokensOf(
         holder.address,
@@ -196,7 +201,7 @@ describe('JBERC20PaymentTerminal::redeemTokensOf(...)', function () {
       );
 
     expect(await tx)
-      .to.emit(jbERC20PaymentTerminal, 'RedeemTokens')
+      .to.emit(jbEthPaymentTerminal, 'RedeemTokens')
       .withArgs(
         /* _fundingCycle.configuration */ timestamp,
         /* _fundingCycle.number */ FUNDING_CYCLE_NUM,
@@ -210,7 +215,7 @@ describe('JBERC20PaymentTerminal::redeemTokensOf(...)', function () {
       );
 
     // Terminal's ETH balance should not have changed
-    expect(await ethers.provider.getBalance(jbERC20PaymentTerminal.address)).to.equal(AMOUNT);
+    expect(await ethers.provider.getBalance(jbEthPaymentTerminal.address)).to.equal(AMOUNT);
 
     // Beneficiary should have the same balance
     expect(await ethers.provider.getBalance(beneficiary.address)).to.equal(
@@ -221,13 +226,13 @@ describe('JBERC20PaymentTerminal::redeemTokensOf(...)', function () {
   /* Sad path tests */
 
   it(`Can't redeem tokens for overflow without access`, async function () {
-    const { beneficiary, holder, jbERC20PaymentTerminal, mockJbOperatorStore, otherCaller } =
+    const { beneficiary, holder, jbEthPaymentTerminal, mockJbOperatorStore, otherCaller } =
       await setup();
 
     await mockJbOperatorStore.mock.hasPermission.returns(false);
 
     await expect(
-      jbERC20PaymentTerminal
+      jbEthPaymentTerminal
         .connect(otherCaller)
         .redeemTokensOf(
           holder.address,
@@ -242,10 +247,10 @@ describe('JBERC20PaymentTerminal::redeemTokensOf(...)', function () {
   });
 
   it(`Can't redeem tokens for overflow if beneficiary is zero address`, async function () {
-    const { holder, jbERC20PaymentTerminal } = await setup();
+    const { holder, jbEthPaymentTerminal } = await setup();
 
     await expect(
-      jbERC20PaymentTerminal.connect(holder).redeemTokensOf(
+      jbEthPaymentTerminal.connect(holder).redeemTokensOf(
         holder.address,
         PROJECT_ID,
         /* tokenCount */ AMOUNT,

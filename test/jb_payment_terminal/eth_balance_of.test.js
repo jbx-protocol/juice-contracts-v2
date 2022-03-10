@@ -3,25 +3,28 @@ import { ethers } from 'hardhat';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
-import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
-import jbPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalStore.sol/JBPaymentTerminalStore.json';
-import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorStore.sol/IJBOperatorStore.json';
-import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
-import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
+import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
+import JBPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalStore.sol/JBPaymentTerminalStore.json';
+import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
+import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
+import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 
-describe('JBETHPaymentTerminal::delegate(...)', function () {
+describe('JBPaymentTerminal::ethBalanceOf(...)', function () {
+  const PROJECT_ID = 13;
+  const BALANCE = 100;
+
   async function setup() {
-    let [deployer, terminalOwner] = await ethers.getSigners();
+    let [deployer, terminalOwner, ...addrs] = await ethers.getSigners();
 
     let [
       mockJbDirectory,
-      mockJbPaymentTerminalStore,
+      mockJBPaymentTerminalStore,
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
-      deployMockContract(deployer, jbPaymentTerminalStore.abi),
+      deployMockContract(deployer, JBPaymentTerminalStore.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
@@ -39,29 +42,33 @@ describe('JBETHPaymentTerminal::delegate(...)', function () {
       nonce: currentNonce + 1,
     });
 
-    await mockJbPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
+    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
 
     let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
       .deploy(
-        /*base weight currency*/CURRENCY_ETH,
+        CURRENCY_ETH,
         mockJbOperatorStore.address,
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
-        mockJbPaymentTerminalStore.address,
+        mockJBPaymentTerminalStore.address,
         terminalOwner.address,
       );
 
     return {
+      terminalOwner,
+      addrs,
       jbEthPaymentTerminal,
-      mockJbPaymentTerminalStore,
+      mockJBPaymentTerminalStore,
     };
   }
 
-  it('Should return the delegate store of the terminal', async function () {
-    const { jbEthPaymentTerminal, mockJbPaymentTerminalStore } = await setup();
+  it('Should return the balance of the project', async function () {
+    const { jbEthPaymentTerminal, mockJBPaymentTerminalStore } = await setup();
 
-    expect(await jbEthPaymentTerminal.delegate()).to.equal(mockJbPaymentTerminalStore.address);
+    await mockJBPaymentTerminalStore.mock.balanceOf.withArgs(PROJECT_ID).returns(BALANCE);
+
+    expect(await jbEthPaymentTerminal.balanceOf(PROJECT_ID)).to.equal(BALANCE);
   });
 });

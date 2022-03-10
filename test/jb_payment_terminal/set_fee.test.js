@@ -10,7 +10,7 @@ import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorSt
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
 
-describe('JBERC20PaymentTerminal::setFee(...)', function () {
+describe('JBPaymentTerminal::setFee(...)', function () {
   const NEW_FEE = 8; // 4%
 
   async function setup() {
@@ -30,7 +30,11 @@ describe('JBERC20PaymentTerminal::setFee(...)', function () {
       deployMockContract(deployer, jbSplitsStore.abi),
     ]);
 
-    let jbTerminalFactory = await ethers.getContractFactory('JBERC20PaymentTerminal', deployer);
+    const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
+    const jbCurrencies = await jbCurrenciesFactory.deploy();
+    const CURRENCY_ETH = await jbCurrencies.ETH();
+
+    let jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
 
     const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
     const futureTerminalAddress = ethers.utils.getContractAddress({
@@ -40,9 +44,10 @@ describe('JBERC20PaymentTerminal::setFee(...)', function () {
 
     await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
 
-    let jbERC20PaymentTerminal = await jbTerminalFactory
+    let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
       .deploy(
+        CURRENCY_ETH,
         mockJbOperatorStore.address,
         mockJbProjects.address,
         mockJbDirectory.address,
@@ -52,23 +57,23 @@ describe('JBERC20PaymentTerminal::setFee(...)', function () {
       );
 
     return {
-      jbERC20PaymentTerminal,
+      jbEthPaymentTerminal,
       terminalOwner,
       caller,
     };
   }
 
   it('Should set new fee and emit event if caller is terminal owner', async function () {
-    const { jbERC20PaymentTerminal, terminalOwner } = await setup();
+    const { jbEthPaymentTerminal, terminalOwner } = await setup();
 
-    expect(await jbERC20PaymentTerminal.connect(terminalOwner).setFee(NEW_FEE))
-      .to.emit(jbERC20PaymentTerminal, 'SetFee')
+    expect(await jbEthPaymentTerminal.connect(terminalOwner).setFee(NEW_FEE))
+      .to.emit(jbEthPaymentTerminal, 'SetFee')
       .withArgs(NEW_FEE, terminalOwner.address);
   });
 
   it("Can't set fee above 5%", async function () {
-    const { jbERC20PaymentTerminal, terminalOwner } = await setup();
-    await expect(jbERC20PaymentTerminal.connect(terminalOwner).setFee(50_000_001)) // 5.0000001% (out of 1,000,000,000)
+    const { jbEthPaymentTerminal, terminalOwner } = await setup();
+    await expect(jbEthPaymentTerminal.connect(terminalOwner).setFee(50_000_001)) // 5.0000001% (out of 1,000,000,000)
       .to.be.revertedWith(errors.FEE_TOO_HIGH);
   });
 });

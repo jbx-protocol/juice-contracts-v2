@@ -9,7 +9,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 
-describe('JBETHPaymentTerminal::remainingDistributionLimitOf(...)', function () {
+describe('JBPaymentTerminal::remainingDistributionLimitOf(...)', function () {
   const PROJECT_ID = 13;
   const FUNDING_CYCLE_NUMBER = 1;
   const BALANCE = 100;

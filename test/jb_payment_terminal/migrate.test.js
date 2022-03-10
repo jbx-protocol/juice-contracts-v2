@@ -6,12 +6,14 @@ import errors from '../helpers/errors.json';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import JbEthPaymentTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
+import JbErc20PaymentTerminal from '../../artifacts/contracts/JBERC20PaymentTerminal.sol/JBERC20PaymentTerminal.json';
 import JBPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalStore.sol/JBPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
+import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 
-describe('JBETHPaymentTerminal::migrate(...)', function () {
+describe('JBPaymentTerminal::migrate(...)', function () {
   const PROJECT_ID = 2;
   const CURRENT_TERMINAL_BALANCE = ethers.utils.parseEther('10');
 
@@ -30,17 +32,21 @@ describe('JBETHPaymentTerminal::migrate(...)', function () {
     let [
       mockJbDirectory,
       mockJbEthPaymentTerminal,
+      mockJbErc20PaymentTerminal,
       mockJBPaymentTerminalStore,
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
+      mockJbToken
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
       deployMockContract(deployer, JbEthPaymentTerminal.abi),
+      deployMockContract(deployer, JbErc20PaymentTerminal.abi),
       deployMockContract(deployer, JBPaymentTerminalStore.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
+      deployMockContract(deployer, jbToken.abi)
     ]);
 
     const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
@@ -50,21 +56,47 @@ describe('JBETHPaymentTerminal::migrate(...)', function () {
     const jbTokensFactory = await ethers.getContractFactory('JBTokens');
     const jbTokens = await jbTokensFactory.deploy();
     const TOKEN_ETH = await jbTokens.ETH();
+    const NON_ETH_TOKEN = mockJbToken.address;
 
-    let jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
+    const SPLITS_GROUP = 1;
 
-    const currentNonce = await ethers.provider.getTransactionCount(deployer.address);
-    const futureTerminalAddress = ethers.utils.getContractAddress({
+    let jbEthTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
+    let jbErc20TerminalFactory = await ethers.getContractFactory('JBERC20PaymentTerminal', deployer);
+
+    let currentNonce = await ethers.provider.getTransactionCount(deployer.address);
+    const futureEthTerminalAddress = ethers.utils.getContractAddress({
       from: deployer.address,
       nonce: currentNonce + 1,
     });
 
-    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
+    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureEthTerminalAddress).returns();
 
-    let jbEthPaymentTerminal = await jbTerminalFactory
+    let jbEthPaymentTerminal = await jbEthTerminalFactory
       .connect(deployer)
       .deploy(
         CURRENCY_ETH,
+        mockJbOperatorStore.address,
+        mockJbProjects.address,
+        mockJbDirectory.address,
+        mockJbSplitsStore.address,
+        mockJBPaymentTerminalStore.address,
+        terminalOwner.address,
+      );
+
+    currentNonce = await ethers.provider.getTransactionCount(deployer.address);
+    const futureErc20TerminalAddress = ethers.utils.getContractAddress({
+      from: deployer.address,
+      nonce: currentNonce + 1,
+    });
+
+    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureErc20TerminalAddress).returns();
+    let jbErc20PaymentTerminal = await jbErc20TerminalFactory
+      .connect(deployer)
+      .deploy(
+        NON_ETH_TOKEN,
+        CURRENCY_ETH,
+        CURRENCY_ETH,
+        SPLITS_GROUP,
         mockJbOperatorStore.address,
         mockJbProjects.address,
         mockJbDirectory.address,
@@ -85,11 +117,14 @@ describe('JBETHPaymentTerminal::migrate(...)', function () {
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
     await mockJbEthPaymentTerminal.mock.token.returns(TOKEN_ETH);
+    await mockJbErc20PaymentTerminal.mock.token.returns(NON_ETH_TOKEN);
 
     // addToBalanceOf _amount is 0 if ETH terminal
     await mockJbEthPaymentTerminal.mock.addToBalanceOf.withArgs(/*CURRENT_TERMINAL_BALANCE*/0, PROJECT_ID, '').returns();
+    await mockJbErc20PaymentTerminal.mock.addToBalanceOf.withArgs(CURRENT_TERMINAL_BALANCE, PROJECT_ID, '').returns();
 
     await setBalance(jbEthPaymentTerminal.address, CURRENT_TERMINAL_BALANCE);
+    await setBalance(jbErc20PaymentTerminal.address, CURRENT_TERMINAL_BALANCE);
 
     await mockJBPaymentTerminalStore.mock.recordMigration
       .withArgs(PROJECT_ID)
@@ -102,9 +137,12 @@ describe('JBETHPaymentTerminal::migrate(...)', function () {
       caller,
       addrs,
       jbEthPaymentTerminal,
+      jbErc20PaymentTerminal,
       mockJbEthPaymentTerminal,
+      mockJbErc20PaymentTerminal,
       mockJBPaymentTerminalStore,
       mockJbOperatorStore,
+      mockJbToken
     };
   }
 
@@ -123,6 +161,15 @@ describe('JBETHPaymentTerminal::migrate(...)', function () {
         CURRENT_TERMINAL_BALANCE,
         projectOwner.address,
       );
+  });
+
+  it('Should migrate non-eth terminal', async function () {
+    const { projectOwner, jbErc20PaymentTerminal, mockJbErc20PaymentTerminal, mockJbToken } = await setup();
+
+    await mockJbToken.mock.approve.withArgs(mockJbErc20PaymentTerminal.address, CURRENT_TERMINAL_BALANCE).returns(0);
+    await jbErc20PaymentTerminal
+      .connect(projectOwner)
+      .migrate(PROJECT_ID, mockJbErc20PaymentTerminal.address);
   });
 
   it('Should migrate terminal with empty balance and emit event if caller is project owner', async function () {
