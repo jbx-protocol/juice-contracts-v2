@@ -862,7 +862,7 @@ contract JBPaymentTerminalStore {
           prices.priceFor(_someTerminalCurrency, _currency)
         );
 
-      // Get a reference to the amount still withdrawable during the funding cycle.
+      // Get a reference to the amount still distributable during the funding cycle.
       uint256 _distributionRemaining = _terminals[_i].remainingDistributionLimitOf(
         _projectId,
         _fundingCycle.configuration,
