@@ -12,10 +12,11 @@ import './IJBTokenStore.sol';
 import './IJBPrices.sol';
 import './IJBRedemptionDelegate.sol';
 import './IJBFeeGauge.sol';
+import './IJBTerminal.sol';
 
 import './../structs/JBFee.sol';
 
-interface IJBPaymentTerminal {
+interface IJBPaymentTerminal is IJBTerminal {
   event AddToBalance(uint256 indexed projectId, uint256 amount, string memo, address caller);
   event Migrate(uint256 indexed projectId, IJBTerminal indexed to, uint256 amount, address caller);
   event DistributePayouts(
@@ -39,6 +40,7 @@ interface IJBPaymentTerminal {
     uint256 amount,
     uint256 feeAmount,
     uint256 transferAmount,
+    string memo,
     address caller
   );
   event ProcessFees(uint256 indexed projectId, JBFee[] fees, address caller);
@@ -116,7 +118,8 @@ interface IJBPaymentTerminal {
     uint256 _amount,
     uint256 _currency,
     uint256 _minReturnedAmount,
-    address payable _beneficiary
+    address payable _beneficiary,
+    string memory _memo
   ) external;
 
   function migrate(uint256 _projectId, IJBTerminal _to) external;
