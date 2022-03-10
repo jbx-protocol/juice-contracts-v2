@@ -158,7 +158,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        /* minReturnedWei */ AMOUNT,
+        /* minReturnedTokens */ AMOUNT,
         /* beneficiary */ beneficiary.address,
         /* memo */ 'test',
         /* delegateMetadata */ 0,
@@ -238,7 +238,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
         /* tokenCount */ 0,
-        /* minReturnedWei */ 0,
+        /* minReturnedTokens */ 0,
         /* beneficiary */ beneficiary.address,
         /* memo */ 'test',
         /* delegateMetadata */ 0,
@@ -319,7 +319,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        /* minReturnedWei */ 0,
+        /* minReturnedTokens */ 0,
         /* beneficiary */ beneficiary.address,
         /* memo */ 'test',
         /* delegateMetadata */ 0,
@@ -422,7 +422,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        /* minReturnedWei */ AMOUNT,
+        /* minReturnedTokens */ AMOUNT,
         /* beneficiary */ beneficiary.address,
         /* memo */ 'test',
         /* delegateMetadata */ delegateMetadata,
@@ -462,7 +462,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
           /* holder */ holder.address,
           /* projectId */ PROJECT_ID,
           /* tokenCount */ AMOUNT,
-          /* minReturnedWei */ AMOUNT,
+          /* minReturnedTokens */ AMOUNT,
           /* beneficiary */ beneficiary.address,
           /* memo */ 'test',
           /* delegateMetadata */ 0,
@@ -518,7 +518,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
           /* holder */ holder.address,
           /* projectId */ PROJECT_ID,
           /* tokenCount */ AMOUNT,
-          /* minReturnedWei */ AMOUNT,
+          /* minReturnedTokens */ AMOUNT,
           /* beneficiary */ beneficiary.address,
           /* memo */ 'test',
           /* delegateMetadata */ 0,
@@ -592,7 +592,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
           /* holder */ holder.address,
           /* projectId */ PROJECT_ID,
           /* tokenCount */ AMOUNT,
-          /* minReturnedWei */ AMOUNT,
+          /* minReturnedTokens */ AMOUNT,
           /* beneficiary */ beneficiary.address,
           /* memo */ 'test',
           /* delegateMetadata */ delegateMetadata,
@@ -600,7 +600,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
 
-  it(`Can't record redemption if reclaimAmount < minReturnedWei`, async function () {
+  it(`Can't record redemption if reclaimAmount < minReturnedTokens`, async function () {
     const {
       holder,
       beneficiary,
@@ -669,7 +669,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        /* minReturnedWei */ AMOUNT.add(AMOUNT), // We've set this higher than the claim amount
+        /* minReturnedTokens */ AMOUNT.add(AMOUNT), // We've set this higher than the claim amount
         /* beneficiary */ beneficiary.address,
         /* memo */ 'test',
         /* delegateMetadata */ delegateMetadata,

@@ -152,7 +152,7 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
     } = await setup();
 
     await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
-      .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT)
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedTokens */ AMOUNT)
       .returns(fundingCycle, AMOUNT);
 
     // Give terminal sufficient ETH
@@ -169,7 +169,7 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
-        /* minReturnedWei */ AMOUNT,
+        /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO
       );
@@ -209,7 +209,7 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
     } = await setup();
 
     await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
-      .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT)
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedTokens */ AMOUNT)
       .returns(fundingCycle, 0);
 
     // Set fee to zero
@@ -221,7 +221,7 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
         PROJECT_ID,
         /* amount */ AMOUNT,
         CURRENCY_ETH,
-        /* minReturnedWei */ AMOUNT,
+        /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO
       );
@@ -240,7 +240,7 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
     } = await setup();
 
     await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
-      .withArgs(JUICEBOX_PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT)
+      .withArgs(JUICEBOX_PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedTokens */ AMOUNT)
       .returns(fundingCycle, AMOUNT);
 
     // Give terminal sufficient ETH
@@ -257,7 +257,7 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
         JUICEBOX_PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
-        /* minReturnedWei */ AMOUNT,
+        /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO
       );
@@ -300,7 +300,7 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
     } = await setup();
 
     await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
-      .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT)
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedTokens */ AMOUNT)
       .returns(fundingCycle, AMOUNT);
 
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
@@ -333,7 +333,7 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
-        /* minReturnedWei */ AMOUNT,
+        /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO
       );
@@ -383,7 +383,7 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
     await mockJbFeeGauge.mock.currentDiscountFor.withArgs(PROJECT_ID).returns(FEE_DISCOUNT);
 
     await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
-      .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT)
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedTokens */ AMOUNT)
       .returns(fundingCycle, AMOUNT);
 
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
@@ -418,7 +418,7 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
-        /* minReturnedWei */ AMOUNT,
+        /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO
       );
@@ -464,7 +464,7 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
     await mockJbFeeGauge.mock.currentDiscountFor.withArgs(PROJECT_ID).returns(MAX_FEE_DISCOUNT + 1);
 
     await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
-      .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT)
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedTokens */ AMOUNT)
       .returns(fundingCycle, AMOUNT);
 
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
@@ -499,7 +499,7 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
-        /* minReturnedWei */ AMOUNT,
+        /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO
       );
@@ -553,7 +553,7 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
     };
 
     await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
-      .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT)
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT, CURRENCY_ETH, /* minReturnedTokens */ AMOUNT)
       .returns(newFundingCycle, AMOUNT);
 
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
@@ -585,7 +585,7 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
-        /* minReturnedWei */ AMOUNT,
+        /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO,
       );
@@ -630,7 +630,7 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
           PROJECT_ID,
           AMOUNT,
           CURRENCY_ETH,
-          /* minReturnedWei */ AMOUNT,
+          /* minReturnedTokens */ AMOUNT,
           beneficiary.address,
           MEMO,
         ),

@@ -129,7 +129,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     // Record the distributions
     await JBPaymentTerminalStore
       .connect(mockJbTerminalSigner)
-      .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_USD, /* minReturnedWei */ amountInWei);
+      .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_USD, /* minReturnedTokens */ amountInWei);
 
     // Post-checks
     expect(
@@ -166,7 +166,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
+        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedTokens */ AMOUNT),
     ).to.be.revertedWith(errors.FUNDING_CYCLE_DISTRIBUTION_PAUSED);
   });
 
@@ -207,7 +207,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT), // Use ETH instead of expected USD
+        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedTokens */ AMOUNT), // Use ETH instead of expected USD
     ).to.be.revertedWith(errors.CURRENCY_MISMATCH);
   });
 
@@ -256,7 +256,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
+        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedTokens */ AMOUNT),
     ).to.be.revertedWith(errors.DISTRIBUTION_AMOUNT_LIMIT_REACHED);
   });
 
@@ -307,11 +307,11 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
+        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedTokens */ AMOUNT),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
 
-  it(`Can't record distribution if minReturnedWei > distributedAmount`, async function () {
+  it(`Can't record distribution if minReturnedTokens > distributedAmount`, async function () {
     const {
       mockJbTerminal,
       mockJbTerminalSigner,
@@ -352,13 +352,13 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
       .returns(ethers.FixedNumber.from(1));
 
     // Record the distributions
-    const minReturnedWei = AMOUNT.addUnsafe(ethers.FixedNumber.from(1));
+    const minReturnedTokens = AMOUNT.addUnsafe(ethers.FixedNumber.from(1));
     await expect(
       JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
-        /* minReturnedWei */ minReturnedWei, // Set intentionally large
+        /* minReturnedTokens */ minReturnedTokens, // Set intentionally large
       ),
     ).to.be.revertedWith(errors.INADEQUATE_WITHDRAW_AMOUNT);
   });
