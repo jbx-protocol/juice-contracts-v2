@@ -53,7 +53,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
       dataSource: IJBFundingCycleDataSource(address(0))
     });
 
-    _terminals.push(jbETHPaymentTerminal());
+    _terminals.push(jbERC20PaymentTerminal());
   }
 
   function testAllowance() public {
