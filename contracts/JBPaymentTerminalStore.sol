@@ -310,7 +310,8 @@ contract JBPaymentTerminalStore {
 
       // Amount and weight must be non-zero in order to mint tokens.
       if (weight > 0) {
-        uint256 _weightDivisor = IJBTerminal(msg.sender).baseWeightCurrency() !=
+        // If the terminal should base its weight on a different currency from the terminal's currency, determine the factor.
+        uint256 _weightRatio = IJBTerminal(msg.sender).baseWeightCurrency() !=
           IJBTerminal(msg.sender).currency()
           ? prices.priceFor(
             IJBTerminal(msg.sender).currency(),
@@ -320,7 +321,7 @@ contract JBPaymentTerminalStore {
 
         tokenCount = directory.controllerOf(_projectId).mintTokensOf(
           _projectId,
-          PRBMath.mulDiv(_amount, weight, _weightDivisor), // Multiply the amount by the weight to determine the amount of tokens to mint
+          PRBMath.mulDiv(_amount, weight, _weightRatio), // Multiply the amount by the weight to determine the amount of tokens to mint
           address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
           '',
           (_preferClaimedTokensAndBeneficiary & 1) == 1,
