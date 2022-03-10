@@ -129,7 +129,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     // Record the distributions
     await JBPaymentTerminalStore
       .connect(mockJbTerminalSigner)
-      .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_USD, /* minReturnedTokens */ amountInWei);
+      .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_USD);
 
     // Post-checks
     expect(
@@ -166,7 +166,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedTokens */ AMOUNT),
+        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH),
     ).to.be.revertedWith(errors.FUNDING_CYCLE_DISTRIBUTION_PAUSED);
   });
 
@@ -207,7 +207,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedTokens */ AMOUNT), // Use ETH instead of expected USD
+        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH), // Use ETH instead of expected USD
     ).to.be.revertedWith(errors.CURRENCY_MISMATCH);
   });
 
@@ -256,7 +256,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedTokens */ AMOUNT),
+        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH),
     ).to.be.revertedWith(errors.DISTRIBUTION_AMOUNT_LIMIT_REACHED);
   });
 
@@ -307,7 +307,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedTokens */ AMOUNT),
+        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
 });

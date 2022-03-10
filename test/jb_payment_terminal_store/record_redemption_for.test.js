@@ -152,7 +152,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        /* minReturnedTokens */ AMOUNT,
         /* beneficiary */ beneficiary.address,
         /* memo */ 'test'
       );
@@ -231,7 +230,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
         /* tokenCount */ 0,
-        /* minReturnedTokens */ 0,
         /* beneficiary */ beneficiary.address,
         /* memo */ 'test'
       );
@@ -304,7 +302,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        /* minReturnedTokens */ 0,
         /* beneficiary */ beneficiary.address,
         /* memo */ 'test'
       );
@@ -384,7 +381,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        /* minReturnedTokens */ AMOUNT,
         /* beneficiary */ beneficiary.address,
         /* memo */ 'test'
       );
@@ -408,7 +404,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
           /* holder */ holder.address,
           /* projectId */ PROJECT_ID,
           /* tokenCount */ AMOUNT,
-          /* minReturnedTokens */ AMOUNT,
           /* beneficiary */ beneficiary.address,
           /* memo */ 'test'
         ),
@@ -463,7 +458,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
           /* holder */ holder.address,
           /* projectId */ PROJECT_ID,
           /* tokenCount */ AMOUNT,
-          /* minReturnedTokens */ AMOUNT,
           /* beneficiary */ beneficiary.address,
           /* memo */ 'test'
         ),
@@ -535,7 +529,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
           /* holder */ holder.address,
           /* projectId */ PROJECT_ID,
           /* tokenCount */ AMOUNT,
-          /* minReturnedTokens */ AMOUNT,
           /* beneficiary */ beneficiary.address,
           /* memo */ 'test'
         ),

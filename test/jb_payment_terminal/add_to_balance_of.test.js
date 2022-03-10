@@ -126,7 +126,7 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
       .returns(true);
 
     await mockJbPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT, CURRENCY_ETH, 0)
+      .withArgs(PROJECT_ID, AMOUNT, CURRENCY_ETH)
       .returns(
         {
           number: 1,
@@ -297,7 +297,7 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
       .returns(splits);
 
     await mockJbPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT.div(2), CURRENCY_ETH, 0)
+      .withArgs(PROJECT_ID, AMOUNT.div(2), CURRENCY_ETH)
       .returns(
         {
           number: 1,

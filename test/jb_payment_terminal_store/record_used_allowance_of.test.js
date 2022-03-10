@@ -131,7 +131,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     // Record the used allowance
     await JBPaymentTerminalStore
       .connect(mockJbTerminalSigner)
-      .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD, /* minReturnedAmount */ AMOUNT);
+      .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD);
 
     // Post-checks
     expect(await JBPaymentTerminalStore.usedOverflowAllowanceOf(mockJbTerminalSigner.address, PROJECT_ID, timestamp)).to.equal(
@@ -186,7 +186,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     // Record the used allowance
     await JBPaymentTerminalStore
       .connect(mockJbTerminalSigner)
-      .recordUsedAllowanceOf(PROJECT_ID, AMOUNT - distributionLimit, CURRENCY_USD, /* minReturnedAmount */ AMOUNT - distributionLimit);
+      .recordUsedAllowanceOf(PROJECT_ID, AMOUNT - distributionLimit, CURRENCY_USD);
 
     // Post-checks
     expect(await JBPaymentTerminalStore.usedOverflowAllowanceOf(mockJbTerminalSigner.address, PROJECT_ID, timestamp)).to.equal(
@@ -245,7 +245,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     // Record the used allowance
     await JBPaymentTerminalStore
       .connect(mockJbTerminalSigner)
-      .recordUsedAllowanceOf(PROJECT_ID, amountToUse, CURRENCY_USD, /* minReturnedAmount */ amountToUse);
+      .recordUsedAllowanceOf(PROJECT_ID, amountToUse, CURRENCY_USD);
 
     // Post-checks
     expect(await JBPaymentTerminalStore.usedOverflowAllowanceOf(mockJbTerminalSigner.address, PROJECT_ID, timestamp)).to.equal(
@@ -279,7 +279,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedAmount */ AMOUNT),
+        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH),
     ).to.be.revertedWith(errors.CURRENCY_MISMATCH);
   });
 
@@ -309,7 +309,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD, /* minReturnedAmount */ AMOUNT),
+        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD),
     ).to.be.revertedWith(errors.INADEQUATE_CONTROLLER_ALLOWANCE);
   });
 
@@ -345,7 +345,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD, /* minReturnedAmount */ AMOUNT),
+        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
 
@@ -391,7 +391,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedAmount */ AMOUNT),
+        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
   it(`Can't record used allowance with > 0 distribution limit and not enough balance outside of this limit`, async function () {
@@ -438,7 +438,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD, /* minReturnedAmount */ AMOUNT),
+        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
 });
