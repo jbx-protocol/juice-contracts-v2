@@ -55,6 +55,7 @@ interface IJBPaymentTerminal is IJBTerminal {
     string memo,
     address caller
   );
+  event DelegateDidPay(IJBPayDelegate indexed delegate, JBDidPayData data, address caller);
   event RedeemTokens(
     uint256 indexed fundingCycleConfiguration,
     uint256 indexed fundingCycleNumber,
@@ -66,6 +67,13 @@ interface IJBPaymentTerminal is IJBTerminal {
     string memo,
     address caller
   );
+
+  event DelegateDidRedeem(
+    IJBRedemptionDelegate indexed delegate,
+    JBDidRedeemData data,
+    address caller
+  );
+
   event DistributeToPayoutSplit(
     uint256 indexed fundingCycleConfiguration,
     uint256 indexed fundingCycleNumber,

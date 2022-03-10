@@ -41,14 +41,6 @@ contract JBPaymentTerminalStore {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
-  event DelegateDidPay(IJBPayDelegate indexed delegate, JBDidPayData data, address caller);
-
-  event DelegateDidRedeem(
-    IJBRedemptionDelegate indexed delegate,
-    JBDidRedeemData data,
-    address caller
-  );
-
   /**
     @notice
     The Projects contract which mints ERC-721's that represent project ownership and transfers.
@@ -262,11 +254,11 @@ contract JBPaymentTerminalStore {
       This design is necessary two prevent a "Stack too deep" compiler error that comes up if the variables are declared seperately.
     @param _minReturnedTokens The minimum number of project tokens expected to be minted in return, as a fixed point number with 18 decimals.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.
-    @param _delegateMetadata Bytes to send along to the delegate, if one is used.
 
     @return fundingCycle The project's funding cycle during which payment was made.
     @return weight The weight according to which new token supply was minted, as a fixed point number with 18 decimals.
     @return tokenCount The number of project tokens that were minted, as a fixed point number with 18 decimals.
+    @return delegate TODO
     @return memo A memo that should be passed along to the emitted event.
   */
   function recordPaymentFrom(
@@ -275,14 +267,14 @@ contract JBPaymentTerminalStore {
     uint256 _projectId,
     uint256 _preferClaimedTokensAndBeneficiary,
     uint256 _minReturnedTokens,
-    string memory _memo,
-    bytes memory _delegateMetadata
+    string memory _memo
   )
     external
     returns (
       JBFundingCycle memory fundingCycle,
       uint256 weight,
       uint256 tokenCount,
+      IJBPayDelegate delegate,
       string memory memo
     )
   {
@@ -295,12 +287,9 @@ contract JBPaymentTerminalStore {
     // Must not be paused.
     if (fundingCycle.payPaused()) revert FUNDING_CYCLE_PAYMENT_PAUSED();
 
-    // Save a reference to the delegate to use.
-    IJBPayDelegate _delegate;
-
     // If the funding cycle has configured a data source, use it to derive a weight and memo.
     if (fundingCycle.useDataSourceForPay()) {
-      (weight, memo, _delegate, _delegateMetadata) = fundingCycle.dataSource().payParams(
+      (weight, memo, delegate) = fundingCycle.dataSource().payParams(
         JBPayParamsData(
           _payer,
           _amount,
@@ -308,8 +297,7 @@ contract JBPaymentTerminalStore {
           fundingCycle.weight,
           fundingCycle.reservedRate(),
           address(uint160(_preferClaimedTokensAndBeneficiary >> 1)),
-          _memo,
-          _delegateMetadata
+          _memo
         )
       );
       // Otherwise use the funding cycle's weight
@@ -357,22 +345,6 @@ contract JBPaymentTerminalStore {
 
     // The token count for the beneficiary must be greater than or equal to the minimum expected.
     if (tokenCount < _minReturnedTokens) revert INADEQUATE_TOKEN_COUNT();
-
-    // If a delegate was returned by the data source, issue a callback to it.
-    if (_delegate != IJBPayDelegate(address(0))) {
-      JBDidPayData memory _data = JBDidPayData(
-        _payer,
-        _projectId,
-        _amount,
-        weight,
-        tokenCount,
-        payable(address(uint160(_preferClaimedTokensAndBeneficiary >> 1))),
-        memo,
-        _delegateMetadata
-      );
-      _delegate.didPay(_data);
-      emit DelegateDidPay(_delegate, _data, msg.sender);
-    }
   }
 
   /**
@@ -576,10 +548,10 @@ contract JBPaymentTerminalStore {
     @param _minReturnedTokens The minimum amount of terminal tokens expected in return in terms of the msg.senders currency, as a fixed point number with 18 decimals.
     @param _beneficiary The address that will benefit from the claimed amount.
     @param _memo A memo to pass along to the emitted event.
-    @param _delegateMetadata Bytes to send along to the delegate, if one is used.
 
     @return fundingCycle The funding cycle during which the redemption was made.
     @return reclaimAmount The amount of terminal tokens reclaimed, as a fixed point number with 18 decimals.
+    @return delegate TODO
     @return memo A memo that should be passed along to the emitted event.
   */
   function recordRedemptionFor(
@@ -588,13 +560,13 @@ contract JBPaymentTerminalStore {
     uint256 _tokenCount,
     uint256 _minReturnedTokens,
     address payable _beneficiary,
-    string memory _memo,
-    bytes memory _delegateMetadata
+    string memory _memo
   )
     external
     returns (
       JBFundingCycle memory fundingCycle,
       uint256 reclaimAmount,
+      IJBRedemptionDelegate delegate,
       string memory memo
     )
   {
@@ -607,12 +579,9 @@ contract JBPaymentTerminalStore {
     // The current funding cycle must not be paused.
     if (fundingCycle.redeemPaused()) revert FUNDING_CYCLE_REDEEM_PAUSED();
 
-    // Save a reference to the delegate to use.
-    IJBRedemptionDelegate _delegate;
-
     // If the funding cycle has configured a data source, use it to derive a claim amount and memo.
     if (fundingCycle.useDataSourceForRedeem()) {
-      (reclaimAmount, memo, _delegate, _delegateMetadata) = fundingCycle.dataSource().redeemParams(
+      (reclaimAmount, memo, delegate) = fundingCycle.dataSource().redeemParams(
         JBRedeemParamsData(
           _holder,
           _tokenCount,
@@ -620,8 +589,7 @@ contract JBPaymentTerminalStore {
           fundingCycle.redemptionRate(),
           fundingCycle.ballotRedemptionRate(),
           _beneficiary,
-          _memo,
-          _delegateMetadata
+          _memo
         )
       );
     } else {
@@ -651,21 +619,6 @@ contract JBPaymentTerminalStore {
       balanceOf[IJBTerminal(msg.sender)][_projectId] =
         balanceOf[IJBTerminal(msg.sender)][_projectId] -
         reclaimAmount;
-
-    // If a delegate was returned by the data source, issue a callback to it.
-    if (_delegate != IJBRedemptionDelegate(address(0))) {
-      JBDidRedeemData memory _data = JBDidRedeemData(
-        _holder,
-        _projectId,
-        _tokenCount,
-        reclaimAmount,
-        _beneficiary,
-        memo,
-        _delegateMetadata
-      );
-      _delegate.didRedeem(_data);
-      emit DelegateDidRedeem(_delegate, _data, msg.sender);
-    }
   }
 
   /**

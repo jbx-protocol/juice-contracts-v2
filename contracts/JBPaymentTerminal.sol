@@ -518,16 +518,35 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     // Keep a reference to the funding cycles during which the redemption is being made.
     JBFundingCycle memory _fundingCycle;
 
-    // Record the redemption.
-    (_fundingCycle, reclaimAmount, _memo) = store.recordRedemptionFor(
-      _holder,
-      _projectId,
-      _tokenCount,
-      _minReturnedTokens,
-      _beneficiary,
-      _memo,
-      _delegateMetadata
-    );
+    // Scoped section prevents stack too deep. `_delegate` only used within scope.
+    {
+      IJBRedemptionDelegate _delegate;
+
+      // Record the redemption.
+      (_fundingCycle, reclaimAmount, _delegate, _memo) = store.recordRedemptionFor(
+        _holder,
+        _projectId,
+        _tokenCount,
+        _minReturnedTokens,
+        _beneficiary,
+        _memo
+      );
+
+      // If a delegate was returned by the data source, issue a callback to it.
+      if (_delegate != IJBRedemptionDelegate(address(0))) {
+        JBDidRedeemData memory _data = JBDidRedeemData(
+          _holder,
+          _projectId,
+          _tokenCount,
+          reclaimAmount,
+          _beneficiary,
+          _memo,
+          _delegateMetadata
+        );
+        _delegate.didRedeem(_data);
+        emit DelegateDidRedeem(_delegate, _data, msg.sender);
+      }
+    }
 
     // Send the claimed funds to the beneficiary.
     if (reclaimAmount > 0) _transferFrom(address(this), _beneficiary, reclaimAmount);
@@ -722,7 +741,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     JBFundingCycle memory _fundingCycle,
     uint256 _amount,
     uint256 _feeDiscount
-  ) private returns (uint256 leftoverAmount, uint256 feeEligibleDistributionAmount) {
+  ) internal returns (uint256 leftoverAmount, uint256 feeEligibleDistributionAmount) {
     // Set the leftover amount to the initial amount.
     leftoverAmount = _amount;
 
@@ -856,7 +875,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     uint256 _amount,
     address _beneficiary,
     uint256 _feeDiscount
-  ) private returns (uint256 feeAmount) {
+  ) internal returns (uint256 feeAmount) {
     feeAmount = _getFeeAmount(_amount, _feeDiscount);
     _fundingCycle.shouldHoldFees()
       ? _heldFeesOf[_projectId].push(JBFee(_amount, uint32(fee), _beneficiary))
@@ -870,7 +889,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     @param _fee The fee amount, as a floating point number with 18 decimals.
     @param _beneficiary The address to mint the platforms tokens for.
   */
-  function _processFee(uint256 _fee, address _beneficiary) private {
+  function _processFee(uint256 _fee, address _beneficiary) internal {
     // Get the terminal for the protocol project.
     IJBTerminal _terminal = directory.primaryTerminalOf(1, token);
 
@@ -900,7 +919,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     bool _preferClaimedTokens,
     string memory _memo,
     bytes memory _delegateMetadata
-  ) private {
+  ) internal {
     // Cant send tokens to the zero address.
     if (_beneficiary == address(0)) revert PAY_TO_ZERO_ADDRESS();
 
@@ -908,16 +927,37 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     uint256 _weight;
     uint256 _tokenCount;
 
-    // Record the payment.
-    (_fundingCycle, _weight, _tokenCount, _memo) = store.recordPaymentFrom(
-      _payer,
-      _amount,
-      _projectId,
-      (_preferClaimedTokens ? 1 : 0) | (uint256(uint160(_beneficiary)) << 1),
-      _minReturnedTokens,
-      _memo,
-      _delegateMetadata
-    );
+    // Scoped section prevents stack too deep. `_delegate` only used within scope.
+    {
+      IJBPayDelegate _delegate;
+
+      // Record the payment.
+      (_fundingCycle, _weight, _tokenCount, _delegate, _memo) = store.recordPaymentFrom(
+        _payer,
+        _amount,
+        _projectId,
+        (_preferClaimedTokens ? 1 : 0) | (uint256(uint160(_beneficiary)) << 1),
+        _minReturnedTokens,
+        _memo
+      );
+
+      // If a delegate was returned by the data source, issue a callback to it.
+      if (_delegate != IJBPayDelegate(address(0))) {
+        JBDidPayData memory _data = JBDidPayData(
+          _payer,
+          _projectId,
+          _amount,
+          _weight,
+          _tokenCount,
+          _beneficiary,
+          _memo,
+          _delegateMetadata
+        );
+
+        _delegate.didPay(_data);
+        emit DelegateDidPay(_delegate, _data, msg.sender);
+      }
+    }
 
     emit Pay(
       _fundingCycle.configuration,
@@ -940,7 +980,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     uint256 _amount,
     uint256 _projectId,
     string memory _memo
-  ) private {
+  ) internal {
     // Record the added funds.
     store.recordAddedBalanceFor(_projectId, _amount);
 
@@ -957,7 +997,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     @param _projectId The project for which fees are being refunded.
     @param _amount The amount to base the refund on, as a fixed point number with 18 decimals.
   */
-  function _refundHeldFees(uint256 _projectId, uint256 _amount) private {
+  function _refundHeldFees(uint256 _projectId, uint256 _amount) internal {
     // Get a reference to the project's held fees.
     JBFee[] memory _heldFees = _heldFeesOf[_projectId];
 
@@ -988,7 +1028,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
 
     @return The amount of the fee, as a fixed point number with 18 decimals.
   */
-  function _getFeeAmount(uint256 _amount, uint256 _feeDiscount) private view returns (uint256) {
+  function _getFeeAmount(uint256 _amount, uint256 _feeDiscount) internal view returns (uint256) {
     // Calculate the discounted fee.
     uint256 _discountedFee = fee - PRBMath.mulDiv(fee, _feeDiscount, JBConstants.MAX_FEE_DISCOUNT);
 
@@ -1005,7 +1045,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     
     @return feeDiscount The fee discount, which should be interpreted as a percentage out MAX_FEE_DISCOUNT.
   */
-  function _getFeeDiscount(uint256 _projectId) private view returns (uint256 feeDiscount) {
+  function _getFeeDiscount(uint256 _projectId) internal view returns (uint256 feeDiscount) {
     // Get the fee discount.
     feeDiscount = feeGauge == IJBFeeGauge(address(0)) ? 0 : feeGauge.currentDiscountFor(_projectId);
 
