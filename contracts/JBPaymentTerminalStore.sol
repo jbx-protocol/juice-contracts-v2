@@ -301,10 +301,9 @@ contract JBPaymentTerminalStore {
 
       // Amount and weight must be non-zero in order to mint tokens.
       if (weight > 0) {
-        uint256 _weightDivisor = (_terminalBaseWeightCurrency > 0 &&
-          _terminalBaseWeightCurrency != _terminalCurrency)
+        uint256 _weightDivisor = _terminalBaseWeightCurrency != _terminalCurrency
           ? prices.priceFor(_terminalCurrency, _terminalBaseWeightCurrency)
-          : 1;
+          : 1E18;
 
         tokenCount = directory.controllerOf(_projectId).mintTokensOf(
           _projectId,
