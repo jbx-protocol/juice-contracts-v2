@@ -19,7 +19,7 @@ interface IJBController {
     address _beneficiary,
     string calldata _memo,
     bool _preferClaimedTokens,
-    uint256 _reserveRate
+    bool _useReservedRate
   ) external returns (uint256 beneficiaryTokenCount);
 
   function burnTokensOf(

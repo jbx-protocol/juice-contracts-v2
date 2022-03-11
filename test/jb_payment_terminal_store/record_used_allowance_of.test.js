@@ -55,9 +55,6 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await mockJbTerminal.mock.currency.returns(CURRENCY_USD);
     await mockJbTerminal.mock.baseWeightCurrency.returns(CURRENCY_ETH);
 
-    // Set terminal address
-    await JBPaymentTerminalStore.claimFor(mockJbTerminal.address);
-
     // Set controller address
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
@@ -126,21 +123,21 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       .returns(CURRENCY_USD);
 
     // Pre-checks
-    expect(await JBPaymentTerminalStore.usedOverflowAllowanceOf(PROJECT_ID, timestamp)).to.equal(
+    expect(await JBPaymentTerminalStore.usedOverflowAllowanceOf(mockJbTerminalSigner.address, PROJECT_ID, timestamp)).to.equal(
       0,
     );
-    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(AMOUNT); // balanceOf is in terminal currency (USD)
+    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(AMOUNT); // balanceOf is in terminal currency (USD)
 
     // Record the used allowance
     await JBPaymentTerminalStore
       .connect(mockJbTerminalSigner)
-      .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD, /* minReturnedAmount */ AMOUNT);
+      .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD);
 
     // Post-checks
-    expect(await JBPaymentTerminalStore.usedOverflowAllowanceOf(PROJECT_ID, timestamp)).to.equal(
+    expect(await JBPaymentTerminalStore.usedOverflowAllowanceOf(mockJbTerminalSigner.address, PROJECT_ID, timestamp)).to.equal(
       AMOUNT,
     );
-    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(0); // AMOUNT-AMOUNT = 0
+    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(0); // AMOUNT-AMOUNT = 0
   });
   it('Should record used allowance with > 0 distribution limit', async function () {
     const {
@@ -181,21 +178,21 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       .returns(CURRENCY_USD);
 
     // Pre-checks
-    expect(await JBPaymentTerminalStore.usedOverflowAllowanceOf(PROJECT_ID, timestamp)).to.equal(
+    expect(await JBPaymentTerminalStore.usedOverflowAllowanceOf(mockJbTerminalSigner.address, PROJECT_ID, timestamp)).to.equal(
       0,
     );
-    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(AMOUNT); // balanceOf is in terminal currency (USD)
+    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(AMOUNT); // balanceOf is in terminal currency (USD)
 
     // Record the used allowance
     await JBPaymentTerminalStore
       .connect(mockJbTerminalSigner)
-      .recordUsedAllowanceOf(PROJECT_ID, AMOUNT - distributionLimit, CURRENCY_USD, /* minReturnedAmount */ AMOUNT - distributionLimit);
+      .recordUsedAllowanceOf(PROJECT_ID, AMOUNT - distributionLimit, CURRENCY_USD);
 
     // Post-checks
-    expect(await JBPaymentTerminalStore.usedOverflowAllowanceOf(PROJECT_ID, timestamp)).to.equal(
+    expect(await JBPaymentTerminalStore.usedOverflowAllowanceOf(mockJbTerminalSigner.address, PROJECT_ID, timestamp)).to.equal(
       AMOUNT - distributionLimit,
     );
-    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(distributionLimit);
+    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(distributionLimit);
   });
   it('Should record used allowance with > 0 distribution limit and different distribution currency', async function () {
     const {
@@ -240,35 +237,24 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await mockJbPrices.mock.priceFor.withArgs(CURRENCY_ETH, CURRENCY_USD).returns(ethToUsdPrice);
 
     // Pre-checks
-    expect(await JBPaymentTerminalStore.usedOverflowAllowanceOf(PROJECT_ID, timestamp)).to.equal(
+    expect(await JBPaymentTerminalStore.usedOverflowAllowanceOf(mockJbTerminalSigner.address, PROJECT_ID, timestamp)).to.equal(
       0,
     );
-    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(distributionLimit.add(amountToUse)); // balanceOf is in terminal currency (USD)
+    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(distributionLimit.add(amountToUse)); // balanceOf is in terminal currency (USD)
 
     // Record the used allowance
     await JBPaymentTerminalStore
       .connect(mockJbTerminalSigner)
-      .recordUsedAllowanceOf(PROJECT_ID, amountToUse, CURRENCY_USD, /* minReturnedAmount */ amountToUse);
+      .recordUsedAllowanceOf(PROJECT_ID, amountToUse, CURRENCY_USD);
 
     // Post-checks
-    expect(await JBPaymentTerminalStore.usedOverflowAllowanceOf(PROJECT_ID, timestamp)).to.equal(
+    expect(await JBPaymentTerminalStore.usedOverflowAllowanceOf(mockJbTerminalSigner.address, PROJECT_ID, timestamp)).to.equal(
       amountToUse
     );
-    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(distributionLimit);
+    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(distributionLimit);
   });
 
   /* Sad path tests */
-
-  it(`Can't record allowance without terminal access`, async function () {
-    const { addr, JBPaymentTerminalStore, CURRENCY_ETH } = await setup();
-
-    // Record the used allowance
-    await expect(
-      JBPaymentTerminalStore
-        .connect(addr)
-        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedAmount */ AMOUNT),
-    ).to.be.revertedWith(errors.UNAUTHORIZED);
-  });
 
   it(`Can't record allowance if currency param doesn't match controller's currency`, async function () {
     const {
@@ -293,7 +279,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedAmount */ AMOUNT),
+        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH),
     ).to.be.revertedWith(errors.CURRENCY_MISMATCH);
   });
 
@@ -323,7 +309,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD, /* minReturnedAmount */ AMOUNT),
+        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD),
     ).to.be.revertedWith(errors.INADEQUATE_CONTROLLER_ALLOWANCE);
   });
 
@@ -359,7 +345,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD, /* minReturnedAmount */ AMOUNT),
+        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
 
@@ -405,53 +391,8 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedAmount */ AMOUNT),
+        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
-  });
-
-  it(`Can't record allowance if minReturnedAmount > withdrawnAmount`, async function () {
-    const {
-      mockJbController,
-      mockJbPrices,
-      mockJbTerminal,
-      mockJbTerminalSigner,
-      JBPaymentTerminalStore,
-      timestamp,
-      CURRENCY_ETH,
-      CURRENCY_USD,
-    } = await setup();
-
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
-
-    await mockJbController.mock.distributionLimitOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(0);
-
-    await mockJbController.mock.distributionLimitCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_USD);
-
-    await mockJbController.mock.overflowAllowanceOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(AMOUNT);
-
-    await mockJbController.mock.overflowAllowanceCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_USD);
-
-    await mockJbPrices.mock.priceFor
-      .withArgs(CURRENCY_ETH, CURRENCY_USD)
-      .returns(ethers.BigNumber.from(1));
-
-    // Record the used allowance
-    await expect(
-      JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
-        PROJECT_ID,
-        AMOUNT,
-        CURRENCY_USD,
-        /* minReturnedAmount */ AMOUNT.add('1'), // Set this to something higher than AMOUNT
-      ),
-    ).to.be.revertedWith(errors.INADEQUATE_WITHDRAW_AMOUNT);
   });
   it(`Can't record used allowance with > 0 distribution limit and not enough balance outside of this limit`, async function () {
     const {
@@ -493,17 +434,11 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
 
     await mockJbPrices.mock.priceFor.withArgs(CURRENCY_USD, CURRENCY_ETH).returns(usdToEthPrice);
 
-    // Pre-checks
-    expect(await JBPaymentTerminalStore.usedOverflowAllowanceOf(PROJECT_ID, timestamp)).to.equal(
-      0,
-    );
-    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(AMOUNT); // balanceOf is in terminal currency (USD)
-
     // Record the used allowance
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD, /* minReturnedAmount */ AMOUNT),
+        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
 });

@@ -14,8 +14,6 @@ interface IJBTerminal {
 
   function balanceOf(uint256 _projectId) external view returns (uint256);
 
-  function delegate() external view returns (address);
-
   function remainingDistributionLimitOf(
     uint256 _projectId,
     uint256 _fundingCycleConfiguration,

@@ -20,7 +20,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
   const AMOUNT = ethers.FixedNumber.fromString('4398541.345');
   const WEIGHT = ethers.FixedNumber.fromString('900000000.23411');
   const CURRENCY = 1;
-  const BASE_CURRENCY = 0;  
+  const BASE_CURRENCY = 0;
 
   async function setup() {
     const [deployer, addr] = await ethers.getSigners();
@@ -56,10 +56,6 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     /* Common mocks */
 
     await mockJbTerminal.mock.currency.returns(CURRENCY);
-    await mockJbTerminal.mock.baseWeightCurrency.returns(BASE_CURRENCY);
-
-    // Set mockJbTerminal address
-    await JBPaymentTerminalStore.claimFor(mockJbTerminal.address);
 
     // Set controller address
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
@@ -126,34 +122,23 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
 
     // Pre-checks
     expect(
-      await JBPaymentTerminalStore.usedDistributionLimitOf(PROJECT_ID, FUNDING_CYCLE_NUM),
+      await JBPaymentTerminalStore.usedDistributionLimitOf(mockJbTerminalSigner.address, PROJECT_ID, FUNDING_CYCLE_NUM),
     ).to.equal(0);
-    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(amountInWei);
+    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(amountInWei);
 
     // Record the distributions
     await JBPaymentTerminalStore
       .connect(mockJbTerminalSigner)
-      .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_USD, /* minReturnedWei */ amountInWei);
+      .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_USD);
 
     // Post-checks
     expect(
-      await JBPaymentTerminalStore.usedDistributionLimitOf(PROJECT_ID, FUNDING_CYCLE_NUM),
+      await JBPaymentTerminalStore.usedDistributionLimitOf(mockJbTerminalSigner.address, PROJECT_ID, FUNDING_CYCLE_NUM),
     ).to.equal(AMOUNT);
-    expect(await JBPaymentTerminalStore.balanceOf(PROJECT_ID)).to.equal(0);
+    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(0);
   });
 
   /* Sad path tests */
-
-  it(`Can't record distribution without mockJbTerminal access`, async function () {
-    const { addr, JBPaymentTerminalStore, CURRENCY_ETH } = await setup();
-
-    // Record the distributions
-    await expect(
-      JBPaymentTerminalStore
-        .connect(addr)
-        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
-    ).to.be.revertedWith(errors.UNAUTHORIZED);
-  });
 
   it(`Can't record distribution if distributions are paused`, async function () {
     const {
@@ -181,7 +166,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
+        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH),
     ).to.be.revertedWith(errors.FUNDING_CYCLE_DISTRIBUTION_PAUSED);
   });
 
@@ -222,7 +207,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT), // Use ETH instead of expected USD
+        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH), // Use ETH instead of expected USD
     ).to.be.revertedWith(errors.CURRENCY_MISMATCH);
   });
 
@@ -271,7 +256,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
+        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH),
     ).to.be.revertedWith(errors.DISTRIBUTION_AMOUNT_LIMIT_REACHED);
   });
 
@@ -322,59 +307,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     await expect(
       JBPaymentTerminalStore
         .connect(mockJbTerminalSigner)
-        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH, /* minReturnedWei */ AMOUNT),
+        .recordDistributionFor(PROJECT_ID, AMOUNT, CURRENCY_ETH),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
-  });
-
-  it(`Can't record distribution if minReturnedWei > distributedAmount`, async function () {
-    const {
-      mockJbTerminal,
-      mockJbTerminalSigner,
-      mockJbController,
-      mockJbFundingCycleStore,
-      mockJbPrices,
-      JBPaymentTerminalStore,
-      timestamp,
-      CURRENCY_ETH,
-    } = await setup();
-
-    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-      // mock JBFundingCycle obj
-      number: FUNDING_CYCLE_NUM,
-      configuration: timestamp,
-      basedOn: timestamp,
-      start: timestamp,
-      duration: 0,
-      weight: WEIGHT,
-      discountRate: 0,
-      ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ pauseDistributions: 0 }),
-    });
-
-    // Add to balance beforehand
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
-
-    await mockJbController.mock.distributionLimitCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_ETH);
-
-    await mockJbController.mock.distributionLimitOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(AMOUNT);
-
-    await mockJbPrices.mock.priceFor
-      .withArgs(CURRENCY_ETH, CURRENCY_ETH)
-      .returns(ethers.FixedNumber.from(1));
-
-    // Record the distributions
-    const minReturnedWei = AMOUNT.addUnsafe(ethers.FixedNumber.from(1));
-    await expect(
-      JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
-        PROJECT_ID,
-        AMOUNT,
-        CURRENCY_ETH,
-        /* minReturnedWei */ minReturnedWei, // Set intentionally large
-      ),
-    ).to.be.revertedWith(errors.INADEQUATE_WITHDRAW_AMOUNT);
   });
 });

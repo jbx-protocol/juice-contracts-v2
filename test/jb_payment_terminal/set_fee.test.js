@@ -42,8 +42,6 @@ describe('JBPaymentTerminal::setFee(...)', function () {
       nonce: currentNonce + 1,
     });
 
-    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
-
     let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
       .deploy(

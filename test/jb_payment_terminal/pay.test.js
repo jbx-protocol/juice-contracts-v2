@@ -4,21 +4,26 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { packFundingCycleMetadata } from '../helpers/utils.js';
 import errors from '../helpers/errors.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
+import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import JBPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalStore.sol/JBPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
+import jbPayDelegate from '../../artifacts/contracts/interfaces/IJBPayDelegate.sol/IJBPayDelegate.json';
 
 describe('JBPaymentTerminal::pay(...)', function () {
   const PROJECT_ID = 1;
   const MEMO = 'Memo Test';
+  const ADJUSTED_MEMO = 'test test memo';
   const DELEGATE_METADATA = ethers.utils.randomBytes(32);
   const FUNDING_CYCLE_NUMBER = 1;
-  const WEIGHT = 10;
+  const ADJUSTED_WEIGHT = 10;
   const MIN_TOKEN_REQUESTED = 90;
+  const TOKEN_TO_MINT = 200;
   const TOKEN_RECEIVED = 100;
   const ETH_TO_PAY = ethers.utils.parseEther('1');
+  const PREFER_CLAIMED_TOKENS = true;
 
   async function setup() {
     let [deployer, terminalOwner, caller, beneficiary, ...addrs] = await ethers.getSigners();
@@ -36,12 +41,16 @@ describe('JBPaymentTerminal::pay(...)', function () {
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
+      mockJbPayDelegate,
+      mockJbController
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
       deployMockContract(deployer, JBPaymentTerminalStore.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
+      deployMockContract(deployer, jbPayDelegate.abi),
+      deployMockContract(deployer, jbController.abi)
     ]);
 
     const mockJbToken = await deployMockContract(deployer, jbToken.abi);
@@ -49,14 +58,6 @@ describe('JBPaymentTerminal::pay(...)', function () {
 
     let jbEthTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
     let jbErc20TerminalFactory = await ethers.getContractFactory('JBERC20PaymentTerminal', deployer);
-
-    let currentNonce = await ethers.provider.getTransactionCount(deployer.address);
-    const futureTerminalAddress = ethers.utils.getContractAddress({
-      from: deployer.address,
-      nonce: currentNonce + 1,
-    });
-
-    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
 
     let jbEthPaymentTerminal = await jbEthTerminalFactory
       .connect(deployer)
@@ -69,16 +70,6 @@ describe('JBPaymentTerminal::pay(...)', function () {
         mockJBPaymentTerminalStore.address,
         terminalOwner.address,
       );
-
-
-    currentNonce = await ethers.provider.getTransactionCount(deployer.address);
-
-    const futureOtherCurrencyTerminalAddress = ethers.utils.getContractAddress({
-      from: deployer.address,
-      nonce: currentNonce + 1,
-    });
-
-    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureOtherCurrencyTerminalAddress).returns();
 
     let jbErc20PaymentTerminal = await jbErc20TerminalFactory
       .connect(deployer)
@@ -108,11 +99,8 @@ describe('JBPaymentTerminal::pay(...)', function () {
         caller.address,
         ETH_TO_PAY,
         PROJECT_ID,
-        //preferedCLaimed | uint160(beneficiary)<<1
-        ethers.BigNumber.from(1).or(ethers.BigNumber.from(caller.address).shl(1)),
-        MIN_TOKEN_REQUESTED,
-        MEMO,
-        DELEGATE_METADATA,
+        beneficiary.address,
+        MEMO
       )
       .returns(
         {
@@ -127,9 +115,10 @@ describe('JBPaymentTerminal::pay(...)', function () {
           ballot: ethers.constants.AddressZero,
           metadata: packFundingCycleMetadata(),
         },
-        WEIGHT,
-        TOKEN_RECEIVED,
-        MEMO,
+        ADJUSTED_WEIGHT,
+        TOKEN_TO_MINT,
+        ethers.constants.AddressZero,
+        ADJUSTED_MEMO,
       );
 
     return {
@@ -142,12 +131,27 @@ describe('JBPaymentTerminal::pay(...)', function () {
       mockJbToken,
       mockJbDirectory,
       mockJBPaymentTerminalStore,
+      mockJbPayDelegate,
+      mockJbController,
       timestamp,
     };
   }
 
   it('Should record payment and emit event', async function () {
-    const { caller, jbEthPaymentTerminal, timestamp } = await setup();
+    const { caller, jbEthPaymentTerminal, mockJbDirectory, mockJbController, timestamp, beneficiary } = await setup();
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
+
+    await mockJbController.mock.mintTokensOf
+      .withArgs(
+        PROJECT_ID,
+        TOKEN_TO_MINT,
+        beneficiary.address,
+        '',
+        PREFER_CLAIMED_TOKENS,
+        /* useReservedRate */ true,
+      )
+      .returns(TOKEN_RECEIVED);
 
     expect(
       await jbEthPaymentTerminal
@@ -155,9 +159,9 @@ describe('JBPaymentTerminal::pay(...)', function () {
         .pay(
           ETH_TO_PAY,
           PROJECT_ID,
-          caller.address,
+          beneficiary.address,
           MIN_TOKEN_REQUESTED,
-          /*preferClaimedToken=*/ true,
+          PREFER_CLAIMED_TOKENS,
           MEMO,
           DELEGATE_METADATA,
           { value: ETH_TO_PAY },
@@ -168,24 +172,135 @@ describe('JBPaymentTerminal::pay(...)', function () {
         /*fundingCycle.configuration=*/ timestamp,
         FUNDING_CYCLE_NUMBER,
         PROJECT_ID,
+        beneficiary.address,
+        ETH_TO_PAY,
+        ADJUSTED_WEIGHT,
+        TOKEN_RECEIVED,
+        ADJUSTED_MEMO,
+        caller.address,
+      );
+  });
+
+  it('Should record payment with delegate and emit delegate event', async function () {
+    const { caller, jbEthPaymentTerminal, mockJbPayDelegate, mockJBPaymentTerminalStore, mockJbDirectory, mockJbController, timestamp, beneficiary } = await setup();
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
+
+    await mockJbController.mock.mintTokensOf
+      .withArgs(
+        PROJECT_ID,
+        TOKEN_TO_MINT,
+        /* beneficiary */ beneficiary.address,
+        '',
+        PREFER_CLAIMED_TOKENS,
+        /* useReservedRate */ true,
+      )
+      .returns(TOKEN_RECEIVED);
+
+    await mockJBPaymentTerminalStore.mock.recordPaymentFrom
+      .withArgs(
         caller.address,
         ETH_TO_PAY,
-        WEIGHT,
-        TOKEN_RECEIVED,
+        PROJECT_ID,
+        beneficiary.address,
+        MEMO
+      )
+      .returns(
+        {
+          // mock JBFundingCycle obj
+          number: 1,
+          configuration: timestamp,
+          basedOn: timestamp,
+          start: timestamp,
+          duration: 0,
+          weight: 0,
+          discountRate: 0,
+          ballot: ethers.constants.AddressZero,
+          metadata: packFundingCycleMetadata(),
+        },
+        ADJUSTED_WEIGHT,
+        TOKEN_TO_MINT,
+        mockJbPayDelegate.address,
+        ADJUSTED_MEMO,
+      );
+
+    await mockJbPayDelegate.mock.didPay
+      .withArgs({
+        // JBDidPaydata obj
+        payer: caller.address,
+        projectId: PROJECT_ID,
+        amount: ETH_TO_PAY,
+        weight: ADJUSTED_WEIGHT,
+        tokenCount: TOKEN_RECEIVED,
+        beneficiary: beneficiary.address,
+        memo: ADJUSTED_MEMO,
+        delegateMetadata: DELEGATE_METADATA
+      })
+      .returns();
+
+    const tx = await jbEthPaymentTerminal
+      .connect(caller)
+      .pay(
+        ETH_TO_PAY,
+        PROJECT_ID,
+        beneficiary.address,
+        MIN_TOKEN_REQUESTED,
+        PREFER_CLAIMED_TOKENS,
         MEMO,
+        DELEGATE_METADATA,
+        { value: ETH_TO_PAY },
+      );
+
+    await expect(tx)
+      .to.emit(jbEthPaymentTerminal, 'DelegateDidPay')
+      .withArgs(mockJbPayDelegate.address, [
+        /* payer */ caller.address,
+        /* projectId */ PROJECT_ID,
+        /* amount */ ETH_TO_PAY,
+        /* weight */ ADJUSTED_WEIGHT,
+        /* tokenCount */ TOKEN_RECEIVED,
+        /* beneficiary */ beneficiary.address,
+        /* memo */ ADJUSTED_MEMO,
+        /* delegateMetadata */ ethers.BigNumber.from(DELEGATE_METADATA),
+      ], caller.address);
+
+    await expect(tx)
+      .to.emit(jbEthPaymentTerminal, 'Pay')
+      .withArgs(
+        /*fundingCycle.configuration=*/ timestamp,
+        FUNDING_CYCLE_NUMBER,
+        PROJECT_ID,
+        beneficiary.address,
+        ETH_TO_PAY,
+        ADJUSTED_WEIGHT,
+        TOKEN_RECEIVED,
+        ADJUSTED_MEMO,
         caller.address,
       );
   });
 
   it('Should work with eth terminal with non msg.value amount sent', async function () {
-    const { caller, jbEthPaymentTerminal, timestamp } = await setup();
+    const { caller, jbEthPaymentTerminal, mockJbDirectory, mockJbController, beneficiary } = await setup();
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
+
+    await mockJbController.mock.mintTokensOf
+      .withArgs(
+        PROJECT_ID,
+        TOKEN_TO_MINT,
+        /* beneficiary */ beneficiary.address,
+        '',
+        PREFER_CLAIMED_TOKENS,
+        /* useReservedRate */ true,
+      )
+      .returns(TOKEN_RECEIVED);
 
     await jbEthPaymentTerminal
       .connect(caller)
       .pay(
         ETH_TO_PAY + 1,
         PROJECT_ID,
-        caller.address,
+        beneficiary.address,
         MIN_TOKEN_REQUESTED,
           /*preferClaimedToken=*/ true,
         MEMO,
@@ -193,9 +308,65 @@ describe('JBPaymentTerminal::pay(...)', function () {
         { value: ETH_TO_PAY },
       );
   });
+  it('Should work with no token amount returned from recording payment', async function () {
+    const { caller, jbEthPaymentTerminal, mockJBPaymentTerminalStore, beneficiary, timestamp } = await setup();
+
+    await mockJBPaymentTerminalStore.mock.recordPaymentFrom
+      .withArgs(
+        caller.address,
+        ETH_TO_PAY,
+        PROJECT_ID,
+        beneficiary.address,
+        MEMO
+      )
+      .returns(
+        {
+          // mock JBFundingCycle obj
+          number: 1,
+          configuration: timestamp,
+          basedOn: timestamp,
+          start: timestamp,
+          duration: 0,
+          weight: 0,
+          discountRate: 0,
+          ballot: ethers.constants.AddressZero,
+          metadata: packFundingCycleMetadata(),
+        },
+        ADJUSTED_WEIGHT,
+        0,
+        ethers.constants.AddressZero,
+        ADJUSTED_MEMO,
+      );
+
+    await jbEthPaymentTerminal
+      .connect(caller)
+      .pay(
+        ETH_TO_PAY + 1,
+        PROJECT_ID,
+        beneficiary.address,
+        0,
+        PREFER_CLAIMED_TOKENS,
+        MEMO,
+        DELEGATE_METADATA,
+        { value: ETH_TO_PAY },
+      );
+  });
 
   it('Should work with non-eth terminal if no value is sent', async function () {
-    const { caller, jbErc20PaymentTerminal, mockJbToken } = await setup();
+    const { caller, jbErc20PaymentTerminal, mockJbToken, mockJbDirectory, mockJbController, beneficiary } = await setup();
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
+
+    await mockJbController.mock.mintTokensOf
+      .withArgs(
+        PROJECT_ID,
+        TOKEN_TO_MINT,
+        beneficiary.address,
+        '',
+        PREFER_CLAIMED_TOKENS,
+        /* useReservedRate */ true,
+      )
+      .returns(TOKEN_RECEIVED);
 
     await mockJbToken.mock.transferFrom.withArgs(caller.address, jbErc20PaymentTerminal.address, ETH_TO_PAY).returns(0);
     await jbErc20PaymentTerminal
@@ -203,9 +374,9 @@ describe('JBPaymentTerminal::pay(...)', function () {
       .pay(
         ETH_TO_PAY,
         PROJECT_ID,
-        caller.address,
+        beneficiary.address,
         MIN_TOKEN_REQUESTED,
-          /*preferClaimedToken=*/ true,
+        PREFER_CLAIMED_TOKENS,
         MEMO,
         DELEGATE_METADATA,
         { value: 0 },
@@ -223,7 +394,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
           PROJECT_ID,
           ethers.constants.AddressZero,
           MIN_TOKEN_REQUESTED,
-          /*preferClaimedToken=*/ true,
+          PREFER_CLAIMED_TOKENS,
           MEMO,
           DELEGATE_METADATA,
           { value: ETH_TO_PAY },
@@ -242,7 +413,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
           PROJECT_ID,
           ethers.constants.AddressZero,
           MIN_TOKEN_REQUESTED,
-          /*preferClaimedToken=*/ true,
+          PREFER_CLAIMED_TOKENS,
           MEMO,
           DELEGATE_METADATA,
           { value: ETH_TO_PAY },
@@ -266,11 +437,56 @@ describe('JBPaymentTerminal::pay(...)', function () {
           otherProjectId,
           ethers.constants.AddressZero,
           MIN_TOKEN_REQUESTED,
-          /*preferClaimedToken=*/ true,
+          PREFER_CLAIMED_TOKENS,
           MEMO,
           DELEGATE_METADATA,
           { value: ETH_TO_PAY },
         ),
     ).to.be.revertedWith(errors.PROJECT_TERMINAL_MISMATCH);
+  });
+  it("Can't pay if minted tokens for beneficiary is less than expected", async function () {
+    const { caller, jbEthPaymentTerminal, mockJBPaymentTerminalStore, beneficiary, timestamp } = await setup();
+
+    await mockJBPaymentTerminalStore.mock.recordPaymentFrom
+      .withArgs(
+        caller.address,
+        ETH_TO_PAY,
+        PROJECT_ID,
+        beneficiary.address,
+        MEMO
+      )
+      .returns(
+        {
+          // mock JBFundingCycle obj
+          number: 1,
+          configuration: timestamp,
+          basedOn: timestamp,
+          start: timestamp,
+          duration: 0,
+          weight: 0,
+          discountRate: 0,
+          ballot: ethers.constants.AddressZero,
+          metadata: packFundingCycleMetadata(),
+        },
+        ADJUSTED_WEIGHT,
+        0,
+        ethers.constants.AddressZero,
+        ADJUSTED_MEMO,
+      );
+
+    await expect(
+      jbEthPaymentTerminal
+        .connect(caller)
+        .pay(
+          ETH_TO_PAY + 1,
+          PROJECT_ID,
+          beneficiary.address,
+          MIN_TOKEN_REQUESTED,
+          PREFER_CLAIMED_TOKENS,
+          MEMO,
+          DELEGATE_METADATA,
+          { value: ETH_TO_PAY },
+        ),
+    ).to.be.revertedWith(errors.INADEQUATE_TOKEN_COUNT);
   });
 });
