@@ -186,7 +186,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
     if (ALLOWANCE == 0)
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_CONTROLLER_ALLOWANCE()'));
 
-    else if (TARGET >= BALANCE || ALLOWANCE > BALANCE) // Too much to withdraw or no overflow ?
+    else if (TARGET >= BALANCE || ALLOWANCE > (BALANCE-TARGET)) // Too much to withdraw or no overflow ?
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
     
     evm.prank(_projectOwner); // Prank only next call
@@ -218,14 +218,12 @@ contract TestERC20Terminal is TestBaseWorkflow {
       'Foundry payment' // Memo
     );
     // Funds leaving the ecosystem -> fee taken
-    if(TARGET >= BALANCE || TARGET == 0)
+    if(TARGET <= BALANCE && TARGET != 0)
       assertEq(jbToken().balanceOf(_projectOwner), initBalance + (TARGET * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE()) );
 
     // redeem eth from the overflow by the token holder:
     uint256 senderBalance = _tokenStore.balanceOf(msg.sender, projectId);
     
-    if (BALANCE == 0)
-      evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_TOKENS()'));
     evm.prank(msg.sender);
     terminal.redeemTokensOf(
       msg.sender,
