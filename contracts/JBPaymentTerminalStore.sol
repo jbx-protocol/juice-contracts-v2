@@ -318,7 +318,6 @@ contract JBPaymentTerminalStore {
     uint256 _weightRatio = _terminalCurrency == _terminalBaseWeightCurrency
       ? 1E18
       : prices.priceFor(_terminalCurrency, _terminalBaseWeightCurrency);
-    // }
 
     // Find the number of tokens to mint.
     tokenCount = PRBMath.mulDiv(_amount, weight, _weightRatio);
