@@ -463,8 +463,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
       uint256 _netAmount = _distributedAmount - _feeAmount;
 
       // Transfer any remaining balance to the beneficiary.
-      if (_netAmount > 0)
-        _transferFrom(address(this), _beneficiary, _netAmount);
+      if (_netAmount > 0) _transferFrom(address(this), _beneficiary, _netAmount);
     }
 
     emit UseAllowance(

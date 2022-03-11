@@ -110,7 +110,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     return false;
   }
 
-  /**
+  /** 
     @notice
     The primary terminal that is managing funds for a project for a specified token.
 

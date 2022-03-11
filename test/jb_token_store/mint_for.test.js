@@ -93,20 +93,6 @@ describe('JBTokenStore::mintFor(...)', function () {
       );
   });
 
-  it(`Can't mint tokens if _amount <= 0`, async function () {
-    const { controller, newHolder, mockJbDirectory, jbTokenStore } = await setup();
-
-    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
-
-    const numTokens = 0;
-
-    await expect(
-      jbTokenStore
-        .connect(controller)
-        .mintFor(newHolder.address, PROJECT_ID, numTokens, /* preferClaimedTokens= */ true),
-    ).to.be.revertedWith(errors.TOKEN_AMOUNT_ZERO);
-  });
-
   it(`Can't mint tokens if caller does not have permission`, async function () {
     const { newHolder, mockJbDirectory, jbTokenStore } = await setup();
 

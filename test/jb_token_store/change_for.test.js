@@ -36,6 +36,7 @@ describe('JBTokenStore::changeFor(...)', function () {
       newOwner,
       controller,
       mockJbDirectory,
+      mockJbProjects,
       jbTokenStore,
     };
   }
@@ -67,7 +68,7 @@ describe('JBTokenStore::changeFor(...)', function () {
 
     await expect(changeTx)
       .to.emit(jbTokenStore, 'Change')
-      .withArgs(PROJECT_ID, newTokenAddr, newOwner.address, controller.address);
+      .withArgs(PROJECT_ID, newTokenAddr, initialTokenAddr, newOwner.address, controller.address);
   });
 
   it('Should change tokens without changing owner of old token', async function () {
@@ -98,7 +99,7 @@ describe('JBTokenStore::changeFor(...)', function () {
 
     await expect(changeTx)
       .to.emit(jbTokenStore, 'Change')
-      .withArgs(PROJECT_ID, newTokenAddr, ethers.constants.AddressZero, controller.address);
+      .withArgs(PROJECT_ID, newTokenAddr, initialTokenAddr, ethers.constants.AddressZero, controller.address);
   });
 
   it(`Can't change tokens if caller does not have permission`, async function () {
@@ -118,5 +119,29 @@ describe('JBTokenStore::changeFor(...)', function () {
           ethers.Wallet.createRandom().address,
         ),
     ).to.be.revertedWith(errors.CONTROLLER_UNAUTHORIZED);
+  });
+
+  it(`Can't remove the project's token if claiming is required`, async function () {
+    const { controller, mockJbDirectory, mockJbProjects, jbTokenStore, newOwner } = await setup();
+
+    await mockJbDirectory.mock.controllerOf
+      .withArgs(PROJECT_ID)
+      .returns(controller.address);
+
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(newOwner.address);
+    // Issue the initial token.
+    await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
+    // Require claiming.
+    await jbTokenStore.connect(newOwner).shouldRequireClaimingFor(PROJECT_ID, true);
+
+    await expect(
+      jbTokenStore
+        .connect(controller)
+        .changeFor(
+          PROJECT_ID,
+          ethers.constants.AddressZero,
+          ethers.Wallet.createRandom().address,
+        ),
+    ).to.be.revertedWith(errors.CANT_REMOVE_TOKEN_IF_ITS_REQUIRED);
   });
 });

@@ -18,11 +18,18 @@ interface IJBToken {
     uint256 _amount
   ) external;
 
-  function transferOwnership(address _newOwner) external;
+  function transfer(
+    uint256 _projectId,
+    address _to,
+    uint256 _amount
+  ) external;
 
   function transferFrom(
+    uint256 _projectId,
     address _from,
     address _to,
     uint256 _amount
-  ) external returns (bool);
+  ) external;
+
+  function transferOwnership(address _newOwner) external;
 }
