@@ -17,16 +17,15 @@ error INSUFFICIENT_FUNDS();
 error INVALID_RECIPIENT();
 error INSUFFICIENT_UNCLAIMED_TOKENS();
 error RECIPIENT_ZERO_ADDRESS();
-error TOKEN_AMOUNT_ZERO();
 error TOKEN_NOT_FOUND();
 error TOKEN_ALREADY_ISSUED();
 
 /**
   @notice
-  Manage Token minting, burning, and account balances.
+  Manage token minting, burning, and account balances.
 
   @dev
-  Tokens can be either represented internally or claimed as ERC-20s.
+  Token balances can be either represented internally or claimed as ERC-20s into wallets.
   This contract manages these two representations and allows claiming.
 
   @dev
@@ -34,8 +33,14 @@ error TOKEN_ALREADY_ISSUED();
 
   @dev
   Each project can bring their own token if they prefer, and swap between tokens at any time.
+
+  @dev
+  Inherits from:
+  IJBTokenStore: General interface for the methods in this contract that interact with the blockchain's state according to the Juicebox protocol's rules.
+  JBControllerUtility - Includes convenience functionality for checking if the message sender is the current controller of the project whose data is being manipulated.
+  JBOperatable - Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
-contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
+contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
@@ -60,7 +65,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
   /**
     @notice
-    Each holder's balance of unclaimed Tokens for each project.
+    Each holder's balance of unclaimed tokens for each project, as a fixed point number with 18 decimals.
 
     _holder The holder of balance.
     _projectId The ID of the project to which the token belongs.
@@ -69,7 +74,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
   /**
     @notice
-    The total supply of unclaimed tokens for each project.
+    The total supply of unclaimed tokens for each project, as a fixed point number with 18 decimals.
 
     _projectId The ID of the project to which the token belongs.
   */
@@ -89,7 +94,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
   /**
     @notice
-    The total supply of tokens for each project, including claimed and unclaimed tokens.
+    The total supply of tokens for each project, including claimed and unclaimed tokens, as a fixed point number with 18 decimals.
 
     @param _projectId The ID of the project to get the total token supply of.
 
@@ -108,10 +113,10 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
   /**
     @notice
-    The total balance of token a holder has for a specified project, including claimed and unclaimed tokens.
+    The total balance of tokens a holder has for a specified project, including claimed and unclaimed tokens, as a fixed point number with 18 decimals.
 
     @param _holder The token holder to get a balance for.
-    @param _projectId The project to get the `_hodler`s balance of.
+    @param _projectId The project to get the `_holder`s balance of.
 
     @return balance The balance.
   */
@@ -154,7 +159,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
   /**
     @notice
-    Issues an owner's ERC-20 Tokens that'll be used when claiming tokens.
+    Issues an owner's ERC-20 tokens that'll be used when claiming tokens.
 
     @dev
     Deploys a project's ERC-20 token contract.
@@ -165,6 +170,8 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     @param _projectId The ID of the project being issued tokens.
     @param _name The ERC-20's name.
     @param _symbol The ERC-20's symbol.
+
+    @return token The token that was issued.
   */
   function issueFor(
     uint256 _projectId,
@@ -172,19 +179,13 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     string calldata _symbol
   ) external override onlyController(_projectId) returns (IJBToken token) {
     // There must be a name.
-    if (bytes(_name).length == 0) {
-      revert EMPTY_NAME();
-    }
+    if (bytes(_name).length == 0) revert EMPTY_NAME();
 
     // There must be a symbol.
-    if (bytes(_symbol).length == 0) {
-      revert EMPTY_SYMBOL();
-    }
+    if (bytes(_symbol).length == 0) revert EMPTY_SYMBOL();
 
     // Only one ERC20 token can be issued.
-    if (tokenOf[_projectId] != IJBToken(address(0))) {
-      revert TOKEN_ALREADY_ISSUED();
-    }
+    if (tokenOf[_projectId] != IJBToken(address(0))) revert TOKEN_ALREADY_ISSUED();
 
     // Deploy the token contract.
     token = new JBToken(_name, _symbol);
@@ -203,28 +204,30 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     Only a project's current controller can change its token.
 
     @dev
-    This JBTokenStore contract must have access to all IJBToken interface functions.
+    This contract must have access to all IJBToken interface functions.
 
     @param _projectId The ID of the project to which the changed token belongs.
     @param _token The new token.
     @param _newOwner An address to transfer the current token's ownership to. This is optional, but it cannot be done later.
+
+    @return oldToken The token that was removed as the project's token.
   */
   function changeFor(
     uint256 _projectId,
     IJBToken _token,
     address _newOwner
-  ) external override onlyController(_projectId) {
-    // Get a reference to the current owner of the token.
-    IJBToken _currentToken = tokenOf[_projectId];
+  ) external override onlyController(_projectId) returns (IJBToken oldToken) {
+    // Get a reference to the current token for the project.
+    oldToken = tokenOf[_projectId];
 
     // Store the new token.
     tokenOf[_projectId] = _token;
 
     // If there's a current token and a new owner was provided, transfer ownership of the old token to the new owner.
-    if (_newOwner != address(0) && _currentToken != IJBToken(address(0)))
-      _currentToken.transferOwnership(_newOwner);
+    if (_newOwner != address(0) && oldToken != IJBToken(address(0)))
+      oldToken.transferOwnership(_newOwner);
 
-    emit Change(_projectId, _token, _newOwner, msg.sender);
+    emit Change(_projectId, _token, oldToken, _newOwner, msg.sender);
   }
 
   /**
@@ -236,7 +239,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
     @param _holder The address receiving the new tokens.
     @param _projectId The ID of the project to which the tokens belong.
-    @param _amount The amount of tokens to mint.
+    @param _amount The amount of tokens to mint, as a fixed point number with 18 decimals.
     @param _preferClaimedTokens A flag indicating whether there's a preference for ERC20's to be claimed automatically if they have been issued.
   */
   function mintFor(
@@ -245,11 +248,6 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     uint256 _amount,
     bool _preferClaimedTokens
   ) external override onlyController(_projectId) {
-    // An amount must be specified.
-    if (_amount == 0) {
-      revert TOKEN_AMOUNT_ZERO();
-    }
-
     // Get a reference to the project's ERC20 tokens.
     IJBToken _token = tokenOf[_projectId];
 
@@ -278,7 +276,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
     @param _holder The address that owns the tokens being burned.
     @param _projectId The ID of the project to which the burned tokens belong
-    @param _amount The amount of tokens to burned.
+    @param _amount The amount of tokens to burned, as a fixed point number with 18 decimals.
     @param _preferClaimedTokens A flag indicating if there's a preference to burn tokens that have been converted to ERC-20s.
   */
   function burnFrom(
@@ -287,10 +285,6 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     uint256 _amount,
     bool _preferClaimedTokens
   ) external override onlyController(_projectId) {
-    // An amount must be specified.
-    if (_amount == 0) {
-      revert TOKEN_AMOUNT_ZERO();
-    }
     // Get a reference to the project's ERC20 tokens.
     IJBToken _token = tokenOf[_projectId];
 
@@ -302,13 +296,13 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
       ? 0
       : _token.balanceOf(_holder, _projectId);
 
+    // There must be adequte tokens to burn across the holder's claimed and unclaimed balance.
     if (
       (_amount >= _claimedBalance || _amount >= _unclaimedBalance) &&
       (_amount < _claimedBalance || _unclaimedBalance < _amount - _claimedBalance) &&
       (_amount < _unclaimedBalance || _claimedBalance < _amount - _unclaimedBalance)
-    ) {
-      revert INSUFFICIENT_FUNDS();
-    }
+    ) revert INSUFFICIENT_FUNDS();
+
     // The amount of tokens to burn.
     uint256 _claimedTokensToBurn;
 
@@ -326,7 +320,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     // The amount of unclaimed tokens to redeem.
     uint256 _unclaimedTokensToBurn = _amount - _claimedTokensToBurn;
 
-    // burn the tokens.
+    // Burn the tokens.
     if (_claimedTokensToBurn > 0) _token.burn(_projectId, _holder, _claimedTokensToBurn);
     if (_unclaimedTokensToBurn > 0) {
       // Reduce the holders balance and the total supply.
@@ -338,7 +332,15 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
         _unclaimedTokensToBurn;
     }
 
-    emit Burn(_holder, _projectId, _amount, _unclaimedBalance, _preferClaimedTokens, msg.sender);
+    emit Burn(
+      _holder,
+      _projectId,
+      _amount,
+      _unclaimedBalance,
+      _claimedBalance,
+      _preferClaimedTokens,
+      msg.sender
+    );
   }
 
   /**
@@ -350,7 +352,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
     @param _holder The owner of the tokens to claim.
     @param _projectId The ID of the project whose tokens are being claimed.
-    @param _amount The amount of tokens to claim.
+    @param _amount The amount of tokens to claim, as a fixed point number with 18 decimals.
   */
   function claimFor(
     address _holder,
@@ -361,17 +363,13 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     IJBToken _token = tokenOf[_projectId];
 
     // Tokens must have been issued.
-    if (_token == IJBToken(address(0))) {
-      revert TOKEN_NOT_FOUND();
-    }
+    if (_token == IJBToken(address(0))) revert TOKEN_NOT_FOUND();
 
     // Get a reference to the amount of unclaimed tokens.
     uint256 _unclaimedBalance = unclaimedBalanceOf[_holder][_projectId];
 
     // There must be enough unlocked unclaimed tokens to claim.
-    if (_unclaimedBalance < _amount) {
-      revert INSUFFICIENT_UNCLAIMED_TOKENS();
-    }
+    if (_unclaimedBalance < _amount) revert INSUFFICIENT_UNCLAIMED_TOKENS();
 
     // Subtract the claim amount from the holder's balance.
     unclaimedBalanceOf[_holder][_projectId] = unclaimedBalanceOf[_holder][_projectId] - _amount;
@@ -382,12 +380,12 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     // Mint the equivalent amount of ERC20s.
     _token.mint(_projectId, _holder, _amount);
 
-    emit Claim(_holder, _projectId, _amount, msg.sender);
+    emit Claim(_holder, _projectId, _unclaimedBalance, _amount, msg.sender);
   }
 
   /**
     @notice
-    Allows an unclaimed token holder to transfer them to another account, without claiming to ERC-20s.
+    Allows a holder to transfer unclaimed tokens to another account.
 
     @dev
     Only a token holder or an operator can transfer its unclaimed tokens.
@@ -395,7 +393,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     @param _recipient The recipient of the tokens.
     @param _holder The address to transfer tokens from.
     @param _projectId The ID of the project whose tokens are being transferred.
-    @param _amount The amount of tokens to transfer.
+    @param _amount The amount of tokens to transfer, as a fixed point number with 18 decimals.
   */
   function transferTo(
     address _recipient,
@@ -404,26 +402,13 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     uint256 _amount
   ) external override requirePermission(_holder, _projectId, JBOperations.TRANSFER) {
     // Can't transfer to the zero address.
-    if (_recipient == address(0)) {
-      revert RECIPIENT_ZERO_ADDRESS();
-    }
+    if (_recipient == address(0)) revert RECIPIENT_ZERO_ADDRESS();
 
-    // An address can't transfer to itself.
-    if (_holder == _recipient) {
-      revert INVALID_RECIPIENT();
-    }
-
-    // There must be an amount to transfer.
-    if (_amount == 0) {
-      revert TOKEN_AMOUNT_ZERO();
-    }
     // Get a reference to the amount of unclaimed tokens.
     uint256 _unclaimedBalance = unclaimedBalanceOf[_holder][_projectId];
 
     // There must be enough unclaimed tokens to transfer.
-    if (_amount > _unclaimedBalance) {
-      revert INSUFFICIENT_UNCLAIMED_TOKENS();
-    }
+    if (_amount > _unclaimedBalance) revert INSUFFICIENT_UNCLAIMED_TOKENS();
 
     // Subtract from the holder.
     unclaimedBalanceOf[_holder][_projectId] = unclaimedBalanceOf[_holder][_projectId] - _amount;
@@ -455,9 +440,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     IJBToken _token = tokenOf[_projectId];
 
     // Tokens must have been issued.
-    if (_token == IJBToken(address(0))) {
-      revert TOKEN_NOT_FOUND();
-    }
+    if (_token == IJBToken(address(0))) revert TOKEN_NOT_FOUND();
 
     // Store the flag.
     requireClaimFor[_projectId] = _flag;

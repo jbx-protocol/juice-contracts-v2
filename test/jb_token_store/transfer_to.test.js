@@ -95,35 +95,6 @@ describe('JBTokenStore::transferTo(...)', function () {
     ).to.be.revertedWith(errors.RECIPIENT_ZERO_ADDRESS);
   });
 
-  it(`Can't transfer unclaimed tokens when recipient and holder are the same`, async function () {
-    const { controller, holder, mockJbOperatorStore, jbTokenStore, TRANSFER_INDEX } = await setup();
-
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(controller.address, holder.address, PROJECT_ID, TRANSFER_INDEX)
-      .returns(true);
-
-    await expect(
-      jbTokenStore
-        .connect(controller)
-        .transferTo(holder.address, holder.address, PROJECT_ID, /* amount= */ 1),
-    ).to.be.revertedWith(errors.INVALID_RECIPIENT);
-  });
-
-  it(`Can't transfer unclaimed tokens if amount is <= 0`, async function () {
-    const { controller, holder, recipient, mockJbOperatorStore, jbTokenStore, TRANSFER_INDEX } =
-      await setup();
-
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(controller.address, holder.address, PROJECT_ID, TRANSFER_INDEX)
-      .returns(true);
-
-    await expect(
-      jbTokenStore
-        .connect(controller)
-        .transferTo(recipient.address, holder.address, PROJECT_ID, /* amount= */ 0),
-    ).to.be.revertedWith(errors.TOKEN_AMOUNT_ZERO);
-  });
-
   it(`Can't transfer more unclaimed tokens than available balance`, async function () {
     const { controller, holder, recipient, mockJbOperatorStore, jbTokenStore, TRANSFER_INDEX } =
       await setup();
