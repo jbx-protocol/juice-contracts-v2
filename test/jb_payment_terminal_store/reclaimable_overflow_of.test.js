@@ -50,10 +50,6 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
     const timestamp = block.timestamp;
 
     await mockJbTerminal.mock.currency.returns(CURRENCY);
-    await mockJbTerminal.mock.baseWeightCurrency.returns(BASE_CURRENCY);  
-
-    // Set mockJbTerminal address
-    await JBPaymentTerminalStore.claimFor(mockJbTerminal.address);
 
     const mockJbTerminalSigner = await impersonateAccount(mockJbTerminal.address);
 
@@ -141,7 +137,7 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await JBPaymentTerminalStore.reclaimableOverflowOf(PROJECT_ID, /* tokenCount */ tokenAmt),
+      await JBPaymentTerminalStore.reclaimableOverflowOf(mockJbTerminalSigner.address, PROJECT_ID, /* tokenCount */ tokenAmt, CURRENCY),
     ).to.equal(ethers.FixedNumber.fromString('41.25'));
   });
 
@@ -190,7 +186,7 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
 
     // Get claimable overflow
     expect(
-      await JBPaymentTerminalStore.reclaimableOverflowOf(PROJECT_ID, /* tokenCount */ tokenAmt),
+      await JBPaymentTerminalStore.reclaimableOverflowOf(mockJbTerminal.address, PROJECT_ID, /* tokenCount */ tokenAmt, CURRENCY),
     ).to.equal(0);
   });
 
@@ -257,7 +253,7 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
 
     // Get claimable overflow
     expect(
-      await JBPaymentTerminalStore.reclaimableOverflowOf(PROJECT_ID, /* tokenCount */ tokenAmt),
+      await JBPaymentTerminalStore.reclaimableOverflowOf(mockJbTerminalSigner.address, PROJECT_ID, /* tokenCount */ tokenAmt, CURRENCY),
     ).to.equal(0);
   });
 
@@ -331,7 +327,7 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await JBPaymentTerminalStore.reclaimableOverflowOf(PROJECT_ID, /* tokenCount */ tokenAmt),
+      await JBPaymentTerminalStore.reclaimableOverflowOf(mockJbTerminalSigner.address, PROJECT_ID, /* tokenCount */ tokenAmt, CURRENCY),
     ).to.equal(ethers.FixedNumber.from(50));
   });
 });

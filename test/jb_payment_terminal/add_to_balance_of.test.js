@@ -71,8 +71,6 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
       nonce: currentNonce + 1,
     });
 
-    await mockJbPaymentTerminalStore.mock.claimFor.withArgs(futureTerminalAddress).returns();
-
     let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
       .deploy(
@@ -91,8 +89,6 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
       from: deployer.address,
       nonce: currentNonce + 1,
     });
-
-    await mockJbPaymentTerminalStore.mock.claimFor.withArgs(futureOtherCurrencyTerminalAddress).returns();
 
     let jbErc20PaymentTerminal = await jbErc20TerminalFactory
       .connect(deployer)
@@ -130,7 +126,7 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
       .returns(true);
 
     await mockJbPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT, CURRENCY_ETH, 0)
+      .withArgs(PROJECT_ID, AMOUNT, CURRENCY_ETH)
       .returns(
         {
           number: 1,
@@ -301,7 +297,7 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
       .returns(splits);
 
     await mockJbPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT.div(2), CURRENCY_ETH, 0)
+      .withArgs(PROJECT_ID, AMOUNT.div(2), CURRENCY_ETH)
       .returns(
         {
           number: 1,

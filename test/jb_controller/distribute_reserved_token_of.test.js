@@ -70,7 +70,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
 
     await Promise.all([
       mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address),
-      mockJbDirectory.mock.isTerminalDelegateOf
+      mockJbDirectory.mock.isTerminalOf
         .withArgs(PROJECT_ID, projectOwner.address)
         .returns(false),
       mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({

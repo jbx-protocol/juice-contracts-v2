@@ -63,14 +63,6 @@ describe('JBPaymentTerminal::migrate(...)', function () {
     let jbEthTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
     let jbErc20TerminalFactory = await ethers.getContractFactory('JBERC20PaymentTerminal', deployer);
 
-    let currentNonce = await ethers.provider.getTransactionCount(deployer.address);
-    const futureEthTerminalAddress = ethers.utils.getContractAddress({
-      from: deployer.address,
-      nonce: currentNonce + 1,
-    });
-
-    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureEthTerminalAddress).returns();
-
     let jbEthPaymentTerminal = await jbEthTerminalFactory
       .connect(deployer)
       .deploy(
@@ -83,13 +75,6 @@ describe('JBPaymentTerminal::migrate(...)', function () {
         terminalOwner.address,
       );
 
-    currentNonce = await ethers.provider.getTransactionCount(deployer.address);
-    const futureErc20TerminalAddress = ethers.utils.getContractAddress({
-      from: deployer.address,
-      nonce: currentNonce + 1,
-    });
-
-    await mockJBPaymentTerminalStore.mock.claimFor.withArgs(futureErc20TerminalAddress).returns();
     let jbErc20PaymentTerminal = await jbErc20TerminalFactory
       .connect(deployer)
       .deploy(
@@ -120,7 +105,7 @@ describe('JBPaymentTerminal::migrate(...)', function () {
     await mockJbErc20PaymentTerminal.mock.token.returns(NON_ETH_TOKEN);
 
     // addToBalanceOf _amount is 0 if ETH terminal
-    await mockJbEthPaymentTerminal.mock.addToBalanceOf.withArgs(/*CURRENT_TERMINAL_BALANCE*/0, PROJECT_ID, '').returns();
+    await mockJbEthPaymentTerminal.mock.addToBalanceOf.withArgs(CURRENT_TERMINAL_BALANCE, PROJECT_ID, '').returns();
     await mockJbErc20PaymentTerminal.mock.addToBalanceOf.withArgs(CURRENT_TERMINAL_BALANCE, PROJECT_ID, '').returns();
 
     await setBalance(jbEthPaymentTerminal.address, CURRENT_TERMINAL_BALANCE);
