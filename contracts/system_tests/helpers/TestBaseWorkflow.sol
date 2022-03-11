@@ -211,11 +211,18 @@ contract TestBaseWorkflow is DSTest {
     );
     evm.label(address(_jbETHPaymentTerminal), 'JBETHPaymentTerminal');
 
+    evm.prank(_multisig);
+    _jbToken = new JBToken('MyToken', 'MT');
+
+    evm.prank(_multisig);
+    _jbToken.mint(0, _multisig, 100*10**18);
+
     // JBERC20PaymentTerminal
     _jbERC20PaymentTerminal = new JBERC20PaymentTerminal(
       _jbToken,
+      // Not testing currency != base weight (still need to code a fake price feed)
       _accessJBLib.ETH(), // currency
-      _accessJBLib.USD(), // base weight currency
+      _accessJBLib.ETH(), // base weight currency
       1, // JBSplitsGroupe
       _jbOperatorStore,
       _jbProjects,
@@ -224,6 +231,6 @@ contract TestBaseWorkflow is DSTest {
       _jbPaymentTerminalStore,
       _multisig
     );
-    evm.label(address(_jbETHPaymentTerminal), 'JBETHPaymentTerminal');
+    evm.label(address(_jbERC20PaymentTerminal), 'JBERC20PaymentTerminal');
   }
 }
