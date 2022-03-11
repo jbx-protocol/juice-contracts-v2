@@ -65,7 +65,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
 
   /**
     @notice
-    Each holder's balance of unclaimed tokens for each project, as a fixed point number with 18 decimals.
+    Each holder's balance of unclaimed tokens for each project.
 
     _holder The holder of balance.
     _projectId The ID of the project to which the token belongs.
@@ -74,7 +74,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
 
   /**
     @notice
-    The total supply of unclaimed tokens for each project, as a fixed point number with 18 decimals.
+    The total supply of unclaimed tokens for each project.
 
     _projectId The ID of the project to which the token belongs.
   */
@@ -94,31 +94,31 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
 
   /**
     @notice
-    The total supply of tokens for each project, including claimed and unclaimed tokens, as a fixed point number with 18 decimals.
+    The total supply of tokens for each project, including claimed and unclaimed tokens.
 
     @param _projectId The ID of the project to get the total token supply of.
 
-    @return supply The total supply.
+    @return totalSupply The total supply of the project's tokens.
   */
-  function totalSupplyOf(uint256 _projectId) external view override returns (uint256 supply) {
-    // Get a reference to the unclaimed total supply of the project.
-    supply = unclaimedTotalSupplyOf[_projectId];
+  function totalSupplyOf(uint256 _projectId) external view override returns (uint256 totalSupply) {
+    // Get a reference to the total supply of the project's unclaimed tokens.
+    totalSupply = unclaimedTotalSupplyOf[_projectId];
 
-    // Get a reference to the project's token.
+    // Get a reference to the project's current token.
     IJBToken _token = tokenOf[_projectId];
 
-    // If the project has issued a token, add it's total supply to the total.
-    if (_token != IJBToken(address(0))) supply = supply + _token.totalSupply(_projectId);
+    // If the project has a current token, add it's total supply to the total.
+    if (_token != IJBToken(address(0))) totalSupply = totalSupply + _token.totalSupply(_projectId);
   }
 
   /**
     @notice
-    The total balance of tokens a holder has for a specified project, including claimed and unclaimed tokens, as a fixed point number with 18 decimals.
+    The total balance of tokens a holder has for a specified project, including claimed and unclaimed tokens.
 
     @param _holder The token holder to get a balance for.
     @param _projectId The project to get the `_holder`s balance of.
 
-    @return balance The balance.
+    @return balance The project token balance of the `_holder
   */
   function balanceOf(address _holder, uint256 _projectId)
     external
@@ -129,10 +129,10 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     // Get a reference to the holder's unclaimed balance for the project.
     balance = unclaimedBalanceOf[_holder][_projectId];
 
-    // Get a reference to the project's token.
+    // Get a reference to the project's current token.
     IJBToken _token = tokenOf[_projectId];
 
-    // If the project has issued a token, add the holder's balance to the total.
+    // If the project has a current token, add the holder's balance to the total.
     if (_token != IJBToken(address(0))) balance = balance + _token.balanceOf(_holder, _projectId);
   }
 
@@ -239,7 +239,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
 
     @param _holder The address receiving the new tokens.
     @param _projectId The ID of the project to which the tokens belong.
-    @param _amount The amount of tokens to mint, as a fixed point number with 18 decimals.
+    @param _amount The amount of tokens to mint.
     @param _preferClaimedTokens A flag indicating whether there's a preference for ERC20's to be claimed automatically if they have been issued.
   */
   function mintFor(
@@ -276,7 +276,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
 
     @param _holder The address that owns the tokens being burned.
     @param _projectId The ID of the project to which the burned tokens belong
-    @param _amount The amount of tokens to burned, as a fixed point number with 18 decimals.
+    @param _amount The amount of tokens to burned.
     @param _preferClaimedTokens A flag indicating if there's a preference to burn tokens that have been converted to ERC-20s.
   */
   function burnFrom(
@@ -352,7 +352,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
 
     @param _holder The owner of the tokens to claim.
     @param _projectId The ID of the project whose tokens are being claimed.
-    @param _amount The amount of tokens to claim, as a fixed point number with 18 decimals.
+    @param _amount The amount of tokens to claim.
   */
   function claimFor(
     address _holder,
@@ -393,7 +393,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     @param _recipient The recipient of the tokens.
     @param _holder The address to transfer tokens from.
     @param _projectId The ID of the project whose tokens are being transferred.
-    @param _amount The amount of tokens to transfer, as a fixed point number with 18 decimals.
+    @param _amount The amount of tokens to transfer.
   */
   function transferTo(
     address _recipient,

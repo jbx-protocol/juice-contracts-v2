@@ -26,8 +26,8 @@ interface IJBTokenStore {
     address indexed holder,
     uint256 indexed projectId,
     uint256 amount,
-    uint256 initialUnclaimedTokenBalance,
-    uint256 initialClaimedTokenBalance,
+    uint256 initialUnclaimedBalance,
+    uint256 initialClaimedBalance,
     bool preferClaimedTokens,
     address caller
   );
