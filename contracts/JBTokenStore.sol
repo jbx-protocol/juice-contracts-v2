@@ -34,12 +34,15 @@ error CANT_REMOVE_TOKEN_IF_ITS_REQUIRED();
 
   @dev
   Each project can bring their own token if they prefer, and swap between tokens at any time.
+  
+  @dev
+  Adheres to:
+  IJBTokenStore: General interface for the methods in this contract that interact with the blockchain's state according to the Juicebox protocol's rules.
 
   @dev
   Inherits from:
-  IJBTokenStore: General interface for the methods in this contract that interact with the blockchain's state according to the Juicebox protocol's rules.
-  JBControllerUtility - Includes convenience functionality for checking if the message sender is the current controller of the project whose data is being manipulated.
-  JBOperatable - Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
+  JBControllerUtility: Includes convenience functionality for checking if the message sender is the current controller of the project whose data is being manipulated.
+  JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
   //*********************************************************************//
@@ -66,20 +69,20 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
 
   /**
     @notice
+    The total supply of unclaimed tokens for each project.
+
+    _projectId The ID of the project to which the token belongs.
+  */
+  mapping(uint256 => uint256) public override unclaimedTotalSupplyOf;
+
+  /**
+    @notice
     Each holder's balance of unclaimed tokens for each project.
 
     _holder The holder of balance.
     _projectId The ID of the project to which the token belongs.
   */
   mapping(address => mapping(uint256 => uint256)) public override unclaimedBalanceOf;
-
-  /**
-    @notice
-    The total supply of unclaimed tokens for each project.
-
-    _projectId The ID of the project to which the token belongs.
-  */
-  mapping(uint256 => uint256) public override unclaimedTotalSupplyOf;
 
   /**
     @notice
