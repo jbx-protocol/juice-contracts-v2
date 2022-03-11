@@ -106,10 +106,10 @@ interface IJBTokenStore {
     uint256 _amount
   ) external;
 
-  function transferTo(
-    address _recipient,
+  function transferFrom(
     address _holder,
     uint256 _projectId,
+    address _recipient,
     uint256 _amount
   ) external;
 }

@@ -36,6 +36,7 @@ describe('JBTokenStore::changeFor(...)', function () {
       newOwner,
       controller,
       mockJbDirectory,
+      mockJbProjects,
       jbTokenStore,
     };
   }
@@ -118,5 +119,29 @@ describe('JBTokenStore::changeFor(...)', function () {
           ethers.Wallet.createRandom().address,
         ),
     ).to.be.revertedWith(errors.CONTROLLER_UNAUTHORIZED);
+  });
+
+  it(`Can't remove the project's token if claiming is required`, async function () {
+    const { controller, mockJbDirectory, mockJbProjects, jbTokenStore, newOwner } = await setup();
+
+    await mockJbDirectory.mock.controllerOf
+      .withArgs(PROJECT_ID)
+      .returns(controller.address);
+
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(newOwner.address);
+    // Issue the initial token.
+    await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
+    // Require claiming.
+    await jbTokenStore.connect(newOwner).shouldRequireClaimingFor(PROJECT_ID, true);
+
+    await expect(
+      jbTokenStore
+        .connect(controller)
+        .changeFor(
+          PROJECT_ID,
+          ethers.constants.AddressZero,
+          ethers.Wallet.createRandom().address,
+        ),
+    ).to.be.revertedWith(errors.CANT_REMOVE_TOKEN_IF_ITS_REQUIRED);
   });
 });
