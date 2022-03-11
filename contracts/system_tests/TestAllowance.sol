@@ -181,7 +181,6 @@ contract TestAllowance is TestBaseWorkflow {
 
     if (BALANCE !=0  && BALANCE > TARGET && ALLOWANCE < BALANCE && TARGET < BALANCE) assertEq((msg.sender).balance, ALLOWANCE);
 
-
     evm.prank(_projectOwner);
     if (TARGET > BALANCE)
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
