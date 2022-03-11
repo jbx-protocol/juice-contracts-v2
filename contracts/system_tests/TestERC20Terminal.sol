@@ -96,7 +96,8 @@ contract TestERC20Terminal is TestBaseWorkflow {
       5 ether,
       1, // Currency
       0, // Min wei out
-      payable(msg.sender) // Beneficiary
+      payable(msg.sender), // Beneficiary
+      'MEMO'
     );
     assertEq((msg.sender).balance, 5 ether);
 

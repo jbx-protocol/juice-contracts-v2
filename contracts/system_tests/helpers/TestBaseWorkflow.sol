@@ -133,6 +133,10 @@ contract TestBaseWorkflow is DSTest {
     return _jbToken;
   }
 
+  function jbLibraries() internal view returns(AccessJBLib) {
+    return _accessJBLib;
+  }
+
   //*********************************************************************//
   // --------------------------- test setup ---------------------------- //
   //*********************************************************************//
@@ -207,7 +211,7 @@ contract TestBaseWorkflow is DSTest {
     );
     evm.label(address(_jbETHPaymentTerminal), 'JBETHPaymentTerminal');
 
-    // JBETHPaymentTerminal
+    // JBERC20PaymentTerminal
     _jbERC20PaymentTerminal = new JBERC20PaymentTerminal(
       _jbToken,
       _accessJBLib.ETH(), // currency

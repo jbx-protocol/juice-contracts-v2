@@ -111,8 +111,8 @@ contract TestTokenFlow is TestBaseWorkflow {
       _beneficiary,
       'Mint memo',
       mintPreferClaimed,
-      _reservedRate
-    );
+      false /*use reserved rate*/
+      );
 
     // total token balance should be half of token count due to 50% reserved rate
     assertEq(_tokenStore.balanceOf(_beneficiary, _projectId), _expectedTokenBalance);
@@ -158,7 +158,7 @@ contract TestTokenFlow is TestBaseWorkflow {
       _beneficiary,
       'Mint memo',
       true,
-      0
+      false /*use reserved rate*/
     );
 
     // mint unclaimed tokens to beneficiary addr
@@ -168,7 +168,7 @@ contract TestTokenFlow is TestBaseWorkflow {
       _beneficiary,
       'Mint memo',
       false,
-      0
+      false
     );
 
     // try to claim the unclaimed tokens
@@ -196,7 +196,7 @@ contract TestTokenFlow is TestBaseWorkflow {
       _beneficiary,
       'Mint memo',
       false,
-      0
+      false
     );
 
     // create a new IJBToken and change it's owner to the tokenStore

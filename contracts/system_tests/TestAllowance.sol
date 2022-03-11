@@ -96,7 +96,8 @@ contract TestAllowance is TestBaseWorkflow {
       5 ether,
       1, // Currency
       0, // Min wei out
-      payable(msg.sender) // Beneficiary
+      payable(msg.sender), // Beneficiary
+      'MEMO'
     );
     assertEq((msg.sender).balance, 5 ether);
 
@@ -109,7 +110,7 @@ contract TestAllowance is TestBaseWorkflow {
       0, // Min wei out
       'Foundry payment' // Memo
     );
-    assertEq(_projectOwner.balance, 10 ether);
+    assertEq(_projectOwner.balance, (10 ether * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE()) );
 
     // redeem eth from the overflow by the token holder:
     uint256 senderBalance = _tokenStore.balanceOf(msg.sender, projectId);
@@ -174,7 +175,8 @@ contract TestAllowance is TestBaseWorkflow {
       ALLOWANCE,
       1, // Currency
       0, // Min wei out
-      payable(msg.sender) // Beneficiary
+      payable(msg.sender), // Beneficiary
+      'MEMO'
     );
 
     if (BALANCE !=0  && BALANCE > TARGET && ALLOWANCE < BALANCE && TARGET < BALANCE) assertEq((msg.sender).balance, ALLOWANCE);
