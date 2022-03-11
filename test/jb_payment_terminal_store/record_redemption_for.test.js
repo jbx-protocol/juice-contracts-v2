@@ -356,6 +356,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     await mockJbFundingCycleDataSource.mock.redeemParams
       .withArgs({
         // JBRedeemParamsData obj
+        terminal: JBPaymentTerminalStore.address,
         holder: holder.address,
         tokenCount: AMOUNT,
         projectId: PROJECT_ID,
@@ -510,6 +511,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     await mockJbFundingCycleDataSource.mock.redeemParams
       .withArgs({
         // JBRedeemParamsData obj
+        terminal: mockJbTerminalSigner.address,
         holder: holder.address,
         tokenCount: AMOUNT,
         projectId: PROJECT_ID,

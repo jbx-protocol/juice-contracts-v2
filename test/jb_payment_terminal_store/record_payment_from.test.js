@@ -203,6 +203,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     await mockJbFundingCycleDataSource.mock.payParams
       .withArgs({
         // JBPayParamsData obj
+        terminal: mockJbTerminalSigner.address,
         payer: payer.address,
         amount: AMOUNT,
         projectId: PROJECT_ID,
@@ -361,6 +362,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     await mockJbFundingCycleDataSource.mock.payParams
       .withArgs({
         // JBPayParamsData obj
+        terminal: mockJbTerminalSigner.address,
         payer: payer.address,
         amount: 0,
         projectId: PROJECT_ID,

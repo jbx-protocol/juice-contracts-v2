@@ -282,6 +282,7 @@ contract JBPaymentTerminalStore {
     if (fundingCycle.useDataSourceForPay()) {
       (weight, memo, delegate) = fundingCycle.dataSource().payParams(
         JBPayParamsData(
+          IJBTerminal(msg.sender),
           _payer,
           _amount,
           _projectId,
@@ -547,6 +548,7 @@ contract JBPaymentTerminalStore {
     if (fundingCycle.useDataSourceForRedeem()) {
       (reclaimAmount, memo, delegate) = fundingCycle.dataSource().redeemParams(
         JBRedeemParamsData(
+          IJBTerminal(msg.sender),
           _holder,
           _tokenCount,
           _projectId,

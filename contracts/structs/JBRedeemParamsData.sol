@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import './../interfaces/IJBTerminal.sol';
+
 struct JBRedeemParamsData {
+  // The terminal that is facilitating the redemption.
+  IJBTerminal terminal;
   // The holder of the tokens being redeemed.
   address holder;
   // The proposed number of tokens being redeemed.
