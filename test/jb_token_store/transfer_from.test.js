@@ -8,7 +8,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import errors from '../helpers/errors.json';
 
-describe('JBTokenStore::transferTo(...)', function () {
+describe('JBTokenStore::transferFrom(...)', function () {
   const PROJECT_ID = 2;
   const TOKEN_NAME = 'TestTokenDAO';
   const TOKEN_SYMBOL = 'TEST';
@@ -67,16 +67,16 @@ describe('JBTokenStore::transferTo(...)', function () {
     await jbTokenStore.connect(controller).mintFor(holder.address, PROJECT_ID, numTokens, false);
 
     // Transfer unclaimed tokens to new recipient
-    const transferToTx = await jbTokenStore
+    const transferFromTx = await jbTokenStore
       .connect(controller)
-      .transferTo(recipient.address, holder.address, PROJECT_ID, numTokens);
+      .transferFrom(/* sender */ holder.address, PROJECT_ID, /* recipient */ recipient.address, numTokens);
 
     expect(await jbTokenStore.unclaimedBalanceOf(holder.address, PROJECT_ID)).to.equal(0);
     expect(await jbTokenStore.unclaimedBalanceOf(recipient.address, PROJECT_ID)).to.equal(
       numTokens,
     );
 
-    await expect(transferToTx)
+    await expect(transferFromTx)
       .to.emit(jbTokenStore, 'Transfer')
       .withArgs(holder.address, PROJECT_ID, recipient.address, numTokens, controller.address);
   });
@@ -91,37 +91,8 @@ describe('JBTokenStore::transferTo(...)', function () {
     await expect(
       jbTokenStore
         .connect(controller)
-        .transferTo(ethers.constants.AddressZero, holder.address, PROJECT_ID, /* amount= */ 1),
+        .transferFrom(holder.address, PROJECT_ID, /* recipient */ ethers.constants.AddressZero, /* amount= */ 1),
     ).to.be.revertedWith(errors.RECIPIENT_ZERO_ADDRESS);
-  });
-
-  it(`Can't transfer unclaimed tokens when recipient and holder are the same`, async function () {
-    const { controller, holder, mockJbOperatorStore, jbTokenStore, TRANSFER_INDEX } = await setup();
-
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(controller.address, holder.address, PROJECT_ID, TRANSFER_INDEX)
-      .returns(true);
-
-    await expect(
-      jbTokenStore
-        .connect(controller)
-        .transferTo(holder.address, holder.address, PROJECT_ID, /* amount= */ 1),
-    ).to.be.revertedWith(errors.INVALID_RECIPIENT);
-  });
-
-  it(`Can't transfer unclaimed tokens if amount is <= 0`, async function () {
-    const { controller, holder, recipient, mockJbOperatorStore, jbTokenStore, TRANSFER_INDEX } =
-      await setup();
-
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(controller.address, holder.address, PROJECT_ID, TRANSFER_INDEX)
-      .returns(true);
-
-    await expect(
-      jbTokenStore
-        .connect(controller)
-        .transferTo(recipient.address, holder.address, PROJECT_ID, /* amount= */ 0),
-    ).to.be.revertedWith(errors.TOKEN_AMOUNT_ZERO);
   });
 
   it(`Can't transfer more unclaimed tokens than available balance`, async function () {
@@ -136,7 +107,7 @@ describe('JBTokenStore::transferTo(...)', function () {
     await expect(
       jbTokenStore
         .connect(controller)
-        .transferTo(recipient.address, holder.address, PROJECT_ID, /* amount= */ 1),
+        .transferFrom(/* sender */ holder.address, PROJECT_ID, /* recipient */ recipient.address, /* amount= */ 1),
     ).to.be.revertedWith(errors.INSUFFICIENT_UNCLAIMED_TOKENS);
   });
 
@@ -151,7 +122,7 @@ describe('JBTokenStore::transferTo(...)', function () {
     await expect(
       jbTokenStore
         .connect(controller)
-        .transferTo(recipient.address, holder.address, PROJECT_ID, /* amount= */ 1),
+        .transferFrom(/* sender */ holder.address, PROJECT_ID, /* recipient */ recipient.address, /* amount= */ 1),
     ).to.be.reverted;
   });
 });

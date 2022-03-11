@@ -48,18 +48,20 @@ describe('JBTokenStore::claimFor(...)', function () {
       .connect(controller)
       .mintFor(newHolder.address, PROJECT_ID, numTokens, /* preferClaimedTokens= */ false);
 
+    const amountToClaim = numTokens - 1;
+
     // Claim the unclaimed tokens
     const claimForTx = await jbTokenStore
       .connect(controller)
-      .claimFor(newHolder.address, PROJECT_ID, numTokens);
+      .claimFor(newHolder.address, PROJECT_ID, amountToClaim);
 
-    expect(await jbTokenStore.unclaimedBalanceOf(newHolder.address, PROJECT_ID)).to.equal(0);
+    expect(await jbTokenStore.unclaimedBalanceOf(newHolder.address, PROJECT_ID)).to.equal(numTokens - amountToClaim);
     expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(numTokens);
     expect(await jbTokenStore.totalSupplyOf(PROJECT_ID)).to.equal(numTokens);
 
     await expect(claimForTx)
       .to.emit(jbTokenStore, 'Claim')
-      .withArgs(newHolder.address, PROJECT_ID, numTokens, controller.address);
+      .withArgs(newHolder.address, PROJECT_ID, numTokens, amountToClaim, controller.address);
   });
 
   it(`Can't claim tokens if projectId isn't found`, async function () {

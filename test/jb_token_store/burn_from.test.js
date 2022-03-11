@@ -67,6 +67,7 @@ describe('JBTokenStore::burnFrom(...)', function () {
         PROJECT_ID,
         MAX_TOKENS,
         /* unclaimedBalance= */ 0,
+        MAX_TOKENS,
         preferClaimedTokens,
         controller.address,
       );
@@ -106,6 +107,7 @@ describe('JBTokenStore::burnFrom(...)', function () {
         newHolder.address,
         PROJECT_ID,
         burnAmt,
+        MAX_TOKENS,
         MAX_TOKENS,
         preferClaimedTokens,
         controller.address,
@@ -147,6 +149,7 @@ describe('JBTokenStore::burnFrom(...)', function () {
         PROJECT_ID,
         burnAmt,
         MAX_TOKENS,
+        MAX_TOKENS,
         /* preferClaimedTokens= */ false,
         controller.address,
       );
@@ -181,6 +184,7 @@ describe('JBTokenStore::burnFrom(...)', function () {
         PROJECT_ID,
         MAX_TOKENS,
         MAX_TOKENS,
+        0,
         preferClaimedTokens,
         controller.address,
       );
@@ -246,18 +250,4 @@ describe('JBTokenStore::burnFrom(...)', function () {
     ).to.be.revertedWith(errors.INSUFFICIENT_FUNDS);
   });
 
-  it(`Can't burn any tokens if burn amount <= 0'`, async function () {
-    const { controller, newHolder, mockJbDirectory, jbTokenStore } = await setup();
-
-    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
-
-    const numTokens = 0;
-    const preferClaimedTokens = true;
-
-    await expect(
-      jbTokenStore
-        .connect(controller)
-        .burnFrom(newHolder.address, PROJECT_ID, numTokens, preferClaimedTokens),
-    ).to.be.revertedWith(errors.TOKEN_AMOUNT_ZERO);
-  });
 });

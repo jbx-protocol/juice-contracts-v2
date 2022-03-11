@@ -105,7 +105,7 @@ describe('JBController::changeTokenOf(...)', function () {
 
     await mockJbTokenStore.mock.changeFor
       .withArgs(PROJECT_ID, mockJbToken.address, newTokenOwner.address)
-      .returns();
+      .returns(ethers.constants.AddressZero);
 
     await expect(
       jbController
@@ -146,7 +146,7 @@ describe('JBController::changeTokenOf(...)', function () {
 
     await mockJbTokenStore.mock.changeFor
       .withArgs(PROJECT_ID, mockJbToken.address, newTokenOwner.address)
-      .returns();
+      .returns(ethers.constants.AddressZero);
 
     await expect(
       jbController
@@ -191,7 +191,7 @@ describe('JBController::changeTokenOf(...)', function () {
 
     await mockJbTokenStore.mock.changeFor
       .withArgs(PROJECT_ID, mockJbToken.address, newTokenOwner.address)
-      .returns();
+      .returns(ethers.constants.AddressZero);
 
     await expect(
       jbController
@@ -227,7 +227,7 @@ describe('JBController::changeTokenOf(...)', function () {
 
     await mockJbTokenStore.mock.changeFor
       .withArgs(PROJECT_ID, mockJbToken.address, newTokenOwner.address)
-      .returns();
+      .returns(ethers.constants.AddressZero);
 
     await expect(
       jbController

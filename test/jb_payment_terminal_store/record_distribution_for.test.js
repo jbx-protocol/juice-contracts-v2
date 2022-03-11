@@ -20,7 +20,6 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
   const AMOUNT = ethers.FixedNumber.fromString('4398541.345');
   const WEIGHT = ethers.FixedNumber.fromString('900000000.23411');
   const CURRENCY = 1;
-  const BASE_CURRENCY = 0;
 
   async function setup() {
     const [deployer, addr] = await ethers.getSigners();
