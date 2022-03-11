@@ -67,7 +67,7 @@ describe('JBTokenStore::changeFor(...)', function () {
 
     await expect(changeTx)
       .to.emit(jbTokenStore, 'Change')
-      .withArgs(PROJECT_ID, newTokenAddr, newOwner.address, controller.address);
+      .withArgs(PROJECT_ID, newTokenAddr, initialTokenAddr, newOwner.address, controller.address);
   });
 
   it('Should change tokens without changing owner of old token', async function () {
@@ -98,7 +98,7 @@ describe('JBTokenStore::changeFor(...)', function () {
 
     await expect(changeTx)
       .to.emit(jbTokenStore, 'Change')
-      .withArgs(PROJECT_ID, newTokenAddr, ethers.constants.AddressZero, controller.address);
+      .withArgs(PROJECT_ID, newTokenAddr, initialTokenAddr, ethers.constants.AddressZero, controller.address);
   });
 
   it(`Can't change tokens if caller does not have permission`, async function () {
