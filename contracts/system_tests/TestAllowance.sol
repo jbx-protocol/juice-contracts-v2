@@ -196,7 +196,8 @@ contract TestAllowance is TestBaseWorkflow {
       0, // Min wei out
       'Foundry payment' // Memo
     );
-    if (BALANCE !=0 && BALANCE > TARGET) assertEq(_projectOwner.balance, TARGET);
+    if (BALANCE !=0 && BALANCE > TARGET)
+      assertEq(_projectOwner.balance, (TARGET * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE()));
 
     evm.prank(msg.sender);
 
