@@ -128,7 +128,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     @dev
     Out of MAX_FEE (50_000_000 / 1_000_000_000)
   */
-  uint256 public override fee = 50_000_000; // 5%
+  uint256 public override fee = 25_000_000; // 5%
 
   /**
     @notice
