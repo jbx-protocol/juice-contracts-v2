@@ -57,11 +57,11 @@ contract TestERC20Terminal is TestBaseWorkflow {
   }
 
   function testAllowance() public {
-    JBETHPaymentTerminal terminal = jbETHPaymentTerminal();
+    JBERC20PaymentTerminal terminal = jbERC20PaymentTerminal();
 
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
-        terminal: jbETHPaymentTerminal(),
+        terminal: jbERC20PaymentTerminal(),
         distributionLimit: 10 ether,
         overflowAllowance: 5 ether,
         distributionLimitCurrency: 1, // Currency = ETH
@@ -79,8 +79,8 @@ contract TestERC20Terminal is TestBaseWorkflow {
       _fundAccessConstraints,
       _terminals
     );
-
-    terminal.pay{value: 20 ether}(20 ether, projectId, msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
+// --- todo: msg sender allowance (revert if not)
+    terminal.pay(20*10**18, projectId, msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
 
      // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
     uint256 _userTokenBalance = PRBMathUD60x18.mul(20 ether, WEIGHT) / 2;
