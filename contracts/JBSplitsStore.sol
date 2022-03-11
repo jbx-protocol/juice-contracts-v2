@@ -14,7 +14,6 @@ import './libraries/JBConstants.sol';
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
 //*********************************************************************//
-error ALLOCATOR_AND_BENEFICIARY_ZERO_ADDRESS();
 error INVALID_SPLIT_PERCENT();
 error INVALID_TOTAL_PERCENT();
 error INVALID_PROJECT_ID();
@@ -196,14 +195,6 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
       // ProjectId should be within a uint56
       if (_splits[_i].projectId > type(uint56).max) {
         revert INVALID_PROJECT_ID();
-      }
-
-      // The allocator and the beneficiary shouldn't both be the zero address.
-      if (
-        _splits[_i].allocator == IJBSplitAllocator(address(0)) &&
-        _splits[_i].beneficiary == address(0)
-      ) {
-        revert ALLOCATOR_AND_BENEFICIARY_ZERO_ADDRESS();
       }
 
       // Add to the total percents.
