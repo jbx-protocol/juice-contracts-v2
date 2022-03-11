@@ -79,7 +79,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
       _fundAccessConstraints,
       _terminals
     );
-// --- todo: msg sender allowance (revert if not)
+// --- todo: msg sender allowance (revert if not -> add try/catch to escalade revert string?)
     terminal.pay(20*10**18, projectId, msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
 
      // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
