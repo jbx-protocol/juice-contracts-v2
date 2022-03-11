@@ -42,7 +42,9 @@ contract JBERC20PaymentTerminal is JBPaymentTerminal {
     address payable _to,
     uint256 _amount
   ) internal override {
-    IERC20(token).transferFrom(_from, _to, _amount);
+    _from == msg.sender ?
+      IERC20(token).transfer(_from, _amount)
+      : IERC20(token).transferFrom(_from, _to, _amount);
   }
 
   function _beforeTransferTo(address _to, uint256 _amount) internal override {
