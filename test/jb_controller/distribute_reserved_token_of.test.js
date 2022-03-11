@@ -96,7 +96,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
         ethers.constants.AddressZero,
         MEMO,
         PREFERED_CLAIMED_TOKEN,
-        /*reservedRate=*/ 10000,
+        /*useReservedRate*/true,
       );
 
     return {
@@ -115,7 +115,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
     };
   }
 
-  it(`Should send to beneficiaries and emit events if no allocator or project id is set in splits`, async function () {
+  it(`Should send to beneficiaries and emit events if beneficiaries are set in split, but not allocator or project id`, async function () {
     const { addrs, projectOwner, jbController, mockJbTokenStore, mockSplitsStore, timestamp } =
       await setup();
     const caller = addrs[0];
@@ -320,6 +320,71 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
 
     await Promise.all([
       splits.map(async (split, _) => {
+        await expect(tx)
+          .to.emit(jbController, 'DistributeToReservedTokenSplit')
+          .withArgs(
+            /*fundingCycleConfiguration=*/ timestamp,
+            /*fundingCycleNumber=*/ 1,
+            PROJECT_ID,
+            [
+              split.preferClaimed,
+              split.percent,
+              split.projectId,
+              split.beneficiary,
+              split.lockedUntil,
+              split.allocator,
+            ],
+            /*count=*/ RESERVED_AMOUNT / splits.length,
+            /*caller=*/ caller.address,
+          );
+      }),
+      await expect(tx)
+        .to.emit(jbController, 'DistributeReservedTokens')
+        .withArgs(
+          /*fundingCycleConfiguration=*/ timestamp,
+          /*fundingCycleNumber=*/ 1,
+          PROJECT_ID,
+          /*projectOwner=*/ projectOwner.address,
+          /*count=*/ RESERVED_AMOUNT,
+          /*leftoverTokenCount=*/ 0,
+          MEMO,
+          caller.address,
+        ),
+    ]);
+  });
+
+  it(`Should send to the msg.sender and emit events if no allocator, beneficiary or project id is set in split`, async function () {
+    const { addrs, projectOwner, jbController, mockJbTokenStore, mockSplitsStore, timestamp } =
+      await setup();
+    const caller = addrs[0];
+    const splits = makeSplits({count: 2, preferClaimed: true});
+
+    await mockSplitsStore.mock.splitsOf
+      .withArgs(PROJECT_ID, timestamp, RESERVED_SPLITS_GROUP)
+      .returns(splits);
+
+    await Promise.all(
+      splits.map(async () => {
+        await mockJbTokenStore.mock.mintFor
+          .withArgs(
+            caller.address,
+            PROJECT_ID,
+            /*amount=*/ Math.floor(RESERVED_AMOUNT/splits.length),
+            PREFERED_CLAIMED_TOKEN,
+          )
+          .returns();
+      }),
+    );
+
+    expect(
+      await jbController.connect(caller).callStatic.distributeReservedTokensOf(PROJECT_ID, MEMO),
+    ).to.equal(RESERVED_AMOUNT);
+
+    const tx = await jbController.connect(caller).distributeReservedTokensOf(PROJECT_ID, MEMO);
+
+    // Expect one event per split + one event for the whole transaction
+    await Promise.all([
+      splits.map(async (split) => {
         await expect(tx)
           .to.emit(jbController, 'DistributeToReservedTokenSplit')
           .withArgs(

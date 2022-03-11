@@ -224,17 +224,6 @@ describe('JBSplitsStore::set(...)', function () {
     ).to.be.revertedWith(errors.INVALID_SPLIT_PERCENT);
   });
 
-  it("Can't set splits when a split has both allocator and beneficiary zero address", async function () {
-    const { projectOwner, jbSplitsStore, splits } = await setup();
-
-    splits[1].beneficiary = ethers.constants.AddressZero;
-    splits[1].allocator = ethers.constants.AddressZero;
-
-    await expect(
-      jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits),
-    ).to.be.revertedWith(errors.ALLOCATOR_AND_BENEFICIARY_ZERO_ADDRESS);
-  });
-
   it("Can't set splits if the sum of the percents is greather than 1000000000", async function () {
     const { projectOwner, jbSplitsStore, splits } = await setup();
 
