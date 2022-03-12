@@ -12,7 +12,11 @@ interface IJBPrices {
 
   function feedFor(uint256 _currency, uint256 _base) external returns (IJBPriceFeed);
 
-  function priceFor(uint256 _currency, uint256 _base) external view returns (uint256);
+  function priceFor(
+    uint256 _currency,
+    uint256 _base,
+    uint256 _targetDecimals
+  ) external view returns (uint256);
 
   function addFeedFor(
     uint256 _currency,

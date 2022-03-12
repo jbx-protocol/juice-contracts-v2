@@ -123,6 +123,12 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
 
   /**
     @notice
+    The number of decimals assumed by fixed point amounts throughout the terminal.
+  */
+  uint256 public immutable override decimals;
+
+  /**
+    @notice
     The platform fee percent.
 
     @dev
@@ -224,6 +230,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
 
   /**
     @param _token The token that this terminal manages.
+    @param _decimals The number of decimals assumed by fixed point amounts throughout the terminal.
     @param _currency The currency that this terminal's token adheres to for price feeds.
     @param _baseWeightCurrency The currency to base token issuance on.
     @param _payoutSplitsGroup The group that denotes payout splits from this terminal in the splits store.
@@ -236,6 +243,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
   */
   constructor(
     address _token,
+    uint256 _decimals,
     uint256 _currency,
     uint256 _baseWeightCurrency,
     uint256 _payoutSplitsGroup,
@@ -247,6 +255,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     address _owner
   ) JBOperatable(_operatorStore) {
     token = _token;
+    decimals = _decimals;
     baseWeightCurrency = _baseWeightCurrency;
     payoutSplitsGroup = _payoutSplitsGroup;
     currency = _currency;
@@ -333,6 +342,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordDistributionFor(
       _projectId,
       _amount,
+      decimals,
       _currency
     );
 
@@ -433,6 +443,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordUsedAllowanceOf(
       _projectId,
       _amount,
+      decimals,
       _currency
     );
 
@@ -525,6 +536,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
         _holder,
         _projectId,
         _tokenCount,
+        decimals,
         currency,
         _beneficiary,
         _memo
@@ -948,6 +960,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
       (_fundingCycle, _weight, _tokenCount, _delegate, _memo) = store.recordPaymentFrom(
         _payer,
         _amount,
+        decimals,
         _projectId,
         _beneficiary,
         _memo

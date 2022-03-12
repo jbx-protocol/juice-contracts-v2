@@ -16,6 +16,8 @@ struct JBRedeemParamsData {
   uint256 redemptionRate;
   // The ballot redemption rate of the funding cycle during which the redemption is being made.
   uint256 ballotRedemptionRate;
+  // TODO
+  uint256 decimals;
   // The currency that the stored balance is expected to be in terms of.
   uint256 currency;
   // The proposed beneficiary of the ETH being claimed by making the redemption.

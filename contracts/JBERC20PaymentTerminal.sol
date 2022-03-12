@@ -2,14 +2,15 @@
 /* solhint-disable comprehensive-interface*/
 pragma solidity 0.8.6;
 
-import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 
 // Inheritance
 import './JBPaymentTerminal.sol';
 
 contract JBERC20PaymentTerminal is JBPaymentTerminal {
   constructor(
-    IERC20 _token,
+    IERC20Metadata _token,
+    uint256 _decimals,
     uint256 _currency,
     uint256 _baseWeightCurrency,
     uint256 _payoutSplitsGroup,
@@ -22,6 +23,7 @@ contract JBERC20PaymentTerminal is JBPaymentTerminal {
   )
     JBPaymentTerminal(
       address(_token),
+      _token.decimals(),
       _currency,
       _baseWeightCurrency,
       _payoutSplitsGroup,
@@ -42,8 +44,8 @@ contract JBERC20PaymentTerminal is JBPaymentTerminal {
     address payable _to,
     uint256 _amount
   ) internal override {
-    _from == address(this) ?
-      IERC20(token).transfer(_from, _amount)
+    _from == address(this)
+      ? IERC20(token).transfer(_from, _amount)
       : IERC20(token).transferFrom(_from, _to, _amount);
   }
 

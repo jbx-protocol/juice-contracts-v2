@@ -23,6 +23,7 @@ contract JBETHPaymentTerminal is JBPaymentTerminal {
   )
     JBPaymentTerminal(
       JBTokens.ETH,
+      18,
       JBCurrencies.ETH,
       _baseWeightCurrency,
       JBSplitsGroups.ETH_PAYOUT,
