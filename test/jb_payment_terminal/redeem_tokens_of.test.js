@@ -22,7 +22,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
   const ADJUSTED_MEMO = 'test test memo';
   const PROJECT_ID = 13;
   const WEIGHT = 1000;
-  const DELEGATE_METADATA = ethers.utils.randomBytes(32);
+  const METADATA = ethers.utils.randomBytes(32);
 
   let CURRENCY_ETH;
 
@@ -150,7 +150,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
         beneficiary.address,
         MEMO,
-        DELEGATE_METADATA,
+        METADATA,
       );
 
     expect(await tx)
@@ -211,7 +211,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
         beneficiary.address,
         MEMO,
-        DELEGATE_METADATA,
+        METADATA,
       );
 
     expect(await tx)
@@ -276,7 +276,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         reclaimedAmount: RECLAIM_AMOUNT,
         beneficiary: beneficiary.address,
         memo: ADJUSTED_MEMO,
-        metadata: DELEGATE_METADATA,
+        metadata: METADATA,
       })
       .returns();
 
@@ -293,7 +293,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
         beneficiary.address,
         MEMO,
-        DELEGATE_METADATA,
+        METADATA,
       );
 
     expect(await tx)
@@ -305,7 +305,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         /* reclaimAmount */ RECLAIM_AMOUNT,
         /* _beneficiary */ beneficiary.address,
         /* memo */ ADJUSTED_MEMO,
-        ethers.BigNumber.from(DELEGATE_METADATA)
+        ethers.BigNumber.from(METADATA)
       ],
         /* msg.sender */ holder.address
       );
@@ -375,7 +375,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         /* minReturnedTokens */ 0,
         beneficiary.address,
         MEMO,
-        DELEGATE_METADATA,
+        METADATA,
       );
 
     expect(await tx)
@@ -419,7 +419,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
           /* minReturnedTokens */ AMOUNT,
           beneficiary.address,
           MEMO,
-          /* delegateMetadata */ 0,
+          /* metadata */ 0,
         ),
     ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
@@ -435,7 +435,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         /* minReturnedTokens */ AMOUNT,
         /* beneficiary */ ethers.constants.AddressZero, // Beneficiary address is 0
         MEMO,
-        /* delegateMetadata */ 0,
+        /* metadata */ 0,
       ),
     ).to.be.revertedWith(errors.REDEEM_TO_ZERO_ADDRESS);
   });
@@ -478,7 +478,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
           beneficiary.address,
           MEMO,
-          DELEGATE_METADATA,
+          METADATA,
         ),
     ).to.be.revertedWith(errors.INADEQUATE_RECLAIM_AMOUNT);
   });

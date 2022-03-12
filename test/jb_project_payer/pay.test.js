@@ -14,7 +14,7 @@ describe('JBProjectPayer::pay(...)', function () {
   const TOKEN = ethers.Wallet.createRandom().address;
   const PREFER_CLAIMED_TOKENS = true;
   const MEMO = 'memo';
-  const DELEGATE_METADATA = [0x1];
+  const METADATA = [0x1];
   const AMOUNT = ethers.utils.parseEther('1.0');
 
   let JBTOKENS_ETH;
@@ -52,11 +52,11 @@ describe('JBProjectPayer::pay(...)', function () {
       .returns(mockJbTerminal.address);
 
     await mockJbTerminal.mock.pay
-      .withArgs(AMOUNT, PROJECT_ID_2, BENEFICIARY, 0, PREFER_CLAIMED_TOKENS, MEMO, DELEGATE_METADATA)
+      .withArgs(AMOUNT, PROJECT_ID_2, BENEFICIARY, 0, PREFER_CLAIMED_TOKENS, MEMO, METADATA)
       .returns();
 
     await expect(
-      jbFakeProjectPayer.pay(PROJECT_ID_2, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA, {
+      jbFakeProjectPayer.pay(PROJECT_ID_2, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, METADATA, {
         value: AMOUNT,
       }),
     ).to.not.be.reverted;
@@ -106,7 +106,7 @@ describe('JBProjectPayer::pay(...)', function () {
       .returns(ethers.constants.AddressZero);
 
     await expect(
-      jbFakeProjectPayer.pay(PROJECT_ID, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA),
+      jbFakeProjectPayer.pay(PROJECT_ID, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, METADATA),
     ).to.be.revertedWith(errors.TERMINAL_NOT_FOUND);
   });
 });

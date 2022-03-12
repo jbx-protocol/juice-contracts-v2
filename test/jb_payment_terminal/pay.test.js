@@ -16,7 +16,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
   const PROJECT_ID = 1;
   const MEMO = 'Memo Test';
   const ADJUSTED_MEMO = 'test test memo';
-  const DELEGATE_METADATA = ethers.utils.randomBytes(32);
+  const METADATA = ethers.utils.randomBytes(32);
   const FUNDING_CYCLE_NUMBER = 1;
   const ADJUSTED_WEIGHT = 10;
   const MIN_TOKEN_REQUESTED = 90;
@@ -163,7 +163,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
           MIN_TOKEN_REQUESTED,
           PREFER_CLAIMED_TOKENS,
           MEMO,
-          DELEGATE_METADATA,
+          METADATA,
           { value: ETH_TO_PAY },
         ),
     )
@@ -234,7 +234,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
         tokenCount: TOKEN_RECEIVED,
         beneficiary: beneficiary.address,
         memo: ADJUSTED_MEMO,
-        delegateMetadata: DELEGATE_METADATA
+        metadata: METADATA
       })
       .returns();
 
@@ -247,7 +247,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
         MIN_TOKEN_REQUESTED,
         PREFER_CLAIMED_TOKENS,
         MEMO,
-        DELEGATE_METADATA,
+        METADATA,
         { value: ETH_TO_PAY },
       );
 
@@ -261,7 +261,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
         /* tokenCount */ TOKEN_RECEIVED,
         /* beneficiary */ beneficiary.address,
         /* memo */ ADJUSTED_MEMO,
-        /* delegateMetadata */ ethers.BigNumber.from(DELEGATE_METADATA),
+        /* metadata */ ethers.BigNumber.from(METADATA),
       ], caller.address);
 
     await expect(tx)
@@ -304,7 +304,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
         MIN_TOKEN_REQUESTED,
           /*preferClaimedToken=*/ true,
         MEMO,
-        DELEGATE_METADATA,
+        METADATA,
         { value: ETH_TO_PAY },
       );
   });
@@ -347,7 +347,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
         0,
         PREFER_CLAIMED_TOKENS,
         MEMO,
-        DELEGATE_METADATA,
+        METADATA,
         { value: ETH_TO_PAY },
       );
   });
@@ -378,7 +378,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
         MIN_TOKEN_REQUESTED,
         PREFER_CLAIMED_TOKENS,
         MEMO,
-        DELEGATE_METADATA,
+        METADATA,
         { value: 0 },
       );
   });
@@ -396,7 +396,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
           MIN_TOKEN_REQUESTED,
           PREFER_CLAIMED_TOKENS,
           MEMO,
-          DELEGATE_METADATA,
+          METADATA,
           { value: ETH_TO_PAY },
         ),
     ).to.be.revertedWith(errors.NO_MSG_VALUE_ALLOWED);
@@ -415,7 +415,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
           MIN_TOKEN_REQUESTED,
           PREFER_CLAIMED_TOKENS,
           MEMO,
-          DELEGATE_METADATA,
+          METADATA,
           { value: ETH_TO_PAY },
         ),
     ).to.be.revertedWith(errors.PAY_TO_ZERO_ADDRESS);
@@ -439,7 +439,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
           MIN_TOKEN_REQUESTED,
           PREFER_CLAIMED_TOKENS,
           MEMO,
-          DELEGATE_METADATA,
+          METADATA,
           { value: ETH_TO_PAY },
         ),
     ).to.be.revertedWith(errors.PROJECT_TERMINAL_MISMATCH);
@@ -484,7 +484,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
           MIN_TOKEN_REQUESTED,
           PREFER_CLAIMED_TOKENS,
           MEMO,
-          DELEGATE_METADATA,
+          METADATA,
           { value: ETH_TO_PAY },
         ),
     ).to.be.revertedWith(errors.INADEQUATE_TOKEN_COUNT);

@@ -66,7 +66,7 @@ abstract contract JBProjectPayer is Ownable {
     @param _memo A memo that will be included in the published event.
     @param _preferClaimedTokens Whether ERC20's should be claimed automatically if they have been issued.
     @param _token The token to pay in.
-    @param _delegateMetadata Bytes to send along with payments to the funding cycle's pay delegate.
+    @param _metadata Bytes to send along with payments to the funding cycle's pay data source and delegate.
   */
   function pay(
     uint256 _projectId,
@@ -74,17 +74,9 @@ abstract contract JBProjectPayer is Ownable {
     string memory _memo,
     bool _preferClaimedTokens,
     address _token,
-    bytes memory _delegateMetadata
+    bytes memory _metadata
   ) external payable {
-    _pay(
-      _projectId,
-      msg.value,
-      _beneficiary,
-      _memo,
-      _preferClaimedTokens,
-      _token,
-      _delegateMetadata
-    );
+    _pay(_projectId, msg.value, _beneficiary, _memo, _preferClaimedTokens, _token, _metadata);
   }
 
   /** 
@@ -97,7 +89,7 @@ abstract contract JBProjectPayer is Ownable {
     @param _memo A memo that will be included in the published event.
     @param _preferClaimedTokens Whether ERC20's should be claimed automatically if they have been issued.
     @param _token The token to pay in.
-    @param _delegateMetadata Bytes to send along with payments to the funding cycle's pay delegate.
+    @param _metadata Bytes to send along with payments to the funding cycle's pay data source and delegate.
   */
   function _pay(
     uint256 _projectId,
@@ -106,7 +98,7 @@ abstract contract JBProjectPayer is Ownable {
     string memory _memo,
     bool _preferClaimedTokens,
     address _token,
-    bytes memory _delegateMetadata
+    bytes memory _metadata
   ) internal {
     // Find the terminal for this contract's project.
     IJBTerminal _terminal = directory.primaryTerminalOf(_projectId, _token);
@@ -127,7 +119,7 @@ abstract contract JBProjectPayer is Ownable {
       0,
       _preferClaimedTokens,
       _memo,
-      _delegateMetadata
+      _metadata
     );
   }
 }

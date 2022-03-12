@@ -17,5 +17,5 @@ struct JBDidPayData {
   // The memo that is being emitted alongside the payment.
   string memo;
   // Metadata to send to the delegate.
-  bytes delegateMetadata;
+  bytes metadata;
 }

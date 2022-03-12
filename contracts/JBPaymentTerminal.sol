@@ -272,7 +272,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point
     @param _preferClaimedTokens A flag indicating whether the request prefers to issue tokens unstaked rather than staked.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.
-    @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
+    @param _metadata Bytes to send along to the dataSource and delegate, if provided.
   */
   function pay(
     uint256 _amount,
@@ -281,7 +281,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     uint256 _minReturnedTokens,
     bool _preferClaimedTokens,
     string calldata _memo,
-    bytes calldata _delegateMetadata
+    bytes calldata _metadata
   ) external payable override nonReentrant isTerminalOfProject(_projectId) {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (token != JBTokens.ETH) {
@@ -302,7 +302,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
         _minReturnedTokens,
         _preferClaimedTokens,
         _memo,
-        _delegateMetadata
+        _metadata
       );
   }
 
@@ -491,7 +491,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     @param _minReturnedTokens The minimum amount of terminal tokens expected in return, as a fixed point number with 18 decimals.
     @param _beneficiary The address to send the terminal tokens to.
     @param _memo A memo to pass along to the emitted event.
-    @param _delegateMetadata Bytes to send along to the delegate, if one is provided.
+    @param _metadata Bytes to send along to the data source and delegate, if provided.
 
     @return reclaimAmount The amount of terminal tokens that the project tokens were redeemed for, as a fixed point number with 18 decimals.
   */
@@ -502,7 +502,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     uint256 _minReturnedTokens,
     address payable _beneficiary,
     string memory _memo,
-    bytes memory _delegateMetadata
+    bytes memory _metadata
   )
     external
     override
@@ -552,7 +552,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
           reclaimAmount,
           _beneficiary,
           _memo,
-          _delegateMetadata
+          _metadata
         );
         _delegate.didRedeem(_data);
         emit DelegateDidRedeem(_delegate, _data, msg.sender);
@@ -930,7 +930,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     uint256 _minReturnedTokens,
     bool _preferClaimedTokens,
     string memory _memo,
-    bytes memory _delegateMetadata
+    bytes memory _metadata
   ) private {
     // Cant send tokens to the zero address.
     if (_beneficiary == address(0)) revert PAY_TO_ZERO_ADDRESS();
@@ -978,7 +978,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
           _beneficiaryTokenCount,
           _beneficiary,
           _memo,
-          _delegateMetadata
+          _metadata
         );
 
         _delegate.didPay(_data);

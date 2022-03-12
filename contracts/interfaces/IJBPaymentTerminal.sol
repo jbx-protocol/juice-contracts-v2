@@ -118,7 +118,7 @@ interface IJBPaymentTerminal is IJBTerminal {
     uint256 _minReturnedAmount,
     address payable _beneficiary,
     string calldata _memo,
-    bytes calldata _delegateMetadata
+    bytes calldata _metadata
   ) external returns (uint256 claimedAmount);
 
   function useAllowanceOf(
