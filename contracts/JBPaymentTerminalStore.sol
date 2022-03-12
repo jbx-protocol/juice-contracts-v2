@@ -153,7 +153,7 @@ contract JBPaymentTerminalStore {
     The current total overflow is represented as a fixed point number with 18 decimals.
 
     @param _projectId The ID of the project to get total overflow for.
-    @param _currency The currency that the stored balance is expected to be in terms of.
+    @param _currency The currency that the total overflow should be in terms of.
 
     @return The current total amount of overflow that project has across all terminals.
   */
