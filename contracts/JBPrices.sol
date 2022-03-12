@@ -36,47 +36,33 @@ contract JBPrices is IJBPrices, Ownable {
     _currency he currency of the feed.
     _base he base of the feed. 
   */
-  mapping(uint256 => mapping(uint256 => AggregatorV3Interface)) public override feedFor;
+  mapping(uint256 => mapping(uint256 => IJBPriceFeed)) public override feedFor;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
   //*********************************************************************//
 
   /** 
-      @notice 
-      Gets the current price of the provided currency in terms of the provided base currency.
-      
-      @param _currency The currency to get a price for.
-      @param _base The currency to base the price on.
-      
-      @return The price of the currency in terms of the base, with 18 decimals.
-    */
+    @notice 
+    Gets the current price of the provided currency in terms of the provided base currency.
+    
+    @param _currency The currency to get a price for.
+    @param _base The currency to base the price on.
+    
+    @return The price of the currency in terms of the base, with 18 decimals.
+  */
   function priceFor(uint256 _currency, uint256 _base) external view override returns (uint256) {
     // If the currency is the base, return 1 since they are priced the same.
     if (_currency == _base) return 10**TARGET_DECIMALS;
 
     // Get a reference to the feed.
-    AggregatorV3Interface _feed = feedFor[_currency][_base];
+    IJBPriceFeed _feed = feedFor[_currency][_base];
 
     // Feed must exist.
-    if (_feed == AggregatorV3Interface(address(0))) {
-      revert PRICE_FEED_NOT_FOUND();
-    }
+    if (_feed == IJBPriceFeed(address(0))) revert PRICE_FEED_NOT_FOUND();
 
-    // Get the latest round information. Only need the price is needed.
-    (, int256 _price, , , ) = _feed.latestRoundData();
-
-    // Get a reference to the number of decimals the feed uses.
-    uint256 _decimals = _feed.decimals();
-
-    // If decimals need adjusting, multiply or divide the price by the decimal adjuster to get the normalized result.
-    if (TARGET_DECIMALS == _decimals) {
-      return uint256(_price);
-    } else if (TARGET_DECIMALS > _decimals) {
-      return uint256(_price) * 10**(TARGET_DECIMALS - _decimals);
-    } else {
-      return uint256(_price) / 10**(_decimals - TARGET_DECIMALS);
-    }
+    // Get the price.
+    return _feed.getPrice(TARGET_DECIMALS);
   }
 
   //*********************************************************************//
@@ -109,12 +95,10 @@ contract JBPrices is IJBPrices, Ownable {
   function addFeedFor(
     uint256 _currency,
     uint256 _base,
-    AggregatorV3Interface _feed
+    IJBPriceFeed _feed
   ) external override onlyOwner {
     // There can't already be a feed for the specified currency.
-    if (feedFor[_currency][_base] != AggregatorV3Interface(address(0))) {
-      revert PRICE_FEED_ALREADY_EXISTS();
-    }
+    if (feedFor[_currency][_base] != IJBPriceFeed(address(0))) revert PRICE_FEED_ALREADY_EXISTS();
 
     // Set the feed.
     feedFor[_currency][_base] = _feed;

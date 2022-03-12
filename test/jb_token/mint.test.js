@@ -24,7 +24,7 @@ describe('JBToken::mint(...)', function () {
       .withArgs(ethers.constants.AddressZero, addr.address, numTokens);
 
     // overloaded functions need to be called using the full function signature
-    const balance = await jbToken['balanceOf(uint256,address)'](PROJECT_ID, addr.address);
+    const balance = await jbToken['balanceOf(address,uint256)'](addr.address, PROJECT_ID);
     expect(balance).to.equal(numTokens);
 
     const supply = await jbToken['totalSupply(uint256)'](PROJECT_ID);
@@ -43,15 +43,6 @@ describe('JBToken::mint(...)', function () {
     const { jbToken } = await setup();
     await expect(jbToken.mint(PROJECT_ID, ethers.constants.AddressZero, 3000)).to.be.revertedWith(
       'ERC20: mint to the zero address',
-    );
-  });
-
-  it(`Can't mint tokens if the new total exceeds max supply`, async function () {
-    const { addrs, jbToken } = await setup();
-    const addr = addrs[1];
-    const numTokens = BigInt(2 ** 224); // bigger than max supply of (2^224)-1
-    await expect(jbToken.mint(PROJECT_ID, addr.address, numTokens)).to.be.revertedWith(
-      'ERC20Votes: total supply risks overflowing votes',
     );
   });
 });

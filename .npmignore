@@ -5,6 +5,8 @@
 !/deployments/rinkeby/**
 !/deployments/mainnet/**
 
-# Contract abstract classes and interfaces.
-!/contracts/abstract/**
-!/contracts/interfaces/**
+# Allow everything in /contracts ...
+!/contracts/**
+# ... except tests
+/contracts/test/**
+/contracts/system_tests/**

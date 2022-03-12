@@ -256,19 +256,13 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _mustStartAtOrAfter
   ) external override onlyController(_projectId) returns (JBFundingCycle memory) {
     // Duration must fit in a uint64.
-    if (_data.duration > type(uint64).max) {
-      revert INVALID_DURATION();
-    }
+    if (_data.duration > type(uint64).max) revert INVALID_DURATION();
 
     // Discount rate token must be less than or equal to 100%.
-    if (_data.discountRate > JBConstants.MAX_DISCOUNT_RATE) {
-      revert INVALID_DISCOUNT_RATE();
-    }
+    if (_data.discountRate > JBConstants.MAX_DISCOUNT_RATE) revert INVALID_DISCOUNT_RATE();
 
     // Weight must fit into a uint88.
-    if (_data.weight > type(uint88).max) {
-      revert INVALID_WEIGHT();
-    }
+    if (_data.weight > type(uint88).max) revert INVALID_WEIGHT();
 
     // The configuration timestamp is now.
     uint256 _configuration = block.timestamp;
