@@ -130,21 +130,25 @@ contract JBPaymentTerminalStore {
 
     @param _terminal The terminal for which the overflow is being calculated.
     @param _projectId The ID of the project to get overflow for.
-    @param _decimals TODO
-    @param _currency The currency that the stored balance is expected to be in terms of.
 
     @return The current amount of overflow that project has in this terminal.
   */
-  function currentOverflowOf(
-    IJBTerminal _terminal,
-    uint256 _projectId,
-    uint256 _decimals,
-    uint256 _currency
-  ) external view returns (uint256) {
+  function currentOverflowOf(IJBTerminal _terminal, uint256 _projectId)
+    external
+    view
+    returns (uint256)
+  {
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-    return _overflowDuring(_terminal, _projectId, _fundingCycle, _decimals, _currency);
+    return
+      _overflowDuring(
+        _terminal,
+        _projectId,
+        _fundingCycle,
+        _terminal.decimals(),
+        _terminal.currency()
+      );
   }
 
   /**
@@ -156,7 +160,7 @@ contract JBPaymentTerminalStore {
 
     @param _projectId The ID of the project to get total overflow for.
     @param _decimals TODO
-    @param _currency The currency that the stored balance is expected to be in terms of.
+    @param _currency The currency that the total overflow should be in terms of.
 
     @return The current total amount of overflow that project has across all terminals.
   */
@@ -184,17 +188,13 @@ contract JBPaymentTerminalStore {
     @param _terminal The terminal from which the overflow is being calculated.
     @param _projectId The ID of the project to get a reclaimable amount for.
     @param _tokenCount The number of tokens to make the calculation with, as a fixed point number with 18 decimals.
-    @param _decimals TODO
-    @param _currency The currency that the stored balance is expected to be in terms of.
 
     @return The amount of overflowed tokens that can be reclaimed.
   */
   function reclaimableOverflowOf(
     IJBTerminal _terminal,
     uint256 _projectId,
-    uint256 _tokenCount,
-    uint256 _decimals,
-    uint256 _currency
+    uint256 _tokenCount
   ) external view returns (uint256) {
     return
       _reclaimableOverflowOf(
@@ -202,8 +202,8 @@ contract JBPaymentTerminalStore {
         _projectId,
         fundingCycleStore.currentOf(_projectId),
         _tokenCount,
-        _decimals,
-        _currency
+        _terminal.decimals(),
+        _terminal.currency()
       );
   }
 
