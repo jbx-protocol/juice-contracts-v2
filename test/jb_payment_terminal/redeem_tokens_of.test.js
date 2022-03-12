@@ -24,6 +24,8 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
   const WEIGHT = 1000;
   const DELEGATE_METADATA = ethers.utils.randomBytes(32);
 
+  let CURRENCY_ETH;
+
   async function setup() {
     const [deployer, beneficiary, holder, otherCaller, terminalOwner] = await ethers.getSigners();
 
@@ -51,7 +53,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
 
     const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
     const jbCurrencies = await jbCurrenciesFactory.deploy();
-    const CURRENCY_ETH = await jbCurrencies.ETH();
+    CURRENCY_ETH = await jbCurrencies.ETH();
 
     const jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
 
@@ -129,6 +131,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         holder.address,
         PROJECT_ID,
         /* tokenCount */ AMOUNT,
+        CURRENCY_ETH,
         beneficiary.address,
         MEMO
       )
@@ -189,6 +192,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         holder.address,
         PROJECT_ID,
         /* tokenCount */ 0,
+        CURRENCY_ETH,
         beneficiary.address,
         MEMO
       )
@@ -257,6 +261,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         holder.address,
         PROJECT_ID,
         /* tokenCount */ AMOUNT,
+        CURRENCY_ETH,
         beneficiary.address,
         MEMO
       )
@@ -351,6 +356,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         holder.address,
         PROJECT_ID,
         /* tokenCount */ AMOUNT,
+        CURRENCY_ETH,
         beneficiary.address,
         MEMO
       )
@@ -456,6 +462,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         holder.address,
         PROJECT_ID,
         /* tokenCount */ AMOUNT,
+        CURRENCY_ETH,
         beneficiary.address,
         MEMO
       )

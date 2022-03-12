@@ -131,7 +131,7 @@ contract JBPaymentTerminalStore {
 
     @param _terminal The terminal for which the overflow is being calculated.
     @param _projectId The ID of the project to get overflow for.
-    @param _currency The currency index relative to which the current overflow will be measured.
+    @param _currency The currency that the stored balance is expected to be in terms of.
 
     @return The current amount of overflow that project has in this terminal.
   */
@@ -154,7 +154,7 @@ contract JBPaymentTerminalStore {
     The current total overflow is represented as a fixed point number with 18 decimals.
 
     @param _projectId The ID of the project to get total overflow for.
-    @param _currency The currency index relative to which the total overflow will be measured.
+    @param _currency The currency that the stored balance is expected to be in terms of.
 
     @return The current total amount of overflow that project has across all terminals.
   */
@@ -182,7 +182,7 @@ contract JBPaymentTerminalStore {
     @param _terminal The terminal from which the overflow is being calculated.
     @param _projectId The ID of the project to get a reclaimable amount for.
     @param _tokenCount The number of tokens to make the calculation with, as a fixed point number with 18 decimals.
-    @param _currency The currency index relative to which the current overflow will be measured.
+    @param _currency The currency that the stored balance is expected to be in terms of.
 
     @return The amount of overflowed tokens that can be reclaimed.
   */
@@ -512,6 +512,7 @@ contract JBPaymentTerminalStore {
     @param _holder The account that is having its tokens redeemed.
     @param _projectId The ID of the project to which the tokens being redeemed belong.
     @param _tokenCount The number of project tokens to redeem, as a fixed point number with 18 decimals.
+    @param _currency The currency that the stored balance is expected to be in terms of.
     @param _beneficiary The address that will benefit from the claimed amount.
     @param _memo A memo to pass along to the emitted event.
 
@@ -524,6 +525,7 @@ contract JBPaymentTerminalStore {
     address _holder,
     uint256 _projectId,
     uint256 _tokenCount,
+    uint256 _currency,
     address payable _beneficiary,
     string memory _memo
   )
@@ -554,6 +556,7 @@ contract JBPaymentTerminalStore {
           _projectId,
           fundingCycle.redemptionRate(),
           fundingCycle.ballotRedemptionRate(),
+          _currency,
           _beneficiary,
           _memo
         )
@@ -564,7 +567,7 @@ contract JBPaymentTerminalStore {
         _projectId,
         fundingCycle,
         _tokenCount,
-        IJBTerminal(msg.sender).currency()
+        _currency
       );
       memo = _memo;
     }
@@ -707,7 +710,7 @@ contract JBPaymentTerminalStore {
     @param _terminal The terminal for which the overflow is being calculated.
     @param _projectId The ID of the project to get overflow for.
     @param _fundingCycle The ID of the funding cycle to base the overflow on.
-    @param _currency The currency index relative to which the total overflow will be measured.
+    @param _currency The currency that the stored balance is expected to be in terms of.
 
     @return overflow The overflow of funds, as a fixed point number with 18 decimals.
   */
@@ -735,8 +738,8 @@ contract JBPaymentTerminalStore {
       .controllerOf(_projectId)
       .distributionLimitCurrencyOf(_projectId, _fundingCycle.configuration, _terminal);
 
-    // Convert the _distributionRemaining to this store's terminal's currency.
-    uint256 _ethDistributionRemaining = _distributionRemaining == 0
+    // Convert the _distributionRemaining to be in terms of the provided currency.
+    uint256 _adjustedDistributionRemaining = _distributionRemaining == 0
       ? 0
       : (_distributionLimitCurrency == _currency)
       ? _distributionRemaining
@@ -746,7 +749,10 @@ contract JBPaymentTerminalStore {
       );
 
     // Overflow is the balance of this project minus the amount that can still be distributed.
-    return _balanceOf <= _ethDistributionRemaining ? 0 : _balanceOf - _ethDistributionRemaining;
+    return
+      _balanceOf <= _adjustedDistributionRemaining
+        ? 0
+        : _balanceOf - _adjustedDistributionRemaining;
   }
 
   /**
@@ -758,7 +764,7 @@ contract JBPaymentTerminalStore {
 
     @param _projectId The ID of the project to get total overflow for.
     @param _fundingCycle The ID of the funding cycle to base the overflow on.
-    @param _currency The currency index relative to which the total overflow will be measured.
+    @param _currency The currency that the stored balance is expected to be in terms of.
 
     @return overflow The overflow of funds, as a fixed point number with 18 decimals
   */

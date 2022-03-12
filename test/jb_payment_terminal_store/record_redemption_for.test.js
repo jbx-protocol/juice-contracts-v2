@@ -19,8 +19,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
   const PROJECT_ID = 2;
   const AMOUNT = ethers.BigNumber.from('4398541');
   const WEIGHT = ethers.BigNumber.from('900000000');
-  const CURRENCY = 1;
-  const BASE_CURRENCY = 0;
+  const CURRENCY = ethers.BigNumber.from(1);
 
   async function setup() {
     const [deployer, holder, beneficiary, ...addrs] = await ethers.getSigners();
@@ -55,11 +54,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);
     const timestamp = block.timestamp;
-
-    /* Common mocks */
-
-    await mockJbTerminal.mock.currency.returns(CURRENCY);
-    await mockJbTerminal.mock.baseWeightCurrency.returns(BASE_CURRENCY);
 
     const mockJbTerminalSigner = await impersonateAccount(mockJbTerminal.address);
 
@@ -152,6 +146,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
         /* tokenCount */ AMOUNT,
+        CURRENCY,
         /* beneficiary */ beneficiary.address,
         /* memo */ 'test'
       );
@@ -230,6 +225,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
         /* tokenCount */ 0,
+        CURRENCY,
         /* beneficiary */ beneficiary.address,
         /* memo */ 'test'
       );
@@ -302,6 +298,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
         /* tokenCount */ AMOUNT,
+        CURRENCY,
         /* beneficiary */ beneficiary.address,
         /* memo */ 'test'
       );
@@ -362,6 +359,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         projectId: PROJECT_ID,
         redemptionRate: redemptionRate,
         ballotRedemptionRate: ballotRedemptionRate,
+        currency: CURRENCY,
         beneficiary: beneficiary.address,
         memo: 'test'
       })
@@ -382,6 +380,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
         /* tokenCount */ AMOUNT,
+        CURRENCY,
         /* beneficiary */ beneficiary.address,
         /* memo */ 'test'
       );
@@ -405,6 +404,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
           /* holder */ holder.address,
           /* projectId */ PROJECT_ID,
           /* tokenCount */ AMOUNT,
+          CURRENCY,
           /* beneficiary */ beneficiary.address,
           /* memo */ 'test'
         ),
@@ -459,6 +459,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
           /* holder */ holder.address,
           /* projectId */ PROJECT_ID,
           /* tokenCount */ AMOUNT,
+          CURRENCY,
           /* beneficiary */ beneficiary.address,
           /* memo */ 'test'
         ),
@@ -517,6 +518,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         projectId: PROJECT_ID,
         redemptionRate: redemptionRate,
         ballotRedemptionRate: ballotRedemptionRate,
+        currency: CURRENCY,
         beneficiary: beneficiary.address,
         memo: 'test'
       })
@@ -531,6 +533,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
           /* holder */ holder.address,
           /* projectId */ PROJECT_ID,
           /* tokenCount */ AMOUNT,
+          CURRENCY,
           /* beneficiary */ beneficiary.address,
           /* memo */ 'test'
         ),
