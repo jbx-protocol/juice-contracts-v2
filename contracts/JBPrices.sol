@@ -59,9 +59,7 @@ contract JBPrices is IJBPrices, Ownable {
     IJBPriceFeed _feed = feedFor[_currency][_base];
 
     // Feed must exist.
-    if (_feed == IJBPriceFeed(address(0))) {
-      revert PRICE_FEED_NOT_FOUND();
-    }
+    if (_feed == IJBPriceFeed(address(0))) revert PRICE_FEED_NOT_FOUND();
 
     // Get the price.
     return _feed.getPrice(TARGET_DECIMALS);

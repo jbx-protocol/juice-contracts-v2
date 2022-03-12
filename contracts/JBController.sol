@@ -569,12 +569,12 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
       _reservedRate = _useReservedRate ? _fundingCycle.reservedRate() : 0;
     }
 
-    if (_reservedRate == JBConstants.MAX_RESERVED_RATE) {
+    if (_reservedRate == JBConstants.MAX_RESERVED_RATE)
       // Subtract the total weighted amount from the tracker so the full reserved token amount can be printed later.
       _processedTokenTrackerOf[_projectId] =
         _processedTokenTrackerOf[_projectId] -
         int256(_tokenCount);
-    } else {
+    else {
       // The unreserved token count that will be minted for the beneficiary.
       beneficiaryTokenCount = PRBMath.mulDiv(
         _tokenCount,

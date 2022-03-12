@@ -289,10 +289,9 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
 
       // Transfer tokens to this terminal from the msg sender.
       _transferFrom(msg.sender, payable(address(this)), _amount);
-    } else {
-      // If this terminal's token is ETH, override _amount with msg.value.
-      _amount = msg.value;
     }
+    // If this terminal's token is ETH, override _amount with msg.value.
+    else _amount = msg.value;
 
     return
       _pay(
@@ -631,10 +630,9 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
 
       // Transfer tokens to this terminal from the msg sender.
       _transferFrom(msg.sender, payable(address(this)), _amount);
-    } else {
-      // If the terminal's token is ETH, override `_amount` with msg.value.
-      _amount = msg.value;
     }
+    // If the terminal's token is ETH, override `_amount` with msg.value.
+    else _amount = msg.value;
 
     _addToBalance(_amount, _projectId, _memo);
   }
@@ -823,12 +821,10 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
             );
           } else {
             // If the terminal is set as feeless, this distribution is not eligible for a fee.
-            if (isFeelessTerminal[_terminal]) {
+            if (isFeelessTerminal[_terminal])
               _netPayoutAmount = _payoutAmount;
-            } else {
               // This distribution is eligible for a fee since the funds are leaving this contract and the terminal isn't listed as feeless.
-              feeEligibleDistributionAmount += _payoutAmount;
-            }
+            else feeEligibleDistributionAmount += _payoutAmount;
 
             _beforeTransferTo(address(_terminal), _netPayoutAmount);
 
@@ -909,9 +905,9 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     IJBTerminal _terminal = directory.primaryTerminalOf(1, token);
 
     // When processing the admin fee, save gas if the admin is using this contract as its terminal.
-    if (_terminal == this) {
+    if (_terminal == this)
       _pay(_fee, address(this), 1, _beneficiary, 0, false, '', bytes('')); // Use the local pay call.
-    } else {
+    else {
       _beforeTransferTo(address(_terminal), _fee);
 
       // If this terminal's token is ETH, send it in msg.value.
@@ -1036,11 +1032,9 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
 
     // Process each fee.
     for (uint256 _i = 0; _i < _heldFees.length; _i++) {
-      if (_amount == 0) {
-        _heldFeesOf[_projectId].push(_heldFees[_i]);
-      } else if (_amount >= _heldFees[_i].amount) {
-        _amount = _amount - _heldFees[_i].amount;
-      } else {
+      if (_amount == 0) _heldFeesOf[_projectId].push(_heldFees[_i]);
+      else if (_amount >= _heldFees[_i].amount) _amount = _amount - _heldFees[_i].amount;
+      else {
         _heldFeesOf[_projectId].push(
           JBFee(_heldFees[_i].amount - _amount, _heldFees[_i].fee, _heldFees[_i].beneficiary)
         );

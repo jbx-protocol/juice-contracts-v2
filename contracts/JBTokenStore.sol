@@ -263,10 +263,10 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     bool _shouldClaimTokens = (requireClaimFor[_projectId] || _preferClaimedTokens) &&
       _token != IJBToken(address(0));
 
-    if (_shouldClaimTokens) {
+    if (_shouldClaimTokens)
       // If tokens should be claimed, mint tokens into the holder's wallet.
       _token.mint(_projectId, _holder, _amount);
-    } else {
+    else {
       // Otherwise, add the tokens to the unclaimed balance and total supply.
       unclaimedBalanceOf[_holder][_projectId] = unclaimedBalanceOf[_holder][_projectId] + _amount;
       unclaimedTotalSupplyOf[_projectId] = unclaimedTotalSupplyOf[_projectId] + _amount;
@@ -315,15 +315,13 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     uint256 _claimedTokensToBurn;
 
     // If there's no balance, redeem no tokens.
-    if (_claimedBalance == 0) {
+    if (_claimedBalance == 0)
       _claimedTokensToBurn = 0;
       // If prefer converted, redeem tokens before redeeming unclaimed tokens.
-    } else if (_preferClaimedTokens) {
+    else if (_preferClaimedTokens)
       _claimedTokensToBurn = _claimedBalance < _amount ? _claimedBalance : _amount;
       // Otherwise, redeem unclaimed tokens before claimed tokens.
-    } else {
-      _claimedTokensToBurn = _unclaimedBalance < _amount ? _amount - _unclaimedBalance : 0;
-    }
+    else _claimedTokensToBurn = _unclaimedBalance < _amount ? _amount - _unclaimedBalance : 0;
 
     // The amount of unclaimed tokens to redeem.
     uint256 _unclaimedTokensToBurn = _amount - _claimedTokensToBurn;

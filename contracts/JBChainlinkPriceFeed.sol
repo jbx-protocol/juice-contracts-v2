@@ -19,12 +19,9 @@ contract JBChainlinkPriceFeed is IJBPriceFeed {
     uint256 _decimals = feed.decimals();
 
     // If decimals need adjusting, multiply or divide the price by the decimal adjuster to get the normalized result.
-    if (_targetDecimals == _decimals) {
-      return uint256(_price);
-    } else if (_targetDecimals > _decimals) {
+    if (_targetDecimals == _decimals) return uint256(_price);
+    else if (_targetDecimals > _decimals)
       return uint256(_price) * 10**(_targetDecimals - _decimals);
-    } else {
-      return uint256(_price) / 10**(_decimals - _targetDecimals);
-    }
+    else return uint256(_price) / 10**(_decimals - _targetDecimals);
   }
 }

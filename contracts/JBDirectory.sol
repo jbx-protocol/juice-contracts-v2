@@ -177,19 +177,13 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     )
   {
     // Can't set the zero address.
-    if (_controller == IJBController(address(0))) {
-      revert SET_CONTROLLER_ZERO_ADDRESS();
-    }
+    if (_controller == IJBController(address(0))) revert SET_CONTROLLER_ZERO_ADDRESS();
 
     // Can't set the controller if it's already set.
-    if (controllerOf[_projectId] == _controller) {
-      revert CONTROLLER_ALREADY_SET();
-    }
+    if (controllerOf[_projectId] == _controller) revert CONTROLLER_ALREADY_SET();
 
     // The project must exist.
-    if (projects.count() < _projectId) {
-      revert INVALID_PROJECT_ID_IN_DIRECTORY();
-    }
+    if (projects.count() < _projectId) revert INVALID_PROJECT_ID_IN_DIRECTORY();
 
     // Set the new controller.
     controllerOf[_projectId] = _controller;
@@ -219,9 +213,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   {
     for (uint256 _i = 0; _i < _terminals.length; _i++) {
       // Can't be the zero address.
-      if (_terminals[_i] == IJBTerminal(address(0))) {
-        revert ADD_TERMINAL_ZERO_ADDRESS();
-      }
+      if (_terminals[_i] == IJBTerminal(address(0))) revert ADD_TERMINAL_ZERO_ADDRESS();
 
       _addTerminalIfNeeded(_projectId, _terminals[_i]);
     }
@@ -277,17 +269,13 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.SET_PRIMARY_TERMINAL)
   {
     // Can't set the zero address.
-    if (_terminal == IJBTerminal(address(0))) {
-      revert SET_PRIMARY_TERMINAL_ZERO_ADDRESS();
-    }
+    if (_terminal == IJBTerminal(address(0))) revert SET_PRIMARY_TERMINAL_ZERO_ADDRESS();
 
     // Get a reference to the token that the terminal's vault accepts.
     address _token = _terminal.token();
 
     // Can't set this terminal as the primary if it already is.
-    if (_terminal == _primaryTerminalOf[_projectId][_token]) {
-      revert PRIMARY_TERMINAL_ALREADY_SET();
-    }
+    if (_terminal == _primaryTerminalOf[_projectId][_token]) revert PRIMARY_TERMINAL_ALREADY_SET();
 
     // Add the terminal to thge project if it hasn't been already.
     _addTerminalIfNeeded(_projectId, _terminal);
@@ -315,9 +303,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   */
   function addToSetControllerAllowlist(address _address) external override onlyOwner {
     // Check that the address is not already in the allowlist.
-    if (isAllowedToSetController[_address]) {
-      revert CONTROLLER_ALREADY_IN_ALLOWLIST();
-    }
+    if (isAllowedToSetController[_address]) revert CONTROLLER_ALREADY_IN_ALLOWLIST();
 
     // Add the address to the allowlist.
     isAllowedToSetController[_address] = true;
@@ -336,9 +322,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   */
   function removeFromSetControllerAllowlist(address _address) external override onlyOwner {
     // Check that the address is in the allowlist.
-    if (!isAllowedToSetController[_address]) {
-      revert CONTROLLER_NOT_IN_ALLOWLIST();
-    }
+    if (!isAllowedToSetController[_address]) revert CONTROLLER_NOT_IN_ALLOWLIST();
 
     // Remove the address from the allowlist.
     delete isAllowedToSetController[_address];
