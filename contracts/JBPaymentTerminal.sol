@@ -525,6 +525,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
         _holder,
         _projectId,
         _tokenCount,
+        currency,
         _beneficiary,
         _memo
       );
