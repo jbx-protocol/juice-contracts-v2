@@ -112,7 +112,7 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
       .recordAddedBalanceFor(PROJECT_ID, startingBalance);
 
     // Get current overflow
-    expect(await JBPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID, CURRENCY)).to.equal(AMOUNT);
+    expect(await JBPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID)).to.equal(AMOUNT);
   });
 
   it('Should return 0 overflow if ETH balance < distribution remaining', async function () {
@@ -149,7 +149,7 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
       .returns(AMOUNT);
 
     // Get current overflow
-    expect(await JBPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID, CURRENCY)).to.equal(0);
+    expect(await JBPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID)).to.equal(0);
   });
 
   it('Should return 0 overflow if ETH balance is 0', async function () {
@@ -168,6 +168,6 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
     });
 
     // Get current overflow
-    expect(await JBPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID, CURRENCY)).to.equal(0);
+    expect(await JBPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID)).to.equal(0);
   });
 });
