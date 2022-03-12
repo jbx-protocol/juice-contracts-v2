@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-// import '@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol';
 import './IJBPriceFeed.sol';
 
 interface IJBPrices {
@@ -10,7 +9,7 @@ interface IJBPrices {
   // solhint-disable-next-line func-name-mixedcase
   function TARGET_DECIMALS() external returns (uint256);
 
-  function feedFor(uint256 _currency, uint256 _base) external returns (IJBPriceFeed);
+  function feedFor(uint256 _currency, uint256 _base) external view returns (IJBPriceFeed);
 
   function priceFor(uint256 _currency, uint256 _base) external view returns (uint256);
 
