@@ -7,7 +7,8 @@ import '../../../lib/ds-test/src/test.sol';
 import '../../JBController.sol';
 import '../../JBDirectory.sol';
 import '../../JBETHPaymentTerminal.sol';
-import '../../JBETHPaymentTerminalStore.sol';
+import '../../JBERC20PaymentTerminal.sol';
+import '../../JBPaymentTerminalStore.sol';
 import '../../JBFundingCycleStore.sol';
 import '../../JBOperatorStore.sol';
 import '../../JBPrices.sol';
@@ -33,6 +34,8 @@ import '../../structs/JBSplit.sol';
 import '../../interfaces/IJBTerminal.sol';
 import '../../interfaces/IJBToken.sol';
 
+import './AccessJBLib.sol';
+
 // Base contract for Juicebox system tests.
 //
 // Provides common functionality, such as deploying contracts on test setup.
@@ -57,6 +60,8 @@ contract TestBaseWorkflow is DSTest {
   JBDirectory private _jbDirectory;
   // JBFundingCycleStore
   JBFundingCycleStore private _jbFundingCycleStore;
+  // JBToken
+  JBToken private _jbToken;
   // JBTokenStore
   JBTokenStore private _jbTokenStore;
   // JBSplitsStore
@@ -64,9 +69,13 @@ contract TestBaseWorkflow is DSTest {
   // JBController
   JBController private _jbController;
   // JBETHPaymentTerminalStore
-  JBETHPaymentTerminalStore private _jbETHPaymentTerminalStore;
+  JBPaymentTerminalStore private _jbPaymentTerminalStore;
   // JBETHPaymentTerminal
   JBETHPaymentTerminal private _jbETHPaymentTerminal;
+  // JBERC20PaymentTerminal
+  JBERC20PaymentTerminal private _jbERC20PaymentTerminal;
+  // AccessJBLib
+  AccessJBLib private _accessJBLib;
 
   //*********************************************************************//
   // ------------------------- internal views -------------------------- //
@@ -108,12 +117,24 @@ contract TestBaseWorkflow is DSTest {
     return _jbController;
   }
 
-  function jbETHPaymentTerminalStore() internal view returns (JBETHPaymentTerminalStore) {
-    return _jbETHPaymentTerminalStore;
+  function jbPaymentTerminalStore() internal view returns (JBPaymentTerminalStore) {
+    return _jbPaymentTerminalStore;
   }
 
   function jbETHPaymentTerminal() internal view returns (JBETHPaymentTerminal) {
     return _jbETHPaymentTerminal;
+  }
+
+  function jbERC20PaymentTerminal() internal view returns (JBERC20PaymentTerminal) {
+    return _jbERC20PaymentTerminal;
+  }
+
+  function jbToken() internal view returns (JBToken) {
+    return _jbToken;
+  }
+
+  function jbLibraries() internal view returns(AccessJBLib) {
+    return _accessJBLib;
   }
 
   //*********************************************************************//
@@ -123,22 +144,36 @@ contract TestBaseWorkflow is DSTest {
   // Deploys and initializes contracts for testing.
   function setUp() public virtual {
     // Labels
-    evm.label(_multisig, 'multisig');
+    evm.label(_multisig, 'projectOwner');
 
     // JBOperatorStore
     _jbOperatorStore = new JBOperatorStore();
+    evm.label(address(_jbOperatorStore), 'JBOperatorStore');
+
     // JBProjects
     _jbProjects = new JBProjects(_jbOperatorStore);
+    evm.label(address(_jbProjects), 'JBProjects');
+
     // JBPrices
     _jbPrices = new JBPrices(_multisig);
+    evm.label(address(_jbPrices), 'JBPrices');
+
     // JBDirectory
     _jbDirectory = new JBDirectory(_jbOperatorStore, _jbProjects);
+    evm.label(address(_jbDirectory), 'JBDirectory');
+
     // JBFundingCycleStore
     _jbFundingCycleStore = new JBFundingCycleStore(_jbDirectory);
+    evm.label(address(_jbFundingCycleStore), 'JBFundingCycleStore');
+
     // JBTokenStore
     _jbTokenStore = new JBTokenStore(_jbOperatorStore, _jbProjects, _jbDirectory);
+    evm.label(address(_jbTokenStore), 'JBTokenStore');
+
     // JBSplitsStore
     _jbSplitsStore = new JBSplitsStore(_jbOperatorStore, _jbProjects, _jbDirectory);
+    evm.label(address(_jbSplitsStore), 'JBSplitsStore');
+
     // JBController
     _jbController = new JBController(
       _jbOperatorStore,
@@ -148,23 +183,54 @@ contract TestBaseWorkflow is DSTest {
       _jbTokenStore,
       _jbSplitsStore
     );
+    evm.label(address(_jbController), 'JBController');
+
     _jbDirectory.addToSetControllerAllowlist(address(_jbController));
     // JBETHPaymentTerminalStore
-    _jbETHPaymentTerminalStore = new JBETHPaymentTerminalStore(
+    _jbPaymentTerminalStore = new JBPaymentTerminalStore(
       _jbPrices,
       _jbProjects,
       _jbDirectory,
       _jbFundingCycleStore,
       _jbTokenStore
     );
+    evm.label(address(_jbPaymentTerminalStore), 'JBPaymentTerminalStore');
+
+    // AccessJBLib
+    _accessJBLib = new AccessJBLib();
+
     // JBETHPaymentTerminal
     _jbETHPaymentTerminal = new JBETHPaymentTerminal(
+      _accessJBLib.ETH(),
       _jbOperatorStore,
       _jbProjects,
       _jbDirectory,
       _jbSplitsStore,
-      _jbETHPaymentTerminalStore,
+      _jbPaymentTerminalStore,
       _multisig
     );
+    evm.label(address(_jbETHPaymentTerminal), 'JBETHPaymentTerminal');
+
+    evm.prank(_multisig);
+    _jbToken = new JBToken('MyToken', 'MT');
+
+    evm.prank(_multisig);
+    _jbToken.mint(0, _multisig, 100*10**18);
+
+    // JBERC20PaymentTerminal
+    _jbERC20PaymentTerminal = new JBERC20PaymentTerminal(
+      _jbToken,
+      // Not testing currency != base weight (still need to code a fake price feed)
+      _accessJBLib.ETH(), // currency
+      _accessJBLib.ETH(), // base weight currency
+      1, // JBSplitsGroupe
+      _jbOperatorStore,
+      _jbProjects,
+      _jbDirectory,
+      _jbSplitsStore,
+      _jbPaymentTerminalStore,
+      _multisig
+    );
+    evm.label(address(_jbERC20PaymentTerminal), 'JBERC20PaymentTerminal');
   }
 }

@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import '@paulrberg/contracts/math/PRBMath.sol';
+
 import './helpers/TestBaseWorkflow.sol';
 
-contract TestAllowance is TestBaseWorkflow {
+contract TestERC20Terminal is TestBaseWorkflow {
   JBController controller;
   JBProjectMetadata _projectMetadata;
   JBFundingCycleData _data;
@@ -53,17 +55,17 @@ contract TestAllowance is TestBaseWorkflow {
       dataSource: IJBFundingCycleDataSource(address(0))
     });
 
-    _terminals.push(jbETHPaymentTerminal());
+    _terminals.push(jbERC20PaymentTerminal());
   }
 
   function testAllowance() public {
-    JBETHPaymentTerminal terminal = jbETHPaymentTerminal();
+    JBERC20PaymentTerminal terminal = jbERC20PaymentTerminal();
 
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
         terminal: terminal,
-        distributionLimit: 10 ether,
-        overflowAllowance: 5 ether,
+        distributionLimit: 10*10**18,
+        overflowAllowance: 5*10**18,
         distributionLimitCurrency: jbLibraries().ETH(),
         overflowAllowanceCurrency: jbLibraries().ETH()
       })
@@ -80,37 +82,47 @@ contract TestAllowance is TestBaseWorkflow {
       _terminals
     );
 
-    terminal.pay{value: 20 ether}(20 ether, projectId, msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
+    address caller = msg.sender;
+    evm.label(caller, 'caller');
+    evm.prank(_projectOwner);
+    jbToken().transfer(caller, 20*10**18);
+
+    evm.prank(caller); // back to regular msg.sender (bug?)
+    jbToken().approve(address(terminal), 20*10**18);
+    evm.prank(caller); // back to regular msg.sender (bug?)
+    terminal.pay(20*10**18, projectId, msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
 
      // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
-    uint256 _userTokenBalance = PRBMathUD60x18.mul(20 ether, WEIGHT) / 2;
+    uint256 _userTokenBalance = PRBMathUD60x18.mul(20*10**18, WEIGHT) / 2;
     assertEq(_tokenStore.balanceOf(msg.sender, projectId), _userTokenBalance);
 
-    // verify: ETH balance in terminal should be up to date
-    assertEq(terminal.balanceOf(projectId), 20 ether);
+    // verify: balance in terminal should be up to date
+    assertEq(terminal.balanceOf(projectId), 20*10**18);
 
     // Discretionary use of overflow allowance by project owner (allowance = 5ETH)
     evm.prank(_projectOwner); // Prank only next call
     terminal.useAllowanceOf(
       projectId,
-      5 ether,
+      5*10**18,
       1, // Currency
       0, // Min wei out
       payable(msg.sender), // Beneficiary
       'MEMO'
     );
-    assertEq((msg.sender).balance, 5 ether);
+    assertEq(jbToken().balanceOf(msg.sender), 5*10**18);
 
     // Distribute the funding target ETH -> splits[] is empty -> everything in left-over, to project owner
+    uint256 initBalance = jbToken().balanceOf(_projectOwner);
     evm.prank(_projectOwner);
     terminal.distributePayoutsOf(
       projectId,
-      10 ether,
+      10*10**18,
       1, // Currency
       0, // Min wei out
       'Foundry payment' // Memo
     );
-    assertEq(_projectOwner.balance, (10 ether * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE()) );
+    // Funds leaving the ecosystem -> fee taken
+    assertEq(jbToken().balanceOf(_projectOwner), initBalance + (10*10**18 * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE()) );
 
     // redeem eth from the overflow by the token holder:
     uint256 senderBalance = _tokenStore.balanceOf(msg.sender, projectId);
@@ -129,10 +141,10 @@ contract TestAllowance is TestBaseWorkflow {
     assertEq(_tokenStore.balanceOf(msg.sender, projectId), 0);
   }
 
-  function testFuzzAllowance(uint248 ALLOWANCE, uint248 TARGET, uint96 BALANCE) public {
+  function testFuzzedAllowance(uint248 ALLOWANCE, uint248 TARGET, uint96 BALANCE) public {
     evm.assume(jbToken().totalSupply() >= BALANCE);
 
-    JBETHPaymentTerminal terminal = jbETHPaymentTerminal();
+    JBERC20PaymentTerminal terminal = jbERC20PaymentTerminal();
 
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
@@ -155,23 +167,31 @@ contract TestAllowance is TestBaseWorkflow {
       _terminals
     );
 
-    terminal.pay{value: BALANCE}(BALANCE, projectId, msg.sender, 0, false, 'Forge test', new bytes(0));
+    address caller = msg.sender;
+    evm.label(caller, 'caller');
+    evm.prank(_projectOwner);
+    jbToken().transfer(caller, BALANCE);
 
-    // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
+    evm.prank(caller); // back to regular msg.sender (bug?)
+    jbToken().approve(address(terminal), BALANCE);
+    evm.prank(caller); // back to regular msg.sender (bug?)
+    terminal.pay(BALANCE, projectId, msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
+
+     // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
     uint256 _userTokenBalance = PRBMathUD60x18.mul(BALANCE, WEIGHT) / 2;
     if(BALANCE != 0) assertEq(_tokenStore.balanceOf(msg.sender, projectId), _userTokenBalance);
 
     // verify: ETH balance in terminal should be up to date
     assertEq(terminal.balanceOf(projectId), BALANCE);
 
-    evm.prank(_projectOwner);
-
+    // Discretionary use of overflow allowance by project owner (allowance = 5ETH)
     if (ALLOWANCE == 0)
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_CONTROLLER_ALLOWANCE()'));
 
-    else if (TARGET >= BALANCE || ALLOWANCE > (BALANCE - TARGET)) // Too much to withdraw or no overflow ?
+    else if (TARGET >= BALANCE || ALLOWANCE > (BALANCE-TARGET)) // Too much to withdraw or no overflow ?
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
     
+    evm.prank(_projectOwner); // Prank only next call
     terminal.useAllowanceOf(
       projectId,
       ALLOWANCE,
@@ -180,16 +200,18 @@ contract TestAllowance is TestBaseWorkflow {
       payable(msg.sender), // Beneficiary
       'MEMO'
     );
+    if (BALANCE !=0  && BALANCE > TARGET && ALLOWANCE < BALANCE && TARGET < BALANCE) assertEq(jbToken().balanceOf(msg.sender), ALLOWANCE);
 
-    if (BALANCE !=0  && BALANCE > TARGET && ALLOWANCE < BALANCE && TARGET < BALANCE) assertEq((msg.sender).balance, ALLOWANCE);
+    // Distribute the funding target ETH -> no split then beneficiary is the project owner
+    uint256 initBalance = jbToken().balanceOf(_projectOwner);
 
-    evm.prank(_projectOwner);
     if (TARGET > BALANCE)
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
     
     if (TARGET == 0)
       evm.expectRevert(abi.encodeWithSignature('DISTRIBUTION_AMOUNT_LIMIT_REACHED()'));
 
+    evm.prank(_projectOwner);
     terminal.distributePayoutsOf(
       projectId,
       TARGET,
@@ -197,22 +219,26 @@ contract TestAllowance is TestBaseWorkflow {
       0, // Min wei out
       'Foundry payment' // Memo
     );
+    // Funds leaving the ecosystem -> fee taken
     if(TARGET <= BALANCE && TARGET != 0)
-      assertEq(_projectOwner.balance, (TARGET * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE()));
+      assertEq(jbToken().balanceOf(_projectOwner), initBalance + PRBMath.mulDiv(TARGET, jbLibraries().MAX_FEE(), terminal.fee() + jbLibraries().MAX_FEE()) );
 
-
-    if (BALANCE == 0)
-      evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_TOKENS()'));
-
+    // redeem eth from the overflow by the token holder:
+    uint256 senderBalance = _tokenStore.balanceOf(msg.sender, projectId);
+    
     evm.prank(msg.sender);
     terminal.redeemTokensOf(
       msg.sender,
       projectId,
-      1, // Currency
-      0, // Min wei out
+      senderBalance,
+      0,
       payable(msg.sender),
-      'gimme my money back',
+      'gimme my token back',
       new bytes(0)
     );
+
+    // verify: beneficiary should have a balance of 0 JBTokens
+    assertEq(_tokenStore.balanceOf(msg.sender, projectId), 0);
   }
+
 }

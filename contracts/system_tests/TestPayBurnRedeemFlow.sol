@@ -103,6 +103,7 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
 
     // pay terminal
     _terminal.pay{value: payAmountInWei}(
+      payAmountInWei,
       _projectId,
       /* _beneficiary */
       _userWallet,
@@ -122,7 +123,7 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
 
     // verify: ETH balance in terminal should be up to date
     uint256 _terminalBalanceInWei = payAmountInWei;
-    assertEq(_terminal.ethBalanceOf(_projectId), _terminalBalanceInWei);
+    assertEq(_terminal.balanceOf(_projectId), _terminalBalanceInWei);
 
     // burn tokens from beneficiary addr
     if (burnTokenAmount == 0) evm.expectRevert(abi.encodeWithSignature('NO_BURNABLE_TOKENS()'));
@@ -153,7 +154,7 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
     else if (
       _targetInWei > payAmountInWei ||
       PRBMath.mulDiv(payAmountInWei - _targetInWei, redeemTokenAmount, _userTokenBalance) < _minWei
-    ) evm.expectRevert(abi.encodeWithSignature('INADEQUATE_CLAIM_AMOUNT()'));
+    ) evm.expectRevert(abi.encodeWithSignature('INADEQUATE_RECLAIM_AMOUNT()'));
     else _userTokenBalance = _userTokenBalance - redeemTokenAmount;
 
     evm.prank(_userWallet);
@@ -178,6 +179,6 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
     assertEq(_tokenStore.balanceOf(_userWallet, _projectId), _userTokenBalance);
 
     // verify: ETH balance in terminal should be up to date
-    assertEq(_terminal.ethBalanceOf(_projectId), _terminalBalanceInWei - _reclaimAmtInWei);
+    assertEq(_terminal.balanceOf(_projectId), _terminalBalanceInWei - _reclaimAmtInWei);
   }
 }
