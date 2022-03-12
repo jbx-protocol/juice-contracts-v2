@@ -34,7 +34,6 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
   let MAX_FEE;
   let MAX_FEE_DISCOUNT;
   let AMOUNT_MINUS_FEES;
-  let DISCOUNTED_FEE;
 
   let fundingCycle;
 
@@ -346,7 +345,8 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
             /*amount paid*/ Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             split.projectId,
             split.beneficiary,
-            ''
+            '',
+            '0x'
           )
           .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
       }),
@@ -705,7 +705,8 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
         AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES,
         /*CURRENCY*/ 1,
         projectOwner.address,
-        ''
+        '',
+        '0x'
       )
       .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
 
@@ -717,7 +718,8 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
             /*amount paid*/ Math.floor((AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT),
             split.projectId,
             split.beneficiary,
-            ''
+            '',
+            '0x'
           )
           .returns(fundingCycle, 0, 0,/* delegate */ ethers.constants.AddressZero, '');
       }),
@@ -1288,7 +1290,8 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             split.projectId,
             split.beneficiary,
-            ''
+            '',
+            '0x'
           )
           .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
       }),

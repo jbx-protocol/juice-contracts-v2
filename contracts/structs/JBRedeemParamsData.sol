@@ -22,4 +22,6 @@ struct JBRedeemParamsData {
   address beneficiary;
   // The proposed memo that is being emitted alongside the redemption.
   string memo;
+  // Arbitrary metadata provided by the redeemer.
+  bytes metadata;
 }

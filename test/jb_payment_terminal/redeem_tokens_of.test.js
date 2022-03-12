@@ -133,7 +133,8 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         /* tokenCount */ AMOUNT,
         CURRENCY_ETH,
         beneficiary.address,
-        MEMO
+        MEMO,
+        METADATA
       )
       .returns(fundingCycle, /* reclaimAmount */ RECLAIM_AMOUNT, /* delegate */ ethers.constants.AddressZero, ADJUSTED_MEMO);
 
@@ -194,7 +195,8 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         /* tokenCount */ 0,
         CURRENCY_ETH,
         beneficiary.address,
-        MEMO
+        MEMO,
+        METADATA
       )
       .returns(fundingCycle, /* reclaimAmount */ RECLAIM_AMOUNT, /* delegate */ ethers.constants.AddressZero, ADJUSTED_MEMO);
 
@@ -263,7 +265,8 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         /* tokenCount */ AMOUNT,
         CURRENCY_ETH,
         beneficiary.address,
-        MEMO
+        MEMO,
+        METADATA
       )
       .returns(fundingCycle, /* reclaimAmount */ RECLAIM_AMOUNT, /* delegate */ mockJbRedemptionDelegate.address, ADJUSTED_MEMO);
 
@@ -358,7 +361,8 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         /* tokenCount */ AMOUNT,
         CURRENCY_ETH,
         beneficiary.address,
-        MEMO
+        MEMO,
+        METADATA
       )
       .returns(fundingCycle, /* reclaimAmount */ 0, /* delegate */ ethers.constants.AddressZero, ADJUSTED_MEMO); // Set reclaimAmount to 0
 
@@ -464,7 +468,8 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         /* tokenCount */ AMOUNT,
         CURRENCY_ETH,
         beneficiary.address,
-        MEMO
+        MEMO,
+        METADATA
       )
       .returns(fundingCycle, /* reclaimAmount */ 0, /* delegate */ ethers.constants.AddressZero, ADJUSTED_MEMO); // Set reclaimAmount to 0
 

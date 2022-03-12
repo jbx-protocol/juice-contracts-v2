@@ -305,7 +305,8 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
         AMOUNT - AMOUNT_MINUS_FEES,
         JUICEBOX_PROJECT_ID,
         projectOwner.address,
-        /* memo */ ''
+        /* memo */ '',
+        '0x'
       )
       .returns(fundingCycle, WEIGHT, 0, /* delegate */ ethers.constants.AddressZero, '');
 
@@ -387,6 +388,7 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
         JUICEBOX_PROJECT_ID,
         projectOwner.address,
         /* memo */ '',
+        '0x'
       )
       .returns(fundingCycle, WEIGHT, 0, /* delegate */ ethers.constants.AddressZero, '');
 
@@ -465,7 +467,8 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
         AMOUNT - AMOUNT_MINUS_FEES,
         JUICEBOX_PROJECT_ID,
         projectOwner.address,
-        /* memo */ ''
+        /* memo */ '',
+        '0x'
       )
       .returns(fundingCycle, WEIGHT, 0, /* delegate */ ethers.constants.AddressZero, '');
 
@@ -552,7 +555,8 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
         AMOUNT - AMOUNT_MINUS_FEES,
         JUICEBOX_PROJECT_ID,
         projectOwner.address,
-        /* memo */ ''
+        /* memo */ '',
+        '0x'
       )
       .returns(newFundingCycle, WEIGHT, 0, /* delegate */ ethers.constants.AddressZero, '');
 

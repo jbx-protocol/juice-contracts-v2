@@ -100,7 +100,8 @@ describe('JBPaymentTerminal::pay(...)', function () {
         ETH_TO_PAY,
         PROJECT_ID,
         beneficiary.address,
-        MEMO
+        MEMO,
+        METADATA
       )
       .returns(
         {
@@ -203,7 +204,8 @@ describe('JBPaymentTerminal::pay(...)', function () {
         ETH_TO_PAY,
         PROJECT_ID,
         beneficiary.address,
-        MEMO
+        MEMO,
+        METADATA
       )
       .returns(
         {
@@ -317,7 +319,8 @@ describe('JBPaymentTerminal::pay(...)', function () {
         ETH_TO_PAY,
         PROJECT_ID,
         beneficiary.address,
-        MEMO
+        MEMO,
+        METADATA
       )
       .returns(
         {
@@ -453,7 +456,8 @@ describe('JBPaymentTerminal::pay(...)', function () {
         ETH_TO_PAY,
         PROJECT_ID,
         beneficiary.address,
-        MEMO
+        MEMO,
+        METADATA
       )
       .returns(
         {

@@ -20,4 +20,6 @@ struct JBPayParamsData {
   address beneficiary;
   // The proposed memo that is being emitted alongside the payment.
   string memo;
+  // Arbitrary metadata provided by the payer.
+  bytes metadata;
 }

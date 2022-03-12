@@ -243,6 +243,7 @@ contract JBPaymentTerminalStore {
     @param _projectId The ID of the project being paid.
     @param _beneficiary The address that should receive benefits from the payment.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.
+    @param _metadata Bytes to send along to the dataSource, if provided.
 
     @return fundingCycle The project's funding cycle during which payment was made.
     @return weight The weight according to which new token supply was minted, as a fixed point number with 18 decimals.
@@ -255,7 +256,8 @@ contract JBPaymentTerminalStore {
     uint256 _amount,
     uint256 _projectId,
     address _beneficiary,
-    string memory _memo
+    string memory _memo,
+    bytes memory _metadata
   )
     external
     returns (
@@ -286,7 +288,8 @@ contract JBPaymentTerminalStore {
           fundingCycle.weight,
           fundingCycle.reservedRate(),
           _beneficiary,
-          _memo
+          _memo,
+          _metadata
         )
       );
       // Otherwise use the funding cycle's weight
@@ -512,6 +515,7 @@ contract JBPaymentTerminalStore {
     @param _currency The currency that the stored balance is expected to be in terms of.
     @param _beneficiary The address that will benefit from the claimed amount.
     @param _memo A memo to pass along to the emitted event.
+    @param _metadata Bytes to send along to the dataSource, if provided.
 
     @return fundingCycle The funding cycle during which the redemption was made.
     @return reclaimAmount The amount of terminal tokens reclaimed, as a fixed point number with 18 decimals.
@@ -524,7 +528,8 @@ contract JBPaymentTerminalStore {
     uint256 _tokenCount,
     uint256 _currency,
     address payable _beneficiary,
-    string memory _memo
+    string memory _memo,
+    bytes memory _metadata
   )
     external
     returns (
@@ -555,7 +560,8 @@ contract JBPaymentTerminalStore {
           fundingCycle.ballotRedemptionRate(),
           _currency,
           _beneficiary,
-          _memo
+          _memo,
+          _metadata
         )
       );
     else {

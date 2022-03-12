@@ -527,7 +527,8 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
         _tokenCount,
         currency,
         _beneficiary,
-        _memo
+        _memo,
+        _metadata
       );
 
       // The amount being reclaimed must be at least as much as was expected.
@@ -950,7 +951,8 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
         _amount,
         _projectId,
         _beneficiary,
-        _memo
+        _memo,
+        _metadata
       );
 
       // Mint the tokens if needed.

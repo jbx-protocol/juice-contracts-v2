@@ -23,6 +23,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
   const CURRENCY = 1;
   const BASE_CURRENCY = 1;
+  const METADATA = ethers.utils.randomBytes(32);
 
   async function setup() {
     const [deployer, payer, beneficiary, ...addrs] = await ethers.getSigners();
@@ -114,7 +115,8 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         AMOUNT,
         PROJECT_ID,
         beneficiary.address,
-        /* memo */ 'test'
+        /* memo */ 'test',
+        METADATA
       );
 
     // Expect recorded balance to change
@@ -155,7 +157,8 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         AMOUNT,
         PROJECT_ID,
         beneficiary.address,
-        /* memo */ 'test'
+        /* memo */ 'test',
+        METADATA
       );
 
     // Expect recorded balance to change
@@ -210,7 +213,8 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         weight: WEIGHT,
         reservedRate: reservedRate,
         beneficiary: beneficiary.address,
-        memo: memo
+        memo: memo,
+        metadata: METADATA
       })
       .returns(WEIGHT, newMemo, delegate.address);
 
@@ -224,7 +228,8 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         /* amount */ AMOUNT,
         /* projectId */ PROJECT_ID,
         beneficiary.address,
-        /* memo */ memo
+        /* memo */ memo,
+        METADATA
       );
 
     // Expect recorded balance to change
@@ -266,7 +271,8 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         AMOUNT,
         PROJECT_ID,
         beneficiary.address,
-        /* memo */ 'test'
+        /* memo */ 'test',
+        METADATA
       );
 
     // Expect recorded balance to change
@@ -316,7 +322,8 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         AMOUNT,
         PROJECT_ID,
         beneficiary.address,
-        /* memo */ 'test'
+        /* memo */ 'test',
+        METADATA
       );
 
     // Expect recorded balance to change
@@ -369,7 +376,8 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         weight: WEIGHT,
         reservedRate: reservedRate,
         beneficiary: beneficiary.address,
-        memo: memo
+        memo: memo,
+        metadata: METADATA
       })
       .returns(WEIGHT, newMemo, delegate.address);
 
@@ -383,7 +391,8 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         /* amount */ 0,
         /* projectId */ PROJECT_ID,
         beneficiary.address,
-        /* memo */ memo
+        /* memo */ memo,
+        METADATA
       );
 
     // Recorded balance should not have changed
@@ -420,7 +429,8 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
           AMOUNT,
           PROJECT_ID,
           beneficiary.address,
-          /* memo */ 'test'
+          /* memo */ 'test',
+          METADATA
         ),
     ).to.be.revertedWith(errors.INVALID_FUNDING_CYCLE);
   });
@@ -451,7 +461,8 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
           AMOUNT,
           PROJECT_ID,
           beneficiary.address,
-          /* memo */ 'test'
+          /* memo */ 'test',
+          METADATA
         ),
     ).to.be.revertedWith(errors.FUNDING_CYCLE_PAYMENT_PAUSED);
   });

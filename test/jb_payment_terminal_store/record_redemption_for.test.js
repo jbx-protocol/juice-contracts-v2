@@ -20,6 +20,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
   const AMOUNT = ethers.BigNumber.from('4398541');
   const WEIGHT = ethers.BigNumber.from('900000000');
   const CURRENCY = ethers.BigNumber.from(1);
+  const METADATA = ethers.utils.randomBytes(32);
 
   async function setup() {
     const [deployer, holder, beneficiary, ...addrs] = await ethers.getSigners();
@@ -148,7 +149,8 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* tokenCount */ AMOUNT,
         CURRENCY,
         /* beneficiary */ beneficiary.address,
-        /* memo */ 'test'
+        /* memo */ 'test',
+        METADATA
       );
 
     // Expect recorded balance to decrease by redeemed amount
@@ -227,7 +229,8 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* tokenCount */ 0,
         CURRENCY,
         /* beneficiary */ beneficiary.address,
-        /* memo */ 'test'
+        /* memo */ 'test',
+        METADATA
       );
 
     // Expect recorded balance to not have changed
@@ -300,7 +303,8 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* tokenCount */ AMOUNT,
         CURRENCY,
         /* beneficiary */ beneficiary.address,
-        /* memo */ 'test'
+        /* memo */ 'test',
+        METADATA
       );
 
     // Expect recorded balance to not have changed
@@ -361,7 +365,8 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         ballotRedemptionRate: ballotRedemptionRate,
         currency: CURRENCY,
         beneficiary: beneficiary.address,
-        memo: 'test'
+        memo: 'test',
+        metadata: METADATA
       })
       .returns(AMOUNT, newMemo, delegate.address);
 
@@ -382,7 +387,8 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* tokenCount */ AMOUNT,
         CURRENCY,
         /* beneficiary */ beneficiary.address,
-        /* memo */ 'test'
+        /* memo */ 'test',
+        METADATA
       );
 
     expect(tx.delegate).to.equal(delegate.address);
@@ -406,7 +412,8 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
           /* tokenCount */ AMOUNT,
           CURRENCY,
           /* beneficiary */ beneficiary.address,
-          /* memo */ 'test'
+          /* memo */ 'test',
+          METADATA
         ),
     ).to.be.revertedWith(errors.INSUFFICIENT_TOKENS);
   });
@@ -461,7 +468,8 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
           /* tokenCount */ AMOUNT,
           CURRENCY,
           /* beneficiary */ beneficiary.address,
-          /* memo */ 'test'
+          /* memo */ 'test',
+          METADATA
         ),
     ).to.be.revertedWith(errors.FUNDING_CYCLE_REDEEM_PAUSED);
   });
@@ -520,7 +528,8 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         ballotRedemptionRate: ballotRedemptionRate,
         currency: CURRENCY,
         beneficiary: beneficiary.address,
-        memo: 'test'
+        memo: 'test',
+        metadata: METADATA
       })
       .returns(AMOUNT, newMemo, delegate.address);
 
@@ -535,7 +544,8 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
           /* tokenCount */ AMOUNT,
           CURRENCY,
           /* beneficiary */ beneficiary.address,
-          /* memo */ 'test'
+          /* memo */ 'test',
+          METADATA
         ),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
