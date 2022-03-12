@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-// import '@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol';
 import './IJBPriceFeed.sol';
 
 interface IJBPrices {
