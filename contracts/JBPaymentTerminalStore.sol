@@ -779,6 +779,9 @@ contract JBPaymentTerminalStore {
     uint256 _currencyDistributionLimitRemaining;
 
     for (uint256 _i = 0; _i < _terminals.length; _i++) {
+      // Only consider terminals that share this store.
+      if (_terminals[_i].store() != address(this)) continue;
+
       // Get the balance of the terminal being iterated on.
       uint256 _someTerminalBalanceOf = balanceOf[_terminals[_i]][_projectId];
 

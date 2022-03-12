@@ -12,6 +12,8 @@ interface IJBTerminal {
 
   function payoutSplitsGroup() external view returns (uint256);
 
+  function store() external view returns (address);
+
   function pay(
     uint256 _amount,
     uint256 _projectId,

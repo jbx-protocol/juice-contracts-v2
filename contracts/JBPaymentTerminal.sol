@@ -113,7 +113,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     @notice
     The contract that stores and manages the terminal's data.
   */
-  JBPaymentTerminalStore public immutable store;
+  address public immutable override store;
 
   /**
     @notice
@@ -216,7 +216,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     projects = _projects;
     directory = _directory;
     splitsStore = _splitsStore;
-    store = _store;
+    store = address(_store);
 
     transferOwnership(_owner);
   }
@@ -293,11 +293,9 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     string memory _memo
   ) external override nonReentrant {
     // Record the distribution.
-    (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordDistributionFor(
-      _projectId,
-      _amount,
-      _currency
-    );
+    (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = JBPaymentTerminalStore(
+      store
+    ).recordDistributionFor(_projectId, _amount, _currency);
 
     // The amount being distributed must be at least as much as was expected.
     if (_distributedAmount < _minReturnedTokens) revert INADEQUATE_DISTRIBUTION_AMOUNT();
@@ -393,11 +391,9 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.USE_ALLOWANCE)
   {
     // Record the use of the allowance.
-    (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordUsedAllowanceOf(
-      _projectId,
-      _amount,
-      _currency
-    );
+    (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = JBPaymentTerminalStore(
+      store
+    ).recordUsedAllowanceOf(_projectId, _amount, _currency);
 
     // The amount being withdrawn must be at least as much as was expected.
     if (_distributedAmount < _minReturnedTokens) revert INADEQUATE_DISTRIBUTION_AMOUNT();
@@ -484,14 +480,8 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
       IJBRedemptionDelegate _delegate;
 
       // Record the redemption.
-      (_fundingCycle, reclaimAmount, _delegate, _memo) = store.recordRedemptionFor(
-        _holder,
-        _projectId,
-        _tokenCount,
-        currency,
-        _beneficiary,
-        _memo
-      );
+      (_fundingCycle, reclaimAmount, _delegate, _memo) = JBPaymentTerminalStore(store)
+        .recordRedemptionFor(_holder, _projectId, _tokenCount, currency, _beneficiary, _memo);
 
       // The amount being reclaimed must be at least as much as was expected.
       if (reclaimAmount < _minReturnedTokens) revert INADEQUATE_RECLAIM_AMOUNT();
@@ -558,7 +548,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     if (token != _to.token()) revert TERMINAL_TOKENS_INCOMPATIBLE();
 
     // Record the migration in the store.
-    uint256 _balance = store.recordMigration(_projectId);
+    uint256 _balance = JBPaymentTerminalStore(store).recordMigration(_projectId);
 
     // Transfer the balance if needed.
     if (_balance > 0) {
@@ -908,13 +898,8 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
       uint256 _tokenCount;
 
       // Record the payment.
-      (_fundingCycle, _weight, _tokenCount, _delegate, _memo) = store.recordPaymentFrom(
-        _payer,
-        _amount,
-        _projectId,
-        _beneficiary,
-        _memo
-      );
+      (_fundingCycle, _weight, _tokenCount, _delegate, _memo) = JBPaymentTerminalStore(store)
+        .recordPaymentFrom(_payer, _amount, _projectId, _beneficiary, _memo);
 
       // Mint the tokens if needed.
       if (_tokenCount > 0)
@@ -972,7 +957,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     string memory _memo
   ) private {
     // Record the added funds.
-    store.recordAddedBalanceFor(_projectId, _amount);
+    JBPaymentTerminalStore(store).recordAddedBalanceFor(_projectId, _amount);
 
     // Refund any held fees to make sure the project doesn't pay double for funds going in and out of the protocol.
     _refundHeldFees(_projectId, _amount);
