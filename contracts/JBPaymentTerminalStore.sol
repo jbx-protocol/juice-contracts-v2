@@ -782,20 +782,23 @@ contract JBPaymentTerminalStore {
       // Get the balance of the terminal being iterated on.
       uint256 _someTerminalBalanceOf = balanceOf[_terminals[_i]][_projectId];
 
-      // Get the currency of the terminal being iterated on.
-      uint256 _someTerminalCurrency = _terminals[_i].currency();
+      // Add the the running balance if the terminal being iterated on has a balance.
+      if (_someTerminalBalanceOf > 0) {
+        // Get the currency of the terminal being iterated on.
+        uint256 _someTerminalCurrency = _terminals[_i].currency();
 
-      // Get the balance of the terminal in terms of this store's terminal's currency.
-      _currencyBalanceOf =
-        _currencyBalanceOf +
-        (
-          (_someTerminalCurrency == _currency)
-            ? _someTerminalBalanceOf
-            : PRBMathUD60x18.div(
-              _someTerminalBalanceOf,
-              prices.priceFor(_someTerminalCurrency, _currency)
-            )
-        );
+        // Get the balance of the terminal in terms of this store's terminal's currency.
+        _currencyBalanceOf =
+          _currencyBalanceOf +
+          (
+            (_someTerminalCurrency == _currency)
+              ? _someTerminalBalanceOf
+              : PRBMathUD60x18.div(
+                _someTerminalBalanceOf,
+                prices.priceFor(_someTerminalCurrency, _currency)
+              )
+          );
+      }
 
       // Get a reference to the amount still distributable during the funding cycle.
       uint256 _distributionLimitRemaining = directory.controllerOf(_projectId).distributionLimitOf(
