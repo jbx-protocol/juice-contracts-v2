@@ -849,8 +849,12 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
           // This distribution is eligible for a fee since the funds are leaving the ecosystem.
           feeEligibleDistributionAmount += _payoutAmount;
 
-          // Otherwise, send the funds directly to the beneficiary.
-          _transferFrom(address(this), _split.beneficiary, _netPayoutAmount);
+          // If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender
+          _transferFrom(
+            address(this),
+            _split.beneficiary != address(0) ? _split.beneficiary : payable(msg.sender),
+            _netPayoutAmount
+          );
         }
 
         // Subtract from the amount to be sent to the beneficiary.
