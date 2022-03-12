@@ -279,7 +279,7 @@ contract JBPaymentTerminalStore {
     if (fundingCycle.payPaused()) revert FUNDING_CYCLE_PAYMENT_PAUSED();
 
     // If the funding cycle has configured a data source, use it to derive a weight and memo.
-    if (fundingCycle.useDataSourceForPay()) {
+    if (fundingCycle.useDataSourceForPay())
       (weight, memo, delegate) = fundingCycle.dataSource().payParams(
         JBPayParamsData(
           IJBTerminal(msg.sender),
@@ -293,7 +293,7 @@ contract JBPaymentTerminalStore {
         )
       );
       // Otherwise use the funding cycle's weight
-    } else {
+    else {
       weight = fundingCycle.weight;
       memo = _memo;
     }
@@ -545,7 +545,7 @@ contract JBPaymentTerminalStore {
     if (fundingCycle.redeemPaused()) revert FUNDING_CYCLE_REDEEM_PAUSED();
 
     // If the funding cycle has configured a data source, use it to derive a claim amount and memo.
-    if (fundingCycle.useDataSourceForRedeem()) {
+    if (fundingCycle.useDataSourceForRedeem())
       (reclaimAmount, memo, delegate) = fundingCycle.dataSource().redeemParams(
         JBRedeemParamsData(
           IJBTerminal(msg.sender),
@@ -558,7 +558,7 @@ contract JBPaymentTerminalStore {
           _memo
         )
       );
-    } else {
+    else {
       reclaimAmount = _reclaimableOverflowOf(
         IJBTerminal(msg.sender),
         _projectId,

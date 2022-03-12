@@ -112,14 +112,10 @@ abstract contract JBProjectPayer is Ownable {
     IJBTerminal _terminal = directory.primaryTerminalOf(_projectId, _token);
 
     // There must be a terminal.
-    if (_terminal == IJBTerminal(address(0))) {
-      revert TERMINAL_NOT_FOUND();
-    }
+    if (_terminal == IJBTerminal(address(0))) revert TERMINAL_NOT_FOUND();
 
     // There must be enough funds in the contract to fund the treasury.
-    if (address(this).balance < _amount) {
-      revert INSUFFICIENT_BALANCE();
-    }
+    if (address(this).balance < _amount) revert INSUFFICIENT_BALANCE();
 
     uint256 _payableValue = (_token == JBTokens.ETH) ? _amount : 0;
 

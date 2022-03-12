@@ -21,9 +21,8 @@ abstract contract JBOperatable is IJBOperatable {
       msg.sender != _account &&
       !operatorStore.hasPermission(msg.sender, _account, _domain, _permissionIndex) &&
       !operatorStore.hasPermission(msg.sender, _account, 0, _permissionIndex)
-    ) {
-      revert UNAUTHORIZED();
-    }
+    ) revert UNAUTHORIZED();
+
     _;
   }
 
@@ -38,9 +37,8 @@ abstract contract JBOperatable is IJBOperatable {
       msg.sender != _account &&
       !operatorStore.hasPermission(msg.sender, _account, _domain, _permissionIndex) &&
       !operatorStore.hasPermission(msg.sender, _account, 0, _permissionIndex)
-    ) {
-      revert UNAUTHORIZED();
-    }
+    ) revert UNAUTHORIZED();
+
     _;
   }
 
