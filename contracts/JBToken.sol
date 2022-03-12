@@ -1,20 +1,47 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import '@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol';
+import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 
 import './interfaces/IJBToken.sol';
 
 /** 
   @notice
-  An ERC-20 token that can be minted and burned by its owner.
+  An ERC-20 token that can be used by a project in the `JBTokenStore`.
+
+  @dev
+  Adheres to:
+  IJBToken: Allows this contract to be used by projects in the JBTokenStore.
+
+  @dev
+  Inherits from:
+  ERC20: General token standard for fungible accounting. 
+  Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
-contract JBToken is IJBToken, ERC20Votes, Ownable {
+contract JBToken is IJBToken, ERC20, Ownable {
+  //*********************************************************************//
+  // ------------------------- external views -------------------------- //
+  //*********************************************************************//
+
+  /** 
+    @notice
+    The total supply of this ERC20.
+
+    @return The total supply of this ERC20, as a fixed point number with 18 decimals.
+  */
   function totalSupply(uint256) external view override returns (uint256) {
     return super.totalSupply();
   }
 
+  /** 
+    @notice
+    An account's balance of this ERC20.
+
+    @param _account The account to get a balance of.
+
+    @return The balance of the `_account` of this ERC20, as a fixed point number with 18 decimals.
+  */
   function balanceOf(address _account, uint256) external view override returns (uint256) {
     return super.balanceOf(_account);
   }
@@ -29,7 +56,6 @@ contract JBToken is IJBToken, ERC20Votes, Ownable {
   */
   constructor(string memory _name, string memory _symbol)
     ERC20(_name, _symbol)
-    ERC20Permit(_name)
   // solhint-disable-next-line no-empty-blocks
   {
 
@@ -47,7 +73,7 @@ contract JBToken is IJBToken, ERC20Votes, Ownable {
     Only the owner of this contract cant mint more of it.
 
     @param _account The account to mint the tokens for.
-    @param _amount The amount of tokens to mint.
+    @param _amount The amount of tokens to mint, as a fixed point number with 18 decimals.
   */
   function mint(
     uint256,
@@ -65,7 +91,7 @@ contract JBToken is IJBToken, ERC20Votes, Ownable {
     Only the owner of this contract cant burn some of its supply.
 
     @param _account The account to burn tokens from.
-    @param _amount The amount of tokens to burn.
+    @param _amount The amount of tokens to burn, as a fixed point number with 18 decimals.
   */
   function burn(
     uint256,
@@ -77,13 +103,42 @@ contract JBToken is IJBToken, ERC20Votes, Ownable {
 
   /** 
     @notice
+    Transfer tokens to an account.
+
+    @param _to The destination address.
+    @param _amount The amount of the transfer, as a fixed point number with 18 decimals.
+  */
+  function transfer(
+    uint256,
+    address _to,
+    uint256 _amount
+  ) external override {
+    transfer(_to, _amount);
+  }
+
+  /** 
+    @notice
+    Transfer tokens between accounts.
+
+    @param _from The originating address.
+    @param _to The destination address.
+    @param _amount The amount of the transfer, as a fixed point number with 18 decimals.
+  */
+  function transferFrom(
+    uint256,
+    address _from,
+    address _to,
+    uint256 _amount
+  ) external override {
+    transferFrom(_from, _to, _amount);
+  }
+
+  /** 
+    @notice
     Transfer ownership of this contract to another address.
 
     @dev
     Only the owner of this contract can transfer it.
-
-    @dev
-    This is necessary to override to adhere to the IJBToken interface.
 
     @param _newOwner The new owner.
   */
@@ -94,23 +149,5 @@ contract JBToken is IJBToken, ERC20Votes, Ownable {
     onlyOwner
   {
     return super.transferOwnership(_newOwner);
-  }
-
-  /** 
-    @notice
-    Transfer tokens between accounts.
-
-    @param _from The originating address.
-    @param _to The destination address.
-    @param _amount The amount of the transfer.
-
-    @return A flag indicating a successful transfer.
-  */
-  function transferFrom(
-    address _from,
-    address _to,
-    uint256 _amount
-  ) public override(ERC20, IJBToken) returns (bool) {
-    return super.transferFrom(_from, _to, _amount);
   }
 }

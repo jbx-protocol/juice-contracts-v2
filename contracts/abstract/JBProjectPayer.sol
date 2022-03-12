@@ -96,6 +96,7 @@ abstract contract JBProjectPayer is Ownable {
     @param _beneficiary The address who will receive tickets from this fee.
     @param _memo A memo that will be included in the published event.
     @param _preferClaimedTokens Whether ERC20's should be claimed automatically if they have been issued.
+    @param _token The token to pay in.
     @param _delegateMetadata Bytes to send along with payments to the funding cycle's pay delegate.
   */
   function _pay(
@@ -111,17 +112,16 @@ abstract contract JBProjectPayer is Ownable {
     IJBTerminal _terminal = directory.primaryTerminalOf(_projectId, _token);
 
     // There must be a terminal.
-    if (_terminal == IJBTerminal(address(0))) {
-      revert TERMINAL_NOT_FOUND();
-    }
+    if (_terminal == IJBTerminal(address(0))) revert TERMINAL_NOT_FOUND();
 
     // There must be enough funds in the contract to fund the treasury.
-    if (address(this).balance < _amount) {
-      revert INSUFFICIENT_BALANCE();
-    }
+    if (address(this).balance < _amount) revert INSUFFICIENT_BALANCE();
+
+    uint256 _payableValue = (_token == JBTokens.ETH) ? _amount : 0;
 
     // Send funds to the terminal.
-    _terminal.pay{value: _amount}(
+    _terminal.pay{value: _payableValue}(
+      _amount, // ignored if the token is JBTokens.ETH.
       _projectId,
       _beneficiary,
       0,

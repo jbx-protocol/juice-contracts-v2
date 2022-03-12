@@ -112,26 +112,6 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
   /**
     @notice
-    Whether or not a specified terminal is a terminal of the specified project.
-
-    @param _projectId The ID of the project to check within.
-    @param _contract The address of the terminal to check for.
-
-    @return A flag indicating whether or not the specified terminal is a terminal of the specified project.
-  */
-  function isTerminalDelegateOf(uint256 _projectId, address _contract)
-    public
-    view
-    override
-    returns (bool)
-  {
-    for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++)
-      if (address(_terminalsOf[_projectId][_i].delegate()) == _contract) return true;
-    return false;
-  }
-
-  /**
-    @notice
     The primary terminal that is managing funds for a project for a specified token.
 
     @dev
@@ -197,19 +177,13 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     )
   {
     // Can't set the zero address.
-    if (_controller == IJBController(address(0))) {
-      revert SET_CONTROLLER_ZERO_ADDRESS();
-    }
+    if (_controller == IJBController(address(0))) revert SET_CONTROLLER_ZERO_ADDRESS();
 
     // Can't set the controller if it's already set.
-    if (controllerOf[_projectId] == _controller) {
-      revert CONTROLLER_ALREADY_SET();
-    }
+    if (controllerOf[_projectId] == _controller) revert CONTROLLER_ALREADY_SET();
 
     // The project must exist.
-    if (projects.count() < _projectId) {
-      revert INVALID_PROJECT_ID_IN_DIRECTORY();
-    }
+    if (projects.count() < _projectId) revert INVALID_PROJECT_ID_IN_DIRECTORY();
 
     // Set the new controller.
     controllerOf[_projectId] = _controller;
@@ -239,9 +213,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   {
     for (uint256 _i = 0; _i < _terminals.length; _i++) {
       // Can't be the zero address.
-      if (_terminals[_i] == IJBTerminal(address(0))) {
-        revert ADD_TERMINAL_ZERO_ADDRESS();
-      }
+      if (_terminals[_i] == IJBTerminal(address(0))) revert ADD_TERMINAL_ZERO_ADDRESS();
 
       _addTerminalIfNeeded(_projectId, _terminals[_i]);
     }
@@ -297,17 +269,13 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.SET_PRIMARY_TERMINAL)
   {
     // Can't set the zero address.
-    if (_terminal == IJBTerminal(address(0))) {
-      revert SET_PRIMARY_TERMINAL_ZERO_ADDRESS();
-    }
+    if (_terminal == IJBTerminal(address(0))) revert SET_PRIMARY_TERMINAL_ZERO_ADDRESS();
 
     // Get a reference to the token that the terminal's vault accepts.
     address _token = _terminal.token();
 
     // Can't set this terminal as the primary if it already is.
-    if (_terminal == _primaryTerminalOf[_projectId][_token]) {
-      revert PRIMARY_TERMINAL_ALREADY_SET();
-    }
+    if (_terminal == _primaryTerminalOf[_projectId][_token]) revert PRIMARY_TERMINAL_ALREADY_SET();
 
     // Add the terminal to thge project if it hasn't been already.
     _addTerminalIfNeeded(_projectId, _terminal);
@@ -335,9 +303,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   */
   function addToSetControllerAllowlist(address _address) external override onlyOwner {
     // Check that the address is not already in the allowlist.
-    if (isAllowedToSetController[_address]) {
-      revert CONTROLLER_ALREADY_IN_ALLOWLIST();
-    }
+    if (isAllowedToSetController[_address]) revert CONTROLLER_ALREADY_IN_ALLOWLIST();
 
     // Add the address to the allowlist.
     isAllowedToSetController[_address] = true;
@@ -356,9 +322,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   */
   function removeFromSetControllerAllowlist(address _address) external override onlyOwner {
     // Check that the address is in the allowlist.
-    if (!isAllowedToSetController[_address]) {
-      revert CONTROLLER_NOT_IN_ALLOWLIST();
-    }
+    if (!isAllowedToSetController[_address]) revert CONTROLLER_NOT_IN_ALLOWLIST();
 
     // Remove the address from the allowlist.
     delete isAllowedToSetController[_address];

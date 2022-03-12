@@ -52,7 +52,7 @@ describe('JBProjectPayer::pay(...)', function () {
       .returns(mockJbTerminal.address);
 
     await mockJbTerminal.mock.pay
-      .withArgs(PROJECT_ID_2, BENEFICIARY, 0, PREFER_CLAIMED_TOKENS, MEMO, DELEGATE_METADATA)
+      .withArgs(AMOUNT, PROJECT_ID_2, BENEFICIARY, 0, PREFER_CLAIMED_TOKENS, MEMO, DELEGATE_METADATA)
       .returns();
 
     await expect(
@@ -72,7 +72,7 @@ describe('JBProjectPayer::pay(...)', function () {
       .returns(mockJbTerminal.address);
 
     await mockJbTerminal.mock.pay
-      .withArgs(PROJECT_ID, caller.address, 0, /*preferClaimedTokens=*/ false, /*memo=*/ '', [])
+      .withArgs(AMOUNT, PROJECT_ID, caller.address, 0, /*preferClaimedTokens=*/ false, /*memo=*/ '', [])
       .returns();
 
     await expect(

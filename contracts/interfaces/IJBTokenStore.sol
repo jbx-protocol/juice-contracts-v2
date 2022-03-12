@@ -26,19 +26,27 @@ interface IJBTokenStore {
     address indexed holder,
     uint256 indexed projectId,
     uint256 amount,
-    uint256 unclaimedTokenBalance,
+    uint256 initialUnclaimedBalance,
+    uint256 initialClaimedBalance,
     bool preferClaimedTokens,
     address caller
   );
 
-  event Claim(address indexed holder, uint256 indexed projectId, uint256 amount, address caller);
+  event Claim(
+    address indexed holder,
+    uint256 indexed projectId,
+    uint256 initialUnclaimedBalance,
+    uint256 amount,
+    address caller
+  );
 
   event ShouldRequireClaim(uint256 indexed projectId, bool indexed flag, address caller);
 
   event Change(
     uint256 indexed projectId,
-    IJBToken indexed token,
-    address indexed owner,
+    IJBToken indexed newToken,
+    IJBToken indexed oldToken,
+    address owner,
     address caller
   );
 
@@ -74,7 +82,7 @@ interface IJBTokenStore {
     uint256 _projectId,
     IJBToken _token,
     address _newOwner
-  ) external;
+  ) external returns (IJBToken oldToken);
 
   function burnFrom(
     address _holder,
@@ -98,10 +106,10 @@ interface IJBTokenStore {
     uint256 _amount
   ) external;
 
-  function transferTo(
-    address _recipient,
+  function transferFrom(
     address _holder,
     uint256 _projectId,
+    address _recipient,
     uint256 _amount
   ) external;
 }

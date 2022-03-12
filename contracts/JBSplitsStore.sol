@@ -14,7 +14,6 @@ import './libraries/JBConstants.sol';
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
 //*********************************************************************//
-error ALLOCATOR_AND_BENEFICIARY_ZERO_ADDRESS();
 error INVALID_SPLIT_PERCENT();
 error INVALID_TOTAL_PERCENT();
 error INVALID_PROJECT_ID();
@@ -180,9 +179,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
         ) _includesLocked = true;
       }
 
-      if (!_includesLocked) {
-        revert PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();
-      }
+      if (!_includesLocked) revert PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();
     }
 
     // Add up all the percents to make sure they cumulative are under 100%.
@@ -190,29 +187,16 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
 
     for (uint256 _i = 0; _i < _splits.length; _i++) {
       // The percent should be greater than 0.
-      if (_splits[_i].percent == 0) {
-        revert INVALID_SPLIT_PERCENT();
-      }
-      // ProjectId should be within a uint56
-      if (_splits[_i].projectId > type(uint56).max) {
-        revert INVALID_PROJECT_ID();
-      }
+      if (_splits[_i].percent == 0) revert INVALID_SPLIT_PERCENT();
 
-      // The allocator and the beneficiary shouldn't both be the zero address.
-      if (
-        _splits[_i].allocator == IJBSplitAllocator(address(0)) &&
-        _splits[_i].beneficiary == address(0)
-      ) {
-        revert ALLOCATOR_AND_BENEFICIARY_ZERO_ADDRESS();
-      }
+      // ProjectId should be within a uint56
+      if (_splits[_i].projectId > type(uint56).max) revert INVALID_PROJECT_ID();
 
       // Add to the total percents.
       _percentTotal = _percentTotal + _splits[_i].percent;
 
       // Validate the total does not exceed the expected value.
-      if (_percentTotal > JBConstants.SPLITS_TOTAL_PERCENT) {
-        revert INVALID_TOTAL_PERCENT();
-      }
+      if (_percentTotal > JBConstants.SPLITS_TOTAL_PERCENT) revert INVALID_TOTAL_PERCENT();
 
       uint256 _packedSplitParts1 = _splits[_i].preferClaimed ? 1 : 0;
       _packedSplitParts1 |= _splits[_i].percent << 1;
@@ -225,16 +209,14 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
       // If there's data to store in the second packed split part, pack and store.
       if (_splits[_i].lockedUntil > 0 || _splits[_i].allocator != IJBSplitAllocator(address(0))) {
         // Locked until should be within a uint48
-        if (_splits[_i].lockedUntil > type(uint48).max) {
-          revert INVALID_LOCKED_UNTIL();
-        }
+        if (_splits[_i].lockedUntil > type(uint48).max) revert INVALID_LOCKED_UNTIL();
+
         uint256 _packedSplitParts2 = uint48(_splits[_i].lockedUntil);
         _packedSplitParts2 |= uint256(uint160(address(_splits[_i].allocator))) << 48;
         _packedSplitParts2Of[_projectId][_domain][_group][_i] = _packedSplitParts2;
         // Otherwise if there's a value stored in the indexed position, delete it.
-      } else if (_packedSplitParts2Of[_projectId][_domain][_group][_i] > 0) {
+      } else if (_packedSplitParts2Of[_projectId][_domain][_group][_i] > 0)
         delete _packedSplitParts2Of[_projectId][_domain][_group][_i];
-      }
 
       emit SetSplit(_projectId, _domain, _group, _splits[_i], msg.sender);
     }

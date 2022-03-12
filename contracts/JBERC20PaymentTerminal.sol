@@ -2,18 +2,17 @@
 /* solhint-disable comprehensive-interface*/
 pragma solidity 0.8.6;
 
-import '@openzeppelin/contracts/utils/Address.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 // Inheritance
 import './JBPaymentTerminal.sol';
 
-//*********************************************************************//
-// --------------------------- custom errors ------------------------- //
-//*********************************************************************//
-
-contract JBETHPaymentTerminal is JBPaymentTerminal {
+contract JBERC20PaymentTerminal is JBPaymentTerminal {
   constructor(
+    IERC20 _token,
+    uint256 _currency,
     uint256 _baseWeightCurrency,
+    uint256 _payoutSplitsGroup,
     IJBOperatorStore _operatorStore,
     IJBProjects _projects,
     IJBDirectory _directory,
@@ -22,10 +21,10 @@ contract JBETHPaymentTerminal is JBPaymentTerminal {
     address _owner
   )
     JBPaymentTerminal(
-      JBTokens.ETH,
-      JBCurrencies.ETH,
+      address(_token),
+      _currency,
       _baseWeightCurrency,
-      JBSplitsGroups.ETH_PAYOUT,
+      _payoutSplitsGroup,
       _operatorStore,
       _projects,
       _directory,
@@ -39,13 +38,16 @@ contract JBETHPaymentTerminal is JBPaymentTerminal {
   }
 
   function _transferFrom(
-    address,
+    address _from,
     address payable _to,
     uint256 _amount
   ) internal override {
-    Address.sendValue(_to, _amount);
+    _from == address(this) ?
+      IERC20(token).transfer(_from, _amount)
+      : IERC20(token).transferFrom(_from, _to, _amount);
   }
 
-  // solhint-disable-next-line no-empty-blocks
-  function _beforeTransferTo(address _to, uint256 _amount) internal override {}
+  function _beforeTransferTo(address _to, uint256 _amount) internal override {
+    IERC20(token).approve(_to, _amount);
+  }
 }

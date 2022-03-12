@@ -45,13 +45,4 @@ describe('JBToken::mint(...)', function () {
       'ERC20: mint to the zero address',
     );
   });
-
-  it(`Can't mint tokens if the new total exceeds max supply`, async function () {
-    const { addrs, jbToken } = await setup();
-    const addr = addrs[1];
-    const numTokens = BigInt(2 ** 224); // bigger than max supply of (2^224)-1
-    await expect(jbToken.mint(PROJECT_ID, addr.address, numTokens)).to.be.revertedWith(
-      'ERC20Votes: total supply risks overflowing votes',
-    );
-  });
 });

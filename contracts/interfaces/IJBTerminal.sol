@@ -6,7 +6,13 @@ import './IJBDirectory.sol';
 interface IJBTerminal {
   function token() external view returns (address);
 
-  function ethBalanceOf(uint256 _projectId) external view returns (uint256);
+  function currency() external view returns (uint256);
+
+  function baseWeightCurrency() external view returns (uint256);
+
+  function payoutSplitsGroup() external view returns (uint256);
+
+  function balanceOf(uint256 _projectId) external view returns (uint256);
 
   function remainingDistributionLimitOf(
     uint256 _projectId,
@@ -14,9 +20,8 @@ interface IJBTerminal {
     uint256 _fundingCycleNumber
   ) external view returns (uint256);
 
-  function delegate() external view returns (address);
-
   function pay(
+    uint256 _amount,
     uint256 _projectId,
     address _beneficiary,
     uint256 _minReturnedTokens,
@@ -25,5 +30,9 @@ interface IJBTerminal {
     bytes calldata _delegateMetadata
   ) external payable;
 
-  function addToBalanceOf(uint256 _projectId, string memory _memo) external payable;
+  function addToBalanceOf(
+    uint256 _amount,
+    uint256 _projectId,
+    string memory _memo
+  ) external payable;
 }
