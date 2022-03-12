@@ -20,6 +20,10 @@ import './interfaces/IJBToken.sol';
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBToken is IJBToken, ERC20, Ownable {
+  //*********************************************************************//
+  // ------------------------- external views -------------------------- //
+  //*********************************************************************//
+
   /** 
     @notice
     The total supply of this ERC20.

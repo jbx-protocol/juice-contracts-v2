@@ -752,7 +752,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     JBFundingCycle memory _fundingCycle,
     uint256 _amount,
     uint256 _feeDiscount
-  ) internal returns (uint256 leftoverAmount, uint256 feeEligibleDistributionAmount) {
+  ) private returns (uint256 leftoverAmount, uint256 feeEligibleDistributionAmount) {
     // Set the leftover amount to the initial amount.
     leftoverAmount = _amount;
 
@@ -890,7 +890,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     uint256 _amount,
     address _beneficiary,
     uint256 _feeDiscount
-  ) internal returns (uint256 feeAmount) {
+  ) private returns (uint256 feeAmount) {
     feeAmount = _getFeeAmount(_amount, _feeDiscount);
     _fundingCycle.shouldHoldFees()
       ? _heldFeesOf[_projectId].push(JBFee(_amount, uint32(fee), _beneficiary))
@@ -904,7 +904,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     @param _fee The fee amount, as a floating point number with 18 decimals.
     @param _beneficiary The address to mint the platforms tokens for.
   */
-  function _processFee(uint256 _fee, address _beneficiary) internal {
+  function _processFee(uint256 _fee, address _beneficiary) private {
     // Get the terminal for the protocol project.
     IJBTerminal _terminal = directory.primaryTerminalOf(1, token);
 
@@ -934,7 +934,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     bool _preferClaimedTokens,
     string memory _memo,
     bytes memory _delegateMetadata
-  ) internal {
+  ) private {
     // Cant send tokens to the zero address.
     if (_beneficiary == address(0)) revert PAY_TO_ZERO_ADDRESS();
 
@@ -1010,7 +1010,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     uint256 _amount,
     uint256 _projectId,
     string memory _memo
-  ) internal {
+  ) private {
     // Record the added funds.
     store.recordAddedBalanceFor(_projectId, _amount);
 
@@ -1027,7 +1027,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     @param _projectId The project for which fees are being refunded.
     @param _amount The amount to base the refund on, as a fixed point number with 18 decimals.
   */
-  function _refundHeldFees(uint256 _projectId, uint256 _amount) internal {
+  function _refundHeldFees(uint256 _projectId, uint256 _amount) private {
     // Get a reference to the project's held fees.
     JBFee[] memory _heldFees = _heldFeesOf[_projectId];
 
@@ -1058,7 +1058,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
 
     @return The amount of the fee, as a fixed point number with 18 decimals.
   */
-  function _getFeeAmount(uint256 _amount, uint256 _feeDiscount) internal view returns (uint256) {
+  function _getFeeAmount(uint256 _amount, uint256 _feeDiscount) private view returns (uint256) {
     // Calculate the discounted fee.
     uint256 _discountedFee = fee - PRBMath.mulDiv(fee, _feeDiscount, JBConstants.MAX_FEE_DISCOUNT);
 
@@ -1075,7 +1075,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     
     @return feeDiscount The fee discount, which should be interpreted as a percentage out MAX_FEE_DISCOUNT.
   */
-  function _getFeeDiscount(uint256 _projectId) internal view returns (uint256 feeDiscount) {
+  function _getFeeDiscount(uint256 _projectId) private view returns (uint256 feeDiscount) {
     // Get the fee discount.
     feeDiscount = feeGauge == IJBFeeGauge(address(0)) ? 0 : feeGauge.currentDiscountFor(_projectId);
 
