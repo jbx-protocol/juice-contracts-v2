@@ -12,14 +12,6 @@ interface IJBTerminal {
 
   function payoutSplitsGroup() external view returns (uint256);
 
-  function balanceOf(uint256 _projectId) external view returns (uint256);
-
-  function remainingDistributionLimitOf(
-    uint256 _projectId,
-    uint256 _fundingCycleConfiguration,
-    uint256 _fundingCycleNumber
-  ) external view returns (uint256);
-
   function pay(
     uint256 _amount,
     uint256 _projectId,
@@ -27,7 +19,7 @@ interface IJBTerminal {
     uint256 _minReturnedTokens,
     bool _preferClaimedTokens,
     string calldata _memo,
-    bytes calldata _delegateMetadata
+    bytes calldata _metadata
   ) external payable;
 
   function addToBalanceOf(

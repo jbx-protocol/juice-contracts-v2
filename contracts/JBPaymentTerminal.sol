@@ -171,43 +171,6 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
 
   /**
     @notice
-    The ETH balance that this terminal holds for each project.
-
-    @param _projectId The ID of the project to which the balance belongs.
-
-    @return The ETH balance.
-  */
-  function balanceOf(uint256 _projectId) external view override returns (uint256) {
-    // The store's balance is already in ETH.
-    return store.balanceOf(this, _projectId);
-  }
-
-  /**
-    @notice
-    The amount of funds that can still be distributed within the preconfigured limit.
-
-    @param _projectId The ID of the project to which the remaining limit belongs.
-    @param _fundingCycleConfiguration The funding cycle configuration during which the limit remaining is being calculated.
-    @param _fundingCycleNumber The number of the funding cycle during which the limit remaining is being calculated.
-
-    @return The remaining distribution limit for this terminal.
-  */
-  function remainingDistributionLimitOf(
-    uint256 _projectId,
-    uint256 _fundingCycleConfiguration,
-    uint256 _fundingCycleNumber
-  ) external view override returns (uint256) {
-    // Subtract the used distribution limit during the specified funding cycle from the preconfigured distribution limit.
-    return
-      directory.controllerOf(_projectId).distributionLimitOf(
-        _projectId,
-        _fundingCycleConfiguration,
-        this
-      ) - store.usedDistributionLimitOf(this, _projectId, _fundingCycleNumber);
-  }
-
-  /**
-    @notice
     The fees that are currently being held to be processed later for each project.
 
     @param _projectId The ID of the project for which fees are being held.

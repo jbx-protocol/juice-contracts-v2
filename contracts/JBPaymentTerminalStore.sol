@@ -773,32 +773,39 @@ contract JBPaymentTerminalStore {
     // Get a reference to the project's terminals.
     IJBTerminal[] memory _terminals = directory.terminalsOf(_projectId);
 
-    // Keep a reference to the current balance of the project across all terminals in terms of the terminal's currency,
-    // and the current distribution limit across all terminals in terms of the terminal's currency.
+    // Keep a reference to the current balance of the project across all terminals in terms of the provided currency,
+    // and the current distribution limit across all terminals in terms of the provided currency.
     uint256 _currencyBalanceOf;
     uint256 _currencyDistributionLimitRemaining;
 
     for (uint256 _i = 0; _i < _terminals.length; _i++) {
       // Get the balance of the terminal being iterated on.
-      uint256 _someTerminalBalanceOf = _currencyBalanceOf + _terminals[_i].balanceOf(_projectId);
+      uint256 _someTerminalBalanceOf = balanceOf[_terminals[_i]][_projectId];
 
       // Get the currency of the terminal being iterated on.
       uint256 _someTerminalCurrency = _terminals[_i].currency();
 
       // Get the balance of the terminal in terms of this store's terminal's currency.
-      _currencyBalanceOf = (_someTerminalCurrency == _currency)
-        ? _someTerminalBalanceOf
-        : PRBMathUD60x18.div(
-          _someTerminalBalanceOf,
-          prices.priceFor(_someTerminalCurrency, _currency)
+      _currencyBalanceOf =
+        _currencyBalanceOf +
+        (
+          (_someTerminalCurrency == _currency)
+            ? _someTerminalBalanceOf
+            : PRBMathUD60x18.div(
+              _someTerminalBalanceOf,
+              prices.priceFor(_someTerminalCurrency, _currency)
+            )
         );
 
       // Get a reference to the amount still distributable during the funding cycle.
-      uint256 _distributionRemaining = _terminals[_i].remainingDistributionLimitOf(
+      uint256 _distributionLimitRemaining = directory.controllerOf(_projectId).distributionLimitOf(
         _projectId,
         _fundingCycle.configuration,
-        _fundingCycle.number
-      );
+        _terminals[_i]
+      ) - usedDistributionLimitOf[_terminals[_i]][_projectId][_fundingCycle.number];
+
+      // Continue iterating terminal's if there's no distribution limit to add.
+      if (_distributionLimitRemaining == 0) continue;
 
       // Get a reference to the current funding cycle's currency for this terminal.
       uint256 _distributionLimitCurrency = directory
@@ -809,10 +816,10 @@ contract JBPaymentTerminalStore {
       _currencyDistributionLimitRemaining =
         _currencyDistributionLimitRemaining +
         (
-          _distributionRemaining == 0 ? 0 : (_distributionLimitCurrency == _currency)
-            ? _distributionRemaining
+          _distributionLimitCurrency == _currency
+            ? _distributionLimitRemaining
             : PRBMathUD60x18.div(
-              _distributionRemaining,
+              _distributionLimitRemaining,
               prices.priceFor(_distributionLimitCurrency, _currency)
             )
         );
@@ -820,8 +827,8 @@ contract JBPaymentTerminalStore {
 
     // Overflow is the balance of this project minus the amount that can still be distributed.
     return
-      _currencyBalanceOf <= _currencyDistributionLimitRemaining
-        ? 0
-        : _currencyBalanceOf - _currencyDistributionLimitRemaining;
+      _currencyBalanceOf > _currencyDistributionLimitRemaining
+        ? _currencyBalanceOf - _currencyDistributionLimitRemaining
+        : 0;
   }
 }
