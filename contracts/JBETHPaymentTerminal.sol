@@ -18,6 +18,7 @@ contract JBETHPaymentTerminal is JB18DecimalPaymentTerminal {
     IJBProjects _projects,
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
+    IJBPrices _prices,
     JB18DecimalPaymentTerminalStore _store,
     address _owner
   )
@@ -30,6 +31,7 @@ contract JBETHPaymentTerminal is JB18DecimalPaymentTerminal {
       _projects,
       _directory,
       _splitsStore,
+      _prices,
       _store,
       _owner
     )

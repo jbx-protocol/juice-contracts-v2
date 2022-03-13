@@ -30,6 +30,6 @@ describe('JB18DecimalPaymentTerminalStore::targetDecimals(...)', function () {
       mockJbTokenStore.address,
     );
 
-    expect(await JB18DecimalPaymentTerminalStore.TARGET_DECIMALS()).to.equal(18);
+    expect(await JB18DecimalPaymentTerminalStore.targetDecimals()).to.equal(18);
   });
 });

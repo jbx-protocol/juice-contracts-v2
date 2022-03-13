@@ -52,7 +52,7 @@ describe('JB18DecimalPaymentTerminalStore::recordRedemptionFor(...)', function (
       mockJbTokenStore.address,
     );
 
-    decimals = await JB18DecimalPaymentTerminalStore.TARGET_DECIMALS();
+    decimals = await JB18DecimalPaymentTerminalStore.targetDecimals();
 
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);

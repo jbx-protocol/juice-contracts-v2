@@ -12,6 +12,7 @@ import jbFeeGauge from '../../artifacts/contracts/interfaces/IJBFeeGauge.sol/IJB
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
+import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 
 describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
   const PLATFORM_PROJECT_ID = 1;
@@ -88,6 +89,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
+      mockJbPrices,
     ] = await Promise.all([
       deployMockContract(deployer, jbAllocator.abi),
       deployMockContract(deployer, jbDirectory.abi),
@@ -97,6 +99,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
+      deployMockContract(deployer, jbPrices.abi)
     ]);
 
     const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
@@ -113,6 +116,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
+        mockJbPrices.address,
         mockJB18DecimalPaymentTerminalStore.address,
         terminalOwner.address,
       );
@@ -615,8 +619,8 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
         await mockJbEthPaymentTerminal.mock.pay
           .withArgs(
             /*payoutAmount*/ Math.floor(
-              (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
-            ),
+            (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
+          ),
             split.projectId,
             split.beneficiary,
             /*minReturnedToken*/ 0,
@@ -1193,8 +1197,8 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
         await mockJbEthPaymentTerminal.mock.pay
           .withArgs(
             /*payoutAmount*/ Math.floor(
-              (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
-            ),
+            (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
+          ),
             split.projectId,
             split.beneficiary,
             /*minReturnedToken*/ 0,
@@ -1430,7 +1434,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
         /*_distributedAmount*/ AMOUNT_DISTRIBUTED,
         /*_feeAmount*/ 0,
         /*_leftoverDistributionAmount*/ AMOUNT_DISTRIBUTED -
-          ((AMOUNT_DISTRIBUTED * PERCENT) / SPLITS_TOTAL_PERCENT) * splits.length,
+        ((AMOUNT_DISTRIBUTED * PERCENT) / SPLITS_TOTAL_PERCENT) * splits.length,
         MEMO,
         caller.address,
       );

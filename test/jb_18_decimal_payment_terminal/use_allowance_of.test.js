@@ -11,6 +11,7 @@ import jbFeeGauge from '../../artifacts/contracts/interfaces/IJBFeeGauge.sol/IJB
 import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorStore.sol/IJBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
+import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 
 describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
   const AMOUNT_TO_DISTRIBUTE = 40000;
@@ -42,6 +43,7 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
       mockJbFeeGauge,
       mockJbOperatorStore,
       mockJbProjects,
+      mockJbPrices,
       mockJbSplitsStore,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
@@ -49,6 +51,7 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
       deployMockContract(deployer, jbFeeGauge.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
+      deployMockContract(deployer, jbPrices.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
     ]);
 
@@ -66,6 +69,7 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
+        mockJbPrices.address,
         mockJB18DecimalPaymentTerminalStore.address,
         terminalOwner.address,
       );

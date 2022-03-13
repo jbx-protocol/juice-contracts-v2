@@ -22,6 +22,7 @@ contract JB18DecimalERC20PaymentTerminal is JB18DecimalPaymentTerminal {
     IJBProjects _projects,
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
+    IJBPrices _prices,
     JB18DecimalPaymentTerminalStore _store,
     address _owner
   )
@@ -34,12 +35,13 @@ contract JB18DecimalERC20PaymentTerminal is JB18DecimalPaymentTerminal {
       _projects,
       _directory,
       _splitsStore,
+      _prices,
       _store,
       _owner
     )
   {
     // Make sure the ERC20 uses 18 decimals.
-    if (_token.decimals() != _store.TARGET_DECIMALS()) revert TOKEN_MUST_USE_18_DECIMALS();
+    if (_token.decimals() != _store.targetDecimals()) revert TOKEN_MUST_USE_18_DECIMALS();
   }
 
   function _transferFrom(

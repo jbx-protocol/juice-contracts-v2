@@ -34,17 +34,17 @@ describe('JB18DecimalPaymentTerminal::currentEthOverflowOf(...)', function () {
       mockJbDirectory,
       mockJB18DecimalPaymentTerminalStore,
       mockJbOperatorStore,
-      mockJbPrices,
       mockJbProjects,
       mockJbSplitsStore,
+      mockJbPrices,
       mockJbToken,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
       deployMockContract(deployer, jb18DecimalPaymentTerminalStore.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
-      deployMockContract(deployer, jbPrices.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
+      deployMockContract(deployer, jbPrices.abi),
       deployMockContract(deployer, jbToken.abi),
     ]);
 
@@ -63,6 +63,7 @@ describe('JB18DecimalPaymentTerminal::currentEthOverflowOf(...)', function () {
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
+        mockJbPrices.address,
         mockJB18DecimalPaymentTerminalStore.address,
         terminalOwner.address,
       );
@@ -70,7 +71,7 @@ describe('JB18DecimalPaymentTerminal::currentEthOverflowOf(...)', function () {
     // Non-eth 18 decimals terminal
     const NON_ETH_TOKEN = mockJbToken.address;
     const DECIMALS = 18;
-    await mockJB18DecimalPaymentTerminalStore.mock.TARGET_DECIMALS.returns(DECIMALS);
+    await mockJB18DecimalPaymentTerminalStore.mock.targetDecimals.returns(DECIMALS);
     await mockJbToken.mock.decimals.returns(DECIMALS);
 
     let JB18DecimalERC20PaymentTerminal = await jbErc20TerminalFactory
@@ -84,9 +85,10 @@ describe('JB18DecimalPaymentTerminal::currentEthOverflowOf(...)', function () {
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
+        mockJbPrices.address,
         mockJB18DecimalPaymentTerminalStore.address,
         terminalOwner.address,
-    );
+      );
 
     await mockJB18DecimalPaymentTerminalStore.mock.currentOverflowOf.withArgs(jbEthPaymentTerminal.address, PROJECT_ID).returns(AMOUNT);
     await mockJB18DecimalPaymentTerminalStore.mock.currentOverflowOf.withArgs(JB18DecimalERC20PaymentTerminal.address, PROJECT_ID).returns(AMOUNT);
@@ -111,8 +113,8 @@ describe('JB18DecimalPaymentTerminal::currentEthOverflowOf(...)', function () {
     const { mockJbPrices, JB18DecimalERC20PaymentTerminal } = await setup();
 
     await mockJbPrices.mock.priceFor
-    .withArgs(CURRENCY_USD, CURRENCY_ETH, 18) // 18-decimal
-    .returns(100);
+      .withArgs(CURRENCY_USD, CURRENCY_ETH, 18) // 18-decimal
+      .returns(100);
 
     expect(await JB18DecimalERC20PaymentTerminal.currentEthOverflowOf(PROJECT_ID)).to.equal(AMOUNT.mul(ethers.utils.parseEther('1')).div(PRICE));
   });
