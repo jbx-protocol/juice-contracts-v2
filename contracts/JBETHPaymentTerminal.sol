@@ -5,7 +5,7 @@ pragma solidity 0.8.6;
 import '@openzeppelin/contracts/utils/Address.sol';
 
 // Inheritance
-import './JB18DecimalPaymentTerminal.sol';
+import './abstract/JB18DecimalPaymentTerminal.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //

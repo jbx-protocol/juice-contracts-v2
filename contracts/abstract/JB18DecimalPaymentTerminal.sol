@@ -2,23 +2,21 @@
 /* solhint-disable comprehensive-interface*/
 pragma solidity 0.8.6;
 
+import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 
-import './libraries/JBConstants.sol';
-import './libraries/JBCurrencies.sol';
-import './libraries/JBOperations.sol';
-import './libraries/JBSplitsGroups.sol';
-import './libraries/JBTokens.sol';
+import './JBOperatable.sol';
+import './../interfaces/IJB18DecimalPaymentTerminal.sol';
+import './../interfaces/IJBPaymentTerminal.sol';
+import './../libraries/JBConstants.sol';
+import './../libraries/JBCurrencies.sol';
+import './../libraries/JBOperations.sol';
+import './../libraries/JBSplitsGroups.sol';
+import './../libraries/JBTokens.sol';
 
-import './JB18DecimalPaymentTerminalStore.sol';
-
-// Inheritance
-import './interfaces/IJB18DecimalPaymentTerminal.sol';
-import './interfaces/IJBPaymentTerminal.sol';
-import './abstract/JBOperatable.sol';
-import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
+import './../JB18DecimalPaymentTerminalStore.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
