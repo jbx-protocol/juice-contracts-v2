@@ -37,7 +37,6 @@ contract JB18DecimalERC20PaymentTerminal is JB18DecimalPaymentTerminal {
       _store,
       _owner
     )
-  // solhint-disable-next-line no-empty-blocks
   {
     // Make sure the ERC20 uses 18 decimals.
     if (_token.decimals() != _store.TARGET_DECIMALS()) revert TOKEN_MUST_USE_18_DECIMALS();
