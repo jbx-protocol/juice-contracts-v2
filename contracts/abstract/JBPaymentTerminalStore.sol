@@ -14,6 +14,7 @@ import './../libraries/JBCurrencies.sol';
 import './../libraries/JBOperations.sol';
 import './../libraries/JBSplitsGroups.sol';
 import './../libraries/JBFundingCycleMetadataResolver.sol';
+import './../libraries/JBFixedPointNumber.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
@@ -38,6 +39,9 @@ error STORE_ALREADY_CLAIMED();
 abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
+
+  // A library that provides utility for fixed point numbers.
+  using JBFixedPointNumber for uint256;
 
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
@@ -801,23 +805,21 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     // Get a reference to the project's terminals.
     IJBPaymentTerminal[] memory _terminals = directory.terminalsOf(_projectId);
 
-    // Keep a reference to the ETH overflow across all terminals,
+    // Keep a reference to the ETH overflow across all terminals, as a fixed point number with 18 decimals.
     uint256 _ethOverflow;
 
     // Add the current ETH overflow for each terminal.
     for (uint256 _i = 0; _i < _terminals.length; _i++)
       _ethOverflow = _ethOverflow + _terminals[_i].currentEthOverflowOf(_projectId);
 
-    // Convert the ETH overflow to the specified currency if needed.
-    if (_currency == JBCurrencies.ETH) return _ethOverflow;
-    else {
-      uint256 _targetDecimals = targetDecimals();
-      return
-        PRBMath.mulDiv(
-          _ethOverflow,
-          _targetDecimals,
-          prices.priceFor(JBCurrencies.ETH, _currency, _targetDecimals)
-        );
-    }
+    // Convert the ETH overflow to the specified currency if needed, maintaining a fixed point number with 18 decimals.
+    uint256 _totalOverflow18Decimal = _currency == JBCurrencies.ETH
+      ? _ethOverflow
+      : PRBMath.mulDiv(_ethOverflow, 10**18, prices.priceFor(JBCurrencies.ETH, _currency, 18));
+
+    // Adjust the decimals of the fixed point number if needed to match the target decimals.
+    uint256 _targetDecimals = targetDecimals();
+    if (_targetDecimals == 8) return _totalOverflow18Decimal;
+    return _totalOverflow18Decimal.adjustDecimals(18, _targetDecimals);
   }
 }
