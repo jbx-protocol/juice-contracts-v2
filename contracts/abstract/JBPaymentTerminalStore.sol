@@ -295,13 +295,12 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
 
     // If the funding cycle has configured a data source, use it to derive a weight and memo.
     if (fundingCycle.useDataSourceForPay()) {
-      uint256 _targetDecimals = targetDecimals();
       (weight, memo, delegate) = fundingCycle.dataSource().payParams(
         JBPayParamsData(
           IJBPaymentTerminal(msg.sender),
           _payer,
           _amount,
-          _targetDecimals,
+          targetDecimals(),
           _projectId,
           fundingCycle.weight,
           fundingCycle.reservedRate(),
@@ -336,8 +335,8 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     // If the terminal should base its weight on a different currency from the terminal's currency, determine the factor.
     // The weight is always a fixed point mumber with 18 decimals. The ratio should be the same.
     uint256 _weightRatio = _terminalCurrency == _terminalBaseWeightCurrency
-      ? 10**18
-      : prices.priceFor(_terminalCurrency, _terminalBaseWeightCurrency, 18);
+      ? 10**targetDecimals()
+      : prices.priceFor(_terminalCurrency, _terminalBaseWeightCurrency, targetDecimals());
 
     // Find the number of tokens to mint.
     tokenCount = PRBMath.mulDiv(_amount, weight, _weightRatio);
@@ -399,14 +398,12 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     // Convert the amount to this store's terminal's token.
 
     if (_currency == _terminalCurrency) distributedAmount = _amount;
-    else {
-      uint256 _targetDecimals = targetDecimals();
+    else
       distributedAmount = PRBMath.mulDiv(
         _amount,
-        _targetDecimals,
-        prices.priceFor(_currency, _terminalCurrency, _targetDecimals)
+        targetDecimals(),
+        prices.priceFor(_currency, _terminalCurrency, targetDecimals())
       );
-    }
 
     // The amount being distributed must be available.
     if (distributedAmount > balanceOf[IJBPaymentTerminal(msg.sender)][_projectId])
@@ -475,14 +472,12 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
 
     // Convert the amount to this store's terminal's token.
     if (_currency == _terminalCurrency) withdrawnAmount = _amount;
-    else {
-      uint256 _targetDecimals = targetDecimals();
+    else
       withdrawnAmount = PRBMath.mulDiv(
         _amount,
-        _targetDecimals,
-        prices.priceFor(_currency, _terminalCurrency, _targetDecimals)
+        targetDecimals(),
+        prices.priceFor(_currency, _terminalCurrency, targetDecimals())
       );
-    }
 
     // The project balance should be bigger than the amount withdrawn from the overflow
     if (balanceOf[IJBPaymentTerminal(msg.sender)][_projectId] < withdrawnAmount)
@@ -510,14 +505,13 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
         );
 
       // Convert the remaining to distribute into this store's terminal's token.
-      if (_distributionLimitCurrency != _terminalCurrency) {
-        uint256 _targetDecimals = targetDecimals();
+      if (_distributionLimitCurrency != _terminalCurrency)
         _leftToDistribute = PRBMath.mulDiv(
           _leftToDistribute,
-          _targetDecimals,
-          prices.priceFor(_distributionLimitCurrency, _terminalCurrency, _targetDecimals)
+          targetDecimals(),
+          prices.priceFor(_distributionLimitCurrency, _terminalCurrency, targetDecimals())
         );
-      }
+
       // The amount being withdrawn must be available in the overflow.
       if (
         _leftToDistribute > balanceOf[IJBPaymentTerminal(msg.sender)][_projectId] ||
@@ -582,14 +576,13 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     if (fundingCycle.redeemPaused()) revert FUNDING_CYCLE_REDEEM_PAUSED();
 
     // If the funding cycle has configured a data source, use it to derive a claim amount and memo.
-    if (fundingCycle.useDataSourceForRedeem()) {
-      uint256 _targetDecimals = targetDecimals();
+    if (fundingCycle.useDataSourceForRedeem())
       (reclaimAmount, memo, delegate) = fundingCycle.dataSource().redeemParams(
         JBRedeemParamsData(
           IJBPaymentTerminal(msg.sender),
           _holder,
           _tokenCount,
-          _targetDecimals,
+          targetDecimals(),
           _projectId,
           fundingCycle.redemptionRate(),
           fundingCycle.ballotRedemptionRate(),
@@ -598,7 +591,7 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
           _memo
         )
       );
-    } else {
+    else {
       reclaimAmount = _reclaimableOverflowOf(
         IJBPaymentTerminal(msg.sender),
         _projectId,
@@ -778,11 +771,10 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
 
     // Convert the _distributionRemaining to be in terms of the provided currency.
     if (_distributionRemaining != 0 && _distributionLimitCurrency != _currency) {
-      uint256 _targetDecimals = targetDecimals();
       _distributionRemaining = PRBMath.mulDiv(
         _distributionRemaining,
-        _targetDecimals,
-        prices.priceFor(_distributionLimitCurrency, _currency, _targetDecimals)
+        targetDecimals(),
+        prices.priceFor(_distributionLimitCurrency, _currency, targetDecimals())
       );
     }
 
@@ -823,8 +815,7 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
       : PRBMath.mulDiv(_ethOverflow, 10**18, prices.priceFor(JBCurrencies.ETH, _currency, 18));
 
     // Adjust the decimals of the fixed point number if needed to match the target decimals.
-    uint256 _targetDecimals = targetDecimals();
-    if (_targetDecimals == 18) return _totalOverflow18Decimal;
-    return _totalOverflow18Decimal.adjustDecimals(18, _targetDecimals);
+    if (targetDecimals() == 18) return _totalOverflow18Decimal;
+    return _totalOverflow18Decimal.adjustDecimals(18, targetDecimals());
   }
 }
