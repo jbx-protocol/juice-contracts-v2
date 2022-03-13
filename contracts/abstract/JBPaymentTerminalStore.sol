@@ -397,11 +397,10 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
 
     // Convert the amount to this store's terminal's token.
 
-    if (_currency == _terminalCurrency) distributedAmount = _amount;
-    else
-      distributedAmount = PRBMath.mulDiv(
+    distributedAmount = (_currency == _terminalCurrency) ? _amount : distributedAmount = PRBMath
+      .mulDiv(
         _amount,
-        targetDecimals(),
+        10**targetDecimals(),
         prices.priceFor(_currency, _terminalCurrency, targetDecimals())
       );
 
@@ -475,7 +474,7 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     else
       withdrawnAmount = PRBMath.mulDiv(
         _amount,
-        targetDecimals(),
+        10**targetDecimals(),
         prices.priceFor(_currency, _terminalCurrency, targetDecimals())
       );
 
@@ -508,7 +507,7 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
       if (_distributionLimitCurrency != _terminalCurrency)
         _leftToDistribute = PRBMath.mulDiv(
           _leftToDistribute,
-          targetDecimals(),
+          10**targetDecimals(),
           prices.priceFor(_distributionLimitCurrency, _terminalCurrency, targetDecimals())
         );
 
@@ -773,13 +772,13 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     if (_distributionRemaining != 0 && _distributionLimitCurrency != _currency) {
       _distributionRemaining = PRBMath.mulDiv(
         _distributionRemaining,
-        targetDecimals(),
+        10**targetDecimals(),
         prices.priceFor(_distributionLimitCurrency, _currency, targetDecimals())
       );
     }
 
     // Overflow is the balance of this project minus the amount that can still be distributed.
-    return _balanceOf <= _distributionRemaining ? 0 : _balanceOf - _distributionRemaining;
+    return _balanceOf > _distributionRemaining ? _balanceOf - _distributionRemaining : 0;
   }
 
   /**
@@ -815,7 +814,9 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
       : PRBMath.mulDiv(_ethOverflow, 10**18, prices.priceFor(JBCurrencies.ETH, _currency, 18));
 
     // Adjust the decimals of the fixed point number if needed to match the target decimals.
-    if (targetDecimals() == 18) return _totalOverflow18Decimal;
-    return _totalOverflow18Decimal.adjustDecimals(18, targetDecimals());
+    return
+      (targetDecimals() == 18)
+        ? _totalOverflow18Decimal
+        : _totalOverflow18Decimal.adjustDecimals(18, targetDecimals());
   }
 }

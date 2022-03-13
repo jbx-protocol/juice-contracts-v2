@@ -33,7 +33,7 @@ abstract contract JB18DecimalPaymentTerminal is JBPaymentTerminal {
       return
         PRBMath.mulDiv(
           _overflow,
-          _targetDecimals,
+          10**_targetDecimals,
           prices.priceFor(currency, JBCurrencies.ETH, _targetDecimals)
         );
     }

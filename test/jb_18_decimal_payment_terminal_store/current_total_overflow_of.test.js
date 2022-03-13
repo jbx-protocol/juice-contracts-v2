@@ -15,7 +15,7 @@ import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol
 
 describe('JB18DecimalPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
   const PROJECT_ID = 2;
-  const WEIGHT = ethers.BigNumber.from('1'+'0'.repeat(17));
+  const WEIGHT = ethers.BigNumber.from('1' + '0'.repeat(17));
 
   const ETH_OVERFLOW_A = ethers.utils.parseEther('69000');
   const ETH_OVERFLOW_B = ethers.utils.parseEther('420');
@@ -51,7 +51,7 @@ describe('JB18DecimalPaymentTerminalStore::currentTotalOverflowOf(...)', functio
       mockJbTokenStore.address,
     );
 
-    decimals = await JB18DecimalPaymentTerminalStore.TARGET_DECIMALS();
+    decimals = await JB18DecimalPaymentTerminalStore.targetDecimals();
 
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);
@@ -93,7 +93,7 @@ describe('JB18DecimalPaymentTerminalStore::currentTotalOverflowOf(...)', functio
       weight: WEIGHT,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({useLocalBalanceForRedemptions: false}),
+      metadata: packFundingCycleMetadata({ useLocalBalanceForRedemptions: false }),
     });
 
     await mockJbDirectory.mock.terminalsOf
@@ -131,7 +131,7 @@ describe('JB18DecimalPaymentTerminalStore::currentTotalOverflowOf(...)', functio
       weight: WEIGHT,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({useLocalBalanceForRedemptions: false}),
+      metadata: packFundingCycleMetadata({ useLocalBalanceForRedemptions: false }),
     });
 
     await mockJbDirectory.mock.terminalsOf
@@ -148,6 +148,6 @@ describe('JB18DecimalPaymentTerminalStore::currentTotalOverflowOf(...)', functio
     // Get total overflow across both terminals, in a different currency; should equal to the sum of the overflow / price
     expect(
       await JB18DecimalPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, CURRENCY_USD),
-    ).to.equal( (ETH_OVERFLOW_A.add(ETH_OVERFLOW_B)).mul(ethers.utils.parseEther('1')).div(PRICE));
+    ).to.equal((ETH_OVERFLOW_A.add(ETH_OVERFLOW_B)).mul(ethers.utils.parseEther('1')).div(PRICE));
   });
 });

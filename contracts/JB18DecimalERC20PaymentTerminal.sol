@@ -22,8 +22,8 @@ contract JB18DecimalERC20PaymentTerminal is JB18DecimalPaymentTerminal {
     IJBProjects _projects,
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
-    JB18DecimalPaymentTerminalStore _store,
     IJBPrices _prices,
+    JB18DecimalPaymentTerminalStore _store,
     address _owner
   )
     JB18DecimalPaymentTerminal(

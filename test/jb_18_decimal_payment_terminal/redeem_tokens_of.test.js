@@ -11,6 +11,7 @@ import jb18DecimalPaymentTerminalStore from '../../artifacts/contracts/JB18Decim
 import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorStore.sol/IJBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
+import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 import jbRedemptionDelegate from '../../artifacts/contracts/interfaces/IJBRedemptionDelegate.sol/IJBRedemptionDelegate.json';
 
 describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
@@ -41,6 +42,7 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
+      mockJbPrices,
       mockJbRedemptionDelegate,
       mockJbController,
     ] = await Promise.all([
@@ -49,6 +51,7 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
+      deployMockContract(deployer, jbPrices.abi),
       deployMockContract(deployer, jbRedemptionDelegate.abi),
       deployMockContract(deployer, jbController.abi),
     ]);
@@ -67,12 +70,13 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
+        mockJbPrices.address,
         mockJB18DecimalPaymentTerminalStore.address,
         terminalOwner.address,
       );
 
     token = await jbEthPaymentTerminal.token();
-    await mockJB18DecimalPaymentTerminalStore.mock.TARGET_DECIMALS.returns(DECIMALS);
+    await mockJB18DecimalPaymentTerminalStore.mock.targetDecimals.returns(DECIMALS);
     /* Lib constants */
 
     let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
