@@ -3,15 +3,15 @@ pragma solidity 0.8.6;
 
 import './../interfaces/IJBPaymentTerminal.sol';
 
+import './JBAmount.sol';
+
 struct JBPayParamsData {
   // The terminal that is facilitating the payment.
   IJBPaymentTerminal terminal;
   // The address from which the payment originated.
   address payer;
-  // The ETH amount of the payment.
-  uint256 amount;
-  // The number of decimals included in the `_amount` fixed point number that was paid.
-  uint256 decimals;
+  // The amount of the payment. Includes the token being paid, the value, the number of decimals included, and the currency of the amount.
+  JBAmount amount;
   // The ID of the project being paid.
   uint256 projectId;
   // The weight of the funding cycle during which the payment is being made.
