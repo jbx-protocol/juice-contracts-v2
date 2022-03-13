@@ -1,24 +1,21 @@
 // SPDX-License-Identifier: MIT
-/* solhint-disable comprehensive-interface*/
 pragma solidity 0.8.6;
 
+import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 
-import './libraries/JBConstants.sol';
-import './libraries/JBCurrencies.sol';
-import './libraries/JBOperations.sol';
-import './libraries/JBSplitsGroups.sol';
-import './libraries/JBTokens.sol';
+import './JBOperatable.sol';
+import './../interfaces/IJB18DecimalPaymentTerminal.sol';
+import './../interfaces/IJBPaymentTerminal.sol';
+import './../libraries/JBConstants.sol';
+import './../libraries/JBCurrencies.sol';
+import './../libraries/JBOperations.sol';
+import './../libraries/JBSplitsGroups.sol';
+import './../libraries/JBTokens.sol';
 
-import './JBPaymentTerminalStore.sol';
-
-// Inheritance
-import './interfaces/IJBPaymentTerminal.sol';
-import './interfaces/IJBTerminal.sol';
-import './abstract/JBOperatable.sol';
-import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
+import './../JB18DecimalPaymentTerminalStore.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
@@ -44,11 +41,16 @@ error INADEQUATE_RECLAIM_AMOUNT();
 
   Inherits from:
 
-  IJBPaymentTerminal - general interface for the methods in this contract.
+  IJB18DecimalPaymentTerminal - general interface for the methods in this contract.
   JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
   ReentrencyGuard - several function in this contract shouldn't be accessible recursively.
 */
-abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable, ReentrancyGuard {
+abstract contract JBPaymentTerminal is
+  IJB18DecimalPaymentTerminal,
+  JBOperatable,
+  Ownable,
+  ReentrancyGuard
+{
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
@@ -113,7 +115,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     @notice
     The contract that stores and manages the terminal's data.
   */
-  JBPaymentTerminalStore public immutable store;
+  IJBPaymentTerminalStore public immutable store;
 
   /**
     @notice
@@ -142,7 +144,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
 
     _terminal The terminal that can be paid toward.
   */
-  mapping(IJBTerminal => bool) public override isFeelessTerminal;
+  mapping(IJBPaymentTerminal => bool) public override isFeelessTerminal;
 
   /**
     @notice
@@ -168,43 +170,6 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
   //*********************************************************************//
-
-  /**
-    @notice
-    The ETH balance that this terminal holds for each project.
-
-    @param _projectId The ID of the project to which the balance belongs.
-
-    @return The ETH balance.
-  */
-  function balanceOf(uint256 _projectId) external view override returns (uint256) {
-    // The store's balance is already in ETH.
-    return store.balanceOf(this, _projectId);
-  }
-
-  /**
-    @notice
-    The amount of funds that can still be distributed within the preconfigured limit.
-
-    @param _projectId The ID of the project to which the remaining limit belongs.
-    @param _fundingCycleConfiguration The funding cycle configuration during which the limit remaining is being calculated.
-    @param _fundingCycleNumber The number of the funding cycle during which the limit remaining is being calculated.
-
-    @return The remaining distribution limit for this terminal.
-  */
-  function remainingDistributionLimitOf(
-    uint256 _projectId,
-    uint256 _fundingCycleConfiguration,
-    uint256 _fundingCycleNumber
-  ) external view override returns (uint256) {
-    // Subtract the used distribution limit during the specified funding cycle from the preconfigured distribution limit.
-    return
-      directory.controllerOf(_projectId).distributionLimitOf(
-        _projectId,
-        _fundingCycleConfiguration,
-        this
-      ) - store.usedDistributionLimitOf(this, _projectId, _fundingCycleNumber);
-  }
 
   /**
     @notice
@@ -243,7 +208,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     IJBProjects _projects,
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
-    JBPaymentTerminalStore _store,
+    JB18DecimalPaymentTerminalStore _store,
     address _owner
   ) JBOperatable(_operatorStore) {
     token = _token;
@@ -549,7 +514,9 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
           _holder,
           _projectId,
           _tokenCount,
+          token,
           reclaimAmount,
+          store.targetDecimals(),
           _beneficiary,
           _memo,
           _delegateMetadata
@@ -585,7 +552,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     @param _projectId The ID of the project being migrated.
     @param _to The terminal contract that will gain the project's funds.
   */
-  function migrate(uint256 _projectId, IJBTerminal _to)
+  function migrate(uint256 _projectId, IJBPaymentTerminal _to)
     external
     override
     nonReentrant
@@ -723,7 +690,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
 
     @param _terminal The terminal that can be paid towards while still bypassing fees.
   */
-  function toggleFeelessTerminal(IJBTerminal _terminal) external override onlyOwner {
+  function toggleFeelessTerminal(IJBPaymentTerminal _terminal) external override onlyOwner {
     // Toggle the value for the provided terminal.
     isFeelessTerminal[_terminal] = !isFeelessTerminal[_terminal];
 
@@ -800,10 +767,10 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
           // Otherwise, if a project is specified, make a payment to it.
         } else if (_split.projectId != 0) {
           // Get a reference to the Juicebox terminal being used.
-          IJBTerminal _terminal = directory.primaryTerminalOf(_split.projectId, token);
+          IJBPaymentTerminal _terminal = directory.primaryTerminalOf(_split.projectId, token);
 
           // The project must have a terminal to send funds to.
-          if (_terminal == IJBTerminal(address(0))) revert TERMINAL_IN_SPLIT_ZERO_ADDRESS();
+          if (_terminal == IJBPaymentTerminal(address(0))) revert TERMINAL_IN_SPLIT_ZERO_ADDRESS();
 
           // Save gas if this contract is being used as the terminal.
           if (_terminal == this) {
@@ -903,7 +870,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
   */
   function _processFee(uint256 _fee, address _beneficiary) private {
     // Get the terminal for the protocol project.
-    IJBTerminal _terminal = directory.primaryTerminalOf(1, token);
+    IJBPaymentTerminal _terminal = directory.primaryTerminalOf(1, token);
 
     // When processing the admin fee, save gas if the admin is using this contract as its terminal.
     if (_terminal == this)
@@ -973,7 +940,9 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
         JBDidPayData memory _data = JBDidPayData(
           _payer,
           _projectId,
+          token,
           _amount,
+          store.targetDecimals(),
           _weight,
           _beneficiaryTokenCount,
           _beneficiary,

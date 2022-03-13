@@ -3,8 +3,12 @@ pragma solidity 0.8.6;
 
 import '@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol';
 import './interfaces/IJBPriceFeed.sol';
+import './libraries/JBFixedPointNumber.sol';
 
 contract JBChainlinkPriceFeed is IJBPriceFeed {
+  // A library that provides utility for fixed point numbers.
+  using JBFixedPointNumber for uint256;
+
   AggregatorV3Interface public feed;
 
   constructor(AggregatorV3Interface _feed) {
@@ -18,10 +22,7 @@ contract JBChainlinkPriceFeed is IJBPriceFeed {
     // Get a reference to the number of decimals the feed uses.
     uint256 _decimals = feed.decimals();
 
-    // If decimals need adjusting, multiply or divide the price by the decimal adjuster to get the normalized result.
-    if (_targetDecimals == _decimals) return uint256(_price);
-    else if (_targetDecimals > _decimals)
-      return uint256(_price) * 10**(_targetDecimals - _decimals);
-    else return uint256(_price) / 10**(_decimals - _targetDecimals);
+    // Return the price, adjusted to the target decimals.
+    return uint256(_price).adjustDecimals(_decimals, _targetDecimals);
   }
 }

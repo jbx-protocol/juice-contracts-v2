@@ -99,7 +99,13 @@ describe('JBTokenStore::changeFor(...)', function () {
 
     await expect(changeTx)
       .to.emit(jbTokenStore, 'Change')
-      .withArgs(PROJECT_ID, newTokenAddr, initialTokenAddr, ethers.constants.AddressZero, controller.address);
+      .withArgs(
+        PROJECT_ID,
+        newTokenAddr,
+        initialTokenAddr,
+        ethers.constants.AddressZero,
+        controller.address,
+      );
   });
 
   it(`Can't change tokens if caller does not have permission`, async function () {
@@ -124,9 +130,7 @@ describe('JBTokenStore::changeFor(...)', function () {
   it(`Can't remove the project's token if claiming is required`, async function () {
     const { controller, mockJbDirectory, mockJbProjects, jbTokenStore, newOwner } = await setup();
 
-    await mockJbDirectory.mock.controllerOf
-      .withArgs(PROJECT_ID)
-      .returns(controller.address);
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(newOwner.address);
     // Issue the initial token.
@@ -137,11 +141,7 @@ describe('JBTokenStore::changeFor(...)', function () {
     await expect(
       jbTokenStore
         .connect(controller)
-        .changeFor(
-          PROJECT_ID,
-          ethers.constants.AddressZero,
-          ethers.Wallet.createRandom().address,
-        ),
+        .changeFor(PROJECT_ID, ethers.constants.AddressZero, ethers.Wallet.createRandom().address),
     ).to.be.revertedWith(errors.CANT_REMOVE_TOKEN_IF_ITS_REQUIRED);
   });
 });

@@ -5,23 +5,24 @@ pragma solidity 0.8.6;
 import '@openzeppelin/contracts/utils/Address.sol';
 
 // Inheritance
-import './JBPaymentTerminal.sol';
+import './abstract/JB18DecimalPaymentTerminal.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
 //*********************************************************************//
 
-contract JBETHPaymentTerminal is JBPaymentTerminal {
+contract JBETHPaymentTerminal is JB18DecimalPaymentTerminal {
   constructor(
     uint256 _baseWeightCurrency,
     IJBOperatorStore _operatorStore,
     IJBProjects _projects,
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
-    JBPaymentTerminalStore _store,
+    IJBPrices _prices,
+    JB18DecimalPaymentTerminalStore _store,
     address _owner
   )
-    JBPaymentTerminal(
+    JB18DecimalPaymentTerminal(
       JBTokens.ETH,
       JBCurrencies.ETH,
       _baseWeightCurrency,
@@ -30,6 +31,7 @@ contract JBETHPaymentTerminal is JBPaymentTerminal {
       _projects,
       _directory,
       _splitsStore,
+      _prices,
       _store,
       _owner
     )

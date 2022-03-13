@@ -1,15 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './libraries/JBOperations.sol';
-
-// Inheritance
 import './abstract/JBOperatable.sol';
-
 import './interfaces/IJBSplitsStore.sol';
 import './interfaces/IJBDirectory.sol';
-
 import './libraries/JBConstants.sol';
+import './libraries/JBOperations.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //

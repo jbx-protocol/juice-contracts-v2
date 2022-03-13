@@ -18,7 +18,9 @@ describe('JBToken::transfer(...)', function () {
   it('Should transfer token and emit event if caller is owner', async function () {
     const { addrs, jbToken } = await setup();
     const numTokens = 5;
-    const transferTx = await jbToken.connect(addrs[1])['transfer(uint256,address,uint256)'](PROJECT_ID, addrs[2].address, numTokens);
+    const transferTx = await jbToken
+      .connect(addrs[1])
+      ['transfer(uint256,address,uint256)'](PROJECT_ID, addrs[2].address, numTokens);
 
     await expect(transferTx)
       .to.emit(jbToken, 'Transfer')
@@ -33,7 +35,9 @@ describe('JBToken::transfer(...)', function () {
     const { addrs, jbToken } = await setup();
     const numTokens = startingBalance + 1;
     await expect(
-      jbToken.connect(addrs[1])['transfer(uint256,address,uint256)'](PROJECT_ID, ethers.constants.AddressZero, numTokens)
+      jbToken
+        .connect(addrs[1])
+        ['transfer(uint256,address,uint256)'](PROJECT_ID, ethers.constants.AddressZero, numTokens),
     ).to.be.revertedWith('ERC20: transfer to the zero address');
   });
 
@@ -41,7 +45,9 @@ describe('JBToken::transfer(...)', function () {
     const { addrs, jbToken } = await setup();
     const numTokens = startingBalance + 1;
     await expect(
-      jbToken.connect(addrs[1])['transfer(uint256,address,uint256)'](PROJECT_ID, addrs[2].address, numTokens)
+      jbToken
+        .connect(addrs[1])
+        ['transfer(uint256,address,uint256)'](PROJECT_ID, addrs[2].address, numTokens),
     ).to.be.revertedWith('ERC20: transfer amount exceeds balance');
   });
 });

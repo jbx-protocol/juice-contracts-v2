@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
 import errors from '../helpers/errors.json';
 
 describe('JBProjectPayer::pay(...)', function () {
@@ -52,13 +52,29 @@ describe('JBProjectPayer::pay(...)', function () {
       .returns(mockJbTerminal.address);
 
     await mockJbTerminal.mock.pay
-      .withArgs(AMOUNT, PROJECT_ID_2, BENEFICIARY, 0, PREFER_CLAIMED_TOKENS, MEMO, DELEGATE_METADATA)
+      .withArgs(
+        AMOUNT,
+        PROJECT_ID_2,
+        BENEFICIARY,
+        0,
+        PREFER_CLAIMED_TOKENS,
+        MEMO,
+        DELEGATE_METADATA,
+      )
       .returns();
 
     await expect(
-      jbFakeProjectPayer.pay(PROJECT_ID_2, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA, {
-        value: AMOUNT,
-      }),
+      jbFakeProjectPayer.pay(
+        PROJECT_ID_2,
+        BENEFICIARY,
+        MEMO,
+        PREFER_CLAIMED_TOKENS,
+        TOKEN,
+        DELEGATE_METADATA,
+        {
+          value: AMOUNT,
+        },
+      ),
     ).to.not.be.reverted;
   });
 
@@ -72,7 +88,15 @@ describe('JBProjectPayer::pay(...)', function () {
       .returns(mockJbTerminal.address);
 
     await mockJbTerminal.mock.pay
-      .withArgs(AMOUNT, PROJECT_ID, caller.address, 0, /*preferClaimedTokens=*/ false, /*memo=*/ '', [])
+      .withArgs(
+        AMOUNT,
+        PROJECT_ID,
+        caller.address,
+        0,
+        /*preferClaimedTokens=*/ false,
+        /*memo=*/ '',
+        [],
+      )
       .returns();
 
     await expect(
@@ -106,7 +130,14 @@ describe('JBProjectPayer::pay(...)', function () {
       .returns(ethers.constants.AddressZero);
 
     await expect(
-      jbFakeProjectPayer.pay(PROJECT_ID, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA),
+      jbFakeProjectPayer.pay(
+        PROJECT_ID,
+        BENEFICIARY,
+        MEMO,
+        PREFER_CLAIMED_TOKENS,
+        TOKEN,
+        DELEGATE_METADATA,
+      ),
     ).to.be.revertedWith(errors.TERMINAL_NOT_FOUND);
   });
 });
