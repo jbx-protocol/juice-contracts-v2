@@ -1,142 +1,33 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
-
-import './IJBProjects.sol';
 import './IJBDirectory.sol';
-import './IJBSplitsStore.sol';
-import './IJBFundingCycleStore.sol';
-import './IJBPayDelegate.sol';
-import './IJBTokenStore.sol';
-import './IJBPrices.sol';
-import './IJBRedemptionDelegate.sol';
-import './IJBFeeGauge.sol';
-import './IJBTerminal.sol';
 
-import './../structs/JBFee.sol';
+interface IJBPaymentTerminal {
+  function token() external view returns (address);
 
-interface IJBPaymentTerminal is IJBTerminal {
-  event AddToBalance(uint256 indexed projectId, uint256 amount, string memo, address caller);
-  event Migrate(uint256 indexed projectId, IJBTerminal indexed to, uint256 amount, address caller);
-  event DistributePayouts(
-    uint256 indexed fundingCycleConfiguration,
-    uint256 indexed fundingCycleNumber,
-    uint256 indexed projectId,
-    address beneficiary,
-    uint256 amount,
-    uint256 distributedAmount,
-    uint256 feeAmount,
-    uint256 beneficiaryDistributionAmount,
-    string memo,
-    address caller
-  );
+  function currency() external view returns (uint256);
 
-  event UseAllowance(
-    uint256 indexed fundingCycleConfiguration,
-    uint256 indexed fundingCycleNumber,
-    uint256 indexed projectId,
-    address beneficiary,
-    uint256 amount,
-    uint256 distributedAmount,
-    uint256 feeAmount,
-    string memo,
-    address caller
-  );
-  event ProcessFees(uint256 indexed projectId, JBFee[] fees, address caller);
-  event Pay(
-    uint256 indexed fundingCycleConfiguration,
-    uint256 indexed fundingCycleNumber,
-    uint256 indexed projectId,
-    address beneficiary,
-    uint256 amount,
-    uint256 weight,
-    uint256 beneficiaryTokenCount,
-    string memo,
-    address caller
-  );
-  event DelegateDidPay(IJBPayDelegate indexed delegate, JBDidPayData data, address caller);
-  event RedeemTokens(
-    uint256 indexed fundingCycleConfiguration,
-    uint256 indexed fundingCycleNumber,
-    uint256 indexed projectId,
-    address holder,
-    address beneficiary,
-    uint256 tokenCount,
-    uint256 claimedAmount,
-    string memo,
-    address caller
-  );
+  function baseWeightCurrency() external view returns (uint256);
 
-  event DelegateDidRedeem(
-    IJBRedemptionDelegate indexed delegate,
-    JBDidRedeemData data,
-    address caller
-  );
+  function payoutSplitsGroup() external view returns (uint256);
 
-  event DistributeToPayoutSplit(
-    uint256 indexed fundingCycleConfiguration,
-    uint256 indexed fundingCycleNumber,
-    uint256 indexed projectId,
-    JBSplit split,
-    uint256 amount,
-    address caller
-  );
+  // Return value must be a fixed point number with 18 decimals.
+  function currentEthOverflowOf(uint256 _projectId) external view returns (uint256);
 
-  event SetFee(uint256 fee, address caller);
-
-  event SetFeeGauge(IJBFeeGauge feeGauge, address caller);
-
-  event SetFeelessTerminal(IJBTerminal terminal, address caller);
-
-  function projects() external view returns (IJBProjects);
-
-  function splitsStore() external view returns (IJBSplitsStore);
-
-  function directory() external view returns (IJBDirectory);
-
-  function heldFeesOf(uint256 _projectId) external view returns (JBFee[] memory);
-
-  function fee() external view returns (uint256);
-
-  function feeGauge() external view returns (IJBFeeGauge);
-
-  function isFeelessTerminal(IJBTerminal _terminal) external view returns (bool);
-
-  function distributePayoutsOf(
-    uint256 _projectId,
+  function pay(
     uint256 _amount,
-    uint256 _currency,
-    uint256 _minReturnedAmount,
-    string memory _memo
-  ) external;
-
-  function redeemTokensOf(
-    address _holder,
     uint256 _projectId,
-    uint256 _count,
-    uint256 _minReturnedAmount,
-    address payable _beneficiary,
+    address _beneficiary,
+    uint256 _minReturnedTokens,
+    bool _preferClaimedTokens,
     string calldata _memo,
-    bytes calldata _delegateMetadata
-  ) external returns (uint256 claimedAmount);
+    bytes calldata _metadata
+  ) external payable;
 
-  function useAllowanceOf(
-    uint256 _projectId,
+  function addToBalanceOf(
     uint256 _amount,
-    uint256 _currency,
-    uint256 _minReturnedAmount,
-    address payable _beneficiary,
+    uint256 _projectId,
     string memory _memo
-  ) external;
-
-  function migrate(uint256 _projectId, IJBTerminal _to) external;
-
-  function processFees(uint256 _projectId) external;
-
-  function setFee(uint256 _fee) external;
-
-  function setFeeGauge(IJBFeeGauge _feeGauge) external;
-
-  function toggleFeelessTerminal(IJBTerminal _terminal) external;
+  ) external payable;
 }

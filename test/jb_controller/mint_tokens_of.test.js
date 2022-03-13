@@ -9,7 +9,7 @@ import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.s
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
 
@@ -144,14 +144,19 @@ describe('JBController::mintTokensOf(...)', function () {
       .withArgs(caller.address, projectOwner.address, PROJECT_ID, MINT_INDEX)
       .returns(true);
 
-    await mockJbDirectory.mock.isTerminalOf
-      .withArgs(PROJECT_ID, caller.address)
-      .returns(false);
+    await mockJbDirectory.mock.isTerminalOf.withArgs(PROJECT_ID, caller.address).returns(false);
 
     await expect(
       jbController
         .connect(caller)
-        .mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO,/*_preferClaimedTokens=*/ true,  /* _useReservedRate=*/ true),
+        .mintTokensOf(
+          PROJECT_ID,
+          AMOUNT_TO_MINT,
+          beneficiary.address,
+          MEMO,
+          /*_preferClaimedTokens=*/ true,
+          /* _useReservedRate=*/ true,
+        ),
     )
       .to.emit(jbController, 'MintTokens')
       .withArgs(
@@ -191,7 +196,14 @@ describe('JBController::mintTokensOf(...)', function () {
     await expect(
       jbController
         .connect(terminalSigner)
-        .mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true,  /* _useReservedRate=*/ true),
+        .mintTokensOf(
+          PROJECT_ID,
+          AMOUNT_TO_MINT,
+          beneficiary.address,
+          MEMO,
+          /*_preferClaimedTokens=*/ true,
+          /* _useReservedRate=*/ true,
+        ),
     )
       .to.emit(jbController, 'MintTokens')
       .withArgs(
@@ -216,7 +228,14 @@ describe('JBController::mintTokensOf(...)', function () {
     await expect(
       jbController
         .connect(projectOwner)
-        .mintTokensOf(PROJECT_ID, 0, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true,  /* _useReservedRate=*/ true),
+        .mintTokensOf(
+          PROJECT_ID,
+          0,
+          beneficiary.address,
+          MEMO,
+          /*_preferClaimedTokens=*/ true,
+          /* _useReservedRate=*/ true,
+        ),
     ).to.be.revertedWith(errors.ZERO_TOKENS_TO_MINT);
   });
 
@@ -240,7 +259,14 @@ describe('JBController::mintTokensOf(...)', function () {
     await expect(
       jbController
         .connect(projectOwner)
-        .mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO,/*_preferClaimedTokens=*/true,  /* _useReservedRate=*/ true),
+        .mintTokensOf(
+          PROJECT_ID,
+          AMOUNT_TO_MINT,
+          beneficiary.address,
+          MEMO,
+          /*_preferClaimedTokens=*/ true,
+          /* _useReservedRate=*/ true,
+        ),
     ).to.be.revertedWith(errors.MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE);
   });
 
@@ -285,7 +311,14 @@ describe('JBController::mintTokensOf(...)', function () {
     await expect(
       jbController
         .connect(terminalSigner)
-        .mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO,/*_preferClaimedTokens=*/true,  /* _useReservedRate=*/ true),
+        .mintTokensOf(
+          PROJECT_ID,
+          AMOUNT_TO_MINT,
+          beneficiary.address,
+          MEMO,
+          /*_preferClaimedTokens=*/ true,
+          /* _useReservedRate=*/ true,
+        ),
     )
       .to.emit(jbController, 'MintTokens')
       .withArgs(
@@ -337,7 +370,14 @@ describe('JBController::mintTokensOf(...)', function () {
     await expect(
       jbController
         .connect(projectOwner)
-        .mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true,  /* _useReservedRate=*/ true),
+        .mintTokensOf(
+          PROJECT_ID,
+          AMOUNT_TO_MINT,
+          beneficiary.address,
+          MEMO,
+          /*_preferClaimedTokens=*/ true,
+          /* _useReservedRate=*/ true,
+        ),
     )
       .to.emit(jbController, 'MintTokens')
       .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, MEMO, 10000, projectOwner.address);
@@ -348,12 +388,7 @@ describe('JBController::mintTokensOf(...)', function () {
   });
 
   it('Should not use a reserved rate even if one is specified if the `_useReservedRate` arg is false', async function () {
-    const {
-      projectOwner,
-      beneficiary,
-      jbController,
-      mockJbTokenStore,
-    } = await setup();
+    const { projectOwner, beneficiary, jbController, mockJbTokenStore } = await setup();
 
     await mockJbTokenStore.mock.mintFor
       .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, /*_preferClaimedTokens=*/ true)
@@ -363,13 +398,20 @@ describe('JBController::mintTokensOf(...)', function () {
 
     let previousReservedTokenBalance = await jbController.reservedTokenBalanceOf(
       PROJECT_ID,
-      RESERVED_RATE
+      RESERVED_RATE,
     );
 
     await expect(
       jbController
         .connect(projectOwner)
-        .mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true,  /* _useReservedRate=*/ false),
+        .mintTokensOf(
+          PROJECT_ID,
+          AMOUNT_TO_MINT,
+          beneficiary.address,
+          MEMO,
+          /*_preferClaimedTokens=*/ true,
+          /* _useReservedRate=*/ false,
+        ),
     )
       .to.emit(jbController, 'MintTokens')
       .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, MEMO, 0, projectOwner.address);
@@ -378,7 +420,7 @@ describe('JBController::mintTokensOf(...)', function () {
 
     let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(
       PROJECT_ID,
-      RESERVED_RATE
+      RESERVED_RATE,
     );
 
     expect(newReservedTokenBalance).to.equal(previousReservedTokenBalance);
@@ -420,7 +462,14 @@ describe('JBController::mintTokensOf(...)', function () {
     await expect(
       jbController
         .connect(projectOwner)
-        .mintTokensOf(PROJECT_ID, AMOUNT_TO_MINT, beneficiary.address, MEMO, /*_preferClaimedTokens=*/true,  /* _useReservedRate=*/ true),
+        .mintTokensOf(
+          PROJECT_ID,
+          AMOUNT_TO_MINT,
+          beneficiary.address,
+          MEMO,
+          /*_preferClaimedTokens=*/ true,
+          /* _useReservedRate=*/ true,
+        ),
     )
       .to.emit(jbController, 'MintTokens')
       .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, MEMO, 0, projectOwner.address);

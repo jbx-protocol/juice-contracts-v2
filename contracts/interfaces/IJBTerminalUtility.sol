@@ -3,6 +3,6 @@ pragma solidity 0.8.6;
 
 import './IJBDirectory.sol';
 
-interface IJBTerminalUtility {
+interface IJBPaymentTerminalUtility {
   function directory() external view returns (IJBDirectory);
 }

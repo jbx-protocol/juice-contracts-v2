@@ -6,14 +6,14 @@ import { makeSplits, packFundingCycleMetadata, setBalance } from '../helpers/uti
 import errors from '../helpers/errors.json';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import JbEthPaymentTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
-import jbPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalStore.sol/JBPaymentTerminalStore.json';
+import JBEthPaymentTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
+import jb18DecimalPaymentTerminalStore from '../../artifacts/contracts/JB18DecimalPaymentTerminalStore.sol/JB18DecimalPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 
-describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
+describe('JB18DecimalPaymentTerminal::addToBalanceOf(...)', function () {
   const PROJECT_ID = 2;
   const AMOUNT = ethers.utils.parseEther('10');
   const MIN_TOKEN_REQUESTED = 0;
@@ -46,51 +46,46 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
     let [
       mockJbDirectory,
       mockJbEthPaymentTerminal,
-      mockJbPaymentTerminalStore,
+      mockJB18DecimalPaymentTerminalStore,
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
-      mockJbToken
+      mockJbToken,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
-      deployMockContract(deployer, JbEthPaymentTerminal.abi),
-      deployMockContract(deployer, jbPaymentTerminalStore.abi),
+      deployMockContract(deployer, JBEthPaymentTerminal.abi),
+      deployMockContract(deployer, jb18DecimalPaymentTerminalStore.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
-      deployMockContract(deployer, jbToken.abi)
+      deployMockContract(deployer, jbToken.abi),
     ]);
 
     let jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
-    let jbErc20TerminalFactory = await ethers.getContractFactory('JBERC20PaymentTerminal', deployer);
+    let jbErc20TerminalFactory = await ethers.getContractFactory(
+      'JB18DecimalERC20PaymentTerminal',
+      deployer,
+    );
     const NON_ETH_TOKEN = mockJbToken.address;
-
-    let currentNonce = await ethers.provider.getTransactionCount(deployer.address);
-    const futureTerminalAddress = ethers.utils.getContractAddress({
-      from: deployer.address,
-      nonce: currentNonce + 1,
-    });
 
     let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
       .deploy(
-        /*base weight currency*/CURRENCY_ETH,
+        /*base weight currency*/ CURRENCY_ETH,
         mockJbOperatorStore.address,
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
-        mockJbPaymentTerminalStore.address,
+        mockJB18DecimalPaymentTerminalStore.address,
         terminalOwner.address,
       );
 
-    currentNonce = await ethers.provider.getTransactionCount(deployer.address);
+    const DECIMALS = 1;
 
-    const futureOtherCurrencyTerminalAddress = ethers.utils.getContractAddress({
-      from: deployer.address,
-      nonce: currentNonce + 1,
-    });
+    await mockJB18DecimalPaymentTerminalStore.mock.TARGET_DECIMALS.returns(DECIMALS);
+    await mockJbToken.mock.decimals.returns(DECIMALS);
 
-    let jbErc20PaymentTerminal = await jbErc20TerminalFactory
+    let JB18DecimalERC20PaymentTerminal = await jbErc20TerminalFactory
       .connect(deployer)
       .deploy(
         NON_ETH_TOKEN,
@@ -101,7 +96,7 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
-        mockJbPaymentTerminalStore.address,
+        mockJB18DecimalPaymentTerminalStore.address,
         terminalOwner.address,
       );
 
@@ -122,10 +117,10 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
       .returns(true);
 
     await mockJbDirectory.mock.isTerminalOf
-      .withArgs(PROJECT_ID, jbErc20PaymentTerminal.address)
+      .withArgs(PROJECT_ID, JB18DecimalERC20PaymentTerminal.address)
       .returns(true);
 
-    await mockJbPaymentTerminalStore.mock.recordDistributionFor
+    await mockJB18DecimalPaymentTerminalStore.mock.recordDistributionFor
       .withArgs(PROJECT_ID, AMOUNT, CURRENCY_ETH)
       .returns(
         {
@@ -144,7 +139,7 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
-    await mockJbPaymentTerminalStore.mock.recordAddedBalanceFor
+    await mockJB18DecimalPaymentTerminalStore.mock.recordAddedBalanceFor
       .withArgs(PROJECT_ID, AMOUNT)
       .returns(fundingCycle);
 
@@ -159,10 +154,10 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
       beneficiaryTwo,
       addrs,
       jbEthPaymentTerminal,
-      jbErc20PaymentTerminal,
+      JB18DecimalERC20PaymentTerminal,
       mockJbDirectory,
       mockJbEthPaymentTerminal,
-      mockJbPaymentTerminalStore,
+      mockJB18DecimalPaymentTerminalStore,
       mockJbToken,
       mockJbOperatorStore,
       mockJbSplitsStore,
@@ -204,13 +199,9 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
     expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([]);
   });
   it('Should work with eth terminal with non msg.value amount sent', async function () {
-    const {
-      caller,
-      jbEthPaymentTerminal,
-      mockJbPaymentTerminalStore,
-      fundingCycle
-    } = await setup();
-    await mockJbPaymentTerminalStore.mock.recordAddedBalanceFor
+    const { caller, jbEthPaymentTerminal, mockJB18DecimalPaymentTerminalStore, fundingCycle } =
+      await setup();
+    await mockJB18DecimalPaymentTerminalStore.mock.recordAddedBalanceFor
       .withArgs(PROJECT_ID, AMOUNT)
       .returns(fundingCycle);
 
@@ -221,19 +212,21 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
   it('Should work with non-eth terminal if no value is sent', async function () {
     const {
       caller,
-      jbErc20PaymentTerminal,
+      JB18DecimalERC20PaymentTerminal,
       mockJbToken,
-      mockJbPaymentTerminalStore,
-      fundingCycle
+      mockJB18DecimalPaymentTerminalStore,
+      fundingCycle,
     } = await setup();
-    await mockJbPaymentTerminalStore.mock.recordAddedBalanceFor
+    await mockJB18DecimalPaymentTerminalStore.mock.recordAddedBalanceFor
       .withArgs(PROJECT_ID, AMOUNT)
       .returns(fundingCycle);
 
-    await mockJbToken.mock.transferFrom.withArgs(caller.address, jbErc20PaymentTerminal.address, AMOUNT).returns(0);
-    await jbErc20PaymentTerminal
-      .connect(caller)
-      .addToBalanceOf(AMOUNT, PROJECT_ID, MEMO, { value: 0 });
+    await mockJbToken.mock.transferFrom
+      .withArgs(caller.address, JB18DecimalERC20PaymentTerminal.address, AMOUNT)
+      .returns(0);
+    await JB18DecimalERC20PaymentTerminal.connect(caller).addToBalanceOf(AMOUNT, PROJECT_ID, MEMO, {
+      value: 0,
+    });
   });
 
   it('Should add to the project balance, refund a held fee by substracting the amount from the held fee amount and emit event', async function () {
@@ -244,7 +237,7 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
       jbEthPaymentTerminal,
       timestamp,
       mockJbSplitsStore,
-      mockJbPaymentTerminalStore,
+      mockJB18DecimalPaymentTerminalStore,
       fundingCycle,
     } = await setup();
     const splits = makeSplits({
@@ -260,7 +253,7 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
       .connect(caller)
       .distributePayoutsOf(PROJECT_ID, AMOUNT, ETH_PAYOUT_INDEX, MIN_TOKEN_REQUESTED, MEMO);
 
-    await mockJbPaymentTerminalStore.mock.recordAddedBalanceFor
+    await mockJB18DecimalPaymentTerminalStore.mock.recordAddedBalanceFor
       .withArgs(PROJECT_ID, 1)
       .returns(fundingCycle);
 
@@ -284,7 +277,7 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
       jbEthPaymentTerminal,
       timestamp,
       mockJbSplitsStore,
-      mockJbPaymentTerminalStore,
+      mockJB18DecimalPaymentTerminalStore,
       fundingCycle,
     } = await setup();
     const splits = makeSplits({
@@ -296,7 +289,7 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
       .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
       .returns(splits);
 
-    await mockJbPaymentTerminalStore.mock.recordDistributionFor
+    await mockJB18DecimalPaymentTerminalStore.mock.recordDistributionFor
       .withArgs(PROJECT_ID, AMOUNT.div(2), CURRENCY_ETH)
       .returns(
         {
@@ -321,14 +314,16 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
       .connect(caller)
       .distributePayoutsOf(PROJECT_ID, AMOUNT.div(2), ETH_PAYOUT_INDEX, MIN_TOKEN_REQUESTED, MEMO);
 
-    await mockJbPaymentTerminalStore.mock.recordAddedBalanceFor
+    await mockJB18DecimalPaymentTerminalStore.mock.recordAddedBalanceFor
       .withArgs(PROJECT_ID, 10)
       .returns(fundingCycle);
 
     let heldFeeBefore = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
 
     expect(
-      await jbEthPaymentTerminal.connect(caller).addToBalanceOf(10, PROJECT_ID, MEMO, { value: 10 }),
+      await jbEthPaymentTerminal
+        .connect(caller)
+        .addToBalanceOf(10, PROJECT_ID, MEMO, { value: 10 }),
     )
       .to.emit(jbEthPaymentTerminal, 'AddToBalance')
       .withArgs(PROJECT_ID, 10, MEMO, caller.address);
@@ -337,14 +332,12 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
     expect(heldFeeAfter[0].amount).to.equal(heldFeeBefore[0].amount.sub(10));
   });
   it("Can't add with value if terminal token isn't ETH", async function () {
-    const { caller, jbErc20PaymentTerminal } = await setup();
+    const { caller, JB18DecimalERC20PaymentTerminal } = await setup();
 
     await expect(
-      jbErc20PaymentTerminal
-        .connect(caller)
-        .addToBalanceOf(AMOUNT, PROJECT_ID, MEMO,
-          { value: 10 },
-        ),
+      JB18DecimalERC20PaymentTerminal.connect(caller).addToBalanceOf(AMOUNT, PROJECT_ID, MEMO, {
+        value: 10,
+      }),
     ).to.be.revertedWith(errors.NO_MSG_VALUE_ALLOWED);
   });
   it("Can't add to balance if terminal doesn't belong to project", async function () {
@@ -356,7 +349,9 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
       .returns(false);
 
     await expect(
-      jbEthPaymentTerminal.connect(caller).addToBalanceOf(AMOUNT, otherProjectId, MEMO, { value: 0 }),
+      jbEthPaymentTerminal
+        .connect(caller)
+        .addToBalanceOf(AMOUNT, otherProjectId, MEMO, { value: 0 }),
     ).to.be.revertedWith(errors.PROJECT_TERMINAL_MISMATCH);
   });
 });
