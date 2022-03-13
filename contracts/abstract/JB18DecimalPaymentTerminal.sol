@@ -174,6 +174,29 @@ abstract contract JB18DecimalPaymentTerminal is
 
   /**
     @notice
+    Gets the current overflowed amount in this for a specified project, in terms of ETH.
+
+    @dev
+    The current overflow is represented as a fixed point number with 18 decimals.
+
+    @param _projectId The ID of the project to get overflow for.
+
+    @return The current amount of ETH overflow that project has in this terminal, as a fixed point number with 18 decimals.
+  */
+  function currentEthOverflowOf(uint256 _projectId) external view override returns (uint256) {
+    uint256 _overflow = store.currentOverflowOf(this, _projectId);
+    return
+      currency == JBCurrencies.ETH
+        ? _overflow
+        : PRBMath.mulDiv(
+          _overflow,
+          10**store.TARGET_DECIMALS(),
+          store.prices().priceFor(currency, JBCurrencies.ETH, store.TARGET_DECIMALS())
+        );
+  }
+
+  /**
+    @notice
     The fees that are currently being held to be processed later for each project.
 
     @param _projectId The ID of the project for which fees are being held.

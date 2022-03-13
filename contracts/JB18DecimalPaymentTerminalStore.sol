@@ -2,7 +2,6 @@
 /* solhint-disable comprehensive-interface*/
 pragma solidity 0.8.6;
 
-import '@paulrberg/contracts/math/PRBMathUD60x18.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 
 import './interfaces/IJBPrices.sol';
@@ -385,7 +384,11 @@ contract JB18DecimalPaymentTerminalStore {
     // Convert the amount to this store's terminal's token.
     distributedAmount = (_currency == _terminalCurrency)
       ? _amount
-      : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, _terminalCurrency, TARGET_DECIMALS));
+      : PRBMath.mulDiv(
+        _amount,
+        10**TARGET_DECIMALS,
+        prices.priceFor(_currency, _terminalCurrency, TARGET_DECIMALS)
+      );
 
     // The amount being distributed must be available.
     if (distributedAmount > balanceOf[IJBPaymentTerminal(msg.sender)][_projectId])
@@ -455,7 +458,11 @@ contract JB18DecimalPaymentTerminalStore {
     // Convert the amount to this store's terminal's token.
     withdrawnAmount = (_currency == _terminalCurrency)
       ? _amount
-      : PRBMathUD60x18.div(_amount, prices.priceFor(_currency, _terminalCurrency, TARGET_DECIMALS));
+      : PRBMath.mulDiv(
+        _amount,
+        10**TARGET_DECIMALS,
+        prices.priceFor(_currency, _terminalCurrency, TARGET_DECIMALS)
+      );
 
     // The project balance should be bigger than the amount withdrawn from the overflow
     if (balanceOf[IJBPaymentTerminal(msg.sender)][_projectId] < withdrawnAmount)
@@ -484,8 +491,9 @@ contract JB18DecimalPaymentTerminalStore {
       // Convert the remaining to distribute into this store's terminal's token.
       _leftToDistribute = (_distributionLimitCurrency == _terminalCurrency)
         ? _leftToDistribute
-        : PRBMathUD60x18.div(
+        : PRBMath.mulDiv(
           _leftToDistribute,
+          10**TARGET_DECIMALS,
           prices.priceFor(_distributionLimitCurrency, _terminalCurrency, TARGET_DECIMALS)
         );
 
@@ -748,8 +756,9 @@ contract JB18DecimalPaymentTerminalStore {
       ? 0
       : (_distributionLimitCurrency == _currency)
       ? _distributionRemaining
-      : PRBMathUD60x18.div(
+      : PRBMath.mulDiv(
         _distributionRemaining,
+        10**TARGET_DECIMALS,
         prices.priceFor(_distributionLimitCurrency, _currency, TARGET_DECIMALS)
       );
 
@@ -791,8 +800,9 @@ contract JB18DecimalPaymentTerminalStore {
     return
       _currency == JBCurrencies.ETH
         ? _ethOverflow
-        : PRBMathUD60x18.div(
+        : PRBMath.mulDiv(
           _ethOverflow,
+          10**TARGET_DECIMALS,
           prices.priceFor(JBCurrencies.ETH, _currency, TARGET_DECIMALS)
         );
   }
