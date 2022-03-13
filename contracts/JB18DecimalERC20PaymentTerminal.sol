@@ -13,6 +13,28 @@ import './abstract/JB18DecimalPaymentTerminal.sol';
 error TOKEN_MUST_USE_18_DECIMALS();
 
 contract JB18DecimalERC20PaymentTerminal is JB18DecimalPaymentTerminal {
+  /**
+    @notice
+    Gets the current overflowed amount in this for a specified project, in terms of ETH.
+
+    @dev
+    The current overflow is represented as a fixed point number with 18 decimals.
+
+    @param _projectId The ID of the project to get overflow for.
+
+    @return The current amount of ETH overflow that project has in this terminal, as a fixed point number with 18 decimals.
+  */
+  function currentEthOverflowOf(uint256 _projectId) external view override returns (uint256) {
+    uint256 _overflow = store.currentOverflowOf(this, _projectId);
+    return
+      currency == JBCurrencies.ETH
+        ? _overflow
+        : PRBMathUD60x18.div(
+          _overflow,
+          store.prices().priceFor(currency, JBCurrencies.ETH, store.TARGET_DECIMALS())
+        );
+  }
+
   constructor(
     IERC20Metadata _token,
     uint256 _currency,

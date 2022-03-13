@@ -12,7 +12,7 @@ interface IJBPaymentTerminal {
 
   function payoutSplitsGroup() external view returns (uint256);
 
-  function store() external view returns (address);
+  function currentEthOverflowOf(uint256 _projectId) external view returns (uint256);
 
   function pay(
     uint256 _amount,

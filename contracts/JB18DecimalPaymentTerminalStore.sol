@@ -10,6 +10,7 @@ import './interfaces/IJBTokenStore.sol';
 import './interfaces/IJBPaymentTerminal.sol';
 
 import './libraries/JBConstants.sol';
+import './libraries/JBCurrencies.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
@@ -172,10 +173,7 @@ contract JB18DecimalPaymentTerminalStore {
     view
     returns (uint256)
   {
-    // Get a reference to the project's current funding cycle.
-    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
-
-    return _totalOverflowDuring(_projectId, _fundingCycle, _currency);
+    return _currentTotalOverflow(_projectId, _currency);
   }
 
   /**
@@ -659,7 +657,7 @@ contract JB18DecimalPaymentTerminalStore {
     // Use the local overflow if the funding cycle specifies that it should be used. Otherwise use the project's total overflow across all of its terminals.
     uint256 _currentOverflow = _fundingCycle.shouldUseLocalBalanceForRedemptions()
       ? _overflowDuring(_terminal, _projectId, _fundingCycle, _currency)
-      : _totalOverflowDuring(_projectId, _fundingCycle, _currency);
+      : _currentTotalOverflow(_projectId, _currency);
 
     // If there is no overflow, nothing is claimable.
     if (_currentOverflow == 0) return 0;
@@ -770,81 +768,32 @@ contract JB18DecimalPaymentTerminalStore {
     This amount changes as the price of the token changes in relation to the currency being used to measure the distribution limits.
 
     @param _projectId The ID of the project to get total overflow for.
-    @param _fundingCycle The ID of the funding cycle to base the overflow on.
-    @param _currency The currency that the stored balance is expected to be in terms of.
+    @param _currency The currency that the overflow should be in terms of.
 
     @return overflow The overflow of funds, as a fixed point number with 18 decimals
   */
-  function _totalOverflowDuring(
-    uint256 _projectId,
-    JBFundingCycle memory _fundingCycle,
-    uint256 _currency
-  ) private view returns (uint256) {
+  function _currentTotalOverflow(uint256 _projectId, uint256 _currency)
+    private
+    view
+    returns (uint256)
+  {
     // Get a reference to the project's terminals.
     IJBPaymentTerminal[] memory _terminals = directory.terminalsOf(_projectId);
 
-    // Keep a reference to the current balance of the project across all terminals in terms of the provided currency,
-    // and the current distribution limit across all terminals in terms of the provided currency.
-    uint256 _currencyBalanceOf;
-    uint256 _currencyDistributionLimitRemaining;
+    // Keep a reference to the ETH overflow across all terminals,
+    uint256 _ethOverflow;
 
-    for (uint256 _i = 0; _i < _terminals.length; _i++) {
-      // Only consider terminals that share this store.
-      if (_terminals[_i].store() != address(this)) continue;
+    // Add the current ETH overflow for each terminal.
+    for (uint256 _i = 0; _i < _terminals.length; _i++)
+      _ethOverflow = _ethOverflow + _terminals[_i].currentEthOverflowOf(_projectId);
 
-      // Get the balance of the terminal being iterated on.
-      uint256 _someTerminalBalanceOf = balanceOf[_terminals[_i]][_projectId];
-
-      // Add the the running balance if the terminal being iterated on has a balance.
-      if (_someTerminalBalanceOf > 0) {
-        // Get the currency of the terminal being iterated on.
-        uint256 _someTerminalCurrency = _terminals[_i].currency();
-
-        // Get the balance of the terminal in terms of this store's terminal's currency.
-        _currencyBalanceOf =
-          _currencyBalanceOf +
-          (
-            (_someTerminalCurrency == _currency)
-              ? _someTerminalBalanceOf
-              : PRBMathUD60x18.div(
-                _someTerminalBalanceOf,
-                prices.priceFor(_someTerminalCurrency, _currency, TARGET_DECIMALS)
-              )
-          );
-      }
-
-      // Get a reference to the amount still distributable during the funding cycle.
-      uint256 _distributionLimitRemaining = directory.controllerOf(_projectId).distributionLimitOf(
-        _projectId,
-        _fundingCycle.configuration,
-        _terminals[_i]
-      ) - usedDistributionLimitOf[_terminals[_i]][_projectId][_fundingCycle.number];
-
-      // Continue iterating terminal's if there's no distribution limit to add.
-      if (_distributionLimitRemaining == 0) continue;
-
-      // Get a reference to the current funding cycle's currency for this terminal.
-      uint256 _distributionLimitCurrency = directory
-        .controllerOf(_projectId)
-        .distributionLimitCurrencyOf(_projectId, _fundingCycle.configuration, _terminals[_i]);
-
-      // Convert the _distributionRemaining to this store's terminal's token.
-      _currencyDistributionLimitRemaining =
-        _currencyDistributionLimitRemaining +
-        (
-          _distributionLimitCurrency == _currency
-            ? _distributionLimitRemaining
-            : PRBMathUD60x18.div(
-              _distributionLimitRemaining,
-              prices.priceFor(_distributionLimitCurrency, _currency, TARGET_DECIMALS)
-            )
-        );
-    }
-
-    // Overflow is the balance of this project minus the amount that can still be distributed.
+    // Convert the ETH overflow to the specified currency if needed.
     return
-      _currencyBalanceOf > _currencyDistributionLimitRemaining
-        ? _currencyBalanceOf - _currencyDistributionLimitRemaining
-        : 0;
+      _currency == JBCurrencies.ETH
+        ? _ethOverflow
+        : PRBMathUD60x18.div(
+          _ethOverflow,
+          prices.priceFor(JBCurrencies.ETH, _currency, TARGET_DECIMALS)
+        );
   }
 }
