@@ -20,7 +20,7 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
   JBFundingCycleMetadata private _metadata;
   JBGroupedSplits[] private _groupedSplits; // Default empty
   JBFundAccessConstraints[] private _fundAccessConstraints; // Default empty
-  IJBTerminal[] private _terminals; // Default empty
+  IJBPaymentTerminal[] private _terminals; // Default empty
 
   uint256 private _projectId;
   address private _projectOwner;
@@ -123,7 +123,7 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
 
     // verify: ETH balance in terminal should be up to date
     uint256 _terminalBalanceInWei = payAmountInWei;
-    assertEq(_terminal.balanceOf(_projectId), _terminalBalanceInWei);
+    assertEq(jbPaymentTerminalStore().balanceOf(_terminal, _projectId), _terminalBalanceInWei);
 
     // burn tokens from beneficiary addr
     if (burnTokenAmount == 0) evm.expectRevert(abi.encodeWithSignature('NO_BURNABLE_TOKENS()'));
@@ -179,6 +179,6 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
     assertEq(_tokenStore.balanceOf(_userWallet, _projectId), _userTokenBalance);
 
     // verify: ETH balance in terminal should be up to date
-    assertEq(_terminal.balanceOf(_projectId), _terminalBalanceInWei - _reclaimAmtInWei);
+    assertEq(jbPaymentTerminalStore().balanceOf(_terminal, _projectId), _terminalBalanceInWei - _reclaimAmtInWei);
   }
 }
