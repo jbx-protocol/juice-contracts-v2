@@ -11,11 +11,11 @@ import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
 import './libraries/JBTokens.sol';
 
-import './JBPaymentTerminalStore.sol';
+import './JB18DecimalPaymentTerminalStore.sol';
 
 // Inheritance
+import './interfaces/IJB18DecimalPaymentTerminal.sol';
 import './interfaces/IJBPaymentTerminal.sol';
-import './interfaces/IJBTerminal.sol';
 import './abstract/JBOperatable.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
@@ -44,11 +44,16 @@ error INADEQUATE_RECLAIM_AMOUNT();
 
   Inherits from:
 
-  IJBPaymentTerminal - general interface for the methods in this contract.
+  IJB18DecimalPaymentTerminal - general interface for the methods in this contract.
   JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
   ReentrencyGuard - several function in this contract shouldn't be accessible recursively.
 */
-abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable, ReentrancyGuard {
+abstract contract JB18DecimalPaymentTerminal is
+  IJB18DecimalPaymentTerminal,
+  JBOperatable,
+  Ownable,
+  ReentrancyGuard
+{
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
@@ -113,7 +118,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     @notice
     The contract that stores and manages the terminal's data.
   */
-  JBPaymentTerminalStore public immutable store;
+  JB18DecimalPaymentTerminalStore public immutable store;
 
   /**
     @notice
@@ -142,7 +147,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
 
     _terminal The terminal that can be paid toward.
   */
-  mapping(IJBTerminal => bool) public override isFeelessTerminal;
+  mapping(IJBPaymentTerminal => bool) public override isFeelessTerminal;
 
   /**
     @notice
@@ -243,7 +248,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     IJBProjects _projects,
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
-    JBPaymentTerminalStore _store,
+    JB18DecimalPaymentTerminalStore _store,
     address _owner
   ) JBOperatable(_operatorStore) {
     token = _token;
@@ -585,7 +590,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
     @param _projectId The ID of the project being migrated.
     @param _to The terminal contract that will gain the project's funds.
   */
-  function migrate(uint256 _projectId, IJBTerminal _to)
+  function migrate(uint256 _projectId, IJBPaymentTerminal _to)
     external
     override
     nonReentrant
@@ -723,7 +728,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
 
     @param _terminal The terminal that can be paid towards while still bypassing fees.
   */
-  function toggleFeelessTerminal(IJBTerminal _terminal) external override onlyOwner {
+  function toggleFeelessTerminal(IJBPaymentTerminal _terminal) external override onlyOwner {
     // Toggle the value for the provided terminal.
     isFeelessTerminal[_terminal] = !isFeelessTerminal[_terminal];
 
@@ -800,10 +805,10 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
           // Otherwise, if a project is specified, make a payment to it.
         } else if (_split.projectId != 0) {
           // Get a reference to the Juicebox terminal being used.
-          IJBTerminal _terminal = directory.primaryTerminalOf(_split.projectId, token);
+          IJBPaymentTerminal _terminal = directory.primaryTerminalOf(_split.projectId, token);
 
           // The project must have a terminal to send funds to.
-          if (_terminal == IJBTerminal(address(0))) revert TERMINAL_IN_SPLIT_ZERO_ADDRESS();
+          if (_terminal == IJBPaymentTerminal(address(0))) revert TERMINAL_IN_SPLIT_ZERO_ADDRESS();
 
           // Save gas if this contract is being used as the terminal.
           if (_terminal == this) {
@@ -903,7 +908,7 @@ abstract contract JBPaymentTerminal is IJBPaymentTerminal, JBOperatable, Ownable
   */
   function _processFee(uint256 _fee, address _beneficiary) private {
     // Get the terminal for the protocol project.
-    IJBTerminal _terminal = directory.primaryTerminalOf(1, token);
+    IJBPaymentTerminal _terminal = directory.primaryTerminalOf(1, token);
 
     // When processing the admin fee, save gas if the admin is using this contract as its terminal.
     if (_terminal == this)

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './../interfaces/IJBTerminal.sol';
+import './../interfaces/IJBPaymentTerminal.sol';
 
 struct JBPayParamsData {
   // The terminal that is facilitating the payment.
-  IJBTerminal terminal;
+  IJBPaymentTerminal terminal;
   // The address from which the payment originated.
   address payer;
   // The ETH amount of the payment.

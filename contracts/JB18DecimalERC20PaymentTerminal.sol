@@ -2,14 +2,19 @@
 /* solhint-disable comprehensive-interface*/
 pragma solidity 0.8.6;
 
-import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 
 // Inheritance
-import './JBPaymentTerminal.sol';
+import './JB18DecimalPaymentTerminal.sol';
 
-contract JBERC20PaymentTerminal is JBPaymentTerminal {
+//*********************************************************************//
+// --------------------------- custom errors ------------------------- //
+//*********************************************************************//
+error TOKEN_MUST_USE_18_DECIMALS();
+
+contract JB18DecimalERC20PaymentTerminal is JB18DecimalPaymentTerminal {
   constructor(
-    IERC20 _token,
+    IERC20Metadata _token,
     uint256 _currency,
     uint256 _baseWeightCurrency,
     uint256 _payoutSplitsGroup,
@@ -17,10 +22,10 @@ contract JBERC20PaymentTerminal is JBPaymentTerminal {
     IJBProjects _projects,
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
-    JBPaymentTerminalStore _store,
+    JB18DecimalPaymentTerminalStore _store,
     address _owner
   )
-    JBPaymentTerminal(
+    JB18DecimalPaymentTerminal(
       address(_token),
       _currency,
       _baseWeightCurrency,
@@ -34,7 +39,8 @@ contract JBERC20PaymentTerminal is JBPaymentTerminal {
     )
   // solhint-disable-next-line no-empty-blocks
   {
-
+    // Make sure the ERC20 uses 18 decimals.
+    if (_token.decimals() != _store.TARGET_DECIMALS()) revert TOKEN_MUST_USE_18_DECIMALS();
   }
 
   function _transferFrom(

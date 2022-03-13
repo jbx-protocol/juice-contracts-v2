@@ -6,14 +6,14 @@ import errors from '../helpers/errors.json';
 
 import jbAllocator from '../../artifacts/contracts/interfaces/IJBSplitAllocator.sol/IJBSplitAllocator.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import JbEthPaymentTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
-import JBPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalStore.sol/JBPaymentTerminalStore.json';
+import JBETHPaymentTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
+import jb18DecimalPaymentTerminalStore from '../../artifacts/contracts/JB18DecimalPaymentTerminalStore.sol/JB18DecimalPaymentTerminalStore.json';
 import jbFeeGauge from '../../artifacts/contracts/interfaces/IJBFeeGauge.sol/IJBFeeGauge.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 
-describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
+describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
   const PLATFORM_PROJECT_ID = 1;
   const PROJECT_ID = 2;
   const OTHER_PROJECT_ID = 3;
@@ -82,7 +82,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
       mockJbAllocator,
       mockJbDirectory,
       mockJbEthPaymentTerminal,
-      mockJBPaymentTerminalStore,
+      mockJB18DecimalPaymentTerminalStore,
       mockJbFeeGauge,
       mockJbOperatorStore,
       mockJbProjects,
@@ -90,8 +90,8 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
     ] = await Promise.all([
       deployMockContract(deployer, jbAllocator.abi),
       deployMockContract(deployer, jbDirectory.abi),
-      deployMockContract(deployer, JbEthPaymentTerminal.abi),
-      deployMockContract(deployer, JBPaymentTerminalStore.abi),
+      deployMockContract(deployer, JBETHPaymentTerminal.abi),
+      deployMockContract(deployer, jb18DecimalPaymentTerminalStore.abi),
       deployMockContract(deployer, jbFeeGauge.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
@@ -112,7 +112,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
-        mockJBPaymentTerminalStore.address,
+        mockJB18DecimalPaymentTerminalStore.address,
         terminalOwner.address,
       );
 
@@ -123,7 +123,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
       .withArgs(1, ETH_ADDRESS)
       .returns(jbEthPaymentTerminal.address);
 
-    await mockJBPaymentTerminalStore.mock.recordDistributionFor
+    await mockJB18DecimalPaymentTerminalStore.mock.recordDistributionFor
       .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY)
       .returns(fundingCycle, AMOUNT_DISTRIBUTED);
 
@@ -141,7 +141,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
       mockJbAllocator,
       mockJbDirectory,
       mockJbEthPaymentTerminal,
-      mockJBPaymentTerminalStore,
+      mockJB18DecimalPaymentTerminalStore,
       mockJbFeeGauge,
       mockJbProjects,
       mockJbSplitsStore,
@@ -229,7 +229,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
       beneficiaryTwo,
       jbEthPaymentTerminal,
       timestamp,
-      mockJBPaymentTerminalStore,
+      mockJB18DecimalPaymentTerminalStore,
       mockJbProjects,
       mockJbSplitsStore,
     } = await setup();
@@ -240,7 +240,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
 
     await mockJbProjects.mock.ownerOf.withArgs(PLATFORM_PROJECT_ID).returns(projectOwner.address);
 
-    await mockJBPaymentTerminalStore.mock.recordDistributionFor
+    await mockJB18DecimalPaymentTerminalStore.mock.recordDistributionFor
       .withArgs(PLATFORM_PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY)
       .returns(
         {
@@ -321,7 +321,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
       jbEthPaymentTerminal,
       timestamp,
       mockJbDirectory,
-      mockJBPaymentTerminalStore,
+      mockJB18DecimalPaymentTerminalStore,
       mockJbSplitsStore,
     } = await setup();
     const splits = makeSplits({
@@ -340,7 +340,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
 
     await Promise.all(
       splits.map(async (split) => {
-        await mockJBPaymentTerminalStore.mock.recordPaymentFrom
+        await mockJB18DecimalPaymentTerminalStore.mock.recordPaymentFrom
           .withArgs(
             jbEthPaymentTerminal.address,
             /*amount paid*/ Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
@@ -420,7 +420,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
       beneficiaryTwo,
       jbEthPaymentTerminal,
       timestamp,
-      mockJBPaymentTerminalStore,
+      mockJB18DecimalPaymentTerminalStore,
       mockJbSplitsStore,
     } = await setup();
     const splits = makeSplits({
@@ -428,7 +428,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
       beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
     });
 
-    await mockJBPaymentTerminalStore.mock.recordDistributionFor
+    await mockJB18DecimalPaymentTerminalStore.mock.recordDistributionFor
       .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY)
       .returns(
         {
@@ -685,7 +685,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
       beneficiaryTwo,
       jbEthPaymentTerminal,
       timestamp,
-      mockJBPaymentTerminalStore,
+      mockJB18DecimalPaymentTerminalStore,
       mockJbDirectory,
       mockJbSplitsStore,
     } = await setup();
@@ -699,7 +699,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
       .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
       .returns(splits);
 
-    await mockJBPaymentTerminalStore.mock.recordPaymentFrom
+    await mockJB18DecimalPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
         jbEthPaymentTerminal.address,
         AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES,
@@ -711,7 +711,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
 
     await Promise.all(
       splits.map(async (split) => {
-        await mockJBPaymentTerminalStore.mock.recordPaymentFrom
+        await mockJB18DecimalPaymentTerminalStore.mock.recordPaymentFrom
           .withArgs(
             jbEthPaymentTerminal.address,
             /*amount paid*/ Math.floor((AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT),
@@ -1261,7 +1261,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
       jbEthPaymentTerminal,
       timestamp,
       mockJbDirectory,
-      mockJBPaymentTerminalStore,
+      mockJB18DecimalPaymentTerminalStore,
       mockJbSplitsStore,
     } = await setup();
     const splits = makeSplits({
@@ -1282,7 +1282,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
 
     await Promise.all(
       splits.map(async (split) => {
-        await mockJBPaymentTerminalStore.mock.recordPaymentFrom
+        await mockJB18DecimalPaymentTerminalStore.mock.recordPaymentFrom
           .withArgs(
             jbEthPaymentTerminal.address,
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
@@ -1439,7 +1439,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
       beneficiaryTwo,
       jbEthPaymentTerminal,
       timestamp,
-      mockJBPaymentTerminalStore,
+      mockJB18DecimalPaymentTerminalStore,
       mockJbSplitsStore,
     } = await setup();
     const splits = makeSplits({
@@ -1451,7 +1451,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
       .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
       .returns(splits);
 
-    await mockJBPaymentTerminalStore.mock.recordDistributionFor
+    await mockJB18DecimalPaymentTerminalStore.mock.recordDistributionFor
       .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY)
       .returns(fundingCycle, 0);
 

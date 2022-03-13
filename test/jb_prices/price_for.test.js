@@ -6,6 +6,8 @@ import { BigNumber } from '@ethersproject/bignumber';
 import errors from '../helpers/errors.json';
 
 describe('JBPrices::priceFor(...)', function () {
+  const DECIMALS = 1;
+
   let deployer;
   let addrs;
 
@@ -13,7 +15,6 @@ describe('JBPrices::priceFor(...)', function () {
 
   let jbPricesFactory;
   let jbPrices;
-  let targetDecimals;
 
   beforeEach(async function () {
     [deployer, ...addrs] = await ethers.getSigners();
@@ -22,36 +23,34 @@ describe('JBPrices::priceFor(...)', function () {
 
     jbPricesFactory = await ethers.getContractFactory('JBPrices');
     jbPrices = await jbPricesFactory.deploy(deployer.address);
-
-    targetDecimals = await jbPrices.TARGET_DECIMALS();
   });
 
   /**
    * Initialiazes mock price feed, adds it to JBPrices, and returns the fetched result.
   */
   async function addFeedAndFetchPrice(price, currency, base) {
-    await priceFeed.mock.getPrice.withArgs(targetDecimals).returns(price);
+    await priceFeed.mock.getPrice.withArgs(DECIMALS).returns(price);
 
     await jbPrices.connect(deployer).addFeedFor(currency, base, priceFeed.address);
-    return await jbPrices.connect(deployer).priceFor(currency, base);
+    return await jbPrices.connect(deployer).priceFor(currency, base, DECIMALS);
   }
 
   it('Same currency and base should return 1', async function () {
     expect(
       await addFeedAndFetchPrice(/*price=*/ 400, /*currency=*/ 1, /*base=*/ 1),
-    ).to.equal(ethers.BigNumber.from(10).pow(targetDecimals));
+    ).to.equal(ethers.BigNumber.from(10).pow(DECIMALS));
   });
 
   it('Check price 18 decimals', async function () {
     let price = 400;
-    expect(await addFeedAndFetchPrice(price, /*currency=*/ 1, /*base=*/ 2)).to.equal(
+    expect(await addFeedAndFetchPrice(price, /*currency=*/ 1, /*base=*/ 2, DECIMALS)).to.equal(
       ethers.BigNumber.from(price),
     );
   });
 
   it('Feed not found', async function () {
     await expect(
-      jbPrices.connect(deployer).priceFor(/*currency=*/ 1, /*base=*/ 7),
+      jbPrices.connect(deployer).priceFor(/*currency=*/ 1, /*base=*/ 7, DECIMALS),
     ).to.be.revertedWith(errors.PRICE_FEED_NOT_FOUND);
   });
 });

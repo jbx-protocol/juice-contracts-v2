@@ -10,10 +10,10 @@ import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/I
 import jBFundingCycleStore from '../../artifacts/contracts/interfaces/IJBFundingCycleStore.sol/IJBFundingCycleStore.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe('JBPaymentTerminalStore::recordMigration(...)', function () {
+describe('JB18DecimalPaymentTerminalStore::recordMigration(...)', function () {
   const PROJECT_ID = 2;
   const AMOUNT = ethers.FixedNumber.fromString('4398541.345');
   const WEIGHT = ethers.FixedNumber.fromString('900000000.23411');
@@ -30,10 +30,10 @@ describe('JBPaymentTerminalStore::recordMigration(...)', function () {
     const mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
     const mockJbTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
-      'JBPaymentTerminalStore',
+    const JB18DecimalPaymentTerminalStoreFactory = await ethers.getContractFactory(
+      'JB18DecimalPaymentTerminalStore',
     );
-    const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
+    const JB18DecimalPaymentTerminalStore = await JB18DecimalPaymentTerminalStoreFactory.deploy(
       mockJbPrices.address,
       mockJbProjects.address,
       mockJbDirectory.address,
@@ -53,13 +53,13 @@ describe('JBPaymentTerminalStore::recordMigration(...)', function () {
       mockJbTerminal,
       mockJbTerminalSigner,
       mockJbFundingCycleStore,
-      JBPaymentTerminalStore,
+      JB18DecimalPaymentTerminalStore,
       timestamp,
     };
   }
 
   it('Should record migration with mockJbTerminal access', async function () {
-    const { mockJbTerminalSigner, mockJbFundingCycleStore, JBPaymentTerminalStore, timestamp } =
+    const { mockJbTerminalSigner, mockJbFundingCycleStore, JB18DecimalPaymentTerminalStore, timestamp } =
       await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
@@ -75,17 +75,17 @@ describe('JBPaymentTerminalStore::recordMigration(...)', function () {
     });
 
     // Add to balance beforehand
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
+    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
 
     // "Record migration"
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordMigration(PROJECT_ID);
+    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordMigration(PROJECT_ID);
 
     // Current balance should be set to 0
-    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(0);
+    expect(await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(0);
   });
 
   it(`Can't record migration with allowTerminalMigration flag disabled`, async function () {
-    const { mockJbTerminalSigner, mockJbFundingCycleStore, JBPaymentTerminalStore, timestamp } =
+    const { mockJbTerminalSigner, mockJbFundingCycleStore, JB18DecimalPaymentTerminalStore, timestamp } =
       await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
@@ -102,7 +102,7 @@ describe('JBPaymentTerminalStore::recordMigration(...)', function () {
 
     // Record migration
     await expect(
-      JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordMigration(PROJECT_ID),
+      JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordMigration(PROJECT_ID),
     ).to.be.revertedWith(errors.PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED);
   });
 });

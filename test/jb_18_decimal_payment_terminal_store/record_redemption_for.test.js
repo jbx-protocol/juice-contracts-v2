@@ -12,10 +12,10 @@ import jBFundingCycleStore from '../../artifacts/contracts/interfaces/IJBFunding
 import jbFundingCycleDataSource from '../../artifacts/contracts/interfaces/IJBFundingCycleDataSource.sol/IJBFundingCycleDataSource.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
+describe('JB18DecimalPaymentTerminalStore::recordRedemptionFor(...)', function () {
   const PROJECT_ID = 2;
   const AMOUNT = ethers.BigNumber.from('4398541');
   const WEIGHT = ethers.BigNumber.from('900000000');
@@ -40,10 +40,10 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     const jbCurrencies = await jbCurrenciesFactory.deploy();
     const CURRENCY_ETH = await jbCurrencies.ETH();
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
-      'JBPaymentTerminalStore',
+    const JB18DecimalPaymentTerminalStoreFactory = await ethers.getContractFactory(
+      'JB18DecimalPaymentTerminalStore',
     );
-    const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
+    const JB18DecimalPaymentTerminalStore = await JB18DecimalPaymentTerminalStoreFactory.deploy(
       mockJbPrices.address,
       mockJbProjects.address,
       mockJbDirectory.address,
@@ -67,7 +67,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTerminal,
       mockJbTerminalSigner,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JB18DecimalPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
       addrs
@@ -86,7 +86,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTerminal,
       mockJbTerminalSigner,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JB18DecimalPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     } = await setup();
@@ -133,14 +133,14 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     // Add to balance beforehand to have sufficient overflow
     const startingBalance = AMOUNT.mul(ethers.BigNumber.from(2));
-    await JBPaymentTerminalStore
+    await JB18DecimalPaymentTerminalStore
       .connect(mockJbTerminalSigner)
       .recordAddedBalanceFor(PROJECT_ID, startingBalance);
 
-    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(startingBalance);
+    expect(await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(startingBalance);
 
     // Record redemption
-    await JBPaymentTerminalStore
+    await JB18DecimalPaymentTerminalStore
       .connect(mockJbTerminalSigner)
       .recordRedemptionFor(
         /* holder */ holder.address,
@@ -152,7 +152,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       );
 
     // Expect recorded balance to decrease by redeemed amount
-    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(
+    expect(await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(
       startingBalance.sub(AMOUNT),
     );
   });
@@ -167,7 +167,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTerminal,
       mockJbTerminalSigner,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JB18DecimalPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     } = await setup();
@@ -216,10 +216,10 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     // No balance.
     const startingBalance = 0;
 
-    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(startingBalance);
+    expect(await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(startingBalance);
 
     // Record redemption
-    await JBPaymentTerminalStore
+    await JB18DecimalPaymentTerminalStore
       .connect(mockJbTerminalSigner)
       .recordRedemptionFor(
         /* holder */ holder.address,
@@ -231,7 +231,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       );
 
     // Expect recorded balance to not have changed
-    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(startingBalance);
+    expect(await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(startingBalance);
   });
 
   it('Should record redemption without a claim amount', async function () {
@@ -243,7 +243,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTerminal,
       mockJbTerminalSigner,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JB18DecimalPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     } = await setup();
@@ -289,10 +289,10 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     // No balance
     const startingBalance = 0;
 
-    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(startingBalance);
+    expect(await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(startingBalance);
 
     // Record redemption
-    await JBPaymentTerminalStore
+    await JB18DecimalPaymentTerminalStore
       .connect(mockJbTerminalSigner)
       .recordRedemptionFor(
         /* holder */ holder.address,
@@ -304,7 +304,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       );
 
     // Expect recorded balance to not have changed
-    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(startingBalance);
+    expect(await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(startingBalance);
   });
 
   it('Should record redemption with a datasource and emit event', async function () {
@@ -315,7 +315,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTerminalSigner,
       mockJbTokenStore,
       mockJbFundingCycleDataSource,
-      JBPaymentTerminalStore,
+      JB18DecimalPaymentTerminalStore,
       timestamp,
       addrs
     } = await setup();
@@ -367,14 +367,14 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     // Add to balance beforehand to have sufficient overflow
     const startingBalance = AMOUNT.mul(ethers.FixedNumber.from(2));
-    await JBPaymentTerminalStore
+    await JB18DecimalPaymentTerminalStore
       .connect(mockJbTerminalSigner)
       .recordAddedBalanceFor(PROJECT_ID, startingBalance);
 
-    expect(await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(startingBalance);
+    expect(await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(startingBalance);
 
     // Record redemption
-    const tx = await JBPaymentTerminalStore
+    const tx = await JB18DecimalPaymentTerminalStore
       .connect(mockJbTerminalSigner).callStatic
       .recordRedemptionFor(
         /* holder */ holder.address,
@@ -391,14 +391,14 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
   /* Sad path tests */
 
   it(`Can't record redemption if token total balance < tokenCount`, async function () {
-    const { holder, beneficiary, mockJbTerminalSigner, mockJbTokenStore, JBPaymentTerminalStore } =
+    const { holder, beneficiary, mockJbTerminalSigner, mockJbTokenStore, JB18DecimalPaymentTerminalStore } =
       await setup();
 
     await mockJbTokenStore.mock.balanceOf.withArgs(holder.address, PROJECT_ID).returns(0); // Token total balance set to 0
 
     // Record redemption
     await expect(
-      JBPaymentTerminalStore
+      JB18DecimalPaymentTerminalStore
         .connect(mockJbTerminalSigner)
         .recordRedemptionFor(
           /* holder */ holder.address,
@@ -419,7 +419,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTerminalSigner,
       mockJbTokenStore,
       mockJbFundingCycleDataSource,
-      JBPaymentTerminalStore,
+      JB18DecimalPaymentTerminalStore,
       timestamp,
     } = await setup();
 
@@ -453,7 +453,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     // Record redemption
     await expect(
-      JBPaymentTerminalStore
+      JB18DecimalPaymentTerminalStore
         .connect(mockJbTerminalSigner)
         .recordRedemptionFor(
           /* holder */ holder.address,
@@ -474,7 +474,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTerminalSigner,
       mockJbTokenStore,
       mockJbFundingCycleDataSource,
-      JBPaymentTerminalStore,
+      JB18DecimalPaymentTerminalStore,
       timestamp,
       addrs
     } = await setup();
@@ -527,7 +527,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     // Note: The store has 0 balance because we haven't added anything to it
     // Record redemption
     await expect(
-      JBPaymentTerminalStore
+      JB18DecimalPaymentTerminalStore
         .connect(mockJbTerminalSigner)
         .recordRedemptionFor(
           /* holder */ holder.address,

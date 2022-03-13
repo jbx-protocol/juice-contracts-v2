@@ -10,10 +10,10 @@ import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/I
 import jBFundingCycleStore from '../../artifacts/contracts/interfaces/IJBFundingCycleStore.sol/IJBFundingCycleStore.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
+describe('JB18DecimalPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
   const PROJECT_ID = 2;
   const WEIGHT = ethers.FixedNumber.fromString('900000000.23411');
   const CURRENCY = 1;
@@ -34,10 +34,10 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
     const jbCurrencies = await jbCurrenciesFactory.deploy();
     const CURRENCY_ETH = await jbCurrencies.ETH();
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
-      'JBPaymentTerminalStore',
+    const JB18DecimalPaymentTerminalStoreFactory = await ethers.getContractFactory(
+      'JB18DecimalPaymentTerminalStore',
     );
-    const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
+    const JB18DecimalPaymentTerminalStore = await JB18DecimalPaymentTerminalStoreFactory.deploy(
       mockJbPrices.address,
       mockJbProjects.address,
       mockJbDirectory.address,
@@ -60,7 +60,7 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
       mockJbTerminal,
       mockJbTerminalSigner,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JB18DecimalPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     };
@@ -82,7 +82,7 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
       mockJbTerminal,
       mockJbTerminalSigner,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JB18DecimalPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     } = await setup();
@@ -131,13 +131,13 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));
-    await JBPaymentTerminalStore
+    await JB18DecimalPaymentTerminalStore
       .connect(mockJbTerminalSigner)
       .recordAddedBalanceFor(PROJECT_ID, startingBalance);
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await JBPaymentTerminalStore.reclaimableOverflowOf(mockJbTerminalSigner.address, PROJECT_ID, /* tokenCount */ tokenAmt),
+      await JB18DecimalPaymentTerminalStore.reclaimableOverflowOf(mockJbTerminalSigner.address, PROJECT_ID, /* tokenCount */ tokenAmt),
     ).to.equal(ethers.FixedNumber.fromString('41.25'));
   });
 
@@ -147,7 +147,7 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
       mockJbController,
       mockJbDirectory,
       mockJbFundingCycleStore,
-      JBPaymentTerminalStore,
+      JB18DecimalPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     } = await setup();
@@ -186,7 +186,7 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
 
     // Get claimable overflow
     expect(
-      await JBPaymentTerminalStore.reclaimableOverflowOf(mockJbTerminal.address, PROJECT_ID, /* tokenCount */ tokenAmt),
+      await JB18DecimalPaymentTerminalStore.reclaimableOverflowOf(mockJbTerminal.address, PROJECT_ID, /* tokenCount */ tokenAmt),
     ).to.equal(0);
   });
 
@@ -198,7 +198,7 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JB18DecimalPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     } = await setup();
@@ -247,13 +247,13 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));
-    await JBPaymentTerminalStore
+    await JB18DecimalPaymentTerminalStore
       .connect(mockJbTerminalSigner)
       .recordAddedBalanceFor(PROJECT_ID, startingBalance);
 
     // Get claimable overflow
     expect(
-      await JBPaymentTerminalStore.reclaimableOverflowOf(mockJbTerminalSigner.address, PROJECT_ID, /* tokenCount */ tokenAmt),
+      await JB18DecimalPaymentTerminalStore.reclaimableOverflowOf(mockJbTerminalSigner.address, PROJECT_ID, /* tokenCount */ tokenAmt),
     ).to.equal(0);
   });
 
@@ -273,7 +273,7 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JB18DecimalPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     } = await setup();
@@ -321,13 +321,13 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));
-    await JBPaymentTerminalStore
+    await JB18DecimalPaymentTerminalStore
       .connect(mockJbTerminalSigner)
       .recordAddedBalanceFor(PROJECT_ID, startingBalance);
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await JBPaymentTerminalStore.reclaimableOverflowOf(mockJbTerminalSigner.address, PROJECT_ID, /* tokenCount */ tokenAmt),
+      await JB18DecimalPaymentTerminalStore.reclaimableOverflowOf(mockJbTerminalSigner.address, PROJECT_ID, /* tokenCount */ tokenAmt),
     ).to.equal(ethers.FixedNumber.from(50));
   });
 });

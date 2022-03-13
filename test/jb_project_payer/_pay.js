@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
 import errors from '../helpers/errors.json';
 
 // NOTE: `fundTreasury()` is not a public API. The example Juicebox project has a `mint()` function that calls this internally.

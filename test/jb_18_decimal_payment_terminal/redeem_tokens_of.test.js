@@ -7,13 +7,13 @@ import errors from '../helpers/errors.json';
 
 import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
-import JBPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalStore.sol/JBPaymentTerminalStore.json';
+import jb18DecimalPaymentTerminalStore from '../../artifacts/contracts/JB18DecimalPaymentTerminalStore.sol/JB18DecimalPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorStore.sol/IJBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
 import jbRedemptionDelegate from '../../artifacts/contracts/interfaces/IJBRedemptionDelegate.sol/IJBRedemptionDelegate.json';
 
-describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
+describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
   const AMOUNT = 50000;
   const RECLAIM_AMOUNT = 40000;
   const MIN_RETURNED_AMOUNT = 30000;
@@ -35,7 +35,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
 
     const [
       mockJbDirectory,
-      mockJBPaymentTerminalStore,
+      mockJB18DecimalPaymentTerminalStore,
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
@@ -43,7 +43,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
       mockJbController
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
-      deployMockContract(deployer, JBPaymentTerminalStore.abi),
+      deployMockContract(deployer, jb18DecimalPaymentTerminalStore.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
@@ -65,7 +65,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
-        mockJBPaymentTerminalStore.address,
+        mockJB18DecimalPaymentTerminalStore.address,
         terminalOwner.address,
       );
 
@@ -98,7 +98,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
       holder,
       jbEthPaymentTerminal,
       fundingCycle,
-      mockJBPaymentTerminalStore,
+      mockJB18DecimalPaymentTerminalStore,
       mockJbOperatorStore,
       mockJbRedemptionDelegate,
       mockJbController,
@@ -114,7 +114,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
       fundingCycle,
       holder,
       jbEthPaymentTerminal,
-      mockJBPaymentTerminalStore,
+      mockJB18DecimalPaymentTerminalStore,
       mockJbController,
       mockJbDirectory,
       timestamp,
@@ -126,7 +126,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
       .returns();
 
     // Keep it simple and let 1 token exchange for 1 wei
-    await mockJBPaymentTerminalStore.mock.recordRedemptionFor
+    await mockJB18DecimalPaymentTerminalStore.mock.recordRedemptionFor
       .withArgs(
         holder.address,
         PROJECT_ID,
@@ -182,12 +182,12 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
       fundingCycle,
       holder,
       jbEthPaymentTerminal,
-      mockJBPaymentTerminalStore,
+      mockJB18DecimalPaymentTerminalStore,
       timestamp,
     } = await setup();
 
     // Keep it simple and let 1 token exchange for 1 wei
-    await mockJBPaymentTerminalStore.mock.recordRedemptionFor
+    await mockJB18DecimalPaymentTerminalStore.mock.recordRedemptionFor
       .withArgs(
         holder.address,
         PROJECT_ID,
@@ -243,7 +243,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
       fundingCycle,
       holder,
       jbEthPaymentTerminal,
-      mockJBPaymentTerminalStore,
+      mockJB18DecimalPaymentTerminalStore,
       mockJbRedemptionDelegate,
       mockJbDirectory,
       mockJbController,
@@ -256,7 +256,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
       .returns();
 
     // Keep it simple and let 1 token exchange for 1 wei
-    await mockJBPaymentTerminalStore.mock.recordRedemptionFor
+    await mockJB18DecimalPaymentTerminalStore.mock.recordRedemptionFor
       .withArgs(
         holder.address,
         PROJECT_ID,
@@ -339,7 +339,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
       fundingCycle,
       holder,
       jbEthPaymentTerminal,
-      mockJBPaymentTerminalStore,
+      mockJB18DecimalPaymentTerminalStore,
       mockJbDirectory,
       mockJbController,
       timestamp,
@@ -351,7 +351,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
       .returns();
 
     // Keep it simple and let 1 token exchange for 1 wei
-    await mockJBPaymentTerminalStore.mock.recordRedemptionFor
+    await mockJB18DecimalPaymentTerminalStore.mock.recordRedemptionFor
       .withArgs(
         holder.address,
         PROJECT_ID,
@@ -445,7 +445,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
       fundingCycle,
       holder,
       jbEthPaymentTerminal,
-      mockJBPaymentTerminalStore,
+      mockJB18DecimalPaymentTerminalStore,
       mockJbDirectory,
       mockJbController,
       timestamp,
@@ -457,7 +457,7 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
       .returns();
 
     // Keep it simple and let 1 token exchange for 1 wei
-    await mockJBPaymentTerminalStore.mock.recordRedemptionFor
+    await mockJB18DecimalPaymentTerminalStore.mock.recordRedemptionFor
       .withArgs(
         holder.address,
         PROJECT_ID,
