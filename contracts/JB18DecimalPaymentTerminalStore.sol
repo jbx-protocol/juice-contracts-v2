@@ -321,7 +321,7 @@ contract JB18DecimalPaymentTerminalStore {
 
     // If the terminal should base its weight on a different currency from the terminal's currency, determine the factor.
     uint256 _weightRatio = _terminalCurrency == _terminalBaseWeightCurrency
-      ? 1E18
+      ? 10**TARGET_DECIMALS
       : prices.priceFor(_terminalCurrency, _terminalBaseWeightCurrency, TARGET_DECIMALS);
 
     // Find the number of tokens to mint.
