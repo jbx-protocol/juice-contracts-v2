@@ -352,6 +352,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
             split.projectId,
             split.beneficiary,
             '',
+            '0x'
           )
           .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
       }),
@@ -715,6 +716,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
         /*CURRENCY*/ 1,
         projectOwner.address,
         '',
+        '0x'
       )
       .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
 
@@ -727,6 +729,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
             split.projectId,
             split.beneficiary,
             '',
+            '0x'
           )
           .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
       }),
@@ -1298,6 +1301,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
             split.projectId,
             split.beneficiary,
             '',
+            '0x'
           )
           .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
       }),

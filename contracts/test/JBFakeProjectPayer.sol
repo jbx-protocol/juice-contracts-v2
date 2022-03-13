@@ -25,12 +25,12 @@ contract JBFakeProjectPayer is JBProjectPayer {
     string memory _memo,
     bool _preferClaimedTokens,
     address _token,
-    bytes memory _delegateMetadata
+    bytes memory _metadata
   ) external payable {
     // Mint NFT, etc.
     // ...
 
     // Fund Juicebox treasury.
-    _pay(_projectId, _amount, _beneficiary, _memo, _preferClaimedTokens, _token, _delegateMetadata);
+    _pay(_projectId, _amount, _beneficiary, _memo, _preferClaimedTokens, _token, _metadata);
   }
 }

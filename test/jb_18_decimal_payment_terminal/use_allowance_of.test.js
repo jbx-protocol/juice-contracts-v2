@@ -310,6 +310,7 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
         JUICEBOX_PROJECT_ID,
         projectOwner.address,
         /* memo */ '',
+        '0x'
       )
       .returns(fundingCycle, WEIGHT, 0, /* delegate */ ethers.constants.AddressZero, '');
 
@@ -393,6 +394,7 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
         JUICEBOX_PROJECT_ID,
         projectOwner.address,
         /* memo */ '',
+        '0x'
       )
       .returns(fundingCycle, WEIGHT, 0, /* delegate */ ethers.constants.AddressZero, '');
 
@@ -472,6 +474,7 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
         JUICEBOX_PROJECT_ID,
         projectOwner.address,
         /* memo */ '',
+        '0x'
       )
       .returns(fundingCycle, WEIGHT, 0, /* delegate */ ethers.constants.AddressZero, '');
 
@@ -559,6 +562,7 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
         JUICEBOX_PROJECT_ID,
         projectOwner.address,
         /* memo */ '',
+        '0x'
       )
       .returns(newFundingCycle, WEIGHT, 0, /* delegate */ ethers.constants.AddressZero, '');
 

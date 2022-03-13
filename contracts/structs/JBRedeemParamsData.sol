@@ -10,9 +10,9 @@ struct JBRedeemParamsData {
   address holder;
   // The proposed number of tokens being redeemed.
   uint256 tokenCount;
-  // The ID of the project whos tokens are being redeemed.
-  // TODO
+  // The number of decimals included in the `reclaimAmount` fixed point number that should be returned.
   uint256 decimals;
+  // The ID of the project whos tokens are being redeemed.
   uint256 projectId;
   // The redemption rate of the funding cycle during which the redemption is being made.
   uint256 redemptionRate;
@@ -24,4 +24,6 @@ struct JBRedeemParamsData {
   address beneficiary;
   // The proposed memo that is being emitted alongside the redemption.
   string memo;
+  // Arbitrary metadata provided by the redeemer.
+  bytes metadata;
 }
