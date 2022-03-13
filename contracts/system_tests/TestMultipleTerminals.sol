@@ -110,7 +110,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     uint256 _userTokenBalance = PRBMathUD60x18.mul(20*10**18, WEIGHT) / 2;
     assertEq(_tokenStore.balanceOf(msg.sender, projectId), _userTokenBalance);
 
-    // verify: ETH balance in terminal should be up to date
+    // verify: balance in terminal should be up to date
     assertEq(ERC20terminal.balanceOf(projectId), 20*10**18);
 
 
