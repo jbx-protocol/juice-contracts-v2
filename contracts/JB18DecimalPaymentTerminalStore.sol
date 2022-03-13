@@ -325,10 +325,10 @@ contract JB18DecimalPaymentTerminalStore {
     uint256 _terminalBaseWeightCurrency = IJBPaymentTerminal(msg.sender).baseWeightCurrency();
 
     // If the terminal should base its weight on a different currency from the terminal's currency, determine the factor.
-    // The weight is always a fixed point mumber with 18 decimals. The ratio should be the same.
+    // In order to keep the weight a fixed point mumber with 18 decimals, the ratio should cancel out the decimals of the `_amount`.
     uint256 _weightRatio = _terminalCurrency == _terminalBaseWeightCurrency
-      ? 10**18
-      : prices.priceFor(_terminalCurrency, _terminalBaseWeightCurrency, 18);
+      ? 10**TARGET_DECIMALS
+      : prices.priceFor(_terminalCurrency, _terminalBaseWeightCurrency, TARGET_DECIMALS);
 
     // Find the number of tokens to mint.
     tokenCount = PRBMath.mulDiv(_amount, weight, _weightRatio);
