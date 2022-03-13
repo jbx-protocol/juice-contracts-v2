@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import '@paulrberg/contracts/math/PRBMath.sol';
-
 import './helpers/TestBaseWorkflow.sol';
 
 contract TestERC20Terminal is TestBaseWorkflow {
@@ -12,7 +10,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
   JBFundingCycleMetadata _metadata;
   JBGroupedSplits[] _groupedSplits;
   JBFundAccessConstraints[] _fundAccessConstraints;
-  IJBTerminal[] _terminals;
+  IJBPaymentTerminal[] _terminals;
   JBTokenStore _tokenStore;
   address _projectOwner;
 
@@ -59,7 +57,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
   }
 
   function testAllowance() public {
-    JBERC20PaymentTerminal terminal = jbERC20PaymentTerminal();
+    JB18DecimalERC20PaymentTerminal terminal = jbERC20PaymentTerminal();
 
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
@@ -93,11 +91,11 @@ contract TestERC20Terminal is TestBaseWorkflow {
     terminal.pay(20*10**18, projectId, msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
 
      // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
-    uint256 _userTokenBalance = PRBMathUD60x18.mul(20*10**18, WEIGHT) / 2;
+    uint256 _userTokenBalance = PRBMath.mulDiv(20*10**18, WEIGHT, 2);
     assertEq(_tokenStore.balanceOf(msg.sender, projectId), _userTokenBalance);
 
     // verify: balance in terminal should be up to date
-    assertEq(terminal.balanceOf(projectId), 20*10**18);
+    assertEq( jbPaymentTerminalStore().balanceOf(terminal, projectId), 20*10**18);
 
     // Discretionary use of overflow allowance by project owner (allowance = 5ETH)
     evm.prank(_projectOwner); // Prank only next call
@@ -144,7 +142,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
   function testFuzzedAllowance(uint248 ALLOWANCE, uint248 TARGET, uint96 BALANCE) public {
     evm.assume(jbToken().totalSupply() >= BALANCE);
 
-    JBERC20PaymentTerminal terminal = jbERC20PaymentTerminal();
+    JB18DecimalERC20PaymentTerminal terminal = jbERC20PaymentTerminal();
 
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
@@ -178,11 +176,11 @@ contract TestERC20Terminal is TestBaseWorkflow {
     terminal.pay(BALANCE, projectId, msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
 
      // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
-    uint256 _userTokenBalance = PRBMathUD60x18.mul(BALANCE, WEIGHT) / 2;
+    uint256 _userTokenBalance = PRBMath.mulDiv(BALANCE, WEIGHT, 2);
     if(BALANCE != 0) assertEq(_tokenStore.balanceOf(msg.sender, projectId), _userTokenBalance);
 
     // verify: ETH balance in terminal should be up to date
-    assertEq(terminal.balanceOf(projectId), BALANCE);
+    assertEq( jbPaymentTerminalStore().balanceOf(terminal, projectId), BALANCE);
 
     // Discretionary use of overflow allowance by project owner (allowance = 5ETH)
     if (ALLOWANCE == 0)

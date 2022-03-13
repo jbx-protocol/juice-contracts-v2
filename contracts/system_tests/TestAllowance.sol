@@ -10,7 +10,7 @@ contract TestAllowance is TestBaseWorkflow {
   JBFundingCycleMetadata _metadata;
   JBGroupedSplits[] _groupedSplits;
   JBFundAccessConstraints[] _fundAccessConstraints;
-  IJBTerminal[] _terminals;
+  IJBPaymentTerminal[] _terminals;
   JBTokenStore _tokenStore;
   address _projectOwner;
 
@@ -83,11 +83,11 @@ contract TestAllowance is TestBaseWorkflow {
     terminal.pay{value: 20 ether}(20 ether, projectId, msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
 
      // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
-    uint256 _userTokenBalance = PRBMathUD60x18.mul(20 ether, WEIGHT) / 2;
+    uint256 _userTokenBalance = PRBMath.mulDiv(20 ether, WEIGHT, 2);
     assertEq(_tokenStore.balanceOf(msg.sender, projectId), _userTokenBalance);
 
     // verify: ETH balance in terminal should be up to date
-    assertEq(terminal.balanceOf(projectId), 20 ether);
+    assertEq(jbPaymentTerminalStore().balanceOf(terminal, projectId), 20 ether);
 
     // Discretionary use of overflow allowance by project owner (allowance = 5ETH)
     evm.prank(_projectOwner); // Prank only next call
@@ -158,11 +158,11 @@ contract TestAllowance is TestBaseWorkflow {
     terminal.pay{value: BALANCE}(BALANCE, projectId, msg.sender, 0, false, 'Forge test', new bytes(0));
 
     // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
-    uint256 _userTokenBalance = PRBMathUD60x18.mul(BALANCE, WEIGHT) / 2;
+    uint256 _userTokenBalance = PRBMath.mulDiv(BALANCE, WEIGHT, 2);
     if(BALANCE != 0) assertEq(_tokenStore.balanceOf(msg.sender, projectId), _userTokenBalance);
 
     // verify: ETH balance in terminal should be up to date
-    assertEq(terminal.balanceOf(projectId), BALANCE);
+    assertEq(jbPaymentTerminalStore().balanceOf(terminal, projectId), BALANCE);
 
     evm.prank(_projectOwner);
 

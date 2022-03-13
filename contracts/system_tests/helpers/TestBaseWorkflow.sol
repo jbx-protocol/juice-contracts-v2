@@ -7,8 +7,8 @@ import '../../../lib/ds-test/src/test.sol';
 import '../../JBController.sol';
 import '../../JBDirectory.sol';
 import '../../JBETHPaymentTerminal.sol';
-import '../../JBERC20PaymentTerminal.sol';
-import '../../JBPaymentTerminalStore.sol';
+import '../../JB18DecimalERC20PaymentTerminal.sol';
+import '../../JB18DecimalPaymentTerminalStore.sol';
 import '../../JBFundingCycleStore.sol';
 import '../../JBOperatorStore.sol';
 import '../../JBPrices.sol';
@@ -31,10 +31,13 @@ import '../../structs/JBProjectMetadata.sol';
 import '../../structs/JBRedeemParamsData.sol';
 import '../../structs/JBSplit.sol';
 
-import '../../interfaces/IJBTerminal.sol';
+import '../../interfaces/IJBPaymentTerminal.sol';
 import '../../interfaces/IJBToken.sol';
 
 import './AccessJBLib.sol';
+
+import '@paulrberg/contracts/math/PRBMath.sol';
+
 
 // Base contract for Juicebox system tests.
 //
@@ -69,11 +72,11 @@ contract TestBaseWorkflow is DSTest {
   // JBController
   JBController private _jbController;
   // JBETHPaymentTerminalStore
-  JBPaymentTerminalStore private _jbPaymentTerminalStore;
+  JB18DecimalPaymentTerminalStore private _jbPaymentTerminalStore;
   // JBETHPaymentTerminal
   JBETHPaymentTerminal private _jbETHPaymentTerminal;
   // JBERC20PaymentTerminal
-  JBERC20PaymentTerminal private _jbERC20PaymentTerminal;
+  JB18DecimalERC20PaymentTerminal private _jbERC20PaymentTerminal;
   // AccessJBLib
   AccessJBLib private _accessJBLib;
 
@@ -117,7 +120,7 @@ contract TestBaseWorkflow is DSTest {
     return _jbController;
   }
 
-  function jbPaymentTerminalStore() internal view returns (JBPaymentTerminalStore) {
+  function jbPaymentTerminalStore() internal view returns (JB18DecimalPaymentTerminalStore) {
     return _jbPaymentTerminalStore;
   }
 
@@ -125,7 +128,7 @@ contract TestBaseWorkflow is DSTest {
     return _jbETHPaymentTerminal;
   }
 
-  function jbERC20PaymentTerminal() internal view returns (JBERC20PaymentTerminal) {
+  function jbERC20PaymentTerminal() internal view returns (JB18DecimalERC20PaymentTerminal) {
     return _jbERC20PaymentTerminal;
   }
 
@@ -187,7 +190,7 @@ contract TestBaseWorkflow is DSTest {
 
     _jbDirectory.addToSetControllerAllowlist(address(_jbController));
     // JBETHPaymentTerminalStore
-    _jbPaymentTerminalStore = new JBPaymentTerminalStore(
+    _jbPaymentTerminalStore = new JB18DecimalPaymentTerminalStore(
       _jbPrices,
       _jbProjects,
       _jbDirectory,
@@ -218,9 +221,8 @@ contract TestBaseWorkflow is DSTest {
     _jbToken.mint(0, _multisig, 100*10**18);
 
     // JBERC20PaymentTerminal
-    _jbERC20PaymentTerminal = new JBERC20PaymentTerminal(
+    _jbERC20PaymentTerminal = new JB18DecimalERC20PaymentTerminal(
       _jbToken,
-      // Not testing currency != base weight (still need to code a fake price feed)
       _accessJBLib.ETH(), // currency
       _accessJBLib.ETH(), // base weight currency
       1, // JBSplitsGroupe

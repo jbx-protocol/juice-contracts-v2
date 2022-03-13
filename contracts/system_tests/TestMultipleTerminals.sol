@@ -13,7 +13,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
   JBFundingCycleMetadata _metadata;
   JBGroupedSplits[] _groupedSplits;
   JBFundAccessConstraints[] _fundAccessConstraints;
-  IJBTerminal[] _terminals;
+  IJBPaymentTerminal[] _terminals;
   JBTokenStore _tokenStore;
   address _projectOwner;
 
@@ -56,12 +56,20 @@ contract TestMultipleTerminals is TestBaseWorkflow {
       dataSource: IJBFundingCycleDataSource(address(0))
     });
 
-    _terminals.push(jbERC20PaymentTerminal());
-    _terminals.push(jbETHPaymentTerminal());
-  }
+    JBERC20PaymentTerminal ERC20terminal = new JBERC20PaymentTerminal(
+      jbToken(),
+      jbLibraries().USD(), // currency
+      jbLibraries().ETH(), // base weight currency
+      1, // JBSplitsGroupe
+      jbOperatorStore(),
+      jbProjects(),
+      jbDirectory(),
+      jbSplitsStore(),
+      jbPaymentTerminalStore(),
+      multisig()
+    );
+    evm.label(address(ERC20terminal), 'JBERC20PaymentTerminalUSD');
 
-  function testMultipleTerminal() public {
-    JBERC20PaymentTerminal ERC20terminal = jbERC20PaymentTerminal();
     JBETHPaymentTerminal ETHterminal = jbETHPaymentTerminal();
 
     _fundAccessConstraints.push(
@@ -84,6 +92,9 @@ contract TestMultipleTerminals is TestBaseWorkflow {
       })
     );
 
+    _terminals.push(ERC20terminal);
+    _terminals.push(ETHterminal);
+
     uint256 projectId = controller.launchProjectFor(
       _projectOwner,
       _projectMetadata,
@@ -95,23 +106,41 @@ contract TestMultipleTerminals is TestBaseWorkflow {
       _terminals
     );
 
-
+    // Send some token to the caller, so he can play
     address caller = msg.sender;
     evm.label(caller, 'caller');
     evm.prank(_projectOwner);
     jbToken().transfer(caller, 20*10**18);
+
+  }
+
+  function testMultipleTerminal() public {
+
+    // -- Pay in token --
 
     evm.prank(caller); // back to regular msg.sender (bug?)
     jbToken().approve(address(ERC20terminal), 20*10**18);
     evm.prank(caller); // back to regular msg.sender (bug?)
     ERC20terminal.pay(20*10**18, projectId, msg.sender, 0, false, 'Forge test', new bytes(0));
 
-     // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
+    // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
     uint256 _userTokenBalance = PRBMathUD60x18.mul(20*10**18, WEIGHT) / 2;
     assertEq(_tokenStore.balanceOf(msg.sender, projectId), _userTokenBalance);
 
     // verify: balance in terminal should be up to date
     assertEq(ERC20terminal.balanceOf(projectId), 20*10**18);
+
+    
+    // -- Pay in ETH --
+    
+    terminal.pay{value: 20 ether}(20 ether, projectId, msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
+
+     // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
+    uint256 _userEthBalance = PRBMathUD60x18.mul(20 ether, WEIGHT) / 2;
+    assertEq(_tokenStore.balanceOf(msg.sender, projectId), _userEthBalance);
+
+    // verify: ETH balance in terminal should be up to date
+    assertEq(terminal.balanceOf(projectId), 20 ether);
 
 
 
