@@ -70,9 +70,7 @@ describe('JBController::burnTokenOf(...)', function () {
 
       mockJbDirectory.mock.isTerminalOf.withArgs(PROJECT_ID, holder.address).returns(false),
 
-      mockJbDirectory.mock.isTerminalOf
-        .withArgs(PROJECT_ID, projectOwner.address)
-        .returns(false),
+      mockJbDirectory.mock.isTerminalOf.withArgs(PROJECT_ID, projectOwner.address).returns(false),
 
       mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
         number: 1,
@@ -162,9 +160,7 @@ describe('JBController::burnTokenOf(...)', function () {
       .withArgs(caller.address, holder.address, PROJECT_ID, BURN_INDEX)
       .returns(true);
 
-    await mockJbDirectory.mock.isTerminalOf
-      .withArgs(PROJECT_ID, caller.address)
-      .returns(false);
+    await mockJbDirectory.mock.isTerminalOf.withArgs(PROJECT_ID, caller.address).returns(false);
 
     await expect(
       jbController

@@ -12,7 +12,7 @@ import './libraries/JBFundingCycleMetadataResolver.sol';
 import './interfaces/IJBTokenStore.sol';
 import './interfaces/IJBProjects.sol';
 import './interfaces/IJBSplitsStore.sol';
-import './interfaces/IJBTerminal.sol';
+import './interfaces/IJBPaymentTerminal.sol';
 import './interfaces/IJBOperatorStore.sol';
 import './interfaces/IJBFundingCycleDataSource.sol';
 import './interfaces/IJBPrices.sol';
@@ -140,7 +140,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     _configuration The configuration during which the packed distribution limit data applies.
     _terminal The terminal from which distributions are being limited.
   */
-  mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
+  mapping(uint256 => mapping(uint256 => mapping(IJBPaymentTerminal => uint256)))
     private _packedDistributionLimitDataOf;
 
   /**
@@ -157,7 +157,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     _configuration The configuration during which the packed overflow allowance data applies.
     _terminal The terminal managing the overflow.
   */
-  mapping(uint256 => mapping(uint256 => mapping(IJBTerminal => uint256)))
+  mapping(uint256 => mapping(uint256 => mapping(IJBPaymentTerminal => uint256)))
     private _packedOverflowAllowanceDataOf;
 
   //*********************************************************************//
@@ -209,7 +209,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
   function distributionLimitOf(
     uint256 _projectId,
     uint256 _configuration,
-    IJBTerminal _terminal
+    IJBPaymentTerminal _terminal
   ) external view override returns (uint256) {
     return uint256(uint248(_packedDistributionLimitDataOf[_projectId][_configuration][_terminal]));
   }
@@ -225,7 +225,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
   function distributionLimitCurrencyOf(
     uint256 _projectId,
     uint256 _configuration,
-    IJBTerminal _terminal
+    IJBPaymentTerminal _terminal
   ) external view override returns (uint256) {
     return _packedDistributionLimitDataOf[_projectId][_configuration][_terminal] >> 248;
   }
@@ -241,7 +241,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
   function overflowAllowanceOf(
     uint256 _projectId,
     uint256 _configuration,
-    IJBTerminal _terminal
+    IJBPaymentTerminal _terminal
   ) external view override returns (uint256) {
     return uint256(uint248(_packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal]));
   }
@@ -257,7 +257,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
   function overflowAllowanceCurrencyOf(
     uint256 _projectId,
     uint256 _configuration,
-    IJBTerminal _terminal
+    IJBPaymentTerminal _terminal
   ) external view override returns (uint256) {
     return _packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal] >> 248;
   }
@@ -345,7 +345,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
-    IJBTerminal[] memory _terminals
+    IJBPaymentTerminal[] memory _terminals
   ) external returns (uint256 projectId) {
     // Mint the project into the wallet of the message sender.
     projectId = projects.createFor(_owner, _projectMetadata);
@@ -390,7 +390,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
-    IJBTerminal[] memory _terminals
+    IJBPaymentTerminal[] memory _terminals
   )
     external
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
@@ -545,7 +545,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
       projects.ownerOf(_projectId),
       _projectId,
       JBOperations.MINT,
-      directory.isTerminalOf(_projectId, IJBTerminal(msg.sender))
+      directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))
     )
     returns (uint256 beneficiaryTokenCount)
   {
@@ -562,7 +562,8 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
 
       // If the message sender is not a terminal, the current funding cycle must not be paused.
       if (
-        _fundingCycle.mintPaused() && !directory.isTerminalOf(_projectId, IJBTerminal(msg.sender))
+        _fundingCycle.mintPaused() &&
+        !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))
       ) revert MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE();
 
       // Determine the reserved rate to use.
@@ -622,7 +623,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
       _holder,
       _projectId,
       JBOperations.BURN,
-      directory.isTerminalOf(_projectId, IJBTerminal(msg.sender))
+      directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))
     )
   {
     // There should be tokens to burn
@@ -632,8 +633,10 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // If the message sender is not a terminal, the current funding cycle must not be paused.
-    if (_fundingCycle.burnPaused() && !directory.isTerminalOf(_projectId, IJBTerminal(msg.sender)))
-      revert BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE();
+    if (
+      _fundingCycle.burnPaused() &&
+      !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))
+    ) revert BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE();
 
     // Update the token tracker so that reserved tokens will still be correctly mintable.
     _processedTokenTrackerOf[_projectId] =

@@ -34,9 +34,9 @@ describe('JBChainlinkPriceFeed::getPrice(...)', function () {
 
   it('Get price no decimals', async function () {
     let price = 400;
-    expect(
-      await getPrice(price, /*decimals=*/ 0),
-    ).to.equal(ethers.BigNumber.from(price).mul(BigNumber.from(10).pow(targetDecimals)));
+    expect(await getPrice(price, /*decimals=*/ 0)).to.equal(
+      ethers.BigNumber.from(price).mul(BigNumber.from(10).pow(targetDecimals)),
+    );
   });
 
   it('Check price less than target decimal', async function () {
@@ -49,9 +49,7 @@ describe('JBChainlinkPriceFeed::getPrice(...)', function () {
 
   it('Check price target decimals', async function () {
     let price = 400;
-    expect(await getPrice(price, targetDecimals)).to.equal(
-      ethers.BigNumber.from(price),
-    );
+    expect(await getPrice(price, targetDecimals)).to.equal(ethers.BigNumber.from(price));
   });
 
   it('Check price more than target decimals', async function () {
@@ -61,5 +59,4 @@ describe('JBChainlinkPriceFeed::getPrice(...)', function () {
       ethers.BigNumber.from(price).div(ethers.BigNumber.from(10).pow(decimals - targetDecimals)),
     );
   });
-
 });

@@ -249,5 +249,4 @@ describe('JBTokenStore::burnFrom(...)', function () {
         .burnFrom(newHolder.address, PROJECT_ID, numTokens, preferClaimedTokens),
     ).to.be.revertedWith(errors.INSUFFICIENT_FUNDS);
   });
-
 });

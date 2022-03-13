@@ -5,15 +5,16 @@ import { setBalance } from '../helpers/utils';
 import errors from '../helpers/errors.json';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import JbEthPaymentTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
-import JbErc20PaymentTerminal from '../../artifacts/contracts/JBERC20PaymentTerminal.sol/JBERC20PaymentTerminal.json';
-import JBPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalStore.sol/JBPaymentTerminalStore.json';
+import JBEthPaymentTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
+import jb18DecimalErc20PaymentTerminal from '../../artifacts/contracts/JB18DecimalERC20PaymentTerminal.sol/JB18DecimalERC20PaymentTerminal.json';
+import jb18DecimalPaymentTerminalStore from '../../artifacts/contracts/JB18DecimalPaymentTerminalStore.sol/JB18DecimalPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
+import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 
-describe('JBPaymentTerminal::migrate(...)', function () {
+describe('JB18DecimalPaymentTerminal::migrate(...)', function () {
   const PROJECT_ID = 2;
   const CURRENT_TERMINAL_BALANCE = ethers.utils.parseEther('10');
 
@@ -32,21 +33,23 @@ describe('JBPaymentTerminal::migrate(...)', function () {
     let [
       mockJbDirectory,
       mockJbEthPaymentTerminal,
-      mockJbErc20PaymentTerminal,
-      mockJBPaymentTerminalStore,
+      mockJB18DecimalERC20PaymentTerminal,
+      mockJB18DecimalPaymentTerminalStore,
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
-      mockJbToken
+      mockJbPrices,
+      mockJbToken,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
-      deployMockContract(deployer, JbEthPaymentTerminal.abi),
-      deployMockContract(deployer, JbErc20PaymentTerminal.abi),
-      deployMockContract(deployer, JBPaymentTerminalStore.abi),
+      deployMockContract(deployer, JBEthPaymentTerminal.abi),
+      deployMockContract(deployer, jb18DecimalErc20PaymentTerminal.abi),
+      deployMockContract(deployer, jb18DecimalPaymentTerminalStore.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
-      deployMockContract(deployer, jbToken.abi)
+      deployMockContract(deployer, jbPrices.abi),
+      deployMockContract(deployer, jbToken.abi),
     ]);
 
     const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
@@ -61,7 +64,10 @@ describe('JBPaymentTerminal::migrate(...)', function () {
     const SPLITS_GROUP = 1;
 
     let jbEthTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
-    let jbErc20TerminalFactory = await ethers.getContractFactory('JBERC20PaymentTerminal', deployer);
+    let jbErc20TerminalFactory = await ethers.getContractFactory(
+      'JB18DecimalERC20PaymentTerminal',
+      deployer,
+    );
 
     let jbEthPaymentTerminal = await jbEthTerminalFactory
       .connect(deployer)
@@ -71,11 +77,17 @@ describe('JBPaymentTerminal::migrate(...)', function () {
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
-        mockJBPaymentTerminalStore.address,
+        mockJbPrices.address,
+        mockJB18DecimalPaymentTerminalStore.address,
         terminalOwner.address,
       );
 
-    let jbErc20PaymentTerminal = await jbErc20TerminalFactory
+    const DECIMALS = 1;
+
+    await mockJB18DecimalPaymentTerminalStore.mock.targetDecimals.returns(DECIMALS);
+    await mockJbToken.mock.decimals.returns(DECIMALS);
+
+    let JB18DecimalERC20PaymentTerminal = await jbErc20TerminalFactory
       .connect(deployer)
       .deploy(
         NON_ETH_TOKEN,
@@ -86,7 +98,8 @@ describe('JBPaymentTerminal::migrate(...)', function () {
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
-        mockJBPaymentTerminalStore.address,
+        mockJbPrices.address,
+        mockJB18DecimalPaymentTerminalStore.address,
         terminalOwner.address,
       );
 
@@ -102,16 +115,20 @@ describe('JBPaymentTerminal::migrate(...)', function () {
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
     await mockJbEthPaymentTerminal.mock.token.returns(TOKEN_ETH);
-    await mockJbErc20PaymentTerminal.mock.token.returns(NON_ETH_TOKEN);
+    await mockJB18DecimalERC20PaymentTerminal.mock.token.returns(NON_ETH_TOKEN);
 
     // addToBalanceOf _amount is 0 if ETH terminal
-    await mockJbEthPaymentTerminal.mock.addToBalanceOf.withArgs(CURRENT_TERMINAL_BALANCE, PROJECT_ID, '').returns();
-    await mockJbErc20PaymentTerminal.mock.addToBalanceOf.withArgs(CURRENT_TERMINAL_BALANCE, PROJECT_ID, '').returns();
+    await mockJbEthPaymentTerminal.mock.addToBalanceOf
+      .withArgs(CURRENT_TERMINAL_BALANCE, PROJECT_ID, '')
+      .returns();
+    await mockJB18DecimalERC20PaymentTerminal.mock.addToBalanceOf
+      .withArgs(CURRENT_TERMINAL_BALANCE, PROJECT_ID, '')
+      .returns();
 
     await setBalance(jbEthPaymentTerminal.address, CURRENT_TERMINAL_BALANCE);
-    await setBalance(jbErc20PaymentTerminal.address, CURRENT_TERMINAL_BALANCE);
+    await setBalance(JB18DecimalERC20PaymentTerminal.address, CURRENT_TERMINAL_BALANCE);
 
-    await mockJBPaymentTerminalStore.mock.recordMigration
+    await mockJB18DecimalPaymentTerminalStore.mock.recordMigration
       .withArgs(PROJECT_ID)
       .returns(CURRENT_TERMINAL_BALANCE);
 
@@ -122,12 +139,12 @@ describe('JBPaymentTerminal::migrate(...)', function () {
       caller,
       addrs,
       jbEthPaymentTerminal,
-      jbErc20PaymentTerminal,
+      JB18DecimalERC20PaymentTerminal,
       mockJbEthPaymentTerminal,
-      mockJbErc20PaymentTerminal,
-      mockJBPaymentTerminalStore,
+      mockJB18DecimalERC20PaymentTerminal,
+      mockJB18DecimalPaymentTerminalStore,
       mockJbOperatorStore,
-      mockJbToken
+      mockJbToken,
     };
   }
 
@@ -149,12 +166,20 @@ describe('JBPaymentTerminal::migrate(...)', function () {
   });
 
   it('Should migrate non-eth terminal', async function () {
-    const { projectOwner, jbErc20PaymentTerminal, mockJbErc20PaymentTerminal, mockJbToken } = await setup();
+    const {
+      projectOwner,
+      JB18DecimalERC20PaymentTerminal,
+      mockJB18DecimalERC20PaymentTerminal,
+      mockJbToken,
+    } = await setup();
 
-    await mockJbToken.mock.approve.withArgs(mockJbErc20PaymentTerminal.address, CURRENT_TERMINAL_BALANCE).returns(0);
-    await jbErc20PaymentTerminal
-      .connect(projectOwner)
-      .migrate(PROJECT_ID, mockJbErc20PaymentTerminal.address);
+    await mockJbToken.mock.approve
+      .withArgs(mockJB18DecimalERC20PaymentTerminal.address, CURRENT_TERMINAL_BALANCE)
+      .returns(0);
+    await JB18DecimalERC20PaymentTerminal.connect(projectOwner).migrate(
+      PROJECT_ID,
+      mockJB18DecimalERC20PaymentTerminal.address,
+    );
   });
 
   it('Should migrate terminal with empty balance and emit event if caller is project owner', async function () {
@@ -162,10 +187,10 @@ describe('JBPaymentTerminal::migrate(...)', function () {
       projectOwner,
       jbEthPaymentTerminal,
       mockJbEthPaymentTerminal,
-      mockJBPaymentTerminalStore,
+      mockJB18DecimalPaymentTerminalStore,
     } = await setup();
 
-    await mockJBPaymentTerminalStore.mock.recordMigration.withArgs(PROJECT_ID).returns(0);
+    await mockJB18DecimalPaymentTerminalStore.mock.recordMigration.withArgs(PROJECT_ID).returns(0);
 
     expect(
       await jbEthPaymentTerminal
