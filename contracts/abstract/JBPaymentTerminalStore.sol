@@ -172,7 +172,7 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     view
     returns (uint256)
   {
-    return _currentTotalOverflow(_projectId, _currency);
+    return _currentTotalOverflowOf(_projectId, _currency);
   }
 
   /**
@@ -294,12 +294,14 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     if (fundingCycle.payPaused()) revert FUNDING_CYCLE_PAYMENT_PAUSED();
 
     // If the funding cycle has configured a data source, use it to derive a weight and memo.
-    if (fundingCycle.useDataSourceForPay())
+    if (fundingCycle.useDataSourceForPay()) {
+      uint256 _targetDecimals = targetDecimals();
       (weight, memo, delegate) = fundingCycle.dataSource().payParams(
         JBPayParamsData(
           IJBPaymentTerminal(msg.sender),
           _payer,
           _amount,
+          _targetDecimals,
           _projectId,
           fundingCycle.weight,
           fundingCycle.reservedRate(),
@@ -307,7 +309,8 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
           _memo
         )
       );
-      // Otherwise use the funding cycle's weight
+    }
+    // Otherwise use the funding cycle's weight
     else {
       weight = fundingCycle.weight;
       memo = _memo;
@@ -331,10 +334,10 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     uint256 _terminalBaseWeightCurrency = IJBPaymentTerminal(msg.sender).baseWeightCurrency();
 
     // If the terminal should base its weight on a different currency from the terminal's currency, determine the factor.
-    // TODO
+    // The weight is always a fixed point mumber with 18 decimals. The ratio should be the same.
     uint256 _weightRatio = _terminalCurrency == _terminalBaseWeightCurrency
-      ? 10**targetDecimals()
-      : prices.priceFor(_terminalCurrency, _terminalBaseWeightCurrency, targetDecimals());
+      ? 10**18
+      : prices.priceFor(_terminalCurrency, _terminalBaseWeightCurrency, 18);
 
     // Find the number of tokens to mint.
     tokenCount = PRBMath.mulDiv(_amount, weight, _weightRatio);
@@ -579,12 +582,14 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     if (fundingCycle.redeemPaused()) revert FUNDING_CYCLE_REDEEM_PAUSED();
 
     // If the funding cycle has configured a data source, use it to derive a claim amount and memo.
-    if (fundingCycle.useDataSourceForRedeem())
+    if (fundingCycle.useDataSourceForRedeem()) {
+      uint256 _targetDecimals = targetDecimals();
       (reclaimAmount, memo, delegate) = fundingCycle.dataSource().redeemParams(
         JBRedeemParamsData(
           IJBPaymentTerminal(msg.sender),
           _holder,
           _tokenCount,
+          _targetDecimals,
           _projectId,
           fundingCycle.redemptionRate(),
           fundingCycle.ballotRedemptionRate(),
@@ -593,7 +598,7 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
           _memo
         )
       );
-    else {
+    } else {
       reclaimAmount = _reclaimableOverflowOf(
         IJBPaymentTerminal(msg.sender),
         _projectId,
@@ -685,7 +690,7 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     // Use the local overflow if the funding cycle specifies that it should be used. Otherwise use the project's total overflow across all of its terminals.
     uint256 _currentOverflow = _fundingCycle.shouldUseLocalBalanceForRedemptions()
       ? _overflowDuring(_terminal, _projectId, _fundingCycle, _currency)
-      : _currentTotalOverflow(_projectId, _currency);
+      : _currentTotalOverflowOf(_projectId, _currency);
 
     // If there is no overflow, nothing is claimable.
     if (_currentOverflow == 0) return 0;
@@ -797,7 +802,7 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
 
     @return overflow The overflow of funds, as a fixed point number with 18 decimals
   */
-  function _currentTotalOverflow(uint256 _projectId, uint256 _currency)
+  function _currentTotalOverflowOf(uint256 _projectId, uint256 _currency)
     private
     view
     returns (uint256)

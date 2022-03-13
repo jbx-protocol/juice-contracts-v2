@@ -23,8 +23,10 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
   const PROJECT_ID = 13;
   const WEIGHT = 1000;
   const DELEGATE_METADATA = ethers.utils.randomBytes(32);
+  const DECIMALS = 10;
 
   let CURRENCY_ETH;
+  let token;
 
   async function setup() {
     const [deployer, beneficiary, holder, otherCaller, terminalOwner] = await ethers.getSigners();
@@ -69,6 +71,8 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
         terminalOwner.address,
       );
 
+    token = await jbEthPaymentTerminal.token();
+    await mockJB18DecimalPaymentTerminalStore.mock.TARGET_DECIMALS.returns(DECIMALS);
     /* Lib constants */
 
     let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
@@ -287,8 +291,10 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
         // JBDidRedeemData obj
         holder: holder.address,
         projectId: PROJECT_ID,
-        tokenCount: AMOUNT,
+        projectTokenCount: AMOUNT,
+        token: token,
         reclaimedAmount: RECLAIM_AMOUNT,
+        decimals: DECIMALS,
         beneficiary: beneficiary.address,
         memo: ADJUSTED_MEMO,
         metadata: DELEGATE_METADATA,
@@ -319,7 +325,9 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
           /* _holder */ holder.address,
           /* _projectId */ PROJECT_ID,
           /* _tokenCount */ AMOUNT,
+          token,
           /* reclaimAmount */ RECLAIM_AMOUNT,
+          DECIMALS,
           /* _beneficiary */ beneficiary.address,
           /* memo */ ADJUSTED_MEMO,
           ethers.BigNumber.from(DELEGATE_METADATA),

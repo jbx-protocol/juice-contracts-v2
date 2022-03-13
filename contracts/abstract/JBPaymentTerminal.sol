@@ -514,7 +514,9 @@ abstract contract JBPaymentTerminal is
           _holder,
           _projectId,
           _tokenCount,
+          token,
           reclaimAmount,
+          store.targetDecimals(),
           _beneficiary,
           _memo,
           _delegateMetadata
@@ -938,7 +940,9 @@ abstract contract JBPaymentTerminal is
         JBDidPayData memory _data = JBDidPayData(
           _payer,
           _projectId,
+          token,
           _amount,
+          store.targetDecimals(),
           _weight,
           _beneficiaryTokenCount,
           _beneficiary,

@@ -21,6 +21,7 @@ describe('JB18DecimalPaymentTerminalStore::recordRedemptionFor(...)', function (
   const WEIGHT = ethers.BigNumber.from('900000000');
   const CURRENCY = ethers.BigNumber.from(1);
 
+  let decimals;
   async function setup() {
     const [deployer, holder, beneficiary, ...addrs] = await ethers.getSigners();
 
@@ -50,6 +51,8 @@ describe('JB18DecimalPaymentTerminalStore::recordRedemptionFor(...)', function (
       mockJbFundingCycleStore.address,
       mockJbTokenStore.address,
     );
+
+    decimals = await JB18DecimalPaymentTerminalStore.TARGET_DECIMALS();
 
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);
@@ -361,6 +364,7 @@ describe('JB18DecimalPaymentTerminalStore::recordRedemptionFor(...)', function (
         terminal: mockJbTerminalSigner.address,
         holder: holder.address,
         tokenCount: AMOUNT,
+        decimals: decimals,
         projectId: PROJECT_ID,
         redemptionRate: redemptionRate,
         ballotRedemptionRate: ballotRedemptionRate,
@@ -524,6 +528,7 @@ describe('JB18DecimalPaymentTerminalStore::recordRedemptionFor(...)', function (
         terminal: mockJbTerminalSigner.address,
         holder: holder.address,
         tokenCount: AMOUNT,
+        decimals: decimals,
         projectId: PROJECT_ID,
         redemptionRate: redemptionRate,
         ballotRedemptionRate: ballotRedemptionRate,
