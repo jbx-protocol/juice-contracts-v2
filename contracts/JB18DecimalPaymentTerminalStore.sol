@@ -176,7 +176,7 @@ contract JB18DecimalPaymentTerminalStore {
     view
     returns (uint256)
   {
-    return _currentTotalOverflow(_projectId, _currency);
+    return _currentTotalOverflowOf(_projectId, _currency);
   }
 
   /**
@@ -293,6 +293,7 @@ contract JB18DecimalPaymentTerminalStore {
           IJBPaymentTerminal(msg.sender),
           _payer,
           _amount,
+          TARGET_DECIMALS,
           _projectId,
           fundingCycle.weight,
           fundingCycle.reservedRate(),
@@ -324,9 +325,10 @@ contract JB18DecimalPaymentTerminalStore {
     uint256 _terminalBaseWeightCurrency = IJBPaymentTerminal(msg.sender).baseWeightCurrency();
 
     // If the terminal should base its weight on a different currency from the terminal's currency, determine the factor.
+    // The weight is always a fixed point mumber with 18 decimals. The ratio should be the same.
     uint256 _weightRatio = _terminalCurrency == _terminalBaseWeightCurrency
-      ? 10**TARGET_DECIMALS
-      : prices.priceFor(_terminalCurrency, _terminalBaseWeightCurrency, TARGET_DECIMALS);
+      ? 10**18
+      : prices.priceFor(_terminalCurrency, _terminalBaseWeightCurrency, 18);
 
     // Find the number of tokens to mint.
     tokenCount = PRBMath.mulDiv(_amount, weight, _weightRatio);
@@ -570,6 +572,7 @@ contract JB18DecimalPaymentTerminalStore {
           IJBPaymentTerminal(msg.sender),
           _holder,
           _tokenCount,
+          TARGET_DECIMALS,
           _projectId,
           fundingCycle.redemptionRate(),
           fundingCycle.ballotRedemptionRate(),
@@ -669,7 +672,7 @@ contract JB18DecimalPaymentTerminalStore {
     // Use the local overflow if the funding cycle specifies that it should be used. Otherwise use the project's total overflow across all of its terminals.
     uint256 _currentOverflow = _fundingCycle.shouldUseLocalBalanceForRedemptions()
       ? _overflowDuring(_terminal, _projectId, _fundingCycle, _currency)
-      : _currentTotalOverflow(_projectId, _currency);
+      : _currentTotalOverflowOf(_projectId, _currency);
 
     // If there is no overflow, nothing is claimable.
     if (_currentOverflow == 0) return 0;
@@ -785,7 +788,7 @@ contract JB18DecimalPaymentTerminalStore {
 
     @return overflow The overflow of funds, as a fixed point number with 18 decimals
   */
-  function _currentTotalOverflow(uint256 _projectId, uint256 _currency)
+  function _currentTotalOverflowOf(uint256 _projectId, uint256 _currency)
     private
     view
     returns (uint256)

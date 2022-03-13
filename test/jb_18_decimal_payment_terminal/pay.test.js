@@ -25,6 +25,9 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
   const ETH_TO_PAY = ethers.utils.parseEther('1');
   const PREFER_CLAIMED_TOKENS = true;
 
+  let ethToken;
+  const DECIMALS = 1;
+
   async function setup() {
     let [deployer, terminalOwner, caller, beneficiary, ...addrs] = await ethers.getSigners();
 
@@ -74,7 +77,7 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
         terminalOwner.address,
       );
 
-    const DECIMALS = 1;
+    ethToken = await jbEthPaymentTerminal.token();
 
     await mockJB18DecimalPaymentTerminalStore.mock.TARGET_DECIMALS.returns(DECIMALS);
     await mockJbToken.mock.decimals.returns(DECIMALS);
@@ -238,12 +241,14 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
 
     await mockJbPayDelegate.mock.didPay
       .withArgs({
-        // JBDidPaydata obj
+        // JBDidPayData obj
         payer: caller.address,
         projectId: PROJECT_ID,
+        token: ethToken,
         amount: ETH_TO_PAY,
+        decimals: DECIMALS,
         weight: ADJUSTED_WEIGHT,
-        tokenCount: TOKEN_RECEIVED,
+        projectTokenCount: TOKEN_RECEIVED,
         beneficiary: beneficiary.address,
         memo: ADJUSTED_MEMO,
         delegateMetadata: DELEGATE_METADATA,
@@ -270,7 +275,9 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
         [
           /* payer */ caller.address,
           /* projectId */ PROJECT_ID,
+          ethToken,
           /* amount */ ETH_TO_PAY,
+          DECIMALS,
           /* weight */ ADJUSTED_WEIGHT,
           /* tokenCount */ TOKEN_RECEIVED,
           /* beneficiary */ beneficiary.address,

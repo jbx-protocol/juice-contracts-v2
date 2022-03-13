@@ -10,6 +10,8 @@ struct JBPayParamsData {
   address payer;
   // The ETH amount of the payment.
   uint256 amount;
+  // TODO
+  uint256 decimals;
   // The ID of the project being paid.
   uint256 projectId;
   // The weight of the funding cycle during which the payment is being made.

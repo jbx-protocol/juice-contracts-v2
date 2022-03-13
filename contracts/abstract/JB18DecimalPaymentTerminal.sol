@@ -538,7 +538,9 @@ abstract contract JB18DecimalPaymentTerminal is
           _holder,
           _projectId,
           _tokenCount,
+          token,
           reclaimAmount,
+          store.TARGET_DECIMALS(),
           _beneficiary,
           _memo,
           _delegateMetadata
@@ -962,7 +964,9 @@ abstract contract JB18DecimalPaymentTerminal is
         JBDidPayData memory _data = JBDidPayData(
           _payer,
           _projectId,
+          token,
           _amount,
+          store.TARGET_DECIMALS(),
           _weight,
           _beneficiaryTokenCount,
           _beneficiary,
