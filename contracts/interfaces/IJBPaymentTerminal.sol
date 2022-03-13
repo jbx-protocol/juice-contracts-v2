@@ -12,6 +12,7 @@ interface IJBPaymentTerminal {
 
   function payoutSplitsGroup() external view returns (uint256);
 
+  // Return value must be a fixed point number with 18 decimals.
   function currentEthOverflowOf(uint256 _projectId) external view returns (uint256);
 
   function pay(
