@@ -54,7 +54,8 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
     MAX_FEE_DISCOUNT = await jbConstants.MAX_FEE_DISCOUNT();
     MAX_FEE = (await jbConstants.MAX_FEE()).toNumber();
 
-    let FEE = AMOUNT_DISTRIBUTED - Math.floor((AMOUNT_DISTRIBUTED * MAX_FEE) / (DEFAULT_FEE + MAX_FEE));
+    let FEE =
+      AMOUNT_DISTRIBUTED - Math.floor((AMOUNT_DISTRIBUTED * MAX_FEE) / (DEFAULT_FEE + MAX_FEE));
     AMOUNT_MINUS_FEES = AMOUNT_DISTRIBUTED - FEE;
   });
 
@@ -346,7 +347,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
             /*amount paid*/ Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             split.projectId,
             split.beneficiary,
-            ''
+            '',
           )
           .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
       }),
@@ -378,7 +379,9 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
               split.lockedUntil,
               split.allocator,
             ],
-            /*payoutAmount*/ Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
+            /*payoutAmount*/ Math.floor(
+              (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
+            ),
             caller.address,
           )
           .and.to.emit(jbEthPaymentTerminal, 'Pay')
@@ -612,8 +615,8 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
         await mockJbEthPaymentTerminal.mock.pay
           .withArgs(
             /*payoutAmount*/ Math.floor(
-            (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
-          ),
+              (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
+            ),
             split.projectId,
             split.beneficiary,
             /*minReturnedToken*/ 0,
@@ -625,7 +628,9 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
       }),
     );
 
-    await jbEthPaymentTerminal.connect(terminalOwner).toggleFeelessTerminal(mockJbEthPaymentTerminal.address);
+    await jbEthPaymentTerminal
+      .connect(terminalOwner)
+      .toggleFeelessTerminal(mockJbEthPaymentTerminal.address);
 
     let tx = await jbEthPaymentTerminal
       .connect(caller)
@@ -705,7 +710,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
         AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES,
         /*CURRENCY*/ 1,
         projectOwner.address,
-        ''
+        '',
       )
       .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
 
@@ -717,9 +722,9 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
             /*amount paid*/ Math.floor((AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT),
             split.projectId,
             split.beneficiary,
-            ''
+            '',
           )
-          .returns(fundingCycle, 0, 0,/* delegate */ ethers.constants.AddressZero, '');
+          .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
       }),
     );
 
@@ -756,7 +761,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
           .withArgs(
             timestamp,
             1,
-            /*projectId*/1,
+            /*projectId*/ 1,
             projectOwner.address,
             Math.floor(AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES),
             0,
@@ -892,7 +897,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
         /*_amount*/ AMOUNT_TO_DISTRIBUTE,
         /*_distributedAmount*/ AMOUNT_DISTRIBUTED,
         /*_feeAmount*/ FEE_AMOUNT,
-        /*_leftoverDistributionAmount*/0,
+        /*_leftoverDistributionAmount*/ 0,
         MEMO,
         caller.address,
       );
@@ -1099,7 +1104,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
       mockJbSplitsStore,
     } = await setup();
     const splits = makeSplits({
-      count: 2
+      count: 2,
     });
 
     await jbEthPaymentTerminal.connect(terminalOwner).setFee(0);
@@ -1188,8 +1193,8 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
         await mockJbEthPaymentTerminal.mock.pay
           .withArgs(
             /*payoutAmount*/ Math.floor(
-            (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
-          ),
+              (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
+            ),
             split.projectId,
             split.beneficiary,
             /*minReturnedToken*/ 0,
@@ -1288,7 +1293,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             split.projectId,
             split.beneficiary,
-            ''
+            '',
           )
           .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
       }),
@@ -1425,7 +1430,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
         /*_distributedAmount*/ AMOUNT_DISTRIBUTED,
         /*_feeAmount*/ 0,
         /*_leftoverDistributionAmount*/ AMOUNT_DISTRIBUTED -
-        ((AMOUNT_DISTRIBUTED * PERCENT) / SPLITS_TOTAL_PERCENT) * splits.length,
+          ((AMOUNT_DISTRIBUTED * PERCENT) / SPLITS_TOTAL_PERCENT) * splits.length,
         MEMO,
         caller.address,
       );
@@ -1539,7 +1544,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
         ),
     ).to.be.revertedWith(errors.TERMINAL_IN_SPLIT_ZERO_ADDRESS);
   });
-  it("Cant distribute payouts of the distributed amount is less than expected", async function () {
+  it('Cant distribute payouts of the distributed amount is less than expected', async function () {
     const {
       terminalOwner,
       caller,

@@ -12,10 +12,8 @@ import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsS
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 
 describe('JB18DecimalERC20PaymentTerminal::constructor(...)', function () {
-
   it("Can't deploy contract if erc20 doesnt have the target decimals", async function () {
-    let [deployer, terminalOwner] =
-      await ethers.getSigners();
+    let [deployer, terminalOwner] = await ethers.getSigners();
 
     let [
       mockJbDirectory,
@@ -23,17 +21,20 @@ describe('JB18DecimalERC20PaymentTerminal::constructor(...)', function () {
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
-      mockJbToken
+      mockJbToken,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
       deployMockContract(deployer, jb18DecimalPaymentTerminalStore.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
-      deployMockContract(deployer, jbToken.abi)
+      deployMockContract(deployer, jbToken.abi),
     ]);
 
-    let jbErc20TerminalFactory = await ethers.getContractFactory('JB18DecimalERC20PaymentTerminal', deployer);
+    let jbErc20TerminalFactory = await ethers.getContractFactory(
+      'JB18DecimalERC20PaymentTerminal',
+      deployer,
+    );
     const NON_ETH_TOKEN = mockJbToken.address;
 
     const DECIMALS1 = 1;

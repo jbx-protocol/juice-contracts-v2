@@ -131,13 +131,18 @@ describe('JB18DecimalPaymentTerminalStore::reclaimableOverflowOf(...)', function
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));
-    await JB18DecimalPaymentTerminalStore
-      .connect(mockJbTerminalSigner)
-      .recordAddedBalanceFor(PROJECT_ID, startingBalance);
+    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+      PROJECT_ID,
+      startingBalance,
+    );
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await JB18DecimalPaymentTerminalStore.reclaimableOverflowOf(mockJbTerminalSigner.address, PROJECT_ID, /* tokenCount */ tokenAmt),
+      await JB18DecimalPaymentTerminalStore.reclaimableOverflowOf(
+        mockJbTerminalSigner.address,
+        PROJECT_ID,
+        /* tokenCount */ tokenAmt,
+      ),
     ).to.equal(ethers.FixedNumber.fromString('41.25'));
   });
 
@@ -186,7 +191,11 @@ describe('JB18DecimalPaymentTerminalStore::reclaimableOverflowOf(...)', function
 
     // Get claimable overflow
     expect(
-      await JB18DecimalPaymentTerminalStore.reclaimableOverflowOf(mockJbTerminal.address, PROJECT_ID, /* tokenCount */ tokenAmt),
+      await JB18DecimalPaymentTerminalStore.reclaimableOverflowOf(
+        mockJbTerminal.address,
+        PROJECT_ID,
+        /* tokenCount */ tokenAmt,
+      ),
     ).to.equal(0);
   });
 
@@ -247,13 +256,18 @@ describe('JB18DecimalPaymentTerminalStore::reclaimableOverflowOf(...)', function
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));
-    await JB18DecimalPaymentTerminalStore
-      .connect(mockJbTerminalSigner)
-      .recordAddedBalanceFor(PROJECT_ID, startingBalance);
+    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+      PROJECT_ID,
+      startingBalance,
+    );
 
     // Get claimable overflow
     expect(
-      await JB18DecimalPaymentTerminalStore.reclaimableOverflowOf(mockJbTerminalSigner.address, PROJECT_ID, /* tokenCount */ tokenAmt),
+      await JB18DecimalPaymentTerminalStore.reclaimableOverflowOf(
+        mockJbTerminalSigner.address,
+        PROJECT_ID,
+        /* tokenCount */ tokenAmt,
+      ),
     ).to.equal(0);
   });
 
@@ -321,13 +335,18 @@ describe('JB18DecimalPaymentTerminalStore::reclaimableOverflowOf(...)', function
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));
-    await JB18DecimalPaymentTerminalStore
-      .connect(mockJbTerminalSigner)
-      .recordAddedBalanceFor(PROJECT_ID, startingBalance);
+    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+      PROJECT_ID,
+      startingBalance,
+    );
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await JB18DecimalPaymentTerminalStore.reclaimableOverflowOf(mockJbTerminalSigner.address, PROJECT_ID, /* tokenCount */ tokenAmt),
+      await JB18DecimalPaymentTerminalStore.reclaimableOverflowOf(
+        mockJbTerminalSigner.address,
+        PROJECT_ID,
+        /* tokenCount */ tokenAmt,
+      ),
     ).to.equal(ethers.FixedNumber.from(50));
   });
 });

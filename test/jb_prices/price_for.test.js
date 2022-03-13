@@ -27,7 +27,7 @@ describe('JBPrices::priceFor(...)', function () {
 
   /**
    * Initialiazes mock price feed, adds it to JBPrices, and returns the fetched result.
-  */
+   */
   async function addFeedAndFetchPrice(price, currency, base) {
     await priceFeed.mock.getPrice.withArgs(DECIMALS).returns(price);
 
@@ -36,9 +36,9 @@ describe('JBPrices::priceFor(...)', function () {
   }
 
   it('Same currency and base should return 1', async function () {
-    expect(
-      await addFeedAndFetchPrice(/*price=*/ 400, /*currency=*/ 1, /*base=*/ 1),
-    ).to.equal(ethers.BigNumber.from(10).pow(DECIMALS));
+    expect(await addFeedAndFetchPrice(/*price=*/ 400, /*currency=*/ 1, /*base=*/ 1)).to.equal(
+      ethers.BigNumber.from(10).pow(DECIMALS),
+    );
   });
 
   it('Check price 18 decimals', async function () {

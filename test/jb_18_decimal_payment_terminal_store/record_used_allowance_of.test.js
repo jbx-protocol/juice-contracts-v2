@@ -98,16 +98,17 @@ describe('JB18DecimalPaymentTerminalStore::recordUsedAllowanceOf(...)', function
       mockJbTerminalSigner,
       JB18DecimalPaymentTerminalStore,
       timestamp,
-      CURRENCY_ETH,  // base weight currency
-      CURRENCY_USD,  // terminal currency
+      CURRENCY_ETH, // base weight currency
+      CURRENCY_USD, // terminal currency
     } = await setup();
 
     const usdToEthPrice = ethers.BigNumber.from(3500);
 
     // Add to balance beforehand, in USD
-    await JB18DecimalPaymentTerminalStore
-      .connect(mockJbTerminalSigner)
-      .recordAddedBalanceFor(PROJECT_ID, AMOUNT);
+    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+      PROJECT_ID,
+      AMOUNT,
+    );
 
     // Both limit and allowance in USD
     await mockJbController.mock.distributionLimitOf
@@ -127,21 +128,35 @@ describe('JB18DecimalPaymentTerminalStore::recordUsedAllowanceOf(...)', function
       .returns(CURRENCY_USD);
 
     // Pre-checks
-    expect(await JB18DecimalPaymentTerminalStore.usedOverflowAllowanceOf(mockJbTerminalSigner.address, PROJECT_ID, timestamp)).to.equal(
-      0,
-    );
-    expect(await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(AMOUNT); // balanceOf is in terminal currency (USD)
+    expect(
+      await JB18DecimalPaymentTerminalStore.usedOverflowAllowanceOf(
+        mockJbTerminalSigner.address,
+        PROJECT_ID,
+        timestamp,
+      ),
+    ).to.equal(0);
+    expect(
+      await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+    ).to.equal(AMOUNT); // balanceOf is in terminal currency (USD)
 
     // Record the used allowance
-    await JB18DecimalPaymentTerminalStore
-      .connect(mockJbTerminalSigner)
-      .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD);
+    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
+      PROJECT_ID,
+      AMOUNT,
+      CURRENCY_USD,
+    );
 
     // Post-checks
-    expect(await JB18DecimalPaymentTerminalStore.usedOverflowAllowanceOf(mockJbTerminalSigner.address, PROJECT_ID, timestamp)).to.equal(
-      AMOUNT,
-    );
-    expect(await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(0); // AMOUNT-AMOUNT = 0
+    expect(
+      await JB18DecimalPaymentTerminalStore.usedOverflowAllowanceOf(
+        mockJbTerminalSigner.address,
+        PROJECT_ID,
+        timestamp,
+      ),
+    ).to.equal(AMOUNT);
+    expect(
+      await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+    ).to.equal(0); // AMOUNT-AMOUNT = 0
   });
   it('Should record used allowance with > 0 distribution limit', async function () {
     const {
@@ -151,16 +166,17 @@ describe('JB18DecimalPaymentTerminalStore::recordUsedAllowanceOf(...)', function
       mockJbTerminalSigner,
       JB18DecimalPaymentTerminalStore,
       timestamp,
-      CURRENCY_ETH,  // base weight currency
-      CURRENCY_USD,  // terminal currency
+      CURRENCY_ETH, // base weight currency
+      CURRENCY_USD, // terminal currency
     } = await setup();
 
     const usdToEthPrice = ethers.BigNumber.from(3500);
 
     // Add to balance beforehand, in USD
-    await JB18DecimalPaymentTerminalStore
-      .connect(mockJbTerminalSigner)
-      .recordAddedBalanceFor(PROJECT_ID, AMOUNT);
+    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+      PROJECT_ID,
+      AMOUNT,
+    );
 
     const distributionLimit = AMOUNT - 1;
 
@@ -182,21 +198,35 @@ describe('JB18DecimalPaymentTerminalStore::recordUsedAllowanceOf(...)', function
       .returns(CURRENCY_USD);
 
     // Pre-checks
-    expect(await JB18DecimalPaymentTerminalStore.usedOverflowAllowanceOf(mockJbTerminalSigner.address, PROJECT_ID, timestamp)).to.equal(
-      0,
-    );
-    expect(await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(AMOUNT); // balanceOf is in terminal currency (USD)
+    expect(
+      await JB18DecimalPaymentTerminalStore.usedOverflowAllowanceOf(
+        mockJbTerminalSigner.address,
+        PROJECT_ID,
+        timestamp,
+      ),
+    ).to.equal(0);
+    expect(
+      await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+    ).to.equal(AMOUNT); // balanceOf is in terminal currency (USD)
 
     // Record the used allowance
-    await JB18DecimalPaymentTerminalStore
-      .connect(mockJbTerminalSigner)
-      .recordUsedAllowanceOf(PROJECT_ID, AMOUNT - distributionLimit, CURRENCY_USD);
+    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
+      PROJECT_ID,
+      AMOUNT - distributionLimit,
+      CURRENCY_USD,
+    );
 
     // Post-checks
-    expect(await JB18DecimalPaymentTerminalStore.usedOverflowAllowanceOf(mockJbTerminalSigner.address, PROJECT_ID, timestamp)).to.equal(
-      AMOUNT - distributionLimit,
-    );
-    expect(await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(distributionLimit);
+    expect(
+      await JB18DecimalPaymentTerminalStore.usedOverflowAllowanceOf(
+        mockJbTerminalSigner.address,
+        PROJECT_ID,
+        timestamp,
+      ),
+    ).to.equal(AMOUNT - distributionLimit);
+    expect(
+      await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+    ).to.equal(distributionLimit);
   });
   it('Should record used allowance with > 0 distribution limit and different distribution currency', async function () {
     const {
@@ -206,8 +236,8 @@ describe('JB18DecimalPaymentTerminalStore::recordUsedAllowanceOf(...)', function
       mockJbTerminalSigner,
       JB18DecimalPaymentTerminalStore,
       timestamp,
-      CURRENCY_ETH,  // base weight currency
-      CURRENCY_USD,  // terminal currency
+      CURRENCY_ETH, // base weight currency
+      CURRENCY_USD, // terminal currency
     } = await setup();
 
     const ethToUsdPrice = ethers.BigNumber.from(2).mul(ethers.BigNumber.from(10).pow(18));
@@ -217,9 +247,10 @@ describe('JB18DecimalPaymentTerminalStore::recordUsedAllowanceOf(...)', function
     const amountToUse = 1;
 
     // Add to balance beforehand, in USD
-    await JB18DecimalPaymentTerminalStore
-      .connect(mockJbTerminalSigner)
-      .recordAddedBalanceFor(PROJECT_ID, distributionLimit.add(amountToUse));
+    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+      PROJECT_ID,
+      distributionLimit.add(amountToUse),
+    );
 
     // Both limit and allowance in USD
     await mockJbController.mock.distributionLimitOf
@@ -238,24 +269,40 @@ describe('JB18DecimalPaymentTerminalStore::recordUsedAllowanceOf(...)', function
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
       .returns(CURRENCY_USD);
 
-    await mockJbPrices.mock.priceFor.withArgs(CURRENCY_ETH, CURRENCY_USD, decimals).returns(ethToUsdPrice);
+    await mockJbPrices.mock.priceFor
+      .withArgs(CURRENCY_ETH, CURRENCY_USD, decimals)
+      .returns(ethToUsdPrice);
 
     // Pre-checks
-    expect(await JB18DecimalPaymentTerminalStore.usedOverflowAllowanceOf(mockJbTerminalSigner.address, PROJECT_ID, timestamp)).to.equal(
-      0,
-    );
-    expect(await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(distributionLimit.add(amountToUse)); // balanceOf is in terminal currency (USD)
+    expect(
+      await JB18DecimalPaymentTerminalStore.usedOverflowAllowanceOf(
+        mockJbTerminalSigner.address,
+        PROJECT_ID,
+        timestamp,
+      ),
+    ).to.equal(0);
+    expect(
+      await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+    ).to.equal(distributionLimit.add(amountToUse)); // balanceOf is in terminal currency (USD)
 
     // Record the used allowance
-    await JB18DecimalPaymentTerminalStore
-      .connect(mockJbTerminalSigner)
-      .recordUsedAllowanceOf(PROJECT_ID, amountToUse, CURRENCY_USD);
+    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
+      PROJECT_ID,
+      amountToUse,
+      CURRENCY_USD,
+    );
 
     // Post-checks
-    expect(await JB18DecimalPaymentTerminalStore.usedOverflowAllowanceOf(mockJbTerminalSigner.address, PROJECT_ID, timestamp)).to.equal(
-      amountToUse
-    );
-    expect(await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(distributionLimit);
+    expect(
+      await JB18DecimalPaymentTerminalStore.usedOverflowAllowanceOf(
+        mockJbTerminalSigner.address,
+        PROJECT_ID,
+        timestamp,
+      ),
+    ).to.equal(amountToUse);
+    expect(
+      await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+    ).to.equal(distributionLimit);
   });
 
   /* Sad path tests */
@@ -281,9 +328,11 @@ describe('JB18DecimalPaymentTerminalStore::recordUsedAllowanceOf(...)', function
 
     // Record the used allowance
     await expect(
-      JB18DecimalPaymentTerminalStore
-        .connect(mockJbTerminalSigner)
-        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH),
+      JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
+        PROJECT_ID,
+        AMOUNT,
+        CURRENCY_ETH,
+      ),
     ).to.be.revertedWith(errors.CURRENCY_MISMATCH);
   });
 
@@ -298,7 +347,10 @@ describe('JB18DecimalPaymentTerminalStore::recordUsedAllowanceOf(...)', function
     } = await setup();
 
     // Add to balance beforehand
-    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
+    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+      PROJECT_ID,
+      AMOUNT,
+    );
 
     await mockJbController.mock.overflowAllowanceCurrencyOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
@@ -311,9 +363,11 @@ describe('JB18DecimalPaymentTerminalStore::recordUsedAllowanceOf(...)', function
 
     // Record the used allowance
     await expect(
-      JB18DecimalPaymentTerminalStore
-        .connect(mockJbTerminalSigner)
-        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD),
+      JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
+        PROJECT_ID,
+        AMOUNT,
+        CURRENCY_USD,
+      ),
     ).to.be.revertedWith(errors.INADEQUATE_CONTROLLER_ALLOWANCE);
   });
 
@@ -324,7 +378,7 @@ describe('JB18DecimalPaymentTerminalStore::recordUsedAllowanceOf(...)', function
       mockJbTerminalSigner,
       JB18DecimalPaymentTerminalStore,
       timestamp,
-      CURRENCY_USD
+      CURRENCY_USD,
     } = await setup();
 
     // Create a big overflow
@@ -347,9 +401,11 @@ describe('JB18DecimalPaymentTerminalStore::recordUsedAllowanceOf(...)', function
     // Note: We didn't add an initial balance to the store
     // Record the used allowance
     await expect(
-      JB18DecimalPaymentTerminalStore
-        .connect(mockJbTerminalSigner)
-        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD),
+      JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
+        PROJECT_ID,
+        AMOUNT,
+        CURRENCY_USD,
+      ),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
 
@@ -368,7 +424,10 @@ describe('JB18DecimalPaymentTerminalStore::recordUsedAllowanceOf(...)', function
     // Add to balance beforehand
     const smallBalance = AMOUNT.sub(ethers.BigNumber.from(1));
 
-    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
+    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+      PROJECT_ID,
+      AMOUNT,
+    );
 
     // Leave a small overflow
     await mockJbController.mock.distributionLimitOf
@@ -393,9 +452,11 @@ describe('JB18DecimalPaymentTerminalStore::recordUsedAllowanceOf(...)', function
 
     // Record the used allowance
     await expect(
-      JB18DecimalPaymentTerminalStore
-        .connect(mockJbTerminalSigner)
-        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_ETH),
+      JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
+        PROJECT_ID,
+        AMOUNT,
+        CURRENCY_ETH,
+      ),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
   it(`Can't record used allowance with > 0 distribution limit and not enough balance outside of this limit`, async function () {
@@ -406,16 +467,17 @@ describe('JB18DecimalPaymentTerminalStore::recordUsedAllowanceOf(...)', function
       mockJbTerminalSigner,
       JB18DecimalPaymentTerminalStore,
       timestamp,
-      CURRENCY_ETH,  // base weight currency
-      CURRENCY_USD,  // terminal currency
+      CURRENCY_ETH, // base weight currency
+      CURRENCY_USD, // terminal currency
     } = await setup();
 
     const usdToEthPrice = ethers.BigNumber.from(3500);
 
     // Add to balance beforehand, in USD
-    await JB18DecimalPaymentTerminalStore
-      .connect(mockJbTerminalSigner)
-      .recordAddedBalanceFor(PROJECT_ID, AMOUNT);
+    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+      PROJECT_ID,
+      AMOUNT,
+    );
 
     const distributionLimit = AMOUNT;
 
@@ -436,13 +498,17 @@ describe('JB18DecimalPaymentTerminalStore::recordUsedAllowanceOf(...)', function
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
       .returns(CURRENCY_USD);
 
-    await mockJbPrices.mock.priceFor.withArgs(CURRENCY_USD, CURRENCY_ETH, decimals).returns(usdToEthPrice);
+    await mockJbPrices.mock.priceFor
+      .withArgs(CURRENCY_USD, CURRENCY_ETH, decimals)
+      .returns(usdToEthPrice);
 
     // Record the used allowance
     await expect(
-      JB18DecimalPaymentTerminalStore
-        .connect(mockJbTerminalSigner)
-        .recordUsedAllowanceOf(PROJECT_ID, AMOUNT, CURRENCY_USD),
+      JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
+        PROJECT_ID,
+        AMOUNT,
+        CURRENCY_USD,
+      ),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
 });

@@ -55,7 +55,9 @@ describe('JBTokenStore::claimFor(...)', function () {
       .connect(controller)
       .claimFor(newHolder.address, PROJECT_ID, amountToClaim);
 
-    expect(await jbTokenStore.unclaimedBalanceOf(newHolder.address, PROJECT_ID)).to.equal(numTokens - amountToClaim);
+    expect(await jbTokenStore.unclaimedBalanceOf(newHolder.address, PROJECT_ID)).to.equal(
+      numTokens - amountToClaim,
+    );
     expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(numTokens);
     expect(await jbTokenStore.totalSupplyOf(PROJECT_ID)).to.equal(numTokens);
 

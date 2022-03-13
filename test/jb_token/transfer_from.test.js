@@ -19,7 +19,14 @@ describe('JBToken::transferFrom(...)', function () {
     const { addrs, jbToken } = await setup();
     const numTokens = 5;
     await jbToken.connect(addrs[1]).approve(addrs[3].address, numTokens);
-    const transferTx = await jbToken.connect(addrs[3])['transferFrom(uint256,address,address,uint256)'](PROJECT_ID, addrs[1].address, addrs[2].address, numTokens);
+    const transferTx = await jbToken
+      .connect(addrs[3])
+      ['transferFrom(uint256,address,address,uint256)'](
+        PROJECT_ID,
+        addrs[1].address,
+        addrs[2].address,
+        numTokens,
+      );
 
     await expect(transferTx)
       .to.emit(jbToken, 'Transfer')
@@ -35,7 +42,14 @@ describe('JBToken::transferFrom(...)', function () {
     const numTokens = 5;
 
     await expect(
-      jbToken.connect(addrs[1])['transferFrom(uint256,address,address,uint256)'](PROJECT_ID, addrs[1].address, addrs[2].address, numTokens)
+      jbToken
+        .connect(addrs[1])
+        ['transferFrom(uint256,address,address,uint256)'](
+          PROJECT_ID,
+          addrs[1].address,
+          addrs[2].address,
+          numTokens,
+        ),
     ).to.be.revertedWith('ERC20: transfer amount exceeds allowance');
   });
 
@@ -44,7 +58,14 @@ describe('JBToken::transferFrom(...)', function () {
     const numTokens = startingBalance + 1;
     await jbToken.connect(addrs[1]).approve(addrs[3].address, numTokens);
     await expect(
-      jbToken.connect(addrs[3])['transferFrom(uint256,address,address,uint256)'](PROJECT_ID, addrs[1].address, ethers.constants.AddressZero, numTokens)
+      jbToken
+        .connect(addrs[3])
+        ['transferFrom(uint256,address,address,uint256)'](
+          PROJECT_ID,
+          addrs[1].address,
+          ethers.constants.AddressZero,
+          numTokens,
+        ),
     ).to.be.revertedWith('ERC20: transfer to the zero address');
   });
 
@@ -53,7 +74,14 @@ describe('JBToken::transferFrom(...)', function () {
     const numTokens = startingBalance + 1;
     await jbToken.connect(addrs[1]).approve(addrs[3].address, numTokens);
     await expect(
-      jbToken.connect(addrs[3])['transferFrom(uint256,address,address,uint256)'](PROJECT_ID, addrs[1].address, addrs[2].address, numTokens)
+      jbToken
+        .connect(addrs[3])
+        ['transferFrom(uint256,address,address,uint256)'](
+          PROJECT_ID,
+          addrs[1].address,
+          addrs[2].address,
+          numTokens,
+        ),
     ).to.be.revertedWith('ERC20: transfer amount exceeds balance');
   });
 });

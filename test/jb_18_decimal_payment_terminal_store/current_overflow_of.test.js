@@ -110,12 +110,14 @@ describe('JB18DecimalPaymentTerminalStore::currentOverflowOf(...)', function () 
 
     // Add to balance beforehand to have sufficient overflow
     const startingBalance = AMOUNT.mulUnsafe(ethers.FixedNumber.from(2));
-    await JB18DecimalPaymentTerminalStore
-      .connect(await impersonateAccount(mockJbTerminal.address))
-      .recordAddedBalanceFor(PROJECT_ID, startingBalance);
+    await JB18DecimalPaymentTerminalStore.connect(
+      await impersonateAccount(mockJbTerminal.address),
+    ).recordAddedBalanceFor(PROJECT_ID, startingBalance);
 
     // Get current overflow
-    expect(await JB18DecimalPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID)).to.equal(AMOUNT);
+    expect(
+      await JB18DecimalPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID),
+    ).to.equal(AMOUNT);
   });
 
   it('Should return 0 overflow if ETH balance < distribution remaining', async function () {
@@ -152,11 +154,14 @@ describe('JB18DecimalPaymentTerminalStore::currentOverflowOf(...)', function () 
       .returns(AMOUNT);
 
     // Get current overflow
-    expect(await JB18DecimalPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID)).to.equal(0);
+    expect(
+      await JB18DecimalPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID),
+    ).to.equal(0);
   });
 
   it('Should return 0 overflow if ETH balance is 0', async function () {
-    const { mockJbFundingCycleStore, mockJbTerminal, JB18DecimalPaymentTerminalStore, timestamp } = await setup();
+    const { mockJbFundingCycleStore, mockJbTerminal, JB18DecimalPaymentTerminalStore, timestamp } =
+      await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       number: 1,
@@ -171,6 +176,8 @@ describe('JB18DecimalPaymentTerminalStore::currentOverflowOf(...)', function () 
     });
 
     // Get current overflow
-    expect(await JB18DecimalPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID)).to.equal(0);
+    expect(
+      await JB18DecimalPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID),
+    ).to.equal(0);
   });
 });

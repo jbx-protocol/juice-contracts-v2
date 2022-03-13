@@ -167,7 +167,7 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
         CURRENCY_ETH,
         /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
-        MEMO
+        MEMO,
       );
 
     expect(await tx)
@@ -201,7 +201,7 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
       mockJB18DecimalPaymentTerminalStore,
       projectOwner,
       terminalOwner,
-      fundingCycle
+      fundingCycle,
     } = await setup();
 
     await mockJB18DecimalPaymentTerminalStore.mock.recordUsedAllowanceOf
@@ -219,7 +219,7 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
         CURRENCY_ETH,
         /* minReturnedTokens */ 0,
         beneficiary.address,
-        MEMO
+        MEMO,
       );
   });
 
@@ -255,7 +255,7 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
         CURRENCY_ETH,
         /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
-        MEMO
+        MEMO,
       );
 
     expect(await tx)
@@ -305,7 +305,7 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
         AMOUNT - AMOUNT_MINUS_FEES,
         JUICEBOX_PROJECT_ID,
         projectOwner.address,
-        /* memo */ ''
+        /* memo */ '',
       )
       .returns(fundingCycle, WEIGHT, 0, /* delegate */ ethers.constants.AddressZero, '');
 
@@ -329,7 +329,7 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
         CURRENCY_ETH,
         /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
-        MEMO
+        MEMO,
       );
 
     expect(await tx)
@@ -372,7 +372,9 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
 
     const DISCOUNTED_FEE =
       DEFAULT_FEE - Math.floor((DEFAULT_FEE * FEE_DISCOUNT) / MAX_FEE_DISCOUNT);
-    const AMOUNT_MINUS_DISCOUNTED_FEES = Math.floor((AMOUNT * MAX_FEE) / (MAX_FEE + DISCOUNTED_FEE));
+    const AMOUNT_MINUS_DISCOUNTED_FEES = Math.floor(
+      (AMOUNT * MAX_FEE) / (MAX_FEE + DISCOUNTED_FEE),
+    );
 
     await mockJbFeeGauge.mock.currentDiscountFor.withArgs(PROJECT_ID).returns(FEE_DISCOUNT);
 
@@ -412,7 +414,7 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
         CURRENCY_ETH,
         /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
-        MEMO
+        MEMO,
       );
 
     expect(await tx)
@@ -465,7 +467,7 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
         AMOUNT - AMOUNT_MINUS_FEES,
         JUICEBOX_PROJECT_ID,
         projectOwner.address,
-        /* memo */ ''
+        /* memo */ '',
       )
       .returns(fundingCycle, WEIGHT, 0, /* delegate */ ethers.constants.AddressZero, '');
 
@@ -491,7 +493,7 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
         CURRENCY_ETH,
         /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
-        MEMO
+        MEMO,
       );
 
     expect(await tx)
@@ -552,7 +554,7 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
         AMOUNT - AMOUNT_MINUS_FEES,
         JUICEBOX_PROJECT_ID,
         projectOwner.address,
-        /* memo */ ''
+        /* memo */ '',
       )
       .returns(newFundingCycle, WEIGHT, 0, /* delegate */ ethers.constants.AddressZero, '');
 
@@ -632,7 +634,7 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
       mockJB18DecimalPaymentTerminalStore,
       projectOwner,
       terminalOwner,
-      fundingCycle
+      fundingCycle,
     } = await setup();
 
     await mockJB18DecimalPaymentTerminalStore.mock.recordUsedAllowanceOf
@@ -647,11 +649,11 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
         .connect(projectOwner)
         .useAllowanceOf(
           PROJECT_ID,
-        /* amount */ AMOUNT_TO_DISTRIBUTE,
+          /* amount */ AMOUNT_TO_DISTRIBUTE,
           CURRENCY_ETH,
-        /* minReturnedTokens */ 1,
+          /* minReturnedTokens */ 1,
           beneficiary.address,
-          MEMO
+          MEMO,
         ),
     ).to.be.revertedWith(errors.INADEQUATE_DISTRIBUTION_AMOUNT);
   });

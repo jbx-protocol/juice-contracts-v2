@@ -59,8 +59,12 @@ describe('JB18DecimalPaymentTerminalStore::recordMigration(...)', function () {
   }
 
   it('Should record migration with mockJbTerminal access', async function () {
-    const { mockJbTerminalSigner, mockJbFundingCycleStore, JB18DecimalPaymentTerminalStore, timestamp } =
-      await setup();
+    const {
+      mockJbTerminalSigner,
+      mockJbFundingCycleStore,
+      JB18DecimalPaymentTerminalStore,
+      timestamp,
+    } = await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       number: 1,
@@ -75,18 +79,27 @@ describe('JB18DecimalPaymentTerminalStore::recordMigration(...)', function () {
     });
 
     // Add to balance beforehand
-    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(PROJECT_ID, AMOUNT);
+    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+      PROJECT_ID,
+      AMOUNT,
+    );
 
     // "Record migration"
     await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordMigration(PROJECT_ID);
 
     // Current balance should be set to 0
-    expect(await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)).to.equal(0);
+    expect(
+      await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+    ).to.equal(0);
   });
 
   it(`Can't record migration with allowTerminalMigration flag disabled`, async function () {
-    const { mockJbTerminalSigner, mockJbFundingCycleStore, JB18DecimalPaymentTerminalStore, timestamp } =
-      await setup();
+    const {
+      mockJbTerminalSigner,
+      mockJbFundingCycleStore,
+      JB18DecimalPaymentTerminalStore,
+      timestamp,
+    } = await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       number: 1,

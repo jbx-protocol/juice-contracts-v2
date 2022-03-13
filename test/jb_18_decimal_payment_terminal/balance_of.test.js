@@ -59,7 +59,9 @@ describe('JB18DecimalPaymentTerminal::balanceOf(...)', function () {
   it('Should return the balance of the project', async function () {
     const { jbEthPaymentTerminal, mockJB18DecimalPaymentTerminalStore } = await setup();
 
-    await mockJB18DecimalPaymentTerminalStore.mock.balanceOf.withArgs(jbEthPaymentTerminal.address, PROJECT_ID).returns(BALANCE);
+    await mockJB18DecimalPaymentTerminalStore.mock.balanceOf
+      .withArgs(jbEthPaymentTerminal.address, PROJECT_ID)
+      .returns(BALANCE);
 
     expect(await jbEthPaymentTerminal.balanceOf(PROJECT_ID)).to.equal(BALANCE);
   });

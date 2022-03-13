@@ -59,22 +59,34 @@ describe('JB18DecimalPaymentTerminal::toggleFeelessTerminal(...)', function () {
   it('Should add a terminal as feeless and emit event, if the terminal was not feeless before', async function () {
     const { terminalOwner, jbEthPaymentTerminal, mockJbEthPaymentTerminal } = await setup();
 
-    expect(await jbEthPaymentTerminal.connect(terminalOwner).toggleFeelessTerminal(mockJbEthPaymentTerminal.address))
+    expect(
+      await jbEthPaymentTerminal
+        .connect(terminalOwner)
+        .toggleFeelessTerminal(mockJbEthPaymentTerminal.address),
+    )
       .to.emit(jbEthPaymentTerminal, 'SetFeelessTerminal')
       .withArgs(mockJbEthPaymentTerminal.address, terminalOwner.address);
 
-    expect(await jbEthPaymentTerminal.isFeelessTerminal(mockJbEthPaymentTerminal.address)).to.be.true;
+    expect(await jbEthPaymentTerminal.isFeelessTerminal(mockJbEthPaymentTerminal.address)).to.be
+      .true;
   });
 
   it('Should remove a terminal as feeless and emit event, if the terminal was feeless before', async function () {
     const { terminalOwner, jbEthPaymentTerminal, mockJbEthPaymentTerminal } = await setup();
 
-    await jbEthPaymentTerminal.connect(terminalOwner).toggleFeelessTerminal(mockJbEthPaymentTerminal.address);
+    await jbEthPaymentTerminal
+      .connect(terminalOwner)
+      .toggleFeelessTerminal(mockJbEthPaymentTerminal.address);
 
-    expect(await jbEthPaymentTerminal.connect(terminalOwner).toggleFeelessTerminal(mockJbEthPaymentTerminal.address))
+    expect(
+      await jbEthPaymentTerminal
+        .connect(terminalOwner)
+        .toggleFeelessTerminal(mockJbEthPaymentTerminal.address),
+    )
       .to.emit(jbEthPaymentTerminal, 'SetFeelessTerminal')
       .withArgs(mockJbEthPaymentTerminal.address, terminalOwner.address);
 
-    expect(await jbEthPaymentTerminal.isFeelessTerminal(mockJbEthPaymentTerminal.address)).to.be.false;
+    expect(await jbEthPaymentTerminal.isFeelessTerminal(mockJbEthPaymentTerminal.address)).to.be
+      .false;
   });
 });

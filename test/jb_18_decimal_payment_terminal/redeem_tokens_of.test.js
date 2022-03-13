@@ -40,7 +40,7 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
       mockJbProjects,
       mockJbSplitsStore,
       mockJbRedemptionDelegate,
-      mockJbController
+      mockJbController,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
       deployMockContract(deployer, jb18DecimalPaymentTerminalStore.abi),
@@ -48,7 +48,7 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
       deployMockContract(deployer, jbRedemptionDelegate.abi),
-      deployMockContract(deployer, jbController.abi)
+      deployMockContract(deployer, jbController.abi),
     ]);
 
     const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
@@ -133,9 +133,14 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
         /* tokenCount */ AMOUNT,
         CURRENCY_ETH,
         beneficiary.address,
-        MEMO
+        MEMO,
       )
-      .returns(fundingCycle, /* reclaimAmount */ RECLAIM_AMOUNT, /* delegate */ ethers.constants.AddressZero, ADJUSTED_MEMO);
+      .returns(
+        fundingCycle,
+        /* reclaimAmount */ RECLAIM_AMOUNT,
+        /* delegate */ ethers.constants.AddressZero,
+        ADJUSTED_MEMO,
+      );
 
     await setBalance(jbEthPaymentTerminal.address, RECLAIM_AMOUNT);
 
@@ -194,9 +199,14 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
         /* tokenCount */ 0,
         CURRENCY_ETH,
         beneficiary.address,
-        MEMO
+        MEMO,
       )
-      .returns(fundingCycle, /* reclaimAmount */ RECLAIM_AMOUNT, /* delegate */ ethers.constants.AddressZero, ADJUSTED_MEMO);
+      .returns(
+        fundingCycle,
+        /* reclaimAmount */ RECLAIM_AMOUNT,
+        /* delegate */ ethers.constants.AddressZero,
+        ADJUSTED_MEMO,
+      );
 
     await setBalance(jbEthPaymentTerminal.address, RECLAIM_AMOUNT);
 
@@ -263,9 +273,14 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
         /* tokenCount */ AMOUNT,
         CURRENCY_ETH,
         beneficiary.address,
-        MEMO
+        MEMO,
       )
-      .returns(fundingCycle, /* reclaimAmount */ RECLAIM_AMOUNT, /* delegate */ mockJbRedemptionDelegate.address, ADJUSTED_MEMO);
+      .returns(
+        fundingCycle,
+        /* reclaimAmount */ RECLAIM_AMOUNT,
+        /* delegate */ mockJbRedemptionDelegate.address,
+        ADJUSTED_MEMO,
+      );
 
     await mockJbRedemptionDelegate.mock.didRedeem
       .withArgs({
@@ -298,16 +313,18 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
 
     expect(await tx)
       .to.emit(jbEthPaymentTerminal, 'DelegateDidRedeem')
-      .withArgs(mockJbRedemptionDelegate.address, [
-        /* _holder */ holder.address,
-        /* _projectId */ PROJECT_ID,
-        /* _tokenCount */ AMOUNT,
-        /* reclaimAmount */ RECLAIM_AMOUNT,
-        /* _beneficiary */ beneficiary.address,
-        /* memo */ ADJUSTED_MEMO,
-        ethers.BigNumber.from(DELEGATE_METADATA)
-      ],
-        /* msg.sender */ holder.address
+      .withArgs(
+        mockJbRedemptionDelegate.address,
+        [
+          /* _holder */ holder.address,
+          /* _projectId */ PROJECT_ID,
+          /* _tokenCount */ AMOUNT,
+          /* reclaimAmount */ RECLAIM_AMOUNT,
+          /* _beneficiary */ beneficiary.address,
+          /* memo */ ADJUSTED_MEMO,
+          ethers.BigNumber.from(DELEGATE_METADATA),
+        ],
+        /* msg.sender */ holder.address,
       );
 
     expect(await tx)
@@ -358,9 +375,14 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
         /* tokenCount */ AMOUNT,
         CURRENCY_ETH,
         beneficiary.address,
-        MEMO
+        MEMO,
       )
-      .returns(fundingCycle, /* reclaimAmount */ 0, /* delegate */ ethers.constants.AddressZero, ADJUSTED_MEMO); // Set reclaimAmount to 0
+      .returns(
+        fundingCycle,
+        /* reclaimAmount */ 0,
+        /* delegate */ ethers.constants.AddressZero,
+        ADJUSTED_MEMO,
+      ); // Set reclaimAmount to 0
 
     await setBalance(jbEthPaymentTerminal.address, AMOUNT);
 
@@ -464,9 +486,14 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
         /* tokenCount */ AMOUNT,
         CURRENCY_ETH,
         beneficiary.address,
-        MEMO
+        MEMO,
       )
-      .returns(fundingCycle, /* reclaimAmount */ 0, /* delegate */ ethers.constants.AddressZero, ADJUSTED_MEMO); // Set reclaimAmount to 0
+      .returns(
+        fundingCycle,
+        /* reclaimAmount */ 0,
+        /* delegate */ ethers.constants.AddressZero,
+        ADJUSTED_MEMO,
+      ); // Set reclaimAmount to 0
 
     await expect(
       jbEthPaymentTerminal
@@ -474,8 +501,8 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
         .redeemTokensOf(
           holder.address,
           PROJECT_ID,
-        /* tokenCount */ AMOUNT,
-        /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
+          /* tokenCount */ AMOUNT,
+          /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
           beneficiary.address,
           MEMO,
           DELEGATE_METADATA,

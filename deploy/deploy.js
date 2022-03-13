@@ -96,7 +96,6 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   if ((await jbDirectoryContract.connect(signer).owner()) != multisigAddress)
     await jbDirectoryContract.connect(signer).transferOwnership(multisigAddress);
 
-
   const JB18DecimalPaymentTerminalStore = await deploy('JB18DecimalPaymentTerminalStore', {
     ...baseDeployArgs,
     args: [

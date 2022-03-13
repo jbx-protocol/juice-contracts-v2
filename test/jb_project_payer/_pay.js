@@ -47,15 +47,32 @@ describe('JBProjectPayer::fundTreasury(...)', function () {
       .returns(mockJbTerminal.address);
 
     await mockJbTerminal.mock.pay
-      .withArgs(AMOUNT, MISC_PROJECT_ID, BENEFICIARY, 0, PREFER_CLAIMED_TOKENS, MEMO, DELEGATE_METADATA)
+      .withArgs(
+        AMOUNT,
+        MISC_PROJECT_ID,
+        BENEFICIARY,
+        0,
+        PREFER_CLAIMED_TOKENS,
+        MEMO,
+        DELEGATE_METADATA,
+      )
       .returns();
 
     await expect(
       jbFakeProjectPayer
         .connect(addrs[0])
-        .mint(MISC_PROJECT_ID, AMOUNT, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA, {
-          value: AMOUNT,
-        }),
+        .mint(
+          MISC_PROJECT_ID,
+          AMOUNT,
+          BENEFICIARY,
+          MEMO,
+          PREFER_CLAIMED_TOKENS,
+          TOKEN,
+          DELEGATE_METADATA,
+          {
+            value: AMOUNT,
+          },
+        ),
     ).to.not.be.reverted;
   });
 
@@ -69,7 +86,15 @@ describe('JBProjectPayer::fundTreasury(...)', function () {
     await expect(
       jbFakeProjectPayer
         .connect(addrs[0])
-        .mint(MISC_PROJECT_ID, AMOUNT, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA),
+        .mint(
+          MISC_PROJECT_ID,
+          AMOUNT,
+          BENEFICIARY,
+          MEMO,
+          PREFER_CLAIMED_TOKENS,
+          TOKEN,
+          DELEGATE_METADATA,
+        ),
     ).to.be.revertedWith(errors.TERMINAL_NOT_FOUND);
   });
 
@@ -84,7 +109,15 @@ describe('JBProjectPayer::fundTreasury(...)', function () {
     await expect(
       jbFakeProjectPayer
         .connect(addrs[0])
-        .mint(MISC_PROJECT_ID, AMOUNT, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA),
+        .mint(
+          MISC_PROJECT_ID,
+          AMOUNT,
+          BENEFICIARY,
+          MEMO,
+          PREFER_CLAIMED_TOKENS,
+          TOKEN,
+          DELEGATE_METADATA,
+        ),
     ).to.be.revertedWith(errors.INSUFFICIENT_BALANCE);
   });
 });

@@ -127,9 +127,9 @@ describe('JB18DecimalPaymentTerminalStore::currentTotalOverflowOf(...)', functio
       .returns(ethers.FixedNumber.from(1));
 
     // Get total overflow across both terminals; should equal AMOUNT + AMOUNT
-    expect(await JB18DecimalPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, CURRENCY_ETH)).to.equal(
-      AMOUNT.addUnsafe(AMOUNT),
-    );
+    expect(
+      await JB18DecimalPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, CURRENCY_ETH),
+    ).to.equal(AMOUNT.addUnsafe(AMOUNT));
   });
 
   it(`Should return 0 total overflow if there's insufficient total ETH balance`, async function () {
@@ -143,7 +143,7 @@ describe('JB18DecimalPaymentTerminalStore::currentTotalOverflowOf(...)', functio
       JB18DecimalPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
-      CURRENCY_USD
+      CURRENCY_USD,
     } = await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
@@ -186,6 +186,8 @@ describe('JB18DecimalPaymentTerminalStore::currentTotalOverflowOf(...)', functio
       .returns(ethers.FixedNumber.from(1));
 
     // Get total overflow across both terminals
-    expect(await JB18DecimalPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, CURRENCY_ETH)).to.equal(0);
+    expect(
+      await JB18DecimalPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, CURRENCY_ETH),
+    ).to.equal(0);
   });
 });

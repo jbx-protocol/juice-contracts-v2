@@ -27,14 +27,10 @@ describe('JBPrices::addFeed(...)', function () {
     let base = 2;
 
     // Add a feed for an arbitrary currency.
-    let tx = await jbPrices
-      .connect(deployer)
-      .addFeedFor(currency, base, priceFeed.address);
+    let tx = await jbPrices.connect(deployer).addFeedFor(currency, base, priceFeed.address);
 
     // Expect an event to have been emitted.
-    await expect(tx)
-      .to.emit(jbPrices, 'AddFeed')
-      .withArgs(currency, base, priceFeed.address);
+    await expect(tx).to.emit(jbPrices, 'AddFeed').withArgs(currency, base, priceFeed.address);
 
     // Get the stored feed.
     const storedFeed = await jbPrices.feedFor(currency, base);
