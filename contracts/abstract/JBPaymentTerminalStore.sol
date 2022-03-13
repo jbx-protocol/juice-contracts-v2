@@ -819,7 +819,7 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
 
     // Adjust the decimals of the fixed point number if needed to match the target decimals.
     uint256 _targetDecimals = targetDecimals();
-    if (_targetDecimals == 8) return _totalOverflow18Decimal;
+    if (_targetDecimals == 18) return _totalOverflow18Decimal;
     return _totalOverflow18Decimal.adjustDecimals(18, _targetDecimals);
   }
 }
