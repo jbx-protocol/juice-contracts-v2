@@ -2,7 +2,6 @@
 /* solhint-disable comprehensive-interface*/
 pragma solidity 0.8.6;
 
-import '@paulrberg/contracts/math/PRBMathUD60x18.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 
 import './../interfaces/IJBPrices.sol';
@@ -328,8 +327,9 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     uint256 _terminalBaseWeightCurrency = IJBPaymentTerminal(msg.sender).baseWeightCurrency();
 
     // If the terminal should base its weight on a different currency from the terminal's currency, determine the factor.
+    // TODO
     uint256 _weightRatio = _terminalCurrency == _terminalBaseWeightCurrency
-      ? 1E18
+      ? 10**targetDecimals()
       : prices.priceFor(_terminalCurrency, _terminalBaseWeightCurrency, targetDecimals());
 
     // Find the number of tokens to mint.
@@ -390,12 +390,16 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     uint256 _terminalCurrency = IJBPaymentTerminal(msg.sender).currency();
 
     // Convert the amount to this store's terminal's token.
-    distributedAmount = (_currency == _terminalCurrency)
-      ? _amount
-      : PRBMathUD60x18.div(
+
+    if (_currency == _terminalCurrency) distributedAmount = _amount;
+    else {
+      uint256 _targetDecimals = targetDecimals();
+      distributedAmount = PRBMath.mulDiv(
         _amount,
-        prices.priceFor(_currency, _terminalCurrency, targetDecimals())
+        _targetDecimals,
+        prices.priceFor(_currency, _terminalCurrency, _targetDecimals)
       );
+    }
 
     // The amount being distributed must be available.
     if (distributedAmount > balanceOf[IJBPaymentTerminal(msg.sender)][_projectId])
@@ -463,12 +467,15 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     uint256 _terminalCurrency = IJBPaymentTerminal(msg.sender).currency();
 
     // Convert the amount to this store's terminal's token.
-    withdrawnAmount = (_currency == _terminalCurrency)
-      ? _amount
-      : PRBMathUD60x18.div(
+    if (_currency == _terminalCurrency) withdrawnAmount = _amount;
+    else {
+      uint256 _targetDecimals = targetDecimals();
+      withdrawnAmount = PRBMath.mulDiv(
         _amount,
-        prices.priceFor(_currency, _terminalCurrency, targetDecimals())
+        _targetDecimals,
+        prices.priceFor(_currency, _terminalCurrency, _targetDecimals)
       );
+    }
 
     // The project balance should be bigger than the amount withdrawn from the overflow
     if (balanceOf[IJBPaymentTerminal(msg.sender)][_projectId] < withdrawnAmount)
@@ -496,13 +503,14 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
         );
 
       // Convert the remaining to distribute into this store's terminal's token.
-      _leftToDistribute = (_distributionLimitCurrency == _terminalCurrency)
-        ? _leftToDistribute
-        : PRBMathUD60x18.div(
+      if (_distributionLimitCurrency != _terminalCurrency) {
+        uint256 _targetDecimals = targetDecimals();
+        _leftToDistribute = PRBMath.mulDiv(
           _leftToDistribute,
-          prices.priceFor(_distributionLimitCurrency, _terminalCurrency, targetDecimals())
+          _targetDecimals,
+          prices.priceFor(_distributionLimitCurrency, _terminalCurrency, _targetDecimals)
         );
-
+      }
       // The amount being withdrawn must be available in the overflow.
       if (
         _leftToDistribute > balanceOf[IJBPaymentTerminal(msg.sender)][_projectId] ||
@@ -760,20 +768,17 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
       .distributionLimitCurrencyOf(_projectId, _fundingCycle.configuration, _terminal);
 
     // Convert the _distributionRemaining to be in terms of the provided currency.
-    uint256 _adjustedDistributionRemaining = _distributionRemaining == 0
-      ? 0
-      : (_distributionLimitCurrency == _currency)
-      ? _distributionRemaining
-      : PRBMathUD60x18.div(
+    if (_distributionRemaining != 0 && _distributionLimitCurrency != _currency) {
+      uint256 _targetDecimals = targetDecimals();
+      _distributionRemaining = PRBMath.mulDiv(
         _distributionRemaining,
-        prices.priceFor(_distributionLimitCurrency, _currency, targetDecimals())
+        _targetDecimals,
+        prices.priceFor(_distributionLimitCurrency, _currency, _targetDecimals)
       );
+    }
 
     // Overflow is the balance of this project minus the amount that can still be distributed.
-    return
-      _balanceOf <= _adjustedDistributionRemaining
-        ? 0
-        : _balanceOf - _adjustedDistributionRemaining;
+    return _balanceOf <= _distributionRemaining ? 0 : _balanceOf - _distributionRemaining;
   }
 
   /**
@@ -804,12 +809,15 @@ abstract contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
       _ethOverflow = _ethOverflow + _terminals[_i].currentEthOverflowOf(_projectId);
 
     // Convert the ETH overflow to the specified currency if needed.
-    return
-      _currency == JBCurrencies.ETH
-        ? _ethOverflow
-        : PRBMathUD60x18.div(
+    if (_currency == JBCurrencies.ETH) return _ethOverflow;
+    else {
+      uint256 _targetDecimals = targetDecimals();
+      return
+        PRBMath.mulDiv(
           _ethOverflow,
-          prices.priceFor(JBCurrencies.ETH, _currency, targetDecimals())
+          _targetDecimals,
+          prices.priceFor(JBCurrencies.ETH, _currency, _targetDecimals)
         );
+    }
   }
 }

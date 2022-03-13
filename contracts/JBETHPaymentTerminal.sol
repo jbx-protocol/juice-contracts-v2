@@ -12,27 +12,13 @@ import './abstract/JB18DecimalPaymentTerminal.sol';
 //*********************************************************************//
 
 contract JBETHPaymentTerminal is JB18DecimalPaymentTerminal {
-  /**
-    @notice
-    Gets the current overflowed amount in this for a specified project, in terms of ETH.
-
-    @dev
-    The current overflow is represented as a fixed point number with 18 decimals.
-
-    @param _projectId The ID of the project to get overflow for.
-
-    @return The current amount of ETH overflow that project has in this terminal, as a fixed point number with 18 decimals.
-  */
-  function currentEthOverflowOf(uint256 _projectId) external view override returns (uint256) {
-    return store.currentOverflowOf(this, _projectId);
-  }
-
   constructor(
     uint256 _baseWeightCurrency,
     IJBOperatorStore _operatorStore,
     IJBProjects _projects,
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
+    IJBPrices _prices,
     JB18DecimalPaymentTerminalStore _store,
     address _owner
   )
@@ -45,6 +31,7 @@ contract JBETHPaymentTerminal is JB18DecimalPaymentTerminal {
       _projects,
       _directory,
       _splitsStore,
+      _prices,
       _store,
       _owner
     )

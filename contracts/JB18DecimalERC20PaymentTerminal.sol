@@ -13,38 +13,6 @@ import './abstract/JB18DecimalPaymentTerminal.sol';
 error TOKEN_MUST_USE_18_DECIMALS();
 
 contract JB18DecimalERC20PaymentTerminal is JB18DecimalPaymentTerminal {
-  //*********************************************************************//
-  // ---------------- public immutable stored properties --------------- //
-  //*********************************************************************//
-
-  /**
-    @notice
-    The contract that exposes price feeds.
-  */
-  IJBPrices public immutable prices;
-
-  /**
-    @notice
-    Gets the current overflowed amount in this for a specified project, in terms of ETH.
-
-    @dev
-    The current overflow is represented as a fixed point number with 18 decimals.
-
-    @param _projectId The ID of the project to get overflow for.
-
-    @return The current amount of ETH overflow that project has in this terminal, as a fixed point number with 18 decimals.
-  */
-  function currentEthOverflowOf(uint256 _projectId) external view override returns (uint256) {
-    uint256 _overflow = store.currentOverflowOf(this, _projectId);
-    return
-      currency == JBCurrencies.ETH
-        ? _overflow
-        : PRBMathUD60x18.div(
-          _overflow,
-          prices.priceFor(currency, JBCurrencies.ETH, store.targetDecimals())
-        );
-  }
-
   constructor(
     IERC20Metadata _token,
     uint256 _currency,
@@ -67,14 +35,13 @@ contract JB18DecimalERC20PaymentTerminal is JB18DecimalPaymentTerminal {
       _projects,
       _directory,
       _splitsStore,
+      _prices,
       _store,
       _owner
     )
   {
     // Make sure the ERC20 uses 18 decimals.
     if (_token.decimals() != _store.targetDecimals()) revert TOKEN_MUST_USE_18_DECIMALS();
-
-    prices = _prices;
   }
 
   function _transferFrom(

@@ -4,6 +4,41 @@ pragma solidity 0.8.6;
 import './JBPaymentTerminal.sol';
 
 abstract contract JB18DecimalPaymentTerminal is JBPaymentTerminal {
+  //*********************************************************************//
+  // ---------------- public immutable stored properties --------------- //
+  //*********************************************************************//
+
+  /**
+    @notice
+    The contract that exposes price feeds.
+  */
+  IJBPrices public immutable prices;
+
+  /**
+    @notice
+    Gets the current overflowed amount in this for a specified project, in terms of ETH.
+
+    @dev
+    The current overflow is represented as a fixed point number with 18 decimals.
+
+    @param _projectId The ID of the project to get overflow for.
+
+    @return The current amount of ETH overflow that project has in this terminal, as a fixed point number with 18 decimals.
+  */
+  function currentEthOverflowOf(uint256 _projectId) external view override returns (uint256) {
+    uint256 _overflow = store.currentOverflowOf(this, _projectId);
+    if (currency == JBCurrencies.ETH) return _overflow;
+    else {
+      uint256 _targetDecimals = store.targetDecimals();
+      return
+        PRBMath.mulDiv(
+          _overflow,
+          _targetDecimals,
+          prices.priceFor(currency, JBCurrencies.ETH, _targetDecimals)
+        );
+    }
+  }
+
   constructor(
     address _token,
     uint256 _currency,
@@ -13,6 +48,7 @@ abstract contract JB18DecimalPaymentTerminal is JBPaymentTerminal {
     IJBProjects _projects,
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
+    IJBPrices _prices,
     JB18DecimalPaymentTerminalStore _store,
     address _owner
   )
@@ -28,5 +64,7 @@ abstract contract JB18DecimalPaymentTerminal is JBPaymentTerminal {
       _store,
       _owner
     )
-  {}
+  {
+    prices = _prices;
+  }
 }
