@@ -2,8 +2,8 @@
 pragma solidity 0.8.6;
 
 import '@paulrberg/contracts/math/PRBMath.sol';
-
 import './helpers/TestBaseWorkflow.sol';
+import './mock/MockPriceFeed.sol';
 
 contract TestMultipleTerminals is TestBaseWorkflow {
 
@@ -20,8 +20,8 @@ contract TestMultipleTerminals is TestBaseWorkflow {
 
   JBTokenStore _tokenStore;
   address _projectOwner;
-  address caller;
 
+  uint256 FAKE_PRICE = 10;
   uint256 WEIGHT = 1000 * 10**18;
   uint256 projectId;
 
@@ -112,15 +112,26 @@ contract TestMultipleTerminals is TestBaseWorkflow {
       _terminals
     );
 
-    // Send some token to the caller, so he can play
-    caller = msg.sender;
-    evm.label(caller, 'caller');
-    evm.prank(_projectOwner);
-    jbToken().transfer(caller, 20*10**18);
+    evm.startPrank(_projectOwner); // If evm.prank(), pranking only jbLib call...
 
+    MockPriceFeed _priceFeed = new MockPriceFeed(FAKE_PRICE);
+    evm.label(address(_priceFeed), 'MockPrice Feed');
+
+
+    jbPrices().addFeedFor(
+      jbLibraries().USD(), // currency
+      jbLibraries().ETH(), // base weight currency
+      _priceFeed
+    );
+    evm.stopPrank();
   }
 
   function testMultipleTerminal() public {
+    // Send some token to the caller, so he can play
+    address caller = msg.sender;
+    evm.label(caller, 'caller');
+    evm.prank(_projectOwner);
+    jbToken().transfer(caller, 20*10**18);
 
     // -- Pay in token --
 
@@ -130,7 +141,8 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     ERC20terminal.pay(20*10**18, projectId, msg.sender, 0, false, 'Forge test', new bytes(0));
 
     // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
-    uint256 _userTokenBalance = PRBMath.mulDiv(20*10**18, WEIGHT, 2);
+    // price feed will return FAKE_PRICE*18 (for curr usd/base eth); since it's an 18 decimal terminal (ie calling getPrice(18) )
+    uint256 _userTokenBalance = PRBMath.mulDiv( 20*10**18, WEIGHT, 36*FAKE_PRICE);
     assertEq(_tokenStore.balanceOf(msg.sender, projectId), _userTokenBalance);
 
     // verify: balance in terminal should be up to date
@@ -138,12 +150,12 @@ contract TestMultipleTerminals is TestBaseWorkflow {
 
     
     // -- Pay in ETH --
-    
-    ETHterminal.pay{value: 20 ether}(20 ether, projectId, msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
+    address beneficiaryTwo = address(696969);
+    ETHterminal.pay{value: 20 ether}(20 ether, projectId, beneficiaryTwo, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
 
      // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
-    uint256 _userEthBalance = PRBMath.mulDiv(20 ether, WEIGHT, 2);
-    assertEq(_tokenStore.balanceOf(msg.sender, projectId), _userEthBalance);
+    uint256 _userEthBalance = PRBMath.mulDiv(20 ether, (WEIGHT / 10**18), 2);
+    assertEq(_tokenStore.balanceOf(beneficiaryTwo, projectId), _userEthBalance);
 
     // verify: ETH balance in terminal should be up to date
     assertEq(jbPaymentTerminalStore().balanceOf(ETHterminal, projectId), 20 ether);
