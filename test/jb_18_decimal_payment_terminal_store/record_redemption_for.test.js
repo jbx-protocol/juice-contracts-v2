@@ -20,6 +20,7 @@ describe('JB18DecimalPaymentTerminalStore::recordRedemptionFor(...)', function (
   const AMOUNT = ethers.BigNumber.from('4398541');
   const WEIGHT = ethers.BigNumber.from('900000000');
   const CURRENCY = ethers.BigNumber.from(1);
+  const METADATA = ethers.utils.randomBytes(32);
 
   let decimals;
   async function setup() {
@@ -153,6 +154,7 @@ describe('JB18DecimalPaymentTerminalStore::recordRedemptionFor(...)', function (
       CURRENCY,
       /* beneficiary */ beneficiary.address,
       /* memo */ 'test',
+      METADATA
     );
 
     // Expect recorded balance to decrease by redeemed amount
@@ -232,6 +234,7 @@ describe('JB18DecimalPaymentTerminalStore::recordRedemptionFor(...)', function (
       CURRENCY,
       /* beneficiary */ beneficiary.address,
       /* memo */ 'test',
+      METADATA
     );
 
     // Expect recorded balance to not have changed
@@ -307,6 +310,7 @@ describe('JB18DecimalPaymentTerminalStore::recordRedemptionFor(...)', function (
       CURRENCY,
       /* beneficiary */ beneficiary.address,
       /* memo */ 'test',
+      METADATA
     );
 
     // Expect recorded balance to not have changed
@@ -371,6 +375,7 @@ describe('JB18DecimalPaymentTerminalStore::recordRedemptionFor(...)', function (
         currency: CURRENCY,
         beneficiary: beneficiary.address,
         memo: 'test',
+        metadata: METADATA
       })
       .returns(AMOUNT, newMemo, delegate.address);
 
@@ -395,6 +400,7 @@ describe('JB18DecimalPaymentTerminalStore::recordRedemptionFor(...)', function (
       CURRENCY,
       /* beneficiary */ beneficiary.address,
       /* memo */ 'test',
+      METADATA
     );
 
     expect(tx.delegate).to.equal(delegate.address);
@@ -422,6 +428,7 @@ describe('JB18DecimalPaymentTerminalStore::recordRedemptionFor(...)', function (
         CURRENCY,
         /* beneficiary */ beneficiary.address,
         /* memo */ 'test',
+        METADATA
       ),
     ).to.be.revertedWith(errors.INSUFFICIENT_TOKENS);
   });
@@ -475,6 +482,7 @@ describe('JB18DecimalPaymentTerminalStore::recordRedemptionFor(...)', function (
         CURRENCY,
         /* beneficiary */ beneficiary.address,
         /* memo */ 'test',
+        METADATA
       ),
     ).to.be.revertedWith(errors.FUNDING_CYCLE_REDEEM_PAUSED);
   });
@@ -535,6 +543,7 @@ describe('JB18DecimalPaymentTerminalStore::recordRedemptionFor(...)', function (
         currency: CURRENCY,
         beneficiary: beneficiary.address,
         memo: 'test',
+        metadata: METADATA
       })
       .returns(AMOUNT, newMemo, delegate.address);
 
@@ -548,6 +557,7 @@ describe('JB18DecimalPaymentTerminalStore::recordRedemptionFor(...)', function (
         CURRENCY,
         /* beneficiary */ beneficiary.address,
         /* memo */ 'test',
+        METADATA
       ),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });

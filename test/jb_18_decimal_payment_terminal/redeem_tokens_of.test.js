@@ -23,7 +23,7 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
   const ADJUSTED_MEMO = 'test test memo';
   const PROJECT_ID = 13;
   const WEIGHT = 1000;
-  const DELEGATE_METADATA = ethers.utils.randomBytes(32);
+  const METADATA = ethers.utils.randomBytes(32);
   const DECIMALS = 10;
 
   let CURRENCY_ETH;
@@ -142,6 +142,7 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
         CURRENCY_ETH,
         beneficiary.address,
         MEMO,
+        METADATA
       )
       .returns(
         fundingCycle,
@@ -163,7 +164,7 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
         /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
         beneficiary.address,
         MEMO,
-        DELEGATE_METADATA,
+        METADATA,
       );
 
     expect(await tx)
@@ -208,6 +209,7 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
         CURRENCY_ETH,
         beneficiary.address,
         MEMO,
+        METADATA
       )
       .returns(
         fundingCycle,
@@ -229,7 +231,7 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
         /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
         beneficiary.address,
         MEMO,
-        DELEGATE_METADATA,
+        METADATA,
       );
 
     expect(await tx)
@@ -282,6 +284,7 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
         CURRENCY_ETH,
         beneficiary.address,
         MEMO,
+        METADATA
       )
       .returns(
         fundingCycle,
@@ -301,7 +304,7 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
         decimals: DECIMALS,
         beneficiary: beneficiary.address,
         memo: ADJUSTED_MEMO,
-        metadata: DELEGATE_METADATA,
+        metadata: METADATA,
       })
       .returns();
 
@@ -318,7 +321,7 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
         /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
         beneficiary.address,
         MEMO,
-        DELEGATE_METADATA,
+        METADATA,
       );
 
     expect(await tx)
@@ -334,7 +337,7 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
           DECIMALS,
           /* _beneficiary */ beneficiary.address,
           /* memo */ ADJUSTED_MEMO,
-          ethers.BigNumber.from(DELEGATE_METADATA),
+          ethers.BigNumber.from(METADATA),
         ],
         /* msg.sender */ holder.address,
       );
@@ -388,6 +391,7 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
         CURRENCY_ETH,
         beneficiary.address,
         MEMO,
+        METADATA
       )
       .returns(
         fundingCycle,
@@ -409,7 +413,7 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
         /* minReturnedTokens */ 0,
         beneficiary.address,
         MEMO,
-        DELEGATE_METADATA,
+        METADATA,
       );
 
     expect(await tx)
@@ -499,6 +503,7 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
         CURRENCY_ETH,
         beneficiary.address,
         MEMO,
+        METADATA
       )
       .returns(
         fundingCycle,
@@ -517,7 +522,7 @@ describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
           /* minReturnedTokens */ MIN_RETURNED_AMOUNT,
           beneficiary.address,
           MEMO,
-          DELEGATE_METADATA,
+          METADATA,
         ),
     ).to.be.revertedWith(errors.INADEQUATE_RECLAIM_AMOUNT);
   });

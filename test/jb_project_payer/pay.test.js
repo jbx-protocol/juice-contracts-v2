@@ -14,7 +14,7 @@ describe('JBProjectPayer::pay(...)', function () {
   const TOKEN = ethers.Wallet.createRandom().address;
   const PREFER_CLAIMED_TOKENS = true;
   const MEMO = 'memo';
-  const DELEGATE_METADATA = [0x1];
+  const METADATA = [0x1];
   const AMOUNT = ethers.utils.parseEther('1.0');
 
   let JBTOKENS_ETH;
@@ -59,7 +59,7 @@ describe('JBProjectPayer::pay(...)', function () {
         0,
         PREFER_CLAIMED_TOKENS,
         MEMO,
-        DELEGATE_METADATA,
+        METADATA,
       )
       .returns();
 
@@ -70,7 +70,7 @@ describe('JBProjectPayer::pay(...)', function () {
         MEMO,
         PREFER_CLAIMED_TOKENS,
         TOKEN,
-        DELEGATE_METADATA,
+        METADATA,
         {
           value: AMOUNT,
         },
@@ -136,7 +136,7 @@ describe('JBProjectPayer::pay(...)', function () {
         MEMO,
         PREFER_CLAIMED_TOKENS,
         TOKEN,
-        DELEGATE_METADATA,
+        METADATA,
       ),
     ).to.be.revertedWith(errors.TERMINAL_NOT_FOUND);
   });
