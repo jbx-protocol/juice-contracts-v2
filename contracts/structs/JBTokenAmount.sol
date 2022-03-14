@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-struct JBAmount {
+struct JBTokenAmount {
   // The token the payment was made in.
   address token;
   // The amount of tokens that was paid, as a fixed point number.

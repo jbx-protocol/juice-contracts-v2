@@ -16,7 +16,7 @@ import './../libraries/JBSplitsGroups.sol';
 import './../libraries/JBTokens.sol';
 import './../libraries/JBFixedPointNumber.sol';
 
-import './../structs/JBAmount.sol';
+import './../structs/JBTokenAmount.sol';
 
 import './../JBPaymentTerminalStore.sol';
 
@@ -572,7 +572,7 @@ abstract contract JBPaymentTerminal is
           _holder,
           _projectId,
           _tokenCount,
-          JBAmount(token, reclaimAmount, decimals, currency),
+          JBTokenAmount(token, reclaimAmount, decimals, currency),
           _beneficiary,
           _memo,
           _metadata
@@ -966,8 +966,8 @@ abstract contract JBPaymentTerminal is
       IJBPayDelegate _delegate;
       uint256 _tokenCount;
 
-      // Bundle the amount info into a JBAmount struct.
-      JBAmount memory _bundledAmount = JBAmount(token, _amount, decimals, currency);
+      // Bundle the amount info into a JBTokenAmount struct.
+      JBTokenAmount memory _bundledAmount = JBTokenAmount(token, _amount, decimals, currency);
 
       // Record the payment.
       (_fundingCycle, _tokenCount, _delegate, _memo) = store.recordPaymentFrom(

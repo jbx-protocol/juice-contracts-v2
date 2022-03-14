@@ -15,7 +15,7 @@ import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 import './libraries/JBFixedPointNumber.sol';
 
-import './structs/JBAmount.sol';
+import './structs/JBTokenAmount.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
@@ -263,7 +263,7 @@ contract JBPaymentTerminalStore {
   */
   function recordPaymentFrom(
     address _payer,
-    JBAmount memory _amount,
+    JBTokenAmount memory _amount,
     uint256 _projectId,
     address _beneficiary,
     uint256 _baseWeightCurrency,
