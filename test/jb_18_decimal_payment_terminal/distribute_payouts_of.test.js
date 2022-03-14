@@ -621,8 +621,8 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
         await mockJbEthPaymentTerminal.mock.pay
           .withArgs(
             /*payoutAmount*/ Math.floor(
-              (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
-            ),
+            (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
+          ),
             split.projectId,
             split.beneficiary,
             /*minReturnedToken*/ 0,
@@ -1201,8 +1201,8 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
         await mockJbEthPaymentTerminal.mock.pay
           .withArgs(
             /*payoutAmount*/ Math.floor(
-              (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
-            ),
+            (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
+          ),
             split.projectId,
             split.beneficiary,
             /*minReturnedToken*/ 0,
@@ -1439,7 +1439,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
         /*_distributedAmount*/ AMOUNT_DISTRIBUTED,
         /*_feeAmount*/ 0,
         /*_leftoverDistributionAmount*/ AMOUNT_DISTRIBUTED -
-          ((AMOUNT_DISTRIBUTED * PERCENT) / SPLITS_TOTAL_PERCENT) * splits.length,
+        ((AMOUNT_DISTRIBUTED * PERCENT) / SPLITS_TOTAL_PERCENT) * splits.length,
         MEMO,
         caller.address,
       );

@@ -27,8 +27,6 @@ describe('JB18DecimalPaymentTerminalStore::recordPaymentFrom(...)', function () 
 
   let decimals;
 
-  let decimals;
-
   async function setup() {
     const [deployer, payer, beneficiary, ...addrs] = await ethers.getSigners();
 
