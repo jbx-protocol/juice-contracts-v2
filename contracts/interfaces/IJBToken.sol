@@ -18,6 +18,12 @@ interface IJBToken {
     uint256 _amount
   ) external;
 
+  function approve(
+    uint256,
+    address _spender,
+    uint256 _amount
+  ) external;
+
   function transfer(
     uint256 _projectId,
     address _to,
