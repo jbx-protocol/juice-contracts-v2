@@ -4,7 +4,7 @@ import { compilerOutput } from '@chainlink/contracts/abi/v0.6/AggregatorV3Interf
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { BigNumber } from '@ethersproject/bignumber';
 
-describe('JBChainlinkPriceFeed::getPrice(...)', function () {
+describe('JBChainlinkV3PriceFeed::getPrice(...)', function () {
   let deployer;
   let addrs;
 
@@ -19,7 +19,7 @@ describe('JBChainlinkPriceFeed::getPrice(...)', function () {
 
     aggregatorV3Contract = await deployMockContract(deployer, compilerOutput.abi);
 
-    jbChainlinkPriceFeedFactory = await ethers.getContractFactory('JBChainlinkPriceFeed');
+    jbChainlinkPriceFeedFactory = await ethers.getContractFactory('JBChainlinkV3PriceFeed');
     jbChainlinkPriceFeed = await jbChainlinkPriceFeedFactory.deploy(aggregatorV3Contract.address);
   });
 

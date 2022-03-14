@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import jbChainlinkPriceFeed from '../../artifacts/contracts/JBChainlinkPriceFeed.sol/JBChainlinkPriceFeed.json';
+import jbChainlinkPriceFeed from '../../artifacts/contracts/JBChainlinkV3PriceFeed.sol/JBChainlinkV3PriceFeed.json';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { BigNumber } from '@ethersproject/bignumber';
 import errors from '../helpers/errors.json';
