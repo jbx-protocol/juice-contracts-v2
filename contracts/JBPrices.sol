@@ -13,6 +13,14 @@ error PRICE_FEED_NOT_FOUND();
 
 /** 
   @notice Manages and normalizes price feeds.
+
+  @dev
+  Adheres to:
+  IJBPrices: General interface for the methods in this contract that interact with the blockchain's state according to the Juicebox protocol's rules.
+
+  @dev
+  Inherits from:
+  Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBPrices is IJBPrices, Ownable {
   //*********************************************************************//
@@ -23,8 +31,8 @@ contract JBPrices is IJBPrices, Ownable {
     @notice 
     The available price feeds.
 
-    _currency he currency of the feed.
-    _base he base of the feed. 
+    _currency The currency of the feed.
+    _base The currency the feed is based on.  
   */
   mapping(uint256 => mapping(uint256 => IJBPriceFeed)) public override feedFor;
 
@@ -40,14 +48,14 @@ contract JBPrices is IJBPrices, Ownable {
     @param _base The currency to base the price on.
     @param _decimals The number of decimals the returned fixed point price should include.
     
-    @return The price of the currency in terms of the base, with 18 decimals.
+    @return The price of the currency in terms of the base, as a fixed point number with the specified number of decimals.
   */
   function priceFor(
     uint256 _currency,
     uint256 _base,
     uint256 _decimals
   ) external view override returns (uint256) {
-    // If the currency is the base, return 1 since they are priced the same.
+    // If the currency is the base, return 1 since they are priced the same. Include the desired number of decimals.
     if (_currency == _base) return 10**_decimals;
 
     // Get a reference to the feed.
@@ -57,7 +65,7 @@ contract JBPrices is IJBPrices, Ownable {
     if (_feed == IJBPriceFeed(address(0))) revert PRICE_FEED_NOT_FOUND();
 
     // Get the price.
-    return _feed.getPrice(_decimals);
+    return _feed.currentPrice(_decimals);
   }
 
   //*********************************************************************//
@@ -95,7 +103,7 @@ contract JBPrices is IJBPrices, Ownable {
     // There can't already be a feed for the specified currency.
     if (feedFor[_currency][_base] != IJBPriceFeed(address(0))) revert PRICE_FEED_ALREADY_EXISTS();
 
-    // Set the feed.
+    // Store the feed.
     feedFor[_currency][_base] = _feed;
 
     emit AddFeed(_currency, _base, _feed);
