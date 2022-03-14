@@ -173,7 +173,7 @@ describe('JB18DecimalPaymentTerminal::migrate(...)', function () {
       mockJbToken,
     } = await setup();
 
-    await mockJbToken.mock.approve
+    await mockJbToken.mock['approve(address,uint256)']
       .withArgs(mockJB18DecimalERC20PaymentTerminal.address, CURRENT_TERMINAL_BALANCE)
       .returns(0);
     await JB18DecimalERC20PaymentTerminal.connect(projectOwner).migrate(
