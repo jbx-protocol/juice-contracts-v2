@@ -334,7 +334,10 @@ abstract contract JBPaymentTerminal is
       _feeEligibleDistributionAmount += _leftoverDistributionAmount;
 
       // Take the fee.
-      _feeAmount = _projectId == 1 || _feeEligibleDistributionAmount == 0 || fee == 0
+      _feeAmount = _projectId == 1 ||
+        _feeEligibleDistributionAmount == 0 ||
+        fee == 0 ||
+        _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
         ? 0
         : _takeFeeFrom(
           _projectId,
@@ -416,7 +419,7 @@ abstract contract JBPaymentTerminal is
       uint256 _feeDiscount = _getFeeDiscount(_projectId);
 
       // Take a fee from the `_withdrawnAmount`, if needed.
-      _feeAmount = fee == 0 || _projectId == 1
+      _feeAmount = fee == 0 || _projectId == 1 || _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
         ? 0
         : _takeFeeFrom(_projectId, _fundingCycle, _distributedAmount, _projectOwner, _feeDiscount);
     }
@@ -743,7 +746,7 @@ abstract contract JBPaymentTerminal is
       );
 
       // The payout amount substracting any incurred fees.
-      uint256 _netPayoutAmount = _projectId == 1
+      uint256 _netPayoutAmount = _projectId == 1 || _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
         ? _payoutAmount
         : _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount);
 
@@ -1042,6 +1045,10 @@ abstract contract JBPaymentTerminal is
     @return feeDiscount The fee discount, which should be interpreted as a percentage out MAX_FEE_DISCOUNT.
   */
   function _getFeeDiscount(uint256 _projectId) private view returns (uint256 feeDiscount) {
+    // Can't take a fee if the protocol project doesn't have a terminal that accepts the token.
+    if (directory.primaryTerminalOf(1, token) == IJBPaymentTerminal(address(0)))
+      return JBConstants.MAX_FEE_DISCOUNT;
+
     // Get the fee discount.
     feeDiscount = feeGauge == IJBFeeGauge(address(0)) ? 0 : feeGauge.currentDiscountFor(_projectId);
 
