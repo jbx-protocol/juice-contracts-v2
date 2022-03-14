@@ -351,8 +351,8 @@ abstract contract JBPaymentTerminal is
     // Record the distribution.
     (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordDistributionFor(
         _projectId,
-        JBAmount(address(0), _amount, decimals, _currency),
-        decimals, // The fixed point balance has this terminal's token's number of decimals.
+        _amount,
+        _currency,
         currency // The balance is in terms of this terminal's currency.
       );
 
@@ -452,8 +452,8 @@ abstract contract JBPaymentTerminal is
     // Record the use of the allowance.
     (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordUsedAllowanceOf(
         _projectId,
-        JBAmount(address(0), _amount, decimals, _currency),
-        decimals, // The fixed point balance has this terminal's token's number of decimals.
+        _amount,
+        _currency,
         currency // The balance is in terms of this terminal's currency.
       );
 
