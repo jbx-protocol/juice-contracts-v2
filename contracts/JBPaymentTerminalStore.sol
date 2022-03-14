@@ -466,10 +466,6 @@ contract JBPaymentTerminalStore {
         prices.priceFor(_currency, _balanceCurrency, _FIXED_POINT_MAX_FIDELITY)
       );
 
-    // The project balance should be bigger than the amount withdrawn from the overflow
-    if (balanceOf[IJBPaymentTerminal(msg.sender)][_projectId] < withdrawnAmount)
-      revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
-
     // The amount being withdrawn must be available in the overflow.
     if (
       withdrawnAmount >
