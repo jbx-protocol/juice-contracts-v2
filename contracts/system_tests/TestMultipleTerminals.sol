@@ -200,7 +200,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     ERC20terminal.redeemTokensOf(
       msg.sender,
       projectId,
-      senderBalance,// / (FAKE_PRICE*10**18),
+      senderBalance / (FAKE_PRICE*10**18),
       0,
       payable(msg.sender),
       'gimme my money back',
