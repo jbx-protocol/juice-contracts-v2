@@ -44,7 +44,12 @@ contract JBPaymentTerminalStore {
   // A library that provides utility for fixed point numbers.
   using JBFixedPointNumber for uint256;
 
+  /**
+    @notice
+    Ensures up to 18 decimal points of persisted fidelity on mulDiv operations of fixed point numbers. 
+  */
   uint256 private constant _FIXED_POINT_MAX_FIDELITY = 18;
+
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
