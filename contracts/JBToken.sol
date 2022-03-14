@@ -103,7 +103,7 @@ contract JBToken is IJBToken, ERC20, Ownable {
 
   /** 
     @notice
-    Transfer tokens between accounts.
+    Approves an account to spend tokens on the `msg.sender`s behalf.
 
     @param _spender The address that will be spending tokens on the `msg.sender`s behalf.
     @param _amount The amount the `_spender` is allowed to spend.
