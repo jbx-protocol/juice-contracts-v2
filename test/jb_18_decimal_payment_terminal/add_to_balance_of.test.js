@@ -12,6 +12,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
+import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 
 describe('JB18DecimalPaymentTerminal::addToBalanceOf(...)', function () {
   const PROJECT_ID = 2;
@@ -50,6 +51,7 @@ describe('JB18DecimalPaymentTerminal::addToBalanceOf(...)', function () {
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
+      mockJbPrices,
       mockJbToken,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
@@ -58,6 +60,7 @@ describe('JB18DecimalPaymentTerminal::addToBalanceOf(...)', function () {
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
+      deployMockContract(deployer, jbPrices.abi),
       deployMockContract(deployer, jbToken.abi),
     ]);
 
@@ -76,13 +79,14 @@ describe('JB18DecimalPaymentTerminal::addToBalanceOf(...)', function () {
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
+        mockJbPrices.address,
         mockJB18DecimalPaymentTerminalStore.address,
         terminalOwner.address,
       );
 
     const DECIMALS = 1;
 
-    await mockJB18DecimalPaymentTerminalStore.mock.TARGET_DECIMALS.returns(DECIMALS);
+    await mockJB18DecimalPaymentTerminalStore.mock.targetDecimals.returns(DECIMALS);
     await mockJbToken.mock.decimals.returns(DECIMALS);
 
     let JB18DecimalERC20PaymentTerminal = await jbErc20TerminalFactory
@@ -96,6 +100,7 @@ describe('JB18DecimalPaymentTerminal::addToBalanceOf(...)', function () {
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
+        mockJbPrices.address,
         mockJB18DecimalPaymentTerminalStore.address,
         terminalOwner.address,
       );

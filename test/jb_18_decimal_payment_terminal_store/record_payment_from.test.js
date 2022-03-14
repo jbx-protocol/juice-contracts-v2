@@ -23,6 +23,9 @@ describe('JB18DecimalPaymentTerminalStore::recordPaymentFrom(...)', function () 
 
   const CURRENCY = 1;
   const BASE_CURRENCY = 1;
+  const METADATA = ethers.utils.randomBytes(32);
+
+  let decimals;
 
   let decimals;
 
@@ -52,7 +55,7 @@ describe('JB18DecimalPaymentTerminalStore::recordPaymentFrom(...)', function () 
       mockJbTokenStore.address,
     );
 
-    decimals = await JB18DecimalPaymentTerminalStore.TARGET_DECIMALS();
+    decimals = await JB18DecimalPaymentTerminalStore.targetDecimals();
 
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);
@@ -119,6 +122,7 @@ describe('JB18DecimalPaymentTerminalStore::recordPaymentFrom(...)', function () 
       PROJECT_ID,
       beneficiary.address,
       /* memo */ 'test',
+      METADATA
     );
 
     // Expect recorded balance to change
@@ -162,6 +166,7 @@ describe('JB18DecimalPaymentTerminalStore::recordPaymentFrom(...)', function () 
       PROJECT_ID,
       beneficiary.address,
       /* memo */ 'test',
+      METADATA
     );
 
     // Expect recorded balance to change
@@ -219,6 +224,7 @@ describe('JB18DecimalPaymentTerminalStore::recordPaymentFrom(...)', function () 
         reservedRate: reservedRate,
         beneficiary: beneficiary.address,
         memo: memo,
+        metadata: METADATA
       })
       .returns(WEIGHT, newMemo, delegate.address);
 
@@ -233,6 +239,7 @@ describe('JB18DecimalPaymentTerminalStore::recordPaymentFrom(...)', function () 
       /* projectId */ PROJECT_ID,
       beneficiary.address,
       /* memo */ memo,
+      METADATA
     );
 
     // Expect recorded balance to change
@@ -277,6 +284,7 @@ describe('JB18DecimalPaymentTerminalStore::recordPaymentFrom(...)', function () 
       PROJECT_ID,
       beneficiary.address,
       /* memo */ 'test',
+      METADATA
     );
 
     // Expect recorded balance to change
@@ -330,6 +338,7 @@ describe('JB18DecimalPaymentTerminalStore::recordPaymentFrom(...)', function () 
       PROJECT_ID,
       beneficiary.address,
       /* memo */ 'test',
+      METADATA
     );
 
     // Expect recorded balance to change
@@ -386,6 +395,7 @@ describe('JB18DecimalPaymentTerminalStore::recordPaymentFrom(...)', function () 
         reservedRate: reservedRate,
         beneficiary: beneficiary.address,
         memo: memo,
+        metadata: METADATA
       })
       .returns(WEIGHT, newMemo, delegate.address);
 
@@ -402,6 +412,7 @@ describe('JB18DecimalPaymentTerminalStore::recordPaymentFrom(...)', function () 
       /* projectId */ PROJECT_ID,
       beneficiary.address,
       /* memo */ memo,
+      METADATA
     );
 
     // Recorded balance should not have changed
@@ -444,6 +455,7 @@ describe('JB18DecimalPaymentTerminalStore::recordPaymentFrom(...)', function () 
         PROJECT_ID,
         beneficiary.address,
         /* memo */ 'test',
+        METADATA
       ),
     ).to.be.revertedWith(errors.INVALID_FUNDING_CYCLE);
   });
@@ -478,6 +490,7 @@ describe('JB18DecimalPaymentTerminalStore::recordPaymentFrom(...)', function () 
         PROJECT_ID,
         beneficiary.address,
         /* memo */ 'test',
+        METADATA
       ),
     ).to.be.revertedWith(errors.FUNDING_CYCLE_PAYMENT_PAUSED);
   });

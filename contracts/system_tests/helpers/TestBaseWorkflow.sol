@@ -209,6 +209,7 @@ contract TestBaseWorkflow is DSTest {
       _jbProjects,
       _jbDirectory,
       _jbSplitsStore,
+      _jbPrices,
       _jbPaymentTerminalStore,
       _multisig
     );
@@ -230,6 +231,7 @@ contract TestBaseWorkflow is DSTest {
       _jbProjects,
       _jbDirectory,
       _jbSplitsStore,
+      _jbPrices,
       _jbPaymentTerminalStore,
       _multisig
     );

@@ -12,6 +12,7 @@ import jbFeeGauge from '../../artifacts/contracts/interfaces/IJBFeeGauge.sol/IJB
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
+import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 
 describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
   const PLATFORM_PROJECT_ID = 1;
@@ -89,6 +90,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
+      mockJbPrices,
     ] = await Promise.all([
       deployMockContract(deployer, jbAllocator.abi),
       deployMockContract(deployer, jbDirectory.abi),
@@ -98,6 +100,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
+      deployMockContract(deployer, jbPrices.abi)
     ]);
 
     const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
@@ -114,6 +117,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
+        mockJbPrices.address,
         mockJB18DecimalPaymentTerminalStore.address,
         terminalOwner.address,
       );
@@ -349,6 +353,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
             split.projectId,
             split.beneficiary,
             '',
+            '0x'
           )
           .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
       }),
@@ -712,6 +717,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
         /*CURRENCY*/ 1,
         projectOwner.address,
         '',
+        '0x'
       )
       .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
 
@@ -724,6 +730,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
             split.projectId,
             split.beneficiary,
             '',
+            '0x'
           )
           .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
       }),
@@ -1295,6 +1302,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
             split.projectId,
             split.beneficiary,
             '',
+            '0x'
           )
           .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
       }),

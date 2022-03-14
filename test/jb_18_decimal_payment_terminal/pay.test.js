@@ -10,13 +10,14 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
+import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 import jbPayDelegate from '../../artifacts/contracts/interfaces/IJBPayDelegate.sol/IJBPayDelegate.json';
 
 describe('JB18DecimalPaymentTerminal::pay(...)', function () {
   const PROJECT_ID = 1;
   const MEMO = 'Memo Test';
   const ADJUSTED_MEMO = 'test test memo';
-  const DELEGATE_METADATA = ethers.utils.randomBytes(32);
+  const METADATA = ethers.utils.randomBytes(32);
   const FUNDING_CYCLE_NUMBER = 1;
   const ADJUSTED_WEIGHT = 10;
   const MIN_TOKEN_REQUESTED = 90;
@@ -45,6 +46,7 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
       mockJbProjects,
       mockJbSplitsStore,
       mockJbPayDelegate,
+      mockJbPrices,
       mockJbController,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
@@ -53,6 +55,7 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
       deployMockContract(deployer, jbPayDelegate.abi),
+      deployMockContract(deployer, jbPrices.abi),
       deployMockContract(deployer, jbController.abi),
     ]);
 
@@ -73,13 +76,14 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
+        mockJbPrices.address,
         mockJB18DecimalPaymentTerminalStore.address,
         terminalOwner.address,
       );
 
     ethToken = await jbEthPaymentTerminal.token();
 
-    await mockJB18DecimalPaymentTerminalStore.mock.TARGET_DECIMALS.returns(DECIMALS);
+    await mockJB18DecimalPaymentTerminalStore.mock.targetDecimals.returns(DECIMALS);
     await mockJbToken.mock.decimals.returns(DECIMALS);
 
     let JB18DecimalERC20PaymentTerminal = await jbErc20TerminalFactory
@@ -93,6 +97,7 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
         mockJbProjects.address,
         mockJbDirectory.address,
         mockJbSplitsStore.address,
+        mockJbPrices.address,
         mockJB18DecimalPaymentTerminalStore.address,
         terminalOwner.address,
       );
@@ -106,7 +111,7 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
       .returns(true);
 
     await mockJB18DecimalPaymentTerminalStore.mock.recordPaymentFrom
-      .withArgs(caller.address, ETH_TO_PAY, PROJECT_ID, beneficiary.address, MEMO)
+      .withArgs(caller.address, ETH_TO_PAY, PROJECT_ID, beneficiary.address, MEMO, METADATA)
       .returns(
         {
           // mock JBFundingCycle obj
@@ -175,7 +180,7 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
           MIN_TOKEN_REQUESTED,
           PREFER_CLAIMED_TOKENS,
           MEMO,
-          DELEGATE_METADATA,
+          METADATA,
           { value: ETH_TO_PAY },
         ),
     )
@@ -219,7 +224,7 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
       .returns(TOKEN_RECEIVED);
 
     await mockJB18DecimalPaymentTerminalStore.mock.recordPaymentFrom
-      .withArgs(caller.address, ETH_TO_PAY, PROJECT_ID, beneficiary.address, MEMO)
+      .withArgs(caller.address, ETH_TO_PAY, PROJECT_ID, beneficiary.address, MEMO, METADATA)
       .returns(
         {
           // mock JBFundingCycle obj
@@ -251,7 +256,7 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
         projectTokenCount: TOKEN_RECEIVED,
         beneficiary: beneficiary.address,
         memo: ADJUSTED_MEMO,
-        delegateMetadata: DELEGATE_METADATA,
+        metadata: METADATA,
       })
       .returns();
 
@@ -264,7 +269,7 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
         MIN_TOKEN_REQUESTED,
         PREFER_CLAIMED_TOKENS,
         MEMO,
-        DELEGATE_METADATA,
+        METADATA,
         { value: ETH_TO_PAY },
       );
 
@@ -282,7 +287,7 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
           /* tokenCount */ TOKEN_RECEIVED,
           /* beneficiary */ beneficiary.address,
           /* memo */ ADJUSTED_MEMO,
-          /* delegateMetadata */ ethers.BigNumber.from(DELEGATE_METADATA),
+          /* metadata */ ethers.BigNumber.from(METADATA),
         ],
         caller.address,
       );
@@ -328,7 +333,7 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
         MIN_TOKEN_REQUESTED,
         /*preferClaimedToken=*/ true,
         MEMO,
-        DELEGATE_METADATA,
+        METADATA,
         { value: ETH_TO_PAY },
       );
   });
@@ -342,7 +347,7 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
     } = await setup();
 
     await mockJB18DecimalPaymentTerminalStore.mock.recordPaymentFrom
-      .withArgs(caller.address, ETH_TO_PAY, PROJECT_ID, beneficiary.address, MEMO)
+      .withArgs(caller.address, ETH_TO_PAY, PROJECT_ID, beneficiary.address, MEMO, METADATA)
       .returns(
         {
           // mock JBFundingCycle obj
@@ -371,7 +376,7 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
         0,
         PREFER_CLAIMED_TOKENS,
         MEMO,
-        DELEGATE_METADATA,
+        METADATA,
         { value: ETH_TO_PAY },
       );
   });
@@ -409,7 +414,7 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
       MIN_TOKEN_REQUESTED,
       PREFER_CLAIMED_TOKENS,
       MEMO,
-      DELEGATE_METADATA,
+      METADATA,
       { value: 0 },
     );
   });
@@ -425,7 +430,7 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
         MIN_TOKEN_REQUESTED,
         PREFER_CLAIMED_TOKENS,
         MEMO,
-        DELEGATE_METADATA,
+        METADATA,
         { value: ETH_TO_PAY },
       ),
     ).to.be.revertedWith(errors.NO_MSG_VALUE_ALLOWED);
@@ -444,7 +449,7 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
           MIN_TOKEN_REQUESTED,
           PREFER_CLAIMED_TOKENS,
           MEMO,
-          DELEGATE_METADATA,
+          METADATA,
           { value: ETH_TO_PAY },
         ),
     ).to.be.revertedWith(errors.PAY_TO_ZERO_ADDRESS);
@@ -468,7 +473,7 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
           MIN_TOKEN_REQUESTED,
           PREFER_CLAIMED_TOKENS,
           MEMO,
-          DELEGATE_METADATA,
+          METADATA,
           { value: ETH_TO_PAY },
         ),
     ).to.be.revertedWith(errors.PROJECT_TERMINAL_MISMATCH);
@@ -483,7 +488,7 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
     } = await setup();
 
     await mockJB18DecimalPaymentTerminalStore.mock.recordPaymentFrom
-      .withArgs(caller.address, ETH_TO_PAY, PROJECT_ID, beneficiary.address, MEMO)
+      .withArgs(caller.address, ETH_TO_PAY, PROJECT_ID, beneficiary.address, MEMO, METADATA)
       .returns(
         {
           // mock JBFundingCycle obj
@@ -513,7 +518,7 @@ describe('JB18DecimalPaymentTerminal::pay(...)', function () {
           MIN_TOKEN_REQUESTED,
           PREFER_CLAIMED_TOKENS,
           MEMO,
-          DELEGATE_METADATA,
+          METADATA,
           { value: ETH_TO_PAY },
         ),
     ).to.be.revertedWith(errors.INADEQUATE_TOKEN_COUNT);

@@ -71,6 +71,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
       jbProjects(),
       jbDirectory(),
       jbSplitsStore(),
+      jbPrices(),
       jbPaymentTerminalStore(),
       multisig()
     );

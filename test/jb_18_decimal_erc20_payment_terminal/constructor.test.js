@@ -10,6 +10,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
+import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 
 describe('JB18DecimalERC20PaymentTerminal::constructor(...)', function () {
   it("Can't deploy contract if erc20 doesnt have the target decimals", async function () {
@@ -21,6 +22,7 @@ describe('JB18DecimalERC20PaymentTerminal::constructor(...)', function () {
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
+      mockJbPrices,
       mockJbToken,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
@@ -28,6 +30,7 @@ describe('JB18DecimalERC20PaymentTerminal::constructor(...)', function () {
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
+      deployMockContract(deployer, jbPrices.abi),
       deployMockContract(deployer, jbToken.abi),
     ]);
 
@@ -42,7 +45,7 @@ describe('JB18DecimalERC20PaymentTerminal::constructor(...)', function () {
     const CURRENCY = 2;
     const SPLITS_GROUP = 3;
 
-    await mockJB18DecimalPaymentTerminalStore.mock.TARGET_DECIMALS.returns(DECIMALS1);
+    await mockJB18DecimalPaymentTerminalStore.mock.targetDecimals.returns(DECIMALS1);
     await mockJbToken.mock.decimals.returns(DECIMALS2);
 
     await expect(
@@ -57,6 +60,7 @@ describe('JB18DecimalERC20PaymentTerminal::constructor(...)', function () {
           mockJbProjects.address,
           mockJbDirectory.address,
           mockJbSplitsStore.address,
+          mockJbPrices.address,
           mockJB18DecimalPaymentTerminalStore.address,
           terminalOwner.address,
         ),

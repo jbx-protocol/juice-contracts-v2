@@ -10,7 +10,7 @@ struct JBPayParamsData {
   address payer;
   // The ETH amount of the payment.
   uint256 amount;
-  // TODO
+  // The number of decimals included in the `_amount` fixed point number that was paid.
   uint256 decimals;
   // The ID of the project being paid.
   uint256 projectId;
@@ -22,4 +22,6 @@ struct JBPayParamsData {
   address beneficiary;
   // The proposed memo that is being emitted alongside the payment.
   string memo;
+  // Arbitrary metadata provided by the payer.
+  bytes metadata;
 }
