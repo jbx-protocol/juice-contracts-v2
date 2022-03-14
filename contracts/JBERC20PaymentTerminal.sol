@@ -7,15 +7,9 @@ import '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 // Inheritance
 import './abstract/JBPaymentTerminal.sol';
 
-//*********************************************************************//
-// --------------------------- custom errors ------------------------- //
-//*********************************************************************//
-error TOKEN_DECIMALS_MUST_MATCH();
-
 contract JBERC20PaymentTerminal is JBPaymentTerminal {
   constructor(
     IERC20Metadata _token,
-    uint256 _decimals,
     uint256 _currency,
     uint256 _baseWeightCurrency,
     uint256 _payoutSplitsGroup,
@@ -29,7 +23,7 @@ contract JBERC20PaymentTerminal is JBPaymentTerminal {
   )
     JBPaymentTerminal(
       address(_token),
-      _decimals,
+      _token.decimals(),
       _currency,
       _baseWeightCurrency,
       _payoutSplitsGroup,
@@ -41,9 +35,9 @@ contract JBERC20PaymentTerminal is JBPaymentTerminal {
       _store,
       _owner
     )
+  // solhint-disable-next-line no-empty-blocks
   {
-    // Make sure the ERC20 has the specified number of decimals.
-    if (_token.decimals() != _decimals) revert TOKEN_DECIMALS_MUST_MATCH();
+
   }
 
   function _transferFrom(
