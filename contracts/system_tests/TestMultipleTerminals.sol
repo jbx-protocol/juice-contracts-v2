@@ -117,12 +117,18 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     MockPriceFeed _priceFeed = new MockPriceFeed(FAKE_PRICE);
     evm.label(address(_priceFeed), 'MockPrice Feed');
 
-
     jbPrices().addFeedFor(
       jbLibraries().USD(), // currency
       jbLibraries().ETH(), // base weight currency
       _priceFeed
     );
+
+    jbPrices().addFeedFor(
+      jbLibraries().ETH(), // currency
+      jbLibraries().USD(), // base weight currency
+      _priceFeed
+    );
+
     evm.stopPrank();
   }
 
@@ -187,18 +193,19 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     // // Funds leaving the ecosystem -> fee taken
     // assertEq(jbToken().balanceOf(_projectOwner), initBalance + (10*10**18 * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE()) );
 
-    // // redeem eth from the overflow by the token holder:
-    // uint256 senderBalance = _tokenStore.balanceOf(msg.sender, projectId);
-    // evm.prank(msg.sender);
-    // terminal.redeemTokensOf(
-    //   msg.sender,
-    //   projectId,
-    //   senderBalance,
-    //   0,
-    //   payable(msg.sender),
-    //   'gimme my money back',
-    //   new bytes(0)
-    // );
+    // redeem eth from the overflow by the token holder:
+    uint256 senderBalance = _tokenStore.balanceOf(msg.sender, projectId);
+
+    evm.prank(msg.sender);
+    ERC20terminal.redeemTokensOf(
+      msg.sender,
+      projectId,
+      senderBalance,// / (FAKE_PRICE*10**18),
+      0,
+      payable(msg.sender),
+      'gimme my money back',
+      new bytes(0)
+    );
 
     // // verify: beneficiary should have a balance of 0 JBTokens
     // assertEq(_tokenStore.balanceOf(msg.sender, projectId), 0);
