@@ -16,16 +16,6 @@ error PRICE_FEED_NOT_FOUND();
 */
 contract JBPrices is IJBPrices, Ownable {
   //*********************************************************************//
-  // ---------------- public constant stored properties ---------------- //
-  //*********************************************************************//
-
-  /** 
-    @notice 
-    The normalized number of decimals each price feed has.
-  */
-  uint256 public constant override TARGET_DECIMALS = 18;
-
-  //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
 
@@ -48,12 +38,17 @@ contract JBPrices is IJBPrices, Ownable {
     
     @param _currency The currency to get a price for.
     @param _base The currency to base the price on.
+    @param _decimals The number of decimals the returned fixed point price should include.
     
     @return The price of the currency in terms of the base, with 18 decimals.
   */
-  function priceFor(uint256 _currency, uint256 _base) external view override returns (uint256) {
+  function priceFor(
+    uint256 _currency,
+    uint256 _base,
+    uint256 _decimals
+  ) external view override returns (uint256) {
     // If the currency is the base, return 1 since they are priced the same.
-    if (_currency == _base) return 10**TARGET_DECIMALS;
+    if (_currency == _base) return 10**_decimals;
 
     // Get a reference to the feed.
     IJBPriceFeed _feed = feedFor[_currency][_base];
@@ -62,7 +57,7 @@ contract JBPrices is IJBPrices, Ownable {
     if (_feed == IJBPriceFeed(address(0))) revert PRICE_FEED_NOT_FOUND();
 
     // Get the price.
-    return _feed.getPrice(TARGET_DECIMALS);
+    return _feed.getPrice(_decimals);
   }
 
   //*********************************************************************//

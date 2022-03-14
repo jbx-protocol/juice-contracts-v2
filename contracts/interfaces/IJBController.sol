@@ -2,7 +2,7 @@
 pragma solidity 0.8.6;
 
 import './IJBDirectory.sol';
-import './IJBTerminal.sol';
+import './IJBPaymentTerminal.sol';
 import './IJBFundingCycleStore.sol';
 
 interface IJBController {
@@ -33,24 +33,24 @@ interface IJBController {
   function overflowAllowanceOf(
     uint256 _projectId,
     uint256 _configuration,
-    IJBTerminal _terminal
+    IJBPaymentTerminal _terminal
   ) external view returns (uint256);
 
   function overflowAllowanceCurrencyOf(
     uint256 _projectId,
     uint256 _configuration,
-    IJBTerminal _terminal
+    IJBPaymentTerminal _terminal
   ) external view returns (uint256);
 
   function distributionLimitOf(
     uint256 _projectId,
     uint256 _configuration,
-    IJBTerminal _terminal
+    IJBPaymentTerminal _terminal
   ) external view returns (uint256);
 
   function distributionLimitCurrencyOf(
     uint256 _projectId,
     uint256 _configuration,
-    IJBTerminal _terminal
+    IJBPaymentTerminal _terminal
   ) external view returns (uint256);
 }

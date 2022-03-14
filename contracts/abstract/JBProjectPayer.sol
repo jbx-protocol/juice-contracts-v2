@@ -66,7 +66,7 @@ abstract contract JBProjectPayer is Ownable {
     @param _memo A memo that will be included in the published event.
     @param _preferClaimedTokens Whether ERC20's should be claimed automatically if they have been issued.
     @param _token The token to pay in.
-    @param _delegateMetadata Bytes to send along with payments to the funding cycle's pay delegate.
+    @param _metadata Bytes to send along with payments to the funding cycle's pay delegate.
   */
   function pay(
     uint256 _projectId,
@@ -74,17 +74,9 @@ abstract contract JBProjectPayer is Ownable {
     string memory _memo,
     bool _preferClaimedTokens,
     address _token,
-    bytes memory _delegateMetadata
+    bytes memory _metadata
   ) external payable {
-    _pay(
-      _projectId,
-      msg.value,
-      _beneficiary,
-      _memo,
-      _preferClaimedTokens,
-      _token,
-      _delegateMetadata
-    );
+    _pay(_projectId, msg.value, _beneficiary, _memo, _preferClaimedTokens, _token, _metadata);
   }
 
   /** 
@@ -97,7 +89,7 @@ abstract contract JBProjectPayer is Ownable {
     @param _memo A memo that will be included in the published event.
     @param _preferClaimedTokens Whether ERC20's should be claimed automatically if they have been issued.
     @param _token The token to pay in.
-    @param _delegateMetadata Bytes to send along with payments to the funding cycle's pay delegate.
+    @param _metadata Bytes to send along with payments to the funding cycle's data source and pay delegate.
   */
   function _pay(
     uint256 _projectId,
@@ -106,13 +98,13 @@ abstract contract JBProjectPayer is Ownable {
     string memory _memo,
     bool _preferClaimedTokens,
     address _token,
-    bytes memory _delegateMetadata
+    bytes memory _metadata
   ) internal {
     // Find the terminal for this contract's project.
-    IJBTerminal _terminal = directory.primaryTerminalOf(_projectId, _token);
+    IJBPaymentTerminal _terminal = directory.primaryTerminalOf(_projectId, _token);
 
     // There must be a terminal.
-    if (_terminal == IJBTerminal(address(0))) revert TERMINAL_NOT_FOUND();
+    if (_terminal == IJBPaymentTerminal(address(0))) revert TERMINAL_NOT_FOUND();
 
     // There must be enough funds in the contract to fund the treasury.
     if (address(this).balance < _amount) revert INSUFFICIENT_BALANCE();
@@ -127,7 +119,7 @@ abstract contract JBProjectPayer is Ownable {
       0,
       _preferClaimedTokens,
       _memo,
-      _delegateMetadata
+      _metadata
     );
   }
 }

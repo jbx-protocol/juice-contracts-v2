@@ -18,8 +18,15 @@ describe('JBToken::transferFrom(...)', function () {
   it('Should transfer token and emit event if caller is owner', async function () {
     const { addrs, jbToken } = await setup();
     const numTokens = 5;
-    await jbToken.connect(addrs[1]).approve(addrs[3].address, numTokens);
-    const transferTx = await jbToken.connect(addrs[3])['transferFrom(uint256,address,address,uint256)'](PROJECT_ID, addrs[1].address, addrs[2].address, numTokens);
+    await jbToken.connect(addrs[1])['approve(address,uint256)'](addrs[3].address, numTokens);
+    const transferTx = await jbToken
+      .connect(addrs[3])
+    ['transferFrom(uint256,address,address,uint256)'](
+      PROJECT_ID,
+      addrs[1].address,
+      addrs[2].address,
+      numTokens,
+    );
 
     await expect(transferTx)
       .to.emit(jbToken, 'Transfer')
@@ -35,25 +42,46 @@ describe('JBToken::transferFrom(...)', function () {
     const numTokens = 5;
 
     await expect(
-      jbToken.connect(addrs[1])['transferFrom(uint256,address,address,uint256)'](PROJECT_ID, addrs[1].address, addrs[2].address, numTokens)
+      jbToken
+        .connect(addrs[1])
+      ['transferFrom(uint256,address,address,uint256)'](
+        PROJECT_ID,
+        addrs[1].address,
+        addrs[2].address,
+        numTokens,
+      ),
     ).to.be.revertedWith('ERC20: transfer amount exceeds allowance');
   });
 
   it(`Can't transfer to zero address`, async function () {
     const { addrs, jbToken } = await setup();
     const numTokens = startingBalance + 1;
-    await jbToken.connect(addrs[1]).approve(addrs[3].address, numTokens);
+    await jbToken.connect(addrs[1])['approve(address,uint256)'](addrs[3].address, numTokens);
     await expect(
-      jbToken.connect(addrs[3])['transferFrom(uint256,address,address,uint256)'](PROJECT_ID, addrs[1].address, ethers.constants.AddressZero, numTokens)
+      jbToken
+        .connect(addrs[3])
+      ['transferFrom(uint256,address,address,uint256)'](
+        PROJECT_ID,
+        addrs[1].address,
+        ethers.constants.AddressZero,
+        numTokens,
+      ),
     ).to.be.revertedWith('ERC20: transfer to the zero address');
   });
 
   it(`Can't transfer tokens if burn amount exceeds balance`, async function () {
     const { addrs, jbToken } = await setup();
     const numTokens = startingBalance + 1;
-    await jbToken.connect(addrs[1]).approve(addrs[3].address, numTokens);
+    await jbToken.connect(addrs[1])[`approve(address,uint256)`](addrs[3].address, numTokens);
     await expect(
-      jbToken.connect(addrs[3])['transferFrom(uint256,address,address,uint256)'](PROJECT_ID, addrs[1].address, addrs[2].address, numTokens)
+      jbToken
+        .connect(addrs[3])
+      ['transferFrom(uint256,address,address,uint256)'](
+        PROJECT_ID,
+        addrs[1].address,
+        addrs[2].address,
+        numTokens,
+      ),
     ).to.be.revertedWith('ERC20: transfer amount exceeds balance');
   });
 });

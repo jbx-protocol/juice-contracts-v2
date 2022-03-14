@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBTerminal.sol/IJBTerminal.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
 import errors from '../helpers/errors.json';
 
 // NOTE: `fundTreasury()` is not a public API. The example Juicebox project has a `mint()` function that calls this internally.
@@ -14,7 +14,7 @@ describe('JBProjectPayer::fundTreasury(...)', function () {
   const AMOUNT = ethers.utils.parseEther('1.0');
   const BENEFICIARY = ethers.Wallet.createRandom().address;
   const MEMO = 'hello world';
-  const DELEGATE_METADATA = [0x1];
+  const METADATA = [0x1];
   const PREFER_CLAIMED_TOKENS = true;
   const TOKEN = ethers.Wallet.createRandom().address;
 
@@ -47,15 +47,32 @@ describe('JBProjectPayer::fundTreasury(...)', function () {
       .returns(mockJbTerminal.address);
 
     await mockJbTerminal.mock.pay
-      .withArgs(AMOUNT, MISC_PROJECT_ID, BENEFICIARY, 0, PREFER_CLAIMED_TOKENS, MEMO, DELEGATE_METADATA)
+      .withArgs(
+        AMOUNT,
+        MISC_PROJECT_ID,
+        BENEFICIARY,
+        0,
+        PREFER_CLAIMED_TOKENS,
+        MEMO,
+        METADATA,
+      )
       .returns();
 
     await expect(
       jbFakeProjectPayer
         .connect(addrs[0])
-        .mint(MISC_PROJECT_ID, AMOUNT, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA, {
-          value: AMOUNT,
-        }),
+        .mint(
+          MISC_PROJECT_ID,
+          AMOUNT,
+          BENEFICIARY,
+          MEMO,
+          PREFER_CLAIMED_TOKENS,
+          TOKEN,
+          METADATA,
+          {
+            value: AMOUNT,
+          },
+        ),
     ).to.not.be.reverted;
   });
 
@@ -69,7 +86,15 @@ describe('JBProjectPayer::fundTreasury(...)', function () {
     await expect(
       jbFakeProjectPayer
         .connect(addrs[0])
-        .mint(MISC_PROJECT_ID, AMOUNT, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA),
+        .mint(
+          MISC_PROJECT_ID,
+          AMOUNT,
+          BENEFICIARY,
+          MEMO,
+          PREFER_CLAIMED_TOKENS,
+          TOKEN,
+          METADATA,
+        ),
     ).to.be.revertedWith(errors.TERMINAL_NOT_FOUND);
   });
 
@@ -84,7 +109,15 @@ describe('JBProjectPayer::fundTreasury(...)', function () {
     await expect(
       jbFakeProjectPayer
         .connect(addrs[0])
-        .mint(MISC_PROJECT_ID, AMOUNT, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS, TOKEN, DELEGATE_METADATA),
+        .mint(
+          MISC_PROJECT_ID,
+          AMOUNT,
+          BENEFICIARY,
+          MEMO,
+          PREFER_CLAIMED_TOKENS,
+          TOKEN,
+          METADATA,
+        ),
     ).to.be.revertedWith(errors.INSUFFICIENT_BALANCE);
   });
 });

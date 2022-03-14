@@ -4,7 +4,7 @@ pragma solidity 0.8.6;
 import '@openzeppelin/contracts/access/Ownable.sol';
 
 import './abstract/JBOperatable.sol';
-import './interfaces/IJBTerminal.sol';
+import './interfaces/IJBPaymentTerminal.sol';
 import './interfaces/IJBDirectory.sol';
 import './libraries/JBOperations.sol';
 
@@ -35,7 +35,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     _projectId The ID of the project to get terminals of.
   */
-  mapping(uint256 => IJBTerminal[]) private _terminalsOf;
+  mapping(uint256 => IJBPaymentTerminal[]) private _terminalsOf;
 
   /**
     @notice
@@ -44,7 +44,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     _projectId The ID of the project to get the primary terminal of.
     _token The token to get the project's primary terminal of.
   */
-  mapping(uint256 => mapping(address => IJBTerminal)) private _primaryTerminalOf;
+  mapping(uint256 => mapping(address => IJBPaymentTerminal)) private _primaryTerminalOf;
 
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
@@ -86,7 +86,12 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     @return An array of terminal addresses.
   */
-  function terminalsOf(uint256 _projectId) external view override returns (IJBTerminal[] memory) {
+  function terminalsOf(uint256 _projectId)
+    external
+    view
+    override
+    returns (IJBPaymentTerminal[] memory)
+  {
     return _terminalsOf[_projectId];
   }
 
@@ -99,7 +104,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     @return A flag indicating whether or not the specified terminal is a terminal of the specified project.
   */
-  function isTerminalOf(uint256 _projectId, IJBTerminal _terminal)
+  function isTerminalOf(uint256 _projectId, IJBPaymentTerminal _terminal)
     public
     view
     override
@@ -126,20 +131,20 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     public
     view
     override
-    returns (IJBTerminal)
+    returns (IJBPaymentTerminal)
   {
     // If a primary terminal for the token was specifically set, return it.
-    if (_primaryTerminalOf[_projectId][_token] != IJBTerminal(address(0)))
+    if (_primaryTerminalOf[_projectId][_token] != IJBPaymentTerminal(address(0)))
       return _primaryTerminalOf[_projectId][_token];
 
     // Return the first terminal which accepts the specified token.
     for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++) {
-      IJBTerminal _terminal = _terminalsOf[_projectId][_i];
+      IJBPaymentTerminal _terminal = _terminalsOf[_projectId][_i];
       if (_terminal.token() == _token) return _terminal;
     }
 
     // Not found.
-    return IJBTerminal(address(0));
+    return IJBPaymentTerminal(address(0));
   }
 
   //*********************************************************************//
@@ -201,7 +206,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @param _projectId The ID of the project having a terminal added.
     @param _terminals The terminals to add.
   */
-  function addTerminalsOf(uint256 _projectId, IJBTerminal[] calldata _terminals)
+  function addTerminalsOf(uint256 _projectId, IJBPaymentTerminal[] calldata _terminals)
     external
     override
     requirePermissionAllowingOverride(
@@ -213,7 +218,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   {
     for (uint256 _i = 0; _i < _terminals.length; _i++) {
       // Can't be the zero address.
-      if (_terminals[_i] == IJBTerminal(address(0))) revert ADD_TERMINAL_ZERO_ADDRESS();
+      if (_terminals[_i] == IJBPaymentTerminal(address(0))) revert ADD_TERMINAL_ZERO_ADDRESS();
 
       _addTerminalIfNeeded(_projectId, _terminals[_i]);
     }
@@ -229,13 +234,13 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @param _projectId The ID of the project having a terminal removed.
     @param _terminal The terminal to remove.
   */
-  function removeTerminalOf(uint256 _projectId, IJBTerminal _terminal)
+  function removeTerminalOf(uint256 _projectId, IJBPaymentTerminal _terminal)
     external
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.REMOVE_TERMINAL)
   {
     // Get a reference to the terminals of the project.
-    IJBTerminal[] memory _terminals = _terminalsOf[_projectId];
+    IJBPaymentTerminal[] memory _terminals = _terminalsOf[_projectId];
 
     // Delete the stored terminals for the project.
     delete _terminalsOf[_projectId];
@@ -263,13 +268,13 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @param _projectId The ID of the project for which a primary token is being set.
     @param _terminal The terminal to make primary.
   */
-  function setPrimaryTerminalOf(uint256 _projectId, IJBTerminal _terminal)
+  function setPrimaryTerminalOf(uint256 _projectId, IJBPaymentTerminal _terminal)
     external
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.SET_PRIMARY_TERMINAL)
   {
     // Can't set the zero address.
-    if (_terminal == IJBTerminal(address(0))) revert SET_PRIMARY_TERMINAL_ZERO_ADDRESS();
+    if (_terminal == IJBPaymentTerminal(address(0))) revert SET_PRIMARY_TERMINAL_ZERO_ADDRESS();
 
     // Get a reference to the token that the terminal's vault accepts.
     address _token = _terminal.token();
@@ -341,7 +346,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @param _projectId The ID of the project having a terminal added.
     @param _terminal The terminal to add.
   */
-  function _addTerminalIfNeeded(uint256 _projectId, IJBTerminal _terminal) private {
+  function _addTerminalIfNeeded(uint256 _projectId, IJBPaymentTerminal _terminal) private {
     // Check that the terminal has not already been added.
     if (isTerminalOf(_projectId, _terminal)) return;
 

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './../interfaces/IJBTerminal.sol';
+import './../interfaces/IJBPaymentTerminal.sol';
 
 struct JBFundAccessConstraints {
   // The terminal within which the distribution limit and the overflow allowance applies.
-  IJBTerminal terminal;
+  IJBPaymentTerminal terminal;
   // The amount of the distribution limit.
   uint256 distributionLimit;
   // The currency that the distribution limit are denoted in.

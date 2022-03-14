@@ -69,7 +69,12 @@ describe('JBTokenStore::transferFrom(...)', function () {
     // Transfer unclaimed tokens to new recipient
     const transferFromTx = await jbTokenStore
       .connect(controller)
-      .transferFrom(/* sender */ holder.address, PROJECT_ID, /* recipient */ recipient.address, numTokens);
+      .transferFrom(
+        /* sender */ holder.address,
+        PROJECT_ID,
+        /* recipient */ recipient.address,
+        numTokens,
+      );
 
     expect(await jbTokenStore.unclaimedBalanceOf(holder.address, PROJECT_ID)).to.equal(0);
     expect(await jbTokenStore.unclaimedBalanceOf(recipient.address, PROJECT_ID)).to.equal(
@@ -91,7 +96,12 @@ describe('JBTokenStore::transferFrom(...)', function () {
     await expect(
       jbTokenStore
         .connect(controller)
-        .transferFrom(holder.address, PROJECT_ID, /* recipient */ ethers.constants.AddressZero, /* amount= */ 1),
+        .transferFrom(
+          holder.address,
+          PROJECT_ID,
+          /* recipient */ ethers.constants.AddressZero,
+          /* amount= */ 1,
+        ),
     ).to.be.revertedWith(errors.RECIPIENT_ZERO_ADDRESS);
   });
 
@@ -107,7 +117,12 @@ describe('JBTokenStore::transferFrom(...)', function () {
     await expect(
       jbTokenStore
         .connect(controller)
-        .transferFrom(/* sender */ holder.address, PROJECT_ID, /* recipient */ recipient.address, /* amount= */ 1),
+        .transferFrom(
+          /* sender */ holder.address,
+          PROJECT_ID,
+          /* recipient */ recipient.address,
+          /* amount= */ 1,
+        ),
     ).to.be.revertedWith(errors.INSUFFICIENT_UNCLAIMED_TOKENS);
   });
 
@@ -122,7 +137,12 @@ describe('JBTokenStore::transferFrom(...)', function () {
     await expect(
       jbTokenStore
         .connect(controller)
-        .transferFrom(/* sender */ holder.address, PROJECT_ID, /* recipient */ recipient.address, /* amount= */ 1),
+        .transferFrom(
+          /* sender */ holder.address,
+          PROJECT_ID,
+          /* recipient */ recipient.address,
+          /* amount= */ 1,
+        ),
     ).to.be.reverted;
   });
 });

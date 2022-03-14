@@ -70,9 +70,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
 
     await Promise.all([
       mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address),
-      mockJbDirectory.mock.isTerminalOf
-        .withArgs(PROJECT_ID, projectOwner.address)
-        .returns(false),
+      mockJbDirectory.mock.isTerminalOf.withArgs(PROJECT_ID, projectOwner.address).returns(false),
       mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
         number: 1,
         configuration: timestamp,
@@ -96,7 +94,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
         ethers.constants.AddressZero,
         MEMO,
         PREFERED_CLAIMED_TOKEN,
-        /*useReservedRate*/true,
+        /*useReservedRate*/ true,
       );
 
     return {
@@ -357,7 +355,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
     const { addrs, projectOwner, jbController, mockJbTokenStore, mockSplitsStore, timestamp } =
       await setup();
     const caller = addrs[0];
-    const splits = makeSplits({count: 2, preferClaimed: true});
+    const splits = makeSplits({ count: 2, preferClaimed: true });
 
     await mockSplitsStore.mock.splitsOf
       .withArgs(PROJECT_ID, timestamp, RESERVED_SPLITS_GROUP)
@@ -369,7 +367,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
           .withArgs(
             caller.address,
             PROJECT_ID,
-            /*amount=*/ Math.floor(RESERVED_AMOUNT/splits.length),
+            /*amount=*/ Math.floor(RESERVED_AMOUNT / splits.length),
             PREFERED_CLAIMED_TOKEN,
           )
           .returns();

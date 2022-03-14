@@ -96,8 +96,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   if ((await jbDirectoryContract.connect(signer).owner()) != multisigAddress)
     await jbDirectoryContract.connect(signer).transferOwnership(multisigAddress);
 
-
-  const JBPaymentTerminalStore = await deploy('JBPaymentTerminalStore', {
+  const JB18DecimalPaymentTerminalStore = await deploy('JB18DecimalPaymentTerminalStore', {
     ...baseDeployArgs,
     args: [
       JBPrices.address,
@@ -116,7 +115,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   //     JBProjects.address,
   //     JBDirectory.address,
   //     JBSplitStore.address,
-  //     JBPaymentTerminalStore.address,
+  //     JB18DecimalPaymentTerminalStore.address,
   //     multisigAddress,
   //   ],
   // });
