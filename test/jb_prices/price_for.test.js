@@ -29,7 +29,7 @@ describe('JBPrices::priceFor(...)', function () {
    * Initialiazes mock price feed, adds it to JBPrices, and returns the fetched result.
    */
   async function addFeedAndFetchPrice(price, currency, base) {
-    await priceFeed.mock.getPrice.withArgs(DECIMALS).returns(price);
+    await priceFeed.mock.currentPrice.withArgs(DECIMALS).returns(price);
 
     await jbPrices.connect(deployer).addFeedFor(currency, base, priceFeed.address);
     return await jbPrices.connect(deployer).priceFor(currency, base, DECIMALS);

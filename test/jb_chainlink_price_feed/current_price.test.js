@@ -4,7 +4,7 @@ import { compilerOutput } from '@chainlink/contracts/abi/v0.6/AggregatorV3Interf
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { BigNumber } from '@ethersproject/bignumber';
 
-describe('JBChainlinkV3PriceFeed::getPrice(...)', function () {
+describe('JBChainlinkV3PriceFeed::currentPrice(...)', function () {
   let deployer;
   let addrs;
 
@@ -26,15 +26,15 @@ describe('JBChainlinkV3PriceFeed::getPrice(...)', function () {
   /**
    * Initialiazes mock price feed, adds it to JBPrices, and returns the fetched result.
    */
-  async function getPrice(price, decimals) {
+  async function currentPrice(price, decimals) {
     await aggregatorV3Contract.mock.latestRoundData.returns(0, price, 0, 0, 0);
     await aggregatorV3Contract.mock.decimals.returns(decimals);
-    return await jbChainlinkPriceFeed.connect(deployer).getPrice(targetDecimals);
+    return await jbChainlinkPriceFeed.connect(deployer).currentPrice(targetDecimals);
   }
 
   it('Get price no decimals', async function () {
     let price = 400;
-    expect(await getPrice(price, /*decimals=*/ 0)).to.equal(
+    expect(await currentPrice(price, /*decimals=*/ 0)).to.equal(
       ethers.BigNumber.from(price).mul(BigNumber.from(10).pow(targetDecimals)),
     );
   });
@@ -42,20 +42,20 @@ describe('JBChainlinkV3PriceFeed::getPrice(...)', function () {
   it('Check price less than target decimal', async function () {
     let price = 400;
     let decimals = targetDecimals - 1;
-    expect(await getPrice(price, decimals)).to.equal(
+    expect(await currentPrice(price, decimals)).to.equal(
       ethers.BigNumber.from(price).mul(BigNumber.from(10).pow(targetDecimals - decimals)),
     );
   });
 
   it('Check price target decimals', async function () {
     let price = 400;
-    expect(await getPrice(price, targetDecimals)).to.equal(ethers.BigNumber.from(price));
+    expect(await currentPrice(price, targetDecimals)).to.equal(ethers.BigNumber.from(price));
   });
 
   it('Check price more than target decimals', async function () {
     let price = 400;
     let decimals = targetDecimals + 1;
-    expect(await getPrice(price, decimals)).to.equal(
+    expect(await currentPrice(price, decimals)).to.equal(
       ethers.BigNumber.from(price).div(ethers.BigNumber.from(10).pow(decimals - targetDecimals)),
     );
   });
