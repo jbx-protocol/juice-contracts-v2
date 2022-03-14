@@ -5,7 +5,6 @@ import '../../interfaces/IJBPriceFeed.sol';
 
 
 contract MockPriceFeed is IJBPriceFeed {
-
   uint256 public fakePrice;
 
   constructor(uint256 _fakePrice) {
