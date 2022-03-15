@@ -45,15 +45,15 @@ contract JBFakeProjectPayer is JBProjectPayer {
     uint256 _amount,
     address _beneficiary,
     uint256 _minReturnedTokens,
-    string memory _memo,
     bool _preferClaimedTokens,
+    string memory _memo,
     bytes memory _metadata
   ) external payable {
     // Mint NFT, etc.
     // ...
 
     // Fund Juicebox treasury.
-    _pay(
+    pay(
       _projectId,
       _token,
       _amount,
@@ -64,14 +64,4 @@ contract JBFakeProjectPayer is JBProjectPayer {
       _metadata
     );
   }
-
-  function _transferFrom(
-    address,
-    address payable _to,
-    uint256 _amount
-  ) internal virtual override {
-    Address.sendValue(_to, _amount);
-  }
-
-  function _beforeTransferTo(address _to, uint256 _amount) internal virtual override {}
 }

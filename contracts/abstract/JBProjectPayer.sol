@@ -3,6 +3,7 @@ pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Address.sol';
+import '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 
 import './../interfaces/IJBDirectory.sol';
 import './../libraries/JBTokens.sol';
@@ -92,6 +93,22 @@ abstract contract JBProjectPayer is Ownable {
   }
 
   /** 
+    Received funds go straight to the project.
+  */
+  receive() external payable virtual {
+    _pay(
+      defaultProjectId,
+      JBTokens.ETH,
+      address(this).balance,
+      defaultBeneficiary == address(0) ? msg.sender : defaultBeneficiary,
+      0, // Can't determine expectation of returned tokens ahead of time.
+      defaultPreferClaimedTokens,
+      defaultMemo,
+      defaultMetadata
+    );
+  }
+
+  /** 
     @notice 
     Sets the default values that determin how to interact with a protocol treasury when this contract receives ETH directly.
 
@@ -110,6 +127,7 @@ abstract contract JBProjectPayer is Ownable {
   ) external onlyOwner {
     defaultProjectId = _projectId;
     defaultBeneficiary = _beneficiary;
+    defaultPreferClaimedTokens = _preferClaimedTokens;
     defaultMemo = _memo;
     defaultMetadata = _metadata;
     emit SetDefaultValues(
@@ -131,8 +149,8 @@ abstract contract JBProjectPayer is Ownable {
     @param _amount The amount of terminal tokens being received, as a fixed point number with the amount of decimals as the `_token`'s termina. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
     @param _beneficiary The address who will receive tickets from this fee.
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point
-    @param _memo A memo that will be included in the published event.
     @param _preferClaimedTokens Whether ERC20's should be claimed automatically if they have been issued.
+    @param _memo A memo that will be included in the published event.
     @param _metadata Bytes to send along with payments to the funding cycle's pay delegate.
   */
   function pay(
@@ -141,22 +159,22 @@ abstract contract JBProjectPayer is Ownable {
     uint256 _amount,
     address _beneficiary,
     uint256 _minReturnedTokens,
-    string memory _memo,
     bool _preferClaimedTokens,
+    string memory _memo,
     bytes memory _metadata
-  ) external payable {
+  ) public payable {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
-    if (_token != JBTokens.ETH) {
+    if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
 
       // Transfer tokens to this terminal from the msg sender.
-      _transferFrom(msg.sender, payable(address(this)), _amount);
+      IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
     } else _amount = msg.value;
 
     _pay(
       _projectId,
-      JBTokens.ETH,
-      address(this).balance,
+      _token,
+      _amount,
       _beneficiary,
       _minReturnedTokens,
       _preferClaimedTokens,
@@ -194,8 +212,10 @@ abstract contract JBProjectPayer is Ownable {
     // There must be a terminal.
     if (_terminal == IJBPaymentTerminal(address(0))) revert TERMINAL_NOT_FOUND();
 
-    _beforeTransferTo(address(_terminal), _amount);
+    // Approve the `_amount` of tokens from this terminal to transfer tokens from this terminal.
+    if (_token != JBTokens.ETH) IERC20(_token).approve(address(_terminal), _amount);
 
+    // If this terminal's token is ETH, send it in msg.value.
     uint256 _payableValue = _token == JBTokens.ETH ? _amount : 0;
 
     // Send funds to the terminal.
@@ -209,12 +229,4 @@ abstract contract JBProjectPayer is Ownable {
       _metadata
     );
   }
-
-  function _transferFrom(
-    address _from,
-    address payable _to,
-    uint256 _amount
-  ) internal virtual;
-
-  function _beforeTransferTo(address _to, uint256 _amount) internal virtual;
 }
