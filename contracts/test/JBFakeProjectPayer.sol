@@ -11,7 +11,28 @@ import '../abstract/JBProjectPayer.sol';
 */
 contract JBFakeProjectPayer is JBProjectPayer {
   // solhint-disable-next-line no-empty-blocks
-  constructor(uint256 _projectId, IJBDirectory _directory) JBProjectPayer(_projectId, _directory) {}
+  constructor(
+    uint256 _defaultProjectId,
+    address payable _defaultBeneficiary,
+    bool _defaultPreferClaimedTokens,
+    string memory _defaultMemo,
+    bytes memory _defaultMetadata,
+    IJBDirectory _directory,
+    address _owner
+  )
+    JBProjectPayer(
+      _defaultProjectId,
+      _defaultBeneficiary,
+      _defaultPreferClaimedTokens,
+      _defaultMemo,
+      _defaultMetadata,
+      _directory,
+      _owner
+    )
+  // solhint-disable-next-line no-empty-blocks
+  {
+
+  }
 
   /**
     @dev
@@ -20,17 +41,37 @@ contract JBFakeProjectPayer is JBProjectPayer {
    */
   function mint(
     uint256 _projectId,
+    address _token,
     uint256 _amount,
     address _beneficiary,
+    uint256 _minReturnedTokens,
     string memory _memo,
     bool _preferClaimedTokens,
-    address _token,
     bytes memory _metadata
   ) external payable {
     // Mint NFT, etc.
     // ...
 
     // Fund Juicebox treasury.
-    _pay(_projectId, _amount, _beneficiary, _memo, _preferClaimedTokens, _token, _metadata);
+    _pay(
+      _projectId,
+      _token,
+      _amount,
+      _beneficiary,
+      _minReturnedTokens,
+      _preferClaimedTokens,
+      _memo,
+      _metadata
+    );
   }
+
+  function _transferFrom(
+    address,
+    address payable _to,
+    uint256 _amount
+  ) internal virtual override {
+    Address.sendValue(_to, _amount);
+  }
+
+  function _beforeTransferTo(address _to, uint256 _amount) internal virtual override {}
 }

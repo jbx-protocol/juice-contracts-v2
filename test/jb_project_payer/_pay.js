@@ -8,30 +8,46 @@ import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.
 import errors from '../helpers/errors.json';
 
 // NOTE: `fundTreasury()` is not a public API. The example Juicebox project has a `mint()` function that calls this internally.
-describe('JBProjectPayer::fundTreasury(...)', function () {
+describe.only('JBProjectPayer::fundTreasury(...)', function () {
   const INITIAL_PROJECT_ID = 1;
+  const INITIAL_BENEFICIARY = ethers.Wallet.createRandom().address;
+  const INITIAL_PREFER_CLAIMED_TOKENS = false;
+  const INITIAL_MEMO = 'hello world';
+  const INITIAL_METADATA = [0x1];
   const MISC_PROJECT_ID = 7;
   const AMOUNT = ethers.utils.parseEther('1.0');
   const BENEFICIARY = ethers.Wallet.createRandom().address;
-  const MEMO = 'hello world';
-  const METADATA = [0x1];
   const PREFER_CLAIMED_TOKENS = true;
-  const TOKEN = ethers.Wallet.createRandom().address;
+  const MIN_RETURNED_TOKENS = 1;
+  const MEMO = 'hi world';
+  const METADATA = [0x2];
+  let ETH_TOKEN;
 
   async function setup() {
-    let [deployer, ...addrs] = await ethers.getSigners();
+    let [deployer, owner, ...addrs] = await ethers.getSigners();
+    owner;
+    let jbTokenFactory = await ethers.getContractFactory('JBTokens');
+    let jbToken = await jbTokenFactory.deploy();
 
     let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
     let mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
 
+    ETH_TOKEN = jbToken.ETH;
+
     let jbFakeProjectFactory = await ethers.getContractFactory('JBFakeProjectPayer');
     let jbFakeProjectPayer = await jbFakeProjectFactory.deploy(
       INITIAL_PROJECT_ID,
+      INITIAL_BENEFICIARY,
+      INITIAL_PREFER_CLAIMED_TOKENS,
+      INITIAL_MEMO,
+      INITIAL_METADATA,
       mockJbDirectory.address,
+      owner
     );
 
     return {
       deployer,
+      owner,
       addrs,
       mockJbDirectory,
       mockJbTerminal,
@@ -39,8 +55,8 @@ describe('JBProjectPayer::fundTreasury(...)', function () {
     };
   }
 
-  it(`Should fund project treasury`, async function () {
-    const { jbFakeProjectPayer, addrs, mockJbDirectory, mockJbTerminal } = await setup();
+  it.only(`Should fund project treasury`, async function () {
+    const { jbFakeProjectPayer, addrs, mockJbDirectory, mockJbTerminal, owner } = await setup();
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(MISC_PROJECT_ID, TOKEN)
@@ -51,7 +67,7 @@ describe('JBProjectPayer::fundTreasury(...)', function () {
         AMOUNT,
         MISC_PROJECT_ID,
         BENEFICIARY,
-        0,
+        MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
         MEMO,
         METADATA,
@@ -63,11 +79,12 @@ describe('JBProjectPayer::fundTreasury(...)', function () {
         .connect(addrs[0])
         .mint(
           MISC_PROJECT_ID,
+          ETH_TOKEN,
           AMOUNT,
           BENEFICIARY,
-          MEMO,
+          MIN_RETURNED_TOKENS,
           PREFER_CLAIMED_TOKENS,
-          TOKEN,
+          MEMO,
           METADATA,
           {
             value: AMOUNT,
