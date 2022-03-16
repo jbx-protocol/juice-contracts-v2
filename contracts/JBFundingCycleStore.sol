@@ -17,8 +17,16 @@ error INVALID_WEIGHT();
 /** 
   @notice 
   Manages funding cycle configurations and scheduling.
+
+  @dev
+  Adheres to:
+  IJBTokenStore: General interface for the methods in this contract that interact with the blockchain's state according to the Juicebox protocol's rules.
+
+  @dev
+  Inherits from:
+  JBControllerUtility: Includes convenience functionality for checking if the message sender is the current controller of the project whose data is being manipulated.
 */
-contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
+contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//
@@ -505,7 +513,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
     @param _projectId The ID of the project to look through.
 
-    @return configuration The configuration of the active funding cycle.
+    @return configuration The configuration of an eligible funding cycle if one exists, or 0 if one doesn't exist.
   */
   function _eligibleOf(uint256 _projectId) private view returns (uint256 configuration) {
     // Get a reference to the project's latest funding cycle.
@@ -515,7 +523,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     JBFundingCycle memory _fundingCycle = _getStructFor(_projectId, configuration);
 
     // If the latest is expired, return an empty funding cycle.
-    // A duration of 0 can not be expired.
+    // A duration of 0 cannot be expired.
     if (
       _fundingCycle.duration > 0 && block.timestamp >= _fundingCycle.start + _fundingCycle.duration
     ) return 0;
@@ -554,7 +562,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     view
     returns (JBFundingCycle memory)
   {
-    // The distance of the current time to the start of the next possible funding cycle.
+    // Get the distance of the current time to the start of the next possible funding cycle.
     // If the returned mock cycle must not yet have started, the start time of the mock must be in the future.
     // If the base funding cycle doesn't have a duration, no adjustment is necessary because the next cycle can start immediately.
     uint256 _mustStartAtOrAfter = !_allowMidCycle || _baseFundingCycle.duration == 0
@@ -588,7 +596,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @param _projectId The ID of the project to which the funding cycle belongs.
     @param _configuration The funding cycle configuration to get the full struct for.
 
-    @return fundingCycle The funding cycle struct.
+    @return fundingCycle A funding cycle struct.
   */
   function _getStructFor(uint256 _projectId, uint256 _configuration)
     private
@@ -602,15 +610,22 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
     uint256 _packedIntrinsicProperties = _packedIntrinsicPropertiesOf[_projectId][_configuration];
 
+    // weight in bits 0-87 bits.
     fundingCycle.weight = uint256(uint88(_packedIntrinsicProperties));
+    // basedOn in bits 88-143 bits.
     fundingCycle.basedOn = uint256(uint56(_packedIntrinsicProperties >> 88));
+    // start in bits 144-199 bits.
     fundingCycle.start = uint256(uint56(_packedIntrinsicProperties >> 144));
+    // number in bits 200-255 bits.
     fundingCycle.number = uint256(uint56(_packedIntrinsicProperties >> 200));
 
     uint256 _packedUserProperties = _packedUserPropertiesOf[_projectId][_configuration];
 
+    // ballot in bits 0-159 bits.
     fundingCycle.ballot = IJBFundingCycleBallot(address(uint160(_packedUserProperties)));
+    // duration in bits 160-223 bits.
     fundingCycle.duration = uint256(uint64(_packedUserProperties >> 160));
+    // discountRate in bits 224-255 bits.
     fundingCycle.discountRate = uint256(uint32(_packedUserProperties >> 224));
 
     fundingCycle.metadata = _metadataOf[_projectId][_configuration];
@@ -620,7 +635,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @notice 
     The date that is the nearest multiple of the specified funding cycle's duration from its end.
 
-    @param _baseFundingCycle The funding cycle to make the calculation for.
+    @param _baseFundingCycle The funding cycle to base the calculation on.
     @param _mustStartAtOrAfter A date that the derived start must be on or come after.
 
     @return start The next start time.
@@ -639,7 +654,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // If the next immediate start is now or in the future, return it.
     if (_nextImmediateStart >= _mustStartAtOrAfter) return _nextImmediateStart;
 
-    // The amount of seconds since the `_mustStartAtOrAfter` time that results in a start time that might satisfy the specified constraints.
+    // The amount of seconds since the `_mustStartAtOrAfter` time which results in a start time that might satisfy the specified constraints.
     uint256 _timeFromImmediateStartMultiple = (_mustStartAtOrAfter - _nextImmediateStart) %
       _baseFundingCycle.duration;
 
@@ -654,10 +669,10 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @notice 
     The accumulated weight change since the specified funding cycle.
 
-    @param _baseFundingCycle The funding cycle to make the calculation with.
-    @param _start The start time to derive a weight for.
+    @param _baseFundingCycle The funding cycle to base the calculation on.
+    @param _start The start time of the funding cycle to derive a number for.
 
-    @return weight The next weight.
+    @return weight The derived weight, as a fixed point number with 18 decimals.
   */
   function _deriveWeightFrom(JBFundingCycle memory _baseFundingCycle, uint256 _start)
     private
@@ -702,10 +717,10 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     @notice 
     The number of the next funding cycle given the specified funding cycle.
 
-    @param _baseFundingCycle The funding cycle to make the calculation with.
-    @param _start The start time to derive a number for.
+    @param _baseFundingCycle The funding cycle to base the calculation on.
+    @param _start The start time of the funding cycle to derive a number for.
 
-    @return The next number.
+    @return The funding cycle number.
   */
   function _deriveNumberFrom(JBFundingCycle memory _baseFundingCycle, uint256 _start)
     private
@@ -723,14 +738,14 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
   }
 
   /** 
-  @notice 
-  Checks to see if the provided funding cycle is approved according to the correct ballot.
+    @notice 
+    Checks to see if the provided funding cycle is approved according to the correct ballot.
 
-  @param _projectId The ID of the project to which the funding cycle belongs. 
-  @param _fundingCycle The funding cycle to get an approval flag for.
+    @param _projectId The ID of the project to which the funding cycle belongs. 
+    @param _fundingCycle The funding cycle to get an approval flag for.
 
-  @return The approval flag.
-*/
+    @return The approval flag.
+  */
   function _isApproved(uint256 _projectId, JBFundingCycle memory _fundingCycle)
     private
     view
@@ -743,13 +758,13 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
   /**
     @notice 
-    A funding cycle configuration's current status.
+    A project's latest funding cycle configuration approval status.
 
     @param _projectId The ID of the project to which the funding cycle belongs.
     @param _configuration The funding cycle configuration to get the ballot state of.
     @param _ballotFundingCycleConfiguration The configuration of the funding cycle which is configured with the ballot that should be used.
 
-    @return The funding cycle's configuration status.
+    @return The ballot state of the project.
   */
   function _ballotStateOf(
     uint256 _projectId,
