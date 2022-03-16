@@ -97,11 +97,11 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     The funding cycle that's next up for the specified project.
 
     @dev
-    Returns an empty funding cycle with all properties set to 0 if a queued funding cycle of the project is not found.
+    If a queued funding cycle of the project is not found, returns an empty funding cycle with all properties set to 0.
 
     @param _projectId The ID of the project to get the queued funding cycle of.
 
-    @return fundingCycle The queued funding cycle.
+    @return fundingCycle The project's queued funding cycle.
   */
   function queuedOf(uint256 _projectId)
     external
@@ -109,7 +109,7 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     override
     returns (JBFundingCycle memory fundingCycle)
   {
-    // The project must have funding cycles.
+    // If the project does not have a funding cycle, return an empty struct.
     if (latestConfigurationOf[_projectId] == 0) return _getStructFor(0, 0);
 
     // Get a reference to the configuration of the standby funding cycle.
@@ -118,12 +118,15 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     // If it exists, return it's funding cycle if it is approved
     if (_standbyFundingCycleConfiguration > 0) {
       fundingCycle = _getStructFor(_projectId, _standbyFundingCycleConfiguration);
+
       if (_isApproved(_projectId, fundingCycle)) return fundingCycle;
-      // Resolve the funding cycle for the for the latest configured funding cycle.
+
+      // Resolve the funding cycle for the latest configured funding cycle.
       fundingCycle = _getStructFor(_projectId, fundingCycle.basedOn);
     } else {
-      // Resolve the funding cycle for the for the latest configured funding cycle.
+      // Resolve the funding cycle for the latest configured funding cycle.
       fundingCycle = _getStructFor(_projectId, latestConfigurationOf[_projectId]);
+
       // If the latest funding cycle starts in the future, it must start in the distant future
       // since its not in standby. In this case base the queued cycles on the base cycle.
       if (fundingCycle.start > block.timestamp)
@@ -149,11 +152,11 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     The funding cycle that is currently active for the specified project.
 
     @dev
-    Returns an empty funding cycle with all properties set to 0 if a current funding cycle of the project is not found.
+    If a current funding cycle of the project is not found, returns an empty funding cycle with all properties set to 0.
 
     @param _projectId The ID of the project to get the current funding cycle of.
 
-    @return fundingCycle The current funding cycle.
+    @return fundingCycle The project's current funding cycle.
   */
   function currentOf(uint256 _projectId)
     external
@@ -161,7 +164,7 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     override
     returns (JBFundingCycle memory fundingCycle)
   {
-    // The project must have funding cycles.
+    // If the project does not have a funding cycle, return an empty struct.
     if (latestConfigurationOf[_projectId] == 0) return _getStructFor(0, 0);
 
     // Get a reference to the configuration of the eligible funding cycle.
@@ -195,7 +198,7 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
         _fundingCycleConfiguration = _fundingCycle.basedOn;
     }
 
-    // The funding cycle cant be 0.
+    // If there is not funding cycle to base the current one on, there can't be a current one.
     if (_fundingCycleConfiguration == 0) return _getStructFor(0, 0);
 
     // The funding cycle to base a current one on.
@@ -211,13 +214,13 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
 
     @param _projectId The ID of the project to check the ballot state of.
 
-    @return The current ballot's state.
+    @return The project's current ballot's state.
   */
   function currentBallotStateOf(uint256 _projectId) external view override returns (JBBallotState) {
     // Get a reference to the latest funding cycle configuration.
     uint256 _fundingCycleConfiguration = latestConfigurationOf[_projectId];
 
-    // Resolve the funding cycle for the for the latest configuration.
+    // Resolve the funding cycle for the latest configuration.
     JBFundingCycle memory _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
 
     return _ballotStateOf(_projectId, _fundingCycle.configuration, _fundingCycle.basedOn);
@@ -320,7 +323,7 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     Updates the configurable funding cycle for this project if it exists, otherwise creates one.
 
     @param _projectId The ID of the project to find a configurable funding cycle for.
-    @param _configuration The time at which the configuration is occurring.
+    @param _configuration The time at which the funding cycle was configured.
     @param _weight The weight to store in the configured funding cycle.
     @param _mustStartAtOrAfter The time before which the initialized funding cycle can't start.
   */
@@ -348,8 +351,8 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     JBFundingCycle memory _fundingCycle = _getStructFor(_projectId, _currentConfiguration);
 
     if (!_isApproved(_projectId, _fundingCycle))
-      // If it hasn't been approved, set the ID to be the based funding cycle,
-      // which carries the last approved configuration.
+      // If it hasn't been approved, set the ID to be the funding cycle it's based on,
+      // which carries the latest approved configuration.
       _currentConfiguration = _getStructFor(_projectId, _currentConfiguration).basedOn;
 
     // Determine the funding cycle to use as the base.
@@ -476,7 +479,7 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     
     @param _projectId The ID of a project to look through for a standby cycle.
 
-    @return configuration The configuration of the standby funding cycle.
+    @return configuration The configuration of the standby funding cycle if one exists, or 0 if one doesn't exist.
   */
   function _standbyOf(uint256 _projectId) private view returns (uint256 configuration) {
     // Get a reference to the project's latest funding cycle.
