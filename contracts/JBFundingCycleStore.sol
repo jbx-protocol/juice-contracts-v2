@@ -248,15 +248,9 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     Only a project's current controller can configure its funding cycles.
 
     @param _projectId The ID of the project being configured.
-    @param _data The funding cycle configuration.
-      @dev _data.duration The duration of the funding cycle. Measured in days. 
-        Set to 0 for no expiry and to be able to reconfigure anytime.
-      @dev _data.discountRate A number from 0-1000000000 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
-        If it's 0, each funding cycle will have equal weight.
-        If the number is 900000000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
-      @dev _data.ballot The new ballot that will be used to approve subsequent reconfigurations.
-    @param _metadata Data to associate with this funding cycle configuration.
-    @param _mustStartAtOrAfter The time before which the initialized funding cycle can't start.
+    @param _data The funding cycle configuration data.
+    @param _metadata Arbitrary extra data to associate with this funding cycle configuration that's not used within.
+    @param _mustStartAtOrAfter The time before which the initialized funding cycle cannot start.
 
     @return The funding cycle that the configuration will take effect during.
   */
@@ -269,7 +263,7 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     // Duration must fit in a uint64.
     if (_data.duration > type(uint64).max) revert INVALID_DURATION();
 
-    // Discount rate token must be less than or equal to 100%.
+    // Discount rate must be less than or equal to 100%.
     if (_data.discountRate > JBConstants.MAX_DISCOUNT_RATE) revert INVALID_DISCOUNT_RATE();
 
     // Weight must fit into a uint88.
@@ -296,8 +290,10 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     ) {
       // ballot in bits 0-159 bytes.
       uint256 packed = uint160(address(_data.ballot));
+
       // duration in bits 160-223 bytes.
       packed |= _data.duration << 160;
+
       // discountRate in bits 224-255 bytes.
       packed |= _data.discountRate << 224;
 
@@ -376,12 +372,12 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
 
   /**
     @notice 
-    Initializes a funding cycle with the appropriate properties.
+    Initializes a funding cycle with the specified properties.
 
     @param _projectId The ID of the project to which the funding cycle being initialized belongs.
     @param _baseFundingCycle The funding cycle to base the initialized one on.
     @param _configuration The configuration of the funding cycle being initialized.
-    @param _mustStartAtOrAfter The time before which the initialized funding cycle can't start.
+    @param _mustStartAtOrAfter The time before which the initialized funding cycle cannot start.
     @param _weight The weight to give the newly initialized funding cycle.
   */
   function _initFor(
@@ -436,16 +432,16 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
   }
 
   /**
-  @notice 
-  Efficiently stores a funding cycle's provided intrinsic properties.
+    @notice 
+    Efficiently stores a funding cycle's provided intrinsic properties.
 
-  @param _configuration The configuration of the funding cycle to pack and store.
-  @param _projectId The ID of the project to which the funding cycle belongs.
-  @param _number The number of the funding cycle.
-  @param _weight The weight of the funding cycle.
-  @param _basedOn The configuration of the based funding cycle.
-  @param _start The start time of this funding cycle.
-*/
+    @param _configuration The configuration of the funding cycle to pack and store.
+    @param _projectId The ID of the project to which the funding cycle belongs.
+    @param _number The number of the funding cycle.
+    @param _weight The weight of the funding cycle.
+    @param _basedOn The configuration of the base funding cycle.
+    @param _start The start time of this funding cycle.
+  */
   function _packAndStoreIntrinsicPropertiesOf(
     uint256 _configuration,
     uint256 _projectId,
@@ -456,14 +452,17 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
   ) private {
     // weight in bits 0-87.
     uint256 packed = _weight;
+
     // basedOn in bits 88-143.
     packed |= _basedOn << 88;
+
     // start in bits 144-199.
     packed |= _start << 144;
+
     // number in bits 200-255.
     packed |= _number << 200;
 
-    // Set in storage.
+    // Store the packed value.
     _packedIntrinsicPropertiesOf[_projectId][_configuration] = packed;
   }
 
