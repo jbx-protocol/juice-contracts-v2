@@ -25,6 +25,8 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
   const PROJECT_ID = 13;
   const WEIGHT = 1000;
 
+  const ETH_ADDRESS = '0x000000000000000000000000000000000000EEEe';
+
   let MAX_FEE;
   let MAX_FEE_DISCOUNT;
   let AMOUNT_MINUS_FEES;
@@ -89,6 +91,10 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
     let jbTokenFactory = await ethers.getContractFactory('JBTokens');
     let jbToken = await jbTokenFactory.deploy();
     const ETH_ADDRESS = await jbToken.ETH();
+
+    await mockJbDirectory.mock.primaryTerminalOf
+    .withArgs(JUICEBOX_PROJECT_ID, ETH_ADDRESS)
+    .returns(jbEthPaymentTerminal.address)
 
     await mockJbProjects.mock.ownerOf.returns(projectOwner.address);
 
@@ -225,64 +231,6 @@ describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
         beneficiary.address,
         MEMO,
       );
-  });
-
-  it('Should send funds from overflow, without fees for Juicebox project, and emit event', async function () {
-    const {
-      beneficiary,
-      CURRENCY_ETH,
-      fundingCycle,
-      jbEthPaymentTerminal,
-      mockJB18DecimalPaymentTerminalStore,
-      projectOwner,
-      terminalOwner,
-      timestamp,
-    } = await setup();
-
-    await mockJB18DecimalPaymentTerminalStore.mock.recordUsedAllowanceOf
-      .withArgs(JUICEBOX_PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH)
-      .returns(fundingCycle, AMOUNT);
-
-    // Give terminal sufficient ETH
-    await setBalance(jbEthPaymentTerminal.address, AMOUNT);
-
-    const initialBeneficiaryBalance = await ethers.provider.getBalance(beneficiary.address);
-
-    // Set fee to default 5% - won't be applied though
-    await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
-
-    const tx = await jbEthPaymentTerminal
-      .connect(projectOwner)
-      .useAllowanceOf(
-        JUICEBOX_PROJECT_ID,
-        AMOUNT_TO_DISTRIBUTE,
-        CURRENCY_ETH,
-        /* minReturnedTokens */ AMOUNT,
-        beneficiary.address,
-        MEMO,
-      );
-
-    expect(await tx)
-      .to.emit(jbEthPaymentTerminal, 'UseAllowance')
-      .withArgs(
-        /* _fundingCycle.configuration */ timestamp,
-        /* _fundingCycle.number */ FUNDING_CYCLE_NUM,
-        /* _projectId */ JUICEBOX_PROJECT_ID,
-        /* _beneficiary */ beneficiary.address,
-        /* _amount */ AMOUNT_TO_DISTRIBUTE,
-        /* _distributedAmount */ AMOUNT,
-        /* _feeAmount */ 0,
-        MEMO,
-        /* msg.sender */ projectOwner.address,
-      );
-
-    // Terminal should be out of ETH
-    expect(await ethers.provider.getBalance(jbEthPaymentTerminal.address)).to.equal(0);
-
-    // Beneficiary should have a larger balance
-    expect(await ethers.provider.getBalance(beneficiary.address)).to.equal(
-      initialBeneficiaryBalance.add(AMOUNT),
-    );
   });
 
   it('Should send funds from overflow, with fees applied, and emit event', async function () {
