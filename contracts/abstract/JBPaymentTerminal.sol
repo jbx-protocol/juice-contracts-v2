@@ -76,9 +76,6 @@ abstract contract JBPaymentTerminal is
   /**
     @notice
     The protocol project ID is 1, as it should be the first project launched during the deployment process.
-
-    @dev
-    Out of MAX_FEE (50_000_000 / 1_000_000_000)
   */
   uint256 private constant _PROTOCOL_PROJECT_ID = 1;
 
@@ -324,9 +321,7 @@ abstract contract JBPaymentTerminal is
     // Scoped section prevents stack too deep. `_feeDiscount` and `_feeEligibleDistributionAmount` only used within scope.
     {
       // Get the amount of discount that should be applied to any fees taken.
-      uint256 _feeDiscount = _projectId == _PROTOCOL_PROJECT_ID || fee == 0
-        ? JBConstants.MAX_FEE_DISCOUNT
-        : _getFeeDiscount(_projectId);
+      uint256 _feeDiscount = fee == 0 ? JBConstants.MAX_FEE_DISCOUNT : _getFeeDiscount(_projectId);
 
       // The amount distributed that is eligible for incurring fees.
       uint256 _feeEligibleDistributionAmount;
@@ -427,10 +422,8 @@ abstract contract JBPaymentTerminal is
       // Get the amount of discount that should be applied to any fees taken.
       uint256 _feeDiscount = _getFeeDiscount(_projectId);
 
-      // Take a fee from the `_withdrawnAmount`, if needed.
-      _feeAmount = fee == 0 ||
-        _projectId == _PROTOCOL_PROJECT_ID ||
-        _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
+      // Take a fee from the `_distributedAmount`, if needed.
+      _feeAmount = fee == 0 || _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
         ? 0
         : _takeFeeFrom(_projectId, _fundingCycle, _distributedAmount, _projectOwner, _feeDiscount);
     }
