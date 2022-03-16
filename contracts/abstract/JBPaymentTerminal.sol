@@ -73,6 +73,12 @@ abstract contract JBPaymentTerminal is
   */
   uint256 private constant _FEE_CAP = 50_000_000;
 
+  /**
+    @notice
+    The protocol project ID is 1, as it should be the first project launched during the deployment process.
+  */
+  uint256 private constant _PROTOCOL_PROJECT_ID = 1;
+
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//
@@ -315,7 +321,7 @@ abstract contract JBPaymentTerminal is
     // Scoped section prevents stack too deep. `_feeDiscount` and `_feeEligibleDistributionAmount` only used within scope.
     {
       // Get the amount of discount that should be applied to any fees taken.
-      uint256 _feeDiscount = _getFeeDiscount(_projectId);
+      uint256 _feeDiscount = fee == 0 ? JBConstants.MAX_FEE_DISCOUNT : _getFeeDiscount(_projectId);
 
       // The amount distributed that is eligible for incurring fees.
       uint256 _feeEligibleDistributionAmount;
@@ -334,7 +340,8 @@ abstract contract JBPaymentTerminal is
       _feeEligibleDistributionAmount += _leftoverDistributionAmount;
 
       // Take the fee.
-      _feeAmount = _projectId == 1 || _feeEligibleDistributionAmount == 0 || fee == 0
+      _feeAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT ||
+        _feeEligibleDistributionAmount == 0
         ? 0
         : _takeFeeFrom(
           _projectId,
@@ -415,8 +422,8 @@ abstract contract JBPaymentTerminal is
       // Get the amount of discount that should be applied to any fees taken.
       uint256 _feeDiscount = _getFeeDiscount(_projectId);
 
-      // Take a fee from the `_withdrawnAmount`, if needed.
-      _feeAmount = fee == 0 || _projectId == 1
+      // Take a fee from the `_distributedAmount`, if needed.
+      _feeAmount = fee == 0 || _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
         ? 0
         : _takeFeeFrom(_projectId, _fundingCycle, _distributedAmount, _projectOwner, _feeDiscount);
     }
@@ -742,15 +749,17 @@ abstract contract JBPaymentTerminal is
         JBConstants.SPLITS_TOTAL_PERCENT
       );
 
-      // The payout amount substracting any incurred fees.
-      uint256 _netPayoutAmount = _projectId == 1
-        ? _payoutAmount
-        : _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount);
+      // The payout amount substracting any applicable incurred fees.
+      uint256 _netPayoutAmount;
 
       if (_payoutAmount > 0) {
         // Transfer tokens to the mod.
         // If there's an allocator set, transfer to its `allocate` function.
         if (_split.allocator != IJBSplitAllocator(address(0))) {
+          _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
+            ? _payoutAmount
+            : _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount);
+
           // This distribution is eligible for a fee since the funds are leaving the ecosystem.
           feeEligibleDistributionAmount += _payoutAmount;
 
@@ -793,7 +802,13 @@ abstract contract JBPaymentTerminal is
             if (isFeelessTerminal[_terminal])
               _netPayoutAmount = _payoutAmount;
               // This distribution is eligible for a fee since the funds are leaving this contract and the terminal isn't listed as feeless.
-            else feeEligibleDistributionAmount += _payoutAmount;
+            else {
+              _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
+                ? _payoutAmount
+                : _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount);
+
+              feeEligibleDistributionAmount += _payoutAmount;
+            }
 
             _beforeTransferTo(address(_terminal), _netPayoutAmount);
 
@@ -811,6 +826,10 @@ abstract contract JBPaymentTerminal is
             );
           }
         } else {
+          _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
+            ? _payoutAmount
+            : _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount);
+
           // This distribution is eligible for a fee since the funds are leaving the ecosystem.
           feeEligibleDistributionAmount += _payoutAmount;
 
@@ -839,7 +858,7 @@ abstract contract JBPaymentTerminal is
 
   /**
     @notice
-    Takes a fee into the platform's project, which has an id of 1.
+    Takes a fee into the platform's project, which has an id of _PROTOCOL_PROJECT_ID.
 
     @param _projectId The ID of the project having fees taken from.
     @param _fundingCycle The funding cycle during which the fee is being taken.
@@ -871,18 +890,26 @@ abstract contract JBPaymentTerminal is
   */
   function _processFee(uint256 _fee, address _beneficiary) private {
     // Get the terminal for the protocol project.
-    IJBPaymentTerminal _terminal = directory.primaryTerminalOf(1, token);
+    IJBPaymentTerminal _terminal = directory.primaryTerminalOf(_PROTOCOL_PROJECT_ID, token);
 
     // When processing the admin fee, save gas if the admin is using this contract as its terminal.
     if (_terminal == this)
-      _pay(_fee, address(this), 1, _beneficiary, 0, false, '', bytes('')); // Use the local pay call.
+      _pay(_fee, address(this), _PROTOCOL_PROJECT_ID, _beneficiary, 0, false, '', bytes('')); // Use the local pay call.
     else {
       _beforeTransferTo(address(_terminal), _fee);
 
       // If this terminal's token is ETH, send it in msg.value.
       uint256 _payableValue = token == JBTokens.ETH ? _fee : 0;
 
-      _terminal.pay{value: _payableValue}(_fee, 1, _beneficiary, 0, false, '', bytes('')); // Use the external pay call of the correct terminal.
+      _terminal.pay{value: _payableValue}(
+        _fee,
+        _PROTOCOL_PROJECT_ID,
+        _beneficiary,
+        0,
+        false,
+        '',
+        bytes('')
+      ); // Use the external pay call of the correct terminal.
     }
   }
 
@@ -1042,6 +1069,10 @@ abstract contract JBPaymentTerminal is
     @return feeDiscount The fee discount, which should be interpreted as a percentage out MAX_FEE_DISCOUNT.
   */
   function _getFeeDiscount(uint256 _projectId) private view returns (uint256 feeDiscount) {
+    // Can't take a fee if the protocol project doesn't have a terminal that accepts the token.
+    if (directory.primaryTerminalOf(_PROTOCOL_PROJECT_ID, token) == IJBPaymentTerminal(address(0)))
+      return JBConstants.MAX_FEE_DISCOUNT;
+
     // Get the fee discount.
     feeDiscount = feeGauge == IJBFeeGauge(address(0)) ? 0 : feeGauge.currentDiscountFor(_projectId);
 
