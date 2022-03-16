@@ -756,7 +756,7 @@ abstract contract JBPaymentTerminal is
         JBConstants.SPLITS_TOTAL_PERCENT
       );
 
-      // The payout amount substracting any incurred fees.
+      // The payout amount substracting any applicable incurred fees.
       uint256 _netPayoutAmount;
 
       if (_payoutAmount > 0) {
@@ -813,6 +813,7 @@ abstract contract JBPaymentTerminal is
               _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
                 ? _payoutAmount
                 : _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount);
+
               feeEligibleDistributionAmount += _payoutAmount;
             }
 
