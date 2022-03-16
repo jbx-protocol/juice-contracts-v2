@@ -323,11 +323,10 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _mustStartAtOrAfter
   ) private {
     // If there's not yet a funding cycle for the project, initialize one.
-    if (latestConfigurationOf[_projectId] == 0) {
+    if (latestConfigurationOf[_projectId] == 0)
       // Use an empty funding cycle as the base.
-      _initFor(_projectId, _getStructFor(0, 0), _configuration, _mustStartAtOrAfter, _weight);
-      return;
-    }
+      return
+        _initFor(_projectId, _getStructFor(0, 0), _configuration, _mustStartAtOrAfter, _weight);
 
     // Get the active funding cycle's configuration.
     uint256 _currentConfiguration = _eligibleOf(_projectId);
