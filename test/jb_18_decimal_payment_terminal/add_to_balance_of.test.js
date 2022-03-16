@@ -15,10 +15,12 @@ import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 
 describe('JB18DecimalPaymentTerminal::addToBalanceOf(...)', function () {
+  const PROTOCOL_PROJECT_ID = 1;
   const PROJECT_ID = 2;
   const AMOUNT = ethers.utils.parseEther('10');
   const MIN_TOKEN_REQUESTED = 0;
   const MEMO = 'Memo Test';
+  const ETH_ADDRESS = '0x000000000000000000000000000000000000EEEe';
 
   let CURRENCY_ETH;
   let ETH_PAYOUT_INDEX;
@@ -83,7 +85,7 @@ describe('JB18DecimalPaymentTerminal::addToBalanceOf(...)', function () {
         mockJB18DecimalPaymentTerminalStore.address,
         terminalOwner.address,
       );
-
+  
     const DECIMALS = 1;
 
     await mockJB18DecimalPaymentTerminalStore.mock.targetDecimals.returns(DECIMALS);
@@ -124,6 +126,14 @@ describe('JB18DecimalPaymentTerminal::addToBalanceOf(...)', function () {
     await mockJbDirectory.mock.isTerminalOf
       .withArgs(PROJECT_ID, JB18DecimalERC20PaymentTerminal.address)
       .returns(true);
+    
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(PROTOCOL_PROJECT_ID, ETH_ADDRESS)
+      .returns(jbEthPaymentTerminal.address)
+    
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(PROTOCOL_PROJECT_ID, NON_ETH_TOKEN)
+      .returns(JB18DecimalERC20PaymentTerminal.address)
 
     await mockJB18DecimalPaymentTerminalStore.mock.recordDistributionFor
       .withArgs(PROJECT_ID, AMOUNT, CURRENCY_ETH)
