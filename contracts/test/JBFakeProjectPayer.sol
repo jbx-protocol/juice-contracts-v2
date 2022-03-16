@@ -11,7 +11,28 @@ import '../abstract/JBProjectPayer.sol';
 */
 contract JBFakeProjectPayer is JBProjectPayer {
   // solhint-disable-next-line no-empty-blocks
-  constructor(uint256 _projectId, IJBDirectory _directory) JBProjectPayer(_projectId, _directory) {}
+  constructor(
+    uint256 _defaultProjectId,
+    address payable _defaultBeneficiary,
+    bool _defaultPreferClaimedTokens,
+    string memory _defaultMemo,
+    bytes memory _defaultMetadata,
+    IJBDirectory _directory,
+    address _owner
+  )
+    JBProjectPayer(
+      _defaultProjectId,
+      _defaultBeneficiary,
+      _defaultPreferClaimedTokens,
+      _defaultMemo,
+      _defaultMetadata,
+      _directory,
+      _owner
+    )
+  // solhint-disable-next-line no-empty-blocks
+  {
+
+  }
 
   /**
     @dev
@@ -20,17 +41,27 @@ contract JBFakeProjectPayer is JBProjectPayer {
    */
   function mint(
     uint256 _projectId,
+    address _token,
     uint256 _amount,
     address _beneficiary,
-    string memory _memo,
+    uint256 _minReturnedTokens,
     bool _preferClaimedTokens,
-    address _token,
+    string memory _memo,
     bytes memory _metadata
   ) external payable {
     // Mint NFT, etc.
     // ...
 
     // Fund Juicebox treasury.
-    _pay(_projectId, _amount, _beneficiary, _memo, _preferClaimedTokens, _token, _metadata);
+    pay(
+      _projectId,
+      _token,
+      _amount,
+      _beneficiary,
+      _minReturnedTokens,
+      _preferClaimedTokens,
+      _memo,
+      _metadata
+    );
   }
 }
