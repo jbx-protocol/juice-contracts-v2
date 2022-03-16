@@ -343,9 +343,9 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
     uint256 _mustStartAtOrAfter,
-    JBGroupedSplits[] memory _groupedSplits,
-    JBFundAccessConstraints[] memory _fundAccessConstraints,
-    IJBPaymentTerminal[] memory _terminals
+    JBGroupedSplits[] calldata _groupedSplits,
+    JBFundAccessConstraints[] calldata _fundAccessConstraints,
+    IJBPaymentTerminal[] calldata _terminals
   ) external returns (uint256 projectId) {
     // Mint the project into the wallet of the message sender.
     projectId = projects.createFor(_owner, _projectMetadata);
@@ -388,9 +388,9 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
     uint256 _mustStartAtOrAfter,
-    JBGroupedSplits[] memory _groupedSplits,
-    JBFundAccessConstraints[] memory _fundAccessConstraints,
-    IJBPaymentTerminal[] memory _terminals
+    JBGroupedSplits[] calldata _groupedSplits,
+    JBFundAccessConstraints[] calldata _fundAccessConstraints,
+    IJBPaymentTerminal[] calldata _terminals
   )
     external
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
@@ -439,8 +439,8 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
     uint256 _mustStartAtOrAfter,
-    JBGroupedSplits[] memory _groupedSplits,
-    JBFundAccessConstraints[] memory _fundAccessConstraints
+    JBGroupedSplits[] calldata _groupedSplits,
+    JBFundAccessConstraints[] calldata _fundAccessConstraints
   )
     external
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
@@ -658,7 +658,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
 
     @return The amount of minted reserved tokens.
   */
-  function distributeReservedTokensOf(uint256 _projectId, string memory _memo)
+  function distributeReservedTokensOf(uint256 _projectId, string calldata _memo)
     external
     nonReentrant
     returns (uint256)
@@ -893,8 +893,8 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
     uint256 _mustStartAtOrAfter,
-    JBGroupedSplits[] memory _groupedSplits,
-    JBFundAccessConstraints[] memory _fundAccessConstraints
+    JBGroupedSplits[] calldata _groupedSplits,
+    JBFundAccessConstraints[] calldata _fundAccessConstraints
   ) private returns (uint256) {
     if (_metadata.reservedRate > JBConstants.MAX_RESERVED_RATE) revert INVALID_RESERVED_RATE();
 
