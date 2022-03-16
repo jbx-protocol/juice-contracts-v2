@@ -324,7 +324,9 @@ abstract contract JBPaymentTerminal is
     // Scoped section prevents stack too deep. `_feeDiscount` and `_feeEligibleDistributionAmount` only used within scope.
     {
       // Get the amount of discount that should be applied to any fees taken.
-      uint256 _feeDiscount = _getFeeDiscount(_projectId);
+      uint256 _feeDiscount = _projectId == _PROTOCOL_PROJECT_ID || fee == 0
+        ? JBConstants.MAX_FEE_DISCOUNT
+        : _getFeeDiscount(_projectId);
 
       // The amount distributed that is eligible for incurring fees.
       uint256 _feeEligibleDistributionAmount;
@@ -343,10 +345,8 @@ abstract contract JBPaymentTerminal is
       _feeEligibleDistributionAmount += _leftoverDistributionAmount;
 
       // Take the fee.
-      _feeAmount = _projectId == _PROTOCOL_PROJECT_ID ||
-        _feeEligibleDistributionAmount == 0 ||
-        fee == 0 ||
-        _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
+      _feeAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT ||
+        _feeEligibleDistributionAmount == 0
         ? 0
         : _takeFeeFrom(
           _projectId,
@@ -757,15 +757,16 @@ abstract contract JBPaymentTerminal is
       );
 
       // The payout amount substracting any incurred fees.
-      uint256 _netPayoutAmount = _projectId == _PROTOCOL_PROJECT_ID ||
-        _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
-        ? _payoutAmount
-        : _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount);
+      uint256 _netPayoutAmount;
 
       if (_payoutAmount > 0) {
         // Transfer tokens to the mod.
         // If there's an allocator set, transfer to its `allocate` function.
         if (_split.allocator != IJBSplitAllocator(address(0))) {
+          _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
+            ? _payoutAmount
+            : _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount);
+
           // This distribution is eligible for a fee since the funds are leaving the ecosystem.
           feeEligibleDistributionAmount += _payoutAmount;
 
@@ -808,7 +809,12 @@ abstract contract JBPaymentTerminal is
             if (isFeelessTerminal[_terminal])
               _netPayoutAmount = _payoutAmount;
               // This distribution is eligible for a fee since the funds are leaving this contract and the terminal isn't listed as feeless.
-            else feeEligibleDistributionAmount += _payoutAmount;
+            else {
+              _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
+                ? _payoutAmount
+                : _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount);
+              feeEligibleDistributionAmount += _payoutAmount;
+            }
 
             _beforeTransferTo(address(_terminal), _netPayoutAmount);
 
@@ -826,6 +832,10 @@ abstract contract JBPaymentTerminal is
             );
           }
         } else {
+          _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
+            ? _payoutAmount
+            : _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount);
+
           // This distribution is eligible for a fee since the funds are leaving the ecosystem.
           feeEligibleDistributionAmount += _payoutAmount;
 
