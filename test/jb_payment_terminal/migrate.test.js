@@ -84,7 +84,6 @@ describe('JBPaymentTerminal::migrate(...)', function () {
 
     const DECIMALS = 1;
 
-    await mockJBPaymentTerminalStore.mock.targetDecimals.returns(DECIMALS);
     await mockJbToken.mock.decimals.returns(DECIMALS);
 
     let JBERC20PaymentTerminal = await jbErc20TerminalFactory

@@ -28,6 +28,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
   const PREFER_CLAIMED_TOKENS = true;
 
   let ethToken;
+  let CURRENCY_ETH;
   const DECIMALS = 1;
 
   async function setup() {
@@ -37,7 +38,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
     const block = await ethers.provider.getBlock(blockNum);
     const timestamp = block.timestamp;
 
-    const CURRENCY_ETH = 1;
+    CURRENCY_ETH = 1;
     const SPLITS_GROUP = 1;
 
     let [
@@ -84,7 +85,6 @@ describe('JBPaymentTerminal::pay(...)', function () {
 
     ethToken = await jbEthPaymentTerminal.token();
 
-    await mockJBPaymentTerminalStore.mock.targetDecimals.returns(DECIMALS);
     await mockJbToken.mock.decimals.returns(DECIMALS);
 
     let JBERC20PaymentTerminal = await jbErc20TerminalFactory
@@ -112,7 +112,20 @@ describe('JBPaymentTerminal::pay(...)', function () {
       .returns(true);
 
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
-      .withArgs(caller.address, ETH_TO_PAY, PROJECT_ID, beneficiary.address, MEMO, METADATA)
+      .withArgs(
+        caller.address,
+        [
+          /*token*/"0x000000000000000000000000000000000000eeee",
+          /*amount paid*/ ETH_TO_PAY,
+          /*decimal*/18,
+          CURRENCY_ETH
+        ],
+        PROJECT_ID,
+        beneficiary.address,
+        CURRENCY_ETH,
+        MEMO,
+        METADATA
+        )
       .returns(
         {
           // mock JBFundingCycle obj
@@ -126,7 +139,6 @@ describe('JBPaymentTerminal::pay(...)', function () {
           ballot: ethers.constants.AddressZero,
           metadata: packFundingCycleMetadata(),
         },
-        ADJUSTED_WEIGHT,
         TOKEN_TO_MINT,
         ethers.constants.AddressZero,
         ADJUSTED_MEMO,
@@ -192,7 +204,6 @@ describe('JBPaymentTerminal::pay(...)', function () {
         PROJECT_ID,
         beneficiary.address,
         ETH_TO_PAY,
-        ADJUSTED_WEIGHT,
         TOKEN_RECEIVED,
         ADJUSTED_MEMO,
         caller.address,
@@ -225,7 +236,20 @@ describe('JBPaymentTerminal::pay(...)', function () {
       .returns(TOKEN_RECEIVED);
 
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
-      .withArgs(caller.address, ETH_TO_PAY, PROJECT_ID, beneficiary.address, MEMO, METADATA)
+      .withArgs(
+        caller.address,
+        [
+          /*token*/"0x000000000000000000000000000000000000eeee",
+          /*amount paid*/ETH_TO_PAY,
+          /*decimal*/18,
+          CURRENCY_ETH
+        ],
+        PROJECT_ID,
+        beneficiary.address,
+        CURRENCY_ETH,
+        MEMO,
+        METADATA
+        )
       .returns(
         {
           // mock JBFundingCycle obj
@@ -239,7 +263,6 @@ describe('JBPaymentTerminal::pay(...)', function () {
           ballot: ethers.constants.AddressZero,
           metadata: packFundingCycleMetadata(),
         },
-        ADJUSTED_WEIGHT,
         TOKEN_TO_MINT,
         mockJbPayDelegate.address,
         ADJUSTED_MEMO,
@@ -250,9 +273,12 @@ describe('JBPaymentTerminal::pay(...)', function () {
         // JBDidPayData obj
         payer: caller.address,
         projectId: PROJECT_ID,
-        token: ethToken,
-        amount: ETH_TO_PAY,
-        decimals: DECIMALS,
+        amount: {
+          token: "0x000000000000000000000000000000000000eeee",
+          value: ETH_TO_PAY,
+          decimals: 18,
+          currency: CURRENCY_ETH
+        },
         weight: ADJUSTED_WEIGHT,
         projectTokenCount: TOKEN_RECEIVED,
         beneficiary: beneficiary.address,
