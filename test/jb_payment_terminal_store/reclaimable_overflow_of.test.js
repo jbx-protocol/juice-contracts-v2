@@ -50,6 +50,7 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
     const timestamp = block.timestamp;
 
     await mockJbTerminal.mock.currency.returns(CURRENCY);
+    await mockJbTerminal.mock.decimals.returns(18);
 
     const mockJbTerminalSigner = await impersonateAccount(mockJbTerminal.address);
 

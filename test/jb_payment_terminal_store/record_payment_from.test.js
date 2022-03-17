@@ -15,11 +15,11 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
+describe.only('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
   const PROJECT_ID = 2;
 
-  const AMOUNT = ethers.BigNumber.from('4398541').mul(ethers.BigNumber.from(10).pow(18));
-  const WEIGHT = ethers.BigNumber.from('90000').mul(ethers.BigNumber.from(10).pow(18));
+  const AMOUNT = ethers.utils.parseEther('4398541');
+  const WEIGHT = ethers.utils.parseEther('90000');
 
   const CURRENCY = 1;
   const BASE_CURRENCY = 1;
@@ -58,8 +58,8 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
     /* Common mocks */
 
-    await mockJbTerminal.mock.currency.returns(CURRENCY);
-    await mockJbTerminal.mock.baseWeightCurrency.returns(BASE_CURRENCY);
+    // await mockJbTerminal.mock.currency.returns(CURRENCY);
+    // await mockJbTerminal.mock.baseWeightCurrency.returns(BASE_CURRENCY);
 
     const mockJbTerminalSigner = await impersonateAccount(mockJbTerminal.address);
 
@@ -81,7 +81,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
   /* Happy path tests with mockJbTerminal access */
 
-  it('Should record payment without a datasource', async function () {
+  it.only('Should record payment without a datasource', async function () {
     const {
       mockJbTerminalSigner,
       payer,
@@ -112,19 +112,26 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
     // Record the payment
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
-      /* payer */ payer.address,
-      AMOUNT,
+      payer.address,
+      {
+        token: ethers.constants.AddressZero,
+        value: AMOUNT,
+        decimal: 18,
+        currency: CURRENCY
+      },
       PROJECT_ID,
       beneficiary.address,
+      BASE_CURRENCY,
       /* memo */ 'test',
       METADATA
     );
 
     // Expect recorded balance to change
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)
     ).to.equal(AMOUNT);
   });
+
   it('Should record payment with no weight', async function () {
     const {
       mockJbTerminalSigner,
@@ -160,6 +167,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       AMOUNT,
       PROJECT_ID,
       beneficiary.address,
+      BASE_CURRENCY,
       /* memo */ 'test',
       METADATA
     );

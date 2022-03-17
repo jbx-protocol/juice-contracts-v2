@@ -76,7 +76,86 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     };
   }
 
-  it('Should record distribution with mockJbTerminal access', async function () {
+  it('Should record distribution with mockJbTerminal access, if the amount in expressed in terminal currency', async function () {
+    const {
+      mockJbTerminal,
+      mockJbTerminalSigner,
+      mockJbController,
+      mockJbFundingCycleStore,
+      mockJbPrices,
+      JBPaymentTerminalStore,
+      timestamp,
+      CURRENCY_USD,
+    } = await setup();
+
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      // mock JBFundingCycle obj
+      number: FUNDING_CYCLE_NUM,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: WEIGHT,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({ pauseDistributions: 0 }),
+    });
+
+    // const usdToEthPrice = ethers.FixedNumber.from(10000);
+    // const amountInWei = AMOUNT.divUnsafe(usdToEthPrice);
+
+    // Add to balance beforehand
+    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+      PROJECT_ID,
+      AMOUNT
+    );
+
+    await mockJbController.mock.distributionLimitCurrencyOf
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .returns(CURRENCY_USD);
+
+    await mockJbController.mock.distributionLimitOf
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .returns(AMOUNT);
+
+    // await mockJbPrices.mock.priceFor
+    //   .withArgs(CURRENCY_USD, CURRENCY_ETH, _FIXED_POINT_MAX_FIDELITY)
+    //   .returns(usdToEthPrice);
+
+    // Pre-checks
+    expect(
+      await JBPaymentTerminalStore.usedDistributionLimitOf(
+        mockJbTerminalSigner.address,
+        PROJECT_ID,
+        FUNDING_CYCLE_NUM,
+      ),
+    ).to.equal(0);
+    expect(
+      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+    ).to.equal(AMOUNT);
+
+    // Record the distributions
+    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
+      PROJECT_ID,
+      AMOUNT,
+      CURRENCY_USD,
+      CURRENCY_USD
+    );
+
+    // Post-checks
+    expect(
+      await JBPaymentTerminalStore.usedDistributionLimitOf(
+        mockJbTerminalSigner.address,
+        PROJECT_ID,
+        FUNDING_CYCLE_NUM,
+      ),
+    ).to.equal(AMOUNT);
+    expect(
+      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+    ).to.equal(0);
+  });
+
+  it('Should record distribution with mockJbTerminal access, if the amount in another currency', async function () {
     const {
       mockJbTerminal,
       mockJbTerminalSigner,
@@ -140,6 +219,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
       PROJECT_ID,
       AMOUNT,
       CURRENCY_USD,
+      CURRENCY_ETH
     );
 
     // Post-checks
@@ -185,6 +265,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
+        CURRENCY_ETH
       ),
     ).to.be.revertedWith(errors.FUNDING_CYCLE_DISTRIBUTION_PAUSED);
   });
@@ -228,6 +309,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
+        CURRENCY_ETH
       ), // Use ETH instead of expected USD
     ).to.be.revertedWith(errors.CURRENCY_MISMATCH);
   });
@@ -282,6 +364,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
+        CURRENCY_ETH
       ),
     ).to.be.revertedWith(errors.DISTRIBUTION_AMOUNT_LIMIT_REACHED);
   });
@@ -336,6 +419,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
+        CURRENCY_ETH
       ),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
