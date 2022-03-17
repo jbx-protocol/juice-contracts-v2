@@ -14,7 +14,7 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe.only('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
+describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
   const PROJECT_ID = 2;
   const AMOUNT = ethers.BigNumber.from('43985411231');
   const WEIGHT = ethers.BigNumber.from('900000000');

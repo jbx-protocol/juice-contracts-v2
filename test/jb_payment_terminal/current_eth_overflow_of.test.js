@@ -10,7 +10,7 @@ import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 
-describe('JB18DecimalPaymentTerminal::currentEthOverflowOf(...)', function () {
+describe('JBPaymentTerminal::currentEthOverflowOf(...)', function () {
   const PROJECT_ID = 2;
   const AMOUNT = ethers.utils.parseEther('10');
   const PRICE = ethers.BigNumber.from('100');
@@ -71,7 +71,6 @@ describe('JB18DecimalPaymentTerminal::currentEthOverflowOf(...)', function () {
     // Non-eth 18 decimals terminal
     const NON_ETH_TOKEN = mockJbToken.address;
     const DECIMALS = 18;
-    await mockJBPaymentTerminalStore.mock.targetDecimals.returns(DECIMALS);
     await mockJbToken.mock.decimals.returns(DECIMALS);
 
     let JBERC20PaymentTerminal = await jbErc20TerminalFactory

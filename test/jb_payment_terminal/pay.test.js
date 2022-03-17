@@ -14,7 +14,7 @@ import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 import jbPayDelegate from '../../artifacts/contracts/interfaces/IJBPayDelegate.sol/IJBPayDelegate.json';
 
 
-describe('JB18DecimalPaymentTerminal::pay(...)', function () {
+describe('JBPaymentTerminal::pay(...)', function () {
   const PROJECT_ID = 1;
   const MEMO = 'Memo Test';
   const ADJUSTED_MEMO = 'test test memo';

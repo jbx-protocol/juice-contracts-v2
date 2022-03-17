@@ -11,7 +11,7 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 
-describe('JB18DecimalPaymentTerminal::toggleFeelessTerminal(...)', function () {
+describe('JBPaymentTerminal::toggleFeelessTerminal(...)', function () {
   async function setup() {
     let [deployer, terminalOwner, caller] = await ethers.getSigners();
 

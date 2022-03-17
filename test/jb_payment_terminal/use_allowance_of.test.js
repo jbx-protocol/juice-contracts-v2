@@ -13,7 +13,7 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 
-describe('JB18DecimalPaymentTerminal::useAllowanceOf(...)', function () {
+describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
   const AMOUNT_TO_DISTRIBUTE = 40000;
   const AMOUNT = 50000;
   const DEFAULT_FEE = 50000000; // 5%

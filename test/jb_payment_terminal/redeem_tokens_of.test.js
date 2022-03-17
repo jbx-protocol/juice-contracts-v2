@@ -14,7 +14,7 @@ import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.s
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 import jbRedemptionDelegate from '../../artifacts/contracts/interfaces/IJBRedemptionDelegate.sol/IJBRedemptionDelegate.json';
 
-describe('JB18DecimalPaymentTerminal::redeemTokensOf(...)', function () {
+describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
   const AMOUNT = 50000;
   const RECLAIM_AMOUNT = 40000;
   const MIN_RETURNED_AMOUNT = 30000;

@@ -14,7 +14,7 @@ import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 
-describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
+describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
   const PLATFORM_PROJECT_ID = 1;
   const PROJECT_ID = 2;
   const OTHER_PROJECT_ID = 3;
@@ -129,7 +129,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
       .returns(jbEthPaymentTerminal.address);
 
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY)
+      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY, CURRENCY)
       .returns(fundingCycle, AMOUNT_DISTRIBUTED);
 
     await setBalance(jbEthPaymentTerminal.address, AMOUNT_DISTRIBUTED);
@@ -257,13 +257,19 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
         await mockJBPaymentTerminalStore.mock.recordPaymentFrom
           .withArgs(
             jbEthPaymentTerminal.address,
-            /*amount paid*/ Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
+            [
+              /*token*/"0x000000000000000000000000000000000000eeee",
+              /*amount paid*/ Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
+              /*decimal*/18,
+              CURRENCY
+            ],
             split.projectId,
             split.beneficiary,
+            CURRENCY,
             '',
             '0x'
           )
-          .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
+          .returns(fundingCycle, /*count*/0, /* delegate */ ethers.constants.AddressZero, '');
       }),
     );
 
@@ -305,7 +311,6 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
             split.projectId,
             split.beneficiary,
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
-            0,
             0,
             '',
             caller.address,
@@ -364,13 +369,19 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
         await mockJBPaymentTerminalStore.mock.recordPaymentFrom
           .withArgs(
             jbEthPaymentTerminal.address,
-            /*amount paid*/ Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
+            [
+              /*token*/"0x000000000000000000000000000000000000eeee",
+              /*amount paid*/ Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
+              /*decimal*/18,
+              CURRENCY
+            ],
             split.projectId,
             split.beneficiary,
+            CURRENCY,
             '',
             '0x'
           )
-          .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
+          .returns(fundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
       }),
     );
 
@@ -413,7 +424,6 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
             split.beneficiary,
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             0,
-            0,
             '',
             caller.address,
           );
@@ -453,7 +463,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
     });
 
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY)
+      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY, CURRENCY)
       .returns(
         {
           number: 1,
@@ -728,26 +738,38 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
         jbEthPaymentTerminal.address,
-        AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES,
-        /*CURRENCY*/ 1,
+        [
+          /*token*/"0x000000000000000000000000000000000000eeee",
+          /*amount paid*/AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES,
+          /*decimal*/18,
+          CURRENCY
+        ],
+        PLATFORM_PROJECT_ID,
         projectOwner.address,
+        /*CURRENCY*/CURRENCY,
         '',
         '0x'
       )
-      .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
+      .returns(fundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
 
     await Promise.all(
       splits.map(async (split) => {
         await mockJBPaymentTerminalStore.mock.recordPaymentFrom
           .withArgs(
             jbEthPaymentTerminal.address,
-            /*amount paid*/ Math.floor((AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT),
+            [
+              /*token*/"0x000000000000000000000000000000000000eeee",
+              /*amount paid*/ Math.floor((AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT),
+              /*decimal*/18,
+              CURRENCY
+            ],
             split.projectId,
             split.beneficiary,
+            CURRENCY,
             '',
             '0x'
           )
-          .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
+          .returns(fundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
       }),
     );
 
@@ -787,7 +809,6 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
             /*projectId*/ 1,
             projectOwner.address,
             Math.floor(AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES),
-            0,
             0,
             '',
             caller.address,
@@ -1313,13 +1334,19 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
         await mockJBPaymentTerminalStore.mock.recordPaymentFrom
           .withArgs(
             jbEthPaymentTerminal.address,
-            Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
+            [
+              /*token*/"0x000000000000000000000000000000000000eeee",
+              /*amount paid*/Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
+              /*decimal*/18,
+              CURRENCY
+            ],
             split.projectId,
             split.beneficiary,
+            CURRENCY,
             '',
             '0x'
           )
-          .returns(fundingCycle, 0, 0, /* delegate */ ethers.constants.AddressZero, '');
+          .returns(fundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
       }),
     );
 
@@ -1361,7 +1388,6 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
             split.projectId,
             split.beneficiary,
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
-            0,
             0,
             '',
             caller.address,
@@ -1481,7 +1507,7 @@ describe('JB18DecimalPaymentTerminal::distributePayoutsOf(...)', function () {
       .returns(splits);
 
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY)
+      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY, CURRENCY)
       .returns(fundingCycle, 0);
 
     let tx = await jbEthPaymentTerminal

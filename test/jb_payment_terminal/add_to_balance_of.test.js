@@ -14,7 +14,7 @@ import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsS
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 
-describe('JB18DecimalPaymentTerminal::addToBalanceOf(...)', function () {
+describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
   const PROTOCOL_PROJECT_ID = 1;
   const PROJECT_ID = 2;
   const AMOUNT = ethers.utils.parseEther('10');
@@ -88,7 +88,6 @@ describe('JB18DecimalPaymentTerminal::addToBalanceOf(...)', function () {
   
     const DECIMALS = 1;
 
-    await mockJBPaymentTerminalStore.mock.targetDecimals.returns(DECIMALS);
     await mockJbToken.mock.decimals.returns(DECIMALS);
 
     let JBERC20PaymentTerminal = await jbErc20TerminalFactory
@@ -136,7 +135,7 @@ describe('JB18DecimalPaymentTerminal::addToBalanceOf(...)', function () {
       .returns(JBERC20PaymentTerminal.address)
 
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT, CURRENCY_ETH)
+      .withArgs(PROJECT_ID, AMOUNT, CURRENCY_ETH, CURRENCY_ETH)
       .returns(
         {
           number: 1,
@@ -243,7 +242,6 @@ describe('JB18DecimalPaymentTerminal::addToBalanceOf(...)', function () {
       value: 0,
     });
   });
-
   it('Should add to the project balance, refund a held fee by substracting the amount from the held fee amount and emit event', async function () {
     const {
       caller,
@@ -283,7 +281,6 @@ describe('JB18DecimalPaymentTerminal::addToBalanceOf(...)', function () {
     let heldFeeAfter = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
     expect(heldFeeAfter[0].amount).to.equal(heldFeeBefore[0].amount.sub(1));
   });
-
   it('Should add to the project balance, refund multiple held fee by substracting the amount from the held fee amount when possible, and held the fee left when not', async function () {
     const {
       caller,
@@ -305,7 +302,7 @@ describe('JB18DecimalPaymentTerminal::addToBalanceOf(...)', function () {
       .returns(splits);
 
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT.div(2), CURRENCY_ETH)
+      .withArgs(PROJECT_ID, AMOUNT.div(2), CURRENCY_ETH, CURRENCY_ETH)
       .returns(
         {
           number: 1,
