@@ -23,13 +23,13 @@ interface IJBDirectory {
 
   event SetController(uint256 indexed projectId, IJBController indexed controller, address caller);
 
-  event SetIsAllowedToSetController(address indexed addr, bool indexed flag, address caller);
+  event SetIsAllowedToSetFirstController(address indexed addr, bool indexed flag, address caller);
 
   function projects() external view returns (IJBProjects);
 
   function controllerOf(uint256 _projectId) external view returns (IJBController);
 
-  function isAllowedToSetController(address _address) external view returns (bool);
+  function isAllowedToSetFirstController(address _address) external view returns (bool);
 
   function terminalsOf(uint256 _projectId) external view returns (IJBPaymentTerminal[] memory);
 
@@ -49,5 +49,5 @@ interface IJBDirectory {
 
   function setPrimaryTerminalOf(uint256 _projectId, IJBPaymentTerminal _terminal) external;
 
-  function setIsAllowedToSetController(address _address, bool _flag) external;
+  function setIsAllowedToSetFirstController(address _address, bool _flag) external;
 }

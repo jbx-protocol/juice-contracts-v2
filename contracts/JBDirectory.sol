@@ -16,9 +16,7 @@ error CONTROLLER_ALREADY_IN_ALLOWLIST();
 error CONTROLLER_NOT_IN_ALLOWLIST();
 error INVALID_PROJECT_ID_IN_DIRECTORY();
 error PRIMARY_TERMINAL_ALREADY_SET();
-error SET_CONTROLLER_ZERO_ADDRESS();
 error SET_PRIMARY_TERMINAL_ZERO_ADDRESS();
-error CONTROLLER_ALREADY_SET();
 
 /**
   @notice
@@ -73,7 +71,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @notice
     Addresses that can set a project's controller. These addresses/contracts have been vetted and verified by Juicebox owners.
    */
-  mapping(address => bool) public override isAllowedToSetController;
+  mapping(address => bool) public override isAllowedToSetFirstController;
 
   /** 
     @notice 
@@ -175,7 +173,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @dev 
     A controller can be set if:
     - the message sender is the project owner or an operator having the correct authorization.
-    - or, an allowedlisted address is setting an allowlisted controller.
+    - or, an allowedlisted address is setting a controller for a project that doesn't already have a controller.
 
     @param _projectId The ID of the project to set a new controller for.
     @param _controller The new controller to set.
@@ -187,15 +185,10 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
       projects.ownerOf(_projectId),
       _projectId,
       JBOperations.SET_CONTROLLER,
-      (isAllowedToSetController[address(_controller)] && isAllowedToSetController[msg.sender])
+      (isAllowedToSetFirstController[msg.sender] &&
+        controllerOf[_projectId] == IJBController(address(0)))
     )
   {
-    // Can't set the zero address.
-    if (_controller == IJBController(address(0))) revert SET_CONTROLLER_ZERO_ADDRESS();
-
-    // Can't set the controller if it's already set.
-    if (controllerOf[_projectId] == _controller) revert CONTROLLER_ALREADY_SET();
-
     // The project must exist.
     if (projects.count() < _projectId) revert INVALID_PROJECT_ID_IN_DIRECTORY();
 
@@ -285,11 +278,15 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     @param _address the allowed address.
   */
-  function setIsAllowedToSetController(address _address, bool _flag) external override onlyOwner {
+  function setIsAllowedToSetFirstController(address _address, bool _flag)
+    external
+    override
+    onlyOwner
+  {
     // Set the flag in the allowlist.
-    isAllowedToSetController[_address] = _flag;
+    isAllowedToSetFirstController[_address] = _flag;
 
-    emit SetIsAllowedToSetController(_address, _flag, msg.sender);
+    emit SetIsAllowedToSetFirstController(_address, _flag, msg.sender);
   }
 
   //*********************************************************************//
