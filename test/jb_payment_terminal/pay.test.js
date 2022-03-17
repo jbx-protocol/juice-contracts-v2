@@ -299,17 +299,17 @@ describe('JBPaymentTerminal::pay(...)', function () {
 
     await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DelegateDidPay')
-      .withArgs([
+      .withArgs(
         mockJbPayDelegate.address,
         [
           // JBDidPayData obj
           caller.address,
           PROJECT_ID,
           [
-            "0x000000000000000000000000000000000000eeee",
+            "0x000000000000000000000000000000000000EEEe",
             ETH_TO_PAY,
-            18,
-            CURRENCY_ETH
+            ethers.BigNumber.from(18),
+            ethers.BigNumber.from(CURRENCY_ETH)
           ],
           TOKEN_RECEIVED,
           beneficiary.address,
@@ -317,7 +317,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
           METADATA,
         ],
         caller.address,
-      ]);
+      );
 
     await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'Pay')
