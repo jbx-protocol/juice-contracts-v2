@@ -15,8 +15,6 @@ error ADD_TERMINAL_ZERO_ADDRESS();
 error CONTROLLER_ALREADY_IN_ALLOWLIST();
 error CONTROLLER_NOT_IN_ALLOWLIST();
 error INVALID_PROJECT_ID_IN_DIRECTORY();
-error PRIMARY_TERMINAL_ALREADY_SET();
-error SET_PRIMARY_TERMINAL_ZERO_ADDRESS();
 
 /**
   @notice
@@ -205,7 +203,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     Set a project's terminals.
 
     @dev
-    Only a project owner or an operator can set its terminals. 
+    Only a project owner, an operator, or its controller can set its terminals.
 
     @param _projectId The ID of the project having terminals set.
     @param _terminals The terminal to set.
@@ -226,7 +224,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     // Delete the stored terminals for the project.
     _terminalsOf[_projectId] = _terminals;
 
-    // Repopulate the stored terminals for the project, omitting the one being deleted.
+    // If one of the old terminals was set as a primary terminal but is not included in the new terminals, remove it from being a primary terminal.
     for (uint256 _i; _i < _oldTerminals.length; _i++)
       // If the terminal that is being removed is the primary terminal for the token, delete it from being primary terminal.
       if (
@@ -243,7 +241,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     This is useful in case a project has several terminals connected for a particular token.
 
     @dev
-    The terminal will be set as the primary for the token that its vault accepts. 
+    The terminal will be set as the primary terminal where ecosystem contracts should route tokens.
 
     @param _projectId The ID of the project for which a primary token is being set.
     @param _terminal The terminal to make primary.
@@ -253,16 +251,10 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.SET_PRIMARY_TERMINAL)
   {
-    // Can't set the zero address.
-    if (_terminal == IJBPaymentTerminal(address(0))) revert SET_PRIMARY_TERMINAL_ZERO_ADDRESS();
-
-    // Get a reference to the token that the terminal's vault accepts.
+    // Get a reference to the token that the terminal accepts.
     address _token = _terminal.token();
 
-    // Can't set this terminal as the primary if it already is.
-    if (_terminal == _primaryTerminalOf[_projectId][_token]) revert PRIMARY_TERMINAL_ALREADY_SET();
-
-    // Add the terminal to thge project if it hasn't been already.
+    // Add the terminal to the project if it hasn't been already.
     _addTerminalIfNeeded(_projectId, _terminal);
 
     // Store the terminal as the primary for the particular token.
@@ -273,17 +265,18 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
   /** 
     @notice	
-    set a contract to the list of trusted addresses that can set a controller for any project.	
+    Set a contract to the list of trusted addresses that can set a first controller for any project.	
 
     @dev
-    The owner can add addresses which are allowed to change
-    a project's controller. Those addresses are known and vetted controllers as well as
-    contracts designed to launch new projects. A project can set its own controller without it being on the allow list.
+    The owner can add addresses which are allowed to change projects' first controllers. 
+    These addresses are known and vetted controllers as well as contracts designed to launch new projects. 
+    A project can set its own controller without it being on the allow list.
 
     @dev
     If you would like an address/contract allowlisted, please reach out to the contract owner.
 
-    @param _address the allowed address.
+    @param _address The address to allow or revoke allowance from.
+    @param _flag Whether allowance is being added or revoked.
   */
   function setIsAllowedToSetFirstController(address _address, bool _flag)
     external
