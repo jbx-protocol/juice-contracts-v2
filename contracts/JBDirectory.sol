@@ -67,12 +67,6 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
 
-  /**
-    @notice
-    Addresses that can set a project's controller. These addresses/contracts have been vetted and verified by Juicebox owners.
-   */
-  mapping(address => bool) public override isAllowedToSetFirstController;
-
   /** 
     @notice 
     For each project ID, the controller that manages how terminals interact with tokens and funding cycles.
@@ -80,6 +74,14 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     _projectId The ID of the project to get the controller of.
   */
   mapping(uint256 => IJBController) public override controllerOf;
+
+  /**
+    @notice
+    Addresses that can set a project's first controller on their behalf. These addresses/contracts have been vetted and verified by this contract's owner.
+
+    _address The address that is either allowed or not.
+  */
+  mapping(address => bool) public override isAllowedToSetFirstController;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //

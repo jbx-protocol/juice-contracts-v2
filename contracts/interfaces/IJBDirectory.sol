@@ -6,6 +6,8 @@ import './IJBProjects.sol';
 import './IJBController.sol';
 
 interface IJBDirectory {
+  event SetController(uint256 indexed projectId, IJBController indexed controller, address caller);
+
   event AddTerminal(uint256 indexed projectId, IJBPaymentTerminal indexed terminal, address caller);
 
   event SetTerminals(
@@ -20,8 +22,6 @@ interface IJBDirectory {
     IJBPaymentTerminal indexed terminal,
     address caller
   );
-
-  event SetController(uint256 indexed projectId, IJBController indexed controller, address caller);
 
   event SetIsAllowedToSetFirstController(address indexed addr, bool indexed flag, address caller);
 
@@ -43,9 +43,9 @@ interface IJBDirectory {
     view
     returns (IJBPaymentTerminal);
 
-  function setTerminalsOf(uint256 _projectId, IJBPaymentTerminal[] calldata _terminals) external;
-
   function setControllerOf(uint256 _projectId, IJBController _controller) external;
+
+  function setTerminalsOf(uint256 _projectId, IJBPaymentTerminal[] calldata _terminals) external;
 
   function setPrimaryTerminalOf(uint256 _projectId, IJBPaymentTerminal _terminal) external;
 
