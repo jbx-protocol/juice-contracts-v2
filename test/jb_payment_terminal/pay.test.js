@@ -26,19 +26,17 @@ describe('JBPaymentTerminal::pay(...)', function () {
   const TOKEN_RECEIVED = 100;
   const ETH_TO_PAY = ethers.utils.parseEther('1');
   const PREFER_CLAIMED_TOKENS = true;
-
-  let ethToken;
-  let CURRENCY_ETH;
+  const CURRENCY_ETH = 1;
   const DECIMALS = 1;
 
+  let ethToken;
+  
   async function setup() {
     let [deployer, terminalOwner, caller, beneficiary, ...addrs] = await ethers.getSigners();
 
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);
     const timestamp = block.timestamp;
-
-    CURRENCY_ETH = 1;
     const SPLITS_GROUP = 1;
 
     let [
@@ -279,7 +277,6 @@ describe('JBPaymentTerminal::pay(...)', function () {
           decimals: 18,
           currency: CURRENCY_ETH
         },
-        weight: ADJUSTED_WEIGHT,
         projectTokenCount: TOKEN_RECEIVED,
         beneficiary: beneficiary.address,
         memo: ADJUSTED_MEMO,
@@ -302,22 +299,25 @@ describe('JBPaymentTerminal::pay(...)', function () {
 
     await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DelegateDidPay')
-      .withArgs(
+      .withArgs([
         mockJbPayDelegate.address,
         [
-          /* payer */ caller.address,
-          /* projectId */ PROJECT_ID,
-          ethToken,
-          /* amount */ ETH_TO_PAY,
-          DECIMALS,
-          /* weight */ ADJUSTED_WEIGHT,
-          /* tokenCount */ TOKEN_RECEIVED,
-          /* beneficiary */ beneficiary.address,
-          /* memo */ ADJUSTED_MEMO,
-          /* metadata */ ethers.BigNumber.from(METADATA),
+          // JBDidPayData obj
+          caller.address,
+          PROJECT_ID,
+          [
+            "0x000000000000000000000000000000000000eeee",
+            ETH_TO_PAY,
+            18,
+            CURRENCY_ETH
+          ],
+          TOKEN_RECEIVED,
+          beneficiary.address,
+          ADJUSTED_MEMO,
+          METADATA,
         ],
         caller.address,
-      );
+      ]);
 
     await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'Pay')
