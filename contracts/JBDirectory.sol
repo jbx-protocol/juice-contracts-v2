@@ -227,10 +227,10 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     // Repopulate the stored terminals for the project, omitting the one being deleted.
     for (uint256 _i; _i < _oldTerminals.length; _i++)
       // If the terminal that is being removed is the primary terminal for the token, delete it from being primary terminal.
-      if (_primaryTerminalOf[_projectId][_terminals[_i].token()] == _oldTerminals[_i]) {
-        if (!_contains(_terminals, _terminals[_i]))
-          delete _primaryTerminalOf[_projectId][_oldTerminals[_i].token()];
-      }
+      if (
+        _primaryTerminalOf[_projectId][_terminals[_i].token()] == _oldTerminals[_i] &&
+        !_contains(_terminals, _terminals[_i])
+      ) delete _primaryTerminalOf[_projectId][_oldTerminals[_i].token()];
 
     emit SetTerminals(_projectId, _terminals, msg.sender);
   }
