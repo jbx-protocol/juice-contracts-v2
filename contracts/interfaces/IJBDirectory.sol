@@ -6,8 +6,6 @@ import './IJBProjects.sol';
 import './IJBController.sol';
 
 interface IJBDirectory {
-  event SetController(uint256 indexed projectId, IJBController indexed controller, address caller);
-
   event AddTerminal(uint256 indexed projectId, IJBPaymentTerminal indexed terminal, address caller);
 
   event RemoveTerminal(
@@ -23,9 +21,11 @@ interface IJBDirectory {
     address caller
   );
 
-  event AddToSetControllerAllowlist(address indexed _address, address caller);
+  event SetController(uint256 indexed projectId, IJBController indexed controller, address caller);
 
-  event RemoveFromSetControllerAllowlist(address indexed _address, address caller);
+  event AddToSetControllerAllowlist(address indexed allowedAddress, address caller);
+
+  event RemoveFromSetControllerAllowlist(address indexed removedAddress, address caller);
 
   function projects() external view returns (IJBProjects);
 
@@ -33,17 +33,17 @@ interface IJBDirectory {
 
   function isAllowedToSetController(address _address) external view returns (bool);
 
-  function primaryTerminalOf(uint256 _projectId, address _token)
-    external
-    view
-    returns (IJBPaymentTerminal);
-
   function terminalsOf(uint256 _projectId) external view returns (IJBPaymentTerminal[] memory);
 
   function isTerminalOf(uint256 _projectId, IJBPaymentTerminal _terminal)
     external
     view
     returns (bool);
+
+  function primaryTerminalOf(uint256 _projectId, address _token)
+    external
+    view
+    returns (IJBPaymentTerminal);
 
   function addTerminalsOf(uint256 _projectId, IJBPaymentTerminal[] calldata _terminals) external;
 
