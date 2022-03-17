@@ -287,7 +287,11 @@ describe.only('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () 
     // Record the used allowance
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
       PROJECT_ID,
-      amountToUse * (usdToEthPrice.div(ethers.BigNumber.from(10).pow(_FIXED_POINT_MAX_FIDELITY))),
+
+// INADEQUATE_CONTROLLER_ALLOWANCE:
+      amountToUse * (usdToEthPrice.div(ethers.BigNumber.from(10).pow(_FIXED_POINT_MAX_FIDELITY))), 
+      //using amountToUse -> only half of the overflow allowance is used (since price is 2*10**18)
+      
       /*currency of amount*/CURRENCY_USD,
       /*currency of the balance*/CURRENCY_ETH
     );
