@@ -15,11 +15,11 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe.only('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
+describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
   const PROJECT_ID = 2;
 
-  const AMOUNT = ethers.utils.parseEther('4398541');
-  const WEIGHT = ethers.utils.parseEther('90000');
+  const AMOUNT = ethers.utils.parseEther('4351');
+  const WEIGHT = ethers.utils.parseEther('900');
 
   const CURRENCY = 1;
   const BASE_CURRENCY = 1;
@@ -81,7 +81,7 @@ describe.only('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
   /* Happy path tests with mockJbTerminal access */
 
-  it.only('Should record payment without a datasource', async function () {
+  it('Should record payment without a datasource', async function () {
     const {
       mockJbTerminalSigner,
       payer,
@@ -113,12 +113,12 @@ describe.only('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     // Record the payment
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
       payer.address,
-      {
-        token: ethers.constants.AddressZero,
-        value: AMOUNT,
-        decimal: 18,
-        currency: CURRENCY
-      },
+      [
+        "0x1230000000000000000000000000000000000000",
+        AMOUNT,
+        18,
+        CURRENCY
+      ],
       PROJECT_ID,
       beneficiary.address,
       BASE_CURRENCY,
@@ -164,7 +164,12 @@ describe.only('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     // Record the payment
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
       /* payer */ payer.address,
-      AMOUNT,
+      [
+        "0x1230000000000000000000000000000000000000",
+        AMOUNT,
+        18,
+        CURRENCY
+      ],
       PROJECT_ID,
       beneficiary.address,
       BASE_CURRENCY,
@@ -220,8 +225,14 @@ describe.only('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         // JBPayParamsData obj
         terminal: mockJbTerminalSigner.address,
         payer: payer.address,
-        amount: AMOUNT,
-        _FIXED_POINT_MAX_FIDELITY: _FIXED_POINT_MAX_FIDELITY,
+        amount:
+          [
+            "0x1230000000000000000000000000000000000000",
+            AMOUNT,
+            18,
+            CURRENCY
+          ],
+        decimal: _FIXED_POINT_MAX_FIDELITY,
         projectId: PROJECT_ID,
         weight: WEIGHT,
         reservedRate: reservedRate,
@@ -238,9 +249,16 @@ describe.only('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     // Record the payment
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
       /* payer */ payer.address,
-      /* amount */ AMOUNT,
+      /* amount */
+      [
+        "0x1230000000000000000000000000000000000000",
+        AMOUNT,
+        18,
+        CURRENCY
+      ],
       /* projectId */ PROJECT_ID,
       beneficiary.address,
+      BASE_CURRENCY,
       /* memo */ memo,
       METADATA
     );
@@ -283,9 +301,15 @@ describe.only('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     // Record the payment
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
       /* payer */ payer.address,
-      AMOUNT,
+      [
+        "0x1230000000000000000000000000000000000000",
+        AMOUNT,
+        18,
+        CURRENCY
+      ],
       PROJECT_ID,
       beneficiary.address,
+      BASE_CURRENCY,
       /* memo */ 'test',
       METADATA
     );
@@ -337,9 +361,15 @@ describe.only('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     // Record the payment
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
       /* payer */ payer.address,
-      AMOUNT,
+      [
+        "0x1230000000000000000000000000000000000000",
+        AMOUNT,
+        18,
+        CURRENCY
+      ],
       PROJECT_ID,
       beneficiary.address,
+      BASE_CURRENCY,
       /* memo */ 'test',
       METADATA
     );
@@ -391,8 +421,14 @@ describe.only('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         // JBPayParamsData obj
         terminal: mockJbTerminalSigner.address,
         payer: payer.address,
-        amount: 0,
-        _FIXED_POINT_MAX_FIDELITY: _FIXED_POINT_MAX_FIDELITY,
+        amount:
+          [
+            "0x1230000000000000000000000000000000000000",
+            0,
+            18,
+            CURRENCY
+          ],
+        decimal: _FIXED_POINT_MAX_FIDELITY,
         projectId: PROJECT_ID,
         weight: WEIGHT,
         reservedRate: reservedRate,
@@ -411,9 +447,15 @@ describe.only('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       mockJbTerminalSigner,
     ).callStatic.recordPaymentFrom(
       /* payer */ payer.address,
-      /* amount */ 0,
+      [
+        "0x1230000000000000000000000000000000000000",
+        0,
+        18,
+        CURRENCY
+      ],
       /* projectId */ PROJECT_ID,
       beneficiary.address,
+      BASE_CURRENCY,
       /* memo */ memo,
       METADATA
     );
@@ -454,9 +496,15 @@ describe.only('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     await expect(
       JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
         /* payer */ payer.address,
-        AMOUNT,
+        [
+          "0x1230000000000000000000000000000000000000",
+          AMOUNT,
+          18,
+          CURRENCY
+        ],
         PROJECT_ID,
         beneficiary.address,
+        BASE_CURRENCY,
         /* memo */ 'test',
         METADATA
       ),
@@ -489,9 +537,15 @@ describe.only('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     await expect(
       JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
         /* payer */ payer.address,
-        AMOUNT,
+        [
+          "0x1230000000000000000000000000000000000000",
+          AMOUNT,
+          18,
+          CURRENCY
+        ],
         PROJECT_ID,
         beneficiary.address,
+        BASE_CURRENCY,
         /* memo */ 'test',
         METADATA
       ),

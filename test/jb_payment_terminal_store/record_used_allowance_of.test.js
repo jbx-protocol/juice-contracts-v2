@@ -14,7 +14,7 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
+describe.only('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
   const PROJECT_ID = 2;
   const AMOUNT = ethers.BigNumber.from('43985411231');
   const WEIGHT = ethers.BigNumber.from('900000000');
@@ -35,6 +35,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     const jbCurrencies = await jbCurrenciesFactory.deploy();
     const CURRENCY_ETH = await jbCurrencies.ETH();
     const CURRENCY_USD = await jbCurrencies.USD();
+    const _FIXED_POINT_MAX_FIDELITY = 18;
 
     const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
       'JBPaymentTerminalStore',
@@ -46,8 +47,6 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       mockJbFundingCycleStore.address,
       mockJbTokenStore.address,
     );
-
-    _FIXED_POINT_MAX_FIDELITY = await JBPaymentTerminalStore.targetDecimals();
 
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);
@@ -142,7 +141,8 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
       PROJECT_ID,
       AMOUNT,
-      CURRENCY_USD,
+      /*currency of amount*/CURRENCY_USD,
+      /*currency of the balance*/CURRENCY_USD
     );
 
     // Post-checks
@@ -212,7 +212,8 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
       PROJECT_ID,
       AMOUNT - distributionLimit,
-      CURRENCY_USD,
+      /*currency of amount*/CURRENCY_USD,
+      /*currency of the balance*/CURRENCY_USD
     );
 
     // Post-checks
@@ -227,7 +228,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(distributionLimit);
   });
-  it('Should record used allowance with > 0 distribution limit and different distribution currency', async function () {
+  it.only('Should record used allowance with > 0 distribution limit and different distribution currency', async function () {
     const {
       mockJbController,
       mockJbPrices,
@@ -239,11 +240,11 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       CURRENCY_USD, // terminal currency
     } = await setup();
 
-    const ethToUsdPrice = ethers.BigNumber.from(2).mul(ethers.BigNumber.from(10).pow(18));
+    const usdToEthPrice = ethers.BigNumber.from(2).mul(ethers.BigNumber.from(10).pow(_FIXED_POINT_MAX_FIDELITY));
 
     const distributionLimit = ethers.BigNumber.from(10).pow(18);
 
-    const amountToUse = 1;
+    const amountToUse = 10000;
 
     // Add to balance beforehand, in USD
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
@@ -251,14 +252,13 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       distributionLimit.add(amountToUse),
     );
 
-    // Both limit and allowance in USD
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
       .returns(distributionLimit);
 
     await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_ETH);
+      .returns(CURRENCY_USD);
 
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
@@ -269,8 +269,8 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       .returns(CURRENCY_USD);
 
     await mockJbPrices.mock.priceFor
-      .withArgs(CURRENCY_ETH, CURRENCY_USD, _FIXED_POINT_MAX_FIDELITY)
-      .returns(ethToUsdPrice);
+      .withArgs(CURRENCY_USD, CURRENCY_ETH, _FIXED_POINT_MAX_FIDELITY)
+      .returns(usdToEthPrice);
 
     // Pre-checks
     expect(
@@ -287,8 +287,9 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     // Record the used allowance
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
       PROJECT_ID,
-      amountToUse,
-      CURRENCY_USD,
+      amountToUse * (usdToEthPrice.div(ethers.BigNumber.from(10).pow(_FIXED_POINT_MAX_FIDELITY))),
+      /*currency of amount*/CURRENCY_USD,
+      /*currency of the balance*/CURRENCY_ETH
     );
 
     // Post-checks

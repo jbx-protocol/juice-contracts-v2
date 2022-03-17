@@ -149,7 +149,8 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       /* holder */ holder.address,
       /* projectId */ PROJECT_ID,
       /* tokenCount */ AMOUNT,
-      CURRENCY,
+      /* balanceDecimals*/ 18,
+      /* balanceCurrency */ CURRENCY,
       /* beneficiary */ beneficiary.address,
       /* memo */ 'test',
       METADATA
@@ -229,7 +230,8 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       /* holder */ holder.address,
       /* projectId */ PROJECT_ID,
       /* tokenCount */ 0,
-      CURRENCY,
+      /* balanceDecimals*/ 18,
+      /* balanceCurrency */ CURRENCY,
       /* beneficiary */ beneficiary.address,
       /* memo */ 'test',
       METADATA
@@ -305,7 +307,8 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       /* holder */ holder.address,
       /* projectId */ PROJECT_ID,
       /* tokenCount */ AMOUNT,
-      CURRENCY,
+      /* balanceDecimals*/ 18,
+      /* balanceCurrency */ CURRENCY,
       /* beneficiary */ beneficiary.address,
       /* memo */ 'test',
       METADATA
@@ -366,7 +369,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         terminal: mockJbTerminalSigner.address,
         holder: holder.address,
         tokenCount: AMOUNT,
-        _FIXED_POINT_MAX_FIDELITY: _FIXED_POINT_MAX_FIDELITY,
+        decimals: _FIXED_POINT_MAX_FIDELITY,
         projectId: PROJECT_ID,
         redemptionRate: redemptionRate,
         ballotRedemptionRate: ballotRedemptionRate,
@@ -395,7 +398,8 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       /* holder */ holder.address,
       /* projectId */ PROJECT_ID,
       /* tokenCount */ AMOUNT,
-      CURRENCY,
+      /* balanceDecimals*/ 18,
+      /* balanceCurrency */ CURRENCY,
       /* beneficiary */ beneficiary.address,
       /* memo */ 'test',
       METADATA
@@ -420,13 +424,14 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     // Record redemption
     await expect(
       JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordRedemptionFor(
-        /* holder */ holder.address,
-        /* projectId */ PROJECT_ID,
-        /* tokenCount */ AMOUNT,
-        CURRENCY,
-        /* beneficiary */ beneficiary.address,
-        /* memo */ 'test',
-        METADATA
+      /* holder */ holder.address,
+      /* projectId */ PROJECT_ID,
+      /* tokenCount */ AMOUNT,
+      /* balanceDecimals*/ 18,
+      /* balanceCurrency */ CURRENCY,
+      /* beneficiary */ beneficiary.address,
+      /* memo */ 'test',
+      METADATA
       ),
     ).to.be.revertedWith(errors.INSUFFICIENT_TOKENS);
   });
@@ -474,13 +479,14 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     // Record redemption
     await expect(
       JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordRedemptionFor(
-        /* holder */ holder.address,
-        /* projectId */ PROJECT_ID,
-        /* tokenCount */ AMOUNT,
-        CURRENCY,
-        /* beneficiary */ beneficiary.address,
-        /* memo */ 'test',
-        METADATA
+      /* holder */ holder.address,
+      /* projectId */ PROJECT_ID,
+      /* tokenCount */ AMOUNT,
+      /* balanceDecimals*/ 18,
+      /* balanceCurrency */ CURRENCY,
+      /* beneficiary */ beneficiary.address,
+      /* memo */ 'test',
+      METADATA
       ),
     ).to.be.revertedWith(errors.FUNDING_CYCLE_REDEEM_PAUSED);
   });
@@ -534,7 +540,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         terminal: mockJbTerminalSigner.address,
         holder: holder.address,
         tokenCount: AMOUNT,
-        _FIXED_POINT_MAX_FIDELITY: _FIXED_POINT_MAX_FIDELITY,
+        decimals: _FIXED_POINT_MAX_FIDELITY,
         projectId: PROJECT_ID,
         redemptionRate: redemptionRate,
         ballotRedemptionRate: ballotRedemptionRate,
@@ -552,7 +558,8 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        CURRENCY,
+        /* balanceDecimals*/ 18,
+        /* balanceCurrency */ CURRENCY,
         /* beneficiary */ beneficiary.address,
         /* memo */ 'test',
         METADATA
