@@ -211,7 +211,12 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   function setTerminalsOf(uint256 _projectId, IJBPaymentTerminal[] calldata _terminals)
     external
     override
-    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.REMOVE_TERMINAL)
+    requirePermissionAllowingOverride(
+      projects.ownerOf(_projectId),
+      _projectId,
+      JBOperations.SET_TERMINALS,
+      msg.sender == address(controllerOf[_projectId])
+    )
   {
     // Get a reference to the terminals of the project.
     IJBPaymentTerminal[] memory _oldTerminals = _terminalsOf[_projectId];

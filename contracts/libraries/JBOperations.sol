@@ -15,9 +15,8 @@ library JBOperations {
   uint256 public constant TRANSFER = 11;
   uint256 public constant REQUIRE_CLAIM = 12;
   uint256 public constant SET_CONTROLLER = 13;
-  uint256 public constant ADD_TERMINALS = 14;
-  uint256 public constant REMOVE_TERMINAL = 15;
-  uint256 public constant SET_PRIMARY_TERMINAL = 16;
-  uint256 public constant USE_ALLOWANCE = 17;
-  uint256 public constant SET_SPLITS = 18;
+  uint256 public constant SET_TERMINALS = 14;
+  uint256 public constant SET_PRIMARY_TERMINAL = 15;
+  uint256 public constant USE_ALLOWANCE = 16;
+  uint256 public constant SET_SPLITS = 17;
 }
