@@ -228,7 +228,7 @@ describe.only('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () 
       await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(distributionLimit);
   });
-  it.only('Should record used allowance with > 0 distribution limit and different distribution currency', async function () {
+  it('Should record used allowance with > 0 distribution limit and different distribution currency', async function () {
     const {
       mockJbController,
       mockJbPrices,
@@ -240,21 +240,22 @@ describe.only('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () 
       CURRENCY_USD, // terminal currency
     } = await setup();
 
-    const usdToEthPrice = ethers.BigNumber.from(2).mul(ethers.BigNumber.from(10).pow(_FIXED_POINT_MAX_FIDELITY));
+    const ethToUsdPrice = ethers.BigNumber.from(2).mul(ethers.BigNumber.from(10).pow(_FIXED_POINT_MAX_FIDELITY));
 
     const distributionLimit = ethers.BigNumber.from(10).pow(18);
 
-    const amountToUse = 10000;
+    const amountToUse = 2345678; // in eth
+    let amountToUseInDollar = amountToUse / (ethToUsdPrice.div(ethers.BigNumber.from(10).pow(_FIXED_POINT_MAX_FIDELITY)));
 
     // Add to balance beforehand, in USD
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
       PROJECT_ID,
-      distributionLimit.add(amountToUse),
+      distributionLimit.add(amountToUseInDollar),
     );
 
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(distributionLimit);
+      .returns(distributionLimit); // in usd
 
     await mockJbController.mock.distributionLimitCurrencyOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
@@ -262,15 +263,15 @@ describe.only('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () 
 
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(amountToUse);
+      .returns(amountToUse); // in eth
 
     await mockJbController.mock.overflowAllowanceCurrencyOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_USD);
+      .returns(CURRENCY_ETH);
 
     await mockJbPrices.mock.priceFor
-      .withArgs(CURRENCY_USD, CURRENCY_ETH, _FIXED_POINT_MAX_FIDELITY)
-      .returns(usdToEthPrice);
+      .withArgs(CURRENCY_ETH, CURRENCY_USD, _FIXED_POINT_MAX_FIDELITY)
+      .returns(ethToUsdPrice);
 
     // Pre-checks
     expect(
@@ -282,31 +283,30 @@ describe.only('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () 
     ).to.equal(0);
     expect(
       await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
-    ).to.equal(distributionLimit.add(amountToUse)); // balanceOf is in terminal currency (USD)
+    ).to.equal(distributionLimit.add(amountToUseInDollar)); // balanceOf is in terminal currency (USD)
 
     // Record the used allowance
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
       PROJECT_ID,
-
-// INADEQUATE_CONTROLLER_ALLOWANCE:
-      amountToUse * (usdToEthPrice.div(ethers.BigNumber.from(10).pow(_FIXED_POINT_MAX_FIDELITY))), 
-      //using amountToUse -> only half of the overflow allowance is used (since price is 2*10**18)
-      
-      /*currency of amount*/CURRENCY_USD,
-      /*currency of the balance*/CURRENCY_ETH
+      amountToUse,
+      /*currency of amount*/CURRENCY_ETH,
+      /*currency of the balance*/CURRENCY_USD
     );
 
     // Post-checks
+
     expect(
       await JBPaymentTerminalStore.usedOverflowAllowanceOf(
         mockJbTerminalSigner.address,
         PROJECT_ID,
         timestamp,
       ),
-    ).to.equal(amountToUse);
+    ).to.equal(amountToUse); // in usd
+
+
     expect(
       await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
-    ).to.equal(distributionLimit);
+    ).to.equal(distributionLimit); // in usd
   });
 
   /* Sad path tests */
@@ -336,6 +336,7 @@ describe.only('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () 
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
+        CURRENCY_ETH
       ),
     ).to.be.revertedWith(errors.CURRENCY_MISMATCH);
   });
@@ -371,6 +372,7 @@ describe.only('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () 
         PROJECT_ID,
         AMOUNT,
         CURRENCY_USD,
+        CURRENCY_USD
       ),
     ).to.be.revertedWith(errors.INADEQUATE_CONTROLLER_ALLOWANCE);
   });
@@ -409,6 +411,7 @@ describe.only('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () 
         PROJECT_ID,
         AMOUNT,
         CURRENCY_USD,
+        CURRENCY_USD
       ),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
@@ -460,6 +463,7 @@ describe.only('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () 
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
+        CURRENCY_USD
       ),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
@@ -512,6 +516,7 @@ describe.only('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () 
         PROJECT_ID,
         AMOUNT,
         CURRENCY_USD,
+        CURRENCY_USD
       ),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
