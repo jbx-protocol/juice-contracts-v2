@@ -14,14 +14,13 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe('JB18DecimalPaymentTerminalStore::recordDistributionFor(...)', function () {
+describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
   const FUNDING_CYCLE_NUM = 1;
   const PROJECT_ID = 2;
   const AMOUNT = ethers.FixedNumber.fromString('4398541.345');
   const WEIGHT = ethers.FixedNumber.fromString('900000000.23411');
   const CURRENCY = 1;
-
-  let decimals;
+  const _FIXED_POINT_MAX_FIDELITY = 18;
 
   async function setup() {
     const [deployer, addr] = await ethers.getSigners();
@@ -39,18 +38,16 @@ describe('JB18DecimalPaymentTerminalStore::recordDistributionFor(...)', function
     const CURRENCY_ETH = await jbCurrencies.ETH();
     const CURRENCY_USD = await jbCurrencies.USD();
 
-    const JB18DecimalPaymentTerminalStoreFactory = await ethers.getContractFactory(
-      'JB18DecimalPaymentTerminalStore',
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
+      'JBPaymentTerminalStore',
     );
-    const JB18DecimalPaymentTerminalStore = await JB18DecimalPaymentTerminalStoreFactory.deploy(
+    const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbPrices.address,
       mockJbProjects.address,
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
       mockJbTokenStore.address,
     );
-
-    decimals = await JB18DecimalPaymentTerminalStore.targetDecimals();
 
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);
@@ -72,7 +69,7 @@ describe('JB18DecimalPaymentTerminalStore::recordDistributionFor(...)', function
       mockJbController,
       mockJbFundingCycleStore,
       mockJbPrices,
-      JB18DecimalPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
       CURRENCY_USD,
@@ -86,7 +83,7 @@ describe('JB18DecimalPaymentTerminalStore::recordDistributionFor(...)', function
       mockJbController,
       mockJbFundingCycleStore,
       mockJbPrices,
-      JB18DecimalPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
       CURRENCY_USD,
@@ -109,7 +106,7 @@ describe('JB18DecimalPaymentTerminalStore::recordDistributionFor(...)', function
     const amountInWei = AMOUNT.divUnsafe(usdToEthPrice);
 
     // Add to balance beforehand
-    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
       PROJECT_ID,
       amountInWei,
     );
@@ -123,23 +120,23 @@ describe('JB18DecimalPaymentTerminalStore::recordDistributionFor(...)', function
       .returns(AMOUNT);
 
     await mockJbPrices.mock.priceFor
-      .withArgs(CURRENCY_USD, CURRENCY_ETH, decimals)
+      .withArgs(CURRENCY_USD, CURRENCY_ETH, _FIXED_POINT_MAX_FIDELITY)
       .returns(usdToEthPrice);
 
     // Pre-checks
     expect(
-      await JB18DecimalPaymentTerminalStore.usedDistributionLimitOf(
+      await JBPaymentTerminalStore.usedDistributionLimitOf(
         mockJbTerminalSigner.address,
         PROJECT_ID,
         FUNDING_CYCLE_NUM,
       ),
     ).to.equal(0);
     expect(
-      await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(amountInWei);
 
     // Record the distributions
-    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
+    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
       PROJECT_ID,
       AMOUNT,
       CURRENCY_USD,
@@ -147,14 +144,14 @@ describe('JB18DecimalPaymentTerminalStore::recordDistributionFor(...)', function
 
     // Post-checks
     expect(
-      await JB18DecimalPaymentTerminalStore.usedDistributionLimitOf(
+      await JBPaymentTerminalStore.usedDistributionLimitOf(
         mockJbTerminalSigner.address,
         PROJECT_ID,
         FUNDING_CYCLE_NUM,
       ),
     ).to.equal(AMOUNT);
     expect(
-      await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(0);
   });
 
@@ -164,7 +161,7 @@ describe('JB18DecimalPaymentTerminalStore::recordDistributionFor(...)', function
     const {
       mockJbTerminalSigner,
       mockJbFundingCycleStore,
-      JB18DecimalPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     } = await setup();
@@ -184,7 +181,7 @@ describe('JB18DecimalPaymentTerminalStore::recordDistributionFor(...)', function
 
     // Record the distributions
     await expect(
-      JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
+      JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
@@ -198,7 +195,7 @@ describe('JB18DecimalPaymentTerminalStore::recordDistributionFor(...)', function
       mockJbTerminalSigner,
       mockJbController,
       mockJbFundingCycleStore,
-      JB18DecimalPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
       CURRENCY_USD,
@@ -227,7 +224,7 @@ describe('JB18DecimalPaymentTerminalStore::recordDistributionFor(...)', function
 
     // Record the distributions
     await expect(
-      JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
+      JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
@@ -242,7 +239,7 @@ describe('JB18DecimalPaymentTerminalStore::recordDistributionFor(...)', function
       mockJbController,
       mockJbFundingCycleStore,
       mockJbPrices,
-      JB18DecimalPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     } = await setup();
@@ -261,7 +258,7 @@ describe('JB18DecimalPaymentTerminalStore::recordDistributionFor(...)', function
     });
 
     // Add to balance beforehand
-    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
       PROJECT_ID,
       AMOUNT,
     );
@@ -276,12 +273,12 @@ describe('JB18DecimalPaymentTerminalStore::recordDistributionFor(...)', function
       .returns(smallDistributionLimit); // Set intentionally small distribution limit
 
     await mockJbPrices.mock.priceFor
-      .withArgs(CURRENCY_ETH, CURRENCY_ETH, decimals)
+      .withArgs(CURRENCY_ETH, CURRENCY_ETH, _FIXED_POINT_MAX_FIDELITY)
       .returns(ethers.FixedNumber.from(1));
 
     // Record the distributions
     await expect(
-      JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
+      JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
@@ -296,7 +293,7 @@ describe('JB18DecimalPaymentTerminalStore::recordDistributionFor(...)', function
       mockJbController,
       mockJbFundingCycleStore,
       mockJbPrices,
-      JB18DecimalPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
     } = await setup();
@@ -316,7 +313,7 @@ describe('JB18DecimalPaymentTerminalStore::recordDistributionFor(...)', function
 
     // Add intentionally small balance
     const smallBalance = AMOUNT.subUnsafe(ethers.FixedNumber.from(1));
-    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
       PROJECT_ID,
       smallBalance,
     );
@@ -330,12 +327,12 @@ describe('JB18DecimalPaymentTerminalStore::recordDistributionFor(...)', function
       .returns(AMOUNT);
 
     await mockJbPrices.mock.priceFor
-      .withArgs(CURRENCY_ETH, CURRENCY_ETH, decimals)
+      .withArgs(CURRENCY_ETH, CURRENCY_ETH, _FIXED_POINT_MAX_FIDELITY)
       .returns(ethers.FixedNumber.from(1));
 
     // Record the distributions
     await expect(
-      JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
+      JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,

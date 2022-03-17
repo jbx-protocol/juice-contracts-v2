@@ -4,7 +4,7 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
-import jb18DecimalPaymentTerminalStore from '../../artifacts/contracts/JB18DecimalPaymentTerminalStore.sol/JB18DecimalPaymentTerminalStore.json';
+import jbPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalStore.sol/JBPaymentTerminalStore.json';
 import jbFeeGauge from '../../artifacts/contracts/interfaces/IJBFeeGauge.sol/IJBFeeGauge.json';
 import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorStore.sol/IJBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
@@ -17,7 +17,7 @@ describe('JB18DecimalPaymentTerminal::setFeeGauge(...)', function () {
 
     let [
       mockJbDirectory,
-      mockJB18DecimalPaymentTerminalStore,
+      mockJBPaymentTerminalStore,
       mockJbFeeGauge,
       mockJbOperatorStore,
       mockJbProjects,
@@ -25,7 +25,7 @@ describe('JB18DecimalPaymentTerminal::setFeeGauge(...)', function () {
       mockJbPrices,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
-      deployMockContract(deployer, jb18DecimalPaymentTerminalStore.abi),
+      deployMockContract(deployer, jbPaymentTerminalStore.abi),
       deployMockContract(deployer, jbFeeGauge.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
@@ -48,7 +48,7 @@ describe('JB18DecimalPaymentTerminal::setFeeGauge(...)', function () {
         mockJbDirectory.address,
         mockJbSplitsStore.address,
         mockJbPrices.address,
-        mockJB18DecimalPaymentTerminalStore.address,
+        mockJBPaymentTerminalStore.address,
         terminalOwner.address,
       );
 
