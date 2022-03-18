@@ -14,7 +14,7 @@ import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsS
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 
-describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
+describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
   const PROTOCOL_PROJECT_ID = 1;
   const PROJECT_ID = 2;
   const AMOUNT = ethers.utils.parseEther('10');
@@ -85,7 +85,7 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
         mockJBPaymentTerminalStore.address,
         terminalOwner.address,
       );
-  
+
     const DECIMALS = 1;
 
     await mockJbToken.mock.decimals.returns(DECIMALS);
@@ -125,11 +125,11 @@ describe('JBPaymentTerminal::addToBalanceOf(...)', function () {
     await mockJbDirectory.mock.isTerminalOf
       .withArgs(PROJECT_ID, JBERC20PaymentTerminal.address)
       .returns(true);
-    
+
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(PROTOCOL_PROJECT_ID, ETH_ADDRESS)
       .returns(jbEthPaymentTerminal.address)
-    
+
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(PROTOCOL_PROJECT_ID, NON_ETH_TOKEN)
       .returns(JBERC20PaymentTerminal.address)

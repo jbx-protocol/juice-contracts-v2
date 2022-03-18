@@ -14,7 +14,7 @@ import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 
-describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
+describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function () {
   const PLATFORM_PROJECT_ID = 1;
   const PROJECT_ID = 2;
   const OTHER_PROJECT_ID = 3;
@@ -355,7 +355,7 @@ describe('JBPaymentTerminal::distributePayoutsOf(...)', function () {
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(OTHER_PROJECT_ID, ETH_ADDRESS)
       .returns(jbEthPaymentTerminal.address);
-    
+
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)
       .returns(ethers.constants.AddressZero);
