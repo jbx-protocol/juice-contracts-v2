@@ -55,7 +55,6 @@ interface IJB18DecimalPaymentTerminal is IJBPaymentTerminal {
     uint256 indexed projectId,
     address beneficiary,
     uint256 amount,
-    uint256 weight,
     uint256 beneficiaryTokenCount,
     string memo,
     address caller

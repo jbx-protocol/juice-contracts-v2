@@ -239,6 +239,64 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
     );
   });
 
+  it(`Should reconfigure funding cycle with metadata using truthy bools`, async function () {
+    const {
+      jbController,
+      projectOwner,
+      timestamp,
+      fundingCycleData,
+      splits,
+      mockJbTerminal1,
+      mockJbTerminal2,
+      mockJbFundingCycleStore
+    } = await setup();
+
+    const groupedSplits = [{ group: 1, splits }];
+    const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
+    const fundAccessConstraints = makeFundingAccessConstraints({ terminals });
+    const truthyMetadata = makeFundingCycleMetadata({
+      pausePay: true,
+      pauseDistributions: true,
+      pauseRedeem: true,
+      pauseMint: true,
+      pauseBurn: true,
+      allowChangeToken: true,
+      allowTerminalMigration: true,
+      allowControllerMigration: true,
+      holdFees: true,
+      useLocalBalanceForRedemptions: true,
+      useDataSourceForPay: true,
+      useDataSourceForRedeem: true,
+    })
+    await mockJbFundingCycleStore.mock.configureFor
+      .withArgs(PROJECT_ID, fundingCycleData, truthyMetadata.packed, PROJECT_START)
+      .returns(
+        Object.assign(
+          {
+            number: 1,
+            configuration: timestamp,
+            basedOn: timestamp,
+            start: timestamp,
+            metadata: truthyMetadata.packed,
+          },
+          fundingCycleData,
+        ),
+      );
+    expect(
+      await jbController
+        .connect(projectOwner).callStatic
+        .reconfigureFundingCyclesOf(
+          PROJECT_ID,
+          fundingCycleData,
+          truthyMetadata.unpacked,
+          PROJECT_START,
+          groupedSplits,
+          fundAccessConstraints,
+        ),
+    ).to.equal(timestamp);
+
+  });
+
   it(`Should reconfigure funding cycle and emit events if caller is not project owner but is authorized`, async function () {
     const {
       jbController,

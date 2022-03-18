@@ -13,15 +13,15 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbPaymentTerminal from '../../artifacts/contracts/interfaces/IJB18DecimalPaymentTerminal.sol/IJB18DecimalPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe('JB18DecimalPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
+describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
   const PROJECT_ID = 2;
   const WEIGHT = ethers.BigNumber.from('1' + '0'.repeat(17));
 
   const ETH_OVERFLOW_A = ethers.utils.parseEther('69000');
   const ETH_OVERFLOW_B = ethers.utils.parseEther('420');
   const PRICE = ethers.BigNumber.from('100');
-
-  let decimals;
+  const DECIMAL = 18;
+  const NON_18_DECIMAL = 12;
 
   async function setup() {
     const [deployer] = await ethers.getSigners();
@@ -40,18 +40,16 @@ describe('JB18DecimalPaymentTerminalStore::currentTotalOverflowOf(...)', functio
     const CURRENCY_ETH = await jbCurrencies.ETH();
     const CURRENCY_USD = await jbCurrencies.USD();
 
-    const JB18DecimalPaymentTerminalStoreFactory = await ethers.getContractFactory(
-      'JB18DecimalPaymentTerminalStore',
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
+      'JBPaymentTerminalStore',
     );
-    const JB18DecimalPaymentTerminalStore = await JB18DecimalPaymentTerminalStoreFactory.deploy(
+    const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbPrices.address,
       mockJbProjects.address,
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
       mockJbTokenStore.address,
     );
-
-    decimals = await JB18DecimalPaymentTerminalStore.targetDecimals();
 
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);
@@ -64,21 +62,21 @@ describe('JB18DecimalPaymentTerminalStore::currentTotalOverflowOf(...)', functio
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbPrices,
-      JB18DecimalPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
       CURRENCY_USD,
     };
   }
 
-  it('Should return total current overflow across multiple terminals with the same currency as the one passed', async function () {
+  it('Should return total current overflow across multiple terminals with the same currency (18 decimals) as the one passed', async function () {
     const {
       mockJbTerminalA,
       mockJbTerminalB,
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbPrices,
-      JB18DecimalPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
       CURRENCY_USD,
@@ -105,8 +103,47 @@ describe('JB18DecimalPaymentTerminalStore::currentTotalOverflowOf(...)', functio
 
     // Get total overflow across both terminals, in same currency; should equal sum of the overflows
     expect(
-      await JB18DecimalPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, CURRENCY_ETH),
+      await JBPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, DECIMAL, CURRENCY_ETH),
     ).to.equal(ETH_OVERFLOW_A.add(ETH_OVERFLOW_B));
+  });
+
+
+  it('Should return total current overflow across multiple terminals with the same currency as the one passed, adjusting non-18 decimals', async function () {
+    const {
+      mockJbTerminalA,
+      mockJbTerminalB,
+      mockJbDirectory,
+      mockJbFundingCycleStore,
+      mockJbPrices,
+      JBPaymentTerminalStore,
+      timestamp,
+      CURRENCY_ETH,
+      CURRENCY_USD,
+    } = await setup();
+
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: WEIGHT,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({ useLocalBalanceForRedemptions: false }),
+    });
+
+    await mockJbDirectory.mock.terminalsOf
+      .withArgs(PROJECT_ID)
+      .returns([mockJbTerminalA.address, mockJbTerminalB.address]);
+
+    await mockJbTerminalA.mock.currentEthOverflowOf.withArgs(PROJECT_ID).returns(ETH_OVERFLOW_A);
+    await mockJbTerminalB.mock.currentEthOverflowOf.withArgs(PROJECT_ID).returns(ETH_OVERFLOW_B);
+
+    // Get total overflow across both terminals, in same currency; should equal sum of the overflows
+    expect(
+      await JBPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, NON_18_DECIMAL, CURRENCY_ETH),
+    ).to.equal( (ETH_OVERFLOW_A.add(ETH_OVERFLOW_B)).div( 10**(DECIMAL-NON_18_DECIMAL) ));
   });
 
   it('Should return total current overflow across multiple terminals with different currency as the one passed', async function () {
@@ -116,7 +153,7 @@ describe('JB18DecimalPaymentTerminalStore::currentTotalOverflowOf(...)', functio
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbPrices,
-      JB18DecimalPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
       CURRENCY_USD,
@@ -147,7 +184,7 @@ describe('JB18DecimalPaymentTerminalStore::currentTotalOverflowOf(...)', functio
 
     // Get total overflow across both terminals, in a different currency; should equal to the sum of the overflow / price
     expect(
-      await JB18DecimalPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, CURRENCY_USD),
+      await JBPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, DECIMAL, CURRENCY_USD),
     ).to.equal((ETH_OVERFLOW_A.add(ETH_OVERFLOW_B)).mul(ethers.utils.parseEther('1')).div(PRICE));
   });
 });
