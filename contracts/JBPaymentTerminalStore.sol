@@ -268,7 +268,7 @@ contract JBPaymentTerminalStore {
   */
   function recordPaymentFrom(
     address _payer,
-    JBTokenAmount memory _amount,
+    JBTokenAmount calldata _amount,
     uint256 _projectId,
     address _beneficiary,
     uint256 _baseWeightCurrency,
