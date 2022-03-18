@@ -8,9 +8,8 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
 import { impersonateAccount } from '../helpers/utils';
-import errors from '../helpers/errors.json';
 
-describe.only('JBDirectory::setTerminalsOf(...)', function () {
+describe('JBDirectory::setTerminalsOf(...)', function () {
   const PROJECT_ID = 1;
   const ADDRESS_TOKEN_3 = ethers.Wallet.createRandom().address;
   let SET_TERMINALS_PERMISSION_INDEX;

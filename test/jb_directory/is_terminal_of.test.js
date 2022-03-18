@@ -10,13 +10,13 @@ import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.
 describe('JBDirectory::isTerminalOf(...)', function () {
   const PROJECT_ID = 13;
 
-  let ADD_TERMINALS_PERMISSION_INDEX;
+  let SET_TERMINALS_PERMISSION_INDEX;
 
   before(async function () {
     let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
     let jbOperations = await jbOperationsFactory.deploy();
 
-    ADD_TERMINALS_PERMISSION_INDEX = await jbOperations.ADD_TERMINALS();
+    SET_TERMINALS_PERMISSION_INDEX = await jbOperations.SET_TERMINALS();
   });
 
   async function setup() {
@@ -40,7 +40,7 @@ describe('JBDirectory::isTerminalOf(...)', function () {
         projectOwner.address,
         projectOwner.address,
         PROJECT_ID,
-        ADD_TERMINALS_PERMISSION_INDEX,
+        SET_TERMINALS_PERMISSION_INDEX,
       )
       .returns(true);
 

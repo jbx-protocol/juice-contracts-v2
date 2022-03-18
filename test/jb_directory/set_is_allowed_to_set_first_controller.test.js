@@ -29,7 +29,7 @@ describe('JBDirectory::setIsAllowedToSetFirstController(...)', function () {
     };
   }
 
-  it('Should add a controller and emit events if caller is JBDirectory owner', async function () {
+  it('Should add a controller to the list and emit events if caller is JBDirectory owner', async function () {
     const { deployer, jbDirectory, mockJbController } = await setup();
 
     await expect(
@@ -53,7 +53,7 @@ describe('JBDirectory::setIsAllowedToSetFirstController(...)', function () {
     expect(await jbDirectory.isAllowedToSetFirstController(mockJbController.address)).to.be.false;
   });
 
-  it("Can't add known controller if caller is not JBDirectory owner", async function () {
+  it("Can't add a controller if caller is not JBDirectory owner", async function () {
     const { addrs, jbDirectory, mockJbController } = await setup();
 
     await expect(
