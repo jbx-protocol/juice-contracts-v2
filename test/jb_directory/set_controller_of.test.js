@@ -124,8 +124,8 @@ describe('JBDirectory::setControllerOf(...)', function () {
       .returns(false);
 
     // Add caller and new controller to SetControllerAllowlist
-    await jbDirectory.connect(deployer).addToSetControllerAllowlist(caller.address);
-    await jbDirectory.connect(deployer).addToSetControllerAllowlist(controller2.address);
+    await jbDirectory.connect(deployer).setIsAllowedToSetFirstController(caller.address);
+    await jbDirectory.connect(deployer).setIsAllowedToSetFirstController(controller2.address);
 
     await expect(jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller2.address)).to
       .not.be.reverted;
@@ -154,7 +154,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
       .returns(false);
 
     // Add the new controller but not caller to SetControllerAllowlist
-    await jbDirectory.connect(deployer).addToSetControllerAllowlist(controller2.address);
+    await jbDirectory.connect(deployer).setIsAllowedToSetFirstController(controller2.address);
 
     await expect(
       jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller2.address),
@@ -184,7 +184,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
       .returns(false);
 
     // Add caller but not the new controller to SetControllerAllowlist
-    await jbDirectory.connect(deployer).addToSetControllerAllowlist(caller.address);
+    await jbDirectory.connect(deployer).setIsAllowedToSetFirstController(caller.address);
 
     await expect(
       jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller2.address),

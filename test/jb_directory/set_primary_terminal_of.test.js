@@ -142,7 +142,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     await terminal2.mock.token.returns(token);
 
     let terminals = [terminal1.address, terminal2.address];
-    await jbDirectory.connect(projectOwner).addTerminalsOf(PROJECT_ID, terminals);
+    await jbDirectory.connect(projectOwner).setTerminalsOf(PROJECT_ID, terminals);
 
     await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, terminal1.address);
     expect(await jbDirectory.connect(projectOwner).primaryTerminalOf(PROJECT_ID, token)).to.equal(

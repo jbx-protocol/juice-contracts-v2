@@ -32,7 +32,7 @@ describe('JBDirectory::removeFromSetControllerAllowlist(...)', function () {
 
   it('Should remove known controller and emit events if caller is JBDirectory owner', async function () {
     const { deployer, jbDirectory, mockJbController } = await setup();
-    await jbDirectory.connect(deployer).addToSetControllerAllowlist(mockJbController.address);
+    await jbDirectory.connect(deployer).setIsAllowedToSetFirstController(mockJbController.address);
 
     await expect(
       jbDirectory.connect(deployer).removeFromSetControllerAllowlist(mockJbController.address),
@@ -43,7 +43,7 @@ describe('JBDirectory::removeFromSetControllerAllowlist(...)', function () {
 
   it("Can't remove known controller if caller is not JBDirectory owner", async function () {
     const { deployer, addrs, jbDirectory, mockJbController } = await setup();
-    await jbDirectory.connect(deployer).addToSetControllerAllowlist(mockJbController.address);
+    await jbDirectory.connect(deployer).setIsAllowedToSetFirstController(mockJbController.address);
 
     await expect(
       jbDirectory.connect(addrs[0]).removeFromSetControllerAllowlist(mockJbController.address),

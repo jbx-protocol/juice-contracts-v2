@@ -39,7 +39,7 @@ describe('JBDirectory::terminalsOf(...)', function () {
     // Add a few terminals
     await jbDirectory
       .connect(projectOwner)
-      .addTerminalsOf(PROJECT_ID, [terminal1.address, terminal2.address]);
+      .setTerminalsOf(PROJECT_ID, [terminal1.address, terminal2.address]);
 
     return { projectOwner, deployer, addrs, jbDirectory, terminal1, terminal2 };
   }
