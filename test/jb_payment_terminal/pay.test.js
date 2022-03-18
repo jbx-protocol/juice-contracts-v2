@@ -14,7 +14,7 @@ import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 import jbPayDelegate from '../../artifacts/contracts/interfaces/IJBPayDelegate.sol/IJBPayDelegate.json';
 
 
-describe('JBPaymentTerminal::pay(...)', function () {
+describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
   const PROJECT_ID = 1;
   const MEMO = 'Memo Test';
   const ADJUSTED_MEMO = 'test test memo';
@@ -30,7 +30,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
   const DECIMALS = 1;
 
   let ethToken;
-  
+
   async function setup() {
     let [deployer, terminalOwner, caller, beneficiary, ...addrs] = await ethers.getSigners();
 
@@ -123,7 +123,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
         CURRENCY_ETH,
         MEMO,
         METADATA
-        )
+      )
       .returns(
         {
           // mock JBFundingCycle obj
@@ -247,7 +247,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
         CURRENCY_ETH,
         MEMO,
         METADATA
-        )
+      )
       .returns(
         {
           // mock JBFundingCycle obj
@@ -299,27 +299,27 @@ describe('JBPaymentTerminal::pay(...)', function () {
 
     await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DelegateDidPay')
-      // AssertionError: expected [ Array(4) ] to equal [ Array(4) ]
-  
-      // .withArgs(
-      //   mockJbPayDelegate.address,
-      //   [
-      //     // JBDidPayData obj
-      //     caller.address,
-      //     PROJECT_ID,
-      //     [
-      //       "0x000000000000000000000000000000000000EEEe",
-      //       ETH_TO_PAY,
-      //       ethers.BigNumber.from(18),
-      //       ethers.BigNumber.from(CURRENCY_ETH)
-      //     ],
-      //     TOKEN_RECEIVED,
-      //     beneficiary.address,
-      //     ADJUSTED_MEMO,
-      //     METADATA,
-      //   ],
-      //   caller.address,
-      // );
+    // AssertionError: expected [ Array(4) ] to equal [ Array(4) ]
+
+    // .withArgs(
+    //   mockJbPayDelegate.address,
+    //   [
+    //     // JBDidPayData obj
+    //     caller.address,
+    //     PROJECT_ID,
+    //     [
+    //       "0x000000000000000000000000000000000000EEEe",
+    //       ETH_TO_PAY,
+    //       ethers.BigNumber.from(18),
+    //       ethers.BigNumber.from(CURRENCY_ETH)
+    //     ],
+    //     TOKEN_RECEIVED,
+    //     beneficiary.address,
+    //     ADJUSTED_MEMO,
+    //     METADATA,
+    //   ],
+    //   caller.address,
+    // );
 
     await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'Pay')
@@ -388,7 +388,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
         CURRENCY_ETH,
         MEMO,
         METADATA
-        )
+      )
       .returns(
         {
           // mock JBFundingCycle obj
@@ -465,7 +465,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
         CURRENCY_ETH,
         MEMO,
         METADATA
-        )
+      )
       .returns(
         {
           // mock JBFundingCycle obj
@@ -578,7 +578,7 @@ describe('JBPaymentTerminal::pay(...)', function () {
         CURRENCY_ETH,
         MEMO,
         METADATA
-        )
+      )
       .returns(
         {
           // mock JBFundingCycle obj

@@ -10,7 +10,7 @@ import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/I
 import jBFundingCycleStore from '../../artifacts/contracts/interfaces/IJBFundingCycleStore.sol/IJBFundingCycleStore.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
-import jbPaymentTerminal from '../../artifacts/contracts/interfaces/IJB18DecimalPaymentTerminal.sol/IJB18DecimalPaymentTerminal.json';
+import jbPaymentTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
 describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
@@ -143,7 +143,7 @@ describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
     // Get total overflow across both terminals, in same currency; should equal sum of the overflows
     expect(
       await JBPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, NON_18_DECIMAL, CURRENCY_ETH),
-    ).to.equal( (ETH_OVERFLOW_A.add(ETH_OVERFLOW_B)).div( 10**(DECIMAL-NON_18_DECIMAL) ));
+    ).to.equal((ETH_OVERFLOW_A.add(ETH_OVERFLOW_B)).div(10 ** (DECIMAL - NON_18_DECIMAL)));
   });
 
   it('Should return total current overflow across multiple terminals with different currency as the one passed', async function () {

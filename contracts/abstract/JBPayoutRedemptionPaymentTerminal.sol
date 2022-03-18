@@ -7,7 +7,7 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 
 import './JBOperatable.sol';
-import './../interfaces/IJB18DecimalPaymentTerminal.sol';
+import './../interfaces/IJBPayoutRedemptionPaymentTerminal.sol';
 import './../interfaces/IJBPaymentTerminal.sol';
 import './../libraries/JBConstants.sol';
 import './../libraries/JBCurrencies.sol';
@@ -44,12 +44,12 @@ error INADEQUATE_RECLAIM_AMOUNT();
 
   Inherits from:
 
-  IJB18DecimalPaymentTerminal - general interface for the methods in this contract.
+  IJBPayoutRedemptionPaymentTerminal - general interface for the methods in this contract.
   JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
   ReentrencyGuard - several function in this contract shouldn't be accessible recursively.
 */
-abstract contract JBPaymentTerminal is
-  IJB18DecimalPaymentTerminal,
+abstract contract JBPayoutRedemptionPaymentTerminal is
+  IJBPayoutRedemptionPaymentTerminal,
   JBOperatable,
   Ownable,
   ReentrancyGuard
@@ -173,9 +173,9 @@ abstract contract JBPaymentTerminal is
     The platform fee percent.
 
     @dev
-    Out of MAX_FEE (50_000_000 / 1_000_000_000)
+    Out of MAX_FEE (25_000_000 / 1_000_000_000)
   */
-  uint256 public override fee = 25_000_000; // 5%
+  uint256 public override fee = 25_000_000; // 2.5%
 
   /**
     @notice
@@ -307,7 +307,7 @@ abstract contract JBPaymentTerminal is
     bool _preferClaimedTokens,
     string calldata _memo,
     bytes calldata _metadata
-  ) external payable override nonReentrant isTerminalOfProject(_projectId) {
+  ) external payable virtual override nonReentrant isTerminalOfProject(_projectId) {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (token != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
@@ -353,7 +353,7 @@ abstract contract JBPaymentTerminal is
     uint256 _currency,
     uint256 _minReturnedTokens,
     string memory _memo
-  ) external override nonReentrant {
+  ) external virtual override nonReentrant {
     // Record the distribution.
     (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordDistributionFor(
         _projectId,
@@ -452,6 +452,7 @@ abstract contract JBPaymentTerminal is
     string memory _memo
   )
     external
+    virtual
     override
     nonReentrant
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.USE_ALLOWANCE)
@@ -533,6 +534,7 @@ abstract contract JBPaymentTerminal is
     bytes memory _metadata
   )
     external
+    virtual
     override
     nonReentrant
     requirePermission(_holder, _projectId, JBOperations.REDEEM)
@@ -617,6 +619,7 @@ abstract contract JBPaymentTerminal is
   */
   function migrate(uint256 _projectId, IJBPaymentTerminal _to)
     external
+    virtual
     override
     nonReentrant
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_TERMINAL)
@@ -653,7 +656,7 @@ abstract contract JBPaymentTerminal is
     uint256 _amount,
     uint256 _projectId,
     string memory _memo
-  ) external payable override nonReentrant isTerminalOfProject(_projectId) {
+  ) external payable virtual override nonReentrant isTerminalOfProject(_projectId) {
     // If this terminal's token isn't ETH, make sure no msg.value was sent, then transfer the tokens in from msg.sender.
     if (token != JBTokens.ETH) {
       // Amount must be greater than 0.
@@ -679,6 +682,7 @@ abstract contract JBPaymentTerminal is
   */
   function processFees(uint256 _projectId)
     external
+    virtual
     override
     requirePermissionAllowingOverride(
       projects.ownerOf(_projectId),
@@ -718,7 +722,7 @@ abstract contract JBPaymentTerminal is
 
     @param _fee The new fee, out of MAX_FEE.
   */
-  function setFee(uint256 _fee) external override onlyOwner {
+  function setFee(uint256 _fee) external virtual override onlyOwner {
     // The provided fee must be within the max.
     if (_fee > _FEE_CAP) revert FEE_TOO_HIGH();
 
@@ -737,7 +741,7 @@ abstract contract JBPaymentTerminal is
 
     @param _feeGauge The new fee gauge.
   */
-  function setFeeGauge(IJBFeeGauge _feeGauge) external override onlyOwner {
+  function setFeeGauge(IJBFeeGauge _feeGauge) external virtual override onlyOwner {
     // Store the new fee gauge.
     feeGauge = _feeGauge;
 
@@ -753,7 +757,7 @@ abstract contract JBPaymentTerminal is
 
     @param _terminal The terminal that can be paid towards while still bypassing fees.
   */
-  function toggleFeelessTerminal(IJBPaymentTerminal _terminal) external override onlyOwner {
+  function toggleFeelessTerminal(IJBPaymentTerminal _terminal) external virtual override onlyOwner {
     // Toggle the value for the provided terminal.
     isFeelessTerminal[_terminal] = !isFeelessTerminal[_terminal];
 

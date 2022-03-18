@@ -10,7 +10,7 @@ import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 
-describe('JBPaymentTerminal::currentEthOverflowOf(...)', function () {
+describe('JBPayoutRedemptionPaymentTerminal::currentEthOverflowOf(...)', function () {
   const PROJECT_ID = 2;
   const AMOUNT = ethers.utils.parseEther('10');
   const PRICE = ethers.BigNumber.from('100');
