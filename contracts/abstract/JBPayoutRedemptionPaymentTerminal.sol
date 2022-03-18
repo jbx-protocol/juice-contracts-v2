@@ -7,15 +7,18 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 
 import './JBOperatable.sol';
-import './../interfaces/IJB18DecimalPaymentTerminal.sol';
+import './../interfaces/IJBPayoutRedemptionPaymentTerminal.sol';
 import './../interfaces/IJBPaymentTerminal.sol';
 import './../libraries/JBConstants.sol';
 import './../libraries/JBCurrencies.sol';
 import './../libraries/JBOperations.sol';
 import './../libraries/JBSplitsGroups.sol';
 import './../libraries/JBTokens.sol';
+import './../libraries/JBFixedPointNumber.sol';
 
-import './../JB18DecimalPaymentTerminalStore.sol';
+import './../structs/JBTokenAmount.sol';
+
+import './../JBPaymentTerminalStore.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
@@ -41,18 +44,21 @@ error INADEQUATE_RECLAIM_AMOUNT();
 
   Inherits from:
 
-  IJB18DecimalPaymentTerminal - general interface for the methods in this contract.
+  IJBPayoutRedemptionPaymentTerminal - general interface for the methods in this contract.
   JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
   ReentrencyGuard - several function in this contract shouldn't be accessible recursively.
 */
-abstract contract JBPaymentTerminal is
-  IJB18DecimalPaymentTerminal,
+abstract contract JBPayoutRedemptionPaymentTerminal is
+  IJBPayoutRedemptionPaymentTerminal,
   JBOperatable,
   Ownable,
   ReentrancyGuard
 {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
+
+  // A library that provides utility for fixed point numbers.
+  using JBFixedPointNumber for uint256;
 
   /// @notice A modifier that verifies this terminal is a terminal of provided project ID
   modifier isTerminalOfProject(uint256 _projectId) {
@@ -113,6 +119,12 @@ abstract contract JBPaymentTerminal is
   */
   IJBSplitsStore public immutable override splitsStore;
 
+  /**
+    @notice
+    The contract that exposes price feeds.
+  */
+  IJBPrices public immutable prices;
+
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
@@ -121,7 +133,7 @@ abstract contract JBPaymentTerminal is
     @notice
     The contract that stores and manages the terminal's data.
   */
-  IJBPaymentTerminalStore public immutable store;
+  JBPaymentTerminalStore public immutable store;
 
   /**
     @notice
@@ -131,12 +143,39 @@ abstract contract JBPaymentTerminal is
 
   /**
     @notice
+    The number of decimals the token fixed point amounts are expected to have.
+  */
+  uint256 public immutable override decimals;
+
+  /**
+    @notice
+    The currency to use when resolving price feeds for this terminal.
+  */
+  uint256 public immutable override currency;
+
+  /**
+    @notice
+    The currency to base token issuance on.
+
+    @dev
+    If this differs from `currency`, there must be a price feed available in `store.prices()` to convert `currency` to `baseWeightCurrency`
+  */
+  uint256 public immutable override baseWeightCurrency;
+
+  /**
+    @notice
+    The group that payout splits coming from this terminal are identified by.
+  */
+  uint256 public immutable override payoutSplitsGroup;
+
+  /**
+    @notice
     The platform fee percent.
 
     @dev
-    Out of MAX_FEE (50_000_000 / 1_000_000_000)
+    Out of MAX_FEE (25_000_000 / 1_000_000_000)
   */
-  uint256 public override fee = 25_000_000; // 5%
+  uint256 public override fee = 25_000_000; // 2.5%
 
   /**
     @notice
@@ -152,30 +191,39 @@ abstract contract JBPaymentTerminal is
   */
   mapping(IJBPaymentTerminal => bool) public override isFeelessTerminal;
 
-  /**
-    @notice
-    The currency to use when resolving price feeds for this terminal.
-  */
-  uint256 public override currency;
-
-  /**
-    @notice
-    The currency to base token issuance on.
-
-    @dev
-    If this differs from `currency`, there must be a price feed available in `store.prices()` to convert `currency` to `baseWeightCurrency`
-  */
-  uint256 public override baseWeightCurrency;
-
-  /**
-    @notice
-    The group that payout splits coming from this terminal are identified by.
-  */
-  uint256 public override payoutSplitsGroup;
-
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
   //*********************************************************************//
+
+  /**
+    @notice
+    Gets the current overflowed amount in this for a specified project, in terms of ETH.
+
+    @dev
+    The current overflow is represented as a fixed point number with 18 decimals.
+
+    @param _projectId The ID of the project to get overflow for.
+
+    @return The current amount of ETH overflow that project has in this terminal, as a fixed point number with 18 decimals.
+  */
+  function currentEthOverflowOf(uint256 _projectId) external view override returns (uint256) {
+    uint256 _overflow = store.currentOverflowOf(this, _projectId);
+
+    // Adjust the decimals of the fixed point number if needed to have 18 decimals.
+    uint256 _adjustedOverflow = (decimals == 18)
+      ? _overflow
+      : _overflow.adjustDecimals(decimals, 18);
+
+    // Return the amount converted to ETH.
+    return
+      (currency == JBCurrencies.ETH)
+        ? _adjustedOverflow
+        : PRBMath.mulDiv(
+          _adjustedOverflow,
+          10**decimals,
+          prices.priceFor(currency, JBCurrencies.ETH, decimals)
+        );
+  }
 
   /**
     @notice
@@ -195,6 +243,7 @@ abstract contract JBPaymentTerminal is
 
   /**
     @param _token The token that this terminal manages.
+    @param _decimals The number of decimals the token fixed point amounts are expected to have.
     @param _currency The currency that this terminal's token adheres to for price feeds.
     @param _baseWeightCurrency The currency to base token issuance on.
     @param _payoutSplitsGroup The group that denotes payout splits from this terminal in the splits store.
@@ -202,11 +251,13 @@ abstract contract JBPaymentTerminal is
     @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
     @param _directory A contract storing directories of terminals and controllers for each project.
     @param _splitsStore A contract that stores splits for each project.
+    @param _prices A contract that exposes price feeds.
     @param _store A contract that stores the terminal's data.
     @param _owner The address that will own this contract.
   */
   constructor(
     address _token,
+    uint256 _decimals,
     uint256 _currency,
     uint256 _baseWeightCurrency,
     uint256 _payoutSplitsGroup,
@@ -214,16 +265,19 @@ abstract contract JBPaymentTerminal is
     IJBProjects _projects,
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
-    JB18DecimalPaymentTerminalStore _store,
+    IJBPrices _prices,
+    JBPaymentTerminalStore _store,
     address _owner
   ) JBOperatable(_operatorStore) {
     token = _token;
+    decimals = _decimals;
     baseWeightCurrency = _baseWeightCurrency;
     payoutSplitsGroup = _payoutSplitsGroup;
     currency = _currency;
     projects = _projects;
     directory = _directory;
     splitsStore = _splitsStore;
+    prices = _prices;
     store = _store;
 
     transferOwnership(_owner);
@@ -253,7 +307,7 @@ abstract contract JBPaymentTerminal is
     bool _preferClaimedTokens,
     string calldata _memo,
     bytes calldata _metadata
-  ) external payable override nonReentrant isTerminalOfProject(_projectId) {
+  ) external payable virtual override nonReentrant isTerminalOfProject(_projectId) {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (token != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
@@ -302,10 +356,11 @@ abstract contract JBPaymentTerminal is
   ) external override nonReentrant {
     // Record the distribution.
     (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordDistributionFor(
-      _projectId,
-      _amount,
-      _currency
-    );
+        _projectId,
+        _amount,
+        _currency,
+        currency // The balance is in terms of this terminal's currency.
+      );
 
     // The amount being distributed must be at least as much as was expected.
     if (_distributedAmount < _minReturnedTokens) revert INADEQUATE_DISTRIBUTION_AMOUNT();
@@ -397,16 +452,18 @@ abstract contract JBPaymentTerminal is
     string memory _memo
   )
     external
+    virtual
     override
     nonReentrant
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.USE_ALLOWANCE)
   {
     // Record the use of the allowance.
     (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordUsedAllowanceOf(
-      _projectId,
-      _amount,
-      _currency
-    );
+        _projectId,
+        _amount,
+        _currency,
+        currency // The balance is in terms of this terminal's currency.
+      );
 
     // The amount being withdrawn must be at least as much as was expected.
     if (_distributedAmount < _minReturnedTokens) revert INADEQUATE_DISTRIBUTION_AMOUNT();
@@ -477,6 +534,7 @@ abstract contract JBPaymentTerminal is
     bytes memory _metadata
   )
     external
+    virtual
     override
     nonReentrant
     requirePermission(_holder, _projectId, JBOperations.REDEEM)
@@ -497,7 +555,8 @@ abstract contract JBPaymentTerminal is
         _holder,
         _projectId,
         _tokenCount,
-        currency,
+        decimals, // The fixed point balance has this terminal's token's number of decimals.
+        currency, // The balance is in terms of this terminal's currency.
         _beneficiary,
         _memo,
         _metadata
@@ -522,9 +581,7 @@ abstract contract JBPaymentTerminal is
           _holder,
           _projectId,
           _tokenCount,
-          token,
-          reclaimAmount,
-          store.targetDecimals(),
+          JBTokenAmount(token, reclaimAmount, decimals, currency),
           _beneficiary,
           _memo,
           _metadata
@@ -562,6 +619,7 @@ abstract contract JBPaymentTerminal is
   */
   function migrate(uint256 _projectId, IJBPaymentTerminal _to)
     external
+    virtual
     override
     nonReentrant
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_TERMINAL)
@@ -624,6 +682,7 @@ abstract contract JBPaymentTerminal is
   */
   function processFees(uint256 _projectId)
     external
+    virtual
     override
     requirePermissionAllowingOverride(
       projects.ownerOf(_projectId),
@@ -663,7 +722,7 @@ abstract contract JBPaymentTerminal is
 
     @param _fee The new fee, out of MAX_FEE.
   */
-  function setFee(uint256 _fee) external override onlyOwner {
+  function setFee(uint256 _fee) external virtual override onlyOwner {
     // The provided fee must be within the max.
     if (_fee > _FEE_CAP) revert FEE_TOO_HIGH();
 
@@ -682,7 +741,7 @@ abstract contract JBPaymentTerminal is
 
     @param _feeGauge The new fee gauge.
   */
-  function setFeeGauge(IJBFeeGauge _feeGauge) external override onlyOwner {
+  function setFeeGauge(IJBFeeGauge _feeGauge) external virtual override onlyOwner {
     // Store the new fee gauge.
     feeGauge = _feeGauge;
 
@@ -698,7 +757,7 @@ abstract contract JBPaymentTerminal is
 
     @param _terminal The terminal that can be paid towards while still bypassing fees.
   */
-  function toggleFeelessTerminal(IJBPaymentTerminal _terminal) external override onlyOwner {
+  function toggleFeelessTerminal(IJBPaymentTerminal _terminal) external virtual override onlyOwner {
     // Toggle the value for the provided terminal.
     isFeelessTerminal[_terminal] = !isFeelessTerminal[_terminal];
 
@@ -931,7 +990,6 @@ abstract contract JBPaymentTerminal is
     if (_beneficiary == address(0)) revert PAY_TO_ZERO_ADDRESS();
 
     JBFundingCycle memory _fundingCycle;
-    uint256 _weight;
     uint256 _beneficiaryTokenCount;
 
     // Scoped section prevents stack too deep. `_delegate` and `_tokenCount` only used within scope.
@@ -939,12 +997,16 @@ abstract contract JBPaymentTerminal is
       IJBPayDelegate _delegate;
       uint256 _tokenCount;
 
+      // Bundle the amount info into a JBTokenAmount struct.
+      JBTokenAmount memory _bundledAmount = JBTokenAmount(token, _amount, decimals, currency);
+
       // Record the payment.
-      (_fundingCycle, _weight, _tokenCount, _delegate, _memo) = store.recordPaymentFrom(
+      (_fundingCycle, _tokenCount, _delegate, _memo) = store.recordPaymentFrom(
         _payer,
-        _amount,
+        _bundledAmount,
         _projectId,
         _beneficiary,
+        baseWeightCurrency,
         _memo,
         _metadata
       );
@@ -969,10 +1031,7 @@ abstract contract JBPaymentTerminal is
         JBDidPayData memory _data = JBDidPayData(
           _payer,
           _projectId,
-          token,
-          _amount,
-          store.targetDecimals(),
-          _weight,
+          _bundledAmount,
           _beneficiaryTokenCount,
           _beneficiary,
           _memo,
@@ -990,7 +1049,6 @@ abstract contract JBPaymentTerminal is
       _projectId,
       _beneficiary,
       _amount,
-      _weight,
       _beneficiaryTokenCount,
       _memo,
       msg.sender

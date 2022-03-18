@@ -13,7 +13,7 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe('JB18DecimalPaymentTerminalStore::recordMigration(...)', function () {
+describe('JBPaymentTerminalStore::recordMigration(...)', function () {
   const PROJECT_ID = 2;
   const AMOUNT = ethers.FixedNumber.fromString('4398541.345');
   const WEIGHT = ethers.FixedNumber.fromString('900000000.23411');
@@ -30,10 +30,10 @@ describe('JB18DecimalPaymentTerminalStore::recordMigration(...)', function () {
     const mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
     const mockJbTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
 
-    const JB18DecimalPaymentTerminalStoreFactory = await ethers.getContractFactory(
-      'JB18DecimalPaymentTerminalStore',
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
+      'JBPaymentTerminalStore',
     );
-    const JB18DecimalPaymentTerminalStore = await JB18DecimalPaymentTerminalStoreFactory.deploy(
+    const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbPrices.address,
       mockJbProjects.address,
       mockJbDirectory.address,
@@ -53,7 +53,7 @@ describe('JB18DecimalPaymentTerminalStore::recordMigration(...)', function () {
       mockJbTerminal,
       mockJbTerminalSigner,
       mockJbFundingCycleStore,
-      JB18DecimalPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
     };
   }
@@ -62,7 +62,7 @@ describe('JB18DecimalPaymentTerminalStore::recordMigration(...)', function () {
     const {
       mockJbTerminalSigner,
       mockJbFundingCycleStore,
-      JB18DecimalPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
     } = await setup();
 
@@ -79,17 +79,17 @@ describe('JB18DecimalPaymentTerminalStore::recordMigration(...)', function () {
     });
 
     // Add to balance beforehand
-    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
       PROJECT_ID,
       AMOUNT,
     );
 
     // "Record migration"
-    await JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordMigration(PROJECT_ID);
+    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordMigration(PROJECT_ID);
 
     // Current balance should be set to 0
     expect(
-      await JB18DecimalPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(0);
   });
 
@@ -97,7 +97,7 @@ describe('JB18DecimalPaymentTerminalStore::recordMigration(...)', function () {
     const {
       mockJbTerminalSigner,
       mockJbFundingCycleStore,
-      JB18DecimalPaymentTerminalStore,
+      JBPaymentTerminalStore,
       timestamp,
     } = await setup();
 
@@ -115,7 +115,7 @@ describe('JB18DecimalPaymentTerminalStore::recordMigration(...)', function () {
 
     // Record migration
     await expect(
-      JB18DecimalPaymentTerminalStore.connect(mockJbTerminalSigner).recordMigration(PROJECT_ID),
+      JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordMigration(PROJECT_ID),
     ).to.be.revertedWith(errors.PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED);
   });
 });
