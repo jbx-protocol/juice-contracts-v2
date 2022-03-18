@@ -13,7 +13,7 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 
-describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
+describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
   const AMOUNT_TO_DISTRIBUTE = 40000;
   const AMOUNT = 50000;
   const DEFAULT_FEE = 50000000; // 5%
@@ -93,8 +93,8 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
     const ETH_ADDRESS = await jbToken.ETH();
 
     await mockJbDirectory.mock.primaryTerminalOf
-    .withArgs(JUICEBOX_PROJECT_ID, ETH_ADDRESS)
-    .returns(jbEthPaymentTerminal.address)
+      .withArgs(JUICEBOX_PROJECT_ID, ETH_ADDRESS)
+      .returns(jbEthPaymentTerminal.address)
 
     await mockJbProjects.mock.ownerOf.returns(projectOwner.address);
 
@@ -254,12 +254,12 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
         jbEthPaymentTerminal.address,
-          {
-            token: ETH_ADDRESS,
-            value: AMOUNT - AMOUNT_MINUS_FEES,
-            decimals: 18,
-            currency: CURRENCY_ETH,
-          },
+        {
+          token: ETH_ADDRESS,
+          value: AMOUNT - AMOUNT_MINUS_FEES,
+          decimals: 18,
+          currency: CURRENCY_ETH,
+        },
         JUICEBOX_PROJECT_ID,
         projectOwner.address,
         CURRENCY_ETH,
@@ -344,12 +344,12 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
         jbEthPaymentTerminal.address,
-          {
-            token: ETH_ADDRESS,
-            value: AMOUNT - AMOUNT_MINUS_DISCOUNTED_FEES,
-            decimals: 18,
-            currency: CURRENCY_ETH,
-          },
+        {
+          token: ETH_ADDRESS,
+          value: AMOUNT - AMOUNT_MINUS_DISCOUNTED_FEES,
+          decimals: 18,
+          currency: CURRENCY_ETH,
+        },
         JUICEBOX_PROJECT_ID,
         projectOwner.address,
         CURRENCY_ETH,
@@ -431,12 +431,12 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
         jbEthPaymentTerminal.address,
-          {
-            token: ETH_ADDRESS,
-            value: AMOUNT - AMOUNT_MINUS_FEES,
-            decimals: 18,
-            currency: CURRENCY_ETH,
-          },
+        {
+          token: ETH_ADDRESS,
+          value: AMOUNT - AMOUNT_MINUS_FEES,
+          decimals: 18,
+          currency: CURRENCY_ETH,
+        },
         JUICEBOX_PROJECT_ID,
         projectOwner.address,
         CURRENCY_ETH,
@@ -525,12 +525,12 @@ describe('JBPaymentTerminal::useAllowanceOf(...)', function () {
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
         jbEthPaymentTerminal.address,
-          {
-            token: ETH_ADDRESS,
-            value: AMOUNT - AMOUNT_MINUS_FEES,
-            decimals: 18,
-            currency: CURRENCY_ETH,
-          },
+        {
+          token: ETH_ADDRESS,
+          value: AMOUNT - AMOUNT_MINUS_FEES,
+          decimals: 18,
+          currency: CURRENCY_ETH,
+        },
         JUICEBOX_PROJECT_ID,
         projectOwner.address,
         CURRENCY_ETH,

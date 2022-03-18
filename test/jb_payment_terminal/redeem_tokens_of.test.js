@@ -14,7 +14,7 @@ import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.s
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 import jbRedemptionDelegate from '../../artifacts/contracts/interfaces/IJBRedemptionDelegate.sol/IJBRedemptionDelegate.json';
 
-describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
+describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
   const AMOUNT = 50000;
   const RECLAIM_AMOUNT = 40000;
   const MIN_RETURNED_AMOUNT = 30000;
@@ -305,12 +305,12 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
         projectId: PROJECT_ID,
         projectTokenCount: AMOUNT,
         reclaimedAmount:
-          {
-            token: tokenAddress,
-            value: RECLAIM_AMOUNT,
-            decimals: DECIMALS_ETH,
-            currency: CURRENCY_ETH
-          },
+        {
+          token: tokenAddress,
+          value: RECLAIM_AMOUNT,
+          decimals: DECIMALS_ETH,
+          currency: CURRENCY_ETH
+        },
         beneficiary: beneficiary.address,
         memo: ADJUSTED_MEMO,
         metadata: METADATA,
@@ -335,27 +335,27 @@ describe('JBPaymentTerminal::redeemTokensOf(...)', function () {
 
     expect(await tx)
       .to.emit(jbEthPaymentTerminal, 'DelegateDidRedeem')
-      // Uncaught AssertionError: expected [ Array(4) ] to equal [ Array(4) ]
-      
-      // .withArgs(
-      //   mockJbRedemptionDelegate.address,
-      //   [
-      //     // JBDidRedeemData obj
-      //     holder.address,
-      //     PROJECT_ID,
-      //     AMOUNT,
-      //       [
-      //         tokenAddress,
-      //         ethers.BigNumber.from(RECLAIM_AMOUNT),
-      //         ethers.BigNumber.from(DECIMALS_ETH),
-      //         CURRENCY_ETH
-      //       ],
-      //     beneficiary.address,
-      //     ADJUSTED_MEMO,
-      //     METADATA,
-      //   ],
-      //   /* msg.sender */ holder.address,
-      // );
+    // Uncaught AssertionError: expected [ Array(4) ] to equal [ Array(4) ]
+
+    // .withArgs(
+    //   mockJbRedemptionDelegate.address,
+    //   [
+    //     // JBDidRedeemData obj
+    //     holder.address,
+    //     PROJECT_ID,
+    //     AMOUNT,
+    //       [
+    //         tokenAddress,
+    //         ethers.BigNumber.from(RECLAIM_AMOUNT),
+    //         ethers.BigNumber.from(DECIMALS_ETH),
+    //         CURRENCY_ETH
+    //       ],
+    //     beneficiary.address,
+    //     ADJUSTED_MEMO,
+    //     METADATA,
+    //   ],
+    //   /* msg.sender */ holder.address,
+    // );
 
     expect(await tx)
       .to.emit(jbEthPaymentTerminal, 'RedeemTokens')

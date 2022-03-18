@@ -5,9 +5,9 @@ pragma solidity 0.8.6;
 import '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 
 // Inheritance
-import './abstract/JBPaymentTerminal.sol';
+import './abstract/JBPayoutRedemptionPaymentTerminal.sol';
 
-contract JBERC20PaymentTerminal is JBPaymentTerminal {
+contract JBERC20PaymentTerminal is JBPayoutRedemptionPaymentTerminal {
   constructor(
     IERC20Metadata _token,
     uint256 _currency,
@@ -21,7 +21,7 @@ contract JBERC20PaymentTerminal is JBPaymentTerminal {
     JBPaymentTerminalStore _store,
     address _owner
   )
-    JBPaymentTerminal(
+    JBPayoutRedemptionPaymentTerminal(
       address(_token),
       _token.decimals(),
       _currency,

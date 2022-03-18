@@ -161,7 +161,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
 
     /*mustStartOnOrAfter*/ ethers.BigNumber.from(0),
 
-    /*groupedSplits*/ [],
+    /*groupedSplits*/[],
 
     /*fundAccessConstraints*/
     [
@@ -174,7 +174,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
       ],
     ],
 
-    /*terminals*/ [JBETHPaymentTerminal.address],
+    /*terminals*/[JBETHPaymentTerminal.address],
   );
 
   console.log('Done');
