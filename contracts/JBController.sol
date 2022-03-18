@@ -3,12 +3,9 @@
 pragma solidity 0.8.6;
 
 import '@paulrberg/contracts/math/PRBMath.sol';
-
-import './libraries/JBConstants.sol';
-import './libraries/JBOperations.sol';
-import './libraries/JBSplitsGroups.sol';
-import './libraries/JBFundingCycleMetadataResolver.sol';
-
+import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
+import './abstract/JBOperatable.sol';
 import './interfaces/IJBTokenStore.sol';
 import './interfaces/IJBProjects.sol';
 import './interfaces/IJBSplitsStore.sol';
@@ -17,18 +14,16 @@ import './interfaces/IJBOperatorStore.sol';
 import './interfaces/IJBFundingCycleDataSource.sol';
 import './interfaces/IJBPrices.sol';
 import './interfaces/IJBController.sol';
-
+import './interfaces/IJBController.sol';
+import './libraries/JBConstants.sol';
+import './libraries/JBOperations.sol';
+import './libraries/JBSplitsGroups.sol';
+import './libraries/JBFundingCycleMetadataResolver.sol';
 import './structs/JBFundingCycleData.sol';
 import './structs/JBFundingCycleMetadata.sol';
 import './structs/JBFundAccessConstraints.sol';
 import './structs/JBGroupedSplits.sol';
 import './structs/JBProjectMetadata.sol';
-
-// Inheritance
-import './interfaces/IJBController.sol';
-import './abstract/JBOperatable.sol';
-import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
@@ -57,9 +52,12 @@ error ZERO_TOKENS_TO_MINT();
   @dev
   A project can transfer control from this contract to another allowed controller contract at any time.
 
-  Inherits from:
-
+  @dev
+  Adheres to:
   IJBController - general interface for the generic controller methods in this contract that interacts with funding cycles and tokens according to the Juicebox protocol's rules.
+
+  @dev
+  Inherits from:
   JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
   ReentrencyGuard - several function in this contract shouldn't be accessible recursively.
 */
@@ -74,6 +72,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     JBFundAccessConstraints constraints,
     address caller
   );
+
   event DistributeReservedTokens(
     uint256 indexed fundingCycleConfiguration,
     uint256 indexed fundingCycleNumber,
@@ -459,17 +458,17 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
 
   /**
     @notice
-    Issues an owner's ERC-20 Tokens that'll be used when claiming tokens.
+    Issues an owner's ERC20 JBTokens that'll be used when claiming tokens.
 
     @dev
-    Deploys a project's ERC-20 token contract.
+    Deploys a project's ERC20 JBToken contract.
 
     @dev
     Only a project owner or operator can issue its token.
 
     @param _projectId The ID of the project being issued tokens.
-    @param _name The ERC-20's name.
-    @param _symbol The ERC-20's symbol.
+    @param _name The ERC20's name.
+    @param _symbol The ERC20's symbol.
   */
   function issueTokenFor(
     uint256 _projectId,
