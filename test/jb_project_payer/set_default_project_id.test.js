@@ -22,8 +22,8 @@ describe('JBProjectPayer::setDefaultValues(...)', function () {
 
     let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
 
-    let jbFakeProjectFactory = await ethers.getContractFactory('JBFakeProjectPayer');
-    let jbFakeProjectPayer = await jbFakeProjectFactory.deploy(
+    let jbProjectPayerFactory = await ethers.getContractFactory('JBProjectPayer');
+    let jbProjectPayer = await jbProjectPayerFactory.deploy(
       INITIAL_PROJECT_ID,
       INITIAL_BENEFICIARY,
       INITIAL_PREFER_CLAIMED_TOKENS,
@@ -38,59 +38,59 @@ describe('JBProjectPayer::setDefaultValues(...)', function () {
       owner,
       addrs,
       mockJbDirectory,
-      jbFakeProjectPayer,
+      jbProjectPayer,
     };
   }
 
   it(`Should set defaults if owner`, async function () {
-    const { owner, jbFakeProjectPayer } = await setup();
+    const { owner, jbProjectPayer } = await setup();
 
-    expect(await jbFakeProjectPayer.defaultProjectId()).to.equal(
+    expect(await jbProjectPayer.defaultProjectId()).to.equal(
       INITIAL_PROJECT_ID,
     );
-    expect(await jbFakeProjectPayer.defaultBeneficiary()).to.equal(
+    expect(await jbProjectPayer.defaultBeneficiary()).to.equal(
       INITIAL_BENEFICIARY,
     );
-    expect(await jbFakeProjectPayer.defaultPreferClaimedTokens()).to.equal(
+    expect(await jbProjectPayer.defaultPreferClaimedTokens()).to.equal(
       INITIAL_PREFER_CLAIMED_TOKENS,
     );
-    expect(await jbFakeProjectPayer.defaultMemo()).to.equal(
+    expect(await jbProjectPayer.defaultMemo()).to.equal(
       INITIAL_MEMO,
     );
-    expect(await jbFakeProjectPayer.defaultMetadata()).to.equal(
+    expect(await jbProjectPayer.defaultMetadata()).to.equal(
       ethers.BigNumber.from(INITIAL_METADATA),
     );
 
-    const setDefaultsTx = await jbFakeProjectPayer
+    const setDefaultsTx = await jbProjectPayer
       .connect(owner)
       .setDefaultValues(PROJECT_ID, BENEFICIARY, PREFER_CLAIMED_TOKENS, MEMO, METADATA);
 
-    expect(await jbFakeProjectPayer.defaultProjectId()).to.equal(
+    expect(await jbProjectPayer.defaultProjectId()).to.equal(
       PROJECT_ID,
     );
-    expect(await jbFakeProjectPayer.defaultBeneficiary()).to.equal(
+    expect(await jbProjectPayer.defaultBeneficiary()).to.equal(
       BENEFICIARY,
     );
-    expect(await jbFakeProjectPayer.defaultPreferClaimedTokens()).to.equal(
+    expect(await jbProjectPayer.defaultPreferClaimedTokens()).to.equal(
       PREFER_CLAIMED_TOKENS,
     );
-    expect(await jbFakeProjectPayer.defaultMemo()).to.equal(
+    expect(await jbProjectPayer.defaultMemo()).to.equal(
       MEMO,
     );
-    expect(await jbFakeProjectPayer.defaultMetadata()).to.equal(
+    expect(await jbProjectPayer.defaultMetadata()).to.equal(
       ethers.BigNumber.from(METADATA),
     );
 
     await expect(setDefaultsTx)
-      .to.emit(jbFakeProjectPayer, 'SetDefaultValues')
+      .to.emit(jbProjectPayer, 'SetDefaultValues')
       .withArgs(PROJECT_ID, BENEFICIARY, PREFER_CLAIMED_TOKENS, MEMO, ethers.BigNumber.from(METADATA), owner.address);
   });
 
   it(`Can't set defaults if not owner`, async function () {
-    const { addrs, jbFakeProjectPayer } = await setup();
+    const { addrs, jbProjectPayer } = await setup();
 
     await expect(
-      jbFakeProjectPayer.connect(addrs[0]).setDefaultValues(PROJECT_ID, BENEFICIARY, PREFER_CLAIMED_TOKENS, MEMO, METADATA),
+      jbProjectPayer.connect(addrs[0]).setDefaultValues(PROJECT_ID, BENEFICIARY, PREFER_CLAIMED_TOKENS, MEMO, METADATA),
     ).to.be.revertedWith('Ownable: caller is not the owner');
   });
 });
