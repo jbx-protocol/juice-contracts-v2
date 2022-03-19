@@ -7,8 +7,8 @@ import '../../../lib/ds-test/src/test.sol';
 import '../../JBController.sol';
 import '../../JBDirectory.sol';
 import '../../JBETHPaymentTerminal.sol';
-import '../../JB18DecimalERC20PaymentTerminal.sol';
-import '../../JB18DecimalPaymentTerminalStore.sol';
+import '../../JBERC20PaymentTerminal.sol';
+import '../../JBPaymentTerminalStore.sol';
 import '../../JBFundingCycleStore.sol';
 import '../../JBOperatorStore.sol';
 import '../../JBPrices.sol';
@@ -50,6 +50,8 @@ contract TestBaseWorkflow is DSTest {
   // Multisig address used for testing.
   address private _multisig = address(123);
 
+  address private _beneficiary = address(69420);
+
   // EVM Cheat codes - test addresses via prank and startPrank in hevm
   Hevm public evm = Hevm(HEVM_ADDRESS);
 
@@ -72,11 +74,11 @@ contract TestBaseWorkflow is DSTest {
   // JBController
   JBController private _jbController;
   // JBETHPaymentTerminalStore
-  JB18DecimalPaymentTerminalStore private _jbPaymentTerminalStore;
+  JBPaymentTerminalStore private _jbPaymentTerminalStore;
   // JBETHPaymentTerminal
   JBETHPaymentTerminal private _jbETHPaymentTerminal;
   // JBERC20PaymentTerminal
-  JB18DecimalERC20PaymentTerminal private _jbERC20PaymentTerminal;
+  JBERC20PaymentTerminal private _jbERC20PaymentTerminal;
   // AccessJBLib
   AccessJBLib private _accessJBLib;
 
@@ -86,6 +88,10 @@ contract TestBaseWorkflow is DSTest {
 
   function multisig() internal view returns (address) {
     return _multisig;
+  }
+
+  function beneficiary() internal view returns (address) {
+    return _beneficiary;
   }
 
   function jbOperatorStore() internal view returns (JBOperatorStore) {
@@ -120,7 +126,7 @@ contract TestBaseWorkflow is DSTest {
     return _jbController;
   }
 
-  function jbPaymentTerminalStore() internal view returns (JB18DecimalPaymentTerminalStore) {
+  function jbPaymentTerminalStore() internal view returns (JBPaymentTerminalStore) {
     return _jbPaymentTerminalStore;
   }
 
@@ -128,7 +134,7 @@ contract TestBaseWorkflow is DSTest {
     return _jbETHPaymentTerminal;
   }
 
-  function jbERC20PaymentTerminal() internal view returns (JB18DecimalERC20PaymentTerminal) {
+  function jbERC20PaymentTerminal() internal view returns (JBERC20PaymentTerminal) {
     return _jbERC20PaymentTerminal;
   }
 
@@ -148,6 +154,7 @@ contract TestBaseWorkflow is DSTest {
   function setUp() public virtual {
     // Labels
     evm.label(_multisig, 'projectOwner');
+    evm.label(_beneficiary, 'beneficiary');
 
     // JBOperatorStore
     _jbOperatorStore = new JBOperatorStore();
@@ -190,7 +197,7 @@ contract TestBaseWorkflow is DSTest {
 
     _jbDirectory.addToSetControllerAllowlist(address(_jbController));
     // JBETHPaymentTerminalStore
-    _jbPaymentTerminalStore = new JB18DecimalPaymentTerminalStore(
+    _jbPaymentTerminalStore = new JBPaymentTerminalStore(
       _jbPrices,
       _jbProjects,
       _jbDirectory,
@@ -222,7 +229,7 @@ contract TestBaseWorkflow is DSTest {
     _jbToken.mint(0, _multisig, 100*10**18);
 
     // JBERC20PaymentTerminal
-    _jbERC20PaymentTerminal = new JB18DecimalERC20PaymentTerminal(
+    _jbERC20PaymentTerminal = new JBERC20PaymentTerminal(
       _jbToken,
       _accessJBLib.ETH(), // currency
       _accessJBLib.ETH(), // base weight currency

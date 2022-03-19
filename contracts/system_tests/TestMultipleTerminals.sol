@@ -15,7 +15,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
   JBFundAccessConstraints[] _fundAccessConstraints;
 
   IJBPaymentTerminal[] _terminals;
-  JB18DecimalERC20PaymentTerminal ERC20terminal;
+  JBERC20PaymentTerminal ERC20terminal;
   JBETHPaymentTerminal ETHterminal;
 
   JBTokenStore _tokenStore;
@@ -62,7 +62,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
       dataSource: IJBFundingCycleDataSource(address(0))
     });
 
-    ERC20terminal = new JB18DecimalERC20PaymentTerminal(
+    ERC20terminal = new JBERC20PaymentTerminal(
       jbToken(),
       jbLibraries().USD(), // currency
       jbLibraries().ETH(), // base weight currency
@@ -171,7 +171,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     evm.startPrank(_projectOwner);
     ERC20terminal.useAllowanceOf(
       projectId,
-      5*10**18, // amt
+      1, // amt
       jbLibraries().USD(), // Currency
       0, // Min wei out
       payable(msg.sender), // Beneficiary
@@ -200,7 +200,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     ERC20terminal.redeemTokensOf(
       msg.sender,
       projectId,
-      senderBalance / (FAKE_PRICE*10**18),
+      1, //senderBalance / (FAKE_PRICE*10**18),
       0,
       payable(msg.sender),
       'gimme my money back',

@@ -56,8 +56,8 @@ contract TestERC20Terminal is TestBaseWorkflow {
     _terminals.push(jbERC20PaymentTerminal());
   }
 
-  function testAllowance() public {
-    JB18DecimalERC20PaymentTerminal terminal = jbERC20PaymentTerminal();
+  function testAllowanceERC20() public {
+    JBERC20PaymentTerminal terminal = jbERC20PaymentTerminal();
 
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
@@ -107,7 +107,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
       payable(msg.sender), // Beneficiary
       'MEMO'
     );
-    assertEq(jbToken().balanceOf(msg.sender), 5*10**18);
+    assertEq(jbToken().balanceOf(msg.sender), PRBMath.mulDiv(5*10**18, jbLibraries().MAX_FEE(), jbLibraries().MAX_FEE() + terminal.fee()));
 
     // Distribute the funding target ETH -> splits[] is empty -> everything in left-over, to project owner
     uint256 initBalance = jbToken().balanceOf(_projectOwner);
@@ -139,10 +139,10 @@ contract TestERC20Terminal is TestBaseWorkflow {
     assertEq(_tokenStore.balanceOf(msg.sender, projectId), 0);
   }
 
-  function testFuzzedAllowance(uint248 ALLOWANCE, uint248 TARGET, uint96 BALANCE) public {
+  function testFuzzedAllowanceERC20(uint248 ALLOWANCE, uint248 TARGET, uint96 BALANCE) public {
     evm.assume(jbToken().totalSupply() >= BALANCE);
 
-    JB18DecimalERC20PaymentTerminal terminal = jbERC20PaymentTerminal();
+    JBERC20PaymentTerminal terminal = jbERC20PaymentTerminal();
 
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
@@ -198,8 +198,9 @@ contract TestERC20Terminal is TestBaseWorkflow {
       payable(msg.sender), // Beneficiary
       'MEMO'
     );
-    if (BALANCE !=0  && BALANCE > TARGET && ALLOWANCE < BALANCE && TARGET < BALANCE) assertEq(jbToken().balanceOf(msg.sender), ALLOWANCE);
-
+    if (BALANCE !=0  && BALANCE > TARGET && ALLOWANCE < BALANCE && TARGET < BALANCE)
+      assertEq(jbToken().balanceOf(msg.sender), PRBMath.mulDiv(ALLOWANCE, jbLibraries().MAX_FEE(), jbLibraries().MAX_FEE() + terminal.fee()));
+    
     // Distribute the funding target ETH -> no split then beneficiary is the project owner
     uint256 initBalance = jbToken().balanceOf(_projectOwner);
 
