@@ -6,6 +6,8 @@ import './IJBDirectory.sol';
 interface IJBPaymentTerminal {
   function token() external view returns (address);
 
+  function decimals() external view returns (uint256);
+
   function currency() external view returns (uint256);
 
   function baseWeightCurrency() external view returns (uint256);

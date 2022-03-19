@@ -11,6 +11,10 @@ error PERMISSION_INDEX_OUT_OF_BOUNDS();
 /** 
   @notice
   Stores operator permissions for all addresses. Addresses can give permissions to any other address to take specific indexed actions on their behalf.
+
+  @dev
+  Adheres to:
+  IJBOperatorStore: General interface for the methods in this contract that interact with the blockchain's state according to the Juicebox protocol's rules.
 */
 contract JBOperatorStore is IJBOperatorStore {
   //*********************************************************************//
@@ -19,16 +23,19 @@ contract JBOperatorStore is IJBOperatorStore {
 
   /** 
     @notice
-    The permissions that an operator has to operate on a specific domain.
+    The permissions that an operator has been given to operate on a specific domain.
     
     @dev
-    An account can give an operator permissions that only pertain to a specific domain.
+    An account can give an operator permissions that only pertain to a specific domain namespace.
     There is no domain with a value of 0 – accounts can use the 0 domain to give an operator
     permissions to all domains on their behalf.
 
+    @dev
+    Permissions are stored in a packed `uint256`. Each 256 bits represents the on/off state of a permission. Applications can specify the significance of each index.
+
     _operator The address of the operator.
     _account The address of the account being operated.
-    _domain The domain within which the permissions apply.
+    _domain The domain within which the permissions apply. Applications can use the domain namespace as they wish.
   */
   mapping(address => mapping(address => mapping(uint256 => uint256))) public override permissionsOf;
 
@@ -43,9 +50,9 @@ contract JBOperatorStore is IJBOperatorStore {
     @param _operator The operator to check.
     @param _account The account that has given out permissions to the operator.
     @param _domain The domain that the operator has been given permissions to operate.
-    @param _permissionIndex The permission indexes to check for.
+    @param _permissionIndex The permission index to check for.
 
-    @return Whether the operator has the specified permission.
+    @return A flag indicating whether the operator has the specified permission.
   */
   function hasPermission(
     address _operator,
@@ -67,7 +74,7 @@ contract JBOperatorStore is IJBOperatorStore {
     @param _domain The domain that the operator has been given permissions to operate.
     @param _permissionIndexes An array of permission indexes to check for.
 
-    @return Whether the operator has all specified permissions.
+    @return A flag indicating whether the operator has all specified permissions.
   */
   function hasPermissions(
     address _operator,
@@ -98,9 +105,6 @@ contract JBOperatorStore is IJBOperatorStore {
     Only an address can set its own operators.
 
     @param _operatorData The data that specifies the params for the operator being set.
-      @dev _operatorData.operators The operators to whom permissions will be given.
-      @dev _operatorData.domains Lists the domain that each operator is being given permissions to operate. A value of 0 serves as a wildcard domain. Applications can specify their own domain system.
-      @dev _operatorData.permissionIndexes Lists the permission indexes to set for each operator. Indexes must be between 0-255. Applications can specify the significance of each index.
   */
   function setOperator(JBOperatorData calldata _operatorData) external override {
     // Pack the indexes into a uint256.
@@ -125,10 +129,7 @@ contract JBOperatorStore is IJBOperatorStore {
     @dev
     Only an address can set its own operators.
 
-    @param _operatorData The data that specifies the params for each operator being set.
-      @dev _operatorData.operators The operators to whom permissions will be given.
-      @dev _operatorData.domains Lists the domain that each operator is being given permissions to operate. A value of 0 serves as a wildcard domain. Applications can specify their own domain system.
-      @dev _operatorData.permissionIndexes Lists the permission indexes to set for each operator. Indexes must be between 0-255. Applications can specify the significance of each index.
+    @param _operatorData The data that specify the params for each operator being set.
   */
   function setOperators(JBOperatorData[] calldata _operatorData) external override {
     for (uint256 _i = 0; _i < _operatorData.length; _i++) {
@@ -154,11 +155,11 @@ contract JBOperatorStore is IJBOperatorStore {
 
   /** 
     @notice 
-    Converts an array of permission indexes to a packed uint256.
+    Converts an array of permission indexes to a packed `uint256`.
 
     @param _indexes The indexes of the permissions to pack.
 
-    @return packed The packed result.
+    @return packed The packed value.
   */
   function _packedPermissions(uint256[] calldata _indexes) private pure returns (uint256 packed) {
     for (uint256 _i = 0; _i < _indexes.length; _i++) {
