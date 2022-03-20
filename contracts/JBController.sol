@@ -73,10 +73,10 @@ contract JBController is IJBController, JBOperatable {
     Data regarding the distribution limit of a project during a configuration.
 
     @dev
-    bits 0-247: The amount of token that a project can withdraw per funding cycle.
+    bits 0-247: The amount of token that a project can distribute per funding cycle.
 
     @dev
-    bits 248-255: The currency of amount that a project can withdraw.
+    bits 248-255: The currency of amount that a project can distribute.
 
     _projectId The ID of the project to get the packed distribution limit data of.
     _configuration The configuration during which the packed distribution limit data applies.
@@ -142,7 +142,7 @@ contract JBController is IJBController, JBOperatable {
 
   /**
     @notice
-    The amount of token that a project can withdraw per funding cycle.
+    The amount of token that a project can distribute per funding cycle.
 
     @param _projectId The ID of the project to get the distribution limit of.
     @param _configuration The configuration during which the distribution limit applies.
@@ -158,7 +158,7 @@ contract JBController is IJBController, JBOperatable {
 
   /**
     @notice
-    The currency of the amount of that a project can withdraw per funding cycle.
+    The currency of the amount of that a project can distribute per funding cycle.
 
     @param _projectId The ID of the project to get the distribution limit currency of.
     @param _configuration The configuration during which the distribution limit currency applies.
@@ -174,7 +174,7 @@ contract JBController is IJBController, JBOperatable {
 
   /**
     @notice
-    The amount of overflow that a project is allowed to tap into on-demand throughout configuration.
+    The amount of overflow that a project is allowed to tap into on-demand throughout a configuration.
 
     @param _projectId The ID of the project to get the overflow allowance of.
     @param _configuration The configuration of the during which the allowance applies.
@@ -190,7 +190,7 @@ contract JBController is IJBController, JBOperatable {
 
   /**
     @notice
-    The currency of the amount of overflow that a project is allowed to tap into.
+    The currency of the amount of overflow that a project is allowed to tap into throughout a configuration.
 
     @param _projectId The ID of the project to get the overflow allowance currency of.
     @param _configuration The configuration of the during which the allowance currency applies.
@@ -647,12 +647,12 @@ contract JBController is IJBController, JBOperatable {
     // Migration must be allowed
     if (!_fundingCycle.controllerMigrationAllowed()) revert MIGRATION_NOT_ALLOWED();
 
+    // Make sure the new controller is prepped for the migration.
+    _to.prepForMigrationOf(_projectId, this);
+
     // All reserved tokens must be minted before migrating.
     if (uint256(_processedTokenTrackerOf[_projectId]) != tokenStore.totalSupplyOf(_projectId))
       _distributeReservedTokensOf(_projectId, '');
-
-    // Make sure the new controller is prepped for the migration.
-    _to.prepForMigrationOf(_projectId, this);
 
     // Set the new controller.
     directory.setControllerOf(_projectId, _to);
