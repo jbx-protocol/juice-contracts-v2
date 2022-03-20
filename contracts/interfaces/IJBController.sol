@@ -9,8 +9,67 @@ import './IJBDirectory.sol';
 import './IJBToken.sol';
 import './IJBPaymentTerminal.sol';
 import './IJBFundingCycleStore.sol';
+import './IJBTokenStore.sol';
+import './IJBSplitsStore.sol';
 
 interface IJBController {
+  event SetFundAccessConstraints(
+    uint256 indexed fundingCycleConfiguration,
+    uint256 indexed fundingCycleNumber,
+    uint256 indexed projectId,
+    JBFundAccessConstraints constraints,
+    address caller
+  );
+
+  event DistributeReservedTokens(
+    uint256 indexed fundingCycleConfiguration,
+    uint256 indexed fundingCycleNumber,
+    uint256 indexed projectId,
+    address beneficiary,
+    uint256 count,
+    uint256 beneficiaryTokenCount,
+    string memo,
+    address caller
+  );
+
+  event DistributeToReservedTokenSplit(
+    uint256 indexed fundingCycleConfiguration,
+    uint256 indexed fundingCycleNumber,
+    uint256 indexed projectId,
+    JBSplit split,
+    uint256 count,
+    address caller
+  );
+
+  event MintTokens(
+    address indexed beneficiary,
+    uint256 indexed projectId,
+    uint256 indexed count,
+    string memo,
+    uint256 reservedRate,
+    address caller
+  );
+
+  event BurnTokens(
+    address indexed holder,
+    uint256 indexed projectId,
+    uint256 count,
+    string memo,
+    address caller
+  );
+
+  event Migrate(uint256 indexed projectId, IJBController to, address caller);
+
+  function projects() external view returns (IJBProjects);
+
+  function fundingCycleStore() external view returns (IJBFundingCycleStore);
+
+  function tokenStore() external view returns (IJBTokenStore);
+
+  function splitsStore() external view returns (IJBSplitsStore);
+
+  function directory() external view returns (IJBDirectory);
+
   function reservedTokenBalanceOf(uint256 _projectId, uint256 _reservedRate)
     external
     view

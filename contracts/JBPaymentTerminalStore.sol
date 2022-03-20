@@ -7,6 +7,7 @@ import './interfaces/IJBPrices.sol';
 import './interfaces/IJBTokenStore.sol';
 import './interfaces/IJBPaymentTerminal.sol';
 import './interfaces/IJBController.sol';
+import './interfaces/IJBPaymentTerminalStore.sol';
 
 import './libraries/JBConstants.sol';
 import './libraries/JBCurrencies.sol';

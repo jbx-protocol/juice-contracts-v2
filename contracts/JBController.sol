@@ -5,9 +5,7 @@ import '@paulrberg/contracts/math/PRBMath.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import './abstract/JBOperatable.sol';
-import './interfaces/IJBTokenStore.sol';
 import './interfaces/IJBProjects.sol';
-import './interfaces/IJBSplitsStore.sol';
 import './interfaces/IJBPaymentTerminal.sol';
 import './interfaces/IJBOperatorStore.sol';
 import './interfaces/IJBFundingCycleDataSource.sol';
@@ -56,53 +54,6 @@ error ZERO_TOKENS_TO_MINT();
 contract JBController is IJBController, JBOperatable {
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
-
-  event SetFundAccessConstraints(
-    uint256 indexed fundingCycleConfiguration,
-    uint256 indexed fundingCycleNumber,
-    uint256 indexed projectId,
-    JBFundAccessConstraints constraints,
-    address caller
-  );
-
-  event DistributeReservedTokens(
-    uint256 indexed fundingCycleConfiguration,
-    uint256 indexed fundingCycleNumber,
-    uint256 indexed projectId,
-    address beneficiary,
-    uint256 count,
-    uint256 beneficiaryTokenCount,
-    string memo,
-    address caller
-  );
-
-  event DistributeToReservedTokenSplit(
-    uint256 indexed fundingCycleConfiguration,
-    uint256 indexed fundingCycleNumber,
-    uint256 indexed projectId,
-    JBSplit split,
-    uint256 count,
-    address caller
-  );
-
-  event MintTokens(
-    address indexed beneficiary,
-    uint256 indexed projectId,
-    uint256 indexed count,
-    string memo,
-    uint256 reservedRate,
-    address caller
-  );
-
-  event BurnTokens(
-    address indexed holder,
-    uint256 indexed projectId,
-    uint256 count,
-    string memo,
-    address caller
-  );
-
-  event Migrate(uint256 indexed projectId, IJBController to, address caller);
 
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
@@ -159,31 +110,31 @@ contract JBController is IJBController, JBOperatable {
     @notice
     The Projects contract which mints ERC-721's that represent project ownership.
   */
-  IJBProjects public immutable projects;
+  IJBProjects public immutable override projects;
 
   /**
     @notice
     The contract storing all funding cycle configurations.
   */
-  IJBFundingCycleStore public immutable fundingCycleStore;
+  IJBFundingCycleStore public immutable override fundingCycleStore;
 
   /**
     @notice
     The contract that manages token minting and burning.
   */
-  IJBTokenStore public immutable tokenStore;
+  IJBTokenStore public immutable override tokenStore;
 
   /**
     @notice
     The contract that stores splits for each project.
   */
-  IJBSplitsStore public immutable splitsStore;
+  IJBSplitsStore public immutable override splitsStore;
 
   /**
     @notice
     The directory of terminals and controllers for projects.
   */
-  IJBDirectory public immutable directory;
+  IJBDirectory public immutable override directory;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
