@@ -355,7 +355,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     Claims internally accounted for tokens into a holder's wallet.
 
     @dev
-    Only a token holder or an operator can claim its unclaimed tokens.
+    Only a token holder, the owner of the token's project, or an operator specified by the token holder can claim its unclaimed tokens.
 
     @param _holder The owner of the tokens being claimed.
     @param _projectId The ID of the project whose tokens are being claimed.
@@ -365,7 +365,16 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     address _holder,
     uint256 _projectId,
     uint256 _amount
-  ) external override requirePermission(_holder, _projectId, JBOperations.CLAIM) {
+  )
+    external
+    override
+    requirePermissionAllowingOverride(
+      _holder,
+      _projectId,
+      JBOperations.CLAIM,
+      msg.sender == projects.ownerOf(_projectId)
+    )
+  {
     // Get a reference to the project's current token.
     IJBToken _token = tokenOf[_projectId];
 

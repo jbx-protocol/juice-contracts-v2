@@ -8,13 +8,13 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import errors from '../helpers/errors.json';
 
-describe.only('JBTokenStore::claimFor(...)', function () {
+describe('JBTokenStore::claimFor(...)', function () {
   const PROJECT_ID = 2;
   const TOKEN_NAME = 'TestTokenDAO';
   const TOKEN_SYMBOL = 'TEST';
 
   async function setup() {
-    const [deployer, controller, newHolder] = await ethers.getSigners();
+    const [deployer, controller, newHolder, projectOwner] = await ethers.getSigners();
 
     const mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
     const mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
@@ -32,10 +32,16 @@ describe.only('JBTokenStore::claimFor(...)', function () {
       mockJbDirectory.address,
     );
 
+    await mockJbProjects.mock.ownerOf
+      .withArgs(PROJECT_ID)
+      .returns(projectOwner.address);
+
     return {
       controller,
       newHolder,
+      projectOwner,
       mockJbDirectory,
+      mockJbProjects,
       mockJbOperatorStore,
       jbTokenStore,
       CLAIM_INDEX
@@ -74,6 +80,34 @@ describe.only('JBTokenStore::claimFor(...)', function () {
     await expect(claimForTx)
       .to.emit(jbTokenStore, 'Claim')
       .withArgs(newHolder.address, PROJECT_ID, numTokens, amountToClaim, controller.address);
+  });
+  it(`Should claim tokens if caller is project owner`, async function () {
+    const { controller, newHolder, projectOwner, jbTokenStore, mockJbOperatorStore, mockJbDirectory, CLAIM_INDEX } =
+      await setup();
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+    await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
+
+    // No operator permissions
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(projectOwner.address, newHolder.address, PROJECT_ID, CLAIM_INDEX)
+      .returns(false);
+
+    // Mint more unclaimed tokens
+    const numTokens = 20;
+    await jbTokenStore
+      .connect(controller)
+      .mintFor(newHolder.address, PROJECT_ID, numTokens, /* preferClaimedTokens= */ false);
+
+    await expect(
+      jbTokenStore
+        .connect(projectOwner)
+        .claimFor(
+          /* holder */ newHolder.address,
+          PROJECT_ID,
+          /* amount= */ 1,
+        ),
+    ).to.not.be.reverted;
   });
 
   it(`Can't claim tokens if projectId isn't found`, async function () {
