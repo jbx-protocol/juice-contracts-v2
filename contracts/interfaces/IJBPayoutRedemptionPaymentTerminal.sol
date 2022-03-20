@@ -16,7 +16,7 @@ import './IJBPaymentTerminal.sol';
 
 import './../structs/JBFee.sol';
 
-interface IJB18DecimalPaymentTerminal is IJBPaymentTerminal {
+interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
   event AddToBalance(uint256 indexed projectId, uint256 amount, string memo, address caller);
   event Migrate(
     uint256 indexed projectId,
@@ -55,7 +55,6 @@ interface IJB18DecimalPaymentTerminal is IJBPaymentTerminal {
     uint256 indexed projectId,
     address beneficiary,
     uint256 amount,
-    uint256 weight,
     uint256 beneficiaryTokenCount,
     string memo,
     address caller

@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MIT
+/* solhint-disable comprehensive-interface*/
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Address.sol';
 import '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 
-import './../interfaces/IJBDirectory.sol';
-import './../libraries/JBTokens.sol';
+import './interfaces/IJBDirectory.sol';
+import './libraries/JBTokens.sol';
 
 //*********************************************************************//
 // -------------------------- custom errors -------------------------- //
@@ -19,7 +20,7 @@ error NO_MSG_VALUE_ALLOWED();
   @notice 
   A contract that sends funds to a Juicebox project.
 */
-abstract contract JBProjectPayer is Ownable {
+contract JBProjectPayer is Ownable {
   event SetDefaultValues(
     uint256 projectId,
     address beneficiary,
@@ -162,7 +163,7 @@ abstract contract JBProjectPayer is Ownable {
     bool _preferClaimedTokens,
     string memory _memo,
     bytes memory _metadata
-  ) public payable {
+  ) public payable virtual {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
@@ -205,7 +206,7 @@ abstract contract JBProjectPayer is Ownable {
     bool _preferClaimedTokens,
     string memory _memo,
     bytes memory _metadata
-  ) internal {
+  ) internal virtual {
     // Find the terminal for this contract's project.
     IJBPaymentTerminal _terminal = directory.primaryTerminalOf(_projectId, _token);
 
