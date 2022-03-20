@@ -12,6 +12,7 @@ import './libraries/JBOperations.sol';
 // --------------------------- custom errors ------------------------- //
 //*********************************************************************//
 error INVALID_PROJECT_ID_IN_DIRECTORY();
+error DUPLICATE_TERMINALS();
 
 /**
   @notice
@@ -221,12 +222,19 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     // Delete the stored terminals for the project.
     _terminalsOf[_projectId] = _terminals;
 
+    // Make sure duplicates we're added.
+    if (_terminals.length > 0)
+      for (uint256 _i; _i < _terminals.length; _i++)
+        for (uint256 _j = _i + 1; _j < _terminals.length; _j++)
+          if (_terminals[_i] == _terminals[_j]) revert DUPLICATE_TERMINALS();
+
     // If one of the old terminals was set as a primary terminal but is not included in the new terminals, remove it from being a primary terminal.
-    for (uint256 _i; _i < _oldTerminals.length; _i++)
+    for (uint256 _i; _i < _oldTerminals.length; _i++) {
       if (
         _primaryTerminalOf[_projectId][_oldTerminals[_i].token()] == _oldTerminals[_i] &&
         !_contains(_terminals, _oldTerminals[_i])
       ) delete _primaryTerminalOf[_projectId][_oldTerminals[_i].token()];
+    }
 
     emit SetTerminals(_projectId, _terminals, msg.sender);
   }
