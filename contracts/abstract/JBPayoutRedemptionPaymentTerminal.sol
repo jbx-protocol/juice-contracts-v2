@@ -695,6 +695,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Get a reference to the project's held fees.
     JBFee[] memory _heldFees = _heldFeesOf[_projectId];
 
+    // Delete the held fee
+    delete _heldFeesOf[_projectId];
+
     // Process each fee.
     for (uint256 _i = 0; _i < _heldFees.length; _i++)
       _processFee(
@@ -706,9 +709,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           ),
         _heldFees[_i].beneficiary
       );
-
-    // Delete the held fee's now that they've been processed.
-    delete _heldFeesOf[_projectId];
 
     emit ProcessFees(_projectId, _heldFees, msg.sender);
   }
