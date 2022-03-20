@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-/* solhint-disable comprehensive-interface*/
 pragma solidity 0.8.6;
 
 import '@paulrberg/contracts/math/PRBMath.sol';
@@ -19,10 +18,6 @@ import './libraries/JBConstants.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
-import './structs/JBFundingCycleData.sol';
-import './structs/JBFundingCycleMetadata.sol';
-import './structs/JBFundAccessConstraints.sol';
-import './structs/JBGroupedSplits.sol';
 import './structs/JBProjectMetadata.sol';
 
 //*********************************************************************//
@@ -342,7 +337,7 @@ contract JBController is IJBController, JBOperatable {
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
     IJBPaymentTerminal[] memory _terminals
-  ) external returns (uint256 projectId) {
+  ) external override returns (uint256 projectId) {
     // Mint the project into the wallet of the message sender.
     projectId = projects.createFor(_owner, _projectMetadata);
 
@@ -389,6 +384,7 @@ contract JBController is IJBController, JBOperatable {
     IJBPaymentTerminal[] memory _terminals
   )
     external
+    override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
     returns (uint256 configuration)
   {
@@ -439,6 +435,7 @@ contract JBController is IJBController, JBOperatable {
     JBFundAccessConstraints[] memory _fundAccessConstraints
   )
     external
+    override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
     returns (uint256)
   {
@@ -473,6 +470,7 @@ contract JBController is IJBController, JBOperatable {
     string calldata _symbol
   )
     external
+    override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.ISSUE)
     returns (IJBToken token)
   {
@@ -497,6 +495,7 @@ contract JBController is IJBController, JBOperatable {
     address _newOwner
   )
     external
+    override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.CHANGE_TOKEN)
   {
     // Get a reference to the project's current funding cycle.
@@ -653,6 +652,7 @@ contract JBController is IJBController, JBOperatable {
   */
   function distributeReservedTokensOf(uint256 _projectId, string memory _memo)
     external
+    override
     returns (uint256)
   {
     return _distributeReservedTokensOf(_projectId, _memo);
@@ -684,6 +684,7 @@ contract JBController is IJBController, JBOperatable {
   */
   function migrate(uint256 _projectId, IJBController _to)
     external
+    override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_CONTROLLER)
   {
     // This controller must be the project's current controller.
