@@ -26,7 +26,7 @@ interface IJBController {
     uint256 indexed fundingCycleNumber,
     uint256 indexed projectId,
     address beneficiary,
-    uint256 count,
+    uint256 tokenCount,
     uint256 beneficiaryTokenCount,
     string memo,
     address caller
@@ -37,14 +37,14 @@ interface IJBController {
     uint256 indexed fundingCycleNumber,
     uint256 indexed projectId,
     JBSplit split,
-    uint256 count,
+    uint256 tokenCount,
     address caller
   );
 
   event MintTokens(
     address indexed beneficiary,
     uint256 indexed projectId,
-    uint256 indexed count,
+    uint256 indexed tokenCount,
     string memo,
     uint256 reservedRate,
     address caller
@@ -53,7 +53,7 @@ interface IJBController {
   event BurnTokens(
     address indexed holder,
     uint256 indexed projectId,
-    uint256 count,
+    uint256 tokenCount,
     string memo,
     address caller
   );

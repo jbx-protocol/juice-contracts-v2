@@ -670,7 +670,7 @@ contract JBController is IJBController, JBOperatable {
   */
   function _distributeReservedTokensOf(uint256 _projectId, string memory _memo)
     private
-    returns (uint256 count)
+    returns (uint256 tokenCount)
   {
     // Get the current funding cycle to read the reserved rate from.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
@@ -679,7 +679,7 @@ contract JBController is IJBController, JBOperatable {
     uint256 _totalTokens = tokenStore.totalSupplyOf(_projectId);
 
     // Get a reference to the number of tokens that need to be minted.
-    count = _reservedTokenAmountFrom(
+    tokenCount = _reservedTokenAmountFrom(
       _processedTokenTrackerOf[_projectId],
       _fundingCycle.reservedRate(),
       _totalTokens
@@ -692,7 +692,7 @@ contract JBController is IJBController, JBOperatable {
     address _owner = projects.ownerOf(_projectId);
 
     // Distribute tokens to splits and get a reference to the leftover amount to mint after all splits have gotten their share.
-    uint256 _leftoverTokenCount = count == 0
+    uint256 _leftoverTokenCount = tokenCount == 0
       ? 0
       : _distributeToReservedTokenSplitsOf(_projectId, _fundingCycle, count);
 
@@ -704,7 +704,7 @@ contract JBController is IJBController, JBOperatable {
       _fundingCycle.number,
       _projectId,
       _owner,
-      count,
+      tokenCount,
       _leftoverTokenCount,
       _memo,
       msg.sender
