@@ -3,6 +3,7 @@ import { ethers } from 'hardhat';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
+import errors from '../helpers/errors.json';
 import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
@@ -72,7 +73,7 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
 
     await expect(jbDirectory.connect(projectOwner).setTerminalsOf(PROJECT_ID, terminals))
       .to.emit(jbDirectory, 'SetTerminals')
-      //.withArgs(PROJECT_ID, terminals, projectOwner.address); -->  AssertionError: expected undefined to equal (...) ?!
+    //.withArgs(PROJECT_ID, terminals, projectOwner.address); -->  AssertionError: expected undefined to equal (...) ?!
   });
 
   it('Should add terminals and remove a previous primary terminal if it is not included in the new terminals', async function () {
@@ -82,12 +83,12 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
 
     await terminal3.mock.token.returns(ADDRESS_TOKEN_3);
     expect(await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, terminal3.address))
-     .to.emit(jbDirectory, 'SetPrimaryTerminal')
-     .withArgs(PROJECT_ID, ADDRESS_TOKEN_3, terminal3.address, projectOwner.address);
-    
+      .to.emit(jbDirectory, 'SetPrimaryTerminal')
+      .withArgs(PROJECT_ID, ADDRESS_TOKEN_3, terminal3.address, projectOwner.address);
+
     await expect(jbDirectory.connect(projectOwner).setTerminalsOf(PROJECT_ID, terminals))
       .to.emit(jbDirectory, 'SetTerminals')
-      //.withArgs(PROJECT_ID, terminals, projectOwner.address);
+    //.withArgs(PROJECT_ID, terminals, projectOwner.address);
 
     expect(await jbDirectory.primaryTerminalOf(PROJECT_ID, ADDRESS_TOKEN_3)).to.equal(ethers.constants.AddressZero);
   });
@@ -99,12 +100,12 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
 
     await terminal3.mock.token.returns(ADDRESS_TOKEN_3);
     expect(await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, terminal3.address))
-     .to.emit(jbDirectory, 'SetPrimaryTerminal')
-     .withArgs(PROJECT_ID, ADDRESS_TOKEN_3, terminal3.address, projectOwner.address);
-    
+      .to.emit(jbDirectory, 'SetPrimaryTerminal')
+      .withArgs(PROJECT_ID, ADDRESS_TOKEN_3, terminal3.address, projectOwner.address);
+
     await expect(jbDirectory.connect(projectOwner).setTerminalsOf(PROJECT_ID, terminals))
       .to.emit(jbDirectory, 'SetTerminals')
-      //.withArgs(PROJECT_ID, terminals, projectOwner.address);
+    //.withArgs(PROJECT_ID, terminals, projectOwner.address);
 
     expect(await jbDirectory.primaryTerminalOf(PROJECT_ID, ADDRESS_TOKEN_3)).to.equal(terminal3.address);
   });
@@ -148,6 +149,14 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
 
     await expect(jbDirectory.connect(caller).setTerminalsOf(PROJECT_ID, [terminal1.address])).to.not
       .be.reverted;
+  });
+
+  it("Can't add with duplicates", async function () {
+    const { projectOwner, jbDirectory, terminal1 } =
+      await setup();
+
+    await expect(jbDirectory.connect(projectOwner).setTerminalsOf(PROJECT_ID, [terminal1.address, terminal1.address])).to.be
+      .revertedWith(errors.DUPLICATE_TERMINALS);
   });
 
   it("Can't add if caller does not have permission", async function () {
