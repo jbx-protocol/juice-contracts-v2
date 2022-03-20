@@ -8,7 +8,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import errors from '../helpers/errors.json';
 
-describe('JBTokenStore::claimFor(...)', function () {
+describe.only('JBTokenStore::claimFor(...)', function () {
   const PROJECT_ID = 2;
   const TOKEN_NAME = 'TestTokenDAO';
   const TOKEN_SYMBOL = 'TEST';
@@ -19,6 +19,11 @@ describe('JBTokenStore::claimFor(...)', function () {
     const mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
     const mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
     const mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
+
+    const jbOperationsFactory = await ethers.getContractFactory('JBOperations');
+    const jbOperations = await jbOperationsFactory.deploy();
+
+    const CLAIM_INDEX = await jbOperations.CLAIM();
 
     const jbTokenStoreFactory = await ethers.getContractFactory('JBTokenStore');
     const jbTokenStore = await jbTokenStoreFactory.deploy(
@@ -31,16 +36,21 @@ describe('JBTokenStore::claimFor(...)', function () {
       controller,
       newHolder,
       mockJbDirectory,
+      mockJbOperatorStore,
       jbTokenStore,
+      CLAIM_INDEX
     };
   }
 
   it('Should claim tokens and emit event', async function () {
-    const { controller, newHolder, mockJbDirectory, jbTokenStore } = await setup();
+    const { controller, newHolder, mockJbDirectory, mockJbOperatorStore, jbTokenStore, CLAIM_INDEX } = await setup();
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(controller.address, newHolder.address, PROJECT_ID, CLAIM_INDEX)
+      .returns(true);
 
     // Mint more unclaimed tokens
     const numTokens = 20;
@@ -71,12 +81,12 @@ describe('JBTokenStore::claimFor(...)', function () {
     const numTokens = 1;
 
     await expect(
-      jbTokenStore.claimFor(newHolder.address, PROJECT_ID, numTokens),
+      jbTokenStore.connect(newHolder).claimFor(newHolder.address, PROJECT_ID, numTokens),
     ).to.be.revertedWith(errors.TOKEN_NOT_FOUND);
   });
 
   it(`Can't claim more tokens than the current _unclaimedBalance`, async function () {
-    const { controller, newHolder, mockJbDirectory, jbTokenStore } = await setup();
+    const { controller, newHolder, mockJbDirectory, jbTokenStore, CLAIM_INDEX } = await setup();
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
@@ -89,7 +99,21 @@ describe('JBTokenStore::claimFor(...)', function () {
       .mintFor(newHolder.address, PROJECT_ID, numTokens, /* preferClaimedTokens= */ false);
 
     await expect(
-      jbTokenStore.claimFor(newHolder.address, PROJECT_ID, numTokens + 1),
+      jbTokenStore.connect(newHolder).claimFor(newHolder.address, PROJECT_ID, numTokens + 1),
     ).to.be.revertedWith(errors.INSUFFICIENT_UNCLAIMED_TOKENS);
+  });
+  it(`Can't claim unclaimed tokens if caller lacks permission`, async function () {
+    const { controller, newHolder, jbTokenStore } =
+      await setup();
+
+    await expect(
+      jbTokenStore
+        .connect(controller)
+        .claimFor(
+          /* holder */ newHolder.address,
+          PROJECT_ID,
+          /* amount= */ 1,
+        ),
+    ).to.be.reverted;
   });
 });
