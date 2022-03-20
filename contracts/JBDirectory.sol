@@ -11,9 +11,6 @@ import './libraries/JBOperations.sol';
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
 //*********************************************************************//
-error ADD_TERMINAL_ZERO_ADDRESS();
-error CONTROLLER_ALREADY_IN_ALLOWLIST();
-error CONTROLLER_NOT_IN_ALLOWLIST();
 error INVALID_PROJECT_ID_IN_DIRECTORY();
 
 /**
