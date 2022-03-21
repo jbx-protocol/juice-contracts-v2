@@ -49,7 +49,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
       controller2,
     };
   }
-  
+
   it('Should set controller and emit event if caller is project owner', async function () {
     const { projectOwner, jbDirectory, mockJbProjects, controller1 } = await setup();
 
@@ -81,6 +81,30 @@ describe('JBDirectory::setControllerOf(...)', function () {
     await expect(jbDirectory.connect(caller).setControllerOf(PROJECT_ID, controller1.address)).to
       .not.be.reverted;
   });
+
+  it('Should set controller if caller is current controller', async function () {
+    const { projectOwner, jbDirectory, mockJbProjects, controller1, controller2 } = await setup();
+
+
+    await mockJbProjects.mock.count.returns(PROJECT_ID);
+
+    await jbDirectory
+      .connect(projectOwner)
+      .setControllerOf(PROJECT_ID, controller1.address);
+
+    let controller = await jbDirectory.connect(projectOwner).controllerOf(PROJECT_ID);
+    expect(controller).to.equal(controller1.address);
+
+    let caller = await impersonateAccount(controller1.address);
+
+    await jbDirectory
+      .connect(caller)
+      .setControllerOf(PROJECT_ID, controller2.address);
+
+    controller = await jbDirectory.connect(projectOwner).controllerOf(PROJECT_ID);
+    expect(controller).to.equal(controller2.address);
+  });
+
 
   it('Should set controller if caller is allowed to set first controller and project has no controller yet', async function () {
     const {
@@ -143,22 +167,15 @@ describe('JBDirectory::setControllerOf(...)', function () {
       projectOwner,
       jbDirectory,
       mockJbProjects,
-      mockJbOperatorStore,
+      addrs,
       controller1,
       controller2,
     } = await setup();
 
-    let caller = await impersonateAccount(controller1.address);
-
     // Initialize mock methods to reject permission to controllerSigner
     await mockJbProjects.mock.count.returns(PROJECT_ID);
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(caller.address, projectOwner.address, PROJECT_ID, SET_CONTROLLER_PERMISSION_INDEX)
-      .returns(false);
 
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(caller.address, projectOwner.address, 0, SET_CONTROLLER_PERMISSION_INDEX)
-      .returns(false);
+    const caller = addrs[0];
 
     await jbDirectory.connect(deployer).setIsAllowedToSetFirstController(caller.address, true);
 
