@@ -1,17 +1,16 @@
 // SPDX-License-Identifier: MIT
-/* solhint-disable comprehensive-interface*/
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/utils/Address.sol';
 
 // Inheritance
-import './abstract/JB18DecimalPaymentTerminal.sol';
+import './abstract/JBPayoutRedemptionPaymentTerminal.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
 //*********************************************************************//
 
-contract JBETHPaymentTerminal is JB18DecimalPaymentTerminal {
+contract JBETHPaymentTerminal is JBPayoutRedemptionPaymentTerminal {
   constructor(
     uint256 _baseWeightCurrency,
     IJBOperatorStore _operatorStore,
@@ -19,11 +18,12 @@ contract JBETHPaymentTerminal is JB18DecimalPaymentTerminal {
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
     IJBPrices _prices,
-    JB18DecimalPaymentTerminalStore _store,
+    JBPaymentTerminalStore _store,
     address _owner
   )
-    JB18DecimalPaymentTerminal(
+    JBPayoutRedemptionPaymentTerminal(
       JBTokens.ETH,
+      18, // 18 decimals.
       JBCurrencies.ETH,
       _baseWeightCurrency,
       JBSplitsGroups.ETH_PAYOUT,

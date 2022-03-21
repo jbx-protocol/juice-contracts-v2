@@ -6,6 +6,8 @@ import './IJBDirectory.sol';
 interface IJBPaymentTerminal {
   function token() external view returns (address);
 
+  function decimals() external view returns (uint256);
+
   function currency() external view returns (uint256);
 
   function baseWeightCurrency() external view returns (uint256);
@@ -28,6 +30,6 @@ interface IJBPaymentTerminal {
   function addToBalanceOf(
     uint256 _amount,
     uint256 _projectId,
-    string memory _memo
+    string calldata _memo
   ) external payable;
 }
