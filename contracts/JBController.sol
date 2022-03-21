@@ -16,7 +16,6 @@ import './libraries/JBConstants.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
-import './structs/JBProjectMetadata.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
@@ -529,14 +528,14 @@ contract JBController is IJBController, JBOperatable {
         JBConstants.MAX_RESERVED_RATE
       );
 
-      // Mint the tokens.
-      tokenStore.mintFor(_beneficiary, _projectId, beneficiaryTokenCount, _preferClaimedTokens);
-
       if (_reservedRate == 0)
         // If there's no reserved rate, increment the tracker with the newly minted tokens.
         _processedTokenTrackerOf[_projectId] =
           _processedTokenTrackerOf[_projectId] +
           int256(beneficiaryTokenCount);
+
+      // Mint the tokens.
+      tokenStore.mintFor(_beneficiary, _projectId, beneficiaryTokenCount, _preferClaimedTokens);
     }
 
     emit MintTokens(
@@ -687,7 +686,7 @@ contract JBController is IJBController, JBOperatable {
     @param _projectId The ID of the project to which the reserved tokens belong.
     @param _memo A memo to pass along to the emitted event.
 
-    @return The amount of minted reserved tokens.
+    @return tokenCount The amount of minted reserved tokens.
   */
   function _distributeReservedTokensOf(uint256 _projectId, string memory _memo)
     private

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 
 import './interfaces/IJBPrices.sol';
@@ -36,7 +37,7 @@ error STORE_ALREADY_CLAIMED();
   @notice
   This contract manages all bookkeeping for inflows and outflows of a particular token for any IJBPaymentTerminal msg.sender.
 */
-contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
+contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
@@ -277,6 +278,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
   )
     external
     override
+    nonReentrant
     returns (
       JBFundingCycle memory fundingCycle,
       uint256 tokenCount,
@@ -358,7 +360,12 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     uint256 _amount,
     uint256 _currency,
     uint256 _balanceCurrency
-  ) external override returns (JBFundingCycle memory fundingCycle, uint256 distributedAmount) {
+  )
+    external
+    override
+    nonReentrant
+    returns (JBFundingCycle memory fundingCycle, uint256 distributedAmount)
+  {
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
@@ -424,7 +431,12 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     uint256 _amount,
     uint256 _currency,
     uint256 _balanceCurrency
-  ) external override returns (JBFundingCycle memory fundingCycle, uint256 withdrawnAmount) {
+  )
+    external
+    override
+    nonReentrant
+    returns (JBFundingCycle memory fundingCycle, uint256 withdrawnAmount)
+  {
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
@@ -503,6 +515,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
   )
     external
     override
+    nonReentrant
     returns (
       JBFundingCycle memory fundingCycle,
       uint256 reclaimAmount,
@@ -573,6 +586,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
   function recordAddedBalanceFor(uint256 _projectId, uint256 _amount)
     external
     override
+    nonReentrant
     returns (JBFundingCycle memory fundingCycle)
   {
     // Get a reference to the project's current funding cycle.
@@ -595,7 +609,12 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
 
     @return balance The project's current terminal token balance, as a fixed point number with 18 decimals.
   */
-  function recordMigration(uint256 _projectId) external override returns (uint256 balance) {
+  function recordMigration(uint256 _projectId)
+    external
+    override
+    nonReentrant
+    returns (uint256 balance)
+  {
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
