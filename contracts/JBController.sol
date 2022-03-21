@@ -143,11 +143,14 @@ contract JBController is IJBController, JBOperatable {
     @notice
     The amount of token that a project can distribute per funding cycle, and the currency it's in terms of.
 
+    @dev
+    The number of decimals in the returned fixed point amount is the same as that of the specified terminal. 
+
     @param _projectId The ID of the project to get the distribution limit of.
     @param _configuration The configuration during which the distribution limit applies.
     @param _terminal The terminal from which distributions are being limited.
 
-    @return The distribution limit.
+    @return The distribution limit, as a fixed point number with the same number of decimals as the provided terminal.
     @return The currency of the distribution limit.
   */
   function distributionLimitOf(
@@ -155,7 +158,10 @@ contract JBController is IJBController, JBOperatable {
     uint256 _configuration,
     IJBPaymentTerminal _terminal
   ) external view override returns (uint256, uint256) {
+    // Get a reference to the packed data.
     uint256 _data = _packedDistributionLimitDataOf[_projectId][_configuration][_terminal];
+
+    // The limit is in bits 0-247. The currency is in bits 248-255.
     return (uint256(uint248(_data)), _data >> 248);
   }
 
@@ -163,19 +169,25 @@ contract JBController is IJBController, JBOperatable {
     @notice
     The amount of overflow that a project is allowed to tap into on-demand throughout a configuration, and the currency it's in terms of.
 
+    @dev
+    The number of decimals in the returned fixed point amount is the same as that of the specified terminal. 
+
     @param _projectId The ID of the project to get the overflow allowance of.
     @param _configuration The configuration of the during which the allowance applies.
     @param _terminal The terminal managing the overflow.
 
-    @return The distribution limit.
-    @return The currency of the distribution limit.
+    @return The overflow allowance, as a fixed point number with the same number of decimals as the provided terminal.
+    @return The currency of the overflow allowance.
   */
   function overflowAllowanceOf(
     uint256 _projectId,
     uint256 _configuration,
     IJBPaymentTerminal _terminal
   ) external view override returns (uint256, uint256) {
+    // Get a reference to the packed data.
     uint256 _data = _packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal];
+
+    // The allowance is in bits 0-247. The currency is in bits 248-255.
     return (uint256(uint248(_data)), _data >> 248);
   }
 
