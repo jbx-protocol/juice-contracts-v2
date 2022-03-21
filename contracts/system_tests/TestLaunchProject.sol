@@ -55,7 +55,8 @@ contract TestLaunchProject is TestBaseWorkflow {
       block.timestamp,
       _groupedSplits,
       _fundAccessConstraints,
-      _terminals
+      _terminals,
+      ''
     );
 
     JBFundingCycle memory fundingCycle = jbFundingCycleStore().currentOf(projectId); //, latestConfig);
@@ -84,7 +85,8 @@ contract TestLaunchProject is TestBaseWorkflow {
         block.timestamp,
         _groupedSplits,
         _fundAccessConstraints,
-        _terminals
+        _terminals,
+        ''
       );
     } else {
       uint256 projectId = controller.launchProjectFor(
@@ -95,7 +97,8 @@ contract TestLaunchProject is TestBaseWorkflow {
         block.timestamp,
         _groupedSplits,
         _fundAccessConstraints,
-        _terminals
+        _terminals,
+        ''
       );
 
       JBFundingCycle memory fundingCycle = jbFundingCycleStore().currentOf(projectId); //, latestConfig);

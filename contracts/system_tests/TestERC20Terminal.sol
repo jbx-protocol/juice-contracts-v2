@@ -77,7 +77,8 @@ contract TestERC20Terminal is TestBaseWorkflow {
       block.timestamp,
       _groupedSplits,
       _fundAccessConstraints,
-      _terminals
+      _terminals,
+      ''
     );
 
     address caller = msg.sender;
@@ -162,7 +163,8 @@ contract TestERC20Terminal is TestBaseWorkflow {
       block.timestamp,
       _groupedSplits,
       _fundAccessConstraints,
-      _terminals
+      _terminals,
+      ''
     );
 
     address caller = msg.sender;

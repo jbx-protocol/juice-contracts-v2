@@ -80,7 +80,8 @@ contract TestAllowance is TestBaseWorkflow {
       block.timestamp,
       _groupedSplits,
       _fundAccessConstraints,
-      _terminals
+      _terminals,
+      ''
     );
 
     terminal.pay{value: 20 ether}(20 ether, projectId, _beneficiary, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
@@ -158,7 +159,8 @@ contract TestAllowance is TestBaseWorkflow {
       block.timestamp,
       _groupedSplits,
       _fundAccessConstraints,
-      _terminals
+      _terminals,
+      ''
     );
 
     terminal.pay{value: BALANCE}(BALANCE, projectId, _beneficiary, 0, false, 'Forge test', new bytes(0));
