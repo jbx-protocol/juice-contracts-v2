@@ -189,7 +189,8 @@ contract TestMultipleTerminals is TestBaseWorkflow {
 
     evm.prank(caller);
     // This terminal has 15token left with 5 in overflow, in usd
-    // Global overflow left is 5usd + 10eth. Caller balance comes from 20eth+20usd
+    // Global overflow left is 5usd + 10eth.
+    // Caller balance comes from 20eth+20usd -> we'll redeem 10eth+5usd, in usd (which would empty the erc20 terminal)
     ERC20terminal.redeemTokensOf(
       caller,
       projectId,
