@@ -28,7 +28,6 @@ import './structs/JBProjectMetadata.sol';
 import './interfaces/IJBController.sol';
 import './abstract/JBOperatable.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
@@ -63,7 +62,7 @@ error ZERO_TOKENS_TO_MINT();
   JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
   ReentrencyGuard - several function in this contract shouldn't be accessible recursively.
 */
-contract JBController is IJBController, JBOperatable, ReentrancyGuard {
+contract JBController is IJBController, JBOperatable {
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
@@ -501,7 +500,6 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     address _newOwner
   )
     external
-    nonReentrant
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.CHANGE_TOKEN)
   {
     // Get a reference to the project's current funding cycle.
@@ -540,7 +538,6 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
   )
     external
     override
-    nonReentrant
     requirePermissionAllowingOverride(
       projects.ownerOf(_projectId),
       _projectId,
@@ -583,14 +580,14 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
         JBConstants.MAX_RESERVED_RATE
       );
 
-      // Mint the tokens.
-      tokenStore.mintFor(_beneficiary, _projectId, beneficiaryTokenCount, _preferClaimedTokens);
-
       if (_reservedRate == 0)
         // If there's no reserved rate, increment the tracker with the newly minted tokens.
         _processedTokenTrackerOf[_projectId] =
           _processedTokenTrackerOf[_projectId] +
           int256(beneficiaryTokenCount);
+
+      // Mint the tokens.
+      tokenStore.mintFor(_beneficiary, _projectId, beneficiaryTokenCount, _preferClaimedTokens);
     }
 
     emit MintTokens(_beneficiary, _projectId, _tokenCount, _memo, _reservedRate, msg.sender);
@@ -618,7 +615,6 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
   )
     external
     override
-    nonReentrant
     requirePermissionAllowingOverride(
       _holder,
       _projectId,
@@ -660,7 +656,6 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
   */
   function distributeReservedTokensOf(uint256 _projectId, string memory _memo)
     external
-    nonReentrant
     returns (uint256)
   {
     return _distributeReservedTokensOf(_projectId, _memo);
@@ -693,7 +688,6 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
   function migrate(uint256 _projectId, IJBController _to)
     external
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_CONTROLLER)
-    nonReentrant
   {
     // This controller must be the project's current controller.
     if (directory.controllerOf(_projectId) != this) revert CALLER_NOT_CURRENT_CONTROLLER();

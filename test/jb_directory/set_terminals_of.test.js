@@ -66,7 +66,7 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
     };
   }
 
-  it.only('Should add terminals and emit events if caller is project owner', async function () {
+  it('Should add terminals and emit events if caller is project owner', async function () {
     const { projectOwner, jbDirectory, terminal1, terminal2 } = await setup();
 
     const terminals = [terminal1.address, terminal2.address];
