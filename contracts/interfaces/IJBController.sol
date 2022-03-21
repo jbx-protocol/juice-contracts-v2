@@ -55,7 +55,8 @@ interface IJBController {
   event MintTokens(
     address indexed beneficiary,
     uint256 indexed projectId,
-    uint256 indexed tokenCount,
+    uint256 tokenCount,
+    uint256 beneficiaryTokenCount,
     string memo,
     uint256 reservedRate,
     address caller
@@ -70,6 +71,8 @@ interface IJBController {
   );
 
   event Migrate(uint256 indexed projectId, IJBController to, address caller);
+
+  event PrepMigration(uint256 indexed projectId, IJBController from, address caller);
 
   function projects() external view returns (IJBProjects);
 

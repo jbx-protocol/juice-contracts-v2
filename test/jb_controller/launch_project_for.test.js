@@ -428,7 +428,7 @@ describe('JBController::launchProjectFor(...)', function () {
         terminals,
       );
 
-    await expect(tx).to.be.revertedWith(errors.BAD_DISTRIBUTION_LIMIT);
+    await expect(tx).to.be.revertedWith(errors.INVALID_DISTRIBUTION_LIMIT);
   });
 
   it(`Can't launch a project with distribution limit currency larger than uint8`, async function () {
@@ -462,7 +462,7 @@ describe('JBController::launchProjectFor(...)', function () {
         terminals,
       );
 
-    await expect(tx).to.be.revertedWith(errors.BAD_DISTRIBUTION_LIMIT_CURRENCY);
+    await expect(tx).to.be.revertedWith(errors.INVALID_DISTRIBUTION_LIMIT_CURRENCY);
   });
 
   it(`Can't launch a project with overflow allowance larger than uint248`, async function () {
@@ -496,7 +496,7 @@ describe('JBController::launchProjectFor(...)', function () {
         terminals,
       );
 
-    await expect(tx).to.be.revertedWith(errors.BAD_OVERFLOW_ALLOWANCE);
+    await expect(tx).to.be.revertedWith(errors.INVALID_OVERFLOW_ALLOWANCE);
   });
 
   it(`Can't launch a project with overflow allowance currency larger than uint8`, async function () {
@@ -530,6 +530,6 @@ describe('JBController::launchProjectFor(...)', function () {
         terminals,
       );
 
-    await expect(tx).to.be.revertedWith(errors.BAD_OVERFLOW_ALLOWANCE_CURRENCY);
+    await expect(tx).to.be.revertedWith(errors.INVALID_OVERFLOW_ALLOWANCE_CURRENCY);
   });
 });
