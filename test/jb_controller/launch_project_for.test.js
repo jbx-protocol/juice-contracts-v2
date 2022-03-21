@@ -248,17 +248,11 @@ describe('JBController::launchProjectFor(...)', function () {
           );
 
         const args = [PROJECT_ID, timestamp, constraints.terminal];
-        expect(await jbController.distributionLimitOf(...args)).equals(
-          constraints.distributionLimit,
+        expect(await jbController.distributionLimitOf(...args)).deep.equals(
+          [ethers.BigNumber.from(constraints.distributionLimit), ethers.BigNumber.from(constraints.distributionLimitCurrency)]
         );
-        expect(await jbController.distributionLimitCurrencyOf(...args)).equals(
-          constraints.distributionLimitCurrency,
-        );
-        expect(await jbController.overflowAllowanceOf(...args)).equals(
-          constraints.overflowAllowance,
-        );
-        expect(await jbController.overflowAllowanceCurrencyOf(...args)).equals(
-          constraints.overflowAllowanceCurrency,
+        expect(await jbController.overflowAllowanceOf(...args)).deep.equals(
+          [ethers.BigNumber.from(constraints.overflowAllowance), ethers.BigNumber.from(constraints.overflowAllowanceCurrency)]
         );
       }),
     );
