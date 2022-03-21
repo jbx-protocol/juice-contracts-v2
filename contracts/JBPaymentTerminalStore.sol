@@ -298,19 +298,18 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
 
     // If the funding cycle has configured a data source, use it to derive a weight and memo.
     if (fundingCycle.useDataSourceForPay()) {
-      (_weight, memo, delegate) = fundingCycle.dataSource().payParams(
-        JBPayParamsData(
-          IJBPaymentTerminal(msg.sender),
-          _payer,
-          _amount,
-          _projectId,
-          fundingCycle.weight,
-          fundingCycle.reservedRate(),
-          _beneficiary,
-          _memo,
-          _metadata
-        )
+      JBPayParamsData memory _data = JBPayParamsData(
+        IJBPaymentTerminal(msg.sender),
+        _payer,
+        _amount,
+        _projectId,
+        fundingCycle.weight,
+        fundingCycle.reservedRate(),
+        _beneficiary,
+        _memo,
+        _metadata
       );
+      (_weight, memo, delegate) = fundingCycle.dataSource().payParams(_data);
     }
     // Otherwise use the funding cycle's weight
     else {
@@ -500,7 +499,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     uint256 _balanceCurrency,
     address payable _beneficiary,
     string memory _memo,
-    bytes memory _metadata
+    bytes calldata _metadata
   )
     external
     override
@@ -521,23 +520,22 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     if (fundingCycle.redeemPaused()) revert FUNDING_CYCLE_REDEEM_PAUSED();
 
     // If the funding cycle has configured a data source, use it to derive a claim amount and memo.
-    if (fundingCycle.useDataSourceForRedeem())
-      (reclaimAmount, memo, delegate) = fundingCycle.dataSource().redeemParams(
-        JBRedeemParamsData(
-          IJBPaymentTerminal(msg.sender),
-          _holder,
-          _tokenCount,
-          _balanceDecimals,
-          _projectId,
-          fundingCycle.redemptionRate(),
-          fundingCycle.ballotRedemptionRate(),
-          _balanceCurrency,
-          _beneficiary,
-          _memo,
-          _metadata
-        )
+    if (fundingCycle.useDataSourceForRedeem()) {
+      JBRedeemParamsData memory _data = JBRedeemParamsData(
+        IJBPaymentTerminal(msg.sender),
+        _holder,
+        _tokenCount,
+        _balanceDecimals,
+        _projectId,
+        fundingCycle.redemptionRate(),
+        fundingCycle.ballotRedemptionRate(),
+        _balanceCurrency,
+        _beneficiary,
+        _memo,
+        _metadata
       );
-    else {
+      (reclaimAmount, memo, delegate) = fundingCycle.dataSource().redeemParams(_data);
+    } else {
       reclaimAmount = _reclaimableOverflowOf(
         IJBPaymentTerminal(msg.sender),
         _projectId,

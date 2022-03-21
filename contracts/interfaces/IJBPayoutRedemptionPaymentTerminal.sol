@@ -112,7 +112,7 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
     uint256 _amount,
     uint256 _currency,
     uint256 _minReturnedAmount,
-    string memory _memo
+    string calldata _memo
   ) external;
 
   function redeemTokensOf(
@@ -123,7 +123,7 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
     address payable _beneficiary,
     string calldata _memo,
     bytes calldata _metadata
-  ) external returns (uint256 claimedAmount);
+  ) external returns (uint256 reclaimAmount);
 
   function useAllowanceOf(
     uint256 _projectId,
@@ -131,7 +131,7 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
     uint256 _currency,
     uint256 _minReturnedAmount,
     address payable _beneficiary,
-    string memory _memo
+    string calldata _memo
   ) external;
 
   function migrate(uint256 _projectId, IJBPaymentTerminal _to) external;

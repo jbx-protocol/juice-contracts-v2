@@ -352,7 +352,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _amount,
     uint256 _currency,
     uint256 _minReturnedTokens,
-    string memory _memo
+    string calldata _memo
   ) external virtual override nonReentrant {
     // Record the distribution.
     (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordDistributionFor(
@@ -376,7 +376,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Scoped section prevents stack too deep. `_feeDiscount` and `_feeEligibleDistributionAmount` only used within scope.
     {
       // Get the amount of discount that should be applied to any fees taken.
-      uint256 _feeDiscount = fee == 0 ? JBConstants.MAX_FEE_DISCOUNT : _getFeeDiscount(_projectId);
+      uint256 _feeDiscount = _getFeeDiscount(_projectId);
 
       // The amount distributed that is eligible for incurring fees.
       uint256 _feeEligibleDistributionAmount;
@@ -395,7 +395,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       _feeEligibleDistributionAmount += _leftoverDistributionAmount;
 
       // Take the fee.
-      _feeAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT ||
+      _feeAmount = fee == 0 ||
+        _feeDiscount == JBConstants.MAX_FEE_DISCOUNT ||
         _feeEligibleDistributionAmount == 0
         ? 0
         : _takeFeeFrom(
@@ -655,7 +656,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   function addToBalanceOf(
     uint256 _amount,
     uint256 _projectId,
-    string memory _memo
+    string calldata _memo
   ) external payable virtual override nonReentrant isTerminalOfProject(_projectId) {
     // If this terminal's token isn't ETH, make sure no msg.value was sent, then transfer the tokens in from msg.sender.
     if (token != JBTokens.ETH) {
@@ -815,7 +816,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         // Transfer tokens to the mod.
         // If there's an allocator set, transfer to its `allocate` function.
         if (_split.allocator != IJBSplitAllocator(address(0))) {
-          _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
+          _netPayoutAmount = fee == 0 || _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
             ? _payoutAmount
             : _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount);
 
@@ -862,7 +863,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
               _netPayoutAmount = _payoutAmount;
               // This distribution is eligible for a fee since the funds are leaving this contract and the terminal isn't listed as feeless.
             else {
-              _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
+              _netPayoutAmount = fee == 0 || _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
                 ? _payoutAmount
                 : _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount);
 
@@ -885,7 +886,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             );
           }
         } else {
-          _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
+          _netPayoutAmount = fee == 0 || _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
             ? _payoutAmount
             : _payoutAmount - _getFeeAmount(_payoutAmount, _feeDiscount);
 
@@ -1062,7 +1063,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   function _addToBalance(
     uint256 _amount,
     uint256 _projectId,
-    string memory _memo
+    string calldata _memo
   ) private {
     // Record the added funds.
     store.recordAddedBalanceFor(_projectId, _amount);

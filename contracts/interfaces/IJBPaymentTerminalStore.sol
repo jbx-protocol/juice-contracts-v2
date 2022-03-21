@@ -31,8 +31,8 @@ interface IJBPaymentTerminalStore {
     uint256 _projectId,
     address _beneficiary,
     uint256 _baseWeightCurrency,
-    string memory _memo,
-    bytes memory _metadata
+    string calldata _memo,
+    bytes calldata _metadata
   )
     external
     returns (
@@ -63,8 +63,8 @@ interface IJBPaymentTerminalStore {
     uint256 _balanceDecimals,
     uint256 _balanceCurrency,
     address payable _beneficiary,
-    string memory _memo,
-    bytes memory _metadata
+    string calldata _memo,
+    bytes calldata _metadata
   )
     external
     returns (
