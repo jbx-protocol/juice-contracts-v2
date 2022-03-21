@@ -4,10 +4,40 @@ pragma solidity 0.8.6;
 import './IJBPaymentTerminal.sol';
 import './IJBPayDelegate.sol';
 import './IJBRedemptionDelegate.sol';
+import './IJBTokenStore.sol';
+import './IJBSplitsStore.sol';
+import './IJBPrices.sol';
 import './../structs/JBTokenAmount.sol';
 import './../structs/JBFundingCycle.sol';
 
 interface IJBPaymentTerminalStore {
+  function projects() external view returns (IJBProjects);
+
+  function fundingCycleStore() external view returns (IJBFundingCycleStore);
+
+  function tokenStore() external view returns (IJBTokenStore);
+
+  function directory() external view returns (IJBDirectory);
+
+  function prices() external view returns (IJBPrices);
+
+  function balanceOf(IJBPaymentTerminal _terminal, uint256 _projectId)
+    external
+    view
+    returns (uint256);
+
+  function usedDistributionLimitOf(
+    IJBPaymentTerminal _terminal,
+    uint256 _projectId,
+    uint256 _fundingCycleNumber
+  ) external view returns (uint256);
+
+  function usedOverflowAllowanceOf(
+    IJBPaymentTerminal _terminal,
+    uint256 _projectId,
+    uint256 _fundingCycleConfiguration
+  ) external view returns (uint256);
+
   function currentOverflowOf(IJBPaymentTerminal _terminal, uint256 _projectId)
     external
     view

@@ -16,7 +16,7 @@ error PRICE_FEED_NOT_FOUND();
 
   @dev
   Adheres to:
-  IJBPrices: General interface for the methods in this contract that interact with the blockchain's state according to the Juicebox protocol's rules.
+  IJBPrices: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
   Inherits from:

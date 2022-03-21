@@ -43,7 +43,7 @@ error ZERO_TOKENS_TO_MINT();
 
   @dev
   Adheres to:
-  IJBController - general interface for the generic controller methods in this contract that interacts with funding cycles and tokens according to the Juicebox protocol's rules.
+  IJBController - general interface for the generic controller methods in this contract that interacts with funding cycles and tokens according to the protocol's rules.
 
   @dev
   Inherits from:
