@@ -264,7 +264,7 @@ contract JBController is IJBController, JBOperatable {
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
     IJBPaymentTerminal[] memory _terminals,
-    string memory _memo
+    string calldata _memo
   ) external override returns (uint256 projectId) {
     // Mint the project into the wallet of the message sender.
     projectId = projects.createFor(_owner, _projectMetadata);
@@ -314,7 +314,7 @@ contract JBController is IJBController, JBOperatable {
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
     IJBPaymentTerminal[] memory _terminals,
-    string memory _memo
+    string calldata _memo
   )
     external
     override
@@ -370,7 +370,7 @@ contract JBController is IJBController, JBOperatable {
     uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
-    string memory _memo
+    string calldata _memo
   )
     external
     override

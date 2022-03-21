@@ -107,7 +107,7 @@ interface IJBController {
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
     IJBPaymentTerminal[] memory _terminals,
-    string memory _memo
+    string calldata _memo
   ) external returns (uint256 projectId);
 
   function launchFundingCyclesFor(
@@ -118,7 +118,7 @@ interface IJBController {
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
     IJBPaymentTerminal[] memory _terminals,
-    string memory _memo
+    string calldata _memo
   ) external returns (uint256 configuration);
 
   function reconfigureFundingCyclesOf(
@@ -128,7 +128,7 @@ interface IJBController {
     uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
-    string memory _memo
+    string calldata _memo
   ) external returns (uint256);
 
   function issueTokenFor(
