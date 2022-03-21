@@ -49,7 +49,7 @@ interface IJBPaymentTerminalStore {
     uint256 _currency
   ) external view returns (uint256);
 
-  function reclaimableOverflowOf(
+  function currentReclaimableOverflowOf(
     IJBPaymentTerminal _terminal,
     uint256 _projectId,
     uint256 _tokenCount

@@ -147,12 +147,12 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     Gets the current overflowed amount in a terminal for a specified project.
 
     @dev
-    The current overflow is represented as a fixed point number with 18 decimals.
+    The current overflow is represented as a fixed point number with the same amount of decimals as the specified terminal.
 
     @param _terminal The terminal for which the overflow is being calculated.
     @param _projectId The ID of the project to get overflow for.
 
-    @return The current amount of overflow that project has in this terminal.
+    @return The current amount of overflow that project has in the specified terminal.
   */
   function currentOverflowOf(IJBPaymentTerminal _terminal, uint256 _projectId)
     external
@@ -163,15 +163,13 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
+    // Return the overflow during the project's current funding cycle.
     return _overflowDuring(_terminal, _projectId, _fundingCycle, _terminal.currency());
   }
 
   /**
     @notice
     Gets the current overflowed amount for a specified project across all terminals.
-
-    @dev
-    The current total overflow is represented as a fixed point number with 18 decimals.
 
     @param _projectId The ID of the project to get total overflow for.
     @param _decimals The number of decimals that the fixed point overflow should include.
@@ -189,21 +187,24 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
 
   /**
     @notice
-    The amount of overflowed tokens that can be reclaimed by the specified number of tokens.
+    The current amount of overflowed tokens from a terminal that can be reclaimed by the specified number of tokens.
 
     @dev 
     If the project has an active funding cycle reconfiguration ballot, the project's ballot redemption rate is used.
 
     @dev
-    The reclaimable overflow is represented as a fixed point number with 18 decimals.
+    The current reclaimable overflow is returned in terms of the specified terminal's currency.
 
-    @param _terminal The terminal from which the overflow is being calculated.
-    @param _projectId The ID of the project to get a reclaimable amount for.
+    @dev
+    The reclaimable overflow is represented as a fixed point number with the same amount of decimals as the specified terminal.
+
+    @param _terminal The terminal for which the overflow is being calculated.
+    @param _projectId The ID of the project to get the reclaimable overflow amount for.
     @param _tokenCount The number of tokens to make the calculation with, as a fixed point number with 18 decimals.
 
     @return The amount of overflowed tokens that can be reclaimed.
   */
-  function reclaimableOverflowOf(
+  function currentReclaimableOverflowOf(
     IJBPaymentTerminal _terminal,
     uint256 _projectId,
     uint256 _tokenCount
@@ -649,7 +650,25 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
 
   /**
     @notice
-    See docs for `reclaimableOverflowOf`
+    The amount of overflowed tokens from a terminal that can be reclaimed by the specified number of tokens.
+
+    @dev 
+    If the project has an active funding cycle reconfiguration ballot, the project's ballot redemption rate is used.
+
+    @dev
+    The reclaimable overflow is returned in terms of the specified currency.
+
+    @dev
+    The reclaimable overflow is represented as a fixed point number with the same amount of decimals as the specified terminal.epresented as a fixed point number with 18 decimals.
+
+    @param _terminal The terminal for which the overflow is being calculated.
+    @param _projectId The ID of the project to get the reclaimable overflow amount for.
+    @param _fundingCycle The funding cycle during which reclaimable overflow is being calculated.
+    @param _tokenCount The number of tokens to make the calculation with, as a fixed point number with 18 decimals.
+    @param _balanceDecimals The expected number of decimals that are included in the stored balance.
+    @param _balanceCurrency The expected currency that the stored balance is measured in.
+
+    @return The amount of overflowed tokens that can be reclaimed.
   */
   function _reclaimableOverflowOf(
     IJBPaymentTerminal _terminal,
