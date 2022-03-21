@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
-/* solhint-disable comprehensive-interface*/
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Address.sol';
 import '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 
-import './interfaces/IJBDirectory.sol';
+import './interfaces/IJBProjectPayer.sol';
 import './libraries/JBTokens.sol';
 
 //*********************************************************************//
@@ -20,7 +19,7 @@ error NO_MSG_VALUE_ALLOWED();
   @notice 
   A contract that sends funds to a Juicebox project.
 */
-contract JBProjectPayer is Ownable {
+contract JBProjectPayer is IJBProjectPayer, Ownable {
   event SetDefaultValues(
     uint256 projectId,
     address beneficiary,
@@ -34,37 +33,37 @@ contract JBProjectPayer is Ownable {
     @notice 
     A contract storing directories of terminals and controllers for each project.
   */
-  IJBDirectory public immutable directory;
+  IJBDirectory public immutable override directory;
 
   /** 
     @notice 
     The ID of the project that should be used to forward this contract's received payments.
   */
-  uint256 public defaultProjectId;
+  uint256 public override defaultProjectId;
 
   /** 
     @notice 
     The beneficiary that should be used in the payment made when this contract receives payments.
   */
-  address payable public defaultBeneficiary;
+  address payable public override defaultBeneficiary;
 
   /** 
     @notice 
     A flag indicating whether issued tokens should be automatically claimed into the beneficiary's wallet. Leaving tokens unclaimed saves gas.
   */
-  bool public defaultPreferClaimedTokens;
+  bool public override defaultPreferClaimedTokens;
 
   /** 
     @notice 
     The memo that should be used in the payment made when this contract receives payments.
   */
-  string public defaultMemo;
+  string public override defaultMemo;
 
   /** 
     @notice 
     The metadata that should be used in the payment made when this contract receives payments.
   */
-  bytes public defaultMetadata;
+  bytes public override defaultMetadata;
 
   /** 
     @param _defaultProjectId The ID of the project that should be used to forward this contract's received payments.
@@ -96,7 +95,7 @@ contract JBProjectPayer is Ownable {
   /** 
     Received funds go straight to the project.
   */
-  receive() external payable virtual {
+  receive() external payable virtual override {
     _pay(
       defaultProjectId,
       JBTokens.ETH,
@@ -125,7 +124,7 @@ contract JBProjectPayer is Ownable {
     bool _preferClaimedTokens,
     string memory _memo,
     bytes memory _metadata
-  ) external onlyOwner {
+  ) external override onlyOwner {
     defaultProjectId = _projectId;
     defaultBeneficiary = _beneficiary;
     defaultPreferClaimedTokens = _preferClaimedTokens;
@@ -163,7 +162,7 @@ contract JBProjectPayer is Ownable {
     bool _preferClaimedTokens,
     string memory _memo,
     bytes memory _metadata
-  ) public payable virtual {
+  ) public payable virtual override {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();

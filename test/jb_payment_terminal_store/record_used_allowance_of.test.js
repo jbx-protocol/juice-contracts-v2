@@ -111,19 +111,11 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     // Both limit and allowance in USD
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(0);
-
-    await mockJbController.mock.distributionLimitCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_USD);
+      .returns(0, CURRENCY_USD);
 
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(AMOUNT);
-
-    await mockJbController.mock.overflowAllowanceCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_USD);
+      .returns(AMOUNT, CURRENCY_USD);
 
     // Pre-checks
     expect(
@@ -182,19 +174,11 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     // Both limit and allowance in USD
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(distributionLimit);
-
-    await mockJbController.mock.distributionLimitCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_USD);
+      .returns(distributionLimit, CURRENCY_USD);
 
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(AMOUNT);
-
-    await mockJbController.mock.overflowAllowanceCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_USD);
+      .returns(AMOUNT, CURRENCY_USD);
 
     // Pre-checks
     expect(
@@ -255,19 +239,11 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
 
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(distributionLimit); // in usd
-
-    await mockJbController.mock.distributionLimitCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_USD);
+      .returns(distributionLimit, CURRENCY_USD); // in usd
 
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(amountToUse); // in eth
-
-    await mockJbController.mock.overflowAllowanceCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_ETH);
+      .returns(amountToUse, CURRENCY_ETH); // in eth
 
     await mockJbPrices.mock.priceFor
       .withArgs(CURRENCY_ETH, CURRENCY_USD, _FIXED_POINT_MAX_FIDELITY)
@@ -322,13 +298,9 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       CURRENCY_USD,
     } = await setup();
 
-    await mockJbController.mock.overflowAllowanceCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_USD);
-
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(AMOUNT);
+      .returns(AMOUNT, CURRENCY_USD);
 
     // Record the used allowance
     await expect(
@@ -357,14 +329,10 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       AMOUNT,
     );
 
-    await mockJbController.mock.overflowAllowanceCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_USD);
-
     const smallTotalAllowance = AMOUNT.sub(ethers.BigNumber.from(1));
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(smallTotalAllowance); // Set the controller's overflowAllowance to something small
+      .returns(smallTotalAllowance, CURRENCY_USD); // Set the controller's overflowAllowance to something small
 
     // Record the used allowance
     await expect(
@@ -390,19 +358,11 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     // Create a big overflow
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(AMOUNT);
-
-    await mockJbController.mock.distributionLimitCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_USD);
+      .returns(AMOUNT, CURRENCY_USD);
 
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(AMOUNT);
-
-    await mockJbController.mock.overflowAllowanceCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_USD);
+      .returns(AMOUNT, CURRENCY_USD);
 
     // Note: We didn't add an initial balance to the store
     // Record the used allowance
@@ -439,19 +399,11 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     // Leave a small overflow
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(smallBalance);
-
-    await mockJbController.mock.distributionLimitCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_ETH);
+      .returns(smallBalance, CURRENCY_ETH);
 
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(AMOUNT);
-
-    await mockJbController.mock.overflowAllowanceCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_ETH);
+      .returns(AMOUNT, CURRENCY_ETH);
 
     await mockJbPrices.mock.priceFor
       .withArgs(CURRENCY_ETH, CURRENCY_USD, _FIXED_POINT_MAX_FIDELITY)
@@ -492,19 +444,11 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     // Both limit and allowance in USD
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(distributionLimit);
-
-    await mockJbController.mock.distributionLimitCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_USD);
+      .returns(distributionLimit, CURRENCY_USD);
 
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(AMOUNT);
-
-    await mockJbController.mock.overflowAllowanceCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_USD);
+      .returns(AMOUNT, CURRENCY_USD);
 
     await mockJbPrices.mock.priceFor
       .withArgs(CURRENCY_USD, CURRENCY_ETH, _FIXED_POINT_MAX_FIDELITY)
