@@ -18,14 +18,7 @@ describe('JBController::launchProjectFor(...)', function () {
   const METADATA_CID = '';
   const METADATA_DOMAIN = 1234;
   const PROJECT_START = '1';
-  let MIGRATE_CONTROLLER_INDEX;
-
-  before(async function () {
-    let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
-    let jbOperations = await jbOperationsFactory.deploy();
-
-    MIGRATE_CONTROLLER_INDEX = await jbOperations.MIGRATE_CONTROLLER();
-  });
+  const MEMO = 'Test Memo';
 
   async function setup() {
     let [deployer, projectOwner, caller, ...addrs] = await ethers.getSigners();
@@ -213,6 +206,7 @@ describe('JBController::launchProjectFor(...)', function () {
           groupedSplits,
           fundAccessConstraints,
           terminals,
+          MEMO
         ),
     ).to.equal(PROJECT_ID);
 
@@ -227,6 +221,7 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
     await Promise.all(
@@ -256,13 +251,20 @@ describe('JBController::launchProjectFor(...)', function () {
         );
       }),
     );
+    await expect(tx)
+      .to.emit(jbController, 'LaunchProject')
+      .withArgs(
+            /*fundingCycleData.configuration=*/ timestamp,
+        PROJECT_ID,
+        MEMO,
+        projectOwner.address
+      );
   });
 
   it(`Should launch a project without payment terminals and funding cycle constraints`, async function () {
     const {
       jbController,
       projectOwner,
-      timestamp,
       fundingCycleData,
       fundingCycleMetadata,
       splits,
@@ -282,6 +284,7 @@ describe('JBController::launchProjectFor(...)', function () {
           groupedSplits,
           fundAccessConstraints,
           [],
+          MEMO
         ),
     ).to.equal(PROJECT_ID);
 
@@ -298,6 +301,7 @@ describe('JBController::launchProjectFor(...)', function () {
           groupedSplits,
           fundAccessConstraints,
           [],
+          MEMO
         ),
     ).to.not.emit(jbController, 'SetFundAccessConstraints');
   });
@@ -327,6 +331,7 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
     await expect(tx).to.be.revertedWith('INVALID_RESERVED_RATE()');
@@ -359,6 +364,7 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_REDEMPTION_RATE);
@@ -392,6 +398,7 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_BALLOT_REDEMPTION_RATE);
@@ -426,6 +433,7 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_DISTRIBUTION_LIMIT);
@@ -460,6 +468,7 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_DISTRIBUTION_LIMIT_CURRENCY);
@@ -494,6 +503,7 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_OVERFLOW_ALLOWANCE);
@@ -528,6 +538,7 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_OVERFLOW_ALLOWANCE_CURRENCY);

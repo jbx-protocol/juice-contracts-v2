@@ -64,17 +64,24 @@ describe('JBController::prepForMigrationOf(...)', function () {
   }
 
   it(`Should set the processed token tracker as the total supply if caller is not project's current controller`, async function () {
-    const { jbController, mockJbController, mockJbTokenStore } = await setup();
+    const { jbController } = await setup();
     let controllerSigner = await impersonateAccount(jbController.address);
 
-    await expect(
-      jbController
-        .connect(controllerSigner)
-        .prepForMigrationOf(PROJECT_ID, ethers.constants.AddressZero),
-    ).to.be.not.reverted;
+    const tx = jbController
+      .connect(controllerSigner)
+      .prepForMigrationOf(PROJECT_ID, ethers.constants.AddressZero);
+
+    await expect(tx).to.be.not.reverted;
 
     // reserved token balance should be at 0 if processed token = total supply
     expect(await jbController.reservedTokenBalanceOf(PROJECT_ID, 10000)).to.equal(0);
+    await expect(tx)
+      .to.emit(jbController, 'PrepMigration')
+      .withArgs(
+        PROJECT_ID,
+        ethers.constants.AddressZero,
+        controllerSigner.address
+      );
   });
 
   it(`Can't prep for migration if the caller is the current controller`, async function () {

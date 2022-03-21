@@ -175,6 +175,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     ],
 
     /*terminals*/[JBETHPaymentTerminal.address],
+    /*memo*/""
   );
 
   console.log('Done');
