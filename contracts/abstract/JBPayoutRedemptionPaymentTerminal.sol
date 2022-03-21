@@ -2,7 +2,6 @@
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 
@@ -307,7 +306,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     bool _preferClaimedTokens,
     string calldata _memo,
     bytes calldata _metadata
-  ) external payable virtual override nonReentrant isTerminalOfProject(_projectId) {
+  ) external payable virtual override isTerminalOfProject(_projectId) {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (token != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
@@ -353,7 +352,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _currency,
     uint256 _minReturnedTokens,
     string memory _memo
-  ) external virtual override nonReentrant {
+  ) external virtual override {
     // Record the distribution.
     (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordDistributionFor(
         _projectId,
@@ -454,7 +453,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     external
     virtual
     override
-    nonReentrant
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.USE_ALLOWANCE)
   {
     // Record the use of the allowance.
@@ -536,7 +534,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     external
     virtual
     override
-    nonReentrant
     requirePermission(_holder, _projectId, JBOperations.REDEEM)
     returns (uint256 reclaimAmount)
   {
@@ -621,7 +618,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     external
     virtual
     override
-    nonReentrant
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_TERMINAL)
   {
     // The terminal being migrated to must accept the same token as this terminal.
@@ -656,7 +652,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _amount,
     uint256 _projectId,
     string memory _memo
-  ) external payable virtual override nonReentrant isTerminalOfProject(_projectId) {
+  ) external payable virtual override isTerminalOfProject(_projectId) {
     // If this terminal's token isn't ETH, make sure no msg.value was sent, then transfer the tokens in from msg.sender.
     if (token != JBTokens.ETH) {
       // Amount must be greater than 0.
@@ -690,7 +686,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       JBOperations.PROCESS_FEES,
       msg.sender == owner()
     )
-    nonReentrant
   {
     // Get a reference to the project's held fees.
     JBFee[] memory _heldFees = _heldFeesOf[_projectId];
