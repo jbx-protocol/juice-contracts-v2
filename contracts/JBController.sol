@@ -251,6 +251,7 @@ contract JBController is IJBController, JBOperatable {
     @param _groupedSplits An array of splits to set for any number of group. The core protocol makes use of groups defined in `JBSplitsGroups`.
     @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
     @param _terminals Payment terminals to add for the project.
+    @param _memo A memo to pass along to the emitted event.
 
     @return projectId The ID of the project.
   */
@@ -262,7 +263,8 @@ contract JBController is IJBController, JBOperatable {
     uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
-    IJBPaymentTerminal[] memory _terminals
+    IJBPaymentTerminal[] memory _terminals,
+    string memory _memo
   ) external override returns (uint256 projectId) {
     // Mint the project into the wallet of the message sender.
     projectId = projects.createFor(_owner, _projectMetadata);
@@ -270,7 +272,8 @@ contract JBController is IJBController, JBOperatable {
     // Set this contract as the project's controller in the directory.
     directory.setControllerOf(projectId, this);
 
-    _configure(
+    // Configure the first funding cycle.
+    uint256 _configuration = _configure(
       projectId,
       _data,
       _metadata,
@@ -281,6 +284,8 @@ contract JBController is IJBController, JBOperatable {
 
     // Add the provided terminals to the list of terminals.
     if (_terminals.length > 0) directory.setTerminalsOf(projectId, _terminals);
+
+    emit LaunchProject(_configuration, projectId, _memo, msg.sender);
   }
 
   /**
@@ -297,17 +302,19 @@ contract JBController is IJBController, JBOperatable {
     @param _groupedSplits An array of splits to set for any number of group. The core protocol makes use of groups defined in `JBSplitsGroups`.
     @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
     @param _terminals Payment terminals to add for the project.
+    @param _memo A memo to pass along to the emitted event.
 
     @return configuration The configuration of the funding cycle that was successfully created.
   */
-  function launchFundingCycleFor(
+  function launchFundingCyclesFor(
     uint256 _projectId,
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
     uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
-    IJBPaymentTerminal[] memory _terminals
+    IJBPaymentTerminal[] memory _terminals,
+    string memory _memo
   )
     external
     override
@@ -321,6 +328,7 @@ contract JBController is IJBController, JBOperatable {
     // Set this contract as the project's controller in the directory.
     directory.setControllerOf(_projectId, this);
 
+    // Configure the first funding cycle.
     configuration = _configure(
       _projectId,
       _data,
@@ -332,6 +340,8 @@ contract JBController is IJBController, JBOperatable {
 
     // Add the provided terminals to the list of terminals.
     if (_terminals.length > 0) directory.setTerminalsOf(_projectId, _terminals);
+
+    emit LaunchFundingCycles(configuration, _projectId, _memo, msg.sender);
   }
 
   /**
@@ -349,8 +359,9 @@ contract JBController is IJBController, JBOperatable {
     @param _mustStartAtOrAfter The time before which the configured funding cycle can't start.
     @param _groupedSplits An array of splits to set for any number of group. The core protocol makes use of groups defined in `JBSplitsGroups`.
     @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
+    @param _memo A memo to pass along to the emitted event.
 
-    @return The configuration of the funding cycle that was successfully reconfigured.
+    @return configuration The configuration of the funding cycle that was successfully reconfigured.
   */
   function reconfigureFundingCyclesOf(
     uint256 _projectId,
@@ -358,22 +369,25 @@ contract JBController is IJBController, JBOperatable {
     JBFundingCycleMetadata calldata _metadata,
     uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
-    JBFundAccessConstraints[] memory _fundAccessConstraints
+    JBFundAccessConstraints[] memory _fundAccessConstraints,
+    string memory _memo
   )
     external
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
-    returns (uint256)
+    returns (uint256 configuration)
   {
-    return
-      _configure(
-        _projectId,
-        _data,
-        _metadata,
-        _mustStartAtOrAfter,
-        _groupedSplits,
-        _fundAccessConstraints
-      );
+    // Configure the next funding cycle.
+    configuration = _configure(
+      _projectId,
+      _data,
+      _metadata,
+      _mustStartAtOrAfter,
+      _groupedSplits,
+      _fundAccessConstraints
+    );
+
+    emit ReconfigureFundingCycles(configuration, _projectId, _memo, msg.sender);
   }
 
   /**

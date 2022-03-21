@@ -13,6 +13,17 @@ import './IJBTokenStore.sol';
 import './IJBSplitsStore.sol';
 
 interface IJBController {
+  event LaunchProject(uint256 configuration, uint256 projectId, string memo, address caller);
+
+  event LaunchFundingCycles(uint256 configuration, uint256 projectId, string memo, address caller);
+
+  event ReconfigureFundingCycles(
+    uint256 configuration,
+    uint256 projectId,
+    string memo,
+    address caller
+  );
+
   event SetFundAccessConstraints(
     uint256 indexed fundingCycleConfiguration,
     uint256 indexed fundingCycleNumber,
@@ -95,17 +106,19 @@ interface IJBController {
     uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
-    IJBPaymentTerminal[] memory _terminals
+    IJBPaymentTerminal[] memory _terminals,
+    string memory _memo
   ) external returns (uint256 projectId);
 
-  function launchFundingCycleFor(
+  function launchFundingCyclesFor(
     uint256 _projectId,
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
     uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
-    IJBPaymentTerminal[] memory _terminals
+    IJBPaymentTerminal[] memory _terminals,
+    string memory _memo
   ) external returns (uint256 configuration);
 
   function reconfigureFundingCyclesOf(
@@ -114,7 +127,8 @@ interface IJBController {
     JBFundingCycleMetadata calldata _metadata,
     uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
-    JBFundAccessConstraints[] memory _fundAccessConstraints
+    JBFundAccessConstraints[] memory _fundAccessConstraints,
+    string memory _memo
   ) external returns (uint256);
 
   function issueTokenFor(
