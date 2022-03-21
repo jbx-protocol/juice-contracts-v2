@@ -187,7 +187,7 @@ describe('JBController::migrate(...)', function () {
 
     await expect(
       jbController.connect(projectOwner).migrate(PROJECT_ID, mockJbController.address),
-    ).to.be.revertedWith(errors.CALLER_NOT_CURRENT_CONTROLLER);
+    ).to.be.revertedWith(errors.NOT_CURRENT_CONTROLLER);
   });
 
   it(`Can't migrate if migration is not allowed in funding cycle`, async function () {

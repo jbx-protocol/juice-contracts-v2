@@ -18,14 +18,7 @@ describe('JBController::launchProjectFor(...)', function () {
   const METADATA_CID = '';
   const METADATA_DOMAIN = 1234;
   const PROJECT_START = '1';
-  let MIGRATE_CONTROLLER_INDEX;
-
-  before(async function () {
-    let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
-    let jbOperations = await jbOperationsFactory.deploy();
-
-    MIGRATE_CONTROLLER_INDEX = await jbOperations.MIGRATE_CONTROLLER();
-  });
+  const MEMO = 'Test Memo';
 
   async function setup() {
     let [deployer, projectOwner, caller, ...addrs] = await ethers.getSigners();
@@ -75,7 +68,7 @@ describe('JBController::launchProjectFor(...)', function () {
 
     await mockJbDirectory.mock.setControllerOf.withArgs(PROJECT_ID, jbController.address).returns();
 
-    await mockJbDirectory.mock.addTerminalsOf
+    await mockJbDirectory.mock.setTerminalsOf
       .withArgs(PROJECT_ID, [mockJbTerminal1.address, mockJbTerminal2.address])
       .returns();
 
@@ -213,6 +206,7 @@ describe('JBController::launchProjectFor(...)', function () {
           groupedSplits,
           fundAccessConstraints,
           terminals,
+          MEMO
         ),
     ).to.equal(PROJECT_ID);
 
@@ -227,6 +221,7 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
     await Promise.all(
@@ -248,27 +243,28 @@ describe('JBController::launchProjectFor(...)', function () {
           );
 
         const args = [PROJECT_ID, timestamp, constraints.terminal];
-        expect(await jbController.distributionLimitOf(...args)).equals(
-          constraints.distributionLimit,
+        expect(await jbController.distributionLimitOf(...args)).deep.equals(
+          [ethers.BigNumber.from(constraints.distributionLimit), ethers.BigNumber.from(constraints.distributionLimitCurrency)]
         );
-        expect(await jbController.distributionLimitCurrencyOf(...args)).equals(
-          constraints.distributionLimitCurrency,
-        );
-        expect(await jbController.overflowAllowanceOf(...args)).equals(
-          constraints.overflowAllowance,
-        );
-        expect(await jbController.overflowAllowanceCurrencyOf(...args)).equals(
-          constraints.overflowAllowanceCurrency,
+        expect(await jbController.overflowAllowanceOf(...args)).deep.equals(
+          [ethers.BigNumber.from(constraints.overflowAllowance), ethers.BigNumber.from(constraints.overflowAllowanceCurrency)]
         );
       }),
     );
+    await expect(tx)
+      .to.emit(jbController, 'LaunchProject')
+      .withArgs(
+            /*fundingCycleData.configuration=*/ timestamp,
+        PROJECT_ID,
+        MEMO,
+        projectOwner.address
+      );
   });
 
   it(`Should launch a project without payment terminals and funding cycle constraints`, async function () {
     const {
       jbController,
       projectOwner,
-      timestamp,
       fundingCycleData,
       fundingCycleMetadata,
       splits,
@@ -288,6 +284,7 @@ describe('JBController::launchProjectFor(...)', function () {
           groupedSplits,
           fundAccessConstraints,
           [],
+          MEMO
         ),
     ).to.equal(PROJECT_ID);
 
@@ -304,6 +301,7 @@ describe('JBController::launchProjectFor(...)', function () {
           groupedSplits,
           fundAccessConstraints,
           [],
+          MEMO
         ),
     ).to.not.emit(jbController, 'SetFundAccessConstraints');
   });
@@ -333,6 +331,7 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
     await expect(tx).to.be.revertedWith('INVALID_RESERVED_RATE()');
@@ -365,6 +364,7 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_REDEMPTION_RATE);
@@ -398,6 +398,7 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_BALLOT_REDEMPTION_RATE);
@@ -432,9 +433,10 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
-    await expect(tx).to.be.revertedWith(errors.BAD_DISTRIBUTION_LIMIT);
+    await expect(tx).to.be.revertedWith(errors.INVALID_DISTRIBUTION_LIMIT);
   });
 
   it(`Can't launch a project with distribution limit currency larger than uint8`, async function () {
@@ -466,9 +468,10 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
-    await expect(tx).to.be.revertedWith(errors.BAD_DISTRIBUTION_LIMIT_CURRENCY);
+    await expect(tx).to.be.revertedWith(errors.INVALID_DISTRIBUTION_LIMIT_CURRENCY);
   });
 
   it(`Can't launch a project with overflow allowance larger than uint248`, async function () {
@@ -500,9 +503,10 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
-    await expect(tx).to.be.revertedWith(errors.BAD_OVERFLOW_ALLOWANCE);
+    await expect(tx).to.be.revertedWith(errors.INVALID_OVERFLOW_ALLOWANCE);
   });
 
   it(`Can't launch a project with overflow allowance currency larger than uint8`, async function () {
@@ -534,8 +538,9 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
-    await expect(tx).to.be.revertedWith(errors.BAD_OVERFLOW_ALLOWANCE_CURRENCY);
+    await expect(tx).to.be.revertedWith(errors.INVALID_OVERFLOW_ALLOWANCE_CURRENCY);
   });
 });

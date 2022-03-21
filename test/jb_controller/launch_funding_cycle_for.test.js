@@ -13,12 +13,13 @@ import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsS
 import jbTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
 
-describe('JBController::launchFundingCycleFor(...)', function () {
+describe('JBController::launchFundingCyclesFor(...)', function () {
   const EXISTING_PROJECT = 1;
   const LAUNCHED_PROJECT = 2;
   const NONEXISTANT_PROJECT = 3;
   const METADATA_CID = '';
   const METADATA_DOMAIN = 1234;
+  const MEMO = 'Test Memo';
   const PROJECT_START = '1';
   let RECONFIGURE_INDEX;
   let MIGRATE_CONTROLLER_INDEX;
@@ -87,7 +88,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
       .withArgs(EXISTING_PROJECT, jbController.address)
       .returns();
 
-    await mockJbDirectory.mock.addTerminalsOf
+    await mockJbDirectory.mock.setTerminalsOf
       .withArgs(EXISTING_PROJECT, [mockJbTerminal1.address, mockJbTerminal2.address])
       .returns();
 
@@ -221,7 +222,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
     expect(
       await jbController
         .connect(projectOwner)
-        .callStatic.launchFundingCycleFor(
+        .callStatic.launchFundingCyclesFor(
           EXISTING_PROJECT,
           fundingCycleData,
           fundingCycleMetadata.unpacked,
@@ -229,12 +230,13 @@ describe('JBController::launchFundingCycleFor(...)', function () {
           groupedSplits,
           fundAccessConstraints,
           terminals,
+          MEMO
         ),
     ).to.equal(timestamp);
 
     let tx = jbController
       .connect(projectOwner)
-      .launchFundingCycleFor(
+      .launchFundingCyclesFor(
         EXISTING_PROJECT,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
@@ -242,6 +244,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
     await Promise.all(
@@ -263,20 +266,22 @@ describe('JBController::launchFundingCycleFor(...)', function () {
           );
 
         const args = [EXISTING_PROJECT, timestamp, constraints.terminal];
-        expect(await jbController.distributionLimitOf(...args)).equals(
-          constraints.distributionLimit,
+        expect(await jbController.distributionLimitOf(...args)).deep.equals(
+          [ethers.BigNumber.from(constraints.distributionLimit), ethers.BigNumber.from(constraints.distributionLimitCurrency)]
         );
-        expect(await jbController.distributionLimitCurrencyOf(...args)).equals(
-          constraints.distributionLimitCurrency,
-        );
-        expect(await jbController.overflowAllowanceOf(...args)).equals(
-          constraints.overflowAllowance,
-        );
-        expect(await jbController.overflowAllowanceCurrencyOf(...args)).equals(
-          constraints.overflowAllowanceCurrency,
+        expect(await jbController.overflowAllowanceOf(...args)).deep.equals(
+          [ethers.BigNumber.from(constraints.overflowAllowance), ethers.BigNumber.from(constraints.overflowAllowanceCurrency)]
         );
       }),
     );
+    await expect(tx)
+      .to.emit(jbController, 'LaunchFundingCycles')
+      .withArgs(
+            /*fundingCycleData.configuration=*/ timestamp,
+        EXISTING_PROJECT,
+        MEMO,
+        projectOwner.address
+      );
   });
 
   it(`Should launch a funding cycle without payment terminals and funding cycle constraints`, async function () {
@@ -294,7 +299,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
     expect(
       await jbController
         .connect(projectOwner)
-        .callStatic.launchFundingCycleFor(
+        .callStatic.launchFundingCyclesFor(
           EXISTING_PROJECT,
           fundingCycleData,
           fundingCycleMetadata.unpacked,
@@ -302,6 +307,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
           groupedSplits,
           fundAccessConstraints,
           [],
+          MEMO
         ),
     ).to.equal(timestamp);
 
@@ -309,7 +315,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
     await expect(
       jbController
         .connect(projectOwner)
-        .launchFundingCycleFor(
+        .launchFundingCyclesFor(
           EXISTING_PROJECT,
           fundingCycleData,
           fundingCycleMetadata.unpacked,
@@ -317,6 +323,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
           groupedSplits,
           fundAccessConstraints,
           [],
+          MEMO
         ),
     ).to.not.emit(jbController, 'SetFundAccessConstraints');
   });
@@ -337,7 +344,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
 
     let tx = jbController
       .connect(projectOwner)
-      .launchFundingCycleFor(
+      .launchFundingCyclesFor(
         EXISTING_PROJECT,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
@@ -345,6 +352,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_RESERVED_RATE);
@@ -368,7 +376,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
 
     let tx = jbController
       .connect(projectOwner)
-      .launchFundingCycleFor(
+      .launchFundingCyclesFor(
         EXISTING_PROJECT,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
@@ -376,6 +384,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_REDEMPTION_RATE);
@@ -400,7 +409,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
 
     let tx = jbController
       .connect(projectOwner)
-      .launchFundingCycleFor(
+      .launchFundingCyclesFor(
         EXISTING_PROJECT,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
@@ -408,6 +417,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_BALLOT_REDEMPTION_RATE);
@@ -429,7 +439,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
 
     let tx = jbController
       .connect(projectOwner)
-      .callStatic.launchFundingCycleFor(
+      .callStatic.launchFundingCyclesFor(
         NONEXISTANT_PROJECT,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
@@ -437,6 +447,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
     await expect(tx).to.be.reverted;
@@ -468,7 +479,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
 
     let tx = jbController
       .connect(nonOwner)
-      .callStatic.launchFundingCycleFor(
+      .callStatic.launchFundingCyclesFor(
         EXISTING_PROJECT,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
@@ -476,6 +487,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
     await expect(tx).to.be.revertedWith(errors.UNAUTHORIZED);
@@ -497,7 +509,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
 
     let tx = jbController
       .connect(projectOwner)
-      .callStatic.launchFundingCycleFor(
+      .callStatic.launchFundingCyclesFor(
         LAUNCHED_PROJECT,
         fundingCycleData,
         fundingCycleMetadata.unpacked,
@@ -505,6 +517,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
+        MEMO
       );
 
     await expect(tx).to.be.revertedWith(errors.FUNDING_CYCLE_ALREADY_LAUNCHED);

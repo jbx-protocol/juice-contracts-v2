@@ -112,13 +112,9 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
-    await mockJbController.mock.distributionLimitCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_ETH);
-
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(overflowAmt);
+      .returns(overflowAmt, CURRENCY_ETH);
 
     const totalSupply = tokenAmt.mulUnsafe(ethers.FixedNumber.from(2));
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(totalSupply); // totalSupply of 100
@@ -182,13 +178,9 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
-    await mockJbController.mock.distributionLimitCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_ETH);
-
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(overflowAmt);
+      .returns(overflowAmt, CURRENCY_ETH);
 
     // Get claimable overflow
     expect(
@@ -237,13 +229,9 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
-    await mockJbController.mock.distributionLimitCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_ETH);
-
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(overflowAmt);
+      .returns(overflowAmt, CURRENCY_ETH);
 
     const totalSupply = tokenAmt.mulUnsafe(ethers.FixedNumber.from(2));
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(totalSupply); // totalSupply of 100
@@ -317,13 +305,9 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
-    await mockJbController.mock.distributionLimitCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_ETH);
-
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(overflowAmt);
+      .returns(overflowAmt, CURRENCY_ETH);
 
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(tokenAmt);
 

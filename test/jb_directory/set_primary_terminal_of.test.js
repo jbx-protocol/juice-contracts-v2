@@ -6,18 +6,15 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
-import errors from '../helpers/errors.json';
 
 describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
   const PROJECT_ID = 13;
 
-  let ADD_TERMINALS_PERMISSION_INDEX;
   let SET_PRIMARY_TERMINAL_PERMISSION_INDEX;
   before(async function () {
     let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
     let jbOperations = await jbOperationsFactory.deploy();
 
-    ADD_TERMINALS_PERMISSION_INDEX = await jbOperations.ADD_TERMINALS();
     SET_PRIMARY_TERMINAL_PERMISSION_INDEX = await jbOperations.SET_PRIMARY_TERMINAL();
   });
 
@@ -49,17 +46,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     };
   }
 
-  it(`Can't set primary terminal with address(0)`, async function () {
-    const { projectOwner, jbDirectory } = await setup();
-
-    await expect(
-      jbDirectory
-        .connect(projectOwner)
-        .setPrimaryTerminalOf(PROJECT_ID, ethers.constants.AddressZero),
-    ).to.be.revertedWith(errors.SET_PRIMARY_TERMINAL_ZERO_ADDRESS);
-  });
-
-  it('Should setting primary terminal and emit an event', async function () {
+  it('Should set primary terminal and emit an event', async function () {
     const { projectOwner, jbDirectory, terminal1 } = await setup();
 
     // Initially no terminals should be set.
@@ -122,18 +109,6 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
       .be.reverted;
   });
 
-  it(`Can't set the same primary terminal twice in a row`, async function () {
-    const { projectOwner, jbDirectory, terminal1 } = await setup();
-
-    await terminal1.mock.token.returns(ethers.Wallet.createRandom().address);
-
-    // Should succeed on the first attempt and then fail on the second.
-    await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, terminal1.address);
-    await expect(
-      jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, terminal1.address),
-    ).to.be.revertedWith(errors.PRIMARY_TERMINAL_ALREADY_SET);
-  });
-
   it('Should set multiple terminals for the same project with the same token', async function () {
     const { projectOwner, jbDirectory, terminal1, terminal2 } = await setup();
 
@@ -142,7 +117,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     await terminal2.mock.token.returns(token);
 
     let terminals = [terminal1.address, terminal2.address];
-    await jbDirectory.connect(projectOwner).addTerminalsOf(PROJECT_ID, terminals);
+    await jbDirectory.connect(projectOwner).setTerminalsOf(PROJECT_ID, terminals);
 
     await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, terminal1.address);
     expect(await jbDirectory.connect(projectOwner).primaryTerminalOf(PROJECT_ID, token)).to.equal(

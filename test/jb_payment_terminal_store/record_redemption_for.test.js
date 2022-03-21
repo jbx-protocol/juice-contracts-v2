@@ -118,13 +118,9 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
     /* Mocks for _reclaimableOverflowOf private method */
-    await mockJbController.mock.distributionLimitCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_ETH);
-
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(AMOUNT);
+      .returns(AMOUNT, CURRENCY_ETH);
 
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(AMOUNT);
 
@@ -202,13 +198,9 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
     /* Mocks for _claimableOverflowOf private method */
-    await mockJbController.mock.distributionLimitCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_ETH);
-
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(AMOUNT);
+      .returns(AMOUNT, CURRENCY_ETH);
 
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(AMOUNT);
 
@@ -280,13 +272,9 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     });
 
     /* Mocks for _reclaimableOverflowOf private method */
-    await mockJbController.mock.distributionLimitCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_ETH);
-
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(AMOUNT);
+      .returns(AMOUNT, CURRENCY_ETH);
 
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(AMOUNT);
 
@@ -431,7 +419,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       /* balanceCurrency */ CURRENCY,
       /* beneficiary */ beneficiary.address,
       /* memo */ 'test',
-      METADATA
+        METADATA
       ),
     ).to.be.revertedWith(errors.INSUFFICIENT_TOKENS);
   });
@@ -486,7 +474,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       /* balanceCurrency */ CURRENCY,
       /* beneficiary */ beneficiary.address,
       /* memo */ 'test',
-      METADATA
+        METADATA
       ),
     ).to.be.revertedWith(errors.FUNDING_CYCLE_REDEEM_PAUSED);
   });
