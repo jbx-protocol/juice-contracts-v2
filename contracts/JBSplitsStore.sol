@@ -19,6 +19,15 @@ error PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();
 /**
   @notice
   Stores splits for each project.
+
+  @dev
+  Adheres to:
+  IJBSplitsStore: General interface for the methods in this contract that interact with the blockchain's state according to the Juicebox protocol's rules.
+
+  @dev
+  Inherits from:
+  JBControllerUtility: Includes convenience functionality for checking if the message sender is the current controller of the project whose data is being manipulated.
+  JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBSplitsStore is IJBSplitsStore, JBOperatable {
   //*********************************************************************//

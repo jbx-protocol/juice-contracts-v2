@@ -75,7 +75,7 @@ describe('JBController::launchProjectFor(...)', function () {
 
     await mockJbDirectory.mock.setControllerOf.withArgs(PROJECT_ID, jbController.address).returns();
 
-    await mockJbDirectory.mock.addTerminalsOf
+    await mockJbDirectory.mock.setTerminalsOf
       .withArgs(PROJECT_ID, [mockJbTerminal1.address, mockJbTerminal2.address])
       .returns();
 

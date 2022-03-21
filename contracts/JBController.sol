@@ -363,7 +363,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     );
 
     // Add the provided terminals to the list of terminals.
-    if (_terminals.length > 0) directory.addTerminalsOf(projectId, _terminals);
+    if (_terminals.length > 0) directory.setTerminalsOf(projectId, _terminals);
   }
 
   /**
@@ -413,7 +413,7 @@ contract JBController is IJBController, JBOperatable, ReentrancyGuard {
     );
 
     // Add the provided terminals to the list of terminals.
-    if (_terminals.length > 0) directory.addTerminalsOf(_projectId, _terminals);
+    if (_terminals.length > 0) directory.setTerminalsOf(_projectId, _terminals);
   }
 
   /**
