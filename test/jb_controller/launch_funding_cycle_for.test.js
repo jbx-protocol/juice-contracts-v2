@@ -87,7 +87,7 @@ describe('JBController::launchFundingCycleFor(...)', function () {
       .withArgs(EXISTING_PROJECT, jbController.address)
       .returns();
 
-    await mockJbDirectory.mock.addTerminalsOf
+    await mockJbDirectory.mock.setTerminalsOf
       .withArgs(EXISTING_PROJECT, [mockJbTerminal1.address, mockJbTerminal2.address])
       .returns();
 
