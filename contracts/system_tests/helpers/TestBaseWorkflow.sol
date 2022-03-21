@@ -195,7 +195,7 @@ contract TestBaseWorkflow is DSTest {
     );
     evm.label(address(_jbController), 'JBController');
 
-    _jbDirectory.addToSetControllerAllowlist(address(_jbController));
+    _jbDirectory.setIsAllowedToSetFirstController(address(_jbController));
     // JBETHPaymentTerminalStore
     _jbPaymentTerminalStore = new JBPaymentTerminalStore(
       _jbPrices,
