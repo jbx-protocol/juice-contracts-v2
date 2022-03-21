@@ -702,11 +702,11 @@ contract JBController is IJBController, JBOperatable {
     if (uint256(_processedTokenTrackerOf[_projectId]) != tokenStore.totalSupplyOf(_projectId))
       _distributeReservedTokensOf(_projectId, '');
 
-    // Set the new controller.
-    directory.setControllerOf(_projectId, _to);
-
     // Make sure the new controller is prepped for the migration.
     _to.prepForMigrationOf(_projectId, this);
+
+    // Set the new controller.
+    directory.setControllerOf(_projectId, _to);
 
     emit Migrate(_projectId, _to, msg.sender);
   }
