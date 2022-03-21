@@ -10,11 +10,7 @@ interface IJBDirectory {
 
   event AddTerminal(uint256 indexed projectId, IJBPaymentTerminal indexed terminal, address caller);
 
-  event SetTerminals(
-    uint256 indexed projectId,
-    IJBPaymentTerminal[] indexed terminals,
-    address caller
-  );
+  event SetTerminals(uint256 indexed projectId, IJBPaymentTerminal[] terminals, address caller);
 
   event SetPrimaryTerminal(
     uint256 indexed projectId,

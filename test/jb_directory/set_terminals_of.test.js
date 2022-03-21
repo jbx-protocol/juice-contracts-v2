@@ -66,14 +66,14 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
     };
   }
 
-  it('Should add terminals and emit events if caller is project owner', async function () {
+  it.only('Should add terminals and emit events if caller is project owner', async function () {
     const { projectOwner, jbDirectory, terminal1, terminal2 } = await setup();
 
     const terminals = [terminal1.address, terminal2.address];
 
     await expect(jbDirectory.connect(projectOwner).setTerminalsOf(PROJECT_ID, terminals))
       .to.emit(jbDirectory, 'SetTerminals')
-    //.withArgs(PROJECT_ID, terminals, projectOwner.address); -->  AssertionError: expected undefined to equal (...) ?!
+      .withArgs(PROJECT_ID, terminals, projectOwner.address);
   });
 
   it('Should add terminals and remove a previous primary terminal if it is not included in the new terminals', async function () {
