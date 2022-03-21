@@ -372,24 +372,15 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     ][fundingCycle.number] + _amount;
 
     // Amount must be within what is still distributable.
-    uint256 _distributionLimitOf = directory.controllerOf(_projectId).distributionLimitOf(
-      _projectId,
-      fundingCycle.configuration,
-      IJBPaymentTerminal(msg.sender)
-    );
+    (uint256 _distributionLimitOf, uint256 _distributionLimitCurrencyOf) = directory
+      .controllerOf(_projectId)
+      .distributionLimitOf(_projectId, fundingCycle.configuration, IJBPaymentTerminal(msg.sender));
 
     if (_newUsedDistributionLimitOf > _distributionLimitOf || _distributionLimitOf == 0)
       revert DISTRIBUTION_AMOUNT_LIMIT_REACHED();
 
     // Make sure the currencies match.
-    if (
-      _currency !=
-      directory.controllerOf(_projectId).distributionLimitCurrencyOf(
-        _projectId,
-        fundingCycle.configuration,
-        IJBPaymentTerminal(msg.sender)
-      )
-    ) revert CURRENCY_MISMATCH();
+    if (_currency != _distributionLimitCurrencyOf) revert CURRENCY_MISMATCH();
 
     // Convert the amount to the balance's currency.
     distributedAmount = (_currency == _balanceCurrency) ? _amount : distributedAmount = PRBMath
@@ -444,24 +435,15 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     ][fundingCycle.configuration] + _amount;
 
     // There must be sufficient allowance available.
-    uint256 _allowanceOf = directory.controllerOf(_projectId).overflowAllowanceOf(
-      _projectId,
-      fundingCycle.configuration,
-      IJBPaymentTerminal(msg.sender)
-    );
+    (uint256 _overflowAllowanceOf, uint256 _overflowAllowanceCurrency) = directory
+      .controllerOf(_projectId)
+      .overflowAllowanceOf(_projectId, fundingCycle.configuration, IJBPaymentTerminal(msg.sender));
 
-    if (_newUsedOverflowAllowanceOf > _allowanceOf || _allowanceOf == 0)
+    if (_newUsedOverflowAllowanceOf > _overflowAllowanceOf || _overflowAllowanceOf == 0)
       revert INADEQUATE_CONTROLLER_ALLOWANCE();
 
     // Make sure the currencies match.
-    if (
-      _currency !=
-      directory.controllerOf(_projectId).overflowAllowanceCurrencyOf(
-        _projectId,
-        fundingCycle.configuration,
-        IJBPaymentTerminal(msg.sender)
-      )
-    ) revert CURRENCY_MISMATCH();
+    if (_currency != _overflowAllowanceCurrency) revert CURRENCY_MISMATCH();
 
     // Convert the amount to this store's terminal's token.
     withdrawnAmount = (_currency == _balanceCurrency)
@@ -723,28 +705,25 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore {
     // If there's no balance, there's no overflow.
     if (_balanceOf == 0) return 0;
 
-    // Get a reference to the amount still withdrawable during the funding cycle.
-    uint256 _distributionRemaining = directory.controllerOf(_projectId).distributionLimitOf(
-      _projectId,
-      _fundingCycle.configuration,
-      _terminal
-    ) - usedDistributionLimitOf[_terminal][_projectId][_fundingCycle.number];
-
-    // Get a reference to the current funding cycle's currency for this terminal.
-    uint256 _distributionLimitCurrency = directory
+    // Get a reference to the distribution limit during the funding cycle.
+    (uint256 _distributionLimit, uint256 _distributionLimitCurrency) = directory
       .controllerOf(_projectId)
-      .distributionLimitCurrencyOf(_projectId, _fundingCycle.configuration, _terminal);
+      .distributionLimitOf(_projectId, _fundingCycle.configuration, _terminal);
+
+    // Get a reference to the amount still distributable during the funding cycle.
+    uint256 _distributionLimitRemaining = _distributionLimit -
+      usedDistributionLimitOf[_terminal][_projectId][_fundingCycle.number];
 
     // Convert the _distributionRemaining to be in terms of the provided currency.
-    if (_distributionRemaining != 0 && _distributionLimitCurrency != _balanceCurrency)
-      _distributionRemaining = PRBMath.mulDiv(
-        _distributionRemaining,
+    if (_distributionLimitRemaining != 0 && _distributionLimitCurrency != _balanceCurrency)
+      _distributionLimitRemaining = PRBMath.mulDiv(
+        _distributionLimitRemaining,
         10**_FIXED_POINT_MAX_FIDELITY, // Use _FIXED_POINT_MAX_FIDELITY to keep as much of the `_amount.value`'s fidelity as possible when converting.
         prices.priceFor(_distributionLimitCurrency, _balanceCurrency, _FIXED_POINT_MAX_FIDELITY)
       );
 
     // Overflow is the balance of this project minus the amount that can still be distributed.
-    return _balanceOf > _distributionRemaining ? _balanceOf - _distributionRemaining : 0;
+    return _balanceOf > _distributionLimitRemaining ? _balanceOf - _distributionLimitRemaining : 0;
   }
 
   /**

@@ -75,29 +75,17 @@ interface IJBController {
     view
     returns (uint256);
 
-  function overflowAllowanceOf(
-    uint256 _projectId,
-    uint256 _configuration,
-    IJBPaymentTerminal _terminal
-  ) external view returns (uint256);
-
-  function overflowAllowanceCurrencyOf(
-    uint256 _projectId,
-    uint256 _configuration,
-    IJBPaymentTerminal _terminal
-  ) external view returns (uint256);
-
   function distributionLimitOf(
     uint256 _projectId,
     uint256 _configuration,
     IJBPaymentTerminal _terminal
-  ) external view returns (uint256);
+  ) external view returns (uint256 distributionLimit, uint256 distributionLimitCurrency);
 
-  function distributionLimitCurrencyOf(
+  function overflowAllowanceOf(
     uint256 _projectId,
     uint256 _configuration,
     IJBPaymentTerminal _terminal
-  ) external view returns (uint256);
+  ) external view returns (uint256 overflowAllowance, uint256 overflowAllowanceCurrency);
 
   function launchProjectFor(
     address _owner,

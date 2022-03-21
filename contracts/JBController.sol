@@ -61,8 +61,7 @@ contract JBController is IJBController, JBOperatable {
 
   /**
     @notice
-    The difference between the processed token tracker of a project and the project's token's total supply is the amount of tokens that
-    still need to have reserves minted against them.
+    The difference between the processed token tracker of a project and the project's token's total supply is the amount of tokens that still need to have reserves minted against them.
 
     _projectId The ID of the project to get the tracker of.
   */
@@ -90,7 +89,7 @@ contract JBController is IJBController, JBOperatable {
     Data regarding the overflow allowance of a project during a configuration.
 
     @dev
-    bits 0-247: The amount of overflow that a project is allowed to tap into on-demand throughout configuration.
+    bits 0-247: The amount of overflow that a project is allowed to tap into on-demand throughout the configuration.
 
     @dev
     bits 248-255: The currency of the amount of overflow that a project is allowed to tap.
@@ -142,66 +141,42 @@ contract JBController is IJBController, JBOperatable {
 
   /**
     @notice
-    The amount of token that a project can distribute per funding cycle.
+    The amount of token that a project can distribute per funding cycle, and the currency it's in terms of.
 
     @param _projectId The ID of the project to get the distribution limit of.
     @param _configuration The configuration during which the distribution limit applies.
     @param _terminal The terminal from which distributions are being limited.
+
+    @return The distribution limit.
+    @return The currency of the distribution limit.
   */
   function distributionLimitOf(
     uint256 _projectId,
     uint256 _configuration,
     IJBPaymentTerminal _terminal
-  ) external view override returns (uint256) {
-    return uint256(uint248(_packedDistributionLimitDataOf[_projectId][_configuration][_terminal]));
+  ) external view override returns (uint256, uint256) {
+    uint256 _data = _packedDistributionLimitDataOf[_projectId][_configuration][_terminal];
+    return (uint256(uint248(_data)), _data >> 248);
   }
 
   /**
     @notice
-    The currency of the amount of that a project can distribute per funding cycle.
-
-    @param _projectId The ID of the project to get the distribution limit currency of.
-    @param _configuration The configuration during which the distribution limit currency applies.
-    @param _terminal The terminal from which distributions are being limited.
-  */
-  function distributionLimitCurrencyOf(
-    uint256 _projectId,
-    uint256 _configuration,
-    IJBPaymentTerminal _terminal
-  ) external view override returns (uint256) {
-    return _packedDistributionLimitDataOf[_projectId][_configuration][_terminal] >> 248;
-  }
-
-  /**
-    @notice
-    The amount of overflow that a project is allowed to tap into on-demand throughout a configuration.
+    The amount of overflow that a project is allowed to tap into on-demand throughout a configuration, and the currency it's in terms of.
 
     @param _projectId The ID of the project to get the overflow allowance of.
     @param _configuration The configuration of the during which the allowance applies.
     @param _terminal The terminal managing the overflow.
+
+    @return The distribution limit.
+    @return The currency of the distribution limit.
   */
   function overflowAllowanceOf(
     uint256 _projectId,
     uint256 _configuration,
     IJBPaymentTerminal _terminal
-  ) external view override returns (uint256) {
-    return uint256(uint248(_packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal]));
-  }
-
-  /**
-    @notice
-    The currency of the amount of overflow that a project is allowed to tap into throughout a configuration.
-
-    @param _projectId The ID of the project to get the overflow allowance currency of.
-    @param _configuration The configuration of the during which the allowance currency applies.
-    @param _terminal The terminal managing the overflow.
-  */
-  function overflowAllowanceCurrencyOf(
-    uint256 _projectId,
-    uint256 _configuration,
-    IJBPaymentTerminal _terminal
-  ) external view override returns (uint256) {
-    return _packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal] >> 248;
+  ) external view override returns (uint256, uint256) {
+    uint256 _data = _packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal];
+    return (uint256(uint248(_data)), _data >> 248);
   }
 
   /**
@@ -686,7 +661,7 @@ contract JBController is IJBController, JBOperatable {
     );
 
     // Set the tracker to be the new total supply.
-    _processedTokenTrackerOf[_projectId] = int256(_totalTokens + count);
+    _processedTokenTrackerOf[_projectId] = int256(_totalTokens + tokenCount);
 
     // Get a reference to the project owner.
     address _owner = projects.ownerOf(_projectId);
@@ -694,7 +669,7 @@ contract JBController is IJBController, JBOperatable {
     // Distribute tokens to splits and get a reference to the leftover amount to mint after all splits have gotten their share.
     uint256 _leftoverTokenCount = tokenCount == 0
       ? 0
-      : _distributeToReservedTokenSplitsOf(_projectId, _fundingCycle, count);
+      : _distributeToReservedTokenSplitsOf(_projectId, _fundingCycle, tokenCount);
 
     // Mint any leftover tokens to the project owner.
     if (_leftoverTokenCount > 0) tokenStore.mintFor(_owner, _projectId, _leftoverTokenCount, false);
