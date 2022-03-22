@@ -160,11 +160,14 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     override
     returns (uint256)
   {
-    // Get a reference to the project's current funding cycle.
-    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
-
     // Return the overflow during the project's current funding cycle.
-    return _overflowDuring(_terminal, _projectId, _fundingCycle, _terminal.currency());
+    return
+      _overflowDuring(
+        _terminal,
+        _projectId,
+        fundingCycleStore.currentOf(_projectId),
+        _terminal.currency()
+      );
   }
 
   /**
@@ -210,7 +213,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     uint256 _tokenCount
   ) external view override returns (uint256) {
     return
-      _reclaimableOverflowOf(
+      _reclaimableOverflowDuring(
         _terminal,
         _projectId,
         fundingCycleStore.currentOf(_projectId),
@@ -554,7 +557,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
       );
       (reclaimAmount, memo, delegate) = fundingCycle.dataSource().redeemParams(_data);
     } else {
-      reclaimAmount = _reclaimableOverflowOf(
+      reclaimAmount = _reclaimableOverflowDuring(
         IJBPaymentTerminal(msg.sender),
         _projectId,
         fundingCycle,
@@ -650,7 +653,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
 
   /**
     @notice
-    The amount of overflowed tokens from a terminal that can be reclaimed by the specified number of tokens.
+    The amount of overflowed tokens from a terminal that can be reclaimed by the specified number of tokens during the specified funding cycle.
 
     @dev 
     If the project has an active funding cycle reconfiguration ballot, the project's ballot redemption rate is used.
@@ -670,7 +673,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
 
     @return The amount of overflowed tokens that can be reclaimed.
   */
-  function _reclaimableOverflowOf(
+  function _reclaimableOverflowDuring(
     IJBPaymentTerminal _terminal,
     uint256 _projectId,
     JBFundingCycle memory _fundingCycle,
