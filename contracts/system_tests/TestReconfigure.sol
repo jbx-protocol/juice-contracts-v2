@@ -86,12 +86,11 @@ contract TestReconfigureProject is TestBaseWorkflow {
   }
 
   function testReconfigureProjectFuzzRates(
-
+    uint256 RESERVED_RATE,
+    uint256 REDEMPTION_RATE,
+    uint96 BALANCE
   ) public {
-        uint256 RESERVED_RATE = 0;
-    uint256 REDEMPTION_RATE = 0;
-    uint96 BALANCE = 10;
-    //evm.assume(payable(msg.sender).balance >= BALANCE);
+    evm.assume(payable(msg.sender).balance >= BALANCE);
 
     address _beneficiary = address(69420);
     uint256 projectId = controller.launchProjectFor(
