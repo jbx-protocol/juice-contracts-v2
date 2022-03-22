@@ -105,9 +105,7 @@ interface IJBPaymentTerminalStore {
       string memory memo
     );
 
-  function recordAddedBalanceFor(uint256 _projectId, uint256 _amount)
-    external
-    returns (JBFundingCycle memory fundingCycle);
+  function recordAddedBalanceFor(uint256 _projectId, uint256 _amount) external;
 
   function recordMigration(uint256 _projectId) external returns (uint256 balance);
 }

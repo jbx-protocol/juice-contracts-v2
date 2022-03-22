@@ -445,7 +445,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     @param _balanceCurrency The currency that the balance is expected to be in terms of.
 
     @return fundingCycle The funding cycle during which the withdrawal is being made.
-    @return withdrawnAmount The amount terminal tokens used, as a fixed point number with 18 decimals.
+    @return usedAmount The amount of terminal tokens used, as a fixed point number with 18 decimals.
   */
   function recordUsedAllowanceOf(
     uint256 _projectId,
@@ -456,7 +456,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     external
     override
     nonReentrant
-    returns (JBFundingCycle memory fundingCycle, uint256 withdrawnAmount)
+    returns (JBFundingCycle memory fundingCycle, uint256 usedAmount)
   {
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
@@ -478,7 +478,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     if (_currency != _overflowAllowanceCurrency) revert CURRENCY_MISMATCH();
 
     // Convert the amount to this store's terminal's token.
-    withdrawnAmount = (_currency == _balanceCurrency)
+    usedAmount = (_currency == _balanceCurrency)
       ? _amount
       : PRBMath.mulDiv(
         _amount,
@@ -488,7 +488,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
 
     // The amount being withdrawn must be available in the overflow.
     if (
-      withdrawnAmount >
+      usedAmount >
       _overflowDuring(IJBPaymentTerminal(msg.sender), _projectId, fundingCycle, _balanceCurrency)
     ) revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
 
@@ -500,7 +500,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     // Update the project's token balance.
     balanceOf[IJBPaymentTerminal(msg.sender)][_projectId] =
       balanceOf[IJBPaymentTerminal(msg.sender)][_projectId] -
-      withdrawnAmount;
+      usedAmount;
   }
 
   /**
@@ -609,19 +609,12 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
 
     @param _projectId The ID of the project to which the funds being added belong.
     @param _amount The amount of temrinal tokens added, as a fixed point number with 18 decimals.
-
-    @return fundingCycle The current funding cycle for the project.
   */
   function recordAddedBalanceFor(uint256 _projectId, uint256 _amount)
     external
     override
     nonReentrant
-    returns (JBFundingCycle memory fundingCycle)
   {
-    // Get a reference to the project's current funding cycle.
-    // TODO remove return val
-    fundingCycle = fundingCycleStore.currentOf(_projectId);
-
     // Increment the balance.
     balanceOf[IJBPaymentTerminal(msg.sender)][_projectId] =
       balanceOf[IJBPaymentTerminal(msg.sender)][_projectId] +
