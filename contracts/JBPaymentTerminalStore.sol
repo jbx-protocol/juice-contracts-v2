@@ -441,15 +441,15 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     Records newly distributed funds for a project.
 
     @dev
-    The msg.sender must be an IJBPaymentTerminal. The amount specified in the params is in terms of the msg.senders tokens.
+    The msg.sender must be an IJBPaymentTerminal. 
 
     @param _projectId The ID of the project that is having funds distributed.
-    @param _amount The amount to use from the distribution limit, as a fixed point number. i
-    @param _currency The currency of the `_amount`.
+    @param _amount The amount to use from the distribution limit, as a fixed point number.
+    @param _currency The currency of the `_amount`. This must match the project's current funding cycle's currency.
     @param _balanceCurrency The currency that the balance is expected to be in terms of.
 
     @return fundingCycle The funding cycle during which the distribution was made.
-    @return distributedAmount The amount of terminal tokens distributed.
+    @return distributedAmount The amount of terminal tokens distributed, as a fixed point number with the same amount of decimals as its relative terminal.
   */
   function recordDistributionFor(
     uint256 _projectId,
@@ -512,15 +512,15 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     Records newly used allowance funds of a project.
 
     @dev
-    The msg.sender must be an IJBPaymentTerminal. The amount specified in the params is in terms of the msg.senders tokens.
+    The msg.sender must be an IJBPaymentTerminal. 
 
     @param _projectId The ID of the project to use the allowance of.
     @param _amount The amount to use from the allowance, as a fixed point number. 
-    @param _currency The currency of the `_amount`.
+    @param _currency The currency of the `_amount`. Must match the currency of the overflow allowance.
     @param _balanceCurrency The currency that the balance is expected to be in terms of.
 
-    @return fundingCycle The funding cycle during which the withdrawal is being made.
-    @return usedAmount The amount of terminal tokens used, as a fixed point number with 18 decimals.
+    @return fundingCycle The funding cycle during which the overflow allowance is being used.
+    @return usedAmount The amount of terminal tokens used, as a fixed point number with the same amount of decimals as its relative terminal.
   */
   function recordUsedAllowanceOf(
     uint256 _projectId,
@@ -572,7 +572,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
       fundingCycle.configuration
     ] = _newUsedOverflowAllowanceOf;
 
-    // Update the project's token balance.
+    // Update the project's balance.
     balanceOf[IJBPaymentTerminal(msg.sender)][_projectId] =
       balanceOf[IJBPaymentTerminal(msg.sender)][_projectId] -
       usedAmount;
@@ -583,10 +583,10 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     Records newly added funds for the project.
 
     @dev
-    The msg.sender must be an IJBPaymentTerminal. The amount specified in the params is in terms of the msg.senders tokens.
+    The msg.sender must be an IJBPaymentTerminal. 
 
     @param _projectId The ID of the project to which the funds being added belong.
-    @param _amount The amount of temrinal tokens added, as a fixed point number with 18 decimals.
+    @param _amount The amount of temrinal tokens added, as a fixed point number with the same amount of decimals as its relative terminal.
   */
   function recordAddedBalanceFor(uint256 _projectId, uint256 _amount)
     external
@@ -608,7 +608,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
 
     @param _projectId The ID of the project being migrated.
 
-    @return balance The project's current terminal token balance, as a fixed point number with 18 decimals.
+    @return balance The project's migrated balance, as a fixed point number with the same amount of decimals as its relative terminal.
   */
   function recordMigration(uint256 _projectId)
     external
