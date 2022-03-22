@@ -210,17 +210,17 @@ contract TestAllowance is TestBaseWorkflow {
     if(TARGET <= BALANCE && TARGET != 0)
       assertEq(_projectOwner.balance, (TARGET * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE()));
 
-
-    if (BALANCE == 0)
-      evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_TOKENS()'));
-    
     evm.stopPrank(); // projectOwner
 
     evm.prank(_beneficiary);
     terminal.redeemTokensOf(
       _beneficiary,
       projectId,
-      1, // Currency
+      BALANCE > TARGET ?
+        TARGET > ALLOWANCE ?
+          BALANCE - TARGET - ALLOWANCE // Still some overflow left
+          : 0 // no overflow left
+      : 0, // no overflow left
       0, // Min wei out
       payable(_beneficiary),
       'gimme my money back',

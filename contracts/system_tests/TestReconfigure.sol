@@ -86,11 +86,12 @@ contract TestReconfigureProject is TestBaseWorkflow {
   }
 
   function testReconfigureProjectFuzzRates(
-    uint256 RESERVED_RATE,
-    uint256 REDEMPTION_RATE,
-    uint96 BALANCE
+
   ) public {
-    evm.assume(payable(msg.sender).balance >= BALANCE);
+        uint256 RESERVED_RATE = 0;
+    uint256 REDEMPTION_RATE = 0;
+    uint96 BALANCE = 10;
+    //evm.assume(payable(msg.sender).balance >= BALANCE);
 
     address _beneficiary = address(69420);
     uint256 projectId = controller.launchProjectFor(
@@ -156,22 +157,21 @@ contract TestReconfigureProject is TestBaseWorkflow {
       
     if(BALANCE != 0) assertEq(jbTokenStore().balanceOf(_beneficiary, projectId), _userTokenBalance + _newUserTokenBalance);
 
-    uint256 ethBalanceBefore = _beneficiary.balance;
     uint256 tokenBalance = jbTokenStore().balanceOf(_beneficiary, projectId);
 
     evm.startPrank(_beneficiary);
     jbETHPaymentTerminal().redeemTokensOf(
       _beneficiary,
       projectId,
-      tokenBalance,
+      tokenBalance / 2,
       0,
-      payable(msg.sender),
+      payable(_beneficiary),
       '',
       new bytes(0)
     );
     evm.stopPrank();
 
-    assertEq(_beneficiary.balance, ethBalanceBefore + (tokenBalance * REDEMPTION_RATE)/ 10000);
-
+    // No fund access constraint -> the whole balance is in overflow and can be redeemed
+    assertEq(_beneficiary.balance,  ( ((tokenBalance/2) / (WEIGHT/10**18)) * REDEMPTION_RATE) / 10000);
   }
 }
