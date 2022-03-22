@@ -13,7 +13,7 @@ contract TestTokenFlow is TestBaseWorkflow {
   JBFundingCycleMetadata private _metadata;
   JBGroupedSplits[] private _groupedSplits; // Default empty
   JBFundAccessConstraints[] private _fundAccessConstraints; // Default empty
-  IJBTerminal[] private _terminals; // Default empty
+  IJBPayoutRedemptionPaymentTerminal[] private _terminals; // Default empty
 
   uint256 private _projectId;
   address private _projectOwner;

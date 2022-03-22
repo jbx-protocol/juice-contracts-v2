@@ -7,7 +7,7 @@ import '../../../lib/ds-test/src/test.sol';
 import '../../JBController.sol';
 import '../../JBDirectory.sol';
 import '../../JBETHPaymentTerminal.sol';
-import '../../JBETHPaymentTerminalStore.sol';
+import '../../JBPaymentTerminalStore.sol';
 import '../../JBFundingCycleStore.sol';
 import '../../JBOperatorStore.sol';
 import '../../JBPrices.sol';
@@ -30,7 +30,7 @@ import '../../structs/JBProjectMetadata.sol';
 import '../../structs/JBRedeemParamsData.sol';
 import '../../structs/JBSplit.sol';
 
-import '../../interfaces/IJBTerminal.sol';
+import '../../interfaces/IJBPayoutRedemptionPaymentTerminal.sol';
 import '../../interfaces/IJBToken.sol';
 
 // Base contract for Juicebox system tests.
@@ -63,8 +63,8 @@ contract TestBaseWorkflow is DSTest {
   JBSplitsStore private _jbSplitsStore;
   // JBController
   JBController private _jbController;
-  // JBETHPaymentTerminalStore
-  JBETHPaymentTerminalStore private _jbETHPaymentTerminalStore;
+  // JBPaymentTerminalStore
+  JBPaymentTerminalStore private _jbPaymentTerminalStore;
   // JBETHPaymentTerminal
   JBETHPaymentTerminal private _jbETHPaymentTerminal;
 
@@ -108,8 +108,8 @@ contract TestBaseWorkflow is DSTest {
     return _jbController;
   }
 
-  function jbETHPaymentTerminalStore() internal view returns (JBETHPaymentTerminalStore) {
-    return _jbETHPaymentTerminalStore;
+  function jbPaymentTerminalStore() internal view returns (JBPaymentTerminalStore) {
+    return _jbPaymentTerminalStore;
   }
 
   function jbETHPaymentTerminal() internal view returns (JBETHPaymentTerminal) {
@@ -148,9 +148,9 @@ contract TestBaseWorkflow is DSTest {
       _jbTokenStore,
       _jbSplitsStore
     );
-    _jbDirectory.addToSetControllerAllowlist(address(_jbController));
-    // JBETHPaymentTerminalStore
-    _jbETHPaymentTerminalStore = new JBETHPaymentTerminalStore(
+    _jbDirectory.setIsAllowedToSetFirstController(address(_jbController), true);
+    // JBPaymentTerminalStore
+    _jbPaymentTerminalStore = new JBPaymentTerminalStore(
       _jbPrices,
       _jbProjects,
       _jbDirectory,
@@ -163,7 +163,7 @@ contract TestBaseWorkflow is DSTest {
       _jbProjects,
       _jbDirectory,
       _jbSplitsStore,
-      _jbETHPaymentTerminalStore,
+      _jbPaymentTerminalStore,
       _multisig
     );
   }

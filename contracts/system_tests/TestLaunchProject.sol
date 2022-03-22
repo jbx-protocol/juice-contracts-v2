@@ -10,7 +10,7 @@ contract TestLaunchProject is TestBaseWorkflow {
   JBFundingCycleMetadata _metadata;
   JBGroupedSplits[] _groupedSplits; // Default empty
   JBFundAccessConstraints[] _fundAccessConstraints; // Default empty
-  IJBTerminal[] _terminals; // Default empty
+  IJBPayoutRedemptionPaymentTerminal[] _terminals; // Default empty
 
   function setUp() public override {
     super.setUp();

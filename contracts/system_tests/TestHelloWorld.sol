@@ -5,7 +5,7 @@ import './helpers/TestBaseWorkflow.sol';
 
 contract TestHelloWorld is TestBaseWorkflow {
   function testHelloWorld() public {
-    JBETHPaymentTerminalStore terminalStore = jbETHPaymentTerminalStore();
+    JBPaymentTerminalStore terminalStore = jbPaymentTerminalStore();
 
     assertEq(terminalStore.balanceOf(1), 0);
 
