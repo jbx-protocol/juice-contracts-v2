@@ -91,7 +91,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
     uint96 BALANCE
   ) public {
     evm.assume(payable(msg.sender).balance >= BALANCE);
-    
+
     address _beneficiary = address(69420);
     uint256 projectId = controller.launchProjectFor(
       multisig(),
@@ -156,6 +156,22 @@ contract TestReconfigureProject is TestBaseWorkflow {
       
     if(BALANCE != 0) assertEq(jbTokenStore().balanceOf(_beneficiary, projectId), _userTokenBalance + _newUserTokenBalance);
 
+    uint256 ethBalanceBefore = _beneficiary.balance;
+    uint256 tokenBalance = jbTokenStore().balanceOf(_beneficiary, projectId);
+
+    evm.startPrank(_beneficiary);
+    jbETHPaymentTerminal().redeemTokensOf(
+      _beneficiary,
+      projectId,
+      tokenBalance,
+      0,
+      payable(msg.sender),
+      '',
+      new bytes(0)
+    );
+    evm.stopPrank();
+
+    assertEq(_beneficiary.balance, ethBalanceBefore + (tokenBalance * REDEMPTION_RATE)/ 10000);
 
   }
 }
