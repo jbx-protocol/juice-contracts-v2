@@ -45,7 +45,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
 
   /**
     @notice
-    Ensures up to 18 decimal points of persisted fidelity on mulDiv operations of fixed point numbers. 
+    Ensures a maximum number of decimal points of persisted fidelity on mulDiv operations of fixed point numbers. 
   */
   uint256 private constant _MAX_FIXED_POINT_FIDELITY = 18;
 
