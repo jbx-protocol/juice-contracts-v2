@@ -388,38 +388,40 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     // The current funding cycle must not be paused.
     if (fundingCycle.redeemPaused()) revert FUNDING_CYCLE_REDEEM_PAUSED();
 
+    // Get the amount of current overflow, temporarily store the value in the `reclaimAmount`. (Adding another var causes stack too deep)
+    // Use the local overflow if the funding cycle specifies that it should be used. Otherwise use the project's total overflow across all of its terminals.
+    reclaimAmount = fundingCycle.useTotalOverflowForRedemptions()
+      ? _currentTotalOverflowOf(_projectId, _balanceDecimals, _balanceCurrency)
+      : _overflowDuring(IJBPaymentTerminal(msg.sender), _projectId, fundingCycle, _balanceCurrency);
+
     // If the funding cycle has configured a data source, use it to derive a claim amount and memo.
     if (fundingCycle.useDataSourceForRedeem()) {
       // Create the params that'll be sent to the data source.
       JBRedeemParamsData memory _data = JBRedeemParamsData(
         IJBPaymentTerminal(msg.sender),
         _holder,
+        _projectId,
         _tokenCount,
         _balanceDecimals,
-        _projectId,
+        _balanceCurrency,
+        reclaimAmount, // current overflow
+        fundingCycle.useTotalOverflowForRedemptions(),
         fundingCycle.redemptionRate(),
         fundingCycle.ballotRedemptionRate(),
-        _balanceCurrency,
         _memo,
         _metadata
       );
       (reclaimAmount, memo, delegate) = fundingCycle.dataSource().redeemParams(_data);
     } else {
-      // Get the amount of current overflow.
-      // Use the local overflow if the funding cycle specifies that it should be used. Otherwise use the project's total overflow across all of its terminals.
-      uint256 _currentOverflow = fundingCycle.useTotalOverflowForRedemptions()
-        ? _currentTotalOverflowOf(_projectId, _balanceDecimals, _balanceCurrency)
-        : _overflowDuring(
-          IJBPaymentTerminal(msg.sender),
+      // If there is no overflow, nothing is reclaimable.
+      reclaimAmount = reclaimAmount == 0
+        ? 0
+        : _reclaimableOverflowDuring(
           _projectId,
           fundingCycle,
-          _balanceCurrency
+          _tokenCount,
+          reclaimAmount /* current overflow */
         );
-
-      // If there is no overflow, nothing is reclaimable.
-      reclaimAmount = _currentOverflow == 0
-        ? 0
-        : _reclaimableOverflowDuring(_projectId, fundingCycle, _tokenCount, _currentOverflow);
       memo = _memo;
     }
 
