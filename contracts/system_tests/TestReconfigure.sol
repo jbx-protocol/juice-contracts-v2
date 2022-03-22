@@ -3,6 +3,8 @@ pragma solidity 0.8.6;
 
 import './helpers/TestBaseWorkflow.sol';
 
+uint256 constant WEIGHT = 1000 * 10**18;
+
 contract TestReconfigureProject is TestBaseWorkflow {
   JBController controller;
   JBProjectMetadata _projectMetadata;
@@ -22,7 +24,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
     _data = JBFundingCycleData({
       duration: 14,
       weight: 1000 * 10**18,
-      discountRate: 450000000,
+      discountRate: 0,
       ballot: IJBFundingCycleBallot(address(0))
     });
 
@@ -44,6 +46,8 @@ contract TestReconfigureProject is TestBaseWorkflow {
       useDataSourceForRedeem: false,
       dataSource: IJBFundingCycleDataSource(address(0))
     });
+
+    _terminals = [jbETHPaymentTerminal()];
   }
 
   function testReconfigureProject() public {
@@ -77,12 +81,18 @@ contract TestReconfigureProject is TestBaseWorkflow {
 
     evm.warp(block.timestamp + 10);
 
-    JBFundingCycle memory newFundingCycle = jbFundingCycleStore().currentOf(projectId); //, latestConfig);
-
+    JBFundingCycle memory newFundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(newFundingCycle.number, 2);
   }
 
-  function testReconfigureProjectFuzzRates(uint256 RESERVED_RATE, uint256 REDEMPTION_RATE) public {
+  function testReconfigureProjectFuzzRates(
+    uint256 RESERVED_RATE,
+    uint256 REDEMPTION_RATE,
+    uint96 BALANCE
+  ) public {
+    evm.assume(payable(msg.sender).balance >= BALANCE);
+    
+    address _beneficiary = address(69420);
     uint256 projectId = controller.launchProjectFor(
       multisig(),
       _projectMetadata,
@@ -94,6 +104,11 @@ contract TestReconfigureProject is TestBaseWorkflow {
       _terminals,
       ''
     );
+
+    jbETHPaymentTerminal().pay{value: BALANCE}(BALANCE, projectId, _beneficiary, 0, false, 'Forge test', new bytes(0));
+
+    uint256 _userTokenBalance = PRBMath.mulDiv(BALANCE, (WEIGHT/10**18), 2); // initial FC rate is 50%
+    if(BALANCE != 0) assertEq(jbTokenStore().balanceOf(_beneficiary, projectId), _userTokenBalance);
 
     evm.prank(multisig());
     if(RESERVED_RATE > 10000)
@@ -127,6 +142,19 @@ contract TestReconfigureProject is TestBaseWorkflow {
       _fundAccessConstraints,
       ''
     );
+
+    evm.warp(block.timestamp + 15);
+
+    JBFundingCycle memory newFundingCycle = jbFundingCycleStore().currentOf(projectId);
+    assertEq(newFundingCycle.number, 2);
+
+    jbETHPaymentTerminal().pay{value: BALANCE}(BALANCE, projectId, _beneficiary, 0, false, 'Forge test', new bytes(0));
+
+    uint256 _newUserTokenBalance = RESERVED_RATE == 0 // New fc, rate is RESERVED_RATE
+      ? PRBMath.mulDiv(BALANCE, WEIGHT, 10**18)
+      : PRBMath.mulDiv(BALANCE, (WEIGHT/10**18), RESERVED_RATE);
+      
+    if(BALANCE != 0) assertEq(jbTokenStore().balanceOf(_beneficiary, projectId), _userTokenBalance + _newUserTokenBalance);
 
 
   }
