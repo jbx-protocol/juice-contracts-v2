@@ -348,9 +348,14 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     // If there's no weight, token count must be 0 so there's nothing left to do.
     if (_weight == 0) return (fundingCycle, 0, delegate, memo);
 
+    // Get a reference to the number of decimals in the amount. (prevents stack too deep).
+    uint256 _decimals = _amount.decimals;
+
     // If the terminal should base its weight on a different currency from the terminal's currency, determine the factor.
-    // The weight is always a fixed point mumber with 18 decimals. The ratio should be the same.
-    uint256 _weightRatio = _getWeightRatio(_amount, _baseWeightCurrency);
+    // The weight is always a fixed point mumber with 18 decimals. To ensure this, the ratio should use the same number of decimals as the `_amount`.
+    uint256 _weightRatio = _amount.currency == _baseWeightCurrency
+      ? 10**_decimals
+      : prices.priceFor(_amount.currency, _baseWeightCurrency, _decimals);
 
     // Find the number of tokens to mint, as a fixed point number with as many decimals as `weight` has.
     tokenCount = PRBMath.mulDiv(_amount.value, _weight, _weightRatio);
@@ -656,17 +661,6 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
   //*********************************************************************//
   // --------------------- private helper functions -------------------- //
   //*********************************************************************//
-
-  function _getWeightRatio(JBTokenAmount calldata _amount, uint256 _baseWeightCurrency)
-    private
-    view
-    returns (uint256)
-  {
-    return
-      _amount.currency == _baseWeightCurrency
-        ? 10**_amount.decimals // Use `_amount.decimals` to make sure the resulting `tokenCount` keeps the same decimal fidelity as `weight`.
-        : prices.priceFor(_amount.currency, _baseWeightCurrency, _amount.decimals);
-  }
 
   /**
     @notice
