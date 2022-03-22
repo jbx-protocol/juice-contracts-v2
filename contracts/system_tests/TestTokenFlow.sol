@@ -13,7 +13,7 @@ contract TestTokenFlow is TestBaseWorkflow {
   JBFundingCycleMetadata private _metadata;
   JBGroupedSplits[] private _groupedSplits; // Default empty
   JBFundAccessConstraints[] private _fundAccessConstraints; // Default empty
-  IJBPayoutRedemptionPaymentTerminal[] private _terminals; // Default empty
+  IJBPaymentTerminal[] private _terminals; // Default empty
 
   uint256 private _projectId;
   address private _projectOwner;
@@ -98,10 +98,6 @@ contract TestTokenFlow is TestBaseWorkflow {
     uint256 _beneficiaryTokenAmount = mintAmount / 2; // 50% reserved rate results in half the mintAmount
 
     if (mintAmount == 0) evm.expectRevert(abi.encodeWithSignature('ZERO_TOKENS_TO_MINT()'));
-    else if (_beneficiaryTokenAmount == 0)
-      evm.expectRevert(abi.encodeWithSignature('TOKEN_AMOUNT_ZERO()'));
-    else if (_beneficiaryTokenAmount > type(uint224).max && mintPreferClaimed)
-      evm.expectRevert('ERC20Votes: total supply risks overflowing votes');
     else _expectedTokenBalance = _beneficiaryTokenAmount;
 
     // mint tokens to beneficiary addr
@@ -111,8 +107,8 @@ contract TestTokenFlow is TestBaseWorkflow {
       _beneficiary,
       'Mint memo',
       mintPreferClaimed,
-      _reservedRate
-    );
+      true /*use reserved rate*/
+      );
 
     // total token balance should be half of token count due to 50% reserved rate
     assertEq(_tokenStore.balanceOf(_beneficiary, _projectId), _expectedTokenBalance);
@@ -158,7 +154,7 @@ contract TestTokenFlow is TestBaseWorkflow {
       _beneficiary,
       'Mint memo',
       true,
-      0
+      false /*use reserved rate*/
     );
 
     // mint unclaimed tokens to beneficiary addr
@@ -168,11 +164,10 @@ contract TestTokenFlow is TestBaseWorkflow {
       _beneficiary,
       'Mint memo',
       false,
-      0
+      false
     );
 
     // try to claim the unclaimed tokens
-    evm.expectRevert('ERC20Votes: total supply risks overflowing votes');
     _tokenStore.claimFor(_beneficiary, _projectId, /* _amount */ 1);
   }
 
@@ -196,7 +191,7 @@ contract TestTokenFlow is TestBaseWorkflow {
       _beneficiary,
       'Mint memo',
       false,
-      0
+      false
     );
 
     // create a new IJBToken and change it's owner to the tokenStore
