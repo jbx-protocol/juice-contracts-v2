@@ -269,7 +269,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     Mint's the project's tokens according to values provided by a configured data source. If no data source is configured, mints tokens proportional to the amount of the contribution.
 
     @dev
-    The msg.sender must be an IJBPaymentTerminal. The amount specified in the params is in terms of the msg.senders tokens.
+    The msg.sender must be an IJBPaymentTerminal. The amount specified in the params is in terms of the msg.sender's tokens.
 
     @param _payer The original address that sent the payment to the terminal.
     @param _amount The amount of tokens being paid. Includes the token being paid, the value, the number of decimals included, and the currency of the amount.
@@ -363,13 +363,16 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     Records newly redeemed tokens of a project.
 
     @dev
+    Redeems the project's tokens according to values provided by a configured data source. If no data source is configured, redeems tokens along a redemption bonding curve that is a function of the number of tokens being burned.
+
+    @dev
     The msg.sender must be an IJBPaymentTerminal. The amount specified in the params is in terms of the msg.senders tokens.
 
     @param _holder The account that is having its tokens redeemed.
     @param _projectId The ID of the project to which the tokens being redeemed belong.
     @param _tokenCount The number of project tokens to redeem, as a fixed point number with 18 decimals.
     @param _balanceDecimals The amount of decimals expected in the returned `reclaimAmount`.
-    @param _balanceCurrency The currency that the stored balance is expected to be in terms of.
+    @param _balanceCurrency The currency that the returned `reclaimAmount` is expected to be in terms of.
     @param _memo A memo to pass along to the emitted event.
     @param _metadata Bytes to send along to the data source, if one is provided.
 
