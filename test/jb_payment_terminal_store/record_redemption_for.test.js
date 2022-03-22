@@ -99,7 +99,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     const packedMetadata = packFundingCycleMetadata({
       pauseRedeem: 0,
       reservedRate: reservedRate,
-      useLocalBalanceForRedemptions: 1,
     });
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
@@ -179,7 +178,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     const packedMetadata = packFundingCycleMetadata({
       pauseRedeem: 0,
       reservedRate: reservedRate,
-      useLocalBalanceForRedemptions: 1,
     });
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
@@ -255,7 +253,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     const packedMetadata = packFundingCycleMetadata({
       pauseRedeem: 0,
       reservedRate: reservedRate,
-      useLocalBalanceForRedemptions: 1,
     });
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
@@ -331,7 +328,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       reservedRate: reservedRate,
       redemptionRate: redemptionRate,
       ballotRedemptionRate: ballotRedemptionRate,
-      useLocalBalanceForRedemptions: 1,
       useDataSourceForRedeem: 1,
       dataSource: mockJbFundingCycleDataSource.address,
     });
@@ -446,7 +442,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       reservedRate: reservedRate,
       redemptionRate: redemptionRate,
       ballotRedemptionRate: ballotRedemptionRate,
-      useLocalBalanceForRedemptions: 1,
       useDataSourceForRedeem: 1,
       dataSource: mockJbFundingCycleDataSource.address,
     });
@@ -502,7 +497,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       reservedRate: reservedRate,
       redemptionRate: redemptionRate,
       ballotRedemptionRate: ballotRedemptionRate,
-      useLocalBalanceForRedemptions: 1,
       useDataSourceForRedeem: 1,
       dataSource: mockJbFundingCycleDataSource.address,
     });

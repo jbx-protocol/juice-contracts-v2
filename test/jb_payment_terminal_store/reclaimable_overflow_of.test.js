@@ -13,11 +13,10 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
+describe.only('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
   const PROJECT_ID = 2;
   const WEIGHT = ethers.FixedNumber.fromString('900000000.23411');
   const CURRENCY = 1;
-  const BASE_CURRENCY = 0;
 
   async function setup() {
     const [deployer] = await ethers.getSigners();
@@ -94,7 +93,6 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
     const reservedRate = 0;
     const fundingCycleMetadata = packFundingCycleMetadata({
       reservedRate: reservedRate,
-      useLocalBalanceForRedemptions: 1,
       ballotRedemptionRate: 6500, // 65% redemption rate
     });
 
@@ -135,10 +133,11 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await JBPaymentTerminalStore.reclaimableOverflowOf(
+      await JBPaymentTerminalStore.currentReclaimableOverflowOf(
         mockJbTerminalSigner.address,
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
+        false,
       ),
     ).to.equal(ethers.FixedNumber.fromString('41.25'));
   });
@@ -160,7 +159,6 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
     const reservedRate = 0;
     const fundingCycleMetadata = packFundingCycleMetadata({
       reservedRate: reservedRate,
-      useLocalBalanceForRedemptions: 1,
       ballotRedemptionRate: 6500, // 65% redemption rate
     });
 
@@ -188,6 +186,7 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
         mockJbTerminal.address,
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
+        false
       ),
     ).to.equal(0);
   });
@@ -211,7 +210,6 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
     const reservedRate = 0;
     const fundingCycleMetadata = packFundingCycleMetadata({
       reservedRate: reservedRate,
-      useLocalBalanceForRedemptions: 1,
       ballotRedemptionRate: 0, // 0% redemption rate
     });
 
@@ -256,6 +254,7 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
         mockJbTerminalSigner.address,
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
+        false
       ),
     ).to.equal(0);
   });
@@ -287,7 +286,6 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
     const reservedRate = 10;
     const fundingCycleMetadata = packFundingCycleMetadata({
       reservedRate: reservedRate,
-      useLocalBalanceForRedemptions: 1,
       redemptionRate: 10000, // 100% redemption rate
     });
 
@@ -331,6 +329,7 @@ describe('JBPaymentTerminalStore::reclaimableOverflowOf(...)', function () {
         mockJbTerminalSigner.address,
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
+        false,
       ),
     ).to.equal(ethers.FixedNumber.from(50));
   });

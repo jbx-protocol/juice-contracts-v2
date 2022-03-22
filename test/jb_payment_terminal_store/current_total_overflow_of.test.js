@@ -91,7 +91,7 @@ describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
       weight: WEIGHT,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ useLocalBalanceForRedemptions: false }),
+      metadata: packFundingCycleMetadata({ useTotalOverflowForRedemptions: true }),
     });
 
     await mockJbDirectory.mock.terminalsOf
@@ -130,7 +130,7 @@ describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
       weight: WEIGHT,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ useLocalBalanceForRedemptions: false }),
+      metadata: packFundingCycleMetadata({ useTotalOverflowForRedemptions: true }),
     });
 
     await mockJbDirectory.mock.terminalsOf
@@ -168,7 +168,7 @@ describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
       weight: WEIGHT,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ useLocalBalanceForRedemptions: false }),
+      metadata: packFundingCycleMetadata({ useTotalOverflowForRedemptions: true }),
     });
 
     await mockJbDirectory.mock.terminalsOf

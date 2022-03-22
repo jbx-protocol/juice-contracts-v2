@@ -153,7 +153,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
       /*allowTerminalMigration*/ ethers.BigNumber.from(0),
       /*allowControllerMigration*/ ethers.BigNumber.from(0),
       /*holdFees*/ ethers.BigNumber.from(0),
-      /*useLocalBalanceForRedemptions*/ ethers.BigNumber.from(0),
+      /*useTotalOverflowForRedemptions*/ ethers.BigNumber.from(0),
       /*useDataSourceForPay*/ ethers.BigNumber.from(0),
       /*useDataSourceForRedeem*/ ethers.BigNumber.from(0),
       /*dataSource*/ '0x0000000000000000000000000000000000000000',
