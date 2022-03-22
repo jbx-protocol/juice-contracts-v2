@@ -189,9 +189,9 @@ contract TestAllowance is TestBaseWorkflow {
       'MEMO'
     );
 
-    if (BALANCE !=0 // there is something to transfer
-    && BALANCE > TARGET // there is an overflow
-    && ALLOWANCE < BALANCE // allowance is not too high
+    if (BALANCE > 0 // there is something to transfer
+    && BALANCE >= TARGET // avoid underflow
+    && BALANCE - TARGET >= ALLOWANCE // there is enough overflow
     ) assertEq((_beneficiary).balance, PRBMath.mulDiv(ALLOWANCE, jbLibraries().MAX_FEE(), jbLibraries().MAX_FEE() + terminal.fee()));
 
     if (TARGET > BALANCE)
