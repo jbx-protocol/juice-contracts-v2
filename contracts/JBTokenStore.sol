@@ -325,8 +325,6 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     // The amount of unclaimed tokens to redeem.
     uint256 _unclaimedTokensToBurn = _amount - _claimedTokensToBurn;
 
-    // Burn the claimed tokens.
-    if (_claimedTokensToBurn > 0) _token.burn(_projectId, _holder, _claimedTokensToBurn);
 
     // Subtract the tokens from the unclaimed balance and total supply.
     if (_unclaimedTokensToBurn > 0) {
@@ -338,6 +336,9 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
         unclaimedTotalSupplyOf[_projectId] -
         _unclaimedTokensToBurn;
     }
+
+    // Burn the claimed tokens.
+    if (_claimedTokensToBurn > 0) _token.burn(_projectId, _holder, _claimedTokensToBurn);
 
     emit Burn(
       _holder,
@@ -355,7 +356,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     Claims internally accounted for tokens into a holder's wallet.
 
     @dev
-    Anyone can claim tokens on behalf of a token owner.
+    Only a token holder, the owner of the token's project, or an operator specified by the token holder can claim its unclaimed tokens.
 
     @param _holder The owner of the tokens being claimed.
     @param _projectId The ID of the project whose tokens are being claimed.
@@ -365,7 +366,16 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     address _holder,
     uint256 _projectId,
     uint256 _amount
-  ) external override {
+  )
+    external
+    override
+    requirePermissionAllowingOverride(
+      _holder,
+      _projectId,
+      JBOperations.CLAIM,
+      msg.sender == projects.ownerOf(_projectId)
+    )
+  {
     // Get a reference to the project's current token.
     IJBToken _token = tokenOf[_projectId];
 

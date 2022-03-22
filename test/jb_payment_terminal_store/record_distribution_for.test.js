@@ -110,17 +110,9 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
       AMOUNT
     );
 
-    await mockJbController.mock.distributionLimitCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_USD);
-
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(AMOUNT);
-
-    // await mockJbPrices.mock.priceFor
-    //   .withArgs(CURRENCY_USD, CURRENCY_ETH, _FIXED_POINT_MAX_FIDELITY)
-    //   .returns(usdToEthPrice);
+      .returns(AMOUNT, CURRENCY_USD);
 
     // Pre-checks
     expect(
@@ -190,13 +182,9 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
       amountInWei,
     );
 
-    await mockJbController.mock.distributionLimitCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_USD);
-
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(AMOUNT);
+      .returns(AMOUNT, CURRENCY_USD);
 
     await mockJbPrices.mock.priceFor
       .withArgs(CURRENCY_USD, CURRENCY_ETH, _FIXED_POINT_MAX_FIDELITY)
@@ -295,13 +283,9 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
       metadata: packFundingCycleMetadata({ pauseDistributions: 0 }),
     });
 
-    await mockJbController.mock.distributionLimitCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_USD);
-
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(AMOUNT);
+      .returns(AMOUNT, CURRENCY_USD);
 
     // Record the distributions
     await expect(
@@ -345,14 +329,10 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
       AMOUNT,
     );
 
-    await mockJbController.mock.distributionLimitCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_ETH);
-
     const smallDistributionLimit = AMOUNT.subUnsafe(ethers.FixedNumber.from(1));
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(smallDistributionLimit); // Set intentionally small distribution limit
+      .returns(smallDistributionLimit, CURRENCY_ETH); // Set intentionally small distribution limit
 
     await mockJbPrices.mock.priceFor
       .withArgs(CURRENCY_ETH, CURRENCY_ETH, _FIXED_POINT_MAX_FIDELITY)
@@ -401,13 +381,9 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
       smallBalance,
     );
 
-    await mockJbController.mock.distributionLimitCurrencyOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(CURRENCY_ETH);
-
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
-      .returns(AMOUNT);
+      .returns(AMOUNT, CURRENCY_ETH);
 
     await mockJbPrices.mock.priceFor
       .withArgs(CURRENCY_ETH, CURRENCY_ETH, _FIXED_POINT_MAX_FIDELITY)
