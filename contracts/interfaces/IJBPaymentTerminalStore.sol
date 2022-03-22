@@ -11,11 +11,7 @@ import './../structs/JBTokenAmount.sol';
 import './../structs/JBFundingCycle.sol';
 
 interface IJBPaymentTerminalStore {
-  function projects() external view returns (IJBProjects);
-
   function fundingCycleStore() external view returns (IJBFundingCycleStore);
-
-  function tokenStore() external view returns (IJBTokenStore);
 
   function directory() external view returns (IJBDirectory);
 

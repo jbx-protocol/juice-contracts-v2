@@ -55,12 +55,6 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
 
   /**
     @notice
-    The Projects contract which mints ERC-721's that represent project ownership and transfers.
-  */
-  IJBProjects public immutable override projects;
-
-  /**
-    @notice
     The directory of terminals and controllers for projects.
   */
   IJBDirectory public immutable override directory;
@@ -70,12 +64,6 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     The contract storing all funding cycle configurations.
   */
   IJBFundingCycleStore public immutable override fundingCycleStore;
-
-  /**
-    @notice
-    The contract that manages token minting and burning.
-  */
-  IJBTokenStore public immutable override tokenStore;
 
   /**
     @notice
@@ -238,23 +226,17 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
 
   /**
     @param _prices A contract that exposes price feeds.
-    @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
     @param _directory A contract storing directories of terminals and controllers for each project.
     @param _fundingCycleStore A contract storing all funding cycle configurations.
-    @param _tokenStore A contract that manages token minting and burning.
   */
   constructor(
     IJBPrices _prices,
-    IJBProjects _projects,
     IJBDirectory _directory,
-    IJBFundingCycleStore _fundingCycleStore,
-    IJBTokenStore _tokenStore
+    IJBFundingCycleStore _fundingCycleStore
   ) {
     prices = _prices;
-    projects = _projects;
     directory = _directory;
     fundingCycleStore = _fundingCycleStore;
-    tokenStore = _tokenStore;
   }
 
   //*********************************************************************//
@@ -337,7 +319,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     // If there's no amount being recorded, there's nothing left to do.
     if (_amount.value == 0) return (fundingCycle, 0, delegate, memo);
 
-    // Add the amount to the token balance of the project if needed.
+    // Add the amount to the token balance of the project.
     balanceOf[IJBPaymentTerminal(msg.sender)][_projectId] =
       balanceOf[IJBPaymentTerminal(msg.sender)][_projectId] +
       _amount.value;
@@ -400,9 +382,6 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
       string memory memo
     )
   {
-    // The holder must have the specified number of the project's tokens.
-    if (tokenStore.balanceOf(_holder, _projectId) < _tokenCount) revert INSUFFICIENT_TOKENS();
-
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
@@ -672,17 +651,11 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     uint256 _tokenCount,
     uint256 _overflow
   ) private view returns (uint256) {
-    // Get the total number of tokens in circulation.
-    uint256 _totalSupply = tokenStore.totalSupplyOf(_projectId);
-
-    // Get the number of reserved tokens the project has.
-    uint256 _reservedTokenAmount = directory.controllerOf(_projectId).reservedTokenBalanceOf(
+    // Get the number of outstanding tokens the project has.
+    uint256 _totalSupply = directory.controllerOf(_projectId).totalOutstandingTokensOf(
       _projectId,
       _fundingCycle.reservedRate()
     );
-
-    // If there are reserved tokens, add them to the total supply.
-    if (_reservedTokenAmount > 0) _totalSupply = _totalSupply + _reservedTokenAmount;
 
     // If the amount being redeemed is the total supply, return the rest of the overflow.
     if (_tokenCount == _totalSupply) return _overflow;

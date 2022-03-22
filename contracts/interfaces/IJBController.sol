@@ -101,6 +101,11 @@ interface IJBController {
     IJBPaymentTerminal _terminal
   ) external view returns (uint256 overflowAllowance, uint256 overflowAllowanceCurrency);
 
+  function totalOutstandingTokensOf(uint256 _projectId, uint256 _reservedRate)
+    external
+    view
+    returns (uint256);
+
   function launchProjectFor(
     address _owner,
     JBProjectMetadata calldata _projectMetadata,

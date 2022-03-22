@@ -544,6 +544,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Keep a reference to the funding cycles during which the redemption is being made.
     JBFundingCycle memory _fundingCycle;
 
+    // // The holder must have the specified number of the project's tokens.
+    // if (tokenStore.balanceOf(_holder, _projectId) < _tokenCount) revert INSUFFICIENT_TOKENS();
+
     // Scoped section prevents stack too deep. `_delegate` only used within scope.
     {
       IJBRedemptionDelegate _delegate;
