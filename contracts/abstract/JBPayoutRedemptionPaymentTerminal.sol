@@ -555,7 +555,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         _tokenCount,
         decimals, // The fixed point balance has this terminal's token's number of decimals.
         currency, // The balance is in terms of this terminal's currency.
-        _beneficiary,
         _memo,
         _metadata
       );
@@ -1001,7 +1000,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         _payer,
         _bundledAmount,
         _projectId,
-        _beneficiary,
         baseWeightCurrency,
         _memo,
         _metadata

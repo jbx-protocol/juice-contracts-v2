@@ -274,7 +274,6 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     @param _payer The original address that sent the payment to the terminal.
     @param _amount The amount of tokens being paid. Includes the token being paid, the value, the number of decimals included, and the currency of the amount.
     @param _projectId The ID of the project being paid.
-    @param _beneficiary The address that should receive benefits from the payment.
     @param _baseWeightCurrency The currency to base token issuance on.
     @param _memo A memo to pass along to the emitted event, and passed along to the funding cycle's data source.
     @param _metadata Bytes to send along to the data source, if one is provided.
@@ -288,10 +287,9 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     address _payer,
     JBTokenAmount calldata _amount,
     uint256 _projectId,
-    address _beneficiary,
     uint256 _baseWeightCurrency,
     string calldata _memo,
-    bytes memory _metadata
+    bytes calldata _metadata
   )
     external
     override
@@ -325,7 +323,6 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
         _projectId,
         fundingCycle.weight,
         fundingCycle.reservedRate(),
-        _beneficiary,
         _memo,
         _metadata
       );
@@ -359,6 +356,100 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
 
     // Find the number of tokens to mint, as a fixed point number with as many decimals as `weight` has.
     tokenCount = PRBMath.mulDiv(_amount.value, _weight, _weightRatio);
+  }
+
+  /**
+    @notice
+    Records newly redeemed tokens of a project.
+
+    @dev
+    The msg.sender must be an IJBPaymentTerminal. The amount specified in the params is in terms of the msg.senders tokens.
+
+    @param _holder The account that is having its tokens redeemed.
+    @param _projectId The ID of the project to which the tokens being redeemed belong.
+    @param _tokenCount The number of project tokens to redeem, as a fixed point number with 18 decimals.
+    @param _balanceDecimals The amount of decimals expected in the returned `reclaimAmount`.
+    @param _balanceCurrency The currency that the stored balance is expected to be in terms of.
+    @param _memo A memo to pass along to the emitted event.
+    @param _metadata Bytes to send along to the data source, if one is provided.
+
+    @return fundingCycle The funding cycle during which the redemption was made.
+    @return reclaimAmount The amount of terminal tokens reclaimed, as a fixed point number with 18 decimals.
+    @return delegate A delegate contract to use for subsequent calls.
+    @return memo A memo that should be passed along to the emitted event.
+  */
+  function recordRedemptionFor(
+    address _holder,
+    uint256 _projectId,
+    uint256 _tokenCount,
+    uint256 _balanceDecimals,
+    uint256 _balanceCurrency,
+    string calldata _memo,
+    bytes calldata _metadata
+  )
+    external
+    override
+    nonReentrant
+    returns (
+      JBFundingCycle memory fundingCycle,
+      uint256 reclaimAmount,
+      IJBRedemptionDelegate delegate,
+      string memory memo
+    )
+  {
+    // The holder must have the specified number of the project's tokens.
+    if (tokenStore.balanceOf(_holder, _projectId) < _tokenCount) revert INSUFFICIENT_TOKENS();
+
+    // Get a reference to the project's current funding cycle.
+    fundingCycle = fundingCycleStore.currentOf(_projectId);
+
+    // The current funding cycle must not be paused.
+    if (fundingCycle.redeemPaused()) revert FUNDING_CYCLE_REDEEM_PAUSED();
+
+    // If the funding cycle has configured a data source, use it to derive a claim amount and memo.
+    if (fundingCycle.useDataSourceForRedeem()) {
+      // Create the params that'll be sent to the data source.
+      JBRedeemParamsData memory _data = JBRedeemParamsData(
+        IJBPaymentTerminal(msg.sender),
+        _holder,
+        _tokenCount,
+        _balanceDecimals,
+        _projectId,
+        fundingCycle.redemptionRate(),
+        fundingCycle.ballotRedemptionRate(),
+        _balanceCurrency,
+        _memo,
+        _metadata
+      );
+      (reclaimAmount, memo, delegate) = fundingCycle.dataSource().redeemParams(_data);
+    } else {
+      // Get the amount of current overflow.
+      // Use the local overflow if the funding cycle specifies that it should be used. Otherwise use the project's total overflow across all of its terminals.
+      uint256 _currentOverflow = fundingCycle.useTotalOverflowForRedemptions()
+        ? _currentTotalOverflowOf(_projectId, _balanceDecimals, _balanceCurrency)
+        : _overflowDuring(
+          IJBPaymentTerminal(msg.sender),
+          _projectId,
+          fundingCycle,
+          _balanceCurrency
+        );
+
+      // If there is no overflow, nothing is reclaimable.
+      reclaimAmount = _currentOverflow == 0
+        ? 0
+        : _reclaimableOverflowDuring(_projectId, fundingCycle, _tokenCount, _currentOverflow);
+      memo = _memo;
+    }
+
+    // The amount being reclaimed must be within the project's balance.
+    if (reclaimAmount > balanceOf[IJBPaymentTerminal(msg.sender)][_projectId])
+      revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
+
+    // Remove the reclaimed funds from the project's balance.
+    if (reclaimAmount > 0)
+      balanceOf[IJBPaymentTerminal(msg.sender)][_projectId] =
+        balanceOf[IJBPaymentTerminal(msg.sender)][_projectId] -
+        reclaimAmount;
   }
 
   /**
@@ -501,103 +592,6 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     balanceOf[IJBPaymentTerminal(msg.sender)][_projectId] =
       balanceOf[IJBPaymentTerminal(msg.sender)][_projectId] -
       usedAmount;
-  }
-
-  /**
-    @notice
-    Records newly redeemed tokens of a project.
-
-    @dev
-    The msg.sender must be an IJBPaymentTerminal. The amount specified in the params is in terms of the msg.senders tokens.
-
-    @param _holder The account that is having its tokens redeemed.
-    @param _projectId The ID of the project to which the tokens being redeemed belong.
-    @param _tokenCount The number of project tokens to redeem, as a fixed point number with 18 decimals.
-    @param _balanceDecimals The amount of decimals expected in the returned `reclaimAmount`.
-    @param _balanceCurrency The currency that the stored balance is expected to be in terms of.
-    @param _beneficiary The address that will benefit from the claimed amount.
-    @param _memo A memo to pass along to the emitted event.
-    @param _metadata Bytes to send along to the data source, if one is provided.
-
-    @return fundingCycle The funding cycle during which the redemption was made.
-    @return reclaimAmount The amount of terminal tokens reclaimed, as a fixed point number with 18 decimals.
-    @return delegate A delegate contract to use for subsequent calls.
-    @return memo A memo that should be passed along to the emitted event.
-  */
-  function recordRedemptionFor(
-    address _holder,
-    uint256 _projectId,
-    uint256 _tokenCount,
-    uint256 _balanceDecimals,
-    uint256 _balanceCurrency,
-    address payable _beneficiary,
-    string calldata _memo,
-    bytes memory _metadata
-  )
-    external
-    override
-    nonReentrant
-    returns (
-      JBFundingCycle memory fundingCycle,
-      uint256 reclaimAmount,
-      IJBRedemptionDelegate delegate,
-      string memory memo
-    )
-  {
-    // The holder must have the specified number of the project's tokens.
-    if (tokenStore.balanceOf(_holder, _projectId) < _tokenCount) revert INSUFFICIENT_TOKENS();
-
-    // Get a reference to the project's current funding cycle.
-    fundingCycle = fundingCycleStore.currentOf(_projectId);
-
-    // The current funding cycle must not be paused.
-    if (fundingCycle.redeemPaused()) revert FUNDING_CYCLE_REDEEM_PAUSED();
-
-    // If the funding cycle has configured a data source, use it to derive a claim amount and memo.
-    if (fundingCycle.useDataSourceForRedeem()) {
-      // Create the params that'll be sent to the data source.
-      JBRedeemParamsData memory _data = JBRedeemParamsData(
-        IJBPaymentTerminal(msg.sender),
-        _holder,
-        _tokenCount,
-        _balanceDecimals,
-        _projectId,
-        fundingCycle.redemptionRate(),
-        fundingCycle.ballotRedemptionRate(),
-        _balanceCurrency,
-        _beneficiary,
-        _memo,
-        _metadata
-      );
-      (reclaimAmount, memo, delegate) = fundingCycle.dataSource().redeemParams(_data);
-    } else {
-      // Get the amount of current overflow.
-      // Use the local overflow if the funding cycle specifies that it should be used. Otherwise use the project's total overflow across all of its terminals.
-      uint256 _currentOverflow = fundingCycle.useTotalOverflowForRedemptions()
-        ? _currentTotalOverflowOf(_projectId, _balanceDecimals, _balanceCurrency)
-        : _overflowDuring(
-          IJBPaymentTerminal(msg.sender),
-          _projectId,
-          fundingCycle,
-          _balanceCurrency
-        );
-
-      // If there is no overflow, nothing is reclaimable.
-      reclaimAmount = _currentOverflow == 0
-        ? 0
-        : _reclaimableOverflowDuring(_projectId, fundingCycle, _tokenCount, _currentOverflow);
-      memo = _memo;
-    }
-
-    // The amount being reclaimed must be within the project's balance.
-    if (reclaimAmount > balanceOf[IJBPaymentTerminal(msg.sender)][_projectId])
-      revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
-
-    // Remove the reclaimed funds from the project's balance.
-    if (reclaimAmount > 0)
-      balanceOf[IJBPaymentTerminal(msg.sender)][_projectId] =
-        balanceOf[IJBPaymentTerminal(msg.sender)][_projectId] -
-        reclaimAmount;
   }
 
   /**

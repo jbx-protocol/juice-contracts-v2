@@ -20,8 +20,6 @@ struct JBRedeemParamsData {
   uint256 ballotRedemptionRate;
   // The currency that the stored balance is expected to be in terms of.
   uint256 currency;
-  // The proposed beneficiary of the ETH being claimed by making the redemption.
-  address beneficiary;
   // The proposed memo that is being emitted alongside the redemption.
   string memo;
   // Arbitrary metadata provided by the redeemer.
