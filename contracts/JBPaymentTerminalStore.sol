@@ -272,11 +272,11 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     The msg.sender must be an IJBPaymentTerminal. The amount specified in the params is in terms of the msg.senders tokens.
 
     @param _payer The original address that sent the payment to the terminal.
-    @param _amount The amount of tokens being paid, as a fixed point number. Includes the token being paid, the value, the number of decimals included, and the currency of the amount.
+    @param _amount The amount of tokens being paid. Includes the token being paid, the value, the number of decimals included, and the currency of the amount.
     @param _projectId The ID of the project being paid.
     @param _beneficiary The address that should receive benefits from the payment.
     @param _baseWeightCurrency The currency to base token issuance on.
-    @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.
+    @param _memo A memo to pass along to the emitted event, and passed along to the funding cycle's data source.
     @param _metadata Bytes to send along to the data source, if one is provided.
 
     @return fundingCycle The project's funding cycle during which payment was made.
