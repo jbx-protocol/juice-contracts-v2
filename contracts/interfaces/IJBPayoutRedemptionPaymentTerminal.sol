@@ -32,7 +32,7 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
     address beneficiary,
     uint256 amount,
     uint256 distributedAmount,
-    uint256 feeAmount,
+    uint256 fee,
     uint256 beneficiaryDistributionAmount,
     string memo,
     address caller
@@ -45,7 +45,7 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
     address beneficiary,
     uint256 amount,
     uint256 distributedAmount,
-    uint256 feeAmount,
+    uint256 fee,
     string memo,
     address caller
   );
