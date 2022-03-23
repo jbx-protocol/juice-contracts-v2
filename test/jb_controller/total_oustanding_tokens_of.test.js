@@ -88,7 +88,7 @@ describe('JBController::totalOutstandingTokensOf(...)', function () {
   }
 
   it(`Should return the total amount of outstanding token, when the reserve rate is maximum`, async function () {
-    const { jbController, mockJbFundingCycleStore } =
+    const { jbController, timestamp, projectOwner, mockJbFundingCycleStore, mockJbTokenStore } =
       await setup();
 
       await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
@@ -102,6 +102,8 @@ describe('JBController::totalOutstandingTokensOf(...)', function () {
         ballot: ethers.constants.AddressZero,
         metadata: packFundingCycleMetadata({ reservedRate: RESERVED_RATE }),
       }),
+
+      await mockJbTokenStore.mock.mintFor.withArgs(ethers.constants.AddressZero, PROJECT_ID, RESERVED_AMOUNT, true).returns();
 
       await jbController
       .connect(projectOwner)
@@ -154,7 +156,7 @@ describe('JBController::totalOutstandingTokensOf(...)', function () {
   })
 
   it(`Should return the total amount of outstanding token equals to the total supply, when the reserve rate is 0`, async function () {
-    const { jbController, projectOwner, timestamp, mockJbFundingCycleStore } =
+    const { jbController, projectOwner, timestamp, mockJbFundingCycleStore, mockJbTokenStore } =
       await setup();
 
       await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
