@@ -207,7 +207,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     uint256 _currentOverflow = _useTotalOverflow
       ? _currentTotalOverflowOf(_projectId, _terminal.decimals(), _terminal.currency())
       : _overflowDuring(
-        IJBPaymentTerminal(msg.sender),
+        _terminal,
         _projectId,
         _fundingCycle,
         _terminal.currency()
