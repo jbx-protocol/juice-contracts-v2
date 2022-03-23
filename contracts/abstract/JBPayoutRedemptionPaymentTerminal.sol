@@ -1156,7 +1156,14 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       return JBConstants.MAX_FEE_DISCOUNT;
 
     // Get the fee discount.
-    feeDiscount = feeGauge == IJBFeeGauge(address(0)) ? 0 : feeGauge.currentDiscountFor(_projectId);
+    if( feeGauge == IJBFeeGauge(address(0)) )
+      feeDiscount = 0;
+    else
+      try feeGauge.currentDiscountFor(_projectId) returns (uint256 discount) {
+        feeDiscount = discount;
+      } catch {
+        feeDiscount = 0;
+      }
 
     // If the fee discount is greater than the max, nullify the discount.
     if (feeDiscount > JBConstants.MAX_FEE_DISCOUNT) feeDiscount = 0;
