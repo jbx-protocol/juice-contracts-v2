@@ -1,23 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 
-import './JBOperatable.sol';
 import './../interfaces/IJBPayoutRedemptionPaymentTerminal.sol';
-import './../interfaces/IJBPaymentTerminal.sol';
 import './../libraries/JBConstants.sol';
 import './../libraries/JBCurrencies.sol';
 import './../libraries/JBOperations.sol';
 import './../libraries/JBSplitsGroups.sol';
 import './../libraries/JBTokens.sol';
 import './../libraries/JBFixedPointNumber.sol';
-
+import './../libraries/JBFundingCycleMetadataResolver.sol';
 import './../structs/JBTokenAmount.sol';
-
-import './../JBPaymentTerminalStore.sol';
+import './JBOperatable.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
@@ -41,11 +39,15 @@ error INADEQUATE_RECLAIM_AMOUNT();
   @dev
   A project can transfer its funds, along with the power to reconfigure and mint/burn their tokens, from this contract to another allowed terminal of the same token type contract at any time.
 
-  Inherits from:
+  @dev
+  Adheres to:
+  IJBPayoutRedemptionPaymentTerminal: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
-  IJBPayoutRedemptionPaymentTerminal - general interface for the methods in this contract.
-  JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
-  ReentrencyGuard - several function in this contract shouldn't be accessible recursively.
+  @dev
+  Inherits from:
+  JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
+  Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
+  ReentrancyGuard: Contract module that helps prevent reentrant calls to a function.
 */
 abstract contract JBPayoutRedemptionPaymentTerminal is
   IJBPayoutRedemptionPaymentTerminal,
@@ -122,17 +124,13 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @notice
     The contract that exposes price feeds.
   */
-  IJBPrices public immutable prices;
-
-  //*********************************************************************//
-  // --------------------- public stored properties -------------------- //
-  //*********************************************************************//
+  IJBPrices public immutable override prices;
 
   /**
     @notice
     The contract that stores and manages the terminal's data.
   */
-  JBPaymentTerminalStore public immutable store;
+  IJBPaymentTerminalStore public immutable override store;
 
   /**
     @notice
@@ -157,7 +155,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     The currency to base token issuance on.
 
     @dev
-    If this differs from `currency`, there must be a price feed available in `store.prices()` to convert `currency` to `baseWeightCurrency`
+    If this differs from `currency`, there must be a price feed available to convert `currency` to `baseWeightCurrency`.
   */
   uint256 public immutable override baseWeightCurrency;
 
@@ -167,6 +165,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   */
   uint256 public immutable override payoutSplitsGroup;
 
+  //*********************************************************************//
+  // --------------------- public stored properties -------------------- //
+  //*********************************************************************//
   /**
     @notice
     The platform fee percent.
@@ -265,7 +266,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
     IJBPrices _prices,
-    JBPaymentTerminalStore _store,
+    IJBPaymentTerminalStore _store,
     address _owner
   ) JBOperatable(_operatorStore) {
     token = _token;
@@ -544,9 +545,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Keep a reference to the funding cycles during which the redemption is being made.
     JBFundingCycle memory _fundingCycle;
 
-    // // The holder must have the specified number of the project's tokens.
-    // if (tokenStore.balanceOf(_holder, _projectId) < _tokenCount) revert INSUFFICIENT_TOKENS();
-
     // Scoped section prevents stack too deep. `_delegate` only used within scope.
     {
       IJBRedemptionDelegate _delegate;
@@ -647,13 +645,13 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @notice
     Receives funds belonging to the specified project.
 
-    @param _amount The amount of tokens to add, as a fixed point number with 18 decimals. If this is an ETH terminal, this is ignored and msg.value is used instead.
     @param _projectId The ID of the project to which the funds received belong.
+    @param _amount The amount of tokens to add, as a fixed point number with 18 decimals. If this is an ETH terminal, this is ignored and msg.value is used instead.
     @param _memo A memo to pass along to the emitted event.
   */
   function addToBalanceOf(
-    uint256 _amount,
     uint256 _projectId,
+    uint256 _amount,
     string calldata _memo
   ) external payable virtual override isTerminalOfProject(_projectId) {
     // If this terminal's token isn't ETH, make sure no msg.value was sent, then transfer the tokens in from msg.sender.
@@ -748,18 +746,24 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
   /**
     @notice
-    Toggles whether projects operating on this terminal can pay projects operating on other terminals without incurring a fee.
+    Sets whether projects operating on this terminal can pay projects operating on the specified terminal without incurring a fee.
 
     @dev
-    Only the owner of this contract can change the fee.
+    Only the owner of this contract can set terminal's as feeless.
 
     @param _terminal The terminal that can be paid towards while still bypassing fees.
+    @param _flag A flag indicating whether the terminal should be feeless or not.
   */
-  function toggleFeelessTerminal(IJBPaymentTerminal _terminal) external virtual override onlyOwner {
-    // Toggle the value for the provided terminal.
-    isFeelessTerminal[_terminal] = !isFeelessTerminal[_terminal];
+  function setFeelessTerminal(IJBPaymentTerminal _terminal, bool _flag)
+    external
+    virtual
+    override
+    onlyOwner
+  {
+    // Set the flag value.
+    isFeelessTerminal[_terminal] = _flag;
 
-    emit SetFeelessTerminal(_terminal, msg.sender);
+    emit SetFeelessTerminal(_terminal, _flag, msg.sender);
   }
 
   //*********************************************************************//
