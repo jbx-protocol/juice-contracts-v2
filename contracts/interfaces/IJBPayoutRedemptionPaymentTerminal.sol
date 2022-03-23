@@ -104,6 +104,10 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
 
   function store() external view returns (IJBPaymentTerminalStore);
 
+  function baseWeightCurrency() external view returns (uint256);
+
+  function payoutSplitsGroup() external view returns (uint256);
+
   function heldFeesOf(uint256 _projectId) external view returns (JBFee[] memory);
 
   function fee() external view returns (uint256);
