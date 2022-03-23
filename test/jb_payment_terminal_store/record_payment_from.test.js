@@ -118,7 +118,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         CURRENCY
       ],
       PROJECT_ID,
-      beneficiary.address,
       BASE_CURRENCY,
       /* memo */ 'test',
       METADATA
@@ -169,7 +168,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         CURRENCY
       ],
       PROJECT_ID,
-      beneficiary.address,
       BASE_CURRENCY,
       /* memo */ 'test',
       METADATA
@@ -255,7 +253,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         CURRENCY
       ],
       /* projectId */ PROJECT_ID,
-      beneficiary.address,
       BASE_CURRENCY,
       /* memo */ memo,
       METADATA
@@ -306,7 +303,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         CURRENCY
       ],
       PROJECT_ID,
-      beneficiary.address,
       BASE_CURRENCY,
       /* memo */ 'test',
       METADATA
@@ -366,7 +362,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         CURRENCY
       ],
       PROJECT_ID,
-      beneficiary.address,
       BASE_CURRENCY,
       /* memo */ 'test',
       METADATA
@@ -452,7 +447,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         CURRENCY
       ],
       /* projectId */ PROJECT_ID,
-      beneficiary.address,
       BASE_CURRENCY,
       /* memo */ memo,
       METADATA
@@ -501,7 +495,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
           CURRENCY
         ],
         PROJECT_ID,
-        beneficiary.address,
         BASE_CURRENCY,
         /* memo */ 'test',
         METADATA
@@ -542,7 +535,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
           CURRENCY
         ],
         PROJECT_ID,
-        beneficiary.address,
         BASE_CURRENCY,
         /* memo */ 'test',
         METADATA
