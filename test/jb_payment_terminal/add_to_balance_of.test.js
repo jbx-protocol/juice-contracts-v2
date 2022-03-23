@@ -155,7 +155,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
 
     await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor
       .withArgs(PROJECT_ID, AMOUNT)
-      .returns(fundingCycle);
+      .returns();
 
     await setBalance(jbEthPaymentTerminal.address, AMOUNT);
 
@@ -217,7 +217,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
       await setup();
     await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor
       .withArgs(PROJECT_ID, AMOUNT)
-      .returns(fundingCycle);
+      .returns();
 
     await jbEthPaymentTerminal
       .connect(caller)
@@ -233,7 +233,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
     } = await setup();
     await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor
       .withArgs(PROJECT_ID, AMOUNT)
-      .returns(fundingCycle);
+      .returns();
 
     await mockJbToken.mock.transferFrom
       .withArgs(caller.address, JBERC20PaymentTerminal.address, AMOUNT)
@@ -268,7 +268,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
 
     await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor
       .withArgs(PROJECT_ID, 1)
-      .returns(fundingCycle);
+      .returns();
 
     let heldFeeBefore = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
 
@@ -328,7 +328,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
 
     await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor
       .withArgs(PROJECT_ID, 10)
-      .returns(fundingCycle);
+      .returns();
 
     let heldFeeBefore = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
 
