@@ -119,7 +119,6 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
           CURRENCY_ETH
         ],
         PROJECT_ID,
-        beneficiary.address,
         CURRENCY_ETH,
         MEMO,
         METADATA
@@ -243,7 +242,6 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
           CURRENCY_ETH
         ],
         PROJECT_ID,
-        beneficiary.address,
         CURRENCY_ETH,
         MEMO,
         METADATA
@@ -384,7 +382,6 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
           CURRENCY_ETH
         ],
         PROJECT_ID,
-        beneficiary.address,
         CURRENCY_ETH,
         MEMO,
         METADATA
@@ -461,7 +458,6 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
           CURRENCY_ETH
         ],
         PROJECT_ID,
-        beneficiary.address,
         CURRENCY_ETH,
         MEMO,
         METADATA
@@ -574,7 +570,6 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
           CURRENCY_ETH
         ],
         PROJECT_ID,
-        beneficiary.address,
         CURRENCY_ETH,
         MEMO,
         METADATA

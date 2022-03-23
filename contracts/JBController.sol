@@ -43,7 +43,7 @@ error ZERO_TOKENS_TO_MINT();
 
   @dev
   Adheres to:
-  IJBController - general interface for the generic controller methods in this contract that interacts with funding cycles and tokens according to the Juicebox protocol's rules.
+  IJBController - general interface for the generic controller methods in this contract that interacts with funding cycles and tokens according to the protocol's rules.
 
   @dev
   Inherits from:
@@ -211,6 +211,35 @@ contract JBController is IJBController, JBOperatable {
         _reservedRate,
         tokenStore.totalSupplyOf(_projectId)
       );
+  }
+
+  /**
+    @notice
+    Gets the current total amount of outstanding tokens for a project, given a reserved rate.
+
+    @param _projectId The ID of the project to get total outstanding tokens of.
+    @param _reservedRate The reserved rate to use when making the calculation.
+
+    @return The current total amount of outstanding tokens for the project.
+  */
+  function totalOutstandingTokensOf(uint256 _projectId, uint256 _reservedRate)
+    external
+    view
+    override
+    returns (uint256)
+  {
+    // Get the total number of tokens in circulation.
+    uint256 _totalSupply = tokenStore.totalSupplyOf(_projectId);
+
+    // Get the number of reserved tokens the project has.
+    uint256 _reservedTokenAmount = _reservedTokenAmountFrom(
+      _processedTokenTrackerOf[_projectId],
+      _reservedRate,
+      _totalSupply
+    );
+
+    // Add the reserved tokens to the total supply.
+    return _totalSupply + _reservedTokenAmount;
   }
 
   //*********************************************************************//

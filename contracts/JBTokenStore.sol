@@ -36,7 +36,7 @@ error CANT_REMOVE_TOKEN_IF_ITS_REQUIRED();
   
   @dev
   Adheres to:
-  IJBTokenStore: General interface for the methods in this contract that interact with the blockchain's state according to the Juicebox protocol's rules.
+  IJBTokenStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
   Inherits from:
@@ -324,7 +324,6 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
 
     // The amount of unclaimed tokens to redeem.
     uint256 _unclaimedTokensToBurn = _amount - _claimedTokensToBurn;
-
 
     // Subtract the tokens from the unclaimed balance and total supply.
     if (_unclaimedTokensToBurn > 0) {

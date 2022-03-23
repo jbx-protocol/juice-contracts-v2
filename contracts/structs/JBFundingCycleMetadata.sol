@@ -28,8 +28,8 @@ struct JBFundingCycleMetadata {
   bool allowControllerMigration;
   // If fees should be held during this funding cycle.
   bool holdFees;
-  // If redemptions should use the project's local terminal balance instead of the project's balance held in all terminals.
-  bool useLocalBalanceForRedemptions;
+  // If redemptions should use the project's balance held in all terminals instead of the project's local terminal balance.
+  bool useTotalOverflowForRedemptions;
   // If the data source should be used for pay transactions during this funding cycle.
   bool useDataSourceForPay;
   // If the data source should be used for redeem transactions during this funding cycle.

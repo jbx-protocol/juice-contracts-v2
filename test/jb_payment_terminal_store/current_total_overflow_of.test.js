@@ -45,11 +45,9 @@ describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
     );
     const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbPrices.address,
-      mockJbProjects.address,
       mockJbDirectory.address,
-      mockJbFundingCycleStore.address,
-      mockJbTokenStore.address,
-    );
+      mockJbFundingCycleStore.address
+);
 
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);
@@ -91,7 +89,7 @@ describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
       weight: WEIGHT,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ useLocalBalanceForRedemptions: false }),
+      metadata: packFundingCycleMetadata({ useTotalOverflowForRedemptions: true }),
     });
 
     await mockJbDirectory.mock.terminalsOf
@@ -130,7 +128,7 @@ describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
       weight: WEIGHT,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ useLocalBalanceForRedemptions: false }),
+      metadata: packFundingCycleMetadata({ useTotalOverflowForRedemptions: true }),
     });
 
     await mockJbDirectory.mock.terminalsOf
@@ -168,7 +166,7 @@ describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
       weight: WEIGHT,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ useLocalBalanceForRedemptions: false }),
+      metadata: packFundingCycleMetadata({ useTotalOverflowForRedemptions: true }),
     });
 
     await mockJbDirectory.mock.terminalsOf

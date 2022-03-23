@@ -261,7 +261,6 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
           currency: CURRENCY_ETH,
         },
         JUICEBOX_PROJECT_ID,
-        projectOwner.address,
         CURRENCY_ETH,
         /* memo */ '',
         '0x'
@@ -351,7 +350,6 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
           currency: CURRENCY_ETH,
         },
         JUICEBOX_PROJECT_ID,
-        projectOwner.address,
         CURRENCY_ETH,
         /* memo */ '',
         '0x'
@@ -438,7 +436,6 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
           currency: CURRENCY_ETH,
         },
         JUICEBOX_PROJECT_ID,
-        projectOwner.address,
         CURRENCY_ETH,
         /* memo */ '',
         '0x'
@@ -532,7 +529,6 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
           currency: CURRENCY_ETH,
         },
         JUICEBOX_PROJECT_ID,
-        projectOwner.address,
         CURRENCY_ETH,
         /* memo */ '',
         '0x'

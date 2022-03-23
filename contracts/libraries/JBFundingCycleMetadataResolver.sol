@@ -69,7 +69,7 @@ library JBFundingCycleMetadataResolver {
     return ((_fundingCycle.metadata >> 64) & 1) == 1;
   }
 
-  function shouldUseLocalBalanceForRedemptions(JBFundingCycle memory _fundingCycle)
+  function useTotalOverflowForRedemptions(JBFundingCycle memory _fundingCycle)
     internal
     pure
     returns (bool)
@@ -138,8 +138,8 @@ library JBFundingCycleMetadataResolver {
     if (_metadata.allowControllerMigration) packed |= 1 << 63;
     // hold fees in bit 64.
     if (_metadata.holdFees) packed |= 1 << 64;
-    // useLocalBalanceForRedemptions in bit 65.
-    if (_metadata.useLocalBalanceForRedemptions) packed |= 1 << 65;
+    // useTotalOverflowForRedemptions in bit 65.
+    if (_metadata.useTotalOverflowForRedemptions) packed |= 1 << 65;
     // use pay data source in bit 66.
     if (_metadata.useDataSourceForPay) packed |= 1 << 66;
     // use redeem data source in bit 67.
