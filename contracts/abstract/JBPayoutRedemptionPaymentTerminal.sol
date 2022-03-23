@@ -58,9 +58,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
-  // A library that provides utility for fixed point numbers.
-  using JBFixedPointNumber for uint256;
-
   /// @notice A modifier that verifies this terminal is a terminal of provided project ID
   modifier isTerminalOfProject(uint256 _projectId) {
     if (!directory.isTerminalOf(_projectId, this)) revert PROJECT_TERMINAL_MISMATCH();
@@ -197,7 +194,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
   /**
     @notice
-    Gets the current overflowed amount in this for a specified project, in terms of ETH.
+    Gets the current overflowed amount in this terminal for a specified project, in terms of ETH.
 
     @dev
     The current overflow is represented as a fixed point number with 18 decimals.
@@ -207,12 +204,13 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @return The current amount of ETH overflow that project has in this terminal, as a fixed point number with 18 decimals.
   */
   function currentEthOverflowOf(uint256 _projectId) external view override returns (uint256) {
+    // Get this terminal's current overflow.
     uint256 _overflow = store.currentOverflowOf(this, _projectId);
 
     // Adjust the decimals of the fixed point number if needed to have 18 decimals.
     uint256 _adjustedOverflow = (decimals == 18)
       ? _overflow
-      : _overflow.adjustDecimals(decimals, 18);
+      : JBFixedPointNumber.adjustDecimals(_overflow, decimals, 18);
 
     // Return the amount converted to ETH.
     return
