@@ -46,11 +46,9 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     );
     const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbPrices.address,
-      mockJbProjects.address,
       mockJbDirectory.address,
-      mockJbFundingCycleStore.address,
-      mockJbTokenStore.address,
-    );
+      mockJbFundingCycleStore.address
+);
 
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);
@@ -120,7 +118,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         CURRENCY
       ],
       PROJECT_ID,
-      beneficiary.address,
       BASE_CURRENCY,
       /* memo */ 'test',
       METADATA
@@ -171,7 +168,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         CURRENCY
       ],
       PROJECT_ID,
-      beneficiary.address,
       BASE_CURRENCY,
       /* memo */ 'test',
       METADATA
@@ -257,7 +253,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         CURRENCY
       ],
       /* projectId */ PROJECT_ID,
-      beneficiary.address,
       BASE_CURRENCY,
       /* memo */ memo,
       METADATA
@@ -308,7 +303,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         CURRENCY
       ],
       PROJECT_ID,
-      beneficiary.address,
       BASE_CURRENCY,
       /* memo */ 'test',
       METADATA
@@ -368,7 +362,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         CURRENCY
       ],
       PROJECT_ID,
-      beneficiary.address,
       BASE_CURRENCY,
       /* memo */ 'test',
       METADATA
@@ -454,7 +447,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         CURRENCY
       ],
       /* projectId */ PROJECT_ID,
-      beneficiary.address,
       BASE_CURRENCY,
       /* memo */ memo,
       METADATA
@@ -503,7 +495,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
           CURRENCY
         ],
         PROJECT_ID,
-        beneficiary.address,
         BASE_CURRENCY,
         /* memo */ 'test',
         METADATA
@@ -544,7 +535,6 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
           CURRENCY
         ],
         PROJECT_ID,
-        beneficiary.address,
         BASE_CURRENCY,
         /* memo */ 'test',
         METADATA

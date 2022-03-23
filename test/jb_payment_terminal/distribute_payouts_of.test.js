@@ -264,7 +264,6 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
               CURRENCY
             ],
             split.projectId,
-            split.beneficiary,
             CURRENCY,
             '',
             '0x'
@@ -376,7 +375,6 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
               CURRENCY
             ],
             split.projectId,
-            split.beneficiary,
             CURRENCY,
             '',
             '0x'
@@ -745,7 +743,6 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
           CURRENCY
         ],
         PLATFORM_PROJECT_ID,
-        projectOwner.address,
         /*CURRENCY*/CURRENCY,
         '',
         '0x'
@@ -764,7 +761,6 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
               CURRENCY
             ],
             split.projectId,
-            split.beneficiary,
             CURRENCY,
             '',
             '0x'
@@ -1341,7 +1337,6 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
               CURRENCY
             ],
             split.projectId,
-            split.beneficiary,
             CURRENCY,
             '',
             '0x'
