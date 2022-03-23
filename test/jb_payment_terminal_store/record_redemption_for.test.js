@@ -47,11 +47,9 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     );
     const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbPrices.address,
-      mockJbProjects.address,
       mockJbDirectory.address,
-      mockJbFundingCycleStore.address,
-      mockJbTokenStore.address,
-    );
+      mockJbFundingCycleStore.address
+);
 
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);

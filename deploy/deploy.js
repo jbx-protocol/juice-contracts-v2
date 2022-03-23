@@ -100,10 +100,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     ...baseDeployArgs,
     args: [
       JBPrices.address,
-      JBProjects.address,
       JBDirectory.address,
       JBFundingCycleStore.address,
-      JBTokenStore.address,
     ],
   });
 
