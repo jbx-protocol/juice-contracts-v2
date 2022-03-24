@@ -643,7 +643,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       uint256 _payableValue = token == JBTokens.ETH ? _balance : 0;
 
       // Withdraw the balance to transfer to the new terminal;
-      _to.addToBalanceOf{value: _payableValue}(_balance, _projectId, '');
+      _to.addToBalanceOf{value: _payableValue}(_projectId, _balance, '');
     }
 
     emit Migrate(_projectId, _to, _balance, msg.sender);
