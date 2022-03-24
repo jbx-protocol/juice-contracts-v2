@@ -24,6 +24,7 @@ describe('JBTokenStore::changeFor(...)', function () {
     const mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
     const mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
     const mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
+    const mockJbToken = await deployMockContract(deployer, jbToken.abi);
 
     const jbTokenStoreFactory = await ethers.getContractFactory('JBTokenStore');
     const jbTokenStore = await jbTokenStoreFactory.deploy(
@@ -37,6 +38,7 @@ describe('JBTokenStore::changeFor(...)', function () {
       controller,
       mockJbDirectory,
       mockJbProjects,
+      mockJbToken,
       jbTokenStore,
     };
   }
@@ -143,5 +145,19 @@ describe('JBTokenStore::changeFor(...)', function () {
         .connect(controller)
         .changeFor(PROJECT_ID, ethers.constants.AddressZero, ethers.Wallet.createRandom().address),
     ).to.be.revertedWith(errors.CANT_REMOVE_TOKEN_IF_ITS_REQUIRED);
+  });
+
+  it(`Can't add non-18 decimal token`, async function () {
+    const { controller, mockJbDirectory, mockJbProjects, mockJbToken, jbTokenStore, newOwner } = await setup();
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    await mockJbToken.mock.decimals.returns(19);
+
+    await expect(
+      jbTokenStore
+        .connect(controller)
+        .changeFor(PROJECT_ID, mockJbToken.address, ethers.Wallet.createRandom().address),
+    ).to.be.revertedWith(errors.TOKENS_MUST_HAVE_18_DECIMALS);
   });
 });

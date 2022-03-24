@@ -28,7 +28,7 @@ contract JBToken is IJBToken, ERC20, Ownable {
     @notice
     The number of decimals included in the fixed point accounting of this token.
 
-    @return The total number of decimals.
+    @return The number of decimals.
   */
   function decimals() public view override(ERC20, IJBToken) returns (uint8) {
     return super.decimals();

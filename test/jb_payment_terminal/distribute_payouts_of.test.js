@@ -37,7 +37,6 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
   let MAX_FEE;
   let MAX_FEE_DISCOUNT;
   let AMOUNT_MINUS_FEES;
-  let DISCOUNTED_FEE;
 
   let fundingCycle;
 
@@ -1218,6 +1217,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
           .withArgs({
             // JBSplitAllocationData
             amount: Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
+            decimals: 18,
             projectId: PROJECT_ID,
             group: ETH_PAYOUT_INDEX,
             split,

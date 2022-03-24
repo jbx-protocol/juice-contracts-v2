@@ -303,6 +303,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
           .withArgs({
             // JBSplitAllocationData obj
             amount: Math.floor(RESERVED_AMOUNT / splits.length),
+            decimals: 18,
             projectId: PROJECT_ID,
             group: RESERVED_SPLITS_GROUP,
             split,
