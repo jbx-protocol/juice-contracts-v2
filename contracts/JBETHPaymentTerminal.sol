@@ -60,7 +60,7 @@ contract JBETHPaymentTerminal is JBPayoutRedemptionPaymentTerminal {
 
   /** 
     @notice
-    Logic to be triggered before transfering tokens from this terminal.
+    Logic to be triggered before transferring tokens from this terminal.
 
     ignored: _to The address to which the transfer is going.
     ignored: _amount The amount of the transfer, as a fixed point number with the same number of decimals as this terminal.
