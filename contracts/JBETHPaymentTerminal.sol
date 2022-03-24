@@ -6,10 +6,6 @@ import '@openzeppelin/contracts/utils/Address.sol';
 // Inheritance
 import './abstract/JBPayoutRedemptionPaymentTerminal.sol';
 
-//*********************************************************************//
-// --------------------------- custom errors ------------------------- //
-//*********************************************************************//
-
 contract JBETHPaymentTerminal is JBPayoutRedemptionPaymentTerminal {
   constructor(
     uint256 _baseWeightCurrency,
