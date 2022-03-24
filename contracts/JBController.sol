@@ -301,8 +301,8 @@ contract JBController is IJBController, JBOperatable {
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
     uint256 _mustStartAtOrAfter,
-    JBGroupedSplits[] memory _groupedSplits,
-    JBFundAccessConstraints[] memory _fundAccessConstraints,
+    JBGroupedSplits[] calldata _groupedSplits,
+    JBFundAccessConstraints[] calldata _fundAccessConstraints,
     IJBPaymentTerminal[] memory _terminals,
     string memory _memo
   ) external override returns (uint256 projectId) {
