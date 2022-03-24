@@ -221,7 +221,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
 
     await jbEthPaymentTerminal
       .connect(caller)
-      .addToBalanceOf(AMOUNT + 1, PROJECT_ID, MEMO, { value: AMOUNT });
+      .addToBalanceOf(PROJECT_ID, AMOUNT + 1, MEMO, { value: AMOUNT });
   });
   it('Should work with non-eth terminal if no value is sent', async function () {
     const {
@@ -273,7 +273,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
     let heldFeeBefore = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
 
     expect(
-      await jbEthPaymentTerminal.connect(caller).addToBalanceOf(1, PROJECT_ID, MEMO, { value: 1 }),
+      await jbEthPaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, 1, MEMO, { value: 1 }),
     )
       .to.emit(jbEthPaymentTerminal, 'AddToBalance')
       .withArgs(PROJECT_ID, 1, MEMO, caller.address);
@@ -335,7 +335,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
     expect(
       await jbEthPaymentTerminal
         .connect(caller)
-        .addToBalanceOf(10, PROJECT_ID, MEMO, { value: 10 }),
+        .addToBalanceOf(PROJECT_ID, 10, MEMO, { value: 10 }),
     )
       .to.emit(jbEthPaymentTerminal, 'AddToBalance')
       .withArgs(PROJECT_ID, 10, MEMO, caller.address);
@@ -363,7 +363,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
     await expect(
       jbEthPaymentTerminal
         .connect(caller)
-        .addToBalanceOf(AMOUNT, otherProjectId, MEMO, { value: 0 }),
+        .addToBalanceOf(otherProjectId, AMOUNT, MEMO, { value: 0 }),
     ).to.be.revertedWith(errors.PROJECT_TERMINAL_MISMATCH);
   });
 });

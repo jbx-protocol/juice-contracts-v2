@@ -121,6 +121,8 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         mockJBPaymentTerminalStore.address,
         terminalOwner.address,
       );
+    
+    await mockJbEthPaymentTerminal.mock.decimals.returns(18);
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
@@ -660,7 +662,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
 
     await jbEthPaymentTerminal
       .connect(terminalOwner)
-      .toggleFeelessTerminal(mockJbEthPaymentTerminal.address);
+      .setFeelessTerminal(mockJbEthPaymentTerminal.address, true);
 
     let tx = await jbEthPaymentTerminal
       .connect(caller)
