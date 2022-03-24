@@ -205,7 +205,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
     expect(
       await jbEthPaymentTerminal
         .connect(caller)
-        .addToBalanceOf(AMOUNT, PROJECT_ID, MEMO, { value: AMOUNT }),
+        .addToBalanceOf(PROJECT_ID, AMOUNT, MEMO, { value: AMOUNT }),
     )
       .to.emit(jbEthPaymentTerminal, 'AddToBalance')
       .withArgs(PROJECT_ID, AMOUNT, MEMO, caller.address);
@@ -238,7 +238,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
     await mockJbToken.mock.transferFrom
       .withArgs(caller.address, JBERC20PaymentTerminal.address, AMOUNT)
       .returns(0);
-    await JBERC20PaymentTerminal.connect(caller).addToBalanceOf(AMOUNT, PROJECT_ID, MEMO, {
+    await JBERC20PaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, AMOUNT, MEMO, {
       value: 0,
     });
   });
@@ -347,7 +347,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
     const { caller, JBERC20PaymentTerminal } = await setup();
 
     await expect(
-      JBERC20PaymentTerminal.connect(caller).addToBalanceOf(AMOUNT, PROJECT_ID, MEMO, {
+      JBERC20PaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, AMOUNT, MEMO, {
         value: 10,
       }),
     ).to.be.revertedWith(errors.NO_MSG_VALUE_ALLOWED);
