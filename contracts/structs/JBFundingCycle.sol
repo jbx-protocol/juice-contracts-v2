@@ -27,6 +27,7 @@ struct JBFundingCycle {
   // A percent by how much the `weight` of the subsequent funding cycle should be reduced, if the project owner hasn't configured the subsequent funding cycle with an explicit `weight`.
   // If it's 0, each funding cycle will have equal weight.
   // If the number is 90%, the next funding cycle will have a 10% smaller weight.
+  // This weight is out of `JBConstants.MAX_DISCOUNT_RATE`.
   uint256 discountRate;
   // An address of a contract that says whether a proposed reconfiguration should be accepted or rejected.
   // It can be used to create rules around how a project owner can change funding cycle parameters over time.
