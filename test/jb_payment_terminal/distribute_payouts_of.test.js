@@ -1346,7 +1346,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
     expect(await tx).to.changeEtherBalance(caller, AMOUNT_DISTRIBUTED);
   });
 
-  it('Should distribute payout and use the terminal of the project if project id is set in splits, with the same decimal', async function () {
+  it('Should distribute payout and use the terminal of the project if project id is set in splits', async function () {
     const {
       projectOwner,
       terminalOwner,
@@ -1423,116 +1423,6 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
 
     expect(await tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
-      .withArgs(
-        /*_fundingCycle.configuration*/ timestamp,
-        /*_fundingCycle.number*/ 1,
-        PROJECT_ID,
-        projectOwner.address,
-        /*_amount*/ AMOUNT_TO_DISTRIBUTE,
-        /*_distributedAmount*/ AMOUNT_DISTRIBUTED,
-        /*_feeAmount*/ 0,
-        /*_leftoverDistributionAmount*/ 0,
-        MEMO,
-        caller.address,
-      );
-  });
-
-  it.only('Should distribute payout and use the terminal of the project if project id is set in splits, with different decimals', async function () {
-    const {
-      projectOwner,
-      terminalOwner,
-      caller,
-      jbEthPaymentTerminal,
-      jbErc20PaymentTerminal,
-      timestamp,
-      mockJbDirectory,
-      mockJbEthPaymentTerminal,
-      mockJBPaymentTerminalStore,
-      mockJbSplitsStore,
-      CURRENCY_USD,
-      fakeToken
-    } = await setup();
-    const splits = makeSplits({ count: 2, projectId: OTHER_PROJECT_ID });
-
-    await mockJBPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY_USD, CURRENCY_USD)
-      .returns(fundingCycle, AMOUNT_DISTRIBUTED);
-
-    await jbErc20PaymentTerminal.connect(terminalOwner).setFee(0);
-
-    await mockJbDirectory.mock.primaryTerminalOf
-      .withArgs(OTHER_PROJECT_ID, fakeToken.address)
-      .returns(mockJbEthPaymentTerminal.address);
-
-    await mockJbEthPaymentTerminal.mock.decimals.returns(20);
-
-    const AMOUNT_DISTRIBUTED_18DEC = AMOUNT_DISTRIBUTED * 100;
-
-    await mockJbSplitsStore.mock.splitsOf
-      .withArgs(PROJECT_ID, timestamp, 1)
-      .returns(splits);
-
-    await Promise.all(
-      splits.map(async (split) => {
-        //To fix?
-        await fakeToken.mock.approve
-          .withArgs(
-            mockJbEthPaymentTerminal.address,
-            (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT)
-          .returns(true);
-        
-        await mockJbEthPaymentTerminal.mock.pay
-          .withArgs(
-            /*payoutAmount*/ Math.floor(
-            (AMOUNT_DISTRIBUTED_18DEC * split.percent) / SPLITS_TOTAL_PERCENT,
-          ),
-            split.projectId,
-            split.beneficiary,
-            /*minReturnedToken*/ 0,
-            split.preferClaimed,
-            '',
-            '0x',
-          )
-          .returns();
-      }),
-    );
-
-    let tx = await jbErc20PaymentTerminal
-      .connect(caller)
-      .distributePayoutsOf(
-        PROJECT_ID,
-        AMOUNT_TO_DISTRIBUTE,
-        CURRENCY_USD,
-        MIN_TOKEN_REQUESTED,
-        MEMO,
-      );
-
-    await Promise.all(
-      splits.map(async (split) => {
-        await expect(tx)
-          .to.emit(jbErc20PaymentTerminal, 'DistributeToPayoutSplit')
-          .withArgs(
-            /*_fundingCycle.configuration*/ timestamp,
-            /*_fundingCycle.number*/ 1,
-            PROJECT_ID,
-            [
-              split.preferClaimed,
-              split.percent,
-              split.projectId,
-              split.beneficiary,
-              split.lockedUntil,
-              split.allocator,
-            ],
-            /*payoutAmount*/ Math.floor(
-              (AMOUNT_DISTRIBUTED_18DEC * split.percent) / SPLITS_TOTAL_PERCENT,
-            ),
-            caller.address,
-          );
-      }),
-    );
-
-    expect(await tx)
-      .to.emit(jbErc20PaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
         /*_fundingCycle.number*/ 1,
