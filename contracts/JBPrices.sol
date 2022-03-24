@@ -136,6 +136,7 @@ contract JBPrices is IJBPrices, Ownable {
     if (_feed != IJBPriceFeed(address(0)))
       return PRBMath.mulDiv(10**_decimals, 10**_decimals, _feed.currentPrice(_decimals));
 
+    // If either the currency or the base are ETH, can't use ETH as a proxy.
     if (_currency == JBCurrencies.ETH || _base == JBCurrencies.ETH)
       // Feed must exist.
       revert PRICE_FEED_NOT_FOUND();
