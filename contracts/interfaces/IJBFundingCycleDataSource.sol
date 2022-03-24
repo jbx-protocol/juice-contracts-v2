@@ -10,7 +10,7 @@ import './../structs/JBPayParamsData.sol';
 import './../structs/JBRedeemParamsData.sol';
 
 interface IJBFundingCycleDataSource {
-  function payParams(JBPayParamsData calldata _param)
+  function payParams(JBPayParamsData calldata _data)
     external
     view
     returns (
@@ -19,7 +19,7 @@ interface IJBFundingCycleDataSource {
       IJBPayDelegate delegate
     );
 
-  function redeemParams(JBRedeemParamsData calldata _param)
+  function redeemParams(JBRedeemParamsData calldata _data)
     external
     view
     returns (

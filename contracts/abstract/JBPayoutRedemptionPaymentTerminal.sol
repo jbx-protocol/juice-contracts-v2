@@ -846,12 +846,17 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           // If this terminal's token is ETH, send it in msg.value.
           uint256 _payableValue = token == JBTokens.ETH ? _netPayoutAmount : 0;
 
-          _split.allocator.allocate{value: _payableValue}(
+          // Create the data to send to the allocator.
+          JBSplitAllocationData memory _data = JBSplitAllocationData(
             _netPayoutAmount,
             _projectId,
             payoutSplitsGroup,
             _split
           );
+
+          // Trigger the allocator's `allocate` function.
+          _split.allocator.allocate{value: _payableValue}(_data);
+
           // Otherwise, if a project is specified, make a payment to it.
         } else if (_split.projectId != 0) {
           // Get a reference to the Juicebox terminal being used.

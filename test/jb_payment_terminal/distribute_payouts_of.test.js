@@ -26,7 +26,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
   const DEFAULT_FEE = 25000000; // 2.5%
   const FEE_DISCOUNT = 500000000; // 50%
 
-  
+
   const CURRENCY = 1;
   const MIN_TOKEN_REQUESTED = 180;
   const MEMO = 'Memo Test';
@@ -146,7 +146,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         mockJBPaymentTerminalStore.address,
         terminalOwner.address,
       );
-    
+
     await mockJbEthPaymentTerminal.mock.decimals.returns(18);
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
@@ -1215,12 +1215,13 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
     await Promise.all(
       splits.map(async (split) => {
         await mockJbAllocator.mock.allocate
-          .withArgs(
-            Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
-            PROJECT_ID,
-            ETH_PAYOUT_INDEX,
+          .withArgs({
+            // JBSplitAllocationData
+            amount: Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
+            projectId: PROJECT_ID,
+            group: ETH_PAYOUT_INDEX,
             split,
-          )
+          })
           .returns();
       }),
     );
