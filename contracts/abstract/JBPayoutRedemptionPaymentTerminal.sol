@@ -895,14 +895,15 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             uint256 _decimals = _terminal.decimals();
 
             // If the destination terminal uses a different number of decimals than this terminal, adjust the sent amount accordingly.
-            if (_decimals != decimals)
-              _amount = JBFixedPointNumber.adjustDecimals(_amount, decimals, _decimals);
+            uint256 _adjustedNetPayoutAmount = (_decimals == decimals)
+              ? _netPayoutAmount
+              : JBFixedPointNumber.adjustDecimals(_netPayoutAmount, decimals, _decimals);
 
             // If this terminal's token is ETH, send it in msg.value.
-            uint256 _payableValue = token == JBTokens.ETH ? _netPayoutAmount : 0;
+            uint256 _payableValue = token == JBTokens.ETH ? _adjustedNetPayoutAmount : 0;
 
             _terminal.pay{value: _payableValue}(
-              _netPayoutAmount,
+              _adjustedNetPayoutAmount,
               _split.projectId,
               _split.beneficiary,
               0,
