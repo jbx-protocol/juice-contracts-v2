@@ -34,7 +34,7 @@ error INADEQUATE_RECLAIM_AMOUNT();
 
 /**
   @notice
-  This contract manages all inflows and outflows of funds into the Juicebox ecosystem.
+  Generic terminal managing all inflows and outflows of funds into the protocol ecosystem.
 
   @dev
   A project can transfer its funds, along with the power to reconfigure and mint/burn their tokens, from this contract to another allowed terminal of the same token type contract at any time.
@@ -58,7 +58,10 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
-  /// @notice A modifier that verifies this terminal is a terminal of provided project ID
+  /** 
+    @notice 
+    A modifier that verifies this terminal is a terminal of provided project ID.
+  */
   modifier isTerminalOf(uint256 _projectId) {
     if (!directory.isTerminalOf(_projectId, this)) revert PROJECT_TERMINAL_MISMATCH();
     _;

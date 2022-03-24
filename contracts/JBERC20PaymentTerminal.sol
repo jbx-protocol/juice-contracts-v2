@@ -39,6 +39,14 @@ contract JBERC20PaymentTerminal is JBPayoutRedemptionPaymentTerminal {
 
   }
 
+  /** 
+    @notice
+    Transfers tokens.
+
+    @param _from The address from which the transfer should originate.
+    @param _to The address to which the transfer should go.
+    @param _amount The amount of the transfer, as a fixed point number with the same number of decimals as this terminal.
+  */
   function _transferFrom(
     address _from,
     address payable _to,
@@ -49,6 +57,13 @@ contract JBERC20PaymentTerminal is JBPayoutRedemptionPaymentTerminal {
       : IERC20(token).transferFrom(_from, _to, _amount);
   }
 
+  /** 
+    @notice
+    Logic to be triggered before transfering tokens from this terminal.
+
+    @param _to The address to which the transfer is going.
+    @param _amount The amount of the transfer, as a fixed point number with the same number of decimals as this terminal.
+  */
   function _beforeTransferTo(address _to, uint256 _amount) internal override {
     IERC20(token).approve(_to, _amount);
   }
