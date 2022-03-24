@@ -12,7 +12,7 @@ import jBFundingCycleStore from '../../artifacts/contracts/interfaces/IJBFunding
 import jbFundingCycleDataSource from '../../artifacts/contracts/interfaces/IJBFundingCycleDataSource.sol/IJBFundingCycleDataSource.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
 describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
@@ -347,6 +347,8 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       metadata: packedMetadata,
     });
 
+    await mockJbController.mock.totalOutstandingTokensOf.withArgs(PROJECT_ID, reservedRate).returns(AMOUNT);
+
     const startingBalance = AMOUNT.mul(ethers.BigNumber.from(2));
 
     const newMemo = 'new memo';
@@ -359,7 +361,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         tokenCount: AMOUNT,
         decimals: _FIXED_POINT_MAX_FIDELITY,
         currency: CURRENCY,
-        overflow: AMOUNT,
+        reclaimAmount: AMOUNT,
         useTotalOverflow: false,
         redemptionRate: redemptionRate,
         ballotRedemptionRate: ballotRedemptionRate,
@@ -505,7 +507,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         tokenCount: AMOUNT,
         decimals: _FIXED_POINT_MAX_FIDELITY,
         currency: CURRENCY,
-        overflow: 0,
+        reclaimAmount: 0,
         useTotalOverflow: false,
         redemptionRate: redemptionRate,
         ballotRedemptionRate: ballotRedemptionRate,

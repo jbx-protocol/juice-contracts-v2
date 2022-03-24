@@ -206,12 +206,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     // Use the project's total overflow across all of its terminals if the flag species specifies so. Otherwise, use the overflow local to the specified terminal.
     uint256 _currentOverflow = _useTotalOverflow
       ? _currentTotalOverflowOf(_projectId, _terminal.decimals(), _terminal.currency())
-      : _overflowDuring(
-        _terminal,
-        _projectId,
-        _fundingCycle,
-        _terminal.currency()
-      );
+      : _overflowDuring(_terminal, _projectId, _fundingCycle, _terminal.currency());
 
     // If there is no overflow, nothing is reclaimable.
     return
@@ -388,11 +383,24 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     // The current funding cycle must not be paused.
     if (fundingCycle.redeemPaused()) revert FUNDING_CYCLE_REDEEM_PAUSED();
 
-    // Get the amount of current overflow, temporarily store the value in the `reclaimAmount`. (Adding another var causes stack too deep)
-    // Use the local overflow if the funding cycle specifies that it should be used. Otherwise, use the project's total overflow across all of its terminals.
-    reclaimAmount = fundingCycle.useTotalOverflowForRedemptions()
-      ? _currentTotalOverflowOf(_projectId, _balanceDecimals, _balanceCurrency)
-      : _overflowDuring(IJBPaymentTerminal(msg.sender), _projectId, fundingCycle, _balanceCurrency);
+    // Scoped section prevents stack too deep. `_currentOverflow` only used within scope.
+    {
+      // Get the amount of current overflow.
+      // Use the local overflow if the funding cycle specifies that it should be used. Otherwise, use the project's total overflow across all of its terminals.
+      uint256 _currentOverflow = fundingCycle.useTotalOverflowForRedemptions()
+        ? _currentTotalOverflowOf(_projectId, _balanceDecimals, _balanceCurrency)
+        : _overflowDuring(
+          IJBPaymentTerminal(msg.sender),
+          _projectId,
+          fundingCycle,
+          _balanceCurrency
+        );
+
+      // Calculate reclaim amount using the current overflow amount.
+      reclaimAmount = _currentOverflow == 0
+        ? 0
+        : _reclaimableOverflowDuring(_projectId, fundingCycle, _tokenCount, _currentOverflow);
+    }
 
     // If the funding cycle has configured a data source, use it to derive a claim amount and memo.
     if (fundingCycle.useDataSourceForRedeem()) {
@@ -404,7 +412,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
         _tokenCount,
         _balanceDecimals,
         _balanceCurrency,
-        reclaimAmount, // current overflow
+        reclaimAmount,
         fundingCycle.useTotalOverflowForRedemptions(),
         fundingCycle.redemptionRate(),
         fundingCycle.ballotRedemptionRate(),
@@ -413,15 +421,6 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
       );
       (reclaimAmount, memo, delegate) = fundingCycle.dataSource().redeemParams(_data);
     } else {
-      // If there is no overflow, nothing is reclaimable.
-      reclaimAmount = reclaimAmount == 0
-        ? 0
-        : _reclaimableOverflowDuring(
-          _projectId,
-          fundingCycle,
-          _tokenCount,
-          reclaimAmount // current overflow
-        );
       memo = _memo;
     }
 

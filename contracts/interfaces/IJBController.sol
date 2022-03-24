@@ -3,6 +3,7 @@ pragma solidity 0.8.6;
 
 import './../structs/JBFundingCycleData.sol';
 import './../structs/JBFundingCycleMetadata.sol';
+import './../structs/JBProjectMetadata.sol';
 import './../structs/JBGroupedSplits.sol';
 import './../structs/JBFundAccessConstraints.sol';
 import './IJBDirectory.sol';

@@ -13,6 +13,7 @@ import './IJBPrices.sol';
 import './IJBRedemptionDelegate.sol';
 import './IJBFeeGauge.sol';
 import './IJBPaymentTerminal.sol';
+import './IJBPaymentTerminalStore.sol';
 
 import './../structs/JBFee.sol';
 
@@ -31,7 +32,7 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
     address beneficiary,
     uint256 amount,
     uint256 distributedAmount,
-    uint256 feeAmount,
+    uint256 fee,
     uint256 beneficiaryDistributionAmount,
     string memo,
     address caller
@@ -44,7 +45,7 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
     address beneficiary,
     uint256 amount,
     uint256 distributedAmount,
-    uint256 feeAmount,
+    uint256 fee,
     string memo,
     address caller
   );
@@ -89,15 +90,23 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
 
   event SetFee(uint256 fee, address caller);
 
-  event SetFeeGauge(IJBFeeGauge feeGauge, address caller);
+  event SetFeeGauge(IJBFeeGauge indexed feeGauge, address caller);
 
-  event SetFeelessTerminal(IJBPaymentTerminal terminal, address caller);
+  event SetFeelessTerminal(IJBPaymentTerminal indexed terminal, bool indexed flag, address caller);
 
   function projects() external view returns (IJBProjects);
 
   function splitsStore() external view returns (IJBSplitsStore);
 
   function directory() external view returns (IJBDirectory);
+
+  function prices() external view returns (IJBPrices);
+
+  function store() external view returns (IJBPaymentTerminalStore);
+
+  function baseWeightCurrency() external view returns (uint256);
+
+  function payoutSplitsGroup() external view returns (uint256);
 
   function heldFeesOf(uint256 _projectId) external view returns (JBFee[] memory);
 
@@ -142,5 +151,5 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
 
   function setFeeGauge(IJBFeeGauge _feeGauge) external;
 
-  function toggleFeelessTerminal(IJBPaymentTerminal _terminal) external;
+  function setFeelessTerminal(IJBPaymentTerminal _terminal, bool _flag) external;
 }

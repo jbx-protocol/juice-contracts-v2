@@ -2,14 +2,16 @@
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/utils/Address.sol';
-
-// Inheritance
 import './abstract/JBPayoutRedemptionPaymentTerminal.sol';
 
-//*********************************************************************//
-// --------------------------- custom errors ------------------------- //
-//*********************************************************************//
+/**
+  @notice
+  Manages all inflows and outflows of ETH funds into the protocol ecosystem.
 
+  @dev
+  Inherits from:
+  JBPayoutRedemptionPaymentTerminal: Generic terminal managing all inflows and outflows of funds into the protocol ecosystem.
+*/
 contract JBETHPaymentTerminal is JBPayoutRedemptionPaymentTerminal {
   constructor(
     uint256 _baseWeightCurrency,
@@ -18,7 +20,7 @@ contract JBETHPaymentTerminal is JBPayoutRedemptionPaymentTerminal {
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
     IJBPrices _prices,
-    JBPaymentTerminalStore _store,
+    IJBPaymentTerminalStore _store,
     address _owner
   )
     JBPayoutRedemptionPaymentTerminal(
@@ -40,6 +42,14 @@ contract JBETHPaymentTerminal is JBPayoutRedemptionPaymentTerminal {
 
   }
 
+  /** 
+    @notice
+    Transfers tokens.
+
+    ignored: _from The address from which the transfer should originate.
+    @param _to The address to which the transfer should go.
+    @param _amount The amount of the transfer, as a fixed point number with the same number of decimals as this terminal.
+  */
   function _transferFrom(
     address,
     address payable _to,
@@ -48,6 +58,13 @@ contract JBETHPaymentTerminal is JBPayoutRedemptionPaymentTerminal {
     Address.sendValue(_to, _amount);
   }
 
+  /** 
+    @notice
+    Logic to be triggered before transferring tokens from this terminal.
+
+    ignored: _to The address to which the transfer is going.
+    ignored: _amount The amount of the transfer, as a fixed point number with the same number of decimals as this terminal.
+  */
   // solhint-disable-next-line no-empty-blocks
-  function _beforeTransferTo(address _to, uint256 _amount) internal override {}
+  function _beforeTransferTo(address, uint256) internal override {}
 }

@@ -10,15 +10,15 @@ struct JBRedeemParamsData {
   address holder;
   // The ID of the project whos tokens are being redeemed.
   uint256 projectId;
-  // The proposed number of tokens being redeemed.
+  // The proposed number of tokens being redeemed, as a fixed point number with 18 decimals.
   uint256 tokenCount;
-  // The number of decimals included in the overflow fixed point number.
+  // The number of decimals included in the reclaim amount fixed point number.
   uint256 decimals;
-  // The currency that the overflow is expected to be in terms of.
+  // The currency that the reclaim amount is expected to be in terms of.
   uint256 currency;
-  // The current amount of overflow the project has.
-  uint256 overflow;
-  // If overflow across all of a project's terminals should be used when making redemptions.
+  // The amount that should be reclaimed by the redeemer using the protocol's standard bonding curve redemption formula.
+  uint256 reclaimAmount;
+  // If overflow across all of a project's terminals is being used when making redemptions.
   bool useTotalOverflow;
   // The redemption rate of the funding cycle during which the redemption is being made.
   uint256 redemptionRate;
