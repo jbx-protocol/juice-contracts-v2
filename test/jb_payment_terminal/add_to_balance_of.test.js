@@ -180,7 +180,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
     };
   }
 
-  it('Should add to the project balance, refund any held fee by removing them if the transfered amount is enough, and emit event', async function () {
+  it('Should add to the project balance, refund any held fee by removing them if the transferred amount is enough, and emit event', async function () {
     const {
       caller,
       beneficiaryOne,
