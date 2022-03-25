@@ -20,7 +20,7 @@ describe('JBDirectory::terminalsOf(...)', function () {
     let jbDirectory = await jbDirectoryFactory.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
-      deployer.address
+      deployer.address,
     );
 
     let terminal1 = await deployMockContract(projectOwner, jbTerminal.abi);

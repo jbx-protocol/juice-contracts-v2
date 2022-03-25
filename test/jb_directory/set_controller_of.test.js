@@ -31,7 +31,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
     let jbDirectory = await jbDirectoryFactory.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
-      deployer.address
+      deployer.address,
     );
 
     let controller1 = await deployMockContract(projectOwner, jbController.abi);

@@ -138,7 +138,7 @@ module.exports = async ({ deployments, getChainId }) => {
   // Get a reference to an existing ETH/USD feed.
   const usdEthFeed = await jbPricesContract.connect(deployer).feedFor(USD, ETH);
 
-  // If needed, deploy an ETH/USD price feed and add it to the store. 
+  // If needed, deploy an ETH/USD price feed and add it to the store.
   if (chainlinkV2UsdEthPriceFeed && usdEthFeed == ethers.constants.AddressZero) {
     // Deploy a JBChainlinkV3PriceFeed contract for ETH/USD.
     const JBChainlinkV3UsdEthPriceFeed = await deploy('JBChainlinkV3PriceFeed', {
@@ -149,77 +149,75 @@ module.exports = async ({ deployments, getChainId }) => {
     //The base currency is ETH since the feed returns the USD price of 1 ETH.
     await jbPricesContract
       .connect(deployer)
-      .addFeedFor(
-        USD,
-        ETH,
-        JBChainlinkV3UsdEthPriceFeed.address,
-      );
+      .addFeedFor(USD, ETH, JBChainlinkV3UsdEthPriceFeed.address);
   }
 
   // If needed, transfer the ownership of the JBPrices to to the multisig.
-  if (await jbPricesContract.connect(deployer).owner() != multisigAddress)
+  if ((await jbPricesContract.connect(deployer).owner()) != multisigAddress)
     await jbPricesContract.connect(deployer).transferOwnership(multisigAddress);
 
   // If needed, allow the controller to set projects' first controller, then transfer the ownership of the JBDirectory to the multisig.
-  if (!(await jbDirectoryContract
-    .connect(deployer).isAllowedToSetFirstController(JBController.address))) {
-
+  if (
+    !(await jbDirectoryContract
+      .connect(deployer)
+      .isAllowedToSetFirstController(JBController.address))
+  ) {
     await jbDirectoryContract
       .connect(deployer)
       .setIsAllowedToSetFirstController(JBController.address, true);
   }
 
   // If needed, transfer the ownership of the JBDirectory contract to the multisig.
-  if (await jbDirectoryContract.connect(deployer).owner() != multisigAddress)
+  if ((await jbDirectoryContract.connect(deployer).owner()) != multisigAddress)
     await jbDirectoryContract.connect(deployer).transferOwnership(multisigAddress);
 
   console.log('Deploying protocol project...');
 
   // If needed, deploy the protocol project
-  if (await jbProjects.connect(deployer).count() > 0)
+  if ((await jbProjects.connect(deployer).count()) > 0)
     await jbControllerContract.connect(deployer).launchProjectFor(
-    /*owner*/ multisigAddress,
+      /*owner*/ multisigAddress,
 
       /* projectMetadata */
       [/*content*/ '', /*domain*/ ethers.BigNumber.from(0)],
 
       /*fundingCycleData*/
       [
-      /*duration*/ ethers.BigNumber.from(1209600),
-      /*weight*/ ethers.BigNumber.from(10).pow(18).mul(1000000),
-      /*discountRate*/ ethers.BigNumber.from(40000000),
-      /*ballot*/ '0x0000000000000000000000000000000000000000',
+        /*duration*/ ethers.BigNumber.from(1209600),
+        /*weight*/ ethers.BigNumber.from(10).pow(18).mul(1000000),
+        /*discountRate*/ ethers.BigNumber.from(40000000),
+        /*ballot*/ '0x0000000000000000000000000000000000000000',
       ],
 
       /*fundingCycleMetadata*/
       [
-      /*reservedRate*/ ethers.BigNumber.from(5000),
-      /*redemptionRate*/ ethers.BigNumber.from(7000),
-      /*ballotRedemptionRate*/ ethers.BigNumber.from(7000),
-      /*pausePay*/ ethers.BigNumber.from(0),
-      /*pauseDistributions*/ ethers.BigNumber.from(0),
-      /*pauseRedeem*/ ethers.BigNumber.from(0),
-      /*pauseMint*/ ethers.BigNumber.from(0),
-      /*pauseBurn*/ ethers.BigNumber.from(0),
-      /*allowChangeToken*/ ethers.BigNumber.from(0),
-      /*allowTerminalMigration*/ ethers.BigNumber.from(0),
-      /*allowControllerMigration*/ ethers.BigNumber.from(0),
-      /*holdFees*/ ethers.BigNumber.from(0),
-      /*useTotalOverflowForRedemptions*/ ethers.BigNumber.from(0),
-      /*useDataSourceForPay*/ ethers.BigNumber.from(0),
-      /*useDataSourceForRedeem*/ ethers.BigNumber.from(0),
-      /*dataSource*/ '0x0000000000000000000000000000000000000000',
+        /*reservedRate*/ ethers.BigNumber.from(5000),
+        /*redemptionRate*/ ethers.BigNumber.from(7000),
+        /*ballotRedemptionRate*/ ethers.BigNumber.from(7000),
+        /*pausePay*/ ethers.BigNumber.from(0),
+        /*pauseDistributions*/ ethers.BigNumber.from(0),
+        /*pauseRedeem*/ ethers.BigNumber.from(0),
+        /*pauseMint*/ ethers.BigNumber.from(0),
+        /*pauseBurn*/ ethers.BigNumber.from(0),
+        /*allowChangeToken*/ ethers.BigNumber.from(0),
+        /*allowTerminalMigration*/ ethers.BigNumber.from(0),
+        /*allowControllerMigration*/ ethers.BigNumber.from(0),
+        /*holdFees*/ ethers.BigNumber.from(0),
+        /*useTotalOverflowForRedemptions*/ ethers.BigNumber.from(0),
+        /*useDataSourceForPay*/ ethers.BigNumber.from(0),
+        /*useDataSourceForRedeem*/ ethers.BigNumber.from(0),
+        /*dataSource*/ '0x0000000000000000000000000000000000000000',
       ],
 
-    /*mustStartOnOrAfter*/ ethers.BigNumber.from(0),
+      /*mustStartOnOrAfter*/ ethers.BigNumber.from(0),
 
-    /*groupedSplits*/[],
+      /*groupedSplits*/ [],
 
-    /*fundAccessConstraints*/[],
+      /*fundAccessConstraints*/ [],
 
-    /*terminals*/[JBETHPaymentTerminal.address],
+      /*terminals*/ [JBETHPaymentTerminal.address],
 
-    /*memo*/ '',
+      /*memo*/ '',
     );
 
   console.log('Done');

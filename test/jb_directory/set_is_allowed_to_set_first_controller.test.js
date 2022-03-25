@@ -19,7 +19,7 @@ describe('JBDirectory::setIsAllowedToSetFirstController(...)', function () {
     let jbDirectory = await jbDirectoryFactory.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
-      deployer.address
+      deployer.address,
     );
 
     return {
