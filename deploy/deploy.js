@@ -31,7 +31,7 @@ module.exports = async ({ deployments, getChainId }) => {
       break;
     // rinkeby
     case '4':
-      multisigAddress = '0x69C6026e3938adE9e1ddE8Ff6A37eC96595bF1e1';
+      multisigAddress = '0xAF28bcB48C40dBC86f52D459A6562F658fc94B1e';
       chainlinkV2UsdEthPriceFeed = '0x8A753747A1Fa494EC906cE90E9f37563A8AF630e';
       break;
     // hardhat / localhost
@@ -211,11 +211,11 @@ module.exports = async ({ deployments, getChainId }) => {
 
       /*mustStartOnOrAfter*/ ethers.BigNumber.from(0),
 
-      /*groupedSplits*/ [],
+      /*groupedSplits*/[],
 
-      /*fundAccessConstraints*/ [],
+      /*fundAccessConstraints*/[],
 
-      /*terminals*/ [JBETHPaymentTerminal.address],
+      /*terminals*/[JBETHPaymentTerminal.address],
 
       /*memo*/ '',
     );
