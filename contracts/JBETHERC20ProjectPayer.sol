@@ -19,7 +19,7 @@ error NO_MSG_VALUE_ALLOWED();
   @notice 
   A contract that sends funds to a Juicebox project.
 */
-contract JBProjectPayer is IJBProjectPayer, Ownable {
+contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
   event SetDefaultValues(
     uint256 projectId,
     address beneficiary,
