@@ -5,7 +5,7 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { BigNumber } from '@ethersproject/bignumber';
 import errors from '../helpers/errors.json';
 
-describe('JBPrices::priceFor(...)', function () {
+describe.only('JBPrices::priceFor(...)', function () {
   const DECIMALS = 18;
 
   let deployer;

@@ -136,18 +136,7 @@ contract JBPrices is IJBPrices, Ownable {
     if (_feed != IJBPriceFeed(address(0)))
       return PRBMath.mulDiv(10**_decimals, 10**_decimals, _feed.currentPrice(_decimals));
 
-    // If either the currency or the base are ETH, can't use ETH as a proxy.
-    if (_currency == JBCurrencies.ETH || _base == JBCurrencies.ETH)
-      // Feed must exist.
-      revert PRICE_FEED_NOT_FOUND();
-
-    // Get the currency's price relative to ETH.
-    uint256 _currencyEthPrice = _priceFor(_currency, JBCurrencies.ETH, _decimals);
-
-    // Get the base's price relative to ETH.
-    uint256 _baseEthPrice = _priceFor(_base, JBCurrencies.ETH, _decimals);
-
-    // The relative price between the currency and the base is the ratio of the two compared to ETH.
-    return PRBMath.mulDiv(_currencyEthPrice, 10**_decimals, _baseEthPrice);
+    // No price feed available, revert
+    revert PRICE_FEED_NOT_FOUND();
   }
 }

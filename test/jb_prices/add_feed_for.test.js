@@ -4,7 +4,7 @@ import jbChainlinkPriceFeed from '../../artifacts/contracts/JBChainlinkV3PriceFe
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import errors from '../helpers/errors.json';
 
-describe('JBPrices::addFeed(...)', function () {
+describe.only('JBPrices::addFeed(...)', function () {
   let deployer;
   let addrs;
 
