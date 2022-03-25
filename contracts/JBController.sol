@@ -301,10 +301,10 @@ contract JBController is IJBController, JBOperatable {
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
     uint256 _mustStartAtOrAfter,
-    JBGroupedSplits[] memory _groupedSplits,
-    JBFundAccessConstraints[] memory _fundAccessConstraints,
+    JBGroupedSplits[] calldata _groupedSplits,
+    JBFundAccessConstraints[] calldata _fundAccessConstraints,
     IJBPaymentTerminal[] memory _terminals,
-    string calldata _memo
+    string memory _memo
   ) external override returns (uint256 projectId) {
     // Mint the project into the wallet of the message sender.
     projectId = projects.createFor(_owner, _projectMetadata);
@@ -354,10 +354,10 @@ contract JBController is IJBController, JBOperatable {
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
     uint256 _mustStartAtOrAfter,
-    JBGroupedSplits[] memory _groupedSplits,
+    JBGroupedSplits[] calldata _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
     IJBPaymentTerminal[] memory _terminals,
-    string calldata _memo
+    string memory _memo
   )
     external
     override
@@ -409,8 +409,8 @@ contract JBController is IJBController, JBOperatable {
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
     uint256 _mustStartAtOrAfter,
-    JBGroupedSplits[] memory _groupedSplits,
-    JBFundAccessConstraints[] memory _fundAccessConstraints,
+    JBGroupedSplits[] calldata _groupedSplits,
+    JBFundAccessConstraints[] calldata _fundAccessConstraints,
     string calldata _memo
   )
     external
@@ -639,7 +639,7 @@ contract JBController is IJBController, JBOperatable {
 
     @return The amount of minted reserved tokens.
   */
-  function distributeReservedTokensOf(uint256 _projectId, string memory _memo)
+  function distributeReservedTokensOf(uint256 _projectId, string calldata _memo)
     external
     override
     returns (uint256)
@@ -818,10 +818,13 @@ contract JBController is IJBController, JBOperatable {
         // If there's an allocator set, trigger its `allocate` function.
         if (_split.allocator != IJBSplitAllocator(address(0)))
           _split.allocator.allocate(
-            _tokenCount,
-            _projectId,
-            JBSplitsGroups.RESERVED_TOKENS,
-            _split
+            JBSplitAllocationData(
+              _tokenCount,
+              18,
+              _projectId,
+              JBSplitsGroups.RESERVED_TOKENS,
+              _split
+            )
           );
 
         // Subtract from the amount to be sent to the beneficiary.

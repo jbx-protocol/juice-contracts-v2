@@ -4,11 +4,11 @@ pragma solidity 0.8.6;
 import './../interfaces/IJBFundingCycleDataSource.sol';
 
 struct JBFundingCycleMetadata {
-  // The reserved rate of the funding cycle. This number is a percentage calculated out of 10000.
+  // The reserved rate of the funding cycle. This number is a percentage calculated out of `JBConstants.MAX_RESERVED_RATE`.
   uint256 reservedRate;
-  // The redemption rate of the funding cycle. This number is a percentage calculated out of 10000.
+  // The redemption rate of the funding cycle. This number is a percentage calculated out of `JBConstants.MAX_REDEMPTION_RATE`.
   uint256 redemptionRate;
-  // The redemption rate to use during an active ballot of the funding cycle. This number is a percentage calculated out of 10000.
+  // The redemption rate to use during an active ballot of the funding cycle. This number is a percentage calculated out of `JBConstants.MAX_REDEMPTION_RATE`.
   uint256 ballotRedemptionRate;
   // If the pay functionality should be paused during the funding cycle.
   bool pausePay;
@@ -28,7 +28,7 @@ struct JBFundingCycleMetadata {
   bool allowControllerMigration;
   // If fees should be held during this funding cycle.
   bool holdFees;
-  // If redemptions should use the project's balance held in all terminals instead of the project's local terminal balance.
+  // If redemptions should use the project's balance held in all terminals instead of the project's local terminal balance from which the redemption is being fulfilled.
   bool useTotalOverflowForRedemptions;
   // If the data source should be used for pay transactions during this funding cycle.
   bool useDataSourceForPay;

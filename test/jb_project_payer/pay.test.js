@@ -4,11 +4,11 @@ import { expect } from 'chai';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import errors from '../helpers/errors.json';
 
-describe('JBProjectPayer::pay(...)', function () {
+describe('JBETHERC20ProjectPayer::pay(...)', function () {
   const INITIAL_PROJECT_ID = 1;
   const INITIAL_BENEFICIARY = ethers.Wallet.createRandom().address;
   const INITIAL_PREFER_CLAIMED_TOKENS = false;
@@ -37,7 +37,7 @@ describe('JBProjectPayer::pay(...)', function () {
     let mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
     let mockJbToken = await deployMockContract(deployer, jbToken.abi);
 
-    let jbProjectPayerFactory = await ethers.getContractFactory('JBProjectPayer');
+    let jbProjectPayerFactory = await ethers.getContractFactory('JBETHERC20ProjectPayer');
     let jbProjectPayer = await jbProjectPayerFactory.deploy(
       INITIAL_PROJECT_ID,
       INITIAL_BENEFICIARY,
