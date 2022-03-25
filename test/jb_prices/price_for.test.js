@@ -6,7 +6,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 import errors from '../helpers/errors.json';
 
 describe('JBPrices::priceFor(...)', function () {
-  const DECIMALS = 1;
+  const DECIMALS = 18;
 
   let deployer;
   let addrs;
@@ -35,16 +35,28 @@ describe('JBPrices::priceFor(...)', function () {
     return await jbPrices.connect(deployer).priceFor(currency, base, DECIMALS);
   }
 
-  it('Same currency and base should return 1', async function () {
+  it('Should return 1 for the same base and currency, with correct decimals', async function () {
     expect(await addFeedAndFetchPrice(/*price=*/ 400, /*currency=*/ 1, /*base=*/ 1)).to.equal(
       ethers.BigNumber.from(10).pow(DECIMALS),
     );
   });
 
-  it('Check price 18 decimals', async function () {
-    let price = 400;
+  it('Should return the correct price', async function () {
+    let price = 4000;
     expect(await addFeedAndFetchPrice(price, /*currency=*/ 1, /*base=*/ 2, DECIMALS)).to.equal(
       ethers.BigNumber.from(price),
+    );
+  });
+
+  it('Should return the price of the price, if only the inverse feed is available', async function () {
+    let price = ethers.BigNumber.from(4000);
+    
+    await priceFeed.mock.currentPrice.withArgs(DECIMALS).returns(price.mul(ethers.BigNumber.from(10).pow(DECIMALS)));
+
+    await jbPrices.connect(deployer).addFeedFor(/*currency=*/ 1, /*base=*/ 2, priceFeed.address);
+
+    expect(await jbPrices.priceFor(/*base=*/ 2, /*currency=*/ 1, DECIMALS)).to.equal(
+      ethers.BigNumber.from(10).pow(DECIMALS).div(price),
     );
   });
 
