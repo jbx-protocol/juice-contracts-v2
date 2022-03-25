@@ -34,6 +34,7 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
     let jbDirectory = await jbDirectoryFactory.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
+      deployer.address,
     );
 
     let terminal1 = await deployMockContract(projectOwner, jbTerminal.abi);
@@ -82,15 +83,21 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
     const terminals = [terminal1.address, terminal2.address];
 
     await terminal3.mock.token.returns(ADDRESS_TOKEN_3);
-    expect(await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, terminal3.address))
+    expect(
+      await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, terminal3.address),
+    )
       .to.emit(jbDirectory, 'SetPrimaryTerminal')
       .withArgs(PROJECT_ID, ADDRESS_TOKEN_3, terminal3.address, projectOwner.address);
 
-    await expect(jbDirectory.connect(projectOwner).setTerminalsOf(PROJECT_ID, terminals))
-      .to.emit(jbDirectory, 'SetTerminals')
+    await expect(jbDirectory.connect(projectOwner).setTerminalsOf(PROJECT_ID, terminals)).to.emit(
+      jbDirectory,
+      'SetTerminals',
+    );
     //.withArgs(PROJECT_ID, terminals, projectOwner.address);
 
-    expect(await jbDirectory.primaryTerminalOf(PROJECT_ID, ADDRESS_TOKEN_3)).to.equal(ethers.constants.AddressZero);
+    expect(await jbDirectory.primaryTerminalOf(PROJECT_ID, ADDRESS_TOKEN_3)).to.equal(
+      ethers.constants.AddressZero,
+    );
   });
 
   it('Should add terminals and keep a previous primary terminal if it is included in the new terminals', async function () {
@@ -99,15 +106,21 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
     const terminals = [terminal1.address, terminal2.address, terminal3.address];
 
     await terminal3.mock.token.returns(ADDRESS_TOKEN_3);
-    expect(await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, terminal3.address))
+    expect(
+      await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, terminal3.address),
+    )
       .to.emit(jbDirectory, 'SetPrimaryTerminal')
       .withArgs(PROJECT_ID, ADDRESS_TOKEN_3, terminal3.address, projectOwner.address);
 
-    await expect(jbDirectory.connect(projectOwner).setTerminalsOf(PROJECT_ID, terminals))
-      .to.emit(jbDirectory, 'SetTerminals')
+    await expect(jbDirectory.connect(projectOwner).setTerminalsOf(PROJECT_ID, terminals)).to.emit(
+      jbDirectory,
+      'SetTerminals',
+    );
     //.withArgs(PROJECT_ID, terminals, projectOwner.address);
 
-    expect(await jbDirectory.primaryTerminalOf(PROJECT_ID, ADDRESS_TOKEN_3)).to.equal(terminal3.address);
+    expect(await jbDirectory.primaryTerminalOf(PROJECT_ID, ADDRESS_TOKEN_3)).to.equal(
+      terminal3.address,
+    );
   });
 
   it('Should add if caller is controller of the project', async function () {
@@ -152,11 +165,13 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
   });
 
   it("Can't add with duplicates", async function () {
-    const { projectOwner, jbDirectory, terminal1 } =
-      await setup();
+    const { projectOwner, jbDirectory, terminal1 } = await setup();
 
-    await expect(jbDirectory.connect(projectOwner).setTerminalsOf(PROJECT_ID, [terminal1.address, terminal1.address])).to.be
-      .revertedWith(errors.DUPLICATE_TERMINALS);
+    await expect(
+      jbDirectory
+        .connect(projectOwner)
+        .setTerminalsOf(PROJECT_ID, [terminal1.address, terminal1.address]),
+    ).to.be.revertedWith(errors.DUPLICATE_TERMINALS);
   });
 
   it("Can't add if caller does not have permission", async function () {

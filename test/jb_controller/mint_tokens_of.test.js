@@ -384,7 +384,15 @@ describe('JBController::mintTokensOf(...)', function () {
         ),
     )
       .to.emit(jbController, 'MintTokens')
-      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, 0, MEMO, 10000, projectOwner.address);
+      .withArgs(
+        beneficiary.address,
+        PROJECT_ID,
+        AMOUNT_TO_MINT,
+        0,
+        MEMO,
+        10000,
+        projectOwner.address,
+      );
 
     let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, 10000);
 
@@ -418,7 +426,15 @@ describe('JBController::mintTokensOf(...)', function () {
         ),
     )
       .to.emit(jbController, 'MintTokens')
-      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, AMOUNT_TO_MINT, MEMO, 0, projectOwner.address);
+      .withArgs(
+        beneficiary.address,
+        PROJECT_ID,
+        AMOUNT_TO_MINT,
+        AMOUNT_TO_MINT,
+        MEMO,
+        0,
+        projectOwner.address,
+      );
 
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(AMOUNT_TO_MINT);
 
@@ -476,7 +492,15 @@ describe('JBController::mintTokensOf(...)', function () {
         ),
     )
       .to.emit(jbController, 'MintTokens')
-      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, AMOUNT_TO_MINT, MEMO, 0, projectOwner.address);
+      .withArgs(
+        beneficiary.address,
+        PROJECT_ID,
+        AMOUNT_TO_MINT,
+        AMOUNT_TO_MINT,
+        MEMO,
+        0,
+        projectOwner.address,
+      );
 
     let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, 0);
 

@@ -230,7 +230,7 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
           groupedSplits,
           fundAccessConstraints,
           terminals,
-          MEMO
+          MEMO,
         ),
     ).to.equal(timestamp);
 
@@ -244,7 +244,7 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
-        MEMO
+        MEMO,
       );
 
     await Promise.all(
@@ -266,21 +266,23 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
           );
 
         const args = [EXISTING_PROJECT, timestamp, constraints.terminal];
-        expect(await jbController.distributionLimitOf(...args)).deep.equals(
-          [ethers.BigNumber.from(constraints.distributionLimit), ethers.BigNumber.from(constraints.distributionLimitCurrency)]
-        );
-        expect(await jbController.overflowAllowanceOf(...args)).deep.equals(
-          [ethers.BigNumber.from(constraints.overflowAllowance), ethers.BigNumber.from(constraints.overflowAllowanceCurrency)]
-        );
+        expect(await jbController.distributionLimitOf(...args)).deep.equals([
+          ethers.BigNumber.from(constraints.distributionLimit),
+          ethers.BigNumber.from(constraints.distributionLimitCurrency),
+        ]);
+        expect(await jbController.overflowAllowanceOf(...args)).deep.equals([
+          ethers.BigNumber.from(constraints.overflowAllowance),
+          ethers.BigNumber.from(constraints.overflowAllowanceCurrency),
+        ]);
       }),
     );
     await expect(tx)
       .to.emit(jbController, 'LaunchFundingCycles')
       .withArgs(
-            /*fundingCycleData.configuration=*/ timestamp,
+        /*fundingCycleData.configuration=*/ timestamp,
         EXISTING_PROJECT,
         MEMO,
-        projectOwner.address
+        projectOwner.address,
       );
   });
 
@@ -307,7 +309,7 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
           groupedSplits,
           fundAccessConstraints,
           [],
-          MEMO
+          MEMO,
         ),
     ).to.equal(timestamp);
 
@@ -323,7 +325,7 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
           groupedSplits,
           fundAccessConstraints,
           [],
-          MEMO
+          MEMO,
         ),
     ).to.not.emit(jbController, 'SetFundAccessConstraints');
   });
@@ -352,7 +354,7 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
-        MEMO
+        MEMO,
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_RESERVED_RATE);
@@ -384,7 +386,7 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
-        MEMO
+        MEMO,
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_REDEMPTION_RATE);
@@ -417,7 +419,7 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
-        MEMO
+        MEMO,
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_BALLOT_REDEMPTION_RATE);
@@ -447,7 +449,7 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
-        MEMO
+        MEMO,
       );
 
     await expect(tx).to.be.reverted;
@@ -487,7 +489,7 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
-        MEMO
+        MEMO,
       );
 
     await expect(tx).to.be.revertedWith(errors.UNAUTHORIZED);
@@ -517,7 +519,7 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
-        MEMO
+        MEMO,
       );
 
     await expect(tx).to.be.revertedWith(errors.FUNDING_CYCLE_ALREADY_LAUNCHED);

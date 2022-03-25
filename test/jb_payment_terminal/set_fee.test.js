@@ -23,7 +23,7 @@ describe('JBPayoutRedemptionPaymentTerminal::setFee(...)', function () {
       mockJbOperatorStore,
       mockJbProjects,
       mockJbSplitsStore,
-      mockJbPrices
+      mockJbPrices,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
       deployMockContract(deployer, jbPaymentTerminalStore.abi),

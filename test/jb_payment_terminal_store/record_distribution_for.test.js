@@ -38,14 +38,12 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     const CURRENCY_ETH = await jbCurrencies.ETH();
     const CURRENCY_USD = await jbCurrencies.USD();
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
-      'JBPaymentTerminalStore',
-    );
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBPaymentTerminalStore');
     const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbPrices.address,
       mockJbDirectory.address,
-      mockJbFundingCycleStore.address
-);
+      mockJbFundingCycleStore.address,
+    );
 
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);
@@ -105,7 +103,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     // Add to balance beforehand
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
       PROJECT_ID,
-      AMOUNT
+      AMOUNT,
     );
 
     await mockJbController.mock.distributionLimitOf
@@ -129,7 +127,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
       PROJECT_ID,
       AMOUNT,
       CURRENCY_USD,
-      CURRENCY_USD
+      CURRENCY_USD,
     );
 
     // Post-checks
@@ -205,7 +203,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
       PROJECT_ID,
       AMOUNT,
       CURRENCY_USD,
-      CURRENCY_ETH
+      CURRENCY_ETH,
     );
 
     // Post-checks
@@ -251,7 +249,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
-        CURRENCY_ETH
+        CURRENCY_ETH,
       ),
     ).to.be.revertedWith(errors.FUNDING_CYCLE_DISTRIBUTION_PAUSED);
   });
@@ -291,7 +289,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
-        CURRENCY_ETH
+        CURRENCY_ETH,
       ), // Use ETH instead of expected USD
     ).to.be.revertedWith(errors.CURRENCY_MISMATCH);
   });
@@ -342,7 +340,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
-        CURRENCY_ETH
+        CURRENCY_ETH,
       ),
     ).to.be.revertedWith(errors.DISTRIBUTION_AMOUNT_LIMIT_REACHED);
   });
@@ -393,7 +391,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
-        CURRENCY_ETH
+        CURRENCY_ETH,
       ),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });

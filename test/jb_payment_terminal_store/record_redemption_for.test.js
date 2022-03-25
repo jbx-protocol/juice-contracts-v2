@@ -42,14 +42,12 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     const jbCurrencies = await jbCurrenciesFactory.deploy();
     const CURRENCY_ETH = await jbCurrencies.ETH();
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
-      'JBPaymentTerminalStore',
-    );
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBPaymentTerminalStore');
     const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbPrices.address,
       mockJbDirectory.address,
-      mockJbFundingCycleStore.address
-);
+      mockJbFundingCycleStore.address,
+    );
 
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);
@@ -120,8 +118,10 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       .returns(AMOUNT, CURRENCY_ETH);
 
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(AMOUNT);
-    await mockJbController.mock.totalOutstandingTokensOf.withArgs(PROJECT_ID, reservedRate).returns(AMOUNT);
-    
+    await mockJbController.mock.totalOutstandingTokensOf
+      .withArgs(PROJECT_ID, reservedRate)
+      .returns(AMOUNT);
+
     await mockJbController.mock.reservedTokenBalanceOf
       .withArgs(PROJECT_ID, reservedRate)
       .returns(0);
@@ -146,7 +146,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       /* balanceDecimals*/ 18,
       /* balanceCurrency */ CURRENCY,
       /* memo */ 'test',
-      METADATA
+      METADATA,
     );
 
     // Expect recorded balance to decrease by redeemed amount
@@ -199,7 +199,9 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       .returns(AMOUNT, CURRENCY_ETH);
 
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(AMOUNT);
-    await mockJbController.mock.totalOutstandingTokensOf.withArgs(PROJECT_ID, reservedRate).returns(AMOUNT);
+    await mockJbController.mock.totalOutstandingTokensOf
+      .withArgs(PROJECT_ID, reservedRate)
+      .returns(AMOUNT);
 
     await mockJbController.mock.reservedTokenBalanceOf
       .withArgs(PROJECT_ID, reservedRate)
@@ -222,7 +224,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       /* balanceDecimals*/ 18,
       /* balanceCurrency */ CURRENCY,
       /* memo */ 'test',
-      METADATA
+      METADATA,
     );
 
     // Expect recorded balance to not have changed
@@ -272,7 +274,9 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       .returns(AMOUNT, CURRENCY_ETH);
 
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(AMOUNT);
-    await mockJbController.mock.totalOutstandingTokensOf.withArgs(PROJECT_ID, reservedRate).returns(AMOUNT);
+    await mockJbController.mock.totalOutstandingTokensOf
+      .withArgs(PROJECT_ID, reservedRate)
+      .returns(AMOUNT);
 
     await mockJbController.mock.reservedTokenBalanceOf
       .withArgs(PROJECT_ID, reservedRate)
@@ -294,7 +298,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       /* balanceDecimals*/ 18,
       /* balanceCurrency */ CURRENCY,
       /* memo */ 'test',
-      METADATA
+      METADATA,
     );
 
     // Expect recorded balance to not have changed
@@ -347,7 +351,9 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       metadata: packedMetadata,
     });
 
-    await mockJbController.mock.totalOutstandingTokensOf.withArgs(PROJECT_ID, reservedRate).returns(AMOUNT);
+    await mockJbController.mock.totalOutstandingTokensOf
+      .withArgs(PROJECT_ID, reservedRate)
+      .returns(AMOUNT);
 
     const startingBalance = AMOUNT.mul(ethers.BigNumber.from(2));
 
@@ -366,16 +372,16 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         redemptionRate: redemptionRate,
         ballotRedemptionRate: ballotRedemptionRate,
         memo: 'test',
-        metadata: METADATA
+        metadata: METADATA,
       })
       .returns(AMOUNT, newMemo, delegate.address);
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
-    
+
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminalSigner.address)
       .returns(AMOUNT, CURRENCY_ETH);
-  
+
     // Add to balance beforehand to have sufficient overflow
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
       PROJECT_ID,
@@ -396,7 +402,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       /* balanceDecimals*/ 18,
       /* balanceCurrency */ CURRENCY,
       /* memo */ 'test',
-      METADATA
+      METADATA,
     );
 
     expect(tx.delegate).to.equal(delegate.address);
@@ -445,13 +451,13 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     // Record redemption
     await expect(
       JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordRedemptionFor(
-      /* holder */ holder.address,
-      /* projectId */ PROJECT_ID,
-      /* tokenCount */ AMOUNT,
-      /* balanceDecimals*/ 18,
-      /* balanceCurrency */ CURRENCY,
-      /* memo */ 'test',
-        METADATA
+        /* holder */ holder.address,
+        /* projectId */ PROJECT_ID,
+        /* tokenCount */ AMOUNT,
+        /* balanceDecimals*/ 18,
+        /* balanceCurrency */ CURRENCY,
+        /* memo */ 'test',
+        METADATA,
       ),
     ).to.be.revertedWith(errors.FUNDING_CYCLE_REDEEM_PAUSED);
   });
@@ -512,7 +518,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         redemptionRate: redemptionRate,
         ballotRedemptionRate: ballotRedemptionRate,
         memo: 'test',
-        metadata: METADATA
+        metadata: METADATA,
       })
       .returns(AMOUNT, newMemo, delegate.address);
 
@@ -524,9 +530,9 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         /* projectId */ PROJECT_ID,
         /* tokenCount */ AMOUNT,
         /* balanceDecimals*/ 18,
-        /* balanceCurrency */ CURRENCY,  
+        /* balanceCurrency */ CURRENCY,
         /* memo */ 'test',
-        METADATA
+        METADATA,
       ),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });

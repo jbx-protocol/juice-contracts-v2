@@ -69,7 +69,9 @@ describe('JBController::totalOutstandingTokensOf(...)', function () {
     );
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
-    await mockJbDirectory.mock.isTerminalOf.withArgs(PROJECT_ID, projectOwner.address).returns(false);
+    await mockJbDirectory.mock.isTerminalOf
+      .withArgs(PROJECT_ID, projectOwner.address)
+      .returns(false);
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(ALREADY_MINTED_TOKEN);
 
     return {
@@ -91,21 +93,22 @@ describe('JBController::totalOutstandingTokensOf(...)', function () {
     const { jbController, timestamp, projectOwner, mockJbFundingCycleStore, mockJbTokenStore } =
       await setup();
 
-      await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-        number: 1,
-        configuration: timestamp,
-        basedOn: timestamp,
-        start: timestamp,
-        duration: 0,
-        weight: 0,
-        discountRate: 0,
-        ballot: ethers.constants.AddressZero,
-        metadata: packFundingCycleMetadata({ reservedRate: RESERVED_RATE }),
-      }),
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: 0,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({ reservedRate: RESERVED_RATE }),
+    }),
+      await mockJbTokenStore.mock.mintFor
+        .withArgs(ethers.constants.AddressZero, PROJECT_ID, RESERVED_AMOUNT, true)
+        .returns();
 
-      await mockJbTokenStore.mock.mintFor.withArgs(ethers.constants.AddressZero, PROJECT_ID, RESERVED_AMOUNT, true).returns();
-
-      await jbController
+    await jbController
       .connect(projectOwner)
       .mintTokensOf(
         PROJECT_ID,
@@ -116,30 +119,33 @@ describe('JBController::totalOutstandingTokensOf(...)', function () {
         /*useReservedRate*/ true,
       );
 
-      expect(await jbController.totalOutstandingTokensOf(PROJECT_ID, RESERVED_RATE))
-        .to.equal( (RESERVED_AMOUNT + ALREADY_MINTED_TOKEN) + ALREADY_MINTED_TOKEN); //unprocessed + total supply
+    expect(await jbController.totalOutstandingTokensOf(PROJECT_ID, RESERVED_RATE)).to.equal(
+      RESERVED_AMOUNT + ALREADY_MINTED_TOKEN + ALREADY_MINTED_TOKEN,
+    ); //unprocessed + total supply
   });
 
   it(`Should return the total amount of outstanding token, when the reserve rate is less than the maximum`, async function () {
     const { jbController, projectOwner, timestamp, mockJbFundingCycleStore, mockJbTokenStore } =
       await setup();
 
-      await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-        number: 1,
-        configuration: timestamp,
-        basedOn: timestamp,
-        start: timestamp,
-        duration: 0,
-        weight: 0,
-        discountRate: 0,
-        ballot: ethers.constants.AddressZero,
-        metadata: packFundingCycleMetadata({ reservedRate: 5000 }),
-      });
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: 0,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({ reservedRate: 5000 }),
+    });
 
-      // 50% reserved rate
-      await mockJbTokenStore.mock.mintFor.withArgs(ethers.constants.AddressZero, PROJECT_ID, RESERVED_AMOUNT/2, true).returns();
+    // 50% reserved rate
+    await mockJbTokenStore.mock.mintFor
+      .withArgs(ethers.constants.AddressZero, PROJECT_ID, RESERVED_AMOUNT / 2, true)
+      .returns();
 
-      await jbController
+    await jbController
       .connect(projectOwner)
       .mintTokensOf(
         PROJECT_ID,
@@ -150,30 +156,33 @@ describe('JBController::totalOutstandingTokensOf(...)', function () {
         /*useReservedRate*/ true,
       );
 
-      expect(await jbController.totalOutstandingTokensOf(PROJECT_ID, 5000))
-        .to.equal( ALREADY_MINTED_TOKEN + ( ((ALREADY_MINTED_TOKEN * 10000) / (10000 - 5000) ) - 1000) );
-        // total supply + reserved unprocessed token which is  [minted * 1/(1-reserved rate)] - minted
-  })
+    expect(await jbController.totalOutstandingTokensOf(PROJECT_ID, 5000)).to.equal(
+      ALREADY_MINTED_TOKEN + ((ALREADY_MINTED_TOKEN * 10000) / (10000 - 5000) - 1000),
+    );
+    // total supply + reserved unprocessed token which is  [minted * 1/(1-reserved rate)] - minted
+  });
 
   it(`Should return the total amount of outstanding token equals to the total supply, when the reserve rate is 0`, async function () {
     const { jbController, projectOwner, timestamp, mockJbFundingCycleStore, mockJbTokenStore } =
       await setup();
 
-      await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
-        number: 1,
-        configuration: timestamp,
-        basedOn: timestamp,
-        start: timestamp,
-        duration: 0,
-        weight: 0,
-        discountRate: 0,
-        ballot: ethers.constants.AddressZero,
-        metadata: packFundingCycleMetadata({ reservedRate: 0 }),
-      });
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: 0,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({ reservedRate: 0 }),
+    });
 
-      await mockJbTokenStore.mock.mintFor.withArgs(ethers.constants.AddressZero, PROJECT_ID, ALREADY_MINTED_TOKEN, true).returns();
+    await mockJbTokenStore.mock.mintFor
+      .withArgs(ethers.constants.AddressZero, PROJECT_ID, ALREADY_MINTED_TOKEN, true)
+      .returns();
 
-      await jbController
+    await jbController
       .connect(projectOwner)
       .mintTokensOf(
         PROJECT_ID,
@@ -184,7 +193,8 @@ describe('JBController::totalOutstandingTokensOf(...)', function () {
         /*useReservedRate*/ true,
       );
 
-      expect(await jbController.totalOutstandingTokensOf(PROJECT_ID, 0))
-        .to.equal(ALREADY_MINTED_TOKEN);
+    expect(await jbController.totalOutstandingTokensOf(PROJECT_ID, 0)).to.equal(
+      ALREADY_MINTED_TOKEN,
+    );
   });
-})
+});

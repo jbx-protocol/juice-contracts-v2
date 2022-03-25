@@ -94,7 +94,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(JUICEBOX_PROJECT_ID, ETH_ADDRESS)
-      .returns(jbEthPaymentTerminal.address)
+      .returns(jbEthPaymentTerminal.address);
 
     await mockJbProjects.mock.ownerOf.returns(projectOwner.address);
 
@@ -263,7 +263,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         JUICEBOX_PROJECT_ID,
         CURRENCY_ETH,
         /* memo */ '',
-        '0x'
+        '0x',
       )
       .returns(fundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
 
@@ -352,10 +352,9 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         JUICEBOX_PROJECT_ID,
         CURRENCY_ETH,
         /* memo */ '',
-        '0x'
+        '0x',
       )
       .returns(fundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
-
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)
@@ -438,7 +437,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         JUICEBOX_PROJECT_ID,
         CURRENCY_ETH,
         /* memo */ '',
-        '0x'
+        '0x',
       )
       .returns(fundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
 
@@ -523,7 +522,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         JUICEBOX_PROJECT_ID,
         CURRENCY_ETH,
         /* memo */ '',
-        '0x'
+        '0x',
       )
       .returns(fundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
 
@@ -616,7 +615,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         JUICEBOX_PROJECT_ID,
         CURRENCY_ETH,
         /* memo */ '',
-        '0x'
+        '0x',
       )
       .returns(newFundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
 

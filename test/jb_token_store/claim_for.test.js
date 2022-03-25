@@ -32,9 +32,7 @@ describe('JBTokenStore::claimFor(...)', function () {
       mockJbDirectory.address,
     );
 
-    await mockJbProjects.mock.ownerOf
-      .withArgs(PROJECT_ID)
-      .returns(projectOwner.address);
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
     return {
       controller,
@@ -44,12 +42,19 @@ describe('JBTokenStore::claimFor(...)', function () {
       mockJbProjects,
       mockJbOperatorStore,
       jbTokenStore,
-      CLAIM_INDEX
+      CLAIM_INDEX,
     };
   }
 
   it('Should claim tokens and emit event', async function () {
-    const { controller, newHolder, mockJbDirectory, mockJbOperatorStore, jbTokenStore, CLAIM_INDEX } = await setup();
+    const {
+      controller,
+      newHolder,
+      mockJbDirectory,
+      mockJbOperatorStore,
+      jbTokenStore,
+      CLAIM_INDEX,
+    } = await setup();
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
@@ -108,17 +113,12 @@ describe('JBTokenStore::claimFor(...)', function () {
     ).to.be.revertedWith(errors.INSUFFICIENT_UNCLAIMED_TOKENS);
   });
   it(`Can't claim unclaimed tokens if caller lacks permission`, async function () {
-    const { controller, newHolder, jbTokenStore } =
-      await setup();
+    const { controller, newHolder, jbTokenStore } = await setup();
 
     await expect(
       jbTokenStore
         .connect(controller)
-        .claimFor(
-          /* holder */ newHolder.address,
-          PROJECT_ID,
-          /* amount= */ 1,
-        ),
+        .claimFor(/* holder */ newHolder.address, PROJECT_ID, /* amount= */ 1),
     ).to.be.reverted;
   });
 });

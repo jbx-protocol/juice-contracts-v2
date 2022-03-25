@@ -148,7 +148,8 @@ describe('JBTokenStore::changeFor(...)', function () {
   });
 
   it(`Can't add non-18 decimal token`, async function () {
-    const { controller, mockJbDirectory, mockJbProjects, mockJbToken, jbTokenStore, newOwner } = await setup();
+    const { controller, mockJbDirectory, mockJbProjects, mockJbToken, jbTokenStore, newOwner } =
+      await setup();
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
