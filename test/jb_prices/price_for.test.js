@@ -48,7 +48,7 @@ describe('JBPrices::priceFor(...)', function () {
     );
   });
 
-  it('Should return the price of the price, if only the inverse feed is available', async function () {
+  it('Should return the inverse of the price, if only the inverse feed is available', async function () {
     let price = ethers.BigNumber.from(4000);
     
     await priceFeed.mock.currentPrice.withArgs(DECIMALS).returns(price.mul(ethers.BigNumber.from(10).pow(DECIMALS)));
