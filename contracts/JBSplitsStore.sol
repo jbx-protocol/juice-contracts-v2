@@ -22,7 +22,7 @@ error PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();
 
   @dev
   Adheres to:
-  IJBSplitsStore: General interface for the methods in this contract that interact with the blockchain's state according to the Juicebox protocol's rules.
+  IJBSplitsStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
   Inherits from:

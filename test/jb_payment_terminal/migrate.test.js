@@ -118,10 +118,10 @@ describe('JBPayoutRedemptionPaymentTerminal::migrate(...)', function () {
 
     // addToBalanceOf _amount is 0 if ETH terminal
     await mockJbEthPaymentTerminal.mock.addToBalanceOf
-      .withArgs(CURRENT_TERMINAL_BALANCE, PROJECT_ID, '')
+      .withArgs(PROJECT_ID, CURRENT_TERMINAL_BALANCE, '')
       .returns();
     await mockJBERC20PaymentTerminal.mock.addToBalanceOf
-      .withArgs(CURRENT_TERMINAL_BALANCE, PROJECT_ID, '')
+      .withArgs(PROJECT_ID, CURRENT_TERMINAL_BALANCE, '')
       .returns();
 
     await setBalance(jbEthPaymentTerminal.address, CURRENT_TERMINAL_BALANCE);
@@ -165,12 +165,8 @@ describe('JBPayoutRedemptionPaymentTerminal::migrate(...)', function () {
   });
 
   it('Should migrate non-eth terminal', async function () {
-    const {
-      projectOwner,
-      JBERC20PaymentTerminal,
-      mockJBERC20PaymentTerminal,
-      mockJbToken,
-    } = await setup();
+    const { projectOwner, JBERC20PaymentTerminal, mockJBERC20PaymentTerminal, mockJbToken } =
+      await setup();
 
     await mockJbToken.mock['approve(address,uint256)']
       .withArgs(mockJBERC20PaymentTerminal.address, CURRENT_TERMINAL_BALANCE)

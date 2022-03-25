@@ -25,8 +25,7 @@ describe('JBPayoutRedemptionPaymentTerminal::currentEthOverflowOf(...)', functio
   });
 
   async function setup() {
-    let [deployer, terminalOwner, caller] =
-      await ethers.getSigners();
+    let [deployer, terminalOwner, caller] = await ethers.getSigners();
 
     const SPLITS_GROUP = 1;
 
@@ -89,8 +88,12 @@ describe('JBPayoutRedemptionPaymentTerminal::currentEthOverflowOf(...)', functio
         terminalOwner.address,
       );
 
-    await mockJBPaymentTerminalStore.mock.currentOverflowOf.withArgs(jbEthPaymentTerminal.address, PROJECT_ID).returns(AMOUNT);
-    await mockJBPaymentTerminalStore.mock.currentOverflowOf.withArgs(JBERC20PaymentTerminal.address, PROJECT_ID).returns(AMOUNT);
+    await mockJBPaymentTerminalStore.mock.currentOverflowOf
+      .withArgs(jbEthPaymentTerminal.address, PROJECT_ID)
+      .returns(AMOUNT);
+    await mockJBPaymentTerminalStore.mock.currentOverflowOf
+      .withArgs(JBERC20PaymentTerminal.address, PROJECT_ID)
+      .returns(AMOUNT);
 
     await mockJBPaymentTerminalStore.mock.prices.returns(mockJbPrices.address);
 
@@ -115,6 +118,8 @@ describe('JBPayoutRedemptionPaymentTerminal::currentEthOverflowOf(...)', functio
       .withArgs(CURRENCY_USD, CURRENCY_ETH, 18) // 18-decimal
       .returns(100);
 
-    expect(await JBERC20PaymentTerminal.currentEthOverflowOf(PROJECT_ID)).to.equal(AMOUNT.mul(ethers.utils.parseEther('1')).div(PRICE));
+    expect(await JBERC20PaymentTerminal.currentEthOverflowOf(PROJECT_ID)).to.equal(
+      AMOUNT.mul(ethers.utils.parseEther('1')).div(PRICE),
+    );
   });
 });

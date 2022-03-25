@@ -19,6 +19,7 @@ error RECIPIENT_ZERO_ADDRESS();
 error TOKEN_NOT_FOUND();
 error PROJECT_ALREADY_HAS_TOKEN();
 error CANT_REMOVE_TOKEN_IF_ITS_REQUIRED();
+error TOKENS_MUST_HAVE_18_DECIMALS();
 
 /**
   @notice
@@ -36,7 +37,7 @@ error CANT_REMOVE_TOKEN_IF_ITS_REQUIRED();
   
   @dev
   Adheres to:
-  IJBTokenStore: General interface for the methods in this contract that interact with the blockchain's state according to the Juicebox protocol's rules.
+  IJBTokenStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
   Inherits from:
@@ -224,6 +225,9 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     if (_token == IJBToken(address(0)) && requireClaimFor[_projectId])
       revert CANT_REMOVE_TOKEN_IF_ITS_REQUIRED();
 
+    // Can't add a token that doesn't use 18 decimals.
+    if (_token.decimals() != 18) revert TOKENS_MUST_HAVE_18_DECIMALS();
+
     // Get a reference to the current token for the project.
     oldToken = tokenOf[_projectId];
 
@@ -325,7 +329,6 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     // The amount of unclaimed tokens to redeem.
     uint256 _unclaimedTokensToBurn = _amount - _claimedTokensToBurn;
 
-
     // Subtract the tokens from the unclaimed balance and total supply.
     if (_unclaimedTokensToBurn > 0) {
       // Reduce the holders balance and the total supply.
@@ -356,7 +359,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     Claims internally accounted for tokens into a holder's wallet.
 
     @dev
-    Only a token holder, the owner of the token's project, or an operator specified by the token holder can claim its unclaimed tokens.
+    Only a token holder or an operator specified by the token holder can claim its unclaimed tokens.
 
     @param _holder The owner of the tokens being claimed.
     @param _projectId The ID of the project whose tokens are being claimed.
@@ -366,16 +369,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     address _holder,
     uint256 _projectId,
     uint256 _amount
-  )
-    external
-    override
-    requirePermissionAllowingOverride(
-      _holder,
-      _projectId,
-      JBOperations.CLAIM,
-      msg.sender == projects.ownerOf(_projectId)
-    )
-  {
+  ) external override requirePermission(_holder, _projectId, JBOperations.CLAIM) {
     // Get a reference to the project's current token.
     IJBToken _token = tokenOf[_projectId];
 

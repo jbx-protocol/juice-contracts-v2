@@ -18,9 +18,7 @@ struct JBPayParamsData {
   uint256 weight;
   // The reserved rate of the funding cycle during which the payment is being made.
   uint256 reservedRate;
-  // The proposed beneficiary of the tokens that will be minted as a result of the tokens.
-  address beneficiary;
-  // The proposed memo that is being emitted alongside the payment.
+  // The memo that was sent alongside the payment.
   string memo;
   // Arbitrary metadata provided by the payer.
   bytes metadata;

@@ -12,7 +12,7 @@ import jBFundingCycleStore from '../../artifacts/contracts/interfaces/IJBFunding
 import jbFundingCycleDataSource from '../../artifacts/contracts/interfaces/IJBFundingCycleDataSource.sol/IJBFundingCycleDataSource.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
 describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
@@ -41,15 +41,11 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     const mockJbController = await deployMockContract(deployer, jbController.abi);
     const mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
-      'JBPaymentTerminalStore',
-    );
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBPaymentTerminalStore');
     const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbPrices.address,
-      mockJbProjects.address,
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
-      mockJbTokenStore.address,
     );
 
     const blockNum = await ethers.provider.getBlockNumber();
@@ -113,22 +109,16 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     // Record the payment
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
       payer.address,
-      [
-        "0x1230000000000000000000000000000000000000",
-        AMOUNT,
-        18,
-        CURRENCY
-      ],
+      ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
       PROJECT_ID,
-      beneficiary.address,
       BASE_CURRENCY,
       /* memo */ 'test',
-      METADATA
+      METADATA,
     );
 
     // Expect recorded balance to change
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID)
+      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(AMOUNT);
   });
 
@@ -164,17 +154,11 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     // Record the payment
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
       /* payer */ payer.address,
-      [
-        "0x1230000000000000000000000000000000000000",
-        AMOUNT,
-        18,
-        CURRENCY
-      ],
+      ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
       PROJECT_ID,
-      beneficiary.address,
       BASE_CURRENCY,
       /* memo */ 'test',
-      METADATA
+      METADATA,
     );
 
     // Expect recorded balance to change
@@ -225,20 +209,14 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         // JBPayParamsData obj
         terminal: mockJbTerminalSigner.address,
         payer: payer.address,
-        amount:
-          [
-            "0x1230000000000000000000000000000000000000",
-            AMOUNT,
-            18,
-            CURRENCY
-          ],
+        amount: ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
         decimal: _FIXED_POINT_MAX_FIDELITY,
         projectId: PROJECT_ID,
         weight: WEIGHT,
         reservedRate: reservedRate,
         beneficiary: beneficiary.address,
         memo: memo,
-        metadata: METADATA
+        metadata: METADATA,
       })
       .returns(WEIGHT, newMemo, delegate.address);
 
@@ -250,17 +228,11 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
       /* payer */ payer.address,
       /* amount */
-      [
-        "0x1230000000000000000000000000000000000000",
-        AMOUNT,
-        18,
-        CURRENCY
-      ],
+      ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
       /* projectId */ PROJECT_ID,
-      beneficiary.address,
       BASE_CURRENCY,
       /* memo */ memo,
-      METADATA
+      METADATA,
     );
 
     // Expect recorded balance to change
@@ -301,17 +273,11 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     // Record the payment
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
       /* payer */ payer.address,
-      [
-        "0x1230000000000000000000000000000000000000",
-        AMOUNT,
-        18,
-        CURRENCY
-      ],
+      ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
       PROJECT_ID,
-      beneficiary.address,
       BASE_CURRENCY,
       /* memo */ 'test',
-      METADATA
+      METADATA,
     );
 
     // Expect recorded balance to change
@@ -361,17 +327,11 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     // Record the payment
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
       /* payer */ payer.address,
-      [
-        "0x1230000000000000000000000000000000000000",
-        AMOUNT,
-        18,
-        CURRENCY
-      ],
+      ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
       PROJECT_ID,
-      beneficiary.address,
       BASE_CURRENCY,
       /* memo */ 'test',
-      METADATA
+      METADATA,
     );
 
     // Expect recorded balance to change
@@ -421,20 +381,14 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
         // JBPayParamsData obj
         terminal: mockJbTerminalSigner.address,
         payer: payer.address,
-        amount:
-          [
-            "0x1230000000000000000000000000000000000000",
-            0,
-            18,
-            CURRENCY
-          ],
+        amount: ['0x1230000000000000000000000000000000000000', 0, 18, CURRENCY],
         decimal: _FIXED_POINT_MAX_FIDELITY,
         projectId: PROJECT_ID,
         weight: WEIGHT,
         reservedRate: reservedRate,
         beneficiary: beneficiary.address,
         memo: memo,
-        metadata: METADATA
+        metadata: METADATA,
       })
       .returns(WEIGHT, newMemo, delegate.address);
 
@@ -447,17 +401,11 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       mockJbTerminalSigner,
     ).callStatic.recordPaymentFrom(
       /* payer */ payer.address,
-      [
-        "0x1230000000000000000000000000000000000000",
-        0,
-        18,
-        CURRENCY
-      ],
+      ['0x1230000000000000000000000000000000000000', 0, 18, CURRENCY],
       /* projectId */ PROJECT_ID,
-      beneficiary.address,
       BASE_CURRENCY,
       /* memo */ memo,
-      METADATA
+      METADATA,
     );
 
     // Recorded balance should not have changed
@@ -496,17 +444,11 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     await expect(
       JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
         /* payer */ payer.address,
-        [
-          "0x1230000000000000000000000000000000000000",
-          AMOUNT,
-          18,
-          CURRENCY
-        ],
+        ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
         PROJECT_ID,
-        beneficiary.address,
         BASE_CURRENCY,
         /* memo */ 'test',
-        METADATA
+        METADATA,
       ),
     ).to.be.revertedWith(errors.INVALID_FUNDING_CYCLE);
   });
@@ -537,17 +479,11 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     await expect(
       JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
         /* payer */ payer.address,
-        [
-          "0x1230000000000000000000000000000000000000",
-          AMOUNT,
-          18,
-          CURRENCY
-        ],
+        ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
         PROJECT_ID,
-        beneficiary.address,
         BASE_CURRENCY,
         /* memo */ 'test',
-        METADATA
+        METADATA,
       ),
     ).to.be.revertedWith(errors.FUNDING_CYCLE_PAYMENT_PAUSED);
   });

@@ -2,8 +2,10 @@
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
+import '@paulrberg/contracts/math/PRBMath.sol';
 
 import './interfaces/IJBPrices.sol';
+import './libraries/JBCurrencies.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
@@ -16,7 +18,7 @@ error PRICE_FEED_NOT_FOUND();
 
   @dev
   Adheres to:
-  IJBPrices: General interface for the methods in this contract that interact with the blockchain's state according to the Juicebox protocol's rules.
+  IJBPrices: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
   Inherits from:
@@ -31,8 +33,11 @@ contract JBPrices is IJBPrices, Ownable {
     @notice 
     The available price feeds.
 
-    _currency The currency of the feed.
-    _base The currency the feed is based on.  
+    @dev
+    The feed returns the number of `_currency` units that can be converted to 1 `_base` unit.
+
+    _currency The currency units the feed's resulting price is in terms of.
+    _base The base currency unit being priced by the feed.
   */
   mapping(uint256 => mapping(uint256 => IJBPriceFeed)) public override feedFor;
 
@@ -41,11 +46,11 @@ contract JBPrices is IJBPrices, Ownable {
   //*********************************************************************//
 
   /** 
-    @notice 
-    Gets the current price of the provided currency in terms of the provided base currency.
-    
-    @param _currency The currency to get a price for.
-    @param _base The currency to base the price on.
+    @notice
+    Gets the number of `_currency` units that can be converted to 1 `_base` unit.
+
+    @param _currency The currency units the resulting price is in terms of.
+    @param _base The base currency unit being priced.
     @param _decimals The number of decimals the returned fixed point price should include.
     
     @return The price of the currency in terms of the base, as a fixed point number with the specified number of decimals.
@@ -58,14 +63,7 @@ contract JBPrices is IJBPrices, Ownable {
     // If the currency is the base, return 1 since they are priced the same. Include the desired number of decimals.
     if (_currency == _base) return 10**_decimals;
 
-    // Get a reference to the feed.
-    IJBPriceFeed _feed = feedFor[_currency][_base];
-
-    // Feed must exist.
-    if (_feed == IJBPriceFeed(address(0))) revert PRICE_FEED_NOT_FOUND();
-
-    // Get the price.
-    return _feed.currentPrice(_decimals);
+    return _priceFor(_currency, _base, _decimals);
   }
 
   //*********************************************************************//
@@ -91,8 +89,8 @@ contract JBPrices is IJBPrices, Ownable {
     @dev
     Current feeds can't be modified.
 
-    @param _currency The currency that the price feed is for.
-    @param _base The currency that the price feed is based on.
+    @param _currency The currency units the feed's resulting price is in terms of.
+    @param _base The base currency unit being priced by the feed.
     @param _feed The price feed being added.
   */
   function addFeedFor(
@@ -107,5 +105,41 @@ contract JBPrices is IJBPrices, Ownable {
     feedFor[_currency][_base] = _feed;
 
     emit AddFeed(_currency, _base, _feed);
+  }
+
+  //*********************************************************************//
+  // --------------------- private helper functions -------------------- //
+  //*********************************************************************//
+
+  /** 
+    @notice 
+    Gets the current price of the provided currency in terms of the provided base currency.
+    
+    @param _currency The currency to get a price for.
+    @param _base The currency to base the price on.
+    @param _decimals The number of decimals the returned fixed point price should include.
+    
+    @return The price of the currency in terms of the base, as a fixed point number with the specified number of decimals.
+  */
+  function _priceFor(
+    uint256 _currency,
+    uint256 _base,
+    uint256 _decimals
+  ) private view returns (uint256) {
+    // Get a reference to the feed.
+    IJBPriceFeed _feed = feedFor[_currency][_base];
+
+    // If it exists, return the price.
+    if (_feed != IJBPriceFeed(address(0))) return _feed.currentPrice(_decimals);
+
+    // Get the inverse feed.
+    _feed = feedFor[_base][_currency];
+
+    // If it exists, return the inverse price.
+    if (_feed != IJBPriceFeed(address(0)))
+      return PRBMath.mulDiv(10**_decimals, 10**_decimals, _feed.currentPrice(_decimals));
+
+    // No price feed available, revert
+    revert PRICE_FEED_NOT_FOUND();
   }
 }

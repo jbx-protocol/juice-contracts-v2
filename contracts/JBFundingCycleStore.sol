@@ -20,7 +20,7 @@ error INVALID_WEIGHT();
 
   @dev
   Adheres to:
-  IJBTokenStore: General interface for the methods in this contract that interact with the blockchain's state according to the Juicebox protocol's rules.
+  IJBTokenStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
   Inherits from:
@@ -115,7 +115,7 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     // Get a reference to the configuration of the standby funding cycle.
     uint256 _standbyFundingCycleConfiguration = _standbyOf(_projectId);
 
-    // If it exists, return it's funding cycle if it is approved
+    // If it exists, return its funding cycle if it is approved.
     if (_standbyFundingCycleConfiguration > 0) {
       fundingCycle = _getStructFor(_projectId, _standbyFundingCycleConfiguration);
 

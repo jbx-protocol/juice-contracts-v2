@@ -5,7 +5,7 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 
 describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
   const PROJECT_ID = 13;
@@ -28,6 +28,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     let jbDirectory = await jbDirectoryFactory.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
+      deployer.address,
     );
 
     let terminal1 = await deployMockContract(projectOwner, jbTerminal.abi);

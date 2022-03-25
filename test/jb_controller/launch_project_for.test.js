@@ -124,7 +124,7 @@ describe('JBController::launchProjectFor(...)', function () {
     allowTerminalMigration = false,
     allowControllerMigration = false,
     holdFees = false,
-    useLocalBalanceForRedemptions = false,
+    useTotalOverflowForRedemptions = false,
     useDataSourceForPay = false,
     useDataSourceForRedeem = false,
     dataSource = ethers.constants.AddressZero,
@@ -142,7 +142,7 @@ describe('JBController::launchProjectFor(...)', function () {
       allowTerminalMigration,
       allowControllerMigration,
       holdFees,
-      useLocalBalanceForRedemptions,
+      useTotalOverflowForRedemptions,
       useDataSourceForPay,
       useDataSourceForRedeem,
       dataSource,
@@ -206,7 +206,7 @@ describe('JBController::launchProjectFor(...)', function () {
           groupedSplits,
           fundAccessConstraints,
           terminals,
-          MEMO
+          MEMO,
         ),
     ).to.equal(PROJECT_ID);
 
@@ -221,7 +221,7 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
-        MEMO
+        MEMO,
       );
 
     await Promise.all(
@@ -243,32 +243,29 @@ describe('JBController::launchProjectFor(...)', function () {
           );
 
         const args = [PROJECT_ID, timestamp, constraints.terminal];
-        expect(await jbController.distributionLimitOf(...args)).deep.equals(
-          [ethers.BigNumber.from(constraints.distributionLimit), ethers.BigNumber.from(constraints.distributionLimitCurrency)]
-        );
-        expect(await jbController.overflowAllowanceOf(...args)).deep.equals(
-          [ethers.BigNumber.from(constraints.overflowAllowance), ethers.BigNumber.from(constraints.overflowAllowanceCurrency)]
-        );
+        expect(await jbController.distributionLimitOf(...args)).deep.equals([
+          ethers.BigNumber.from(constraints.distributionLimit),
+          ethers.BigNumber.from(constraints.distributionLimitCurrency),
+        ]);
+        expect(await jbController.overflowAllowanceOf(...args)).deep.equals([
+          ethers.BigNumber.from(constraints.overflowAllowance),
+          ethers.BigNumber.from(constraints.overflowAllowanceCurrency),
+        ]);
       }),
     );
     await expect(tx)
       .to.emit(jbController, 'LaunchProject')
       .withArgs(
-            /*fundingCycleData.configuration=*/ timestamp,
+        /*fundingCycleData.configuration=*/ timestamp,
         PROJECT_ID,
         MEMO,
-        projectOwner.address
+        projectOwner.address,
       );
   });
 
   it(`Should launch a project without payment terminals and funding cycle constraints`, async function () {
-    const {
-      jbController,
-      projectOwner,
-      fundingCycleData,
-      fundingCycleMetadata,
-      splits,
-    } = await setup();
+    const { jbController, projectOwner, fundingCycleData, fundingCycleMetadata, splits } =
+      await setup();
     const groupedSplits = [{ group: 1, splits }];
     const fundAccessConstraints = [];
 
@@ -284,7 +281,7 @@ describe('JBController::launchProjectFor(...)', function () {
           groupedSplits,
           fundAccessConstraints,
           [],
-          MEMO
+          MEMO,
         ),
     ).to.equal(PROJECT_ID);
 
@@ -301,7 +298,7 @@ describe('JBController::launchProjectFor(...)', function () {
           groupedSplits,
           fundAccessConstraints,
           [],
-          MEMO
+          MEMO,
         ),
     ).to.not.emit(jbController, 'SetFundAccessConstraints');
   });
@@ -331,7 +328,7 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
-        MEMO
+        MEMO,
       );
 
     await expect(tx).to.be.revertedWith('INVALID_RESERVED_RATE()');
@@ -364,7 +361,7 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
-        MEMO
+        MEMO,
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_REDEMPTION_RATE);
@@ -398,7 +395,7 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
-        MEMO
+        MEMO,
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_BALLOT_REDEMPTION_RATE);
@@ -433,7 +430,7 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
-        MEMO
+        MEMO,
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_DISTRIBUTION_LIMIT);
@@ -468,7 +465,7 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
-        MEMO
+        MEMO,
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_DISTRIBUTION_LIMIT_CURRENCY);
@@ -503,7 +500,7 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
-        MEMO
+        MEMO,
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_OVERFLOW_ALLOWANCE);
@@ -538,7 +535,7 @@ describe('JBController::launchProjectFor(...)', function () {
         groupedSplits,
         fundAccessConstraints,
         terminals,
-        MEMO
+        MEMO,
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_OVERFLOW_ALLOWANCE_CURRENCY);

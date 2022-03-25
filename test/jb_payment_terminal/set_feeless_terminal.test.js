@@ -11,7 +11,7 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 
-describe('JBPayoutRedemptionPaymentTerminal::toggleFeelessTerminal(...)', function () {
+describe('JBPayoutRedemptionPaymentTerminal::setFeelessTerminal(...)', function () {
   async function setup() {
     let [deployer, terminalOwner, caller] = await ethers.getSigners();
 
@@ -60,35 +60,35 @@ describe('JBPayoutRedemptionPaymentTerminal::toggleFeelessTerminal(...)', functi
     };
   }
 
-  it('Should add a terminal as feeless and emit event, if the terminal was not feeless before', async function () {
+  it('Should add a terminal as feeless and emit event', async function () {
     const { terminalOwner, jbEthPaymentTerminal, mockJbEthPaymentTerminal } = await setup();
 
     expect(
       await jbEthPaymentTerminal
         .connect(terminalOwner)
-        .toggleFeelessTerminal(mockJbEthPaymentTerminal.address),
+        .setFeelessTerminal(mockJbEthPaymentTerminal.address, true),
     )
       .to.emit(jbEthPaymentTerminal, 'SetFeelessTerminal')
-      .withArgs(mockJbEthPaymentTerminal.address, terminalOwner.address);
+      .withArgs(mockJbEthPaymentTerminal.address, true, terminalOwner.address);
 
     expect(await jbEthPaymentTerminal.isFeelessTerminal(mockJbEthPaymentTerminal.address)).to.be
       .true;
   });
 
-  it('Should remove a terminal as feeless and emit event, if the terminal was feeless before', async function () {
+  it('Should remove a terminal as feeless and emit event', async function () {
     const { terminalOwner, jbEthPaymentTerminal, mockJbEthPaymentTerminal } = await setup();
 
     await jbEthPaymentTerminal
       .connect(terminalOwner)
-      .toggleFeelessTerminal(mockJbEthPaymentTerminal.address);
+      .setFeelessTerminal(mockJbEthPaymentTerminal.address, true);
 
     expect(
       await jbEthPaymentTerminal
         .connect(terminalOwner)
-        .toggleFeelessTerminal(mockJbEthPaymentTerminal.address),
+        .setFeelessTerminal(mockJbEthPaymentTerminal.address, false),
     )
       .to.emit(jbEthPaymentTerminal, 'SetFeelessTerminal')
-      .withArgs(mockJbEthPaymentTerminal.address, terminalOwner.address);
+      .withArgs(mockJbEthPaymentTerminal.address, false, terminalOwner.address);
 
     expect(await jbEthPaymentTerminal.isFeelessTerminal(mockJbEthPaymentTerminal.address)).to.be
       .false;

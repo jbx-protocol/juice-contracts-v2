@@ -300,12 +300,14 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
     await Promise.all(
       splits.map(async (split) => {
         await mockJbAllocator.mock.allocate
-          .withArgs(
-            /*amount=*/ Math.floor(RESERVED_AMOUNT / splits.length),
-            PROJECT_ID,
-            /*group=*/ RESERVED_SPLITS_GROUP,
+          .withArgs({
+            // JBSplitAllocationData obj
+            amount: Math.floor(RESERVED_AMOUNT / splits.length),
+            decimals: 18,
+            projectId: PROJECT_ID,
+            group: RESERVED_SPLITS_GROUP,
             split,
-          )
+          })
           .returns();
       }),
     );

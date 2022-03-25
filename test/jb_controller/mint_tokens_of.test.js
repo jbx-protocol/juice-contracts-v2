@@ -9,7 +9,7 @@ import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.s
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
 
@@ -384,7 +384,15 @@ describe('JBController::mintTokensOf(...)', function () {
         ),
     )
       .to.emit(jbController, 'MintTokens')
-      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, 0, MEMO, 10000, projectOwner.address);
+      .withArgs(
+        beneficiary.address,
+        PROJECT_ID,
+        AMOUNT_TO_MINT,
+        0,
+        MEMO,
+        10000,
+        projectOwner.address,
+      );
 
     let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, 10000);
 
@@ -418,7 +426,15 @@ describe('JBController::mintTokensOf(...)', function () {
         ),
     )
       .to.emit(jbController, 'MintTokens')
-      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, AMOUNT_TO_MINT, MEMO, 0, projectOwner.address);
+      .withArgs(
+        beneficiary.address,
+        PROJECT_ID,
+        AMOUNT_TO_MINT,
+        AMOUNT_TO_MINT,
+        MEMO,
+        0,
+        projectOwner.address,
+      );
 
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(AMOUNT_TO_MINT);
 
@@ -476,7 +492,15 @@ describe('JBController::mintTokensOf(...)', function () {
         ),
     )
       .to.emit(jbController, 'MintTokens')
-      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_MINT, AMOUNT_TO_MINT, MEMO, 0, projectOwner.address);
+      .withArgs(
+        beneficiary.address,
+        PROJECT_ID,
+        AMOUNT_TO_MINT,
+        AMOUNT_TO_MINT,
+        MEMO,
+        0,
+        projectOwner.address,
+      );
 
     let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, 0);
 

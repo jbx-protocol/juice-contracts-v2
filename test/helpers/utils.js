@@ -128,7 +128,7 @@ export function packFundingCycleMetadata({
   allowTerminalMigration = 0, // boolean
   allowControllerMigration = 0, // boolean
   holdFees = 0, // boolean
-  useLocalBalanceForRedemptions = 0, // boolean
+  useTotalOverflowForRedemptions = 0, // boolean
   useDataSourceForPay = 0, // boolean
   useDataSourceForRedeem = 0, // boolean
   dataSource = 0, // address
@@ -148,7 +148,7 @@ export function packFundingCycleMetadata({
   if (allowTerminalMigration) packed = packed.or(one.shl(62));
   if (allowControllerMigration) packed = packed.or(one.shl(63));
   if (holdFees) packed = packed.or(one.shl(64));
-  if (useLocalBalanceForRedemptions) packed = packed.or(one.shl(65));
+  if (useTotalOverflowForRedemptions) packed = packed.or(one.shl(65));
   if (useDataSourceForPay) packed = packed.or(one.shl(66));
   if (useDataSourceForRedeem) packed = packed.or(one.shl(67));
   return packed.or(ethers.BigNumber.from(dataSource).shl(68));

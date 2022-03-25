@@ -11,7 +11,7 @@ import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/I
 import jBFundingCycleStore from '../../artifacts/contracts/interfaces/IJBFundingCycleStore.sol/IJBFundingCycleStore.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
 describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
@@ -38,15 +38,11 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     const CURRENCY_ETH = await jbCurrencies.ETH();
     const CURRENCY_USD = await jbCurrencies.USD();
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
-      'JBPaymentTerminalStore',
-    );
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBPaymentTerminalStore');
     const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbPrices.address,
-      mockJbProjects.address,
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
-      mockJbTokenStore.address,
     );
 
     const blockNum = await ethers.provider.getBlockNumber();
@@ -107,7 +103,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     // Add to balance beforehand
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
       PROJECT_ID,
-      AMOUNT
+      AMOUNT,
     );
 
     await mockJbController.mock.distributionLimitOf
@@ -131,7 +127,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
       PROJECT_ID,
       AMOUNT,
       CURRENCY_USD,
-      CURRENCY_USD
+      CURRENCY_USD,
     );
 
     // Post-checks
@@ -207,7 +203,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
       PROJECT_ID,
       AMOUNT,
       CURRENCY_USD,
-      CURRENCY_ETH
+      CURRENCY_ETH,
     );
 
     // Post-checks
@@ -253,7 +249,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
-        CURRENCY_ETH
+        CURRENCY_ETH,
       ),
     ).to.be.revertedWith(errors.FUNDING_CYCLE_DISTRIBUTION_PAUSED);
   });
@@ -293,7 +289,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
-        CURRENCY_ETH
+        CURRENCY_ETH,
       ), // Use ETH instead of expected USD
     ).to.be.revertedWith(errors.CURRENCY_MISMATCH);
   });
@@ -344,7 +340,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
-        CURRENCY_ETH
+        CURRENCY_ETH,
       ),
     ).to.be.revertedWith(errors.DISTRIBUTION_AMOUNT_LIMIT_REACHED);
   });
@@ -395,7 +391,7 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
-        CURRENCY_ETH
+        CURRENCY_ETH,
       ),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
