@@ -19,6 +19,7 @@ describe('JBDirectory::setIsAllowedToSetFirstController(...)', function () {
     let jbDirectory = await jbDirectoryFactory.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
+      deployer.address
     );
 
     return {
@@ -33,7 +34,9 @@ describe('JBDirectory::setIsAllowedToSetFirstController(...)', function () {
     const { deployer, jbDirectory, mockJbController } = await setup();
 
     await expect(
-      jbDirectory.connect(deployer).setIsAllowedToSetFirstController(mockJbController.address, true),
+      jbDirectory
+        .connect(deployer)
+        .setIsAllowedToSetFirstController(mockJbController.address, true),
     )
       .to.emit(jbDirectory, 'SetIsAllowedToSetFirstController')
       .withArgs(mockJbController.address, true, deployer.address);
@@ -45,7 +48,9 @@ describe('JBDirectory::setIsAllowedToSetFirstController(...)', function () {
     const { deployer, jbDirectory, mockJbController } = await setup();
 
     await expect(
-      jbDirectory.connect(deployer).setIsAllowedToSetFirstController(mockJbController.address, false),
+      jbDirectory
+        .connect(deployer)
+        .setIsAllowedToSetFirstController(mockJbController.address, false),
     )
       .to.emit(jbDirectory, 'SetIsAllowedToSetFirstController')
       .withArgs(mockJbController.address, false, deployer.address);
@@ -57,7 +62,9 @@ describe('JBDirectory::setIsAllowedToSetFirstController(...)', function () {
     const { addrs, jbDirectory, mockJbController } = await setup();
 
     await expect(
-      jbDirectory.connect(addrs[0]).setIsAllowedToSetFirstController(mockJbController.address, true),
+      jbDirectory
+        .connect(addrs[0])
+        .setIsAllowedToSetFirstController(mockJbController.address, true),
     ).to.revertedWith('Ownable: caller is not the owner');
   });
 });

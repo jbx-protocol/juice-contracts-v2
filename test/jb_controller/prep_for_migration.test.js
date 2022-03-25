@@ -77,11 +77,7 @@ describe('JBController::prepForMigrationOf(...)', function () {
     expect(await jbController.reservedTokenBalanceOf(PROJECT_ID, 10000)).to.equal(0);
     await expect(tx)
       .to.emit(jbController, 'PrepMigration')
-      .withArgs(
-        PROJECT_ID,
-        ethers.constants.AddressZero,
-        controllerSigner.address
-      );
+      .withArgs(PROJECT_ID, ethers.constants.AddressZero, controllerSigner.address);
   });
 
   it(`Can't prep for migration if the caller is the current controller`, async function () {

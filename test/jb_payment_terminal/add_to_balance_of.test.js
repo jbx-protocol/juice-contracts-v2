@@ -128,11 +128,11 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(PROTOCOL_PROJECT_ID, ETH_ADDRESS)
-      .returns(jbEthPaymentTerminal.address)
+      .returns(jbEthPaymentTerminal.address);
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(PROTOCOL_PROJECT_ID, NON_ETH_TOKEN)
-      .returns(JBERC20PaymentTerminal.address)
+      .returns(JBERC20PaymentTerminal.address);
 
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
       .withArgs(PROJECT_ID, AMOUNT, CURRENCY_ETH, CURRENCY_ETH)
@@ -266,9 +266,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
       .connect(caller)
       .distributePayoutsOf(PROJECT_ID, AMOUNT, ETH_PAYOUT_INDEX, MIN_TOKEN_REQUESTED, MEMO);
 
-    await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor
-      .withArgs(PROJECT_ID, 1)
-      .returns();
+    await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor.withArgs(PROJECT_ID, 1).returns();
 
     let heldFeeBefore = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
 
@@ -326,9 +324,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
       .connect(caller)
       .distributePayoutsOf(PROJECT_ID, AMOUNT.div(2), ETH_PAYOUT_INDEX, MIN_TOKEN_REQUESTED, MEMO);
 
-    await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor
-      .withArgs(PROJECT_ID, 10)
-      .returns();
+    await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor.withArgs(PROJECT_ID, 10).returns();
 
     let heldFeeBefore = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
 

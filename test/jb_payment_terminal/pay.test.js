@@ -13,7 +13,6 @@ import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 import jbPayDelegate from '../../artifacts/contracts/interfaces/IJBPayDelegate.sol/IJBPayDelegate.json';
 
-
 describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
   const PROJECT_ID = 1;
   const MEMO = 'Memo Test';
@@ -113,15 +112,15 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
       .withArgs(
         caller.address,
         [
-          /*token*/"0x000000000000000000000000000000000000eeee",
+          /*token*/ '0x000000000000000000000000000000000000eeee',
           /*amount paid*/ ETH_TO_PAY,
-          /*decimal*/18,
-          CURRENCY_ETH
+          /*decimal*/ 18,
+          CURRENCY_ETH,
         ],
         PROJECT_ID,
         CURRENCY_ETH,
         MEMO,
-        METADATA
+        METADATA,
       )
       .returns(
         {
@@ -236,15 +235,15 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
       .withArgs(
         caller.address,
         [
-          /*token*/"0x000000000000000000000000000000000000eeee",
-          /*amount paid*/ETH_TO_PAY,
-          /*decimal*/18,
-          CURRENCY_ETH
+          /*token*/ '0x000000000000000000000000000000000000eeee',
+          /*amount paid*/ ETH_TO_PAY,
+          /*decimal*/ 18,
+          CURRENCY_ETH,
         ],
         PROJECT_ID,
         CURRENCY_ETH,
         MEMO,
-        METADATA
+        METADATA,
       )
       .returns(
         {
@@ -270,10 +269,10 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         payer: caller.address,
         projectId: PROJECT_ID,
         amount: {
-          token: "0x000000000000000000000000000000000000eeee",
+          token: '0x000000000000000000000000000000000000eeee',
           value: ETH_TO_PAY,
           decimals: 18,
-          currency: CURRENCY_ETH
+          currency: CURRENCY_ETH,
         },
         projectTokenCount: TOKEN_RECEIVED,
         beneficiary: beneficiary.address,
@@ -295,8 +294,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         { value: ETH_TO_PAY },
       );
 
-    await expect(tx)
-      .to.emit(jbEthPaymentTerminal, 'DelegateDidPay')
+    await expect(tx).to.emit(jbEthPaymentTerminal, 'DelegateDidPay');
     // AssertionError: expected [ Array(4) ] to equal [ Array(4) ]
 
     // .withArgs(
@@ -364,27 +362,22 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
       );
   });
   it('Should work with no token amount returned from recording payment', async function () {
-    const {
-      caller,
-      jbEthPaymentTerminal,
-      mockJBPaymentTerminalStore,
-      beneficiary,
-      timestamp,
-    } = await setup();
+    const { caller, jbEthPaymentTerminal, mockJBPaymentTerminalStore, beneficiary, timestamp } =
+      await setup();
 
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
         caller.address,
         [
-          /*token*/"0x000000000000000000000000000000000000eeee",
+          /*token*/ '0x000000000000000000000000000000000000eeee',
           /*amount paid*/ ETH_TO_PAY,
-          /*decimal*/18,
-          CURRENCY_ETH
+          /*decimal*/ 18,
+          CURRENCY_ETH,
         ],
         PROJECT_ID,
         CURRENCY_ETH,
         MEMO,
-        METADATA
+        METADATA,
       )
       .returns(
         {
@@ -427,7 +420,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
       mockJbController,
       mockJBPaymentTerminalStore,
       beneficiary,
-      timestamp
+      timestamp,
     } = await setup();
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
@@ -451,16 +444,11 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
         caller.address,
-        [
-          /*token*/tokenAddress,
-          /*amount paid*/ ETH_TO_PAY,
-          /*decimal*/DECIMALS,
-          CURRENCY_ETH
-        ],
+        [/*token*/ tokenAddress, /*amount paid*/ ETH_TO_PAY, /*decimal*/ DECIMALS, CURRENCY_ETH],
         PROJECT_ID,
         CURRENCY_ETH,
         MEMO,
-        METADATA
+        METADATA,
       )
       .returns(
         {
@@ -552,27 +540,22 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
     ).to.be.revertedWith(errors.PROJECT_TERMINAL_MISMATCH);
   });
   it("Can't pay if minted tokens for beneficiary is less than expected", async function () {
-    const {
-      caller,
-      jbEthPaymentTerminal,
-      mockJBPaymentTerminalStore,
-      beneficiary,
-      timestamp,
-    } = await setup();
+    const { caller, jbEthPaymentTerminal, mockJBPaymentTerminalStore, beneficiary, timestamp } =
+      await setup();
 
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
       .withArgs(
         caller.address,
         [
-          /*token*/"0x000000000000000000000000000000000000eeee",
+          /*token*/ '0x000000000000000000000000000000000000eeee',
           /*amount paid*/ ETH_TO_PAY,
-          /*decimal*/18,
-          CURRENCY_ETH
+          /*decimal*/ 18,
+          CURRENCY_ETH,
         ],
         PROJECT_ID,
         CURRENCY_ETH,
         MEMO,
-        METADATA
+        METADATA,
       )
       .returns(
         {

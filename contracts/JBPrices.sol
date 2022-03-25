@@ -31,8 +31,11 @@ contract JBPrices is IJBPrices, Ownable {
     @notice 
     The available price feeds.
 
-    _currency The currency of the feed.
-    _base The currency the feed is based on.  
+    @dev
+    The feed returns the number of `_currency` units that can be converted to 1 `_base` unit.
+
+    _currency The currency units the feed's resulting price is in terms of.
+    _base The base currency unit being priced by the feed.
   */
   mapping(uint256 => mapping(uint256 => IJBPriceFeed)) public override feedFor;
 
@@ -41,11 +44,11 @@ contract JBPrices is IJBPrices, Ownable {
   //*********************************************************************//
 
   /** 
-    @notice 
-    Gets the current price of the provided currency in terms of the provided base currency.
-    
-    @param _currency The currency to get a price for.
-    @param _base The currency to base the price on.
+    @notice
+    Gets the number of `_currency` units that can be converted to 1 `_base` unit.
+
+    @param _currency The currency units the resulting price is in terms of.
+    @param _base The base currency unit being priced.
     @param _decimals The number of decimals the returned fixed point price should include.
     
     @return The price of the currency in terms of the base, as a fixed point number with the specified number of decimals.
@@ -91,8 +94,8 @@ contract JBPrices is IJBPrices, Ownable {
     @dev
     Current feeds can't be modified.
 
-    @param _currency The currency that the price feed is for.
-    @param _base The currency that the price feed is based on.
+    @param _currency The currency units the feed's resulting price is in terms of.
+    @param _base The base currency unit being priced by the feed.
     @param _feed The price feed being added.
   */
   function addFeedFor(

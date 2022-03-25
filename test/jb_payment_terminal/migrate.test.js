@@ -165,12 +165,8 @@ describe('JBPayoutRedemptionPaymentTerminal::migrate(...)', function () {
   });
 
   it('Should migrate non-eth terminal', async function () {
-    const {
-      projectOwner,
-      JBERC20PaymentTerminal,
-      mockJBERC20PaymentTerminal,
-      mockJbToken,
-    } = await setup();
+    const { projectOwner, JBERC20PaymentTerminal, mockJBERC20PaymentTerminal, mockJbToken } =
+      await setup();
 
     await mockJbToken.mock['approve(address,uint256)']
       .withArgs(mockJBERC20PaymentTerminal.address, CURRENT_TERMINAL_BALANCE)

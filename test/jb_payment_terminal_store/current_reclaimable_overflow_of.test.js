@@ -34,13 +34,11 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
     const jbCurrencies = await jbCurrenciesFactory.deploy();
     const CURRENCY_ETH = await jbCurrencies.ETH();
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
-      'JBPaymentTerminalStore',
-    );
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBPaymentTerminalStore');
     const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbPrices.address,
       mockJbDirectory.address,
-      mockJbFundingCycleStore.address
+      mockJbFundingCycleStore.address,
     );
 
     const blockNum = await ethers.provider.getBlockNumber();
@@ -120,8 +118,9 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
     const totalSupply = tokenAmt.mulUnsafe(ethers.FixedNumber.from(2));
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(totalSupply); // totalSupply of 100
-    await mockJbController.mock.totalOutstandingTokensOf.withArgs(PROJECT_ID, reservedRate).returns(totalSupply);
-
+    await mockJbController.mock.totalOutstandingTokensOf
+      .withArgs(PROJECT_ID, reservedRate)
+      .returns(totalSupply);
 
     await mockJbController.mock.reservedTokenBalanceOf
       .withArgs(PROJECT_ID, reservedRate)
@@ -198,16 +197,18 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
       .returns(overflowAmt, CURRENCY_ETH);
 
-    await mockJbDirectory.mock.terminalsOf.withArgs(PROJECT_ID).returns([mockJbTerminal.address, mockJbTerminal2.address]);
+    await mockJbDirectory.mock.terminalsOf
+      .withArgs(PROJECT_ID)
+      .returns([mockJbTerminal.address, mockJbTerminal2.address]);
 
     await mockJbTerminal.mock.currentEthOverflowOf.withArgs(PROJECT_ID).returns(overflowAmt);
     await mockJbTerminal2.mock.currentEthOverflowOf.withArgs(PROJECT_ID).returns(overflowAmt);
 
-
-
     const totalSupply = tokenAmt.mulUnsafe(ethers.FixedNumber.from(2));
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(totalSupply); // totalSupply of 100
-    await mockJbController.mock.totalOutstandingTokensOf.withArgs(PROJECT_ID, reservedRate).returns(totalSupply);
+    await mockJbController.mock.totalOutstandingTokensOf
+      .withArgs(PROJECT_ID, reservedRate)
+      .returns(totalSupply);
 
     await mockJbController.mock.reservedTokenBalanceOf
       .withArgs(PROJECT_ID, reservedRate)
@@ -291,14 +292,18 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
       .returns(overflowAmt, CURRENCY_ETH);
 
-    await mockJbDirectory.mock.terminalsOf.withArgs(PROJECT_ID).returns([mockJbTerminal.address, mockJbTerminal2.address]);
+    await mockJbDirectory.mock.terminalsOf
+      .withArgs(PROJECT_ID)
+      .returns([mockJbTerminal.address, mockJbTerminal2.address]);
 
     await mockJbTerminal.mock.currentEthOverflowOf.withArgs(PROJECT_ID).returns(overflowAmt);
     await mockJbTerminal2.mock.currentEthOverflowOf.withArgs(PROJECT_ID).returns(overflowAmt);
 
     const totalSupply = tokenAmt.mulUnsafe(ethers.FixedNumber.from(2));
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(totalSupply); // totalSupply of 100
-    await mockJbController.mock.totalOutstandingTokensOf.withArgs(PROJECT_ID, reservedRate).returns(totalSupply);
+    await mockJbController.mock.totalOutstandingTokensOf
+      .withArgs(PROJECT_ID, reservedRate)
+      .returns(totalSupply);
 
     await mockJbController.mock.reservedTokenBalanceOf
       .withArgs(PROJECT_ID, reservedRate)
@@ -369,7 +374,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
         mockJbTerminal.address,
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
-        false
+        false,
       ),
     ).to.equal(0);
   });
@@ -416,7 +421,9 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
     const totalSupply = tokenAmt.mulUnsafe(ethers.FixedNumber.from(2));
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(totalSupply); // totalSupply of 100
-    await mockJbController.mock.totalOutstandingTokensOf.withArgs(PROJECT_ID, reservedRate).returns(totalSupply);
+    await mockJbController.mock.totalOutstandingTokensOf
+      .withArgs(PROJECT_ID, reservedRate)
+      .returns(totalSupply);
 
     await mockJbController.mock.reservedTokenBalanceOf
       .withArgs(PROJECT_ID, reservedRate)
@@ -438,7 +445,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
         mockJbTerminalSigner.address,
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
-        false
+        false,
       ),
     ).to.equal(0);
   });
@@ -507,7 +514,9 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
       startingBalance,
     );
 
-    await mockJbController.mock.totalOutstandingTokensOf.withArgs(PROJECT_ID, reservedRate).returns(overflowAmt);
+    await mockJbController.mock.totalOutstandingTokensOf
+      .withArgs(PROJECT_ID, reservedRate)
+      .returns(overflowAmt);
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(

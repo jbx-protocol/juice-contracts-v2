@@ -45,7 +45,7 @@ describe('JBProjectPayer::pay(...)', function () {
       INITIAL_MEMO,
       INITIAL_METADATA,
       mockJbDirectory.address,
-      owner.address
+      owner.address,
     );
 
     return {
@@ -75,7 +75,8 @@ describe('JBProjectPayer::pay(...)', function () {
         PREFER_CLAIMED_TOKENS,
         MEMO,
         METADATA,
-      ).returns();
+      )
+      .returns();
 
     await expect(
       jbProjectPayer.pay(
@@ -110,7 +111,8 @@ describe('JBProjectPayer::pay(...)', function () {
         PREFER_CLAIMED_TOKENS,
         MEMO,
         METADATA,
-      ).returns();
+      )
+      .returns();
 
     const payer = addrs[0];
     await mockJbToken.mock['transferFrom(address,address,uint256)']
@@ -120,16 +122,18 @@ describe('JBProjectPayer::pay(...)', function () {
       .withArgs(mockJbTerminal.address, AMOUNT)
       .returns(0);
     await expect(
-      jbProjectPayer.connect(payer).pay(
-        PROJECT_ID,
-        mockJbToken.address,
-        AMOUNT,
-        BENEFICIARY,
-        MIN_RETURNED_TOKENS,
-        PREFER_CLAIMED_TOKENS,
-        MEMO,
-        METADATA
-      ),
+      jbProjectPayer
+        .connect(payer)
+        .pay(
+          PROJECT_ID,
+          mockJbToken.address,
+          AMOUNT,
+          BENEFICIARY,
+          MIN_RETURNED_TOKENS,
+          PREFER_CLAIMED_TOKENS,
+          MEMO,
+          METADATA,
+        ),
     ).to.not.be.reverted;
   });
 
@@ -150,7 +154,7 @@ describe('JBProjectPayer::pay(...)', function () {
         0,
         INITIAL_PREFER_CLAIMED_TOKENS,
         INITIAL_MEMO,
-        INITIAL_METADATA
+        INITIAL_METADATA,
       )
       .returns();
 
@@ -173,13 +177,15 @@ describe('JBProjectPayer::pay(...)', function () {
 
     // Set the default beneficiary to the zero address.
 
-    await jbProjectPayer.connect(owner).setDefaultValues(
-      INITIAL_PROJECT_ID,
-      ethers.constants.AddressZero,
-      INITIAL_PREFER_CLAIMED_TOKENS,
-      INITIAL_MEMO,
-      INITIAL_METADATA
-    );
+    await jbProjectPayer
+      .connect(owner)
+      .setDefaultValues(
+        INITIAL_PROJECT_ID,
+        ethers.constants.AddressZero,
+        INITIAL_PREFER_CLAIMED_TOKENS,
+        INITIAL_MEMO,
+        INITIAL_METADATA,
+      );
 
     await mockJbTerminal.mock.pay
       .withArgs(
@@ -189,7 +195,7 @@ describe('JBProjectPayer::pay(...)', function () {
         0,
         INITIAL_PREFER_CLAIMED_TOKENS,
         INITIAL_MEMO,
-        INITIAL_METADATA
+        INITIAL_METADATA,
       )
       .returns();
 
@@ -200,7 +206,6 @@ describe('JBProjectPayer::pay(...)', function () {
       }),
     ).to.not.be.reverted;
   });
-
 
   it(`Can't pay if terminal not found`, async function () {
     const { jbProjectPayer, mockJbDirectory } = await setup();
