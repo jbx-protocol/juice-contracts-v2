@@ -427,7 +427,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     // The current funding cycle must not be paused.
     if (fundingCycle.redeemPaused()) revert FUNDING_CYCLE_REDEEM_PAUSED();
 
-    // Scoped section prevents stack too deep. `_currentOverflow` only used within scope.
+    // Scoped section prevents stack too deep. `_currentOverflow`, `_totalSupply`, and `_data` only used within scope.
     {
       // Get the amount of current overflow.
       // Use the local overflow if the funding cycle specifies that it should be used. Otherwise, use the project's total overflow across all of its terminals.
@@ -701,7 +701,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     @param _projectId The ID of the project to get the reclaimable overflow amount for.
     @param _fundingCycle The funding cycle during which reclaimable overflow is being calculated.
     @param _tokenCount The number of tokens to make the calculation with, as a fixed point number with 18 decimals.
-    @param _totalSupply TODO
+    @param _totalSupply The total supply of tokens to make the calculation with, as a fixed point number with 18 decimals.
     @param _overflow The amount of overflow to make the calculation with.
 
     @return The amount of overflowed tokens that can be reclaimed.
