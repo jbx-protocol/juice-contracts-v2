@@ -12,6 +12,8 @@ struct JBRedeemParamsData {
   uint256 projectId;
   // The proposed number of tokens being redeemed, as a fixed point number with 18 decimals.
   uint256 tokenCount;
+  // The total supply of tokens used in the calculation, as a fixed point number with 18 decimals.
+  uint256 totalSupply;
   // The number of decimals included in the reclaim amount fixed point number.
   uint256 decimals;
   // The currency that the reclaim amount is expected to be in terms of.

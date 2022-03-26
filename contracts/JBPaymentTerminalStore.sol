@@ -408,7 +408,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     uint256 _tokenCount,
     uint256 _balanceDecimals,
     uint256 _balanceCurrency,
-    string calldata _memo,
+    string memory _memo,
     bytes memory _metadata
   )
     external
@@ -440,13 +440,13 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
           _balanceCurrency
         );
 
-      if (_currentOverflow > 0) {
-        // Get the number of outstanding tokens the project has.
-        uint256 _totalSupply = directory.controllerOf(_projectId).totalOutstandingTokensOf(
-          _projectId,
-          fundingCycle.reservedRate()
-        );
+      // Get the number of outstanding tokens the project has.
+      uint256 _totalSupply = directory.controllerOf(_projectId).totalOutstandingTokensOf(
+        _projectId,
+        fundingCycle.reservedRate()
+      );
 
+      if (_currentOverflow > 0)
         // Calculate reclaim amount using the current overflow amount.
         reclaimAmount = _reclaimableOverflowDuring(
           _projectId,
@@ -455,7 +455,6 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
           _totalSupply,
           _currentOverflow
         );
-      }
 
       // If the funding cycle has configured a data source, use it to derive a claim amount and memo.
       if (fundingCycle.useDataSourceForRedeem()) {
@@ -465,6 +464,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
           _holder,
           _projectId,
           _tokenCount,
+          _totalSupply,
           _balanceDecimals,
           _balanceCurrency,
           reclaimAmount,
