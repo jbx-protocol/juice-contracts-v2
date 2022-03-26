@@ -468,7 +468,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     ).to.be.revertedWith(errors.FUNDING_CYCLE_REDEEM_PAUSED);
   });
 
-  it.only(`Can't record redemption with if claim amount > project's total balance`, async function () {
+  it(`Can't record redemption with if claim amount > project's total balance`, async function () {
     const {
       holder,
       beneficiary,
