@@ -13,7 +13,7 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe.only('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function () {
+describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function () {
   const PROJECT_ID = 2;
   const WEIGHT = ethers.FixedNumber.fromString('900000000.23411');
   const CURRENCY = 1;
@@ -620,5 +620,26 @@ describe.only('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', funct
         /* overflow */ overflowAmt
       )
     ).to.equal(ethers.FixedNumber.fromString('41.25'));
+  });
+  it('Should return claimable overflow when no terminal is passed, with 0 overflow', async function () {
+    const {
+      JBPaymentTerminalStore,
+    } = await setup();
+
+    const overflowAmt = ethers.FixedNumber.from(0);
+    const tokenAmt = ethers.FixedNumber.from(50);
+    const totalSupply = ethers.FixedNumber.from(50);
+
+    // Get claimable overflow where tokenCount is half the total supply of tokens
+    expect(
+      await JBPaymentTerminalStore[
+        'currentReclaimableOverflowOf(uint256,uint256,uint256,uint256)'
+      ](
+        PROJECT_ID,
+        /* tokenCount */ tokenAmt,
+        /* totalSupply */ totalSupply,
+        /* overflow */ overflowAmt
+      )
+    ).to.equal(0);
   });
 });
