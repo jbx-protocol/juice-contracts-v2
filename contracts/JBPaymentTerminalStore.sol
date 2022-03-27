@@ -217,7 +217,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
       _fundingCycle.reservedRate()
     );
 
-    // If there is no overflow, nothing is reclaimable.
+    // Return the reclaimable overflow amount.
     return
       _reclaimableOverflowDuring(
         _projectId,
@@ -235,9 +235,6 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     @dev 
     If the project has an active funding cycle reconfiguration ballot, the project's ballot redemption rate is used.
 
-    @dev
-    The current reclaimable overflow is returned in terms of the specified terminal's currency.
-
     @param _projectId The ID of the project to get the reclaimable overflow amount for.
     @param _tokenCount The number of tokens to make the calculation with, as a fixed point number with 18 decimals.
     @param _totalSupply The total number of tokens to make the calculation with, as a fixed point number with 18 decimals.
@@ -251,10 +248,13 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     uint256 _totalSupply,
     uint256 _overflow
   ) external view override returns (uint256) {
+    // If there's no overflow, there's no reclaimable overflow.
+    if (_overflow == 0) return 0;
+
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-    // If there is no overflow, nothing is reclaimable.
+    // Return the reclaimable overflow amount.
     return
       _reclaimableOverflowDuring(_projectId, _fundingCycle, _tokenCount, _totalSupply, _overflow);
   }
