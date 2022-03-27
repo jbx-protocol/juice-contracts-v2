@@ -2,8 +2,6 @@
 pragma solidity 0.8.6;
 
 import '@paulrberg/contracts/math/PRBMath.sol';
-import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBProjects.sol';
 import './interfaces/IJBPaymentTerminal.sol';
