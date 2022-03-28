@@ -174,7 +174,7 @@ module.exports = async ({ deployments, getChainId }) => {
   console.log('Deploying protocol project...');
 
   // If needed, deploy the protocol project
-  if ((await jbProjects.connect(deployer).count()) > 0)
+  if ((await jbProjects.connect(deployer).count()) == 0)
     await jbControllerContract.connect(deployer).launchProjectFor(
       /*owner*/ multisigAddress,
 
