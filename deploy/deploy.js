@@ -60,10 +60,18 @@ module.exports = async ({ deployments, getChainId }) => {
     args: [JBOperatorStore.address],
   });
 
+  // Get the future address of JBFundingCycleStore
+  const transactionCount = await deployer.getTransactionCount()
+
+  const FundingCycleStoreFutureAddress = ethers.utils.getContractAddress({
+    from: deployer.address,
+    nonce: transactionCount+1
+  })
+
   // Deploy a JBDirectory.
   const JBDirectory = await deploy('JBDirectory', {
     ...baseDeployArgs,
-    args: [JBOperatorStore.address, JBProjects.address, deployer.address],
+    args: [JBOperatorStore.address, JBProjects.address, FundingCycleStoreFutureAddress, deployer.address],
   });
 
   // Deploy a JBFundingCycleStore.
@@ -221,6 +229,8 @@ module.exports = async ({ deployments, getChainId }) => {
         /*allowChangeToken*/ ethers.BigNumber.from(0),
         /*allowTerminalMigration*/ ethers.BigNumber.from(0),
         /*allowControllerMigration*/ ethers.BigNumber.from(0),
+        /*allowSetTerminals*/ ethers.BigNumber.from(0),
+        /*allowSetController*/ ethers.BigNumber.from(0),
         /*holdFees*/ ethers.BigNumber.from(0),
         /*useTotalOverflowForRedemptions*/ ethers.BigNumber.from(0),
         /*useDataSourceForPay*/ ethers.BigNumber.from(0),

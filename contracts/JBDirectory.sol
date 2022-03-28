@@ -286,6 +286,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     @dev
     The terminal will be set as the primary terminal where ecosystem contracts should route tokens.
+    If the funding cycle doesn't allow new terminals, the caller must be the current controller.
 
     @param _projectId The ID of the project for which a primary token is being set.
     @param _terminal The terminal to make primary.
@@ -347,6 +348,13 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   function _addTerminalIfNeeded(uint256 _projectId, IJBPaymentTerminal _terminal) private {
     // Check that the terminal has not already been added.
     if (isTerminalOf(_projectId, _terminal)) return;
+
+    // Get a reference to the project's current funding cycle.
+    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
+
+    // Setting terminals must be allowed if not called from the current controller.
+    if (msg.sender != address(controllerOf[_projectId]) && !_fundingCycle.setTerminalsAllowed())
+      revert SET_TERMINALS_NOT_ALLOWED();
 
     // Add the new terminal.
     _terminalsOf[_projectId].push(_terminal);
