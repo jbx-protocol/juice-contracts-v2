@@ -65,8 +65,16 @@ library JBFundingCycleMetadataResolver {
     return ((_fundingCycle.metadata >> 63) & 1) == 1;
   }
 
-  function shouldHoldFees(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
+  function setTerminalsAllowed(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
     return ((_fundingCycle.metadata >> 64) & 1) == 1;
+  }
+
+  function setControllerAllowed(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
+    return ((_fundingCycle.metadata >> 65) & 1) == 1;
+  }
+
+  function shouldHoldFees(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
+    return ((_fundingCycle.metadata >> 66) & 1) == 1;
   }
 
   function useTotalOverflowForRedemptions(JBFundingCycle memory _fundingCycle)
@@ -74,11 +82,11 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (bool)
   {
-    return ((_fundingCycle.metadata >> 65) & 1) == 1;
+    return ((_fundingCycle.metadata >> 67) & 1) == 1;
   }
 
   function useDataSourceForPay(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
-    return (_fundingCycle.metadata >> 66) & 1 == 1;
+    return (_fundingCycle.metadata >> 68) & 1 == 1;
   }
 
   function useDataSourceForRedeem(JBFundingCycle memory _fundingCycle)
@@ -86,7 +94,7 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (bool)
   {
-    return (_fundingCycle.metadata >> 67) & 1 == 1;
+    return (_fundingCycle.metadata >> 69) & 1 == 1;
   }
 
   function dataSource(JBFundingCycle memory _fundingCycle)
@@ -94,7 +102,7 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (IJBFundingCycleDataSource)
   {
-    return IJBFundingCycleDataSource(address(uint160(_fundingCycle.metadata >> 68)));
+    return IJBFundingCycleDataSource(address(uint160(_fundingCycle.metadata >> 70)));
   }
 
   /**
@@ -136,15 +144,19 @@ library JBFundingCycleMetadataResolver {
     if (_metadata.allowTerminalMigration) packed |= 1 << 62;
     // allow controller migration in bit 63.
     if (_metadata.allowControllerMigration) packed |= 1 << 63;
-    // hold fees in bit 64.
-    if (_metadata.holdFees) packed |= 1 << 64;
-    // useTotalOverflowForRedemptions in bit 65.
-    if (_metadata.useTotalOverflowForRedemptions) packed |= 1 << 65;
-    // use pay data source in bit 66.
-    if (_metadata.useDataSourceForPay) packed |= 1 << 66;
-    // use redeem data source in bit 67.
-    if (_metadata.useDataSourceForRedeem) packed |= 1 << 67;
-    // data source address in bits 68-227.
-    packed |= uint256(uint160(address(_metadata.dataSource))) << 68;
+    // allow set terminals in bit 64.
+    if (_metadata.allowSetTerminals) packed |= 1 << 64;
+    // allow set controller in bit 65.
+    if (_metadata.allowSetController) packed |= 1 << 65;
+    // hold fees in bit 66.
+    if (_metadata.holdFees) packed |= 1 << 66;
+    // useTotalOverflowForRedemptions in bit 67.
+    if (_metadata.useTotalOverflowForRedemptions) packed |= 1 << 67;
+    // use pay data source in bit 68.
+    if (_metadata.useDataSourceForPay) packed |= 1 << 68;
+    // use redeem data source in bit 69.
+    if (_metadata.useDataSourceForRedeem) packed |= 1 << 69;
+    // data source address in bits 70-229.
+    packed |= uint256(uint160(address(_metadata.dataSource))) << 70;
   }
 }
