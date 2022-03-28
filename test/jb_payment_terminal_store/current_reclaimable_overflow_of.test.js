@@ -138,14 +138,12 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await JBPaymentTerminalStore[
-        'currentReclaimableOverflowOf(address,uint256,uint256,bool)'
-      ](
+      await JBPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
         mockJbTerminalSigner.address,
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
         false,
-      )
+      ),
     ).to.equal(ethers.FixedNumber.fromString('41.25'));
   });
 
@@ -228,14 +226,12 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await JBPaymentTerminalStore[
-        'currentReclaimableOverflowOf(address,uint256,uint256,bool)'
-      ](
+      await JBPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
         mockJbTerminalSigner.address,
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
         true,
-      )
+      ),
     ).to.equal(ethers.FixedNumber.fromString('82.5'));
   });
 
@@ -325,14 +321,12 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await JBPaymentTerminalStore[
-        'currentReclaimableOverflowOf(address,uint256,uint256,bool)'
-      ](
+      await JBPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
         mockJbTerminalSigner.address,
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
         true,
-      )
+      ),
     ).to.equal(ethers.FixedNumber.fromString('82.5'));
   });
 
@@ -376,14 +370,12 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
     // Get claimable overflow
     expect(
-      await JBPaymentTerminalStore[
-        'currentReclaimableOverflowOf(address,uint256,uint256,bool)'
-      ](
+      await JBPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
         mockJbTerminal.address,
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
         false,
-      )
+      ),
     ).to.equal(0);
   });
 
@@ -449,14 +441,12 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
     // Get claimable overflow
     expect(
-      await JBPaymentTerminalStore[
-        'currentReclaimableOverflowOf(address,uint256,uint256,bool)'
-      ](
+      await JBPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
         mockJbTerminalSigner.address,
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
         false,
-      )
+      ),
     ).to.equal(0);
   });
 
@@ -530,14 +520,12 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await JBPaymentTerminalStore[
-        'currentReclaimableOverflowOf(address,uint256,uint256,bool)'
-      ](
+      await JBPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
         mockJbTerminalSigner.address,
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
         false,
-      )
+      ),
     ).to.equal(ethers.FixedNumber.from(50));
   });
 
@@ -611,20 +599,16 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await JBPaymentTerminalStore[
-        'currentReclaimableOverflowOf(uint256,uint256,uint256,uint256)'
-      ](
+      await JBPaymentTerminalStore['currentReclaimableOverflowOf(uint256,uint256,uint256,uint256)'](
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
         /* totalSupply */ totalSupply,
-        /* overflow */ overflowAmt
-      )
+        /* overflow */ overflowAmt,
+      ),
     ).to.equal(ethers.FixedNumber.fromString('41.25'));
   });
   it('Should return claimable overflow when no terminal is passed, with 0 overflow', async function () {
-    const {
-      JBPaymentTerminalStore,
-    } = await setup();
+    const { JBPaymentTerminalStore } = await setup();
 
     const overflowAmt = ethers.FixedNumber.from(0);
     const tokenAmt = ethers.FixedNumber.from(50);
@@ -632,14 +616,12 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await JBPaymentTerminalStore[
-        'currentReclaimableOverflowOf(uint256,uint256,uint256,uint256)'
-      ](
+      await JBPaymentTerminalStore['currentReclaimableOverflowOf(uint256,uint256,uint256,uint256)'](
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
         /* totalSupply */ totalSupply,
-        /* overflow */ overflowAmt
-      )
+        /* overflow */ overflowAmt,
+      ),
     ).to.equal(0);
   });
 });
