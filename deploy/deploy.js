@@ -65,7 +65,7 @@ module.exports = async ({ deployments, getChainId }) => {
 
   const FundingCycleStoreFutureAddress = ethers.utils.getContractAddress({
     from: deployer.address,
-    nonce: transactionCount+1
+    nonce: transactionCount + 1
   })
 
   // Deploy a JBDirectory.
