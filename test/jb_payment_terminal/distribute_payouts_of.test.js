@@ -1700,7 +1700,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       );
   });
 
-  it.only('Should distribute payout in ERC20 token and emit event', async function () {
+  it('Should distribute payout in ERC20 token and emit event', async function () {
     const {
       projectOwner,
       caller,
