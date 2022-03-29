@@ -95,6 +95,38 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
     ).to.not.be.reverted;
   });
 
+  it(`Should add to balance if no beneficiary`, async function () {
+    const { jbProjectPayer, mockJbDirectory, mockJbTerminal } = await setup();
+
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(PROJECT_ID, ethToken)
+      .returns(mockJbTerminal.address);
+
+    await mockJbTerminal.mock.addToBalanceOf
+      .withArgs(
+        PROJECT_ID,
+        AMOUNT,
+        MEMO
+      )
+      .returns();
+
+    await expect(
+      jbProjectPayer.pay(
+        PROJECT_ID,
+        ethToken,
+        0,
+        ethers.constants.AddressZero,
+        MIN_RETURNED_TOKENS,
+        PREFER_CLAIMED_TOKENS,
+        MEMO,
+        METADATA,
+        {
+          value: AMOUNT,
+        },
+      ),
+    ).to.not.be.reverted;
+  });
+
   it(`Should pay funds towards project with an erc20 tokens`, async function () {
     const { jbProjectPayer, mockJbDirectory, mockJbTerminal, mockJbToken, addrs } = await setup();
 

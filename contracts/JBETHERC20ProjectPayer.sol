@@ -227,6 +227,6 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
         _metadata
       );
       // Otherwise just add to balance so tokens don't get issued.
-    else _terminal.addToBalanceOf{value: _payableValue}(_amount, _projectId, _memo);
+    else _terminal.addToBalanceOf{value: _payableValue}(_projectId, _amount, _memo);
   }
 }

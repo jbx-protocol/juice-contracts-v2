@@ -24,6 +24,8 @@ contract JBETHERC20ProjectPayerDeployer is IJBETHERC20ProjectPayerDeployer {
     @param _defaultMemo The memo that'll be forwarded with the project payer's received payments. 
     @param _defaultMetadata The metadata that'll be forwarded with the project payer's received payments. 
     @param _directory A contract storing directories of terminals and controllers for each project.
+
+    @return projectPayer The project payer contract.
   */
   function deployProjectPayer(
     uint256 _defaultProjectId,
@@ -33,9 +35,9 @@ contract JBETHERC20ProjectPayerDeployer is IJBETHERC20ProjectPayerDeployer {
     bytes memory _defaultMetadata,
     IJBDirectory _directory,
     address _owner
-  ) external override {
+  ) external override returns (IJBProjectPayer projectPayer) {
     // Deploy the project payer.
-    JBETHERC20ProjectPayer _projectPayer = new JBETHERC20ProjectPayer(
+    projectPayer = new JBETHERC20ProjectPayer(
       _defaultProjectId,
       _defaultBeneficiary,
       _defaultPreferClaimedTokens,
@@ -46,7 +48,7 @@ contract JBETHERC20ProjectPayerDeployer is IJBETHERC20ProjectPayerDeployer {
     );
 
     emit DeployProjectPayer(
-      _projectPayer,
+      projectPayer,
       _defaultProjectId,
       _defaultBeneficiary,
       _defaultPreferClaimedTokens,

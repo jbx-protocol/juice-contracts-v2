@@ -25,5 +25,5 @@ interface IJBETHERC20ProjectPayerDeployer {
     bytes memory _defaultMetadata,
     IJBDirectory _directory,
     address _owner
-  ) external;
+  ) external returns (IJBProjectPayer projectPayer);
 }
