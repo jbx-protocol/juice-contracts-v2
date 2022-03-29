@@ -17,18 +17,14 @@ error NO_MSG_VALUE_ALLOWED();
 
 /** 
   @notice 
-  A contract that sends funds to a Juicebox project.
+  A contract that sends funds to a project treasury via direct payments or contract calls.
+
+  @dev
+  Inherits from:
+  IJBETHERC20ProjectPayerDeployer:  General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
+  Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
-  event SetDefaultValues(
-    uint256 projectId,
-    address beneficiary,
-    bool preferClaimedTokens,
-    string memo,
-    bytes metadata,
-    address caller
-  );
-
   /**
     @notice 
     A contract storing directories of terminals and controllers for each project.

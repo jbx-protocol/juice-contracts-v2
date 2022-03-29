@@ -42,6 +42,12 @@ module.exports = async ({ deployments, getChainId }) => {
 
   console.log({ multisigAddress });
 
+  // Deploy a JBETHERC20ProjectPayerDeployer contract.
+  await deploy('JBETHERC20ProjectPayerDeployer', {
+    ...baseDeployArgs,
+    args: [],
+  });
+
   // Deploy a JBOperatorStore contract.
   const JBOperatorStore = await deploy('JBOperatorStore', {
     ...baseDeployArgs,
@@ -87,7 +93,7 @@ module.exports = async ({ deployments, getChainId }) => {
   });
 
   // Deploy a JB7DayReconfigurationBufferBallot.
-  const JB7DayReconfigurationBufferBallot = await deploy('JB7DayReconfigurationBufferBallot', {
+  await deploy('JB7DayReconfigurationBufferBallot', {
     ...baseDeployArgs,
     args: [],
   });

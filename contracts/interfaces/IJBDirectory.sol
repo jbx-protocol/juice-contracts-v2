@@ -3,6 +3,7 @@ pragma solidity 0.8.6;
 
 import './IJBPaymentTerminal.sol';
 import './IJBProjects.sol';
+import './IJBFundingCycleStore.sol';
 import './IJBController.sol';
 
 interface IJBDirectory {

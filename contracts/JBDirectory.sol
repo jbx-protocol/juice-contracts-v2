@@ -4,8 +4,6 @@ pragma solidity 0.8.6;
 import '@openzeppelin/contracts/access/Ownable.sol';
 
 import './abstract/JBOperatable.sol';
-import './interfaces/IJBPaymentTerminal.sol';
-import './interfaces/IJBDirectory.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 
