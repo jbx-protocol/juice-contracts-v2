@@ -214,15 +214,19 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     // If this terminal's token is ETH, send it in msg.value.
     uint256 _payableValue = _token == JBTokens.ETH ? _amount : 0;
 
-    // Send funds to the terminal.
-    _terminal.pay{value: _payableValue}(
-      _amount, // ignored if the token is JBTokens.ETH.
-      _projectId,
-      _beneficiary,
-      _minReturnedTokens,
-      _preferClaimedTokens,
-      _memo,
-      _metadata
-    );
+    // Pay if there's a beneficiary to receive tokens.
+    if (_beneficiary != address(0))
+      // Send funds to the terminal.
+      _terminal.pay{value: _payableValue}(
+        _amount, // ignored if the token is JBTokens.ETH.
+        _projectId,
+        _beneficiary,
+        _minReturnedTokens,
+        _preferClaimedTokens,
+        _memo,
+        _metadata
+      );
+      // Otherwise just add to balance so tokens don't get issued.
+    else _terminal.addToBalanceOf{value: _payableValue}(_amount, _projectId, _memo);
   }
 }
