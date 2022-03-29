@@ -121,11 +121,14 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     string memory _memo,
     bytes memory _metadata
   ) external override onlyOwner {
-    defaultProjectId = _projectId;
-    defaultBeneficiary = _beneficiary;
-    defaultPreferClaimedTokens = _preferClaimedTokens;
-    defaultMemo = _memo;
-    defaultMetadata = _metadata;
+    if (_projectId != defaultProjectId) defaultProjectId = _projectId;
+    if (_beneficiary != defaultBeneficiary) defaultBeneficiary = _beneficiary;
+    if (_preferClaimedTokens != defaultPreferClaimedTokens)
+      defaultPreferClaimedTokens = _preferClaimedTokens;
+    if (keccak256(abi.encodePacked(_memo)) != keccak256(abi.encodePacked(defaultMemo)))
+      defaultMemo = _memo;
+    if (keccak256(abi.encodePacked(_metadata)) != keccak256(abi.encodePacked(defaultMetadata)))
+      defaultMetadata = _metadata;
     emit SetDefaultValues(
       _projectId,
       _beneficiary,
