@@ -225,6 +225,36 @@ describe('JBController::mintTokensOf(...)', function () {
     expect(newReservedTokenBalance).to.equal(AMOUNT_TO_MINT - AMOUNT_TO_RECEIVE);
   });
 
+  it(`Can't mint token if caller is not authorized`, async function () {
+    const { projectOwner, beneficiary, addrs, jbController, mockJbOperatorStore, mockJbDirectory } =
+      await setup();
+    let caller = addrs[0];
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, projectOwner.address, PROJECT_ID, MINT_INDEX)
+      .returns(false);
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, projectOwner.address, 0, MINT_INDEX)
+      .returns(false);
+
+    await mockJbDirectory.mock.isTerminalOf.withArgs(PROJECT_ID, caller.address).returns(false);
+
+    await expect(
+      jbController
+        .connect(caller)
+        .mintTokensOf(
+          PROJECT_ID,
+          AMOUNT_TO_MINT,
+          beneficiary.address,
+          MEMO,
+          /*_preferClaimedTokens=*/ true,
+          /* _useReservedRate=*/ true,
+        ),
+    )
+      .to.be.revertedWith(errors.UNAUTHORIZED);
+  });
+
   it(`Can't mint 0 token`, async function () {
     const { projectOwner, beneficiary, jbController } = await setup();
 
