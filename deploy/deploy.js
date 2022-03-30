@@ -135,11 +135,22 @@ module.exports = async ({ deployments, getChainId }) => {
     args: [],
   });
 
+  // Get references to contract that will have transactions triggered.
+  const jbDirectoryContract = new ethers.Contract(JBDirectory.address, JBDirectory.abi);
+  const jbPricesContract = new ethers.Contract(JBPrices.address, JBPrices.abi);
+  const jbControllerContract = new ethers.Contract(JBController.address, JBController.abi);
+  const jbProjects = new ethers.Contract(JBProjects.address, JBProjects.abi);
+  const jbCurrenciesLibrary = new ethers.Contract(JBCurrencies.address, JBCurrencies.abi);
+
+  // Get a reference to USD and ETH currency indexes.
+  const USD = await jbCurrenciesLibrary.connect(deployer).USD();
+  const ETH = await jbCurrenciesLibrary.connect(deployer).ETH();
+
   // Deploy a JBETHPaymentTerminal contract.
   const JBETHPaymentTerminal = await deploy('JBETHPaymentTerminal', {
     ...baseDeployArgs,
     args: [
-      JBCurrencies.ETH,
+      ETH,
       JBOperatorStore.address,
       JBProjects.address,
       JBDirectory.address,
@@ -149,17 +160,6 @@ module.exports = async ({ deployments, getChainId }) => {
       multisigAddress,
     ],
   });
-
-  // Get references to contract that will have transactions triggered.
-  const jbDirectoryContract = new ethers.Contract(JBDirectory.address, JBDirectory.abi);
-  const jbPricesContract = new ethers.Contract(JBPrices.address, JBPrices.abi);
-  const jbCurrenciesLibrary = new ethers.Contract(JBCurrencies.address, JBCurrencies.abi);
-  const jbControllerContract = new ethers.Contract(JBController.address, JBController.abi);
-  const jbProjects = new ethers.Contract(JBProjects.address, JBProjects.abi);
-
-  // Get a reference to USD and ETH currency indexes.
-  const USD = await jbCurrenciesLibrary.connect(deployer).USD();
-  const ETH = await jbCurrenciesLibrary.connect(deployer).ETH();
 
   // Get a reference to an existing ETH/USD feed.
   const usdEthFeed = await jbPricesContract.connect(deployer).feedFor(USD, ETH);
