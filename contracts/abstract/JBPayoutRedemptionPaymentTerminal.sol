@@ -918,7 +918,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           // This distribution is eligible for a fee since the funds are leaving the ecosystem.
           feeEligibleDistributionAmount += _payoutAmount;
 
-          // If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender
+          // If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
           _transferFrom(
             address(this),
             _split.beneficiary != address(0) ? _split.beneficiary : payable(msg.sender),
