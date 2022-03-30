@@ -44,7 +44,7 @@ describe('JBTokenStore::shouldRequireClaimingFor(...)', function () {
     };
   }
 
-  it('Should set flag and emit event if caller has permission', async function () {
+  it('Should set flag and emit event if caller is project owner', async function () {
     const {
       controller,
       holder,
@@ -57,9 +57,6 @@ describe('JBTokenStore::shouldRequireClaimingFor(...)', function () {
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(controller.address, holder.address, PROJECT_ID, REQUIRE_CLAIM_INDEX)
-      .returns(true);
 
     // Issue token for project
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
@@ -75,6 +72,39 @@ describe('JBTokenStore::shouldRequireClaimingFor(...)', function () {
     await expect(shouldRequireClaimingForTx)
       .to.emit(jbTokenStore, 'ShouldRequireClaim')
       .withArgs(PROJECT_ID, flagVal, controller.address);
+  });
+
+  it('Should set flag and emit event if caller has permission', async function () {
+    const {
+      controller,
+      holder,
+      mockJbDirectory,
+      mockJbOperatorStore,
+      mockJbProjects,
+      jbTokenStore,
+      REQUIRE_CLAIM_INDEX,
+    } = await setup();
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(holder.address, controller.address, PROJECT_ID, REQUIRE_CLAIM_INDEX)
+      .returns(true);
+
+    // Issue token for project
+    await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
+
+    // Set flag value
+    const flagVal = true;
+    const shouldRequireClaimingForTx = await jbTokenStore
+      .connect(holder)
+      .shouldRequireClaimingFor(PROJECT_ID, flagVal);
+
+    expect(await jbTokenStore.requireClaimFor(PROJECT_ID)).to.equal(flagVal);
+
+    await expect(shouldRequireClaimingForTx)
+      .to.emit(jbTokenStore, 'ShouldRequireClaim')
+      .withArgs(PROJECT_ID, flagVal, holder.address);
   });
 
   it(`Can't set flag if token doesn't exist for project`, async function () {

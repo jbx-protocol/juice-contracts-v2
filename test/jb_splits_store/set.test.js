@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { daysFromNow, daysFromDate, makeSplits } from '../helpers/utils';
+import { daysFromNow, daysFromDate } from '../helpers/utils';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbOperatorStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
