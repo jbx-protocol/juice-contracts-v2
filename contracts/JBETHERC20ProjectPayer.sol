@@ -159,8 +159,8 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     address _beneficiary,
     uint256 _minReturnedTokens,
     bool _preferClaimedTokens,
-    string memory _memo,
-    bytes memory _metadata
+    string calldata _memo,
+    bytes calldata _metadata
   ) public payable virtual override {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
