@@ -17,18 +17,14 @@ error NO_MSG_VALUE_ALLOWED();
 
 /** 
   @notice 
-  A contract that sends funds to a Juicebox project.
+  A contract that sends funds to a project treasury via direct payments or contract calls.
+
+  @dev
+  Inherits from:
+  IJBETHERC20ProjectPayerDeployer:  General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
+  Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
-  event SetDefaultValues(
-    uint256 projectId,
-    address beneficiary,
-    bool preferClaimedTokens,
-    string memo,
-    bytes metadata,
-    address caller
-  );
-
   /**
     @notice 
     A contract storing directories of terminals and controllers for each project.
@@ -125,11 +121,14 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     string memory _memo,
     bytes memory _metadata
   ) external override onlyOwner {
-    defaultProjectId = _projectId;
-    defaultBeneficiary = _beneficiary;
-    defaultPreferClaimedTokens = _preferClaimedTokens;
-    defaultMemo = _memo;
-    defaultMetadata = _metadata;
+    if (_projectId != defaultProjectId) defaultProjectId = _projectId;
+    if (_beneficiary != defaultBeneficiary) defaultBeneficiary = _beneficiary;
+    if (_preferClaimedTokens != defaultPreferClaimedTokens)
+      defaultPreferClaimedTokens = _preferClaimedTokens;
+    if (keccak256(abi.encodePacked(_memo)) != keccak256(abi.encodePacked(defaultMemo)))
+      defaultMemo = _memo;
+    if (keccak256(abi.encodePacked(_metadata)) != keccak256(abi.encodePacked(defaultMetadata)))
+      defaultMetadata = _metadata;
     emit SetDefaultValues(
       _projectId,
       _beneficiary,
@@ -160,8 +159,8 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     address _beneficiary,
     uint256 _minReturnedTokens,
     bool _preferClaimedTokens,
-    string memory _memo,
-    bytes memory _metadata
+    string calldata _memo,
+    bytes calldata _metadata
   ) public payable virtual override {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
@@ -218,15 +217,19 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     // If this terminal's token is ETH, send it in msg.value.
     uint256 _payableValue = _token == JBTokens.ETH ? _amount : 0;
 
-    // Send funds to the terminal.
-    _terminal.pay{value: _payableValue}(
-      _amount, // ignored if the token is JBTokens.ETH.
-      _projectId,
-      _beneficiary,
-      _minReturnedTokens,
-      _preferClaimedTokens,
-      _memo,
-      _metadata
-    );
+    // Pay if there's a beneficiary to receive tokens.
+    if (_beneficiary != address(0))
+      // Send funds to the terminal.
+      _terminal.pay{value: _payableValue}(
+        _amount, // ignored if the token is JBTokens.ETH.
+        _projectId,
+        _beneficiary,
+        _minReturnedTokens,
+        _preferClaimedTokens,
+        _memo,
+        _metadata
+      );
+      // Otherwise just add to balance so tokens don't get issued.
+    else _terminal.addToBalanceOf{value: _payableValue}(_projectId, _amount, _memo);
   }
 }

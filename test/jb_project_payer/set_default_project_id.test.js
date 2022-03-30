@@ -76,6 +76,40 @@ describe('JBETHERC20ProjectPayer::setDefaultValues(...)', function () {
         owner.address,
       );
   });
+  it(`Should set defaults if nothing has changed`, async function () {
+    const { owner, jbProjectPayer } = await setup();
+
+    expect(await jbProjectPayer.defaultProjectId()).to.equal(INITIAL_PROJECT_ID);
+    expect(await jbProjectPayer.defaultBeneficiary()).to.equal(INITIAL_BENEFICIARY);
+    expect(await jbProjectPayer.defaultPreferClaimedTokens()).to.equal(
+      INITIAL_PREFER_CLAIMED_TOKENS,
+    );
+    expect(await jbProjectPayer.defaultMemo()).to.equal(INITIAL_MEMO);
+    expect(await jbProjectPayer.defaultMetadata()).to.equal(
+      ethers.BigNumber.from(INITIAL_METADATA),
+    );
+
+    const setDefaultsTx = await jbProjectPayer
+      .connect(owner)
+      .setDefaultValues(INITIAL_PROJECT_ID, INITIAL_BENEFICIARY, INITIAL_PREFER_CLAIMED_TOKENS, INITIAL_MEMO, INITIAL_METADATA);
+
+    expect(await jbProjectPayer.defaultProjectId()).to.equal(INITIAL_PROJECT_ID);
+    expect(await jbProjectPayer.defaultBeneficiary()).to.equal(INITIAL_BENEFICIARY);
+    expect(await jbProjectPayer.defaultPreferClaimedTokens()).to.equal(INITIAL_PREFER_CLAIMED_TOKENS);
+    expect(await jbProjectPayer.defaultMemo()).to.equal(INITIAL_MEMO);
+    expect(await jbProjectPayer.defaultMetadata()).to.equal(ethers.BigNumber.from(INITIAL_METADATA));
+
+    await expect(setDefaultsTx)
+      .to.emit(jbProjectPayer, 'SetDefaultValues')
+      .withArgs(
+        INITIAL_PROJECT_ID,
+        INITIAL_BENEFICIARY,
+        INITIAL_PREFER_CLAIMED_TOKENS,
+        INITIAL_MEMO,
+        ethers.BigNumber.from(INITIAL_METADATA),
+        owner.address,
+      );
+  });
 
   it(`Can't set defaults if not owner`, async function () {
     const { addrs, jbProjectPayer } = await setup();

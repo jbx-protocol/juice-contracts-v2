@@ -176,7 +176,7 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     // Keep a reference to the eligible funding cycle.
     JBFundingCycle memory _fundingCycle;
 
-    // If a standby funding cycle exists...
+    // If an eligible funding cycle exists...
     if (_fundingCycleConfiguration > 0) {
       // Resolve the funding cycle for the eligible configuration.
       _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
