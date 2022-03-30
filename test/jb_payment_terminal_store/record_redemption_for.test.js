@@ -155,6 +155,91 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     ).to.equal(startingBalance.sub(AMOUNT));
   });
 
+  it('Should record redemption from global overflow', async function () {
+    const {
+      holder,
+      beneficiary,
+      mockJbController,
+      mockJbDirectory,
+      mockJbFundingCycleStore,
+      mockJbTerminal,
+      mockJbTerminalSigner,
+      mockJbTokenStore,
+      JBPaymentTerminalStore,
+      timestamp,
+      CURRENCY_ETH,
+    } = await setup();
+
+    await mockJbTokenStore.mock.balanceOf.withArgs(holder.address, PROJECT_ID).returns(AMOUNT);
+
+    const reservedRate = 0;
+    const packedMetadata = packFundingCycleMetadata({
+      pauseRedeem: 0,
+      reservedRate: reservedRate,
+      useTotalOverflowForRedemptions: true
+    });
+
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      // mock JBFundingCycle obj
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: WEIGHT,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packedMetadata,
+    });
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
+    
+    await mockJbDirectory.mock.terminalsOf.withArgs(PROJECT_ID).returns([mockJbTerminal.address]);
+    await mockJbTerminal.mock.currentEthOverflowOf.withArgs(PROJECT_ID).returns(AMOUNT)
+
+    /* Mocks for _reclaimableOverflowOf private method */
+    await mockJbController.mock.distributionLimitOf
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .returns(AMOUNT, CURRENCY_ETH);
+
+    await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(AMOUNT);
+    await mockJbController.mock.totalOutstandingTokensOf
+      .withArgs(PROJECT_ID, reservedRate)
+      .returns(AMOUNT);
+
+    await mockJbController.mock.reservedTokenBalanceOf
+      .withArgs(PROJECT_ID, reservedRate)
+      .returns(0);
+    /* End of mocks for _reclaimableOverflowOf private method */
+
+    // Add to balance beforehand to have sufficient overflow
+    const startingBalance = AMOUNT.mul(ethers.BigNumber.from(2));
+    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+      PROJECT_ID,
+      startingBalance,
+    );
+
+    expect(
+      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+    ).to.equal(startingBalance);
+
+    // Record redemption
+    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordRedemptionFor(
+      /* holder */ holder.address,
+      /* projectId */ PROJECT_ID,
+      /* tokenCount */ AMOUNT,
+      /* balanceDecimals*/ 18,
+      /* balanceCurrency */ CURRENCY,
+      /* memo */ 'test',
+      METADATA,
+    );
+
+    // Expect recorded balance to decrease by redeemed amount
+    expect(
+      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+    ).to.equal(startingBalance.sub(AMOUNT));
+  });
+
   it('Should record redemption without a token count', async function () {
     const {
       holder,

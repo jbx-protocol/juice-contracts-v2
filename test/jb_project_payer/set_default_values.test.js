@@ -11,7 +11,7 @@ describe('JBETHERC20ProjectPayer::setDefaultValues(...)', function () {
   const INITIAL_PREFER_CLAIMED_TOKENS = false;
   const INITIAL_MEMO = 'hello world';
   const INITIAL_METADATA = ethers.utils.randomBytes(32);
-  const PROJECT_ID = 1;
+  const PROJECT_ID = 2;
   const BENEFICIARY = ethers.Wallet.createRandom().address;
   const PREFER_CLAIMED_TOKENS = true;
   const MEMO = 'hi world';

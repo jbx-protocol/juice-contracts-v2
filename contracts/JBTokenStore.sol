@@ -308,11 +308,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
       : _token.balanceOf(_holder, _projectId);
 
     // There must be adequate tokens to burn across the holder's claimed and unclaimed balance.
-    if (
-      (_amount >= _claimedBalance || _amount >= _unclaimedBalance) &&
-      (_amount < _claimedBalance || _unclaimedBalance < _amount - _claimedBalance) &&
-      (_amount < _unclaimedBalance || _claimedBalance < _amount - _unclaimedBalance)
-    ) revert INSUFFICIENT_FUNDS();
+    if (_amount > _claimedBalance + _unclaimedBalance) revert INSUFFICIENT_FUNDS();
 
     // The amount of tokens to burn.
     uint256 _claimedTokensToBurn;

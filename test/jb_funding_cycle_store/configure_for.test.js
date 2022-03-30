@@ -1135,6 +1135,90 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     );
   });
 
+  it('Should configure subsequent cycle during a funding cycle with duration of 0 irrespectively of a discount rate', async function () {
+    const { controller, mockJbDirectory, jbFundingCycleStore } = await setup();
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    const firstFundingCycleData = createFundingCycleData({ duration: BigNumber.from(0), discountRate: BigNumber.from(50) });
+
+    // Configure first funding cycle
+    const firstConfigureForTx = await jbFundingCycleStore
+      .connect(controller)
+      .configureFor(
+        PROJECT_ID,
+        firstFundingCycleData,
+        RANDOM_FUNDING_CYCLE_METADATA_1,
+        FUNDING_CYCLE_CAN_START_ASAP,
+      );
+
+    // The timestamp the first configuration was made during.
+    const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
+
+    const expectedFirstFundingCycle = {
+      number: ethers.BigNumber.from(1),
+      configuration: firstConfigurationTimestamp,
+      basedOn: ethers.BigNumber.from(0),
+      start: firstConfigurationTimestamp,
+      duration: firstFundingCycleData.duration,
+      weight: firstFundingCycleData.weight,
+      discountRate: firstFundingCycleData.discountRate,
+      ballot: firstFundingCycleData.ballot,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_1,
+    };
+
+    expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(
+      expectedFirstFundingCycle,
+    );
+
+    //No funding cycle should be queued because the latest configuration has a duration of 0.
+    expect(cleanFundingCycle(await jbFundingCycleStore.queuedOf(PROJECT_ID))).to.eql(
+      EMPTY_FUNDING_CYCLE,
+    );
+
+    // Set the duration to 0 of the second cycle to check that no queued cycle is being returned.
+    const secondFundingCycleData = createFundingCycleData({ duration: BigNumber.from(0) });
+
+    //fast forward to within the cycle.
+    //An arbitrary amount into the future.
+    await fastForward(firstConfigureForTx.blockNumber, ethers.BigNumber.from(123456789));
+
+    // Configure second funding cycle
+    const secondConfigureForTx = await jbFundingCycleStore
+      .connect(controller)
+      .configureFor(
+        PROJECT_ID,
+        secondFundingCycleData,
+        RANDOM_FUNDING_CYCLE_METADATA_2,
+        FUNDING_CYCLE_CAN_START_ASAP,
+      );
+
+    // The timestamp the second configuration was made during.
+    const secondConfigurationTimestamp = await getTimestamp(secondConfigureForTx.blockNumber);
+
+    const expectedSecondFundingCycle = {
+      number: ethers.BigNumber.from(2), // second cycle
+      configuration: secondConfigurationTimestamp,
+      basedOn: firstConfigurationTimestamp, // based on the first cycle
+      start: secondConfigurationTimestamp, // starts right away
+      duration: secondFundingCycleData.duration,
+      weight: secondFundingCycleData.weight,
+      discountRate: secondFundingCycleData.discountRate,
+      ballot: secondFundingCycleData.ballot,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_2,
+    };
+
+    expect(
+      cleanFundingCycle(await jbFundingCycleStore.get(PROJECT_ID, secondConfigurationTimestamp)),
+    ).to.eql(expectedSecondFundingCycle);
+    expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(
+      expectedSecondFundingCycle,
+    );
+    //No funding cycle should be queued because the latest configuration has a duratino of 0.
+    expect(cleanFundingCycle(await jbFundingCycleStore.queuedOf(PROJECT_ID))).to.eql(
+      EMPTY_FUNDING_CYCLE,
+    );
+  });
+
   it('Should not use a funding cycle that fails a ballot', async function () {
     const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore, addrs } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
