@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { daysFromNow, daysFromDate } from '../helpers/utils';
+import { daysFromNow, daysFromDate, makeSplits } from '../helpers/utils';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbOperatorStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
@@ -58,7 +58,7 @@ describe('JBSplitsStore::set(...)', function () {
       splits.push({
         preferClaimed: false,
         percent: BigNumber.from(Math.floor(1000000000 / count)),
-        projectId: BigNumber.from(0),
+        projectId: BigNumber.from(4),
         beneficiary: beneficiaryAddress,
         lockedUntil: BigNumber.from(0),
         allocator: ethers.constants.AddressZero,
@@ -113,6 +113,7 @@ describe('JBSplitsStore::set(...)', function () {
 
     const newSplits = splits.map((elt) => ({
       ...elt,
+      preferClaimed: true,
       beneficiary: ethers.constants.AddressZero,
       allocator: addrs[5].address,
     }));

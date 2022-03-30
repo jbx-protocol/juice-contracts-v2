@@ -345,6 +345,56 @@ describe('JBPaymentTerminalStore::recordDistributionFor(...)', function () {
     ).to.be.revertedWith(errors.DISTRIBUTION_AMOUNT_LIMIT_REACHED);
   });
 
+  it(`Can't record distribution if distributionLimit is 0`, async function () {
+    const {
+      mockJbTerminal,
+      mockJbTerminalSigner,
+      mockJbController,
+      mockJbFundingCycleStore,
+      mockJbPrices,
+      JBPaymentTerminalStore,
+      timestamp,
+      CURRENCY_ETH,
+    } = await setup();
+
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      // mock JBFundingCycle obj
+      number: FUNDING_CYCLE_NUM,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: WEIGHT,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({ pauseDistributions: 0 }),
+    });
+
+    // Add to balance beforehand
+    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+      PROJECT_ID,
+      AMOUNT,
+    );
+
+    await mockJbController.mock.distributionLimitOf
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .returns(0, CURRENCY_ETH); 
+
+    await mockJbPrices.mock.priceFor
+      .withArgs(CURRENCY_ETH, CURRENCY_ETH, _FIXED_POINT_MAX_FIDELITY)
+      .returns(ethers.FixedNumber.from(1));
+
+    // Record the distributions
+    await expect(
+      JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
+        PROJECT_ID,
+        AMOUNT,
+        CURRENCY_ETH,
+        CURRENCY_ETH,
+      ),
+    ).to.be.revertedWith(errors.DISTRIBUTION_AMOUNT_LIMIT_REACHED);
+  });
+
   it(`Can't record distribution if distributedAmount > project's total balance`, async function () {
     const {
       mockJbTerminal,

@@ -343,6 +343,37 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     ).to.be.revertedWith(errors.INADEQUATE_CONTROLLER_ALLOWANCE);
   });
 
+  it(`Can't record allowance if controller's overflowAllowanceOf is 0`, async function () {
+    const {
+      mockJbController,
+      mockJbTerminal,
+      mockJbTerminalSigner,
+      JBPaymentTerminalStore,
+      timestamp,
+      CURRENCY_USD,
+    } = await setup();
+
+    // Add to balance beforehand
+    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+      PROJECT_ID,
+      AMOUNT,
+    );
+
+    await mockJbController.mock.overflowAllowanceOf
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .returns(0, CURRENCY_USD); // Set the controller's overflowAllowance to something small
+
+    // Record the used allowance
+    await expect(
+      JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
+        PROJECT_ID,
+        AMOUNT,
+        CURRENCY_USD,
+        CURRENCY_USD,
+      ),
+    ).to.be.revertedWith(errors.INADEQUATE_CONTROLLER_ALLOWANCE);
+  });
+
   it(`Can't record allowance if _leftToDistribute > balanceOf`, async function () {
     const {
       mockJbController,
