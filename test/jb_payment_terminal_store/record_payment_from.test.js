@@ -329,7 +329,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       /* payer */ payer.address,
       ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
       PROJECT_ID,
-      BASE_CURRENCY,
+      otherBaseCurrency,
       /* memo */ 'test',
       METADATA,
     );

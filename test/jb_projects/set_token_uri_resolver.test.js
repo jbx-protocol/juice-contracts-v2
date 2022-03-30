@@ -8,7 +8,7 @@ import jbTokenUriResolver from '../../artifacts/contracts/interfaces/IJBTokenUri
 
 describe('JBProjects::setTokenUriResolver(...)', function () {
   async function setup() {
-    let [deployer] = await ethers.getSigners();
+    let [deployer, caller] = await ethers.getSigners();
 
     let mockJbTokenUriResolver = await deployMockContract(deployer, jbTokenUriResolver.abi);
     let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
@@ -18,6 +18,7 @@ describe('JBProjects::setTokenUriResolver(...)', function () {
 
     return {
       deployer,
+      caller,
       jbProjects,
       mockJbTokenUriResolver,
     };
@@ -31,5 +32,12 @@ describe('JBProjects::setTokenUriResolver(...)', function () {
       .withArgs(mockJbTokenUriResolver.address, deployer.address);
 
     expect(await jbProjects.tokenUriResolver()).to.equal(mockJbTokenUriResolver.address);
+  });
+
+  it(`Can't set the tokenUri resolver if caller is not the contract owner`, async function () {
+    const { caller, jbProjects, mockJbTokenUriResolver } = await setup();
+
+    await expect(jbProjects.connect(caller).setTokenUriResolver(mockJbTokenUriResolver.address))
+      .to.be.reverted;
   });
 });

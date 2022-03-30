@@ -42,6 +42,12 @@ module.exports = async ({ deployments, getChainId }) => {
 
   console.log({ multisigAddress });
 
+  // Deploy a JBETHERC20ProjectPayerDeployer contract.
+  await deploy('JBETHERC20ProjectPayerDeployer', {
+    ...baseDeployArgs,
+    args: [],
+  });
+
   // Deploy a JBOperatorStore contract.
   const JBOperatorStore = await deploy('JBOperatorStore', {
     ...baseDeployArgs,
@@ -87,7 +93,7 @@ module.exports = async ({ deployments, getChainId }) => {
   });
 
   // Deploy a JB7DayReconfigurationBufferBallot.
-  const JB7DayReconfigurationBufferBallot = await deploy('JB7DayReconfigurationBufferBallot', {
+  await deploy('JB7DayReconfigurationBufferBallot', {
     ...baseDeployArgs,
     args: [],
   });
@@ -123,21 +129,6 @@ module.exports = async ({ deployments, getChainId }) => {
     args: [JBPrices.address, JBDirectory.address, JBFundingCycleStore.address],
   });
 
-  // Deploy a JBETHPaymentTerminal contract.
-  const JBETHPaymentTerminal = await deploy('JBETHPaymentTerminal', {
-    ...baseDeployArgs,
-    args: [
-      0,
-      JBOperatorStore.address,
-      JBProjects.address,
-      JBDirectory.address,
-      JBSplitStore.address,
-      JBPrices.address,
-      JBPaymentTerminalStore.address,
-      multisigAddress,
-    ],
-  });
-
   // Deploy the currencies library.
   const JBCurrencies = await deploy('JBCurrencies', {
     ...baseDeployArgs,
@@ -147,13 +138,28 @@ module.exports = async ({ deployments, getChainId }) => {
   // Get references to contract that will have transactions triggered.
   const jbDirectoryContract = new ethers.Contract(JBDirectory.address, JBDirectory.abi);
   const jbPricesContract = new ethers.Contract(JBPrices.address, JBPrices.abi);
-  const jbCurrenciesLibrary = new ethers.Contract(JBCurrencies.address, JBCurrencies.abi);
   const jbControllerContract = new ethers.Contract(JBController.address, JBController.abi);
   const jbProjects = new ethers.Contract(JBProjects.address, JBProjects.abi);
+  const jbCurrenciesLibrary = new ethers.Contract(JBCurrencies.address, JBCurrencies.abi);
 
   // Get a reference to USD and ETH currency indexes.
   const USD = await jbCurrenciesLibrary.connect(deployer).USD();
   const ETH = await jbCurrenciesLibrary.connect(deployer).ETH();
+
+  // Deploy a JBETHPaymentTerminal contract.
+  const JBETHPaymentTerminal = await deploy('JBETHPaymentTerminal', {
+    ...baseDeployArgs,
+    args: [
+      ETH,
+      JBOperatorStore.address,
+      JBProjects.address,
+      JBDirectory.address,
+      JBSplitStore.address,
+      JBPrices.address,
+      JBPaymentTerminalStore.address,
+      multisigAddress,
+    ],
+  });
 
   // Get a reference to an existing ETH/USD feed.
   const usdEthFeed = await jbPricesContract.connect(deployer).feedFor(USD, ETH);

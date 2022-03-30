@@ -4,8 +4,6 @@ pragma solidity 0.8.6;
 import '@openzeppelin/contracts/access/Ownable.sol';
 
 import './abstract/JBOperatable.sol';
-import './interfaces/IJBPaymentTerminal.sol';
-import './interfaces/IJBDirectory.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 
@@ -286,7 +284,9 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     @dev
     The terminal will be set as the primary terminal where ecosystem contracts should route tokens.
-    If the funding cycle doesn't allow new terminals, the caller must be the current controller.
+
+    @dev
+    If setting a newly added terminal and the funding cycle doesn't allow new terminals, the caller must be the current controller.
 
     @param _projectId The ID of the project for which a primary token is being set.
     @param _terminal The terminal to make primary.
