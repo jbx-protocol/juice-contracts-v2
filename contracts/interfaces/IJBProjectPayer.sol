@@ -4,6 +4,15 @@ pragma solidity 0.8.6;
 import './IJBDirectory.sol';
 
 interface IJBProjectPayer {
+  event SetDefaultValues(
+    uint256 projectId,
+    address beneficiary,
+    bool preferClaimedTokens,
+    string memo,
+    bytes metadata,
+    address caller
+  );
+
   function directory() external view returns (IJBDirectory);
 
   function defaultProjectId() external view returns (uint256);

@@ -52,6 +52,13 @@ interface IJBPaymentTerminalStore {
     bool _useTotalOverflow
   ) external view returns (uint256);
 
+  function currentReclaimableOverflowOf(
+    uint256 _projectId,
+    uint256 _tokenCount,
+    uint256 _totalSupply,
+    uint256 _overflow
+  ) external view returns (uint256);
+
   function recordPaymentFrom(
     address _payer,
     JBTokenAmount memory _amount,

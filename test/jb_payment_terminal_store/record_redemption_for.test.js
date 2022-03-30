@@ -238,6 +238,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       holder,
       beneficiary,
       mockJbController,
+      mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbTerminal,
       mockJbTerminalSigner,
@@ -274,6 +275,8 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       .returns(AMOUNT, CURRENCY_ETH);
 
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(AMOUNT);
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
     await mockJbController.mock.totalOutstandingTokensOf
       .withArgs(PROJECT_ID, reservedRate)
       .returns(AMOUNT);
@@ -328,6 +331,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     const reservedRate = 0;
     const redemptionRate = 10000;
     const ballotRedemptionRate = 10000;
+
     const packedMetadata = packFundingCycleMetadata({
       pauseRedeem: 0,
       reservedRate: reservedRate,
@@ -365,6 +369,8 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         holder: holder.address,
         projectId: PROJECT_ID,
         tokenCount: AMOUNT,
+        totalSupply: AMOUNT,
+        overflow: AMOUNT,
         decimals: _FIXED_POINT_MAX_FIDELITY,
         currency: CURRENCY,
         reclaimAmount: AMOUNT,
@@ -466,6 +472,8 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     const {
       holder,
       beneficiary,
+      mockJbController,
+      mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbTerminalSigner,
       mockJbTokenStore,
@@ -474,8 +482,6 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       timestamp,
       addrs,
     } = await setup();
-
-    await mockJbTokenStore.mock.balanceOf.withArgs(holder.address, PROJECT_ID).returns(AMOUNT);
 
     const reservedRate = 0;
     const redemptionRate = 10000;
@@ -489,6 +495,13 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       dataSource: mockJbFundingCycleDataSource.address,
     });
     const delegate = addrs[0];
+
+    await mockJbTokenStore.mock.balanceOf.withArgs(holder.address, PROJECT_ID).returns(AMOUNT);
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
+    await mockJbController.mock.totalOutstandingTokensOf
+      .withArgs(PROJECT_ID, reservedRate)
+      .returns(AMOUNT);
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
@@ -511,6 +524,8 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
         holder: holder.address,
         projectId: PROJECT_ID,
         tokenCount: AMOUNT,
+        totalSupply: AMOUNT,
+        overflow: 0,
         decimals: _FIXED_POINT_MAX_FIDELITY,
         currency: CURRENCY,
         reclaimAmount: 0,

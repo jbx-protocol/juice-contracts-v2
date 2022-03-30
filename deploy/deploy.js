@@ -42,6 +42,12 @@ module.exports = async ({ deployments, getChainId }) => {
 
   console.log({ multisigAddress });
 
+  // Deploy a JBETHERC20ProjectPayerDeployer contract.
+  await deploy('JBETHERC20ProjectPayerDeployer', {
+    ...baseDeployArgs,
+    args: [],
+  });
+
   // Deploy a JBOperatorStore contract.
   const JBOperatorStore = await deploy('JBOperatorStore', {
     ...baseDeployArgs,
@@ -60,16 +66,36 @@ module.exports = async ({ deployments, getChainId }) => {
     args: [JBOperatorStore.address],
   });
 
+  // Get the future address of JBFundingCycleStore
+  const transactionCount = await deployer.getTransactionCount()
+
+  const FundingCycleStoreFutureAddress = ethers.utils.getContractAddress({
+    from: deployer.address,
+    nonce: transactionCount + 1
+  })
+
   // Deploy a JBDirectory.
   const JBDirectory = await deploy('JBDirectory', {
     ...baseDeployArgs,
-    args: [JBOperatorStore.address, JBProjects.address, deployer.address],
+    args: [JBOperatorStore.address, JBProjects.address, FundingCycleStoreFutureAddress, deployer.address],
   });
 
   // Deploy a JBFundingCycleStore.
   const JBFundingCycleStore = await deploy('JBFundingCycleStore', {
     ...baseDeployArgs,
     args: [JBDirectory.address],
+  });
+
+  // Deploy a JB3DayReconfigurationBufferBallot.
+  const JB3DayReconfigurationBufferBallot = await deploy('JB3DayReconfigurationBufferBallot', {
+    ...baseDeployArgs,
+    args: [],
+  });
+
+  // Deploy a JB7DayReconfigurationBufferBallot.
+  await deploy('JB7DayReconfigurationBufferBallot', {
+    ...baseDeployArgs,
+    args: [],
   });
 
   // Deploy a JBTokenStore.
@@ -179,21 +205,28 @@ module.exports = async ({ deployments, getChainId }) => {
       /*owner*/ multisigAddress,
 
       /* projectMetadata */
-      [/*content*/ '', /*domain*/ ethers.BigNumber.from(0)],
+      [
+        /*content*/ 'QmToqoMoakcVuGbELoJYRfWY5N7qr3Jawxq3xH6u3tbPiv',
+        /*domain*/ ethers.BigNumber.from(0),
+      ],
 
       /*fundingCycleData*/
       [
         /*duration*/ ethers.BigNumber.from(1209600),
-        /*weight*/ ethers.BigNumber.from(10).pow(18).mul(1000000),
-        /*discountRate*/ ethers.BigNumber.from(40000000),
-        /*ballot*/ '0x0000000000000000000000000000000000000000',
+        /*weight*/ ethers.BigNumber.from(2)
+          .pow(10)
+          .mul(ethers.BigNumber.from(3).pow(33))
+          .mul(ethers.BigNumber.from(5).pow(5))
+          .mul(7),
+        /*discountRate*/ ethers.BigNumber.from(100000000),
+        /*ballot*/ JB3DayReconfigurationBufferBallot.address,
       ],
 
       /*fundingCycleMetadata*/
       [
         /*reservedRate*/ ethers.BigNumber.from(5000),
-        /*redemptionRate*/ ethers.BigNumber.from(7000),
-        /*ballotRedemptionRate*/ ethers.BigNumber.from(7000),
+        /*redemptionRate*/ ethers.BigNumber.from(9500),
+        /*ballotRedemptionRate*/ ethers.BigNumber.from(9500),
         /*pausePay*/ ethers.BigNumber.from(0),
         /*pauseDistributions*/ ethers.BigNumber.from(0),
         /*pauseRedeem*/ ethers.BigNumber.from(0),
@@ -202,6 +235,8 @@ module.exports = async ({ deployments, getChainId }) => {
         /*allowChangeToken*/ ethers.BigNumber.from(0),
         /*allowTerminalMigration*/ ethers.BigNumber.from(0),
         /*allowControllerMigration*/ ethers.BigNumber.from(0),
+        /*allowSetTerminals*/ ethers.BigNumber.from(0),
+        /*allowSetController*/ ethers.BigNumber.from(0),
         /*holdFees*/ ethers.BigNumber.from(0),
         /*useTotalOverflowForRedemptions*/ ethers.BigNumber.from(0),
         /*useDataSourceForPay*/ ethers.BigNumber.from(0),
@@ -209,7 +244,7 @@ module.exports = async ({ deployments, getChainId }) => {
         /*dataSource*/ '0x0000000000000000000000000000000000000000',
       ],
 
-      /*mustStartOnOrAfter*/ ethers.BigNumber.from(0),
+      /*mustStartOnOrAfter*/ ethers.BigNumber.from(1649531973),
 
       /*groupedSplits*/[],
 

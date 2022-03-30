@@ -4,15 +4,16 @@ pragma solidity 0.8.6;
 import '@openzeppelin/contracts/access/Ownable.sol';
 
 import './abstract/JBOperatable.sol';
-import './interfaces/IJBPaymentTerminal.sol';
-import './interfaces/IJBDirectory.sol';
 import './libraries/JBOperations.sol';
+import './libraries/JBFundingCycleMetadataResolver.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
 //*********************************************************************//
 error INVALID_PROJECT_ID_IN_DIRECTORY();
 error DUPLICATE_TERMINALS();
+error SET_CONTROLLER_NOT_ALLOWED();
+error SET_TERMINALS_NOT_ALLOWED();
 
 /**
   @notice
@@ -28,6 +29,9 @@ error DUPLICATE_TERMINALS();
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
+  // A library that parses the packed funding cycle metadata into a friendlier format.
+  using JBFundingCycleMetadataResolver for JBFundingCycle;
+
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//
@@ -58,6 +62,12 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     The Projects contract which mints ERC-721's that represent project ownership and transfers.
   */
   IJBProjects public immutable override projects;
+
+  /**
+    @notice
+    The contract storing all funding cycle configurations.
+  */
+  IJBFundingCycleStore public immutable override fundingCycleStore;
 
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
@@ -159,14 +169,17 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   /** 
     @param _operatorStore A contract storing operator assignments.
     @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
+    @param _fundingCycleStore A contract storing all funding cycle configurations.
     @param _owner The address that will own the contract.
   */
   constructor(
     IJBOperatorStore _operatorStore,
     IJBProjects _projects,
+    IJBFundingCycleStore _fundingCycleStore,
     address _owner
   ) JBOperatable(_operatorStore) {
     projects = _projects;
+    fundingCycleStore = _fundingCycleStore;
 
     _transferOwnership(_owner);
   }
@@ -199,6 +212,16 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     // The project must exist.
     if (projects.count() < _projectId) revert INVALID_PROJECT_ID_IN_DIRECTORY();
 
+    // Get a reference to the project's current funding cycle.
+    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
+
+    // Setting controller must be allowed if not called from the current controller or if the project already has a controller.
+    if (
+      msg.sender != address(controllerOf[_projectId]) &&
+      controllerOf[_projectId] != IJBController(address(0)) &&
+      !_fundingCycle.setControllerAllowed()
+    ) revert SET_CONTROLLER_NOT_ALLOWED();
+
     // Set the new controller.
     controllerOf[_projectId] = _controller;
 
@@ -225,6 +248,13 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
       msg.sender == address(controllerOf[_projectId])
     )
   {
+    // Get a reference to the project's current funding cycle.
+    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
+
+    // Setting terminals must be allowed if not called from the current controller.
+    if (msg.sender != address(controllerOf[_projectId]) && !_fundingCycle.setTerminalsAllowed())
+      revert SET_TERMINALS_NOT_ALLOWED();
+
     // Get a reference to the terminals of the project.
     IJBPaymentTerminal[] memory _oldTerminals = _terminalsOf[_projectId];
 
@@ -254,6 +284,9 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     @dev
     The terminal will be set as the primary terminal where ecosystem contracts should route tokens.
+
+    @dev
+    If setting a newly added terminal and the funding cycle doesn't allow new terminals, the caller must be the current controller.
 
     @param _projectId The ID of the project for which a primary token is being set.
     @param _terminal The terminal to make primary.
@@ -315,6 +348,13 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   function _addTerminalIfNeeded(uint256 _projectId, IJBPaymentTerminal _terminal) private {
     // Check that the terminal has not already been added.
     if (isTerminalOf(_projectId, _terminal)) return;
+
+    // Get a reference to the project's current funding cycle.
+    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
+
+    // Setting terminals must be allowed if not called from the current controller.
+    if (msg.sender != address(controllerOf[_projectId]) && !_fundingCycle.setTerminalsAllowed())
+      revert SET_TERMINALS_NOT_ALLOWED();
 
     // Add the new terminal.
     _terminalsOf[_projectId].push(_terminal);

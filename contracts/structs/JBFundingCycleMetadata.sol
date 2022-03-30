@@ -26,6 +26,10 @@ struct JBFundingCycleMetadata {
   bool allowTerminalMigration;
   // If migrating controllers should be allowed during this funding cycle.
   bool allowControllerMigration;
+  // If setting terminals should be allowed during this funding cycle.
+  bool allowSetTerminals;
+  // If setting a new controller should be allowed during this funding cycle.
+  bool allowSetController;
   // If fees should be held during this funding cycle.
   bool holdFees;
   // If redemptions should use the project's balance held in all terminals instead of the project's local terminal balance from which the redemption is being fulfilled.
