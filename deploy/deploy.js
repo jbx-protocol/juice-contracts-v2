@@ -129,11 +129,17 @@ module.exports = async ({ deployments, getChainId }) => {
     args: [JBPrices.address, JBDirectory.address, JBFundingCycleStore.address],
   });
 
+  // Deploy the currencies library.
+  const JBCurrencies = await deploy('JBCurrencies', {
+    ...baseDeployArgs,
+    args: [],
+  });
+
   // Deploy a JBETHPaymentTerminal contract.
   const JBETHPaymentTerminal = await deploy('JBETHPaymentTerminal', {
     ...baseDeployArgs,
     args: [
-      0,
+      JBCurrencies.ETH,
       JBOperatorStore.address,
       JBProjects.address,
       JBDirectory.address,
@@ -142,12 +148,6 @@ module.exports = async ({ deployments, getChainId }) => {
       JBPaymentTerminalStore.address,
       multisigAddress,
     ],
-  });
-
-  // Deploy the currencies library.
-  const JBCurrencies = await deploy('JBCurrencies', {
-    ...baseDeployArgs,
-    args: [],
   });
 
   // Get references to contract that will have transactions triggered.
