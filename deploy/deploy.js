@@ -20,6 +20,7 @@ module.exports = async ({ deployments, getChainId }) => {
     // On mainnet, we will not redeploy contracts if they have already been deployed.
     skipIfAlreadyDeployed: chainId === '1',
   };
+  let protocolProjectStartsAtOrAfter;
 
   console.log({ deployer: deployer.address, chain: chainId });
 
@@ -28,19 +29,28 @@ module.exports = async ({ deployments, getChainId }) => {
     case '1':
       multisigAddress = '0xAF28bcB48C40dBC86f52D459A6562F658fc94B1e';
       chainlinkV2UsdEthPriceFeed = '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419';
+      protocolProjectStartsAtOrAfter = 1649531973;
       break;
     // rinkeby
     case '4':
       multisigAddress = '0xAF28bcB48C40dBC86f52D459A6562F658fc94B1e';
       chainlinkV2UsdEthPriceFeed = '0x8A753747A1Fa494EC906cE90E9f37563A8AF630e';
+      protocolProjectStartsAtOrAfter = 0;
       break;
     // hardhat / localhost
     case '31337':
       multisigAddress = deployer.address;
+      protocolProjectStartsAtOrAfter = 0;
       break;
   }
 
-  console.log({ multisigAddress });
+  console.log({ multisigAddress, protocolProjectStartsAtOrAfter });
+
+  // Deploy a JBETHERC20ProjectPayerDeployer contract.
+  await deploy('JBETHERC20ProjectPayerDeployer', {
+    ...baseDeployArgs,
+    args: [],
+  });
 
   // Deploy a JBOperatorStore contract.
   const JBOperatorStore = await deploy('JBOperatorStore', {
@@ -60,16 +70,36 @@ module.exports = async ({ deployments, getChainId }) => {
     args: [JBOperatorStore.address],
   });
 
+  // Get the future address of JBFundingCycleStore
+  const transactionCount = await deployer.getTransactionCount()
+
+  const FundingCycleStoreFutureAddress = ethers.utils.getContractAddress({
+    from: deployer.address,
+    nonce: transactionCount + 1
+  })
+
   // Deploy a JBDirectory.
   const JBDirectory = await deploy('JBDirectory', {
     ...baseDeployArgs,
-    args: [JBOperatorStore.address, JBProjects.address, deployer.address],
+    args: [JBOperatorStore.address, JBProjects.address, FundingCycleStoreFutureAddress, deployer.address],
   });
 
   // Deploy a JBFundingCycleStore.
   const JBFundingCycleStore = await deploy('JBFundingCycleStore', {
     ...baseDeployArgs,
     args: [JBDirectory.address],
+  });
+
+  // Deploy a JB3DayReconfigurationBufferBallot.
+  const JB3DayReconfigurationBufferBallot = await deploy('JB3DayReconfigurationBufferBallot', {
+    ...baseDeployArgs,
+    args: [],
+  });
+
+  // Deploy a JB7DayReconfigurationBufferBallot.
+  await deploy('JB7DayReconfigurationBufferBallot', {
+    ...baseDeployArgs,
+    args: [],
   });
 
   // Deploy a JBTokenStore.
@@ -103,21 +133,6 @@ module.exports = async ({ deployments, getChainId }) => {
     args: [JBPrices.address, JBDirectory.address, JBFundingCycleStore.address],
   });
 
-  // Deploy a JBETHPaymentTerminal contract.
-  const JBETHPaymentTerminal = await deploy('JBETHPaymentTerminal', {
-    ...baseDeployArgs,
-    args: [
-      0,
-      JBOperatorStore.address,
-      JBProjects.address,
-      JBDirectory.address,
-      JBSplitStore.address,
-      JBPrices.address,
-      JBPaymentTerminalStore.address,
-      multisigAddress,
-    ],
-  });
-
   // Deploy the currencies library.
   const JBCurrencies = await deploy('JBCurrencies', {
     ...baseDeployArgs,
@@ -127,13 +142,28 @@ module.exports = async ({ deployments, getChainId }) => {
   // Get references to contract that will have transactions triggered.
   const jbDirectoryContract = new ethers.Contract(JBDirectory.address, JBDirectory.abi);
   const jbPricesContract = new ethers.Contract(JBPrices.address, JBPrices.abi);
-  const jbCurrenciesLibrary = new ethers.Contract(JBCurrencies.address, JBCurrencies.abi);
   const jbControllerContract = new ethers.Contract(JBController.address, JBController.abi);
   const jbProjects = new ethers.Contract(JBProjects.address, JBProjects.abi);
+  const jbCurrenciesLibrary = new ethers.Contract(JBCurrencies.address, JBCurrencies.abi);
 
   // Get a reference to USD and ETH currency indexes.
   const USD = await jbCurrenciesLibrary.connect(deployer).USD();
   const ETH = await jbCurrenciesLibrary.connect(deployer).ETH();
+
+  // Deploy a JBETHPaymentTerminal contract.
+  const JBETHPaymentTerminal = await deploy('JBETHPaymentTerminal', {
+    ...baseDeployArgs,
+    args: [
+      ETH,
+      JBOperatorStore.address,
+      JBProjects.address,
+      JBDirectory.address,
+      JBSplitStore.address,
+      JBPrices.address,
+      JBPaymentTerminalStore.address,
+      multisigAddress,
+    ],
+  });
 
   // Get a reference to an existing ETH/USD feed.
   const usdEthFeed = await jbPricesContract.connect(deployer).feedFor(USD, ETH);
@@ -171,45 +201,55 @@ module.exports = async ({ deployments, getChainId }) => {
   if ((await jbDirectoryContract.connect(deployer).owner()) != multisigAddress)
     await jbDirectoryContract.connect(deployer).transferOwnership(multisigAddress);
 
-  console.log('Deploying protocol project...');
 
   // If needed, deploy the protocol project
-  if ((await jbProjects.connect(deployer).count()) == 0)
+  if ((await jbProjects.connect(deployer).count()) == 0) {
+
+    console.log('Deploying protocol project...');
     await jbControllerContract.connect(deployer).launchProjectFor(
       /*owner*/ multisigAddress,
 
       /* projectMetadata */
-      [/*content*/ '', /*domain*/ ethers.BigNumber.from(0)],
+      [
+        /*content*/ 'QmToqoMoakcVuGbELoJYRfWY5N7qr3Jawxq3xH6u3tbPiv',
+        /*domain*/ ethers.BigNumber.from(0),
+      ],
 
       /*fundingCycleData*/
       [
         /*duration*/ ethers.BigNumber.from(1209600),
-        /*weight*/ ethers.BigNumber.from(10).pow(18).mul(1000000),
-        /*discountRate*/ ethers.BigNumber.from(40000000),
-        /*ballot*/ '0x0000000000000000000000000000000000000000',
+        /*weight*/ ethers.BigNumber.from(2)
+          .pow(10)
+          .mul(ethers.BigNumber.from(3).pow(33))
+          .mul(ethers.BigNumber.from(5).pow(5))
+          .mul(7),
+        /*discountRate*/ ethers.BigNumber.from(100000000),
+        /*ballot*/ JB3DayReconfigurationBufferBallot.address,
       ],
 
       /*fundingCycleMetadata*/
       [
         /*reservedRate*/ ethers.BigNumber.from(5000),
-        /*redemptionRate*/ ethers.BigNumber.from(7000),
-        /*ballotRedemptionRate*/ ethers.BigNumber.from(7000),
-        /*pausePay*/ ethers.BigNumber.from(0),
-        /*pauseDistributions*/ ethers.BigNumber.from(0),
-        /*pauseRedeem*/ ethers.BigNumber.from(0),
-        /*pauseMint*/ ethers.BigNumber.from(0),
-        /*pauseBurn*/ ethers.BigNumber.from(0),
-        /*allowChangeToken*/ ethers.BigNumber.from(0),
-        /*allowTerminalMigration*/ ethers.BigNumber.from(0),
-        /*allowControllerMigration*/ ethers.BigNumber.from(0),
-        /*holdFees*/ ethers.BigNumber.from(0),
-        /*useTotalOverflowForRedemptions*/ ethers.BigNumber.from(0),
-        /*useDataSourceForPay*/ ethers.BigNumber.from(0),
-        /*useDataSourceForRedeem*/ ethers.BigNumber.from(0),
-        /*dataSource*/ '0x0000000000000000000000000000000000000000',
+        /*redemptionRate*/ ethers.BigNumber.from(9500),
+        /*ballotRedemptionRate*/ ethers.BigNumber.from(9500),
+        /*pausePay*/ false,
+        /*pauseDistributions*/ false,
+        /*pauseRedeem*/ false,
+        /*pauseMint*/ false,
+        /*pauseBurn*/ false,
+        /*allowChangeToken*/ false,
+        /*allowTerminalMigration*/ false,
+        /*allowControllerMigration*/ false,
+        /*allowSetTerminals*/ false,
+        /*allowSetController*/ false,
+        /*holdFees*/ false,
+        /*useTotalOverflowForRedemptions*/ false,
+        /*useDataSourceForPay*/ false,
+        /*useDataSourceForRedeem*/ false,
+        /*dataSource*/ ethers.constants.AddressZero,
       ],
 
-      /*mustStartOnOrAfter*/ ethers.BigNumber.from(0),
+      /*mustStartAtOrAfter*/ ethers.BigNumber.from(protocolProjectStartsAtOrAfter),
 
       /*groupedSplits*/[],
 
@@ -219,6 +259,7 @@ module.exports = async ({ deployments, getChainId }) => {
 
       /*memo*/ '',
     );
+  }
 
   console.log('Done');
 };

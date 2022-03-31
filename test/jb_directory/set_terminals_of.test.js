@@ -4,11 +4,12 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import errors from '../helpers/errors.json';
+import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
 import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
-import { impersonateAccount } from '../helpers/utils';
+import { impersonateAccount, packFundingCycleMetadata } from '../helpers/utils';
 
 describe('JBDirectory::setTerminalsOf(...)', function () {
   const PROJECT_ID = 1;
@@ -27,6 +28,11 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
+    const blockNum = await ethers.provider.getBlockNumber();
+    const block = await ethers.provider.getBlock(blockNum);
+    const timestamp = block.timestamp;
+
+    let mockJbFundingCycleStore = await deployMockContract(deployer, jbFundingCycleStore.abi);
     let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
     let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
 
@@ -34,8 +40,11 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
     let jbDirectory = await jbDirectoryFactory.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
+      mockJbFundingCycleStore.address,
       deployer.address,
     );
+
+    let controller = await deployMockContract(projectOwner, jbController.abi);
 
     let terminal1 = await deployMockContract(projectOwner, jbTerminal.abi);
     let terminal2 = await deployMockContract(projectOwner, jbTerminal.abi);
@@ -54,14 +63,31 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
       )
       .returns(true);
 
+    await mockJbProjects.mock.count.returns(PROJECT_ID);
+
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: 0,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({ allowSetTerminals: true})
+    });
+
     return {
       projectOwner,
+      controller,
       deployer,
       addrs,
       jbDirectory,
+      timestamp, 
       terminal1,
       terminal2,
       terminal3,
+      mockJbFundingCycleStore,
       mockJbProjects,
       mockJbOperatorStore,
     };
@@ -162,6 +188,57 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
 
     await expect(jbDirectory.connect(caller).setTerminalsOf(PROJECT_ID, [terminal1.address])).to.not
       .be.reverted;
+  });
+
+  it('Should add if the funding cycle prohibits it but the caller is the controller', async function () {
+    const { addrs, controller, projectOwner, jbDirectory, mockJbFundingCycleStore, mockJbOperatorStore, timestamp, terminal1 } = await setup();
+
+    await jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller.address);
+
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: 0,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({ allowSetTerminals: false})
+    });
+
+    // Give the caller permission to add terminals.
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(controller.address, projectOwner.address, PROJECT_ID, SET_TERMINALS_PERMISSION_INDEX)
+      .returns(true);
+
+    await expect(jbDirectory.connect(await impersonateAccount(controller.address)).setTerminalsOf(PROJECT_ID, [terminal1.address]))
+    .to.not.be.reverted;
+  });
+
+  it('Cannot add if caller has permission but is not the controller and funding cycle prohibits it', async function () {
+    const { addrs, projectOwner, jbDirectory, mockJbOperatorStore, mockJbFundingCycleStore, terminal1, timestamp } = await setup();
+    const caller = addrs[1];
+
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: 0,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({ allowSetTerminals: false})
+    });
+
+    // Give the caller permission to add terminals.
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, projectOwner.address, PROJECT_ID, SET_TERMINALS_PERMISSION_INDEX)
+      .returns(true);
+
+    await expect(jbDirectory.connect(caller).setTerminalsOf(PROJECT_ID, [terminal1.address]))
+    .to.be.revertedWith(errors.SET_TERMINALS_NOT_ALLOWED);
   });
 
   it("Can't add with duplicates", async function () {

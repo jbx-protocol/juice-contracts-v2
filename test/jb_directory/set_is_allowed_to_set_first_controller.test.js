@@ -3,6 +3,7 @@ import { ethers } from 'hardhat';
 import errors from '../helpers/errors.json';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
+import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
 import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
@@ -11,6 +12,7 @@ describe('JBDirectory::setIsAllowedToSetFirstController(...)', function () {
   async function setup() {
     let [deployer, ...addrs] = await ethers.getSigners();
 
+    let mockJbFundingCycleStore = await deployMockContract(deployer, jbFundingCycleStore.abi);
     let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
     let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
     let mockJbController = await deployMockContract(deployer, jbController.abi);
@@ -19,6 +21,7 @@ describe('JBDirectory::setIsAllowedToSetFirstController(...)', function () {
     let jbDirectory = await jbDirectoryFactory.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
+      mockJbFundingCycleStore.address,
       deployer.address,
     );
 

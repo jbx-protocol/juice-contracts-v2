@@ -1700,6 +1700,86 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       );
   });
 
+  it('Should distribute payout in ERC20 token and emit event', async function () {
+    const {
+      projectOwner,
+      caller,
+      CURRENCY_USD,
+      beneficiaryOne,
+      beneficiaryTwo,
+      fakeToken,
+      jbErc20PaymentTerminal,
+      terminalOwner,
+      timestamp,
+      mockJbDirectory,
+      mockJBPaymentTerminalStore,
+      mockJbSplitsStore,
+    } = await setup();
+    const splits = makeSplits({
+      count: 2,
+      beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
+    });
+
+    await jbErc20PaymentTerminal.connect(terminalOwner).setFee(0);
+
+    await mockJbSplitsStore.mock.splitsOf
+      .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
+      .returns(splits);
+
+    await mockJBPaymentTerminalStore.mock.recordDistributionFor
+      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY, CURRENCY_USD)
+      .returns(fundingCycle, AMOUNT_TO_DISTRIBUTE);
+
+    await Promise.all(
+      splits.map(async (split) => {
+        await fakeToken.mock.transfer
+        .withArgs(split.beneficiary, Math.floor((AMOUNT_TO_DISTRIBUTE * split.percent) / SPLITS_TOTAL_PERCENT))
+        .returns(true);
+      })
+    );
+    
+    let tx = await jbErc20PaymentTerminal
+      .connect(caller)
+      .distributePayoutsOf(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, ETH_PAYOUT_INDEX, AMOUNT_TO_DISTRIBUTE, MEMO);
+
+    await Promise.all(
+      splits.map(async (split) => {    
+        await expect(tx)
+          .to.emit(jbErc20PaymentTerminal, 'DistributeToPayoutSplit')
+          .withArgs(
+            /*_fundingCycle.configuration*/ timestamp,
+            /*_fundingCycle.number*/ 1,
+            PROJECT_ID,
+            [
+              split.preferClaimed,
+              split.percent,
+              split.projectId,
+              split.beneficiary,
+              split.lockedUntil,
+              split.allocator,
+            ],
+            /*payoutAmount*/ Math.floor((AMOUNT_TO_DISTRIBUTE * split.percent) / SPLITS_TOTAL_PERCENT),
+            caller.address,
+          );
+      }),
+    );
+
+    expect(await tx)
+      .to.emit(jbErc20PaymentTerminal, 'DistributePayouts')
+      .withArgs(
+        /*_fundingCycle.configuration*/ timestamp,
+        /*_fundingCycle.number*/ 1,
+        PROJECT_ID,
+        projectOwner.address,
+        /*_amount*/ AMOUNT_TO_DISTRIBUTE,
+        /*_distributedAmount*/ AMOUNT_TO_DISTRIBUTE,
+        /*_feeAmount*/ 0,
+        /*_leftoverDistributionAmount*/ 0,
+        MEMO,
+        caller.address,
+      );
+  });
+
   it("Can't have a zero address terminal for a project set in split", async function () {
     const {
       terminalOwner,
