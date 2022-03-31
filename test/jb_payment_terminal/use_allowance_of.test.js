@@ -30,9 +30,18 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
   let MAX_FEE;
   let MAX_FEE_DISCOUNT;
   let AMOUNT_MINUS_FEES;
+  
+  let PROCESS_FEES_PERMISSION_INDEX;
+
+  before(async function () {
+    let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
+    let jbOperations = await jbOperationsFactory.deploy();
+
+    PROCESS_FEES_PERMISSION_INDEX = await jbOperations.PROCESS_FEES();
+  });
 
   async function setup() {
-    const [deployer, beneficiary, otherCaller, projectOwner, terminalOwner] =
+    const [deployer, caller, beneficiary, otherCaller, projectOwner, terminalOwner] =
       await ethers.getSigners();
 
     const blockNum = await ethers.provider.getBlockNumber();
@@ -129,6 +138,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     };
 
     return {
+      caller,
       beneficiary,
       CURRENCY_ETH,
       ETH_ADDRESS,
@@ -574,7 +584,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     );
   });
 
-  it('Should send funds from overflow, with fees held, then process fees, and emit event', async function () {
+  it('Should send funds from overflow, with fees held, then process fees if caller is project owner, and emit event', async function () {
     const {
       beneficiary,
       CURRENCY_ETH,
@@ -666,6 +676,192 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
 
     // Held fees shoudn't exist after being processed
     expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([]);
+  });
+
+  it('Should send funds from overflow, with fees held, then process fees if caller is authorized, and emit event', async function () {
+    const {
+      beneficiary,
+      caller,
+      CURRENCY_ETH,
+      ETH_ADDRESS,
+      jbEthPaymentTerminal,
+      mockJbDirectory,
+      mockJbOperatorStore,
+      mockJBPaymentTerminalStore,
+      projectOwner,
+      terminalOwner,
+      timestamp,
+    } = await setup();
+
+    const newFundingCycle = {
+      number: FUNDING_CYCLE_NUM,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: WEIGHT,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({ holdFees: 1 }), // Hold fees
+    };
+
+    await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH, CURRENCY_ETH)
+      .returns(newFundingCycle, AMOUNT);
+
+    await mockJBPaymentTerminalStore.mock.recordPaymentFrom
+      .withArgs(
+        jbEthPaymentTerminal.address,
+        {
+          token: ETH_ADDRESS,
+          value: AMOUNT - AMOUNT_MINUS_FEES,
+          decimals: 18,
+          currency: CURRENCY_ETH,
+        },
+        JUICEBOX_PROJECT_ID,
+        CURRENCY_ETH,
+        /* memo */ '',
+        '0x',
+      )
+      .returns(newFundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
+
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(1, ETH_ADDRESS)
+      .returns(jbEthPaymentTerminal.address);
+
+    // Give terminal sufficient ETH
+    await setBalance(jbEthPaymentTerminal.address, AMOUNT_MINUS_FEES);
+
+    // Set fee to default 5%
+    await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
+
+    // Use allowance and hold fee
+    await jbEthPaymentTerminal
+      .connect(projectOwner)
+      .useAllowanceOf(
+        PROJECT_ID,
+        AMOUNT_TO_DISTRIBUTE,
+        CURRENCY_ETH,
+        /* minReturnedTokens */ AMOUNT,
+        beneficiary.address,
+        MEMO,
+      );
+
+    // Should be holding fees in the contract
+    expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([
+      [ethers.BigNumber.from(AMOUNT), DEFAULT_FEE, projectOwner.address],
+    ]);
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, projectOwner.address, PROJECT_ID, PROCESS_FEES_PERMISSION_INDEX)
+      .returns(true);
+
+    // Process held fees
+    const tx = await jbEthPaymentTerminal.connect(caller).processFees(PROJECT_ID);
+
+    expect(await tx).to.emit(jbEthPaymentTerminal, 'ProcessFees');
+    /** @dev Chai matchers can't seem to match these args even though I've inspected the data inside to be exactly the same. */
+    // .withArgs(
+    //   PROJECT_ID,
+    //   [
+    //     [
+    //       ethers.BigNumber.from(AMOUNT),
+    //       DEFAULT_FEE,
+    //       projectOwner.address,
+    //       '',
+    //     ],
+    //   ],
+    //   projectOwner.address,
+    // );
+
+    // Held fees shoudn't exist after being processed
+    expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([]);
+  });
+
+  it('Cannot process fees if caller is not authorized', async function () {
+    const {
+      beneficiary,
+      caller,
+      CURRENCY_ETH,
+      ETH_ADDRESS,
+      jbEthPaymentTerminal,
+      mockJbDirectory,
+      mockJbOperatorStore,
+      mockJBPaymentTerminalStore,
+      projectOwner,
+      terminalOwner,
+      timestamp,
+    } = await setup();
+
+    const newFundingCycle = {
+      number: FUNDING_CYCLE_NUM,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: WEIGHT,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({ holdFees: 1 }), // Hold fees
+    };
+
+    await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH, CURRENCY_ETH)
+      .returns(newFundingCycle, AMOUNT);
+
+    await mockJBPaymentTerminalStore.mock.recordPaymentFrom
+      .withArgs(
+        jbEthPaymentTerminal.address,
+        {
+          token: ETH_ADDRESS,
+          value: AMOUNT - AMOUNT_MINUS_FEES,
+          decimals: 18,
+          currency: CURRENCY_ETH,
+        },
+        JUICEBOX_PROJECT_ID,
+        CURRENCY_ETH,
+        /* memo */ '',
+        '0x',
+      )
+      .returns(newFundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
+
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(1, ETH_ADDRESS)
+      .returns(jbEthPaymentTerminal.address);
+
+    // Give terminal sufficient ETH
+    await setBalance(jbEthPaymentTerminal.address, AMOUNT_MINUS_FEES);
+
+    // Set fee to default 5%
+    await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
+
+    // Use allowance and hold fee
+    await jbEthPaymentTerminal
+      .connect(projectOwner)
+      .useAllowanceOf(
+        PROJECT_ID,
+        AMOUNT_TO_DISTRIBUTE,
+        CURRENCY_ETH,
+        /* minReturnedTokens */ AMOUNT,
+        beneficiary.address,
+        MEMO,
+      );
+
+    // Should be holding fees in the contract
+    expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([
+      [ethers.BigNumber.from(AMOUNT), DEFAULT_FEE, projectOwner.address],
+    ]);
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, projectOwner.address, PROJECT_ID, PROCESS_FEES_PERMISSION_INDEX)
+      .returns(false);
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, projectOwner.address, 0, PROCESS_FEES_PERMISSION_INDEX)
+      .returns(false);
+
+    await expect(jbEthPaymentTerminal.connect(caller).processFees(PROJECT_ID))
+      .to.be.revertedWith(errors.UNAUTHORIZED);
   });
 
   it(`Can't send funds from overflow without project access`, async function () {

@@ -93,4 +93,13 @@ describe('JBPayoutRedemptionPaymentTerminal::setFeelessTerminal(...)', function 
     expect(await jbEthPaymentTerminal.isFeelessTerminal(mockJbEthPaymentTerminal.address)).to.be
       .false;
   });
+
+  it('Cannot set a feeless terminal if caller is not the owner', async function () {
+    const { caller, jbEthPaymentTerminal, mockJbEthPaymentTerminal } = await setup();
+    await expect(
+      jbEthPaymentTerminal
+        .connect(caller)
+        .setFeelessTerminal(mockJbEthPaymentTerminal.address, true),
+    ).to.be.revertedWith('Ownable: caller is not the owner');
+  });
 });
