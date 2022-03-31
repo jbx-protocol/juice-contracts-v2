@@ -525,6 +525,7 @@ contract JBController is IJBController, JBOperatable {
     if (_tokenCount == 0) revert ZERO_TOKENS_TO_MINT();
 
     // Define variables that will be needed outside scoped section below.
+    // Keep a reference to the reserved rate to use
     uint256 _reservedRate;
 
     // Scoped section prevents stack too deep. `_fundingCycle` only used within scope.

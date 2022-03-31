@@ -366,6 +366,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Can't send reclaimed funds to the zero address.
     if (_beneficiary == address(0)) revert REDEEM_TO_ZERO_ADDRESS();
 
+    // Define variables that will be needed outside the scoped section below.
     // Keep a reference to the funding cycle during which the redemption is being made.
     JBFundingCycle memory _fundingCycle;
 
@@ -471,6 +472,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     address payable _projectOwner = payable(projects.ownerOf(_projectId));
 
     // Define variables that will be needed outside the scoped section below.
+    // Keep a reference to the fee amount that was paid, and the distribution amount leftover after distributing to the splits.
     uint256 _fee;
     uint256 _leftoverDistributionAmount;
 
@@ -573,6 +575,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     if (_distributedAmount < _minReturnedTokens) revert INADEQUATE_DISTRIBUTION_AMOUNT();
 
     // Define variables that will be needed outside the scoped section below.
+    // Keep a reference to the fee amount that was paid.
     uint256 _fee;
 
     // Scoped section prevents stack too deep. `_projectOwner`, `_feeDiscount`, and `_netAmount` only used within scope.
@@ -1026,6 +1029,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Cant send tokens to the zero address.
     if (_beneficiary == address(0)) revert PAY_TO_ZERO_ADDRESS();
 
+    // Define variables that will be needed outside the scoped section below.
+    // Keep a reference to the funding cycle during which the payment is being made, and the number of tokens minted for the beneficiary.
     JBFundingCycle memory _fundingCycle;
     uint256 _beneficiaryTokenCount;
 

@@ -1,5 +1,5 @@
 {
-  "address": "0x25E05c24E3c753EDBcc15563230a476669F3E0C9",
+  "address": "0xa40cC2456aA57293599f09E6d077369a74d6Ed4A",
   "abi": [
     {
       "inputs": [],
@@ -52,25 +52,25 @@
       "type": "function"
     }
   ],
-  "transactionHash": "0xae41ef4507fb0889c2cdcb7b1d53f2de34eb241c51c2132b9aa6021d9201e273",
+  "transactionHash": "0xa314e7b8ea8aa75a69553c9242177e0acad1eb427bbbfa3cc8741833ed2642c5",
   "receipt": {
     "to": null,
     "from": "0xE9bE6df23C7f9CaBa3005DA2fa2d8714d340D0aF",
-    "contractAddress": "0x25E05c24E3c753EDBcc15563230a476669F3E0C9",
-    "transactionIndex": 1,
+    "contractAddress": "0xa40cC2456aA57293599f09E6d077369a74d6Ed4A",
+    "transactionIndex": 0,
     "gasUsed": "136789",
     "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-    "blockHash": "0x79f1a390aea5ce24c3138062db70686257cc40c973dd09e6f627701d488449a6",
-    "transactionHash": "0xae41ef4507fb0889c2cdcb7b1d53f2de34eb241c51c2132b9aa6021d9201e273",
+    "blockHash": "0x931e584090c283d61f9d31069555a0a3a11c25c3ca51ee76a769ef9602b025fd",
+    "transactionHash": "0xa314e7b8ea8aa75a69553c9242177e0acad1eb427bbbfa3cc8741833ed2642c5",
     "logs": [],
-    "blockNumber": 10402811,
-    "cumulativeGasUsed": "163762",
+    "blockNumber": 10420331,
+    "cumulativeGasUsed": "136789",
     "status": 1,
     "byzantium": true
   },
   "args": [],
   "numDeployments": 1,
-  "solcInputHash": "b9f0ce443e8cbb4775420bd5109f455a",
+  "solcInputHash": "9a36e097281c7d56056478f1945ea852",
   "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"DELAY\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"duration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_configured\",\"type\":\"uint256\"}],\"name\":\"stateOf\",\"outputs\":[{\"internalType\":\"enum JBBallotState\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"duration()\":{\"details\":\"A ballot should not be considered final until the duration has passed.\",\"returns\":{\"_0\":\"The duration in seconds.\"}},\"stateOf(uint256,uint256)\":{\"params\":{\"_configured\":\"The configuration of the funding cycle to check the state of.\"},\"returns\":{\"_0\":\"The state of the provided ballot.\"}}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"DELAY()\":{\"notice\":\"The number of seconds that must pass for a funding cycle reconfiguration to become active.\"},\"duration()\":{\"notice\":\" The time that this ballot is active for.\"},\"stateOf(uint256,uint256)\":{\"notice\":\" The approval state of a particular funding cycle.\"}},\"notice\":\"Manages approving funding cycle reconfigurations automatically after a buffer period of 7 days.\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/JB7DayReconfigurationBufferBallot.sol\":\"JB7DayReconfigurationBufferBallot\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":100000000},\"remappings\":[]},\"sources\":{\"contracts/JB7DayReconfigurationBufferBallot.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.6;\\n\\nimport './interfaces/IJBFundingCycleBallot.sol';\\n\\n/** \\n   @notice Manages approving funding cycle reconfigurations automatically after a buffer period of 7 days.\\n */\\ncontract JB7DayReconfigurationBufferBallot is IJBFundingCycleBallot {\\n  // --- public stored properties --- //\\n\\n  /// @notice The number of seconds that must pass for a funding cycle reconfiguration to become active.\\n  uint256 public constant DELAY = 604800; // 7 days\\n\\n  // --- external views --- //\\n\\n  /** \\n    @notice \\n    The time that this ballot is active for.\\n\\n    @dev A ballot should not be considered final until the duration has passed.\\n\\n    @return The duration in seconds.\\n  */\\n  function duration() external pure override returns (uint256) {\\n    return DELAY;\\n  }\\n\\n  /**\\n      @notice \\n      The approval state of a particular funding cycle.\\n\\n      @param _configured The configuration of the funding cycle to check the state of.\\n\\n      @return The state of the provided ballot.\\n   */\\n  function stateOf(uint256, uint256 _configured) external view override returns (JBBallotState) {\\n    return block.timestamp > _configured + DELAY ? JBBallotState.Approved : JBBallotState.Active;\\n  }\\n}\\n\",\"keccak256\":\"0x5efe88ecdbb3a0b3659ef1ebfbba85cbf17a042439db2e80101c1c58ed29a8f6\",\"license\":\"MIT\"},\"contracts/enums/JBBallotState.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.6;\\n\\nenum JBBallotState {\\n  Approved,\\n  Active,\\n  Failed\\n}\\n\",\"keccak256\":\"0xda8544e199de385d447fc485037d66ba906a88985328a5e1e0ddcb178b44f382\",\"license\":\"MIT\"},\"contracts/interfaces/IJBFundingCycleBallot.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.6;\\n\\nimport './../enums/JBBallotState.sol';\\n\\ninterface IJBFundingCycleBallot {\\n  function duration() external view returns (uint256);\\n\\n  function stateOf(uint256 _projectId, uint256 _configuration)\\n    external\\n    view\\n    returns (JBBallotState);\\n}\\n\",\"keccak256\":\"0xb551f980855057e8221b30aa49ec75f312334fef3b2c0c5c38eb883236e51651\",\"license\":\"MIT\"}},\"version\":1}",
   "bytecode": "0x608060405234801561001057600080fd5b50610186806100206000396000f3fe608060405234801561001057600080fd5b50600436106100415760003560e01c80630fb5a6b41461004657806369b411701461005e578063f94633fb14610068575b600080fd5b62093a805b6040519081526020015b60405180910390f35b61004b62093a8081565b61007b6100763660046100ae565b610088565b60405161005591906100d0565b600061009762093a8083610111565b42116100a45760016100a7565b60005b9392505050565b600080604083850312156100c157600080fd5b50508035926020909101359150565b602081016003831061010b577f4e487b7100000000000000000000000000000000000000000000000000000000600052602160045260246000fd5b91905290565b6000821982111561014b577f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b50019056fea264697066735822122019657563b5d66859ae5e6910f7aae0d1f9f995eb32945f2071843e639f77105064736f6c63430008060033",
   "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100415760003560e01c80630fb5a6b41461004657806369b411701461005e578063f94633fb14610068575b600080fd5b62093a805b6040519081526020015b60405180910390f35b61004b62093a8081565b61007b6100763660046100ae565b610088565b60405161005591906100d0565b600061009762093a8083610111565b42116100a45760016100a7565b60005b9392505050565b600080604083850312156100c157600080fd5b50508035926020909101359150565b602081016003831061010b577f4e487b7100000000000000000000000000000000000000000000000000000000600052602160045260246000fd5b91905290565b6000821982111561014b577f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b50019056fea264697066735822122019657563b5d66859ae5e6910f7aae0d1f9f995eb32945f2071843e639f77105064736f6c63430008060033",
