@@ -201,10 +201,11 @@ module.exports = async ({ deployments, getChainId }) => {
   if ((await jbDirectoryContract.connect(deployer).owner()) != multisigAddress)
     await jbDirectoryContract.connect(deployer).transferOwnership(multisigAddress);
 
-  console.log('Deploying protocol project...');
 
   // If needed, deploy the protocol project
-  if ((await jbProjects.connect(deployer).count()) == 0)
+  if ((await jbProjects.connect(deployer).count()) == 0) {
+
+    console.log('Deploying protocol project...');
     await jbControllerContract.connect(deployer).launchProjectFor(
       /*owner*/ multisigAddress,
 
@@ -231,21 +232,21 @@ module.exports = async ({ deployments, getChainId }) => {
         /*reservedRate*/ ethers.BigNumber.from(5000),
         /*redemptionRate*/ ethers.BigNumber.from(9500),
         /*ballotRedemptionRate*/ ethers.BigNumber.from(9500),
-        /*pausePay*/ ethers.BigNumber.from(0),
-        /*pauseDistributions*/ ethers.BigNumber.from(0),
-        /*pauseRedeem*/ ethers.BigNumber.from(0),
-        /*pauseMint*/ ethers.BigNumber.from(0),
-        /*pauseBurn*/ ethers.BigNumber.from(0),
-        /*allowChangeToken*/ ethers.BigNumber.from(0),
-        /*allowTerminalMigration*/ ethers.BigNumber.from(0),
-        /*allowControllerMigration*/ ethers.BigNumber.from(0),
-        /*allowSetTerminals*/ ethers.BigNumber.from(0),
-        /*allowSetController*/ ethers.BigNumber.from(0),
-        /*holdFees*/ ethers.BigNumber.from(0),
-        /*useTotalOverflowForRedemptions*/ ethers.BigNumber.from(0),
-        /*useDataSourceForPay*/ ethers.BigNumber.from(0),
-        /*useDataSourceForRedeem*/ ethers.BigNumber.from(0),
-        /*dataSource*/ '0x0000000000000000000000000000000000000000',
+        /*pausePay*/ false,
+        /*pauseDistributions*/ false,
+        /*pauseRedeem*/ false,
+        /*pauseMint*/ false,
+        /*pauseBurn*/ false,
+        /*allowChangeToken*/ false,
+        /*allowTerminalMigration*/ false,
+        /*allowControllerMigration*/ false,
+        /*allowSetTerminals*/ false,
+        /*allowSetController*/ false,
+        /*holdFees*/ false,
+        /*useTotalOverflowForRedemptions*/ false,
+        /*useDataSourceForPay*/ false,
+        /*useDataSourceForRedeem*/ false,
+        /*dataSource*/ ethers.constants.AddressZero,
       ],
 
       /*mustStartAtOrAfter*/ ethers.BigNumber.from(protocolProjectStartsAtOrAfter),
@@ -258,6 +259,7 @@ module.exports = async ({ deployments, getChainId }) => {
 
       /*memo*/ '',
     );
+  }
 
   console.log('Done');
 };
