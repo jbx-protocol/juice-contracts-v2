@@ -20,6 +20,7 @@ module.exports = async ({ deployments, getChainId }) => {
     // On mainnet, we will not redeploy contracts if they have already been deployed.
     skipIfAlreadyDeployed: chainId === '1',
   };
+  let protocolProjectStartsAtOrAfter;
 
   console.log({ deployer: deployer.address, chain: chainId });
 
@@ -28,19 +29,22 @@ module.exports = async ({ deployments, getChainId }) => {
     case '1':
       multisigAddress = '0xAF28bcB48C40dBC86f52D459A6562F658fc94B1e';
       chainlinkV2UsdEthPriceFeed = '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419';
+      protocolProjectStartsAtOrAfter = 1649531973;
       break;
     // rinkeby
     case '4':
       multisigAddress = '0xAF28bcB48C40dBC86f52D459A6562F658fc94B1e';
       chainlinkV2UsdEthPriceFeed = '0x8A753747A1Fa494EC906cE90E9f37563A8AF630e';
+      protocolProjectStartsAtOrAfter = 0;
       break;
     // hardhat / localhost
     case '31337':
       multisigAddress = deployer.address;
+      protocolProjectStartsAtOrAfter = 0;
       break;
   }
 
-  console.log({ multisigAddress });
+  console.log({ multisigAddress, protocolProjectStartsAtOrAfter });
 
   // Deploy a JBETHERC20ProjectPayerDeployer contract.
   await deploy('JBETHERC20ProjectPayerDeployer', {
@@ -244,7 +248,7 @@ module.exports = async ({ deployments, getChainId }) => {
         /*dataSource*/ '0x0000000000000000000000000000000000000000',
       ],
 
-      /*mustStartOnOrAfter*/ ethers.BigNumber.from(1649531973),
+      /*mustStartAtOrAfter*/ ethers.BigNumber.from(protocolProjectStartsAtOrAfter),
 
       /*groupedSplits*/[],
 
