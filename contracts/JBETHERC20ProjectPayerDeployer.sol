@@ -24,6 +24,7 @@ contract JBETHERC20ProjectPayerDeployer is IJBETHERC20ProjectPayerDeployer {
     @param _defaultMemo The memo that'll be forwarded with the project payer's received payments. 
     @param _defaultMetadata The metadata that'll be forwarded with the project payer's received payments. 
     @param _directory A contract storing directories of terminals and controllers for each project.
+    @param _owner The address that will own the project payer.
 
     @return projectPayer The project payer contract.
   */
