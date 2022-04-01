@@ -167,6 +167,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
+
   /**
     @notice
     The platform fee percent.
@@ -675,13 +676,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // If the terminal's token is ETH, override `_amount` with msg.value.
     else _amount = msg.value;
 
-    // Record the added funds.
-    store.recordAddedBalanceFor(_projectId, _amount);
-
-    // Refund any held fees to make sure the project doesn't pay double for funds going in and out of the protocol.
-    _refundHeldFees(_projectId, _amount);
-
-    emit AddToBalance(_projectId, _amount, _memo, msg.sender);
+    _addToBalanceOf(_projectId, _amount, _memo);
   }
 
   /**
@@ -817,7 +812,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       payoutSplitsGroup
     );
 
-    //Transfer between all splits.
+    // Transfer between all splits.
     for (uint256 _i = 0; _i < _splits.length; _i++) {
       // Get a reference to the split being iterated on.
       JBSplit memory _split = _splits[_i];
@@ -874,16 +869,19 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             // This distribution does not incur a fee.
             _netPayoutAmount = _payoutAmount;
 
-            _pay(
-              _netPayoutAmount,
-              address(this),
-              _split.projectId,
-              _split.beneficiary,
-              0,
-              _split.preferClaimed,
-              '',
-              bytes('')
-            );
+            if (_split.beneficiary != address(0))
+              _pay(
+                _netPayoutAmount,
+                address(this),
+                _split.projectId,
+                _split.beneficiary,
+                0,
+                _split.preferClaimed,
+                '',
+                bytes('')
+              );
+              // Otherwise just add to balance so tokens don't get issued.
+            else _addToBalanceOf(_split.projectId, _netPayoutAmount, '');
           } else {
             // If the terminal is set as feeless, this distribution is not eligible for a fee.
             if (isFeelessTerminal[_terminal])
@@ -903,15 +901,24 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             // If this terminal's token is ETH, send it in msg.value.
             uint256 _payableValue = token == JBTokens.ETH ? _netPayoutAmount : 0;
 
-            _terminal.pay{value: _payableValue}(
-              _netPayoutAmount,
-              _split.projectId,
-              _split.beneficiary,
-              0,
-              _split.preferClaimed,
-              '',
-              bytes('')
-            );
+            // Pay if there's a beneficiary to receive tokens.
+            if (_split.beneficiary != address(0))
+              _terminal.pay{value: _payableValue}(
+                _netPayoutAmount,
+                _split.projectId,
+                _split.beneficiary,
+                0,
+                _split.preferClaimed,
+                '',
+                bytes('')
+              );
+              // Otherwise just add to balance so tokens don't get issued.
+            else
+              _terminal.addToBalanceOf{value: _payableValue}(
+                _split.projectId,
+                _netPayoutAmount,
+                ''
+              );
           }
         } else {
           _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
@@ -1094,6 +1101,28 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       _memo,
       msg.sender
     );
+  }
+
+  /**
+    @notice
+    Receives funds belonging to the specified project.
+
+    @param _projectId The ID of the project to which the funds received belong.
+    @param _amount The amount of tokens to add, as a fixed point number with the same number of decimals as this terminal. If this is an ETH terminal, this is ignored and msg.value is used instead.
+    @param _memo A memo to pass along to the emitted event.
+  */
+  function _addToBalanceOf(
+    uint256 _projectId,
+    uint256 _amount,
+    string memory _memo
+  ) private {
+    // Record the added funds.
+    store.recordAddedBalanceFor(_projectId, _amount);
+
+    // Refund any held fees to make sure the project doesn't pay double for funds going in and out of the protocol.
+    _refundHeldFees(_projectId, _amount);
+
+    emit AddToBalance(_projectId, _amount, _memo, msg.sender);
   }
 
   /**
