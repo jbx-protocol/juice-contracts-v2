@@ -1799,7 +1799,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ holdFees: true }),
+      metadata: packFundingCycleMetadata(),
     };
 
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
@@ -1840,6 +1840,23 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
           .returns();
       }),
     );
+
+    // Fee
+    await mockJbEthPaymentTerminal.mock.pay
+    .withArgs(
+      FEE_AMOUNT,
+      1,
+      projectOwner.address,
+      /*minReturnedToken*/ 0,
+      false,
+      '',
+      '0x',
+    )
+    .returns();
+
+    await fakeToken.mock.approve
+      .withArgs(mockJbEthPaymentTerminal.address, FEE_AMOUNT)
+      .returns(true);
 
     let tx = await jbErc20PaymentTerminal
       .connect(caller)
