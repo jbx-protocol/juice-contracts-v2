@@ -129,7 +129,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     bool _preferClaimedTokens,
     string memory _memo,
     bytes memory _metadata
-  ) external override onlyOwner {
+  ) external virtual override onlyOwner {
     // Set the default project ID if it has changed.
     if (_projectId != defaultProjectId) defaultProjectId = _projectId;
 
