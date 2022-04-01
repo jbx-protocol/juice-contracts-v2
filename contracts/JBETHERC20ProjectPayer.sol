@@ -114,7 +114,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     @notice 
     Sets the default values that determine how to interact with a protocol treasury when this contract receives ETH directly.
 
-    @param _projectId The ID of the project to forward funds to.
+    @param _projectId The ID of the project whose treasury should be forwarded this contract's received payments.
     @param _beneficiary The address that'll receive the project's tokens. 
     @param _preferClaimedTokens A flag indicating whether issued tokens should be automatically claimed into the beneficiary's wallet. 
     @param _memo The memo that'll be used. 
