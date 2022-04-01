@@ -21,6 +21,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
   const MIN_RETURNED_TOKENS = 1;
   const MEMO = 'hi world';
   const METADATA = [0x2];
+  const DECIMALS = 1;
   let ethToken;
 
   this.beforeAll(async function () {
@@ -66,6 +67,9 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
       .withArgs(PROJECT_ID, ethToken)
       .returns(mockJbTerminal.address);
 
+    // Eth payments should use 18 decimals.
+    await mockJbTerminal.mock.decimals.returns(18);
+
     await mockJbTerminal.mock.pay
       .withArgs(
         AMOUNT,
@@ -83,6 +87,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
         PROJECT_ID,
         ethToken,
         0,
+        DECIMALS,
         BENEFICIARY,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
@@ -102,6 +107,9 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
       .withArgs(PROJECT_ID, ethToken)
       .returns(mockJbTerminal.address);
 
+    // Eth payments should use 18 decimals.
+    await mockJbTerminal.mock.decimals.returns(18);
+
     await mockJbTerminal.mock.addToBalanceOf
       .withArgs(
         PROJECT_ID,
@@ -115,6 +123,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
         PROJECT_ID,
         ethToken,
         0,
+        DECIMALS,
         ethers.constants.AddressZero,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
@@ -129,6 +138,8 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
 
   it(`Should pay funds towards project with an erc20 tokens`, async function () {
     const { jbProjectPayer, mockJbDirectory, mockJbTerminal, mockJbToken, addrs } = await setup();
+
+    await mockJbTerminal.mock.decimals.returns(DECIMALS);
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(PROJECT_ID, mockJbToken.address)
@@ -160,6 +171,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
           PROJECT_ID,
           mockJbToken.address,
           AMOUNT,
+          DECIMALS,
           BENEFICIARY,
           MIN_RETURNED_TOKENS,
           PREFER_CLAIMED_TOKENS,
@@ -173,6 +185,9 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
     const { jbProjectPayer, mockJbDirectory, mockJbTerminal, addrs } = await setup();
 
     let caller = addrs[0];
+
+    // fallback uses 18 decimals.
+    await mockJbTerminal.mock.decimals.returns(18);
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(INITIAL_PROJECT_ID, ethToken)
@@ -202,6 +217,9 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
     const { jbProjectPayer, mockJbDirectory, mockJbTerminal, owner, addrs } = await setup();
 
     let caller = addrs[0];
+
+    // fallback uses 18 decimals.
+    await mockJbTerminal.mock.decimals.returns(18);
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(INITIAL_PROJECT_ID, ethToken)
@@ -251,6 +269,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
         PROJECT_ID,
         ethToken,
         0,
+        DECIMALS,
         BENEFICIARY,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
@@ -263,6 +282,34 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
     ).to.be.revertedWith(errors.TERMINAL_NOT_FOUND);
   });
 
+  it(`Can't pay if terminal uses different number of decimals`, async function () {
+    const { jbProjectPayer, mockJbDirectory, mockJbTerminal } = await setup();
+
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(PROJECT_ID, ethToken)
+      .returns(mockJbTerminal.address);
+
+    await mockJbTerminal.mock.decimals
+      .returns(19);
+
+    await expect(
+      jbProjectPayer.pay(
+        PROJECT_ID,
+        ethToken,
+        0,
+        18,
+        BENEFICIARY,
+        MIN_RETURNED_TOKENS,
+        PREFER_CLAIMED_TOKENS,
+        MEMO,
+        METADATA,
+        {
+          value: AMOUNT,
+        },
+      ),
+    ).to.be.revertedWith(errors.INCORRECT_DECIMAL_AMOUNT);
+  });
+
   it(`Can't send value along with non-eth token`, async function () {
     const { jbProjectPayer, mockJbDirectory } = await setup();
 
@@ -271,6 +318,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
         PROJECT_ID,
         ethers.constants.AddressZero,
         0,
+        DECIMALS,
         BENEFICIARY,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
