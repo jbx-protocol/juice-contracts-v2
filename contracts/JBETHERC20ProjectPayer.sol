@@ -11,7 +11,6 @@ import './libraries/JBTokens.sol';
 //*********************************************************************//
 // -------------------------- custom errors -------------------------- //
 //*********************************************************************//
-error INSUFFICIENT_BALANCE();
 error TERMINAL_NOT_FOUND();
 error NO_MSG_VALUE_ALLOWED();
 error INCORRECT_DECIMAL_AMOUNT();
