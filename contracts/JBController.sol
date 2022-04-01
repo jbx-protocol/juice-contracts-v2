@@ -303,7 +303,7 @@ contract JBController is IJBController, JBOperatable {
     JBFundAccessConstraints[] calldata _fundAccessConstraints,
     IJBPaymentTerminal[] memory _terminals,
     string memory _memo
-  ) external override returns (uint256 projectId) {
+  ) external virtual override returns (uint256 projectId) {
     // Mint the project into the wallet of the message sender.
     projectId = projects.createFor(_owner, _projectMetadata);
 
@@ -358,6 +358,7 @@ contract JBController is IJBController, JBOperatable {
     string memory _memo
   )
     external
+    virtual
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
     returns (uint256 configuration)
@@ -412,6 +413,7 @@ contract JBController is IJBController, JBOperatable {
     string calldata _memo
   )
     external
+    virtual
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
     returns (uint256 configuration)
@@ -449,6 +451,7 @@ contract JBController is IJBController, JBOperatable {
     string calldata _symbol
   )
     external
+    virtual
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.ISSUE)
     returns (IJBToken token)
@@ -474,6 +477,7 @@ contract JBController is IJBController, JBOperatable {
     address _newOwner
   )
     external
+    virtual
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.CHANGE_TOKEN)
   {
@@ -512,6 +516,7 @@ contract JBController is IJBController, JBOperatable {
     bool _useReservedRate
   )
     external
+    virtual
     override
     requirePermissionAllowingOverride(
       projects.ownerOf(_projectId),
@@ -598,6 +603,7 @@ contract JBController is IJBController, JBOperatable {
     bool _preferClaimedTokens
   )
     external
+    virtual
     override
     requirePermissionAllowingOverride(
       _holder,
@@ -640,6 +646,7 @@ contract JBController is IJBController, JBOperatable {
   */
   function distributeReservedTokensOf(uint256 _projectId, string calldata _memo)
     external
+    virtual
     override
     returns (uint256)
   {
@@ -656,7 +663,7 @@ contract JBController is IJBController, JBOperatable {
     @param _projectId The ID of the project that will be migrated to this controller.
     @param _from The controller being migrated from.
   */
-  function prepForMigrationOf(uint256 _projectId, IJBController _from) external override {
+  function prepForMigrationOf(uint256 _projectId, IJBController _from) external virtual override {
     // This controller must not be the project's current controller.
     if (directory.controllerOf(_projectId) == this) revert CANT_MIGRATE_TO_CURRENT_CONTROLLER();
 
@@ -678,6 +685,7 @@ contract JBController is IJBController, JBOperatable {
   */
   function migrate(uint256 _projectId, IJBController _to)
     external
+    virtual
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_CONTROLLER)
   {
