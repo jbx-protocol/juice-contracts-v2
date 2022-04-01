@@ -94,7 +94,11 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
   }
 
   /** 
-    Received funds go straight to the project.
+    @notice
+    Received funds are paid to the default project ID using the stored default properties.
+
+    @dev
+    This function is called automatically when the contract receives an ETH payment.
   */
   receive() external payable virtual override {
     _pay(
