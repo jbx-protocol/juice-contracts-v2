@@ -1896,15 +1896,11 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
 
     await Promise.all(
       splits.map(async (split) => {
-        await mockJbEthPaymentTerminal.mock.pay
+        await mockJbEthPaymentTerminal.mock.addToBalanceOf
           .withArgs(
-            AMOUNT_MINUS_FEES,
             split.projectId,
-            split.beneficiary,
-            /*minReturnedToken*/ 0,
-            split.preferClaimed,
+            AMOUNT_MINUS_FEES,
             '',
-            '0x',
           )
           .returns();
       }),
@@ -2016,18 +2012,14 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         await fakeToken.mock.approve
           .withArgs(mockJbEthPaymentTerminal.address, Math.floor((AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT))
           .returns(true);
-
-        await mockJbEthPaymentTerminal.mock.pay
+        
+        await mockJbEthPaymentTerminal.mock.addToBalanceOf
           .withArgs(
+            split.projectId,
             /*payoutAmount*/ Math.floor(
               (AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT,
             ),
-            split.projectId,
-            split.beneficiary,
-            /*minReturnedToken*/ 0,
-            split.preferClaimed,
             '',
-            '0x',
           )
           .returns();
       }),
