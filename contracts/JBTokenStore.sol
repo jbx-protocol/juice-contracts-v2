@@ -20,6 +20,7 @@ error TOKEN_NOT_FOUND();
 error PROJECT_ALREADY_HAS_TOKEN();
 error CANT_REMOVE_TOKEN_IF_ITS_REQUIRED();
 error TOKENS_MUST_HAVE_18_DECIMALS();
+error TOKEN_ALREADY_IN_USE();
 
 /**
   @notice
@@ -66,6 +67,14 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     _projectId The ID of the project to which the token belongs.
   */
   mapping(uint256 => IJBToken) public override tokenOf;
+
+  /**
+    @notice
+    The ID of the project that each token belongs to.
+
+    _token The token to check the project association of.
+  */
+  mapping(IJBToken => uint256) public override projectOf;
 
   /**
     @notice
@@ -197,6 +206,9 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     // Store the token contract.
     tokenOf[_projectId] = token;
 
+    // Store the project for the token.
+    projectOf[token] = _projectId;
+
     emit Issue(_projectId, token, _name, _symbol, msg.sender);
   }
 
@@ -225,7 +237,10 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     if (_token == IJBToken(address(0)) && requireClaimFor[_projectId])
       revert CANT_REMOVE_TOKEN_IF_ITS_REQUIRED();
 
-    // Can't add a token that doesn't use 18 decimals.
+    // Can't change to a token already in use.
+    if (projectOf[_token] > 0) revert TOKEN_ALREADY_IN_USE();
+
+    // Can't change to a token that doesn't use 18 decimals.
     if (_token.decimals() != 18) revert TOKENS_MUST_HAVE_18_DECIMALS();
 
     // Get a reference to the current token for the project.
