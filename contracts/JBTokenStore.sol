@@ -249,6 +249,12 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     // Store the new token.
     tokenOf[_projectId] = _token;
 
+    // Store the project for the new token.
+    projectOf[_token] = _projectId;
+
+    // Reset the project for the old token.
+    projectOf[oldToken] = 0;
+
     // If there's a current token and a new owner was provided, transfer ownership of the old token to the new owner.
     if (_newOwner != address(0) && oldToken != IJBToken(address(0)))
       oldToken.transferOwnership(_newOwner);

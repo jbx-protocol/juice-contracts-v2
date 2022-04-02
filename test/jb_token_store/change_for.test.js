@@ -11,7 +11,7 @@ import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import { deployJbToken } from '../helpers/utils';
 import errors from '../helpers/errors.json';
 
-describe.only('JBTokenStore::changeFor(...)', function () {
+describe('JBTokenStore::changeFor(...)', function () {
   const PROJECT_ID = 2;
   const TOKEN_NAME = 'TestTokenDAO';
   const TOKEN_SYMBOL = 'TEST';
@@ -83,6 +83,7 @@ describe.only('JBTokenStore::changeFor(...)', function () {
     const initialTokenAddr = await jbTokenStore.connect(controller).tokenOf(PROJECT_ID);
     const initialToken = new Contract(initialTokenAddr, jbToken.abi);
     const initialTokenOwner = await initialToken.connect(controller).owner();
+    expect(await jbTokenStore.connect(controller).projectOf(initialTokenAddr)).to.equal(PROJECT_ID);
 
     // Change to a new token without assigning a new owner for the old token
     let newToken = await deployJbToken(NEW_TOKEN_NAME, NEW_TOKEN_SYMBOL);
@@ -93,6 +94,8 @@ describe.only('JBTokenStore::changeFor(...)', function () {
     const newTokenAddr = await jbTokenStore.connect(controller).tokenOf(PROJECT_ID);
     newToken = new Contract(newTokenAddr, jbToken.abi);
 
+    expect(await jbTokenStore.connect(controller).projectOf(newToken.address)).to.equal(PROJECT_ID);
+    expect(await jbTokenStore.connect(controller).projectOf(initialTokenAddr)).to.equal(0);
     expect(await newToken.connect(controller).name()).to.equal(NEW_TOKEN_NAME);
     expect(await newToken.connect(controller).symbol()).to.equal(NEW_TOKEN_SYMBOL);
 
