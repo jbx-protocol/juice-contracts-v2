@@ -11,7 +11,7 @@ import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import { deployJbToken } from '../helpers/utils';
 import errors from '../helpers/errors.json';
 
-describe('JBTokenStore::changeFor(...)', function () {
+describe.only('JBTokenStore::changeFor(...)', function () {
   const PROJECT_ID = 2;
   const TOKEN_NAME = 'TestTokenDAO';
   const TOKEN_SYMBOL = 'TEST';
@@ -145,6 +145,24 @@ describe('JBTokenStore::changeFor(...)', function () {
         .connect(controller)
         .changeFor(PROJECT_ID, ethers.constants.AddressZero, ethers.Wallet.createRandom().address),
     ).to.be.revertedWith(errors.CANT_REMOVE_TOKEN_IF_ITS_REQUIRED);
+  });
+
+  it(`Can't change the project's token if its being used by another project`, async function () {
+    const { controller, mockJbDirectory, jbTokenStore, } = await setup();
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+    // Issue the initial token and grab a reference to it.
+    await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
+    const initialTokenAddr = await jbTokenStore.connect(controller).tokenOf(PROJECT_ID);
+
+    const OTHER_PROJECT_ID = 1234;
+
+    await mockJbDirectory.mock.controllerOf.withArgs(OTHER_PROJECT_ID).returns(controller.address);
+
+    await expect(
+      jbTokenStore
+        .connect(controller)
+        .changeFor(OTHER_PROJECT_ID, initialTokenAddr, ethers.Wallet.createRandom().address),
+    ).to.be.revertedWith(errors.TOKEN_ALREADY_IN_USE);
   });
 
   it(`Can't add non-18 decimal token`, async function () {
