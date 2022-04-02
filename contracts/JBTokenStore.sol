@@ -198,7 +198,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     if (bytes(_symbol).length == 0) revert EMPTY_SYMBOL();
 
     // The project shouldn't already have a token.
-    if (tokenOf[_projectId] > IJBToken(address(0))) revert PROJECT_ALREADY_HAS_TOKEN();
+    if (tokenOf[_projectId] != IJBToken(address(0))) revert PROJECT_ALREADY_HAS_TOKEN();
 
     // Deploy the token contract.
     token = new JBToken(_name, _symbol);
@@ -238,7 +238,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
       revert CANT_REMOVE_TOKEN_IF_ITS_REQUIRED();
 
     // Can't change to a token already in use.
-    if (projectOf[_token] > 0) revert TOKEN_ALREADY_IN_USE();
+    if (projectOf[_token] != 0) revert TOKEN_ALREADY_IN_USE();
 
     // Can't change to a token that doesn't use 18 decimals.
     if (_token.decimals() != 18) revert TOKENS_MUST_HAVE_18_DECIMALS();
