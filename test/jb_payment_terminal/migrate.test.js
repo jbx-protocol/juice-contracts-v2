@@ -163,6 +163,58 @@ describe('JBPayoutRedemptionPaymentTerminal::migrate(...)', function () {
         projectOwner.address,
       );
   });
+  
+  it('Should migrate terminal and emit event if caller is authorized', async function () {
+    const {
+      projectOwner,
+      caller,
+      jbEthPaymentTerminal,
+      mockJbEthPaymentTerminal,
+      mockJbOperatorStore,
+    } = await setup();
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, projectOwner.address, PROJECT_ID, MIGRATE_TERMINAL_PERMISSION_INDEX)
+      .returns(true);
+
+    expect(
+      await jbEthPaymentTerminal
+        .connect(caller)
+        .migrate(PROJECT_ID, mockJbEthPaymentTerminal.address),
+    )
+      .to.emit(jbEthPaymentTerminal, 'Migrate')
+      .withArgs(
+        PROJECT_ID,
+        mockJbEthPaymentTerminal.address,
+        CURRENT_TERMINAL_BALANCE,
+        caller.address,
+      );
+  });
+
+  it('Cannot migrate terminal if caller is not authorized', async function () {
+    const {
+      projectOwner,
+      caller,
+      jbEthPaymentTerminal,
+      mockJbEthPaymentTerminal,
+      mockJbOperatorStore,
+    } = await setup();
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, projectOwner.address, PROJECT_ID, MIGRATE_TERMINAL_PERMISSION_INDEX)
+      .returns(false);
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, projectOwner.address, 0, MIGRATE_TERMINAL_PERMISSION_INDEX)
+      .returns(false);
+
+    await expect(
+      jbEthPaymentTerminal
+        .connect(caller)
+        .migrate(PROJECT_ID, mockJbEthPaymentTerminal.address),
+    )
+      .to.be.revertedWith(errors.UNAUTHORIZED);
+  });
 
   it('Should migrate non-eth terminal', async function () {
     const { projectOwner, JBERC20PaymentTerminal, mockJBERC20PaymentTerminal, mockJbToken } =
@@ -194,33 +246,6 @@ describe('JBPayoutRedemptionPaymentTerminal::migrate(...)', function () {
     )
       .to.emit(jbEthPaymentTerminal, 'Migrate')
       .withArgs(PROJECT_ID, mockJbEthPaymentTerminal.address, 0, projectOwner.address);
-  });
-
-  it('Should migrate terminal and emit event if caller is authorized', async function () {
-    const {
-      projectOwner,
-      caller,
-      jbEthPaymentTerminal,
-      mockJbEthPaymentTerminal,
-      mockJbOperatorStore,
-    } = await setup();
-
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(caller.address, projectOwner.address, PROJECT_ID, MIGRATE_TERMINAL_PERMISSION_INDEX)
-      .returns(true);
-
-    expect(
-      await jbEthPaymentTerminal
-        .connect(caller)
-        .migrate(PROJECT_ID, mockJbEthPaymentTerminal.address),
-    )
-      .to.emit(jbEthPaymentTerminal, 'Migrate')
-      .withArgs(
-        PROJECT_ID,
-        mockJbEthPaymentTerminal.address,
-        CURRENT_TERMINAL_BALANCE,
-        caller.address,
-      );
   });
 
   it("Can't migrate terminal with different token", async function () {

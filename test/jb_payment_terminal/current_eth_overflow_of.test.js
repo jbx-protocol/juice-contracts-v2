@@ -67,9 +67,9 @@ describe('JBPayoutRedemptionPaymentTerminal::currentEthOverflowOf(...)', functio
         terminalOwner.address,
       );
 
-    // Non-eth 18 decimals terminal
+    // Non-eth 16 decimals terminal
     const NON_ETH_TOKEN = mockJbToken.address;
-    const DECIMALS = 18;
+    const DECIMALS = 16;
     await mockJbToken.mock.decimals.returns(DECIMALS);
 
     let JBERC20PaymentTerminal = await jbErc20TerminalFactory
@@ -111,11 +111,12 @@ describe('JBPayoutRedemptionPaymentTerminal::currentEthOverflowOf(...)', functio
     const { jbEthPaymentTerminal } = await setup();
     expect(await jbEthPaymentTerminal.currentEthOverflowOf(PROJECT_ID)).to.equal(AMOUNT);
   });
+
   it('Should return the current terminal overflow quoted in eth if the terminal uses another currency than eth', async function () {
     const { mockJbPrices, JBERC20PaymentTerminal } = await setup();
 
     await mockJbPrices.mock.priceFor
-      .withArgs(CURRENCY_USD, CURRENCY_ETH, 18) // 18-decimal
+      .withArgs(CURRENCY_USD, CURRENCY_ETH, 16) // 16-decimal
       .returns(100);
 
     expect(await JBERC20PaymentTerminal.currentEthOverflowOf(PROJECT_ID)).to.equal(

@@ -18,12 +18,13 @@ contract JBETHERC20ProjectPayerDeployer is IJBETHERC20ProjectPayerDeployer {
     @notice 
     Allows anyone to deploy a new project payer contract.
 
-    @param _defaultProjectId The ID of the project that should be used to forward the project payer's received payments.
+    @param _defaultProjectId The ID of the project whose treasury should be forwarded the project payer contract's received payments.
     @param _defaultBeneficiary The address that'll receive the project's tokens when the project payer receives payments. 
     @param _defaultPreferClaimedTokens A flag indicating whether issued tokens from the project payer's received payments should be automatically claimed into the beneficiary's wallet. 
     @param _defaultMemo The memo that'll be forwarded with the project payer's received payments. 
     @param _defaultMetadata The metadata that'll be forwarded with the project payer's received payments. 
     @param _directory A contract storing directories of terminals and controllers for each project.
+    @param _owner The address that will own the project payer.
 
     @return projectPayer The project payer contract.
   */

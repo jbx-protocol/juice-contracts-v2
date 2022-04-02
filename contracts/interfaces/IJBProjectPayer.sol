@@ -5,8 +5,8 @@ import './IJBDirectory.sol';
 
 interface IJBProjectPayer {
   event SetDefaultValues(
-    uint256 projectId,
-    address beneficiary,
+    uint256 indexed projectId,
+    address indexed beneficiary,
     bool preferClaimedTokens,
     string memo,
     bytes metadata,
@@ -37,6 +37,7 @@ interface IJBProjectPayer {
     uint256 _projectId,
     address _token,
     uint256 _amount,
+    uint256 _decimals,
     address _beneficiary,
     uint256 _minReturnedTokens,
     bool _preferClaimedTokens,
