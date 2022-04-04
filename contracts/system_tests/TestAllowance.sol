@@ -176,7 +176,10 @@ contract TestAllowance is TestBaseWorkflow {
 
     evm.startPrank(_projectOwner);
 
-    if (TARGET >= BALANCE || ALLOWANCE > (BALANCE - TARGET)) // Too much to withdraw or no overflow ?
+    if (ALLOWANCE == 0)
+      evm.expectRevert(abi.encodeWithSignature('INADEQUATE_CONTROLLER_ALLOWANCE()'));
+
+    else if (TARGET >= BALANCE || ALLOWANCE > (BALANCE - TARGET)) // Too much to withdraw or no overflow ?
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
 
     terminal.useAllowanceOf(
@@ -210,16 +213,16 @@ contract TestAllowance is TestBaseWorkflow {
       assertEq(_projectOwner.balance, (TARGET * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE()));
 
 
-    if (BALANCE == 0)
-      evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_TOKENS()'));
+    // if (BALANCE == 0)
+    //   evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_FUNDS()'));
     
     evm.stopPrank(); // projectOwner
-
     evm.prank(_beneficiary);
+
     terminal.redeemTokensOf(
       _beneficiary,
       projectId,
-      1, // Currency
+      BALANCE, // Currency
       0, // Min wei out
       payable(_beneficiary),
       'gimme my money back',

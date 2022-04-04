@@ -535,7 +535,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
       .distributionLimitOf(_projectId, fundingCycle.configuration, IJBPaymentTerminal(msg.sender));
 
     // Make sure the new used amount is within the distribution limit.
-    if (_newUsedDistributionLimitOf > _distributionLimitOf)
+    if (_newUsedDistributionLimitOf > _distributionLimitOf || _distributionLimitOf == 0)
       revert DISTRIBUTION_AMOUNT_LIMIT_REACHED();
 
     // Make sure the currencies match.
@@ -605,7 +605,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
       .overflowAllowanceOf(_projectId, fundingCycle.configuration, IJBPaymentTerminal(msg.sender));
 
     // Make sure the new used amount is within the allowance.
-    if (_newUsedOverflowAllowanceOf > _overflowAllowanceOf)
+    if (_newUsedOverflowAllowanceOf > _overflowAllowanceOf || _overflowAllowanceOf == 0)
       revert INADEQUATE_CONTROLLER_ALLOWANCE();
 
     // Make sure the currencies match.
