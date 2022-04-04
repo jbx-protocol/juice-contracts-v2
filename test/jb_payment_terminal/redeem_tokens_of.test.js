@@ -142,9 +142,8 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
         /* tokenCount */ AMOUNT,
         DECIMALS_ETH,
         CURRENCY_ETH,
-        beneficiary.address,
         MEMO,
-        METADATA
+        METADATA,
       )
       .returns(
         fundingCycle,
@@ -210,9 +209,8 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
         /* tokenCount */ 0,
         DECIMALS_ETH,
         CURRENCY_ETH,
-        beneficiary.address,
         MEMO,
-        METADATA
+        METADATA,
       )
       .returns(
         fundingCycle,
@@ -286,9 +284,8 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
         /* tokenCount */ AMOUNT,
         DECIMALS_ETH,
         CURRENCY_ETH,
-        beneficiary.address,
         MEMO,
-        METADATA
+        METADATA,
       )
       .returns(
         fundingCycle,
@@ -304,12 +301,11 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
         holder: holder.address,
         projectId: PROJECT_ID,
         projectTokenCount: AMOUNT,
-        reclaimedAmount:
-        {
+        reclaimedAmount: {
           token: tokenAddress,
           value: RECLAIM_AMOUNT,
           decimals: DECIMALS_ETH,
-          currency: CURRENCY_ETH
+          currency: CURRENCY_ETH,
         },
         beneficiary: beneficiary.address,
         memo: ADJUSTED_MEMO,
@@ -333,8 +329,7 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
         METADATA,
       );
 
-    expect(await tx)
-      .to.emit(jbEthPaymentTerminal, 'DelegateDidRedeem')
+    expect(await tx).to.emit(jbEthPaymentTerminal, 'DelegateDidRedeem');
     // Uncaught AssertionError: expected [ Array(4) ] to equal [ Array(4) ]
 
     // .withArgs(
@@ -405,9 +400,8 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
         /* tokenCount */ AMOUNT,
         DECIMALS_ETH,
         CURRENCY_ETH,
-        beneficiary.address,
         MEMO,
-        METADATA
+        METADATA,
       )
       .returns(
         fundingCycle,
@@ -518,9 +512,8 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
         /* tokenCount */ AMOUNT,
         DECIMALS_ETH,
         CURRENCY_ETH,
-        beneficiary.address,
         MEMO,
-        METADATA
+        METADATA,
       )
       .returns(
         fundingCycle,

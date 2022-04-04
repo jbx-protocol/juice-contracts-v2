@@ -123,8 +123,10 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
     allowChangeToken = false,
     allowTerminalMigration = false,
     allowControllerMigration = false,
+    allowSetTerminals = true,
+    allowSetController = true,
     holdFees = false,
-    useLocalBalanceForRedemptions = false,
+    useTotalOverflowForRedemptions = false,
     useDataSourceForPay = false,
     useDataSourceForRedeem = false,
     dataSource = ethers.constants.AddressZero,
@@ -141,8 +143,10 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
       allowChangeToken,
       allowTerminalMigration,
       allowControllerMigration,
+      allowSetTerminals,
+      allowSetController,
       holdFees,
-      useLocalBalanceForRedemptions,
+      useTotalOverflowForRedemptions,
       useDataSourceForPay,
       useDataSourceForRedeem,
       dataSource,
@@ -205,7 +209,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
           PROJECT_START,
           groupedSplits,
           fundAccessConstraints,
-          MEMO
+          MEMO,
         ),
     ).to.equal(timestamp);
 
@@ -218,7 +222,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
-        MEMO
+        MEMO,
       );
 
     await Promise.all(
@@ -244,10 +248,10 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
     await expect(tx)
       .to.emit(jbController, 'ReconfigureFundingCycles')
       .withArgs(
-            /*fundingCycleData.configuration=*/ timestamp,
+        /*fundingCycleData.configuration=*/ timestamp,
         PROJECT_ID,
         MEMO,
-        projectOwner.address
+        projectOwner.address,
       );
   });
 
@@ -260,7 +264,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
       splits,
       mockJbTerminal1,
       mockJbTerminal2,
-      mockJbFundingCycleStore
+      mockJbFundingCycleStore,
     } = await setup();
 
     const groupedSplits = [{ group: 1, splits }];
@@ -276,10 +280,10 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
       allowTerminalMigration: true,
       allowControllerMigration: true,
       holdFees: true,
-      useLocalBalanceForRedemptions: true,
+      useTotalOverflowForRedemptions: true,
       useDataSourceForPay: true,
       useDataSourceForRedeem: true,
-    })
+    });
     await mockJbFundingCycleStore.mock.configureFor
       .withArgs(PROJECT_ID, fundingCycleData, truthyMetadata.packed, PROJECT_START)
       .returns(
@@ -291,23 +295,22 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
             start: timestamp,
             metadata: truthyMetadata.packed,
           },
-          fundingCycleData
+          fundingCycleData,
         ),
       );
     expect(
       await jbController
-        .connect(projectOwner).callStatic
-        .reconfigureFundingCyclesOf(
+        .connect(projectOwner)
+        .callStatic.reconfigureFundingCyclesOf(
           PROJECT_ID,
           fundingCycleData,
           truthyMetadata.unpacked,
           PROJECT_START,
           groupedSplits,
           fundAccessConstraints,
-          MEMO
+          MEMO,
         ),
     ).to.equal(timestamp);
-
   });
 
   it(`Should reconfigure funding cycle and emit events if caller is not project owner but is authorized`, async function () {
@@ -343,7 +346,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
           PROJECT_START,
           groupedSplits,
           fundAccessConstraints,
-          MEMO
+          MEMO,
         ),
     ).to.equal(timestamp);
 
@@ -356,7 +359,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
-        MEMO
+        MEMO,
       );
 
     await Promise.all(
@@ -415,7 +418,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
-        MEMO
+        MEMO,
       );
 
     await expect(tx).to.be.revertedWith(errors.UNAUTHORIZED);
@@ -445,7 +448,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
           PROJECT_START,
           [],
           fundAccessConstraints,
-          MEMO
+          MEMO,
         ),
     ).to.equal(timestamp);
 
@@ -458,7 +461,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_START,
         [],
         fundAccessConstraints,
-        MEMO
+        MEMO,
       );
 
     await Promise.all(
@@ -512,7 +515,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
           PROJECT_START,
           groupedSplits,
           fundAccessConstraints,
-          MEMO
+          MEMO,
         ),
     ).to.equal(timestamp);
 
@@ -525,7 +528,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
-        MEMO
+        MEMO,
       );
 
     await Promise.all(
@@ -572,7 +575,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
-        MEMO
+        MEMO,
       );
 
     await expect(tx).to.be.revertedWith('INVALID_RESERVED_RATE()');
@@ -602,7 +605,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
-        MEMO
+        MEMO,
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_REDEMPTION_RATE);
@@ -633,7 +636,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
-        MEMO
+        MEMO,
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_BALLOT_REDEMPTION_RATE);

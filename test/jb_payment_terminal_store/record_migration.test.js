@@ -10,7 +10,7 @@ import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/I
 import jBFundingCycleStore from '../../artifacts/contracts/interfaces/IJBFundingCycleStore.sol/IJBFundingCycleStore.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
 describe('JBPaymentTerminalStore::recordMigration(...)', function () {
@@ -30,15 +30,11 @@ describe('JBPaymentTerminalStore::recordMigration(...)', function () {
     const mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
     const mockJbTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
-      'JBPaymentTerminalStore',
-    );
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBPaymentTerminalStore');
     const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbPrices.address,
-      mockJbProjects.address,
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
-      mockJbTokenStore.address,
     );
 
     const blockNum = await ethers.provider.getBlockNumber();
@@ -59,12 +55,8 @@ describe('JBPaymentTerminalStore::recordMigration(...)', function () {
   }
 
   it('Should record migration with mockJbTerminal access', async function () {
-    const {
-      mockJbTerminalSigner,
-      mockJbFundingCycleStore,
-      JBPaymentTerminalStore,
-      timestamp,
-    } = await setup();
+    const { mockJbTerminalSigner, mockJbFundingCycleStore, JBPaymentTerminalStore, timestamp } =
+      await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       number: 1,
@@ -94,12 +86,8 @@ describe('JBPaymentTerminalStore::recordMigration(...)', function () {
   });
 
   it(`Can't record migration with allowTerminalMigration flag disabled`, async function () {
-    const {
-      mockJbTerminalSigner,
-      mockJbFundingCycleStore,
-      JBPaymentTerminalStore,
-      timestamp,
-    } = await setup();
+    const { mockJbTerminalSigner, mockJbFundingCycleStore, JBPaymentTerminalStore, timestamp } =
+      await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       number: 1,

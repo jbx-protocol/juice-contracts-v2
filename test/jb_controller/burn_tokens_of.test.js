@@ -171,6 +171,28 @@ describe('JBController::burnTokenOf(...)', function () {
       .withArgs(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, caller.address);
   });
 
+  it(`Can't burn token if caller is not authorized`, async function () {
+    const { holder, addrs, jbController, mockJbOperatorStore, mockJbDirectory } = await setup();
+    let caller = addrs[0];
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, holder.address, PROJECT_ID, BURN_INDEX)
+      .returns(false);
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, holder.address, 0, BURN_INDEX)
+      .returns(false);
+
+    await mockJbDirectory.mock.isTerminalOf.withArgs(PROJECT_ID, caller.address).returns(false);
+
+    await expect(
+      jbController
+        .connect(caller)
+        .burnTokensOf(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, PREFERED_CLAIMED_TOKEN),
+    )
+      .to.be.revertedWith(errors.UNAUTHORIZED);
+  });
+
   it(`Should burn token if caller is a terminal of the corresponding project`, async function () {
     const { projectOwner, holder, jbController, mockJbOperatorStore, mockJbDirectory } =
       await setup();
