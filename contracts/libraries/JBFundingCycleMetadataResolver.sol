@@ -134,7 +134,7 @@ library JBFundingCycleMetadataResolver {
     if (_metadata.pauseDistributions) packed |= 1 << 57;
     // pause redeem in bit 58.
     if (_metadata.pauseRedeem) packed |= 1 << 58;
-    // pause mint in bit 59.
+    // pause burn in bit 59.
     if (_metadata.pauseBurn) packed |= 1 << 59;
     // allow minting in bit 60.
     if (_metadata.allowMinting) packed |= 1 << 60;
