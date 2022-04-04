@@ -45,18 +45,20 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
 
     _metadata = JBFundingCycleMetadata({
       reservedRate: 0,
-      redemptionRate: 10000, // 100% redemption rate
+      redemptionRate: 10000, //100%
       ballotRedemptionRate: 0,
       pausePay: false,
       pauseDistributions: false,
       pauseRedeem: false,
-      pauseMint: false,
       pauseBurn: false,
-      allowChangeToken: true,
+      allowMinting: false,
+      allowChangeToken: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
+      allowSetTerminals: false,
+      allowSetController: false,
       holdFees: false,
-      useLocalBalanceForRedemptions: false,
+      useTotalOverflowForRedemptions: false,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
       dataSource: IJBFundingCycleDataSource(address(0))

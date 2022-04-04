@@ -36,18 +36,20 @@ contract TestTokenFlow is TestBaseWorkflow {
 
     _metadata = JBFundingCycleMetadata({
       reservedRate: _reservedRate,
-      redemptionRate: 5000,
+      redemptionRate: 5000, //50%
       ballotRedemptionRate: 0,
       pausePay: false,
       pauseDistributions: false,
       pauseRedeem: false,
-      pauseMint: false,
       pauseBurn: false,
-      allowChangeToken: true,
+      allowMinting: false,
+      allowChangeToken: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
+      allowSetTerminals: false,
+      allowSetController: false,
       holdFees: false,
-      useLocalBalanceForRedemptions: false,
+      useTotalOverflowForRedemptions: false,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
       dataSource: IJBFundingCycleDataSource(address(0))

@@ -35,19 +35,21 @@ contract TestERC20Terminal is TestBaseWorkflow {
     });
 
     _metadata = JBFundingCycleMetadata({
-      reservedRate: 5000,
-      redemptionRate: 5000,
+      reservedRate: 5000, //50%
+      redemptionRate: 5000, //50%
       ballotRedemptionRate: 0,
       pausePay: false,
       pauseDistributions: false,
       pauseRedeem: false,
-      pauseMint: false,
       pauseBurn: false,
+      allowMinting: false,
       allowChangeToken: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
+      allowSetTerminals: false,
+      allowSetController: false,
       holdFees: false,
-      useLocalBalanceForRedemptions: false,
+      useTotalOverflowForRedemptions: false,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
       dataSource: IJBFundingCycleDataSource(address(0))
@@ -77,7 +79,8 @@ contract TestERC20Terminal is TestBaseWorkflow {
       block.timestamp,
       _groupedSplits,
       _fundAccessConstraints,
-      _terminals
+      _terminals,
+      ''
     );
 
     address caller = msg.sender;
@@ -162,7 +165,8 @@ contract TestERC20Terminal is TestBaseWorkflow {
       block.timestamp,
       _groupedSplits,
       _fundAccessConstraints,
-      _terminals
+      _terminals,
+      ''
     );
 
     address caller = msg.sender;

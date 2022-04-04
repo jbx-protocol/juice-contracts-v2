@@ -44,19 +44,21 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     });
 
     _metadata = JBFundingCycleMetadata({
-      reservedRate: 5000,
-      redemptionRate: 5000,
+      reservedRate: 5000, //50%
+      redemptionRate: 5000, //50%
       ballotRedemptionRate: 0,
       pausePay: false,
       pauseDistributions: false,
       pauseRedeem: false,
-      pauseMint: false,
       pauseBurn: false,
+      allowMinting: false,
       allowChangeToken: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
+      allowSetTerminals: false,
+      allowSetController: true,
       holdFees: false,
-      useLocalBalanceForRedemptions: false,
+      useTotalOverflowForRedemptions: false,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
       dataSource: IJBFundingCycleDataSource(address(0))
@@ -110,7 +112,8 @@ contract TestMultipleTerminals is TestBaseWorkflow {
       block.timestamp,
       _groupedSplits,
       _fundAccessConstraints,
-      _terminals
+      _terminals,
+      ''
     );
 
     evm.startPrank(_projectOwner); // If evm.prank(), pranking only jbLib call...
