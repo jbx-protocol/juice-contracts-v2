@@ -102,7 +102,7 @@ describe('JBController::totalOutstandingTokensOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ reservedRate: RESERVED_RATE }),
+      metadata: packFundingCycleMetadata({ reservedRate: RESERVED_RATE, allowMinting: true }),
     }),
       await mockJbTokenStore.mock.mintFor
         .withArgs(ethers.constants.AddressZero, PROJECT_ID, RESERVED_AMOUNT, true)
@@ -137,7 +137,7 @@ describe('JBController::totalOutstandingTokensOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ reservedRate: 5000 }),
+      metadata: packFundingCycleMetadata({ reservedRate: 5000, allowMinting: true }),
     });
 
     // 50% reserved rate
@@ -175,7 +175,7 @@ describe('JBController::totalOutstandingTokensOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ reservedRate: 0 }),
+      metadata: packFundingCycleMetadata({ reservedRate: 0, allowMinting: 1 }),
     });
 
     await mockJbTokenStore.mock.mintFor
