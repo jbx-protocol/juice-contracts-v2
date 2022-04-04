@@ -84,7 +84,8 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
       block.timestamp,
       _groupedSplits,
       _fundAccessConstraints,
-      _terminals
+      _terminals,
+      ''
     );
   }
 

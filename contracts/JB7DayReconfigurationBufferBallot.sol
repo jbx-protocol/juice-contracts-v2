@@ -10,7 +10,7 @@ contract JB7DayReconfigurationBufferBallot is IJBFundingCycleBallot {
   // --- public stored properties --- //
 
   /// @notice The number of seconds that must pass for a funding cycle reconfiguration to become active.
-  uint256 constant DELAY = 604800; // 7 days
+  uint256 public constant DELAY = 604800; // 7 days
 
   // --- external views --- //
 

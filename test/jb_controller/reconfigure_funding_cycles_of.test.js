@@ -16,6 +16,7 @@ import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStor
 describe('JBController::reconfigureFundingCycleOf(...)', function () {
   const PROJECT_ID = 1;
   const PROJECT_START = '1';
+  const MEMO = 'Test Memo';
 
   let RECONFIGURE_INDEX;
 
@@ -204,6 +205,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
           PROJECT_START,
           groupedSplits,
           fundAccessConstraints,
+          MEMO
         ),
     ).to.equal(timestamp);
 
@@ -216,6 +218,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
+        MEMO
       );
 
     await Promise.all(
@@ -237,6 +240,15 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
           );
       }),
     );
+
+    await expect(tx)
+      .to.emit(jbController, 'ReconfigureFundingCycles')
+      .withArgs(
+            /*fundingCycleData.configuration=*/ timestamp,
+        PROJECT_ID,
+        MEMO,
+        projectOwner.address
+      );
   });
 
   it(`Should reconfigure funding cycle with metadata using truthy bools`, async function () {
@@ -279,7 +291,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
             start: timestamp,
             metadata: truthyMetadata.packed,
           },
-          fundingCycleData,
+          fundingCycleData
         ),
       );
     expect(
@@ -292,6 +304,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
           PROJECT_START,
           groupedSplits,
           fundAccessConstraints,
+          MEMO
         ),
     ).to.equal(timestamp);
 
@@ -330,6 +343,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
           PROJECT_START,
           groupedSplits,
           fundAccessConstraints,
+          MEMO
         ),
     ).to.equal(timestamp);
 
@@ -342,6 +356,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
+        MEMO
       );
 
     await Promise.all(
@@ -400,6 +415,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
+        MEMO
       );
 
     await expect(tx).to.be.revertedWith(errors.UNAUTHORIZED);
@@ -429,6 +445,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
           PROJECT_START,
           [],
           fundAccessConstraints,
+          MEMO
         ),
     ).to.equal(timestamp);
 
@@ -441,6 +458,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_START,
         [],
         fundAccessConstraints,
+        MEMO
       );
 
     await Promise.all(
@@ -494,6 +512,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
           PROJECT_START,
           groupedSplits,
           fundAccessConstraints,
+          MEMO
         ),
     ).to.equal(timestamp);
 
@@ -506,6 +525,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
+        MEMO
       );
 
     await Promise.all(
@@ -552,6 +572,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
+        MEMO
       );
 
     await expect(tx).to.be.revertedWith('INVALID_RESERVED_RATE()');
@@ -581,6 +602,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
+        MEMO
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_REDEMPTION_RATE);
@@ -611,6 +633,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         PROJECT_START,
         groupedSplits,
         fundAccessConstraints,
+        MEMO
       );
 
     await expect(tx).to.be.revertedWith(errors.INVALID_BALLOT_REDEMPTION_RATE);

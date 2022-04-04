@@ -90,8 +90,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const jbDirectoryContract = new ethers.Contract(JBDirectory.address, JBDirectory.abi);
 
   // Note: these will revert if already set, which might happen during deploys.
-  if (!(await jbDirectoryContract.connect(signer).isAllowedToSetController(JBController.address)))
-    await jbDirectoryContract.connect(signer).addToSetControllerAllowlist(JBController.address);
+  if (!(await jbDirectoryContract.connect(signer).isAllowedToSetFirstController(JBController.address)))
+    await jbDirectoryContract.connect(signer).setIsAllowedToSetFirstController(JBController.address, true);
 
   if ((await jbDirectoryContract.connect(signer).owner()) != multisigAddress)
     await jbDirectoryContract.connect(signer).transferOwnership(multisigAddress);
@@ -175,6 +175,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     ],
 
     /*terminals*/[JBETHPaymentTerminal.address],
+    /*memo*/""
   );
 
   console.log('Done');

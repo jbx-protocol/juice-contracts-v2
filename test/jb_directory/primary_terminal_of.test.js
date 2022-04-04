@@ -10,17 +10,6 @@ import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.
 describe('JBDirectory::primaryTerminalOf(...)', function () {
   const PROJECT_ID = 13;
 
-  let ADD_TERMINALS_PERMISSION_INDEX;
-  let SET_PRIMARY_TERMINAL_PERMISSION_INDEX;
-
-  before(async function () {
-    let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
-    let jbOperations = await jbOperationsFactory.deploy();
-
-    ADD_TERMINALS_PERMISSION_INDEX = await jbOperations.ADD_TERMINALS();
-    SET_PRIMARY_TERMINAL_PERMISSION_INDEX = await jbOperations.SET_PRIMARY_TERMINAL();
-  });
-
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 
@@ -41,7 +30,7 @@ describe('JBDirectory::primaryTerminalOf(...)', function () {
     // Add a few terminals
     await jbDirectory
       .connect(projectOwner)
-      .addTerminalsOf(PROJECT_ID, [terminal1.address, terminal2.address]);
+      .setTerminalsOf(PROJECT_ID, [terminal1.address, terminal2.address]);
 
     return { projectOwner, deployer, addrs, jbDirectory, terminal1, terminal2 };
   }
