@@ -83,7 +83,7 @@ describe('JBController::burnTokenOf(...)', function () {
         ballot: ethers.constants.AddressZero,
         metadata: packFundingCycleMetadata({
           pauseBurn: 0,
-          pauseMint: 0,
+          allowMinting: 1,
           reservedRate: RESERVED_RATE,
         }),
       }),

@@ -31,7 +31,7 @@ error INVALID_BALLOT_REDEMPTION_RATE();
 error INVALID_RESERVED_RATE();
 error INVALID_REDEMPTION_RATE();
 error MIGRATION_NOT_ALLOWED();
-error MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE();
+error MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE();
 error NO_BURNABLE_TOKENS();
 error ZERO_TOKENS_TO_MINT();
 
@@ -538,11 +538,11 @@ contract JBController is IJBController, JBOperatable {
       // Get a reference to the project's current funding cycle.
       JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-      // If the message sender is not a terminal, the current funding cycle must not be paused.
+      // If the message sender is not a terminal, the current funding cycle must allow minting.
       if (
-        _fundingCycle.mintPaused() &&
+        !_fundingCycle.mintingAllowed() &&
         !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))
-      ) revert MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE();
+      ) revert MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE();
 
       // Determine the reserved rate to use.
       _reservedRate = _useReservedRate ? _fundingCycle.reservedRate() : 0;
