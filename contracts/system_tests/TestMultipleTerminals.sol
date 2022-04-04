@@ -39,7 +39,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     _data = JBFundingCycleData({
       duration: 14,
       weight: WEIGHT,
-      discountRate: 450000000,
+      discountRate: 450_000_000, // out of 1_000_000_000
       ballot: IJBFundingCycleBallot(address(0))
     });
 
@@ -56,7 +56,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
       allowTerminalMigration: false,
       allowControllerMigration: false,
       allowSetTerminals: false,
-      allowSetController: true,
+      allowSetController: false,
       holdFees: false,
       useTotalOverflowForRedemptions: false,
       useDataSourceForPay: false,
@@ -104,6 +104,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     _terminals.push(ERC20terminal);
     _terminals.push(ETHterminal);
 
+
     projectId = controller.launchProjectFor(
       _projectOwner,
       _projectMetadata,
@@ -116,8 +117,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
       ''
     );
 
-    evm.startPrank(_projectOwner); // If evm.prank(), pranking only jbLib call...
-
+    evm.startPrank(_projectOwner);
     MockPriceFeed _priceFeed = new MockPriceFeed(FAKE_PRICE);
     evm.label(address(_priceFeed), 'MockPrice Feed');
 
