@@ -37,11 +37,11 @@ library JBFundingCycleMetadataResolver {
     return ((_fundingCycle.metadata >> 58) & 1) == 1;
   }
 
-  function mintPaused(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
+  function burnPaused(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
     return ((_fundingCycle.metadata >> 59) & 1) == 1;
   }
 
-  function burnPaused(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
+  function mintingAllowed(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
     return ((_fundingCycle.metadata >> 60) & 1) == 1;
   }
 
@@ -134,10 +134,10 @@ library JBFundingCycleMetadataResolver {
     if (_metadata.pauseDistributions) packed |= 1 << 57;
     // pause redeem in bit 58.
     if (_metadata.pauseRedeem) packed |= 1 << 58;
-    // pause mint in bit 59.
-    if (_metadata.pauseMint) packed |= 1 << 59;
-    // pause mint in bit 60.
-    if (_metadata.pauseBurn) packed |= 1 << 60;
+    // pause burn in bit 59.
+    if (_metadata.pauseBurn) packed |= 1 << 59;
+    // allow minting in bit 60.
+    if (_metadata.allowMinting) packed |= 1 << 60;
     // pause change token in bit 61.
     if (_metadata.allowChangeToken) packed |= 1 << 61;
     // allow terminal migration in bit 62.
