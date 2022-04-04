@@ -2,21 +2,26 @@
 
 ## Develop
 
-To deploy the contracts to a local blockchain, run the following:
+### Unit Tests
+
+To run the unit tests suite (in Javascript), you'll need to deploy the contracts to a local blockchain first:
 
 ```bash
 yarn chain --network hardhat
 ```
 
-### Unit Tests
+then run the following:
 
 ```bash
 yarn test
 ```
 
+It might happens that Hardhat cannot resolve custom error (test failing on "Expecter nameOfTheError() but reverted
+without a reason string"), just restart yarn chain.
+
 ### System Tests
 
-We are currently in the process of writing system tests with [Foundry](https://github.com/gakonst/foundry). Hop in the Discord if you want to help out with this iniative!
+End-to-end tests have been written in Solidity, using Foundry.
 
 To get set up:
 
@@ -28,19 +33,13 @@ To get set up:
 git submodule update --init
 ```
 
-3. Build the contracts:
+3. Run tests:
 
 ```bash
-forge build
+forge test
 ```
 
-4. Run tests:
-
-```bash
-forge test -vvv
-```
-
-5. Update Foundry periodically:
+4. Update Foundry periodically:
 
 ```bash
 foundryup
@@ -48,11 +47,11 @@ foundryup
 
 Resources:
 
-- [Forge guide](https://onbjerg.github.io/foundry-book/forge)
+- [The Forge-Book](https://onbjerg.github.io/foundry-book/forge)
 
 ### Coverage
 
-To check current test coverage:
+To check current unit tests coverage:
 
 ```bash
 node --require esm ./node_modules/.bin/hardhat coverage --network hardhat

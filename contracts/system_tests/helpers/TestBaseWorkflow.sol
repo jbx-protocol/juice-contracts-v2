@@ -169,7 +169,7 @@ contract TestBaseWorkflow is DSTest {
     evm.label(address(_jbPrices), 'JBPrices');
 
     // JBDirectory
-    _jbDirectory = new JBDirectory(_jbOperatorStore, _jbProjects);
+    _jbDirectory = new JBDirectory(_jbOperatorStore, _jbProjects, _jbFundingCycleStore, _multisig);
     evm.label(address(_jbDirectory), 'JBDirectory');
 
     // JBFundingCycleStore
@@ -199,10 +199,8 @@ contract TestBaseWorkflow is DSTest {
     // JBETHPaymentTerminalStore
     _jbPaymentTerminalStore = new JBPaymentTerminalStore(
       _jbPrices,
-      _jbProjects,
       _jbDirectory,
-      _jbFundingCycleStore,
-      _jbTokenStore
+      _jbFundingCycleStore
     );
     evm.label(address(_jbPaymentTerminalStore), 'JBPaymentTerminalStore');
 
