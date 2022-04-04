@@ -147,8 +147,8 @@ contract TestAllowance is TestBaseWorkflow {
       JBFundAccessConstraints({
         terminal: terminal,
         distributionLimit: TARGET,
-        overflowAllowance: ALLOWANCE,
         distributionLimitCurrency: CURRENCY,
+        overflowAllowance: ALLOWANCE,
         overflowAllowanceCurrency: CURRENCY
       })
     );
@@ -176,12 +176,9 @@ contract TestAllowance is TestBaseWorkflow {
 
     evm.startPrank(_projectOwner);
 
-    if (ALLOWANCE == 0)
-      evm.expectRevert(abi.encodeWithSignature('INADEQUATE_CONTROLLER_ALLOWANCE()'));
-
-    else if (TARGET >= BALANCE || ALLOWANCE > (BALANCE - TARGET)) // Too much to withdraw or no overflow ?
+    if (TARGET >= BALANCE || ALLOWANCE > (BALANCE - TARGET) && ALLOWANCE != 0) // Too much to withdraw or no overflow ?
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
-    
+
     terminal.useAllowanceOf(
       projectId,
       ALLOWANCE,
