@@ -139,6 +139,10 @@ contract TestAllowance is TestBaseWorkflow {
   function testFuzzAllowance(uint248 ALLOWANCE, uint248 TARGET, uint96 BALANCE) public {
     evm.assume(jbToken().totalSupply() >= BALANCE);
 
+    unchecked { // Check for overflow
+      evm.assume(ALLOWANCE + TARGET >= ALLOWANCE && ALLOWANCE + TARGET >= TARGET);
+    }
+
     uint256 CURRENCY = jbLibraries().ETH(); // Avoid testing revert on this call...
 
     JBETHPaymentTerminal terminal = jbETHPaymentTerminal();
@@ -212,18 +216,19 @@ contract TestAllowance is TestBaseWorkflow {
     if(TARGET <= BALANCE && TARGET != 0)
       assertEq(_projectOwner.balance, (TARGET * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE()));
 
-
-    // if (BALANCE == 0)
-    //   evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_FUNDS()'));
-    
     evm.stopPrank(); // projectOwner
-    evm.prank(_beneficiary);
+    evm.startPrank(_beneficiary);
+
+    uint256 tokenBalance = _tokenStore.balanceOf(_beneficiary, projectId);
+    
+    if (BALANCE <= TARGET + ALLOWANCE) // Allowance already took everything
+      evm.expectRevert(abi.encodeWithSignature('INADEQUATE_RECLAIM_AMOUNT()'));
 
     terminal.redeemTokensOf(
       _beneficiary,
       projectId,
-      BALANCE, // Currency
-      0, // Min wei out
+      BALANCE > TARGET + ALLOWANCE ? tokenBalance : 1, // the else will revert in any case as 0 overflow left
+      BALANCE > TARGET + ALLOWANCE ? tokenBalance/(2*WEIGHT) : 1, // Min wei out, 50% redeem rate
       payable(_beneficiary),
       'gimme my money back',
       new bytes(0)
