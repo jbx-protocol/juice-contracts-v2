@@ -40,5 +40,7 @@ jobs:
           steps.cache-yarn-cache.outputs.cache-hit != 'true' ||
           steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile --prefer-offline
+      - name: Install Foundry modules to not break dependecies
+        run: git submodule update --init
       - name: Tests and code coverage
         run: node --require esm ./node_modules/.bin/hardhat coverage --network hardhat
