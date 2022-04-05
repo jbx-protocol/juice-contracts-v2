@@ -214,24 +214,6 @@ contract TestAllowance is TestBaseWorkflow {
       'Foundry payment' // Memo
     );
     if(TARGET <= BALANCE && TARGET != 0)
-      assertEq(_projectOwner.balance, (TARGET * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE()));
-
-    evm.stopPrank(); // projectOwner
-    evm.startPrank(_beneficiary);
-
-    uint256 tokenBalance = _tokenStore.balanceOf(_beneficiary, projectId);
-    
-    if (BALANCE <= TARGET + ALLOWANCE) // Allowance already took everything
-      evm.expectRevert(abi.encodeWithSignature('INADEQUATE_RECLAIM_AMOUNT()'));
-
-    terminal.redeemTokensOf(
-      _beneficiary,
-      projectId,
-      BALANCE > TARGET + ALLOWANCE ? tokenBalance : 1, // the else will revert in any case as 0 overflow left
-      BALANCE > TARGET + ALLOWANCE ? tokenBalance/(2*WEIGHT) : 1, // Min wei out, 50% redeem rate
-      payable(_beneficiary),
-      'gimme my money back',
-      new bytes(0)
-    );
+      assertEq(_projectOwner.balance, (TARGET * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE()));    
   }
 }
