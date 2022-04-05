@@ -169,7 +169,7 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
       /* _tokenCount */
       redeemTokenAmount,
       /* _minReturnedWei */
-      _minWei,
+      0,
       /* _beneficiary */
       payable(_userWallet),
       /* _memo */
