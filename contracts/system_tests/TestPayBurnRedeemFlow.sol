@@ -153,7 +153,7 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
 
     // redeem tokens
     if (redeemTokenAmount > _userTokenBalance)
-      evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_TOKENS()'));
+      evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_FUNDS()'));
     else if (
       _targetInWei > payAmountInWei ||
       PRBMath.mulDiv(payAmountInWei - _targetInWei, redeemTokenAmount, _userTokenBalance) < _minWei
