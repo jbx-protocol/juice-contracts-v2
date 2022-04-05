@@ -68,7 +68,7 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
     address holder,
     address beneficiary,
     uint256 tokenCount,
-    uint256 claimedAmount,
+    uint256 reclaimedAmount,
     string memo,
     address caller
   );
