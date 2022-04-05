@@ -35,10 +35,18 @@ jobs:
           key: ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-nodemodules-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-nodemodules-
+      - name: Install Foundry
+        uses: onbjerg/foundry-toolchain@v1
+        with:
+          version: nightly
       - name: Install JS dependencies
         if: |
           steps.cache-yarn-cache.outputs.cache-hit != 'true' ||
           steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile --prefer-offline
-      - name: Tests and code coverage
+      - name: install libraries
+        run: git submodule update --init
+      - name: Run forge tests
+        run: forge test --force --optimize -vvv
+      - name: Run unit tests and code coverage
         run: node --require esm ./node_modules/.bin/hardhat coverage --network hardhat
