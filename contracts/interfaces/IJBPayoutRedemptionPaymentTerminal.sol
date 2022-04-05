@@ -120,7 +120,7 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
     uint256 _projectId,
     uint256 _amount,
     uint256 _currency,
-    uint256 _minReturnedAmount,
+    uint256 _minReturnedTokens,
     string calldata _memo
   ) external;
 
@@ -128,7 +128,7 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
     address _holder,
     uint256 _projectId,
     uint256 _count,
-    uint256 _minReturnedAmount,
+    uint256 _minReturnedTokens,
     address payable _beneficiary,
     string calldata _memo,
     bytes calldata _metadata
@@ -138,7 +138,7 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
     uint256 _projectId,
     uint256 _amount,
     uint256 _currency,
-    uint256 _minReturnedAmount,
+    uint256 _minReturnedTokens,
     address payable _beneficiary,
     string calldata _memo
   ) external;
