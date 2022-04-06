@@ -3,6 +3,6 @@
 // https://www.npmjs.com/package/solidity-coverage
 
 module.exports = {
-  skipFiles: ['system_tests/*'],
+  skipFiles: ['system_tests/*.sol'],
   configureYulOptimizer: true
 };
