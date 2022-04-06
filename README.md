@@ -2,29 +2,65 @@
 
 ## Develop
 
-To deploy the contracts to a local blockchain, run the following:
+### Unit Tests
+
+To run the unit tests suite (in Javascript), you'll need to deploy the contracts to a local blockchain first:
 
 ```bash
 yarn chain --network hardhat
 ```
 
-To run tests:
+then run the following:
 
 ```bash
 yarn test
 ```
 
+It might happens that Hardhat cannot resolve custom error (test failing on "Expecter nameOfTheError() but reverted
+without a reason string"), just restart yarn chain.
+
+### System Tests
+
+End-to-end tests have been written in Solidity, using Foundry.
+
+To get set up:
+
+1. Install [Foundry](https://github.com/gakonst/foundry).
+
+2. Install external lib(s)
+
+```bash
+git submodule update --init
+```
+
+3. Run tests:
+
+```bash
+forge test
+```
+
+4. Update Foundry periodically:
+
+```bash
+foundryup
+```
+
+Resources:
+
+- [The Forge-Book](https://onbjerg.github.io/foundry-book/forge)
+
 ### Coverage
 
-To check current test coverage:
+To check current unit tests coverage:
 
 ```bash
 node --require esm ./node_modules/.bin/hardhat coverage --network hardhat
 ```
 
 A few notes:
-* Hardhat doesn't support [esm](https://nodejs.org/api/esm.html) yet, hence running manually with node.
-* We are currently using a forked version of [solidity-coverage](https://www.npmjs.com/package/solidity-coverage) that includes optimizer settings. Ideally we will move to the maintained version after this is fixed on their end.
+
+- Hardhat doesn't support [esm](https://nodejs.org/api/esm.html) yet, hence running manually with node.
+- We are currently using a forked version of [solidity-coverage](https://www.npmjs.com/package/solidity-coverage) that includes optimizer settings. Ideally we will move to the maintained version after this is fixed on their end.
 
 ## Deploy
 
