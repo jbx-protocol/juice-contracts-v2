@@ -45,18 +45,20 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
 
     _metadata = JBFundingCycleMetadata({
       reservedRate: 0,
-      redemptionRate: 10000, // 100% redemption rate
+      redemptionRate: 10000, //100%
       ballotRedemptionRate: 0,
       pausePay: false,
       pauseDistributions: false,
       pauseRedeem: false,
-      pauseMint: false,
       pauseBurn: false,
-      allowChangeToken: true,
+      allowMinting: false,
+      allowChangeToken: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
+      allowSetTerminals: false,
+      allowSetController: false,
       holdFees: false,
-      useLocalBalanceForRedemptions: false,
+      useTotalOverflowForRedemptions: false,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
       dataSource: IJBFundingCycleDataSource(address(0))
@@ -90,11 +92,11 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
   }
 
   function testFuzzPayBurnRedeemFlow(
-    bool payPreferClaimed,
-    bool burnPreferClaimed,
-    uint96 payAmountInWei,
-    uint256 burnTokenAmount,
-    uint256 redeemTokenAmount
+    bool payPreferClaimed, //false
+    bool burnPreferClaimed, //false
+    uint96 payAmountInWei, // 1
+    uint256 burnTokenAmount, // 0
+    uint256 redeemTokenAmount // 0
   ) external {
     // issue an ERC-20 token for project
     evm.prank(_projectOwner);
@@ -130,6 +132,8 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
     if (burnTokenAmount == 0) evm.expectRevert(abi.encodeWithSignature('NO_BURNABLE_TOKENS()'));
     else if (burnTokenAmount > _userTokenBalance)
       evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_FUNDS()'));
+    else if (burnTokenAmount > uint256(type(int256).max))
+      evm.expectRevert(abi.encodeWithSignature('Panic(uint256)', 0x11));
     else _userTokenBalance = _userTokenBalance - burnTokenAmount;
 
     evm.prank(_userWallet);
@@ -147,15 +151,9 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
     // verify: beneficiary should have a new balance of JBTokens
     assertEq(_tokenStore.balanceOf(_userWallet, _projectId), _userTokenBalance);
 
-    uint256 _minWei = 1;
-
     // redeem tokens
     if (redeemTokenAmount > _userTokenBalance)
       evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_TOKENS()'));
-    else if (
-      _targetInWei > payAmountInWei ||
-      PRBMath.mulDiv(payAmountInWei - _targetInWei, redeemTokenAmount, _userTokenBalance) < _minWei
-    ) evm.expectRevert(abi.encodeWithSignature('INADEQUATE_RECLAIM_AMOUNT()'));
     else _userTokenBalance = _userTokenBalance - redeemTokenAmount;
 
     evm.prank(_userWallet);
@@ -167,7 +165,7 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
       /* _tokenCount */
       redeemTokenAmount,
       /* _minReturnedWei */
-      _minWei,
+      0,
       /* _beneficiary */
       payable(_userWallet),
       /* _memo */
@@ -180,6 +178,9 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
     assertEq(_tokenStore.balanceOf(_userWallet, _projectId), _userTokenBalance);
 
     // verify: ETH balance in terminal should be up to date
-    assertEq(jbPaymentTerminalStore().balanceOf(_terminal, _projectId), _terminalBalanceInWei - _reclaimAmtInWei);
+    assertEq(
+      jbPaymentTerminalStore().balanceOf(_terminal, _projectId),
+      _terminalBalanceInWei - _reclaimAmtInWei
+    );
   }
 }

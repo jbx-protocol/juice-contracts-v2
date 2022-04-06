@@ -11,7 +11,7 @@ import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/I
 import jBFundingCycleStore from '../../artifacts/contracts/interfaces/IJBFundingCycleStore.sol/IJBFundingCycleStore.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
 describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
@@ -37,15 +37,11 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     const CURRENCY_USD = await jbCurrencies.USD();
     const _FIXED_POINT_MAX_FIDELITY = 18;
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
-      'JBPaymentTerminalStore',
-    );
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBPaymentTerminalStore');
     const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbPrices.address,
-      mockJbProjects.address,
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
-      mockJbTokenStore.address,
     );
 
     const blockNum = await ethers.provider.getBlockNumber();
@@ -133,8 +129,8 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
       PROJECT_ID,
       AMOUNT,
-      /*currency of amount*/CURRENCY_USD,
-      /*currency of the balance*/CURRENCY_USD
+      /*currency of amount*/ CURRENCY_USD,
+      /*currency of the balance*/ CURRENCY_USD,
     );
 
     // Post-checks
@@ -196,8 +192,8 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
       PROJECT_ID,
       AMOUNT - distributionLimit,
-      /*currency of amount*/CURRENCY_USD,
-      /*currency of the balance*/CURRENCY_USD
+      /*currency of amount*/ CURRENCY_USD,
+      /*currency of the balance*/ CURRENCY_USD,
     );
 
     // Post-checks
@@ -224,12 +220,15 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       CURRENCY_USD, // terminal currency
     } = await setup();
 
-    const ethToUsdPrice = ethers.BigNumber.from(2).mul(ethers.BigNumber.from(10).pow(_FIXED_POINT_MAX_FIDELITY));
+    const ethToUsdPrice = ethers.BigNumber.from(2).mul(
+      ethers.BigNumber.from(10).pow(_FIXED_POINT_MAX_FIDELITY),
+    );
 
     const distributionLimit = ethers.BigNumber.from(10).pow(18);
 
     const amountToUse = 2345678; // in eth
-    let amountToUseInDollar = amountToUse / (ethToUsdPrice.div(ethers.BigNumber.from(10).pow(_FIXED_POINT_MAX_FIDELITY)));
+    let amountToUseInDollar =
+      amountToUse / ethToUsdPrice.div(ethers.BigNumber.from(10).pow(_FIXED_POINT_MAX_FIDELITY));
 
     // Add to balance beforehand, in USD
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
@@ -265,8 +264,8 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
       PROJECT_ID,
       amountToUse,
-      /*currency of amount*/CURRENCY_ETH,
-      /*currency of the balance*/CURRENCY_USD
+      /*currency of amount*/ CURRENCY_ETH,
+      /*currency of the balance*/ CURRENCY_USD,
     );
 
     // Post-checks
@@ -278,7 +277,6 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
         timestamp,
       ),
     ).to.equal(amountToUse); // in usd
-
 
     expect(
       await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
@@ -308,7 +306,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
-        CURRENCY_ETH
+        CURRENCY_ETH,
       ),
     ).to.be.revertedWith(errors.CURRENCY_MISMATCH);
   });
@@ -340,7 +338,38 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_USD,
-        CURRENCY_USD
+        CURRENCY_USD,
+      ),
+    ).to.be.revertedWith(errors.INADEQUATE_CONTROLLER_ALLOWANCE);
+  });
+
+  it(`Can't record allowance if controller's overflowAllowanceOf is 0`, async function () {
+    const {
+      mockJbController,
+      mockJbTerminal,
+      mockJbTerminalSigner,
+      JBPaymentTerminalStore,
+      timestamp,
+      CURRENCY_USD,
+    } = await setup();
+
+    // Add to balance beforehand
+    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+      PROJECT_ID,
+      AMOUNT,
+    );
+
+    await mockJbController.mock.overflowAllowanceOf
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .returns(0, CURRENCY_USD); // Set the controller's overflowAllowance to something small
+
+    // Record the used allowance
+    await expect(
+      JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
+        PROJECT_ID,
+        AMOUNT,
+        CURRENCY_USD,
+        CURRENCY_USD,
       ),
     ).to.be.revertedWith(errors.INADEQUATE_CONTROLLER_ALLOWANCE);
   });
@@ -371,7 +400,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_USD,
-        CURRENCY_USD
+        CURRENCY_USD,
       ),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
@@ -415,7 +444,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
-        CURRENCY_USD
+        CURRENCY_USD,
       ),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
@@ -460,7 +489,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
         PROJECT_ID,
         AMOUNT,
         CURRENCY_USD,
-        CURRENCY_USD
+        CURRENCY_USD,
       ),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });

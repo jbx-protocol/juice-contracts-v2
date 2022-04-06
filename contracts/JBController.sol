@@ -2,8 +2,6 @@
 pragma solidity 0.8.6;
 
 import '@paulrberg/contracts/math/PRBMath.sol';
-import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBProjects.sol';
 import './interfaces/IJBPaymentTerminal.sol';
@@ -33,7 +31,7 @@ error INVALID_BALLOT_REDEMPTION_RATE();
 error INVALID_RESERVED_RATE();
 error INVALID_REDEMPTION_RATE();
 error MIGRATION_NOT_ALLOWED();
-error MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE();
+error MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE();
 error NO_BURNABLE_TOKENS();
 error ZERO_TOKENS_TO_MINT();
 
@@ -43,7 +41,7 @@ error ZERO_TOKENS_TO_MINT();
 
   @dev
   Adheres to:
-  IJBController - general interface for the generic controller methods in this contract that interacts with funding cycles and tokens according to the Juicebox protocol's rules.
+  IJBController - general interface for the generic controller methods in this contract that interacts with funding cycles and tokens according to the protocol's rules.
 
   @dev
   Inherits from:
@@ -213,6 +211,35 @@ contract JBController is IJBController, JBOperatable {
       );
   }
 
+  /**
+    @notice
+    Gets the current total amount of outstanding tokens for a project, given a reserved rate.
+
+    @param _projectId The ID of the project to get total outstanding tokens of.
+    @param _reservedRate The reserved rate to use when making the calculation.
+
+    @return The current total amount of outstanding tokens for the project.
+  */
+  function totalOutstandingTokensOf(uint256 _projectId, uint256 _reservedRate)
+    external
+    view
+    override
+    returns (uint256)
+  {
+    // Get the total number of tokens in circulation.
+    uint256 _totalSupply = tokenStore.totalSupplyOf(_projectId);
+
+    // Get the number of reserved tokens the project has.
+    uint256 _reservedTokenAmount = _reservedTokenAmountFrom(
+      _processedTokenTrackerOf[_projectId],
+      _reservedRate,
+      _totalSupply
+    );
+
+    // Add the reserved tokens to the total supply.
+    return _totalSupply + _reservedTokenAmount;
+  }
+
   //*********************************************************************//
   // ---------------------------- constructor -------------------------- //
   //*********************************************************************//
@@ -272,11 +299,11 @@ contract JBController is IJBController, JBOperatable {
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
     uint256 _mustStartAtOrAfter,
-    JBGroupedSplits[] memory _groupedSplits,
-    JBFundAccessConstraints[] memory _fundAccessConstraints,
+    JBGroupedSplits[] calldata _groupedSplits,
+    JBFundAccessConstraints[] calldata _fundAccessConstraints,
     IJBPaymentTerminal[] memory _terminals,
-    string calldata _memo
-  ) external override returns (uint256 projectId) {
+    string memory _memo
+  ) external virtual override returns (uint256 projectId) {
     // Mint the project into the wallet of the message sender.
     projectId = projects.createFor(_owner, _projectMetadata);
 
@@ -325,12 +352,13 @@ contract JBController is IJBController, JBOperatable {
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
     uint256 _mustStartAtOrAfter,
-    JBGroupedSplits[] memory _groupedSplits,
+    JBGroupedSplits[] calldata _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
     IJBPaymentTerminal[] memory _terminals,
-    string calldata _memo
+    string memory _memo
   )
     external
+    virtual
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
     returns (uint256 configuration)
@@ -380,11 +408,12 @@ contract JBController is IJBController, JBOperatable {
     JBFundingCycleData calldata _data,
     JBFundingCycleMetadata calldata _metadata,
     uint256 _mustStartAtOrAfter,
-    JBGroupedSplits[] memory _groupedSplits,
-    JBFundAccessConstraints[] memory _fundAccessConstraints,
+    JBGroupedSplits[] calldata _groupedSplits,
+    JBFundAccessConstraints[] calldata _fundAccessConstraints,
     string calldata _memo
   )
     external
+    virtual
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
     returns (uint256 configuration)
@@ -422,6 +451,7 @@ contract JBController is IJBController, JBOperatable {
     string calldata _symbol
   )
     external
+    virtual
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.ISSUE)
     returns (IJBToken token)
@@ -447,6 +477,7 @@ contract JBController is IJBController, JBOperatable {
     address _newOwner
   )
     external
+    virtual
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.CHANGE_TOKEN)
   {
@@ -485,6 +516,7 @@ contract JBController is IJBController, JBOperatable {
     bool _useReservedRate
   )
     external
+    virtual
     override
     requirePermissionAllowingOverride(
       projects.ownerOf(_projectId),
@@ -498,6 +530,7 @@ contract JBController is IJBController, JBOperatable {
     if (_tokenCount == 0) revert ZERO_TOKENS_TO_MINT();
 
     // Define variables that will be needed outside scoped section below.
+    // Keep a reference to the reserved rate to use
     uint256 _reservedRate;
 
     // Scoped section prevents stack too deep. `_fundingCycle` only used within scope.
@@ -505,11 +538,11 @@ contract JBController is IJBController, JBOperatable {
       // Get a reference to the project's current funding cycle.
       JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-      // If the message sender is not a terminal, the current funding cycle must not be paused.
+      // If the message sender is not a terminal, the current funding cycle must allow minting.
       if (
-        _fundingCycle.mintPaused() &&
+        !_fundingCycle.mintingAllowed() &&
         !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))
-      ) revert MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE();
+      ) revert MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE();
 
       // Determine the reserved rate to use.
       _reservedRate = _useReservedRate ? _fundingCycle.reservedRate() : 0;
@@ -570,6 +603,7 @@ contract JBController is IJBController, JBOperatable {
     bool _preferClaimedTokens
   )
     external
+    virtual
     override
     requirePermissionAllowingOverride(
       _holder,
@@ -610,8 +644,9 @@ contract JBController is IJBController, JBOperatable {
 
     @return The amount of minted reserved tokens.
   */
-  function distributeReservedTokensOf(uint256 _projectId, string memory _memo)
+  function distributeReservedTokensOf(uint256 _projectId, string calldata _memo)
     external
+    virtual
     override
     returns (uint256)
   {
@@ -628,7 +663,7 @@ contract JBController is IJBController, JBOperatable {
     @param _projectId The ID of the project that will be migrated to this controller.
     @param _from The controller being migrated from.
   */
-  function prepForMigrationOf(uint256 _projectId, IJBController _from) external override {
+  function prepForMigrationOf(uint256 _projectId, IJBController _from) external virtual override {
     // This controller must not be the project's current controller.
     if (directory.controllerOf(_projectId) == this) revert CANT_MIGRATE_TO_CURRENT_CONTROLLER();
 
@@ -650,6 +685,7 @@ contract JBController is IJBController, JBOperatable {
   */
   function migrate(uint256 _projectId, IJBController _to)
     external
+    virtual
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_CONTROLLER)
   {
@@ -659,7 +695,7 @@ contract JBController is IJBController, JBOperatable {
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-    // Migration must be allowed
+    // Migration must be allowed.
     if (!_fundingCycle.controllerMigrationAllowed()) revert MIGRATION_NOT_ALLOWED();
 
     // All reserved tokens must be minted before migrating.
@@ -789,10 +825,13 @@ contract JBController is IJBController, JBOperatable {
         // If there's an allocator set, trigger its `allocate` function.
         if (_split.allocator != IJBSplitAllocator(address(0)))
           _split.allocator.allocate(
-            _tokenCount,
-            _projectId,
-            JBSplitsGroups.RESERVED_TOKENS,
-            _split
+            JBSplitAllocationData(
+              _tokenCount,
+              18,
+              _projectId,
+              JBSplitsGroups.RESERVED_TOKENS,
+              _split
+            )
           );
 
         // Subtract from the amount to be sent to the beneficiary.

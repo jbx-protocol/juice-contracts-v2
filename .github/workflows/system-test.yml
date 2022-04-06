@@ -48,5 +48,7 @@ jobs:
           steps.cache-yarn-cache.outputs.cache-hit != 'true' ||
           steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile --prefer-offline
-      - name: Run tests
+      - name: install libraries
+        run: git submodule update --init
+      - name: Run system tests
         run: forge test --force --optimize -vvv

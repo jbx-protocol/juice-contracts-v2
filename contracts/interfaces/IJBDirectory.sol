@@ -3,6 +3,7 @@ pragma solidity 0.8.6;
 
 import './IJBPaymentTerminal.sol';
 import './IJBProjects.sol';
+import './IJBFundingCycleStore.sol';
 import './IJBController.sol';
 
 interface IJBDirectory {
@@ -22,6 +23,8 @@ interface IJBDirectory {
   event SetIsAllowedToSetFirstController(address indexed addr, bool indexed flag, address caller);
 
   function projects() external view returns (IJBProjects);
+
+  function fundingCycleStore() external view returns (IJBFundingCycleStore);
 
   function controllerOf(uint256 _projectId) external view returns (IJBController);
 

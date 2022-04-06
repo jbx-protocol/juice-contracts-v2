@@ -168,13 +168,15 @@ contract TestBaseWorkflow is DSTest {
     _jbPrices = new JBPrices(_multisig);
     evm.label(address(_jbPrices), 'JBPrices');
 
-    // JBDirectory
-    _jbDirectory = new JBDirectory(_jbOperatorStore, _jbProjects);
-    evm.label(address(_jbDirectory), 'JBDirectory');
+    address contractAtNoncePlusOne = addressFrom(address(this), 5);
 
     // JBFundingCycleStore
-    _jbFundingCycleStore = new JBFundingCycleStore(_jbDirectory);
+    _jbFundingCycleStore = new JBFundingCycleStore(IJBDirectory(contractAtNoncePlusOne));
     evm.label(address(_jbFundingCycleStore), 'JBFundingCycleStore');
+
+    // JBDirectory
+    _jbDirectory = new JBDirectory(_jbOperatorStore, _jbProjects, _jbFundingCycleStore, _multisig);
+    evm.label(address(_jbDirectory), 'JBDirectory');
 
     // JBTokenStore
     _jbTokenStore = new JBTokenStore(_jbOperatorStore, _jbProjects, _jbDirectory);
@@ -195,14 +197,14 @@ contract TestBaseWorkflow is DSTest {
     );
     evm.label(address(_jbController), 'JBController');
 
+    evm.prank(_multisig);
     _jbDirectory.setIsAllowedToSetFirstController(address(_jbController), true);
+    
     // JBETHPaymentTerminalStore
     _jbPaymentTerminalStore = new JBPaymentTerminalStore(
       _jbPrices,
-      _jbProjects,
       _jbDirectory,
-      _jbFundingCycleStore,
-      _jbTokenStore
+      _jbFundingCycleStore
     );
     evm.label(address(_jbPaymentTerminalStore), 'JBPaymentTerminalStore');
 
@@ -243,5 +245,21 @@ contract TestBaseWorkflow is DSTest {
       _multisig
     );
     evm.label(address(_jbERC20PaymentTerminal), 'JBERC20PaymentTerminal');
+  }
+
+//https://ethereum.stackexchange.com/questions/24248/how-to-calculate-an-ethereum-contracts-address-during-its-creation-using-the-so
+  function addressFrom(address _origin, uint _nonce) internal pure returns (address _address) {
+    bytes memory data;
+    if(_nonce == 0x00)          data = abi.encodePacked(bytes1(0xd6), bytes1(0x94), _origin, bytes1(0x80));
+    else if(_nonce <= 0x7f)     data = abi.encodePacked(bytes1(0xd6), bytes1(0x94), _origin, uint8(_nonce));
+    else if(_nonce <= 0xff)     data = abi.encodePacked(bytes1(0xd7), bytes1(0x94), _origin, bytes1(0x81), uint8(_nonce));
+    else if(_nonce <= 0xffff)   data = abi.encodePacked(bytes1(0xd8), bytes1(0x94), _origin, bytes1(0x82), uint16(_nonce));
+    else if(_nonce <= 0xffffff) data = abi.encodePacked(bytes1(0xd9), bytes1(0x94), _origin, bytes1(0x83), uint24(_nonce));
+    else                          data = abi.encodePacked(bytes1(0xda), bytes1(0x94), _origin, bytes1(0x84), uint32(_nonce));
+      bytes32 hash = keccak256(data);
+    assembly {
+        mstore(0, hash)
+        _address := mload(0)
+    }
   }
 }

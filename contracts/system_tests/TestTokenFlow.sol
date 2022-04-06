@@ -36,18 +36,20 @@ contract TestTokenFlow is TestBaseWorkflow {
 
     _metadata = JBFundingCycleMetadata({
       reservedRate: _reservedRate,
-      redemptionRate: 5000,
+      redemptionRate: 5000, //50%
       ballotRedemptionRate: 0,
       pausePay: false,
       pauseDistributions: false,
       pauseRedeem: false,
-      pauseMint: false,
       pauseBurn: false,
+      allowMinting: true,
       allowChangeToken: true,
       allowTerminalMigration: false,
       allowControllerMigration: false,
+      allowSetTerminals: false,
+      allowSetController: false,
       holdFees: false,
-      useLocalBalanceForRedemptions: false,
+      useTotalOverflowForRedemptions: false,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
       dataSource: IJBFundingCycleDataSource(address(0))
@@ -121,6 +123,7 @@ contract TestTokenFlow is TestBaseWorkflow {
 
     // burn tokens from beneficiary addr
     // next call will originate from holder addr
+    evm.stopPrank();
     evm.prank(_beneficiary);
     _controller.burnTokensOf(
       _beneficiary,
@@ -169,6 +172,8 @@ contract TestTokenFlow is TestBaseWorkflow {
     );
 
     // try to claim the unclaimed tokens
+    evm.stopPrank();
+    evm.prank(_beneficiary);
     _tokenStore.claimFor(_beneficiary, _projectId, /* _amount */ 1);
   }
 
@@ -203,6 +208,8 @@ contract TestTokenFlow is TestBaseWorkflow {
     _controller.changeTokenOf(_projectId, _newToken, address(0));
 
     // claim and mint the max possible amount of unclaimed tokens
+    evm.stopPrank();
+    evm.prank(_beneficiary);
     _tokenStore.claimFor(_beneficiary, _projectId, type(uint224).max);
 
     // total token balanced should be updated

@@ -4,11 +4,11 @@ import { expect } from 'chai';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBPaymentTerminal.sol/IJBPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import errors from '../helpers/errors.json';
 
-describe('JBProjectPayer::pay(...)', function () {
+describe('JBETHERC20ProjectPayer::pay(...)', function () {
   const INITIAL_PROJECT_ID = 1;
   const INITIAL_BENEFICIARY = ethers.Wallet.createRandom().address;
   const INITIAL_PREFER_CLAIMED_TOKENS = false;
@@ -21,6 +21,7 @@ describe('JBProjectPayer::pay(...)', function () {
   const MIN_RETURNED_TOKENS = 1;
   const MEMO = 'hi world';
   const METADATA = [0x2];
+  const DECIMALS = 1;
   let ethToken;
 
   this.beforeAll(async function () {
@@ -37,7 +38,7 @@ describe('JBProjectPayer::pay(...)', function () {
     let mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
     let mockJbToken = await deployMockContract(deployer, jbToken.abi);
 
-    let jbProjectPayerFactory = await ethers.getContractFactory('JBProjectPayer');
+    let jbProjectPayerFactory = await ethers.getContractFactory('JBETHERC20ProjectPayer');
     let jbProjectPayer = await jbProjectPayerFactory.deploy(
       INITIAL_PROJECT_ID,
       INITIAL_BENEFICIARY,
@@ -45,7 +46,7 @@ describe('JBProjectPayer::pay(...)', function () {
       INITIAL_MEMO,
       INITIAL_METADATA,
       mockJbDirectory.address,
-      owner.address
+      owner.address,
     );
 
     return {
@@ -66,6 +67,9 @@ describe('JBProjectPayer::pay(...)', function () {
       .withArgs(PROJECT_ID, ethToken)
       .returns(mockJbTerminal.address);
 
+    // Eth payments should use 18 decimals.
+    await mockJbTerminal.mock.decimals.returns(18);
+
     await mockJbTerminal.mock.pay
       .withArgs(
         AMOUNT,
@@ -75,14 +79,52 @@ describe('JBProjectPayer::pay(...)', function () {
         PREFER_CLAIMED_TOKENS,
         MEMO,
         METADATA,
-      ).returns();
+      )
+      .returns(0);
 
     await expect(
       jbProjectPayer.pay(
         PROJECT_ID,
         ethToken,
         0,
+        DECIMALS,
         BENEFICIARY,
+        MIN_RETURNED_TOKENS,
+        PREFER_CLAIMED_TOKENS,
+        MEMO,
+        METADATA,
+        {
+          value: AMOUNT,
+        },
+      ),
+    ).to.not.be.reverted;
+  });
+
+  it(`Should add to balance if no beneficiary`, async function () {
+    const { jbProjectPayer, mockJbDirectory, mockJbTerminal } = await setup();
+
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(PROJECT_ID, ethToken)
+      .returns(mockJbTerminal.address);
+
+    // Eth payments should use 18 decimals.
+    await mockJbTerminal.mock.decimals.returns(18);
+
+    await mockJbTerminal.mock.addToBalanceOf
+      .withArgs(
+        PROJECT_ID,
+        AMOUNT,
+        MEMO
+      )
+      .returns();
+
+    await expect(
+      jbProjectPayer.pay(
+        PROJECT_ID,
+        ethToken,
+        0,
+        DECIMALS,
+        ethers.constants.AddressZero,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
         MEMO,
@@ -97,6 +139,8 @@ describe('JBProjectPayer::pay(...)', function () {
   it(`Should pay funds towards project with an erc20 tokens`, async function () {
     const { jbProjectPayer, mockJbDirectory, mockJbTerminal, mockJbToken, addrs } = await setup();
 
+    await mockJbTerminal.mock.decimals.returns(DECIMALS);
+
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(PROJECT_ID, mockJbToken.address)
       .returns(mockJbTerminal.address);
@@ -110,7 +154,8 @@ describe('JBProjectPayer::pay(...)', function () {
         PREFER_CLAIMED_TOKENS,
         MEMO,
         METADATA,
-      ).returns();
+      )
+      .returns(0);
 
     const payer = addrs[0];
     await mockJbToken.mock['transferFrom(address,address,uint256)']
@@ -120,16 +165,19 @@ describe('JBProjectPayer::pay(...)', function () {
       .withArgs(mockJbTerminal.address, AMOUNT)
       .returns(0);
     await expect(
-      jbProjectPayer.connect(payer).pay(
-        PROJECT_ID,
-        mockJbToken.address,
-        AMOUNT,
-        BENEFICIARY,
-        MIN_RETURNED_TOKENS,
-        PREFER_CLAIMED_TOKENS,
-        MEMO,
-        METADATA
-      ),
+      jbProjectPayer
+        .connect(payer)
+        .pay(
+          PROJECT_ID,
+          mockJbToken.address,
+          AMOUNT,
+          DECIMALS,
+          BENEFICIARY,
+          MIN_RETURNED_TOKENS,
+          PREFER_CLAIMED_TOKENS,
+          MEMO,
+          METADATA,
+        ),
     ).to.not.be.reverted;
   });
 
@@ -137,6 +185,9 @@ describe('JBProjectPayer::pay(...)', function () {
     const { jbProjectPayer, mockJbDirectory, mockJbTerminal, addrs } = await setup();
 
     let caller = addrs[0];
+
+    // fallback uses 18 decimals.
+    await mockJbTerminal.mock.decimals.returns(18);
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(INITIAL_PROJECT_ID, ethToken)
@@ -150,9 +201,9 @@ describe('JBProjectPayer::pay(...)', function () {
         0,
         INITIAL_PREFER_CLAIMED_TOKENS,
         INITIAL_MEMO,
-        INITIAL_METADATA
+        INITIAL_METADATA,
       )
-      .returns();
+      .returns(0);
 
     await expect(
       caller.sendTransaction({
@@ -167,19 +218,24 @@ describe('JBProjectPayer::pay(...)', function () {
 
     let caller = addrs[0];
 
+    // fallback uses 18 decimals.
+    await mockJbTerminal.mock.decimals.returns(18);
+
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(INITIAL_PROJECT_ID, ethToken)
       .returns(mockJbTerminal.address);
 
     // Set the default beneficiary to the zero address.
 
-    await jbProjectPayer.connect(owner).setDefaultValues(
-      INITIAL_PROJECT_ID,
-      ethers.constants.AddressZero,
-      INITIAL_PREFER_CLAIMED_TOKENS,
-      INITIAL_MEMO,
-      INITIAL_METADATA
-    );
+    await jbProjectPayer
+      .connect(owner)
+      .setDefaultValues(
+        INITIAL_PROJECT_ID,
+        ethers.constants.AddressZero,
+        INITIAL_PREFER_CLAIMED_TOKENS,
+        INITIAL_MEMO,
+        INITIAL_METADATA,
+      );
 
     await mockJbTerminal.mock.pay
       .withArgs(
@@ -189,9 +245,9 @@ describe('JBProjectPayer::pay(...)', function () {
         0,
         INITIAL_PREFER_CLAIMED_TOKENS,
         INITIAL_MEMO,
-        INITIAL_METADATA
+        INITIAL_METADATA,
       )
-      .returns();
+      .returns(0);
 
     await expect(
       caller.sendTransaction({
@@ -200,7 +256,6 @@ describe('JBProjectPayer::pay(...)', function () {
       }),
     ).to.not.be.reverted;
   });
-
 
   it(`Can't pay if terminal not found`, async function () {
     const { jbProjectPayer, mockJbDirectory } = await setup();
@@ -214,6 +269,7 @@ describe('JBProjectPayer::pay(...)', function () {
         PROJECT_ID,
         ethToken,
         0,
+        DECIMALS,
         BENEFICIARY,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
@@ -226,6 +282,34 @@ describe('JBProjectPayer::pay(...)', function () {
     ).to.be.revertedWith(errors.TERMINAL_NOT_FOUND);
   });
 
+  it(`Can't pay if terminal uses different number of decimals`, async function () {
+    const { jbProjectPayer, mockJbDirectory, mockJbTerminal } = await setup();
+
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(PROJECT_ID, ethToken)
+      .returns(mockJbTerminal.address);
+
+    await mockJbTerminal.mock.decimals
+      .returns(19);
+
+    await expect(
+      jbProjectPayer.pay(
+        PROJECT_ID,
+        ethToken,
+        0,
+        18,
+        BENEFICIARY,
+        MIN_RETURNED_TOKENS,
+        PREFER_CLAIMED_TOKENS,
+        MEMO,
+        METADATA,
+        {
+          value: AMOUNT,
+        },
+      ),
+    ).to.be.revertedWith(errors.INCORRECT_DECIMAL_AMOUNT);
+  });
+
   it(`Can't send value along with non-eth token`, async function () {
     const { jbProjectPayer, mockJbDirectory } = await setup();
 
@@ -234,6 +318,7 @@ describe('JBProjectPayer::pay(...)', function () {
         PROJECT_ID,
         ethers.constants.AddressZero,
         0,
+        DECIMALS,
         BENEFICIARY,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
