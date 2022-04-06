@@ -452,7 +452,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _minReturnedTokens The minimum number of terminal tokens that the `_amount` should be valued at in terms of this terminal's currency, as a fixed point number with the same number of decimals as this terminal.
     @param _memo A memo to pass along to the emitted event.
 
-    @param netLeftoverDistributionAmount The amount that was sent to the project owner, as a fixed point number with the same amount of decimals as this terminal.
+    @return netLeftoverDistributionAmount The amount that was sent to the project owner, as a fixed point number with the same amount of decimals as this terminal.
   */
   function distributePayoutsOf(
     uint256 _projectId,
@@ -480,7 +480,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Keep a reference to the fee amount that was paid.
     uint256 _fee;
 
-    // Scoped section prevents stack too deep. `_feeDiscount`, `_feeEligibleDistributionAmount`, and `_leftoverDistributionAmount only used within scope.
+    // Scoped section prevents stack too deep. `_feeDiscount`, `_feeEligibleDistributionAmount`, and `_leftoverDistributionAmount` only used within scope.
     {
       // Get the amount of discount that should be applied to any fees taken.
       // If the fee is zero, set the discount to 100% for convinience.
@@ -587,7 +587,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     // Scoped section prevents stack too deep. `_fee`, `_projectOwner`, `_feeDiscount`, and `_netAmount` only used within scope.
     {
-      // Define variables that will be needed outside the scoped section below.
       // Keep a reference to the fee amount that was paid.
       uint256 _fee;
 
@@ -636,7 +635,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _projectId The ID of the project being migrated.
     @param _to The terminal contract that will gain the project's funds.
 
-    @return balance The amount of funds that was migrated, as a fixed point number with the same amount of decimals as this terminal.
+    @return balance The amount of funds that were migrated, as a fixed point number with the same amount of decimals as this terminal.
   */
   function migrate(uint256 _projectId, IJBPaymentTerminal _to)
     external
