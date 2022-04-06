@@ -627,7 +627,7 @@ contract JBController is IJBController, JBOperatable {
     // Update the token tracker so that reserved tokens will still be correctly mintable.
     _processedTokenTrackerOf[_projectId] =
       _processedTokenTrackerOf[_projectId] -
-      int256(_tokenCount);
+      (_tokenCount > uint256(type(int256).max) ? type(int256).max : int256(_tokenCount));
 
     // Burn the tokens.
     tokenStore.burnFrom(_holder, _projectId, _tokenCount, _preferClaimedTokens);
@@ -667,8 +667,11 @@ contract JBController is IJBController, JBOperatable {
     // This controller must not be the project's current controller.
     if (directory.controllerOf(_projectId) == this) revert CANT_MIGRATE_TO_CURRENT_CONTROLLER();
 
+    // Get a reference to the project's total token supply.
+    uint256 _totalSupply = tokenStore.totalSupplyOf(_projectId);
+
     // Set the tracker as the total supply.
-    _processedTokenTrackerOf[_projectId] = int256(tokenStore.totalSupplyOf(_projectId));
+    _processedTokenTrackerOf[_projectId] = _totalSupply > uint256(type(int256).max >  int256(tokenStore.totalSupplyOf(_projectId));
 
     emit PrepMigration(_projectId, _from, msg.sender);
   }
