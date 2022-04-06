@@ -451,6 +451,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _currency The expected currency of the amount being distributed. Must match the project's current funding cycle's distribution limit currency.
     @param _minReturnedTokens The minimum number of terminal tokens that the `_amount` should be valued at in terms of this terminal's currency, as a fixed point number with the same number of decimals as this terminal.
     @param _memo A memo to pass along to the emitted event.
+
+    @param netLeftoverDistributionAmount The amount that was sent to the project owner, as a fixed point number with the same amount of decimals as this terminal.
   */
   function distributePayoutsOf(
     uint256 _projectId,
@@ -458,7 +460,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _currency,
     uint256 _minReturnedTokens,
     string calldata _memo
-  ) external virtual override {
+  ) external virtual override returns (uint256 netLeftoverDistributionAmount) {
     // Record the distribution.
     (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordDistributionFor(
         _projectId,
@@ -475,11 +477,10 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     address payable _projectOwner = payable(projects.ownerOf(_projectId));
 
     // Define variables that will be needed outside the scoped section below.
-    // Keep a reference to the fee amount that was paid, and the distribution amount leftover after distributing to the splits.
+    // Keep a reference to the fee amount that was paid.
     uint256 _fee;
-    uint256 _leftoverDistributionAmount;
 
-    // Scoped section prevents stack too deep. `_feeDiscount` and `_feeEligibleDistributionAmount` only used within scope.
+    // Scoped section prevents stack too deep. `_feeDiscount`, `_feeEligibleDistributionAmount`, and `_leftoverDistributionAmount only used within scope.
     {
       // Get the amount of discount that should be applied to any fees taken.
       // If the fee is zero, set the discount to 100% for convinience.
@@ -489,6 +490,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
       // The amount distributed that is eligible for incurring fees.
       uint256 _feeEligibleDistributionAmount;
+
+      // The amount leftover after distributing to the splits.
+      uint256 _leftoverDistributionAmount;
 
       // Payout to splits and get a reference to the leftover transfer amount after all splits have been paid.
       // Also get a reference to the amount that was distributed to splits from which fees should be taken.
@@ -513,13 +517,14 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           _feeDiscount
         );
 
+      // Get a reference to how much to distribute to the project owner, which is the leftover amount minus any fees.
+      netLeftoverDistributionAmount = _leftoverDistributionAmount == 0
+        ? 0
+        : _leftoverDistributionAmount - _feeAmount(_leftoverDistributionAmount, _feeDiscount);
+
       // Transfer any remaining balance to the project owner.
-      if (_leftoverDistributionAmount > 0)
-        _transferFrom(
-          address(this),
-          _projectOwner,
-          _leftoverDistributionAmount - _feeAmount(_leftoverDistributionAmount, _feeDiscount)
-        );
+      if (netLeftoverDistributionAmount > 0)
+        _transferFrom(address(this), _projectOwner, netLeftoverDistributionAmount);
     }
 
     emit DistributePayouts(
@@ -530,7 +535,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       _amount,
       _distributedAmount,
       _fee,
-      _leftoverDistributionAmount,
+      netLeftoverDistributionAmount,
       _memo,
       msg.sender
     );
@@ -580,7 +585,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // The amount being withdrawn must be at least as much as was expected.
     if (_distributedAmount < _minReturnedTokens) revert INADEQUATE_DISTRIBUTION_AMOUNT();
 
-    // Scoped section prevents stack too deep. `_projectOwner`, `_feeDiscount`, and `_netAmount` only used within scope.
+    // Scoped section prevents stack too deep. `_fee`, `_projectOwner`, `_feeDiscount`, and `_netAmount` only used within scope.
     {
       // Define variables that will be needed outside the scoped section below.
       // Keep a reference to the fee amount that was paid.

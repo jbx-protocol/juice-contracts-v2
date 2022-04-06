@@ -132,7 +132,7 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
     uint256 _currency,
     uint256 _minReturnedAmount,
     string calldata _memo
-  ) external;
+  ) external returns (uint256 netLeftoverDistributionAmount);
 
   function useAllowanceOf(
     uint256 _projectId,
