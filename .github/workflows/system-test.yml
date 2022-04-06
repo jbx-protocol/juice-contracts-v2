@@ -1,16 +1,20 @@
-name: juice-contracts-tests
+name: juice-contracts-system-tests
 on:
   pull_request:
     branches:
       - main
+      - test/system-tests
   push:
     branches:
       - main
+      - test/system-tests
 jobs:
-  unit-test:
+  forge-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - uses: actions/setup-node@v1
         with:
           node-version: 14
@@ -35,10 +39,16 @@ jobs:
           key: ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-nodemodules-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-nodemodules-
+      - name: Install Foundry
+        uses: onbjerg/foundry-toolchain@v1
+        with:
+          version: nightly
       - name: Install JS dependencies
         if: |
           steps.cache-yarn-cache.outputs.cache-hit != 'true' ||
           steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile --prefer-offline
-      - name: Run unit tests
-        run: node --require esm ./node_modules/.bin/hardhat test --network hardhat
+      - name: install libraries
+        run: git submodule update --init
+      - name: Run system tests
+        run: forge test --force --optimize -vvv
