@@ -159,4 +159,40 @@ library JBFundingCycleMetadataResolver {
     // data source address in bits 70-229.
     packed |= uint256(uint160(address(_metadata.dataSource))) << 70;
   }
+
+  /**
+    @notice
+    Expand the funding cycle metadata.
+
+    @param _fundingCycle The funding cycle having its metadata expanded.
+
+    @return metadata The metadata object.
+  */
+  function expandMetadata(JBFundingCycle memory _fundingCycle)
+    internal
+    pure
+    returns (JBFundingCycleMetadata memory metadata)
+  {
+    return
+      JBFundingCycleMetadata(
+        reservedRate(_fundingCycle),
+        redemptionRate(_fundingCycle),
+        ballotRedemptionRate(_fundingCycle),
+        payPaused(_fundingCycle),
+        distributionsPaused(_fundingCycle),
+        redeemPaused(_fundingCycle),
+        burnPaused(_fundingCycle),
+        mintingAllowed(_fundingCycle),
+        changeTokenAllowed(_fundingCycle),
+        terminalMigrationAllowed(_fundingCycle),
+        controllerMigrationAllowed(_fundingCycle),
+        setTerminalsAllowed(_fundingCycle),
+        setControllerAllowed(_fundingCycle),
+        shouldHoldFees(_fundingCycle),
+        useTotalOverflowForRedemptions(_fundingCycle),
+        useDataSourceForPay(_fundingCycle),
+        useDataSourceForRedeem(_fundingCycle),
+        dataSource(_fundingCycle)
+      );
+  }
 }
