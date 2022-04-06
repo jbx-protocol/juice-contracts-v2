@@ -21,7 +21,7 @@ interface IJBPaymentTerminal {
     bool _preferClaimedTokens,
     string calldata _memo,
     bytes calldata _metadata
-  ) external payable;
+  ) external payable returns (uint256 beneficiaryTokenCount);
 
   function addToBalanceOf(
     uint256 _projectId,

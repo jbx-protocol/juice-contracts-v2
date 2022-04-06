@@ -3,13 +3,14 @@ pragma solidity 0.8.6;
 
 import './../interfaces/IJBControllerUtility.sol';
 
+//*********************************************************************//
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
 error CONTROLLER_UNAUTHORIZED();
 
 /** 
   @notice
-  Provides tools for contracts that has functionality that can only be accessed by a project's controller.
+  Provides tools for contracts with functionality that can only be accessed by a project's controller.
 */
 abstract contract JBControllerUtility is IJBControllerUtility {
   modifier onlyController(uint256 _projectId) {

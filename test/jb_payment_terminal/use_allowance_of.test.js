@@ -30,7 +30,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
   let MAX_FEE;
   let MAX_FEE_DISCOUNT;
   let AMOUNT_MINUS_FEES;
-  
+
   let PROCESS_FEES_PERMISSION_INDEX;
 
   before(async function () {
@@ -190,7 +190,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         MEMO,
       );
 
-    expect(await tx)
+    expect(tx)
       .to.emit(jbEthPaymentTerminal, 'UseAllowance')
       .withArgs(
         /* _fundingCycle.configuration */ timestamp,
@@ -199,7 +199,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         /* _beneficiary */ beneficiary.address,
         /* _amount */ AMOUNT_TO_DISTRIBUTE,
         /* _distributedAmount */ AMOUNT,
-        /* _feeAmount */ 0,
+        /* _netDistributedAmount */ AMOUNT,
         MEMO,
         /* msg.sender */ projectOwner.address,
       );
@@ -309,7 +309,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         /* _beneficiary */ beneficiary.address,
         /* _amount */ AMOUNT_TO_DISTRIBUTE,
         /* _distributedAmount */ AMOUNT,
-        /* _feeAmount */ AMOUNT - AMOUNT_MINUS_FEES,
+        /* _netDistributedAmount */ AMOUNT_MINUS_FEES,
         MEMO,
         /* msg.sender */ projectOwner.address,
       );
@@ -400,7 +400,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         /* _beneficiary */ beneficiary.address,
         /* _amount */ AMOUNT_TO_DISTRIBUTE,
         /* _distributedAmount */ AMOUNT,
-        /* _feeAmount */ AMOUNT - AMOUNT_MINUS_DISCOUNTED_FEES,
+        /* _netDistributedAmount */ AMOUNT_MINUS_DISCOUNTED_FEES,
         MEMO,
         /* msg.sender */ projectOwner.address,
       );
@@ -485,7 +485,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         /* _beneficiary */ beneficiary.address,
         /* _amount */ AMOUNT_TO_DISTRIBUTE,
         /* _distributedAmount */ AMOUNT,
-        /* _feeAmount */ AMOUNT - AMOUNT_MINUS_FEES,
+        /* _netDistributedAmount */ AMOUNT_MINUS_FEES,
         MEMO,
         /* msg.sender */ projectOwner.address,
       );
@@ -570,7 +570,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         /* _beneficiary */ beneficiary.address,
         /* _amount */ AMOUNT_TO_DISTRIBUTE,
         /* _distributedAmount */ AMOUNT,
-        /* _feeAmount */ AMOUNT - AMOUNT_MINUS_FEES,
+        /* _netDistributedAmount */  AMOUNT_MINUS_FEES,
         MEMO,
         /* msg.sender */ projectOwner.address,
       );
