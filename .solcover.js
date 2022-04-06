@@ -16,4 +16,5 @@ module.exports = {
 'system_tests/TestTokenFlow.sol'
   ],
   configureYulOptimizer: true,
+  measureStatementCoverage: false
 };
