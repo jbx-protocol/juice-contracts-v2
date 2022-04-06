@@ -4,6 +4,7 @@ pragma solidity 0.8.6;
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './helpers/TestBaseWorkflow.sol';
 import './mock/MockPriceFeed.sol';
+import '@paulrberg/contracts/math/PRBMath.sol';
 
 contract TestMultipleTerminals is TestBaseWorkflow {
 
@@ -12,6 +13,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
   JBFundingCycleData _data;
   JBFundingCycleMetadata _metadata;
   JBGroupedSplits[] _groupedSplits;
+  JBSplit[] splitArray;
   JBFundAccessConstraints[] _fundAccessConstraints;
 
   IJBPaymentTerminal[] _terminals;
@@ -24,6 +26,27 @@ contract TestMultipleTerminals is TestBaseWorkflow {
   uint256 FAKE_PRICE = 10;
   uint256 WEIGHT = 1000 * 10**18;
   uint256 projectId;
+
+
+// -- fix:
+  JBSplit _split = JBSplit({
+    preferClaimed: false,
+    percent: jbLibraries().SPLITS_TOTAL_PERCENT(),
+    projectId: 0,
+    beneficiary: payable(address(0)),
+    lockedUntil: 0,
+    allocator: IJBSplitAllocator(address(0))
+  });
+
+  splitArray[0] = _split;
+
+  JBGroupedSplits _groupedSplit = JBGroupedSplits({
+    group: 1,
+    splits: splitArray
+  });
+
+
+
 
   function setUp() public override {
     super.setUp();
@@ -51,14 +74,14 @@ contract TestMultipleTerminals is TestBaseWorkflow {
       pauseDistributions: false,
       pauseRedeem: false,
       pauseBurn: false,
-      allowMinting: false,
+      allowMinting: true,
       allowChangeToken: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
       allowSetTerminals: false,
       allowSetController: false,
       holdFees: false,
-      useTotalOverflowForRedemptions: false,
+      useTotalOverflowForRedemptions: true,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
       dataSource: IJBFundingCycleDataSource(address(0))
@@ -103,6 +126,8 @@ contract TestMultipleTerminals is TestBaseWorkflow {
 
     _terminals.push(ERC20terminal);
     _terminals.push(ETHterminal);
+
+    _groupedSplits.push(_groupedSplit);
 
     projectId = controller.launchProjectFor(
       _projectOwner,
@@ -168,48 +193,49 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     // verify: ETH balance in terminal should be up to date
     assertEq(jbPaymentTerminalStore().balanceOf(ETHterminal, projectId), 20 ether);
 
-
     // ---- Use allowance ----
     evm.startPrank(_projectOwner);
     ERC20terminal.useAllowanceOf(
       projectId,
-      1, // amt
-      jbLibraries().USD(), // Currency
-      0, // Min wei out
+      5*10**18, // amt in ETH (overflow allowance currency is in ETH)
+      jbLibraries().USD(), // Currency -> (fake price is 10)
+      1, // Min wei out
       payable(msg.sender), // Beneficiary
       'MEMO'
     );
     evm.stopPrank();
-    // assertEq(jbToken().balanceOf(msg.sender), 5*10**18);
 
-    // // Distribute the funding target ETH -> no split then beneficiary is the project owner
-    // uint256 initBalance = jbToken().balanceOf(_projectOwner);
-    // evm.prank(_projectOwner);
-    // terminal.distributePayoutsOf(
-    //   projectId,
-    //   10*10**18,
-    //   1, // Currency
-    //   0, // Min wei out
-    //   'Foundry payment' // Memo
-    // );
-    // // Funds leaving the ecosystem -> fee taken
-    // assertEq(jbToken().balanceOf(_projectOwner), initBalance + (10*10**18 * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE()) );
+    // Funds leaving the contract -> take the fee
+    assertEq(jbToken().balanceOf(msg.sender), PRBMath.mulDiv(5*10**18, jbLibraries().MAX_FEE(), jbLibraries().MAX_FEE() + ERC20terminal.fee()));
 
-    // redeem eth from the overflow by the token holder:
-    uint256 senderBalance = _tokenStore.balanceOf(msg.sender, projectId);
-
-    evm.prank(msg.sender);
-    ERC20terminal.redeemTokensOf(
-      msg.sender,
+    // Distribute the funding target ETH -> no split then beneficiary is the project owner
+    uint256 initBalance = _projectOwner.balance;
+    evm.prank(_projectOwner);
+    ETHterminal.distributePayoutsOf(
       projectId,
-      1, //senderBalance / (FAKE_PRICE*10**18),
-      0,
-      payable(msg.sender),
-      'gimme my money back',
-      new bytes(0)
+      10*10**18,
+      jbLibraries().ETH(), // Currency
+      0, // Min wei out
+      'Foundry payment' // Memo
     );
+    // Funds leaving the ecosystem -> fee taken
+    assertEq(_projectOwner.balance, initBalance + PRBMath.mulDiv(10*10**18, jbLibraries().MAX_FEE(), ETHterminal.fee() + jbLibraries().MAX_FEE()));
 
-    // // verify: beneficiary should have a balance of 0 JBTokens
-    // assertEq(_tokenStore.balanceOf(msg.sender, projectId), 0);
+  //   // redeem eth from the overflow by the token holder:
+  //   uint256 senderBalance = _tokenStore.balanceOf(msg.sender, projectId);
+
+  //   evm.prank(msg.sender);
+  //   ERC20terminal.redeemTokensOf(
+  //     msg.sender,
+  //     projectId,
+  //     senderBalance / (FAKE_PRICE*10**18),
+  //     0,
+  //     payable(msg.sender),
+  //     'gimme my money back',
+  //     new bytes(0)
+  //   );
+
+  //   // verify: beneficiary should have a balance of 0 JBTokens
+  //   assertEq(_tokenStore.balanceOf(msg.sender, projectId), 0);
   }
 }

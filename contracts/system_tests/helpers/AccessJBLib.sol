@@ -14,4 +14,8 @@ contract AccessJBLib {
     function MAX_FEE() external returns(uint256) {
         return JBConstants.MAX_FEE;
     }
+
+    function SPLITS_TOTAL_PERCENT() external returns(uint256) {
+        return JBConstants.SPLITS_TOTAL_PERCENT;
+    }
 }
