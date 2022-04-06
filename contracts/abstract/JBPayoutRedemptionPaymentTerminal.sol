@@ -299,6 +299,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
     @param _metadata Bytes to send along to the data source and delegate, if provided.
+
+    @return The number of tokens minted for the beneficiary, as a fixed point number with 18 decimals.
   */
   function pay(
     uint256 _amount,
@@ -308,7 +310,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     bool _preferClaimedTokens,
     string calldata _memo,
     bytes calldata _metadata
-  ) external payable virtual override isTerminalOf(_projectId) {
+  ) external payable virtual override isTerminalOf(_projectId) returns (uint256) {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (token != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
@@ -1022,6 +1024,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
     @param _metadata Bytes to send along to the data source and delegate, if provided.
+
+    @return beneficiaryTokenCount The number of tokens minted for the beneficiary, as a fixed point number with 18 decimals.
   */
   function _pay(
     uint256 _amount,
@@ -1032,14 +1036,13 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     bool _preferClaimedTokens,
     string memory _memo,
     bytes memory _metadata
-  ) private {
+  ) private returns (uint256 beneficiaryTokenCount) {
     // Cant send tokens to the zero address.
     if (_beneficiary == address(0)) revert PAY_TO_ZERO_ADDRESS();
 
     // Define variables that will be needed outside the scoped section below.
-    // Keep a reference to the funding cycle during which the payment is being made, and the number of tokens minted for the beneficiary.
+    // Keep a reference to the funding cycle during which the payment is being made.
     JBFundingCycle memory _fundingCycle;
-    uint256 _beneficiaryTokenCount;
 
     // Scoped section prevents stack too deep. `_delegate` and `_tokenCount` only used within scope.
     {
@@ -1062,7 +1065,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       // Mint the tokens if needed.
       if (_tokenCount > 0)
         // Set token count to be the number of tokens minted for the beneficiary instead of the total amount.
-        _beneficiaryTokenCount = directory.controllerOf(_projectId).mintTokensOf(
+        beneficiaryTokenCount = directory.controllerOf(_projectId).mintTokensOf(
           _projectId,
           _tokenCount,
           _beneficiary,
@@ -1072,7 +1075,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         );
 
       // The token count for the beneficiary must be greater than or equal to the minimum expected.
-      if (_beneficiaryTokenCount < _minReturnedTokens) revert INADEQUATE_TOKEN_COUNT();
+      if (beneficiaryTokenCount < _minReturnedTokens) revert INADEQUATE_TOKEN_COUNT();
 
       // If a delegate was returned by the data source, issue a callback to it.
       if (_delegate != IJBPayDelegate(address(0))) {
@@ -1080,7 +1083,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           _payer,
           _projectId,
           _bundledAmount,
-          _beneficiaryTokenCount,
+          beneficiaryTokenCount,
           _beneficiary,
           _memo,
           _metadata
@@ -1097,7 +1100,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       _projectId,
       _beneficiary,
       _amount,
-      _beneficiaryTokenCount,
+      beneficiaryTokenCount,
       _memo,
       msg.sender
     );
