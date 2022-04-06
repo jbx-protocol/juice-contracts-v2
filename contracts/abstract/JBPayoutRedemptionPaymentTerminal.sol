@@ -344,7 +344,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _holder The account to redeem tokens for.
     @param _projectId The ID of the project to which the tokens being redeemed belong.
     @param _tokenCount The number of project tokens to redeem, as a fixed point number with 18 decimals.
-    @param _minReturnedTokens The minimum amount of terminal tokens expected in return, as a fixed point number with 18 decimals.
+    @param _minReturnedTokens The minimum amount of terminal tokens expected in return, as a fixed point number with the same amount of decimals as the terminal.
     @param _beneficiary The address to send the terminal tokens to.
     @param _memo A memo to pass along to the emitted event.
     @param _metadata Bytes to send along to the data source and delegate, if provided.
