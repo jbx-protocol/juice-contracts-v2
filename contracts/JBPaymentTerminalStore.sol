@@ -217,6 +217,9 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
       _fundingCycle.reservedRate()
     );
 
+    // Can't redeem more tokens that is in the supply.
+    if (_tokenCount > _totalSupply) return 0;
+
     // Return the reclaimable overflow amount.
     return
       _reclaimableOverflowDuring(
@@ -250,6 +253,9 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
   ) external view override returns (uint256) {
     // If there's no overflow, there's no reclaimable overflow.
     if (_overflow == 0) return 0;
+
+    // Can't redeem more tokens that is in the supply.
+    if (_tokenCount > _totalSupply) return 0;
 
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
@@ -445,6 +451,9 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
         _projectId,
         fundingCycle.reservedRate()
       );
+
+      // Can't redeem more tokens that is in the supply.
+      if (_tokenCount > _totalSupply) revert INSUFFICIENT_TOKENS();
 
       if (_currentOverflow > 0)
         // Calculate reclaim amount using the current overflow amount.
