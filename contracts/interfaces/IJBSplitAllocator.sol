@@ -1,13 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import '../structs/JBSplit.sol';
+import '../structs/JBSplitAllocationData.sol';
 
 interface IJBSplitAllocator {
-  function allocate(
-    uint256 _amount,
-    uint256 _projectId,
-    uint256 _group,
-    JBSplit calldata _split
-  ) external payable;
+  function allocate(JBSplitAllocationData calldata _data) external payable;
 }

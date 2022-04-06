@@ -18,14 +18,18 @@ describe('JBToken::approve(...)', function () {
     const addr = addrs[1];
     const numTokens = 3000;
 
-    const mintTx = await jbToken.connect(deployer)['approve(uint256,address,uint256)'](PROJECT_ID, addr.address, numTokens);
+    const mintTx = await jbToken
+      .connect(deployer)
+      ['approve(uint256,address,uint256)'](PROJECT_ID, addr.address, numTokens);
 
     await expect(mintTx)
       .to.emit(jbToken, 'Approval')
       .withArgs(deployer.address, addr.address, numTokens);
 
     // overloaded functions need to be called using the full function signature
-    const allowance = await jbToken.connect(deployer)['allowance(address,address)'](deployer.address, addr.address);
+    const allowance = await jbToken
+      .connect(deployer)
+      ['allowance(address,address)'](deployer.address, addr.address);
     expect(allowance).to.equal(numTokens);
   });
 });

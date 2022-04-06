@@ -19,6 +19,8 @@ error RECIPIENT_ZERO_ADDRESS();
 error TOKEN_NOT_FOUND();
 error PROJECT_ALREADY_HAS_TOKEN();
 error CANT_REMOVE_TOKEN_IF_ITS_REQUIRED();
+error TOKENS_MUST_HAVE_18_DECIMALS();
+error TOKEN_ALREADY_IN_USE();
 
 /**
   @notice
@@ -36,7 +38,7 @@ error CANT_REMOVE_TOKEN_IF_ITS_REQUIRED();
   
   @dev
   Adheres to:
-  IJBTokenStore: General interface for the methods in this contract that interact with the blockchain's state according to the Juicebox protocol's rules.
+  IJBTokenStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
   Inherits from:
@@ -65,6 +67,14 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     _projectId The ID of the project to which the token belongs.
   */
   mapping(uint256 => IJBToken) public override tokenOf;
+
+  /**
+    @notice
+    The ID of the project that each token belongs to.
+
+    _token The token to check the project association of.
+  */
+  mapping(IJBToken => uint256) public override projectOf;
 
   /**
     @notice
@@ -196,6 +206,9 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     // Store the token contract.
     tokenOf[_projectId] = token;
 
+    // Store the project for the token.
+    projectOf[token] = _projectId;
+
     emit Issue(_projectId, token, _name, _symbol, msg.sender);
   }
 
@@ -208,6 +221,9 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
 
     @dev
     This contract must have access to all of the token's `IJBToken` interface functions.
+
+    @dev
+    Can't change to a token that's currently being used by another project.
 
     @param _projectId The ID of the project to which the changed token belongs.
     @param _token The new token. Send an empty address to remove the project's current token without adding a new one, if claiming tokens isn't currency required by the project
@@ -224,11 +240,23 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     if (_token == IJBToken(address(0)) && requireClaimFor[_projectId])
       revert CANT_REMOVE_TOKEN_IF_ITS_REQUIRED();
 
+    // Can't change to a token already in use.
+    if (projectOf[_token] != 0) revert TOKEN_ALREADY_IN_USE();
+
+    // Can't change to a token that doesn't use 18 decimals.
+    if (_token.decimals() != 18) revert TOKENS_MUST_HAVE_18_DECIMALS();
+
     // Get a reference to the current token for the project.
     oldToken = tokenOf[_projectId];
 
     // Store the new token.
     tokenOf[_projectId] = _token;
+
+    // Store the project for the new token.
+    projectOf[_token] = _projectId;
+
+    // Reset the project for the old token.
+    projectOf[oldToken] = 0;
 
     // If there's a current token and a new owner was provided, transfer ownership of the old token to the new owner.
     if (_newOwner != address(0) && oldToken != IJBToken(address(0)))
@@ -304,11 +332,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
       : _token.balanceOf(_holder, _projectId);
 
     // There must be adequate tokens to burn across the holder's claimed and unclaimed balance.
-    if (
-      (_amount >= _claimedBalance || _amount >= _unclaimedBalance) &&
-      (_amount < _claimedBalance || _unclaimedBalance < _amount - _claimedBalance) &&
-      (_amount < _unclaimedBalance || _claimedBalance < _amount - _unclaimedBalance)
-    ) revert INSUFFICIENT_FUNDS();
+    if (_amount > _claimedBalance + _unclaimedBalance) revert INSUFFICIENT_FUNDS();
 
     // The amount of tokens to burn.
     uint256 _claimedTokensToBurn;
@@ -324,7 +348,6 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
 
     // The amount of unclaimed tokens to redeem.
     uint256 _unclaimedTokensToBurn = _amount - _claimedTokensToBurn;
-
 
     // Subtract the tokens from the unclaimed balance and total supply.
     if (_unclaimedTokensToBurn > 0) {
@@ -356,7 +379,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     Claims internally accounted for tokens into a holder's wallet.
 
     @dev
-    Only a token holder, the owner of the token's project, or an operator specified by the token holder can claim its unclaimed tokens.
+    Only a token holder or an operator specified by the token holder can claim its unclaimed tokens.
 
     @param _holder The owner of the tokens being claimed.
     @param _projectId The ID of the project whose tokens are being claimed.
@@ -366,16 +389,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     address _holder,
     uint256 _projectId,
     uint256 _amount
-  )
-    external
-    override
-    requirePermissionAllowingOverride(
-      _holder,
-      _projectId,
-      JBOperations.CLAIM,
-      msg.sender == projects.ownerOf(_projectId)
-    )
-  {
+  ) external override requirePermission(_holder, _projectId, JBOperations.CLAIM) {
     // Get a reference to the project's current token.
     IJBToken _token = tokenOf[_projectId];
 

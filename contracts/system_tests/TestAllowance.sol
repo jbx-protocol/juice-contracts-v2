@@ -44,13 +44,15 @@ contract TestAllowance is TestBaseWorkflow {
       pausePay: false,
       pauseDistributions: false,
       pauseRedeem: false,
-      pauseMint: false,
       pauseBurn: false,
+      allowMinting: false,
       allowChangeToken: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
+      allowSetTerminals: false,
+      allowSetController: false,
       holdFees: false,
-      useLocalBalanceForRedemptions: false,
+      useTotalOverflowForRedemptions: false,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
       dataSource: IJBFundingCycleDataSource(address(0))
@@ -137,6 +139,10 @@ contract TestAllowance is TestBaseWorkflow {
   function testFuzzAllowance(uint248 ALLOWANCE, uint248 TARGET, uint96 BALANCE) public {
     evm.assume(jbToken().totalSupply() >= BALANCE);
 
+    unchecked { // Check for overflow
+      evm.assume(ALLOWANCE + TARGET >= ALLOWANCE && ALLOWANCE + TARGET >= TARGET);
+    }
+
     uint256 CURRENCY = jbLibraries().ETH(); // Avoid testing revert on this call...
 
     JBETHPaymentTerminal terminal = jbETHPaymentTerminal();
@@ -145,8 +151,8 @@ contract TestAllowance is TestBaseWorkflow {
       JBFundAccessConstraints({
         terminal: terminal,
         distributionLimit: TARGET,
-        overflowAllowance: ALLOWANCE,
         distributionLimitCurrency: CURRENCY,
+        overflowAllowance: ALLOWANCE,
         overflowAllowanceCurrency: CURRENCY
       })
     );
@@ -179,7 +185,6 @@ contract TestAllowance is TestBaseWorkflow {
 
     else if (TARGET >= BALANCE || ALLOWANCE > (BALANCE - TARGET)) // Too much to withdraw or no overflow ?
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
-    
     terminal.useAllowanceOf(
       projectId,
       ALLOWANCE,
@@ -189,9 +194,9 @@ contract TestAllowance is TestBaseWorkflow {
       'MEMO'
     );
 
-    if (BALANCE > 0 // there is something to transfer
-    && BALANCE >= TARGET // avoid underflow
-    && BALANCE - TARGET >= ALLOWANCE // there is enough overflow
+    if (BALANCE !=0 // there is something to transfer
+    && BALANCE > TARGET // there is an overflow
+    && ALLOWANCE < BALANCE // allowance is not too high
     ) assertEq((_beneficiary).balance, PRBMath.mulDiv(ALLOWANCE, jbLibraries().MAX_FEE(), jbLibraries().MAX_FEE() + terminal.fee()));
 
     if (TARGET > BALANCE)
@@ -208,23 +213,6 @@ contract TestAllowance is TestBaseWorkflow {
       'Foundry payment' // Memo
     );
     if(TARGET <= BALANCE && TARGET != 0)
-      assertEq(_projectOwner.balance, (TARGET * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE()));
-
-    evm.stopPrank(); // projectOwner
-
-    evm.prank(_beneficiary);
-    terminal.redeemTokensOf(
-      _beneficiary,
-      projectId,
-      BALANCE > TARGET ?
-        TARGET > ALLOWANCE ?
-          BALANCE - TARGET - ALLOWANCE // Still some overflow left
-          : 0 // no overflow left
-      : 0, // no overflow left
-      0, // Min wei out
-      payable(_beneficiary),
-      'gimme my money back',
-      new bytes(0)
-    );
+      assertEq(_projectOwner.balance, (TARGET * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE()));    
   }
 }

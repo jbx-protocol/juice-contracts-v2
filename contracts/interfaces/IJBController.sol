@@ -3,6 +3,7 @@ pragma solidity 0.8.6;
 
 import './../structs/JBFundingCycleData.sol';
 import './../structs/JBFundingCycleMetadata.sol';
+import './../structs/JBProjectMetadata.sol';
 import './../structs/JBGroupedSplits.sol';
 import './../structs/JBFundAccessConstraints.sol';
 import './../structs/JBProjectMetadata.sol';
@@ -101,6 +102,11 @@ interface IJBController {
     uint256 _configuration,
     IJBPaymentTerminal _terminal
   ) external view returns (uint256 overflowAllowance, uint256 overflowAllowanceCurrency);
+
+  function totalOutstandingTokensOf(uint256 _projectId, uint256 _reservedRate)
+    external
+    view
+    returns (uint256);
 
   function launchProjectFor(
     address _owner,

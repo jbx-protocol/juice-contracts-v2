@@ -20,7 +20,7 @@ error INVALID_WEIGHT();
 
   @dev
   Adheres to:
-  IJBTokenStore: General interface for the methods in this contract that interact with the blockchain's state according to the Juicebox protocol's rules.
+  IJBTokenStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
   Inherits from:
@@ -115,7 +115,7 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     // Get a reference to the configuration of the standby funding cycle.
     uint256 _standbyFundingCycleConfiguration = _standbyOf(_projectId);
 
-    // If it exists, return it's funding cycle if it is approved
+    // If it exists, return its funding cycle if it is approved.
     if (_standbyFundingCycleConfiguration > 0) {
       fundingCycle = _getStructFor(_projectId, _standbyFundingCycleConfiguration);
 
@@ -142,6 +142,9 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
 
     // Get the funding cycle of its base funding cycle, which carries the last approved configuration.
     fundingCycle = _getStructFor(_projectId, fundingCycle.basedOn);
+
+    // There's no queued if the base, which must still be the current, has a duration of 0.
+    if (fundingCycle.duration == 0) return _getStructFor(0, 0);
 
     // Return a mock of the next up funding cycle.
     return _mockFundingCycleBasedOn(fundingCycle, false);
@@ -173,7 +176,7 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     // Keep a reference to the eligible funding cycle.
     JBFundingCycle memory _fundingCycle;
 
-    // If a standby funding cycle exists...
+    // If an eligible funding cycle exists...
     if (_fundingCycleConfiguration > 0) {
       // Resolve the funding cycle for the eligible configuration.
       _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
@@ -203,6 +206,9 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
 
     // The funding cycle to base a current one on.
     _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
+
+    // If the base has no duration, it's still the current one.
+    if (_fundingCycle.duration == 0) return _fundingCycle;
 
     // Return a mock of the current funding cycle.
     return _mockFundingCycleBasedOn(_fundingCycle, true);
@@ -554,6 +560,9 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     @dev
     Returns an empty funding cycle if there can't be a mock funding cycle based on the provided one.
 
+    @dev
+    Assumes a funding cycle with a duration of 0 will never be asked to be the base of a mock.
+
     @param _baseFundingCycle The funding cycle that the resulting funding cycle should follow.
     @param _allowMidCycle A flag indicating if the mocked funding cycle is allowed to already be mid cycle.
 
@@ -566,8 +575,7 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
   {
     // Get the distance of the current time to the start of the next possible funding cycle.
     // If the returned mock cycle must not yet have started, the start time of the mock must be in the future.
-    // If the base funding cycle doesn't have a duration, no adjustment is necessary because the next cycle can start immediately.
-    uint256 _mustStartAtOrAfter = !_allowMidCycle || _baseFundingCycle.duration == 0
+    uint256 _mustStartAtOrAfter = !_allowMidCycle
       ? block.timestamp + 1
       : block.timestamp - _baseFundingCycle.duration + 1;
 

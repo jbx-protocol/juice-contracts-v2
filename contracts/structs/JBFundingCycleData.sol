@@ -4,19 +4,20 @@ pragma solidity 0.8.6;
 import './../interfaces/IJBFundingCycleBallot.sol';
 
 struct JBFundingCycleData {
-  // The duration of the funding cycle in days.
-  // A duration of 0 is no duration, meaning projects can trigger a new funding cycle on demand by issueing a reconfiguration.
+  // The number of seconds the funding cycle lasts for, after which a new funding cycle will start.
+  // A duration of 0 means that the funding cycle will stay active until the project owner explicitly issues a reconfiguration, at which point a new funding cycle will immediately start with the updated properties.
+  // If the duration is greater than 0, a project owner cannot make changes to a funding cycle's parameters while it is active – any proposed changes will apply to the subsequent cycle.
+  // If no changes are proposed, a funding cycle rolls over to another one with the same properties but new `start` timestamp and a discounted `weight`.
   uint256 duration;
-  // The weight of the funding cycle.
-  // This number is interpreted as a wad, meaning it has 18 decimal places.
-  // The protocol uses the weight to determine how many tokens to mint upon receiving a payment during a funding cycle.
-  // A value of 0 means that the weight should be inherited and potentially discounted from the currently active cycle if possible. Otherwise a weight of 0 will be used.
-  // A value of 1 means that no tokens should be minted regardless of how many ETH was paid. The protocol will set the stored weight value to 0.
-  // A value of 1 X 10^18 means that one token should be minted per ETH received.
+  // A fixed point number with 18 decimals that contracts can use to base arbitrary calculations on.
+  // For example, payment terminals can use this to determine how many tokens should be minted when a payment is received.
   uint256 weight;
+  // A percent by how much the `weight` of the subsequent funding cycle should be reduced, if the project owner hasn't configured the subsequent funding cycle with an explicit `weight`.
   // If it's 0, each funding cycle will have equal weight.
-  // If the number is 900000000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
+  // If the number is 90%, the next funding cycle will have a 10% smaller weight.
+  // This weight is out of `JBConstants.MAX_DISCOUNT_RATE`.
   uint256 discountRate;
   // An address of a contract that says whether a proposed reconfiguration should be accepted or rejected.
+  // It can be used to create rules around how a project owner can change funding cycle parameters over time.
   IJBFundingCycleBallot ballot;
 }

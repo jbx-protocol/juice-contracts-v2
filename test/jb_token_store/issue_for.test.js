@@ -48,6 +48,8 @@ describe('JBTokenStore::issueFor(...)', function () {
     const tokenAddr = await jbTokenStore.connect(controller).tokenOf(PROJECT_ID);
     const token = new Contract(tokenAddr, jbToken.abi);
 
+    expect(await jbTokenStore.projectOf(tokenAddr)).to.equal(PROJECT_ID);
+
     expect(await token.connect(controller).name()).to.equal(TOKEN_NAME);
     expect(await token.connect(controller).symbol()).to.equal(TOKEN_SYMBOL);
 

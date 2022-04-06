@@ -40,5 +40,5 @@ jobs:
           steps.cache-yarn-cache.outputs.cache-hit != 'true' ||
           steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile --prefer-offline
-      - name: Tests and code coverage
-        run: node --require esm ./node_modules/.bin/hardhat coverage --network hardhat
+      - name: Run unit tests
+        run: node --require esm ./node_modules/.bin/hardhat test --network hardhat
