@@ -50,5 +50,5 @@ jobs:
         run: yarn install --frozen-lockfile --prefer-offline
       - name: install libraries
         run: git submodule update --init
-      - name: Run tests
+      - name: Run system tests
         run: forge test --force --optimize -vvv
