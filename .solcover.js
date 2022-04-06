@@ -4,5 +4,6 @@
 
 module.exports = {
   skipFiles: ['system_tests/*.sol'],
-  configureYulOptimizer: true
+  configureYulOptimizer: true,
+  measureStatementCoverage: false
 };
