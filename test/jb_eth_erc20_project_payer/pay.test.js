@@ -80,7 +80,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
         MEMO,
         METADATA,
       )
-      .returns();
+      .returns(0);
 
     await expect(
       jbProjectPayer.pay(
@@ -155,7 +155,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
         MEMO,
         METADATA,
       )
-      .returns();
+      .returns(0);
 
     const payer = addrs[0];
     await mockJbToken.mock['transferFrom(address,address,uint256)']
@@ -203,7 +203,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
         INITIAL_MEMO,
         INITIAL_METADATA,
       )
-      .returns();
+      .returns(0);
 
     await expect(
       caller.sendTransaction({
@@ -247,7 +247,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
         INITIAL_MEMO,
         INITIAL_METADATA,
       )
-      .returns();
+      .returns(0);
 
     await expect(
       caller.sendTransaction({
