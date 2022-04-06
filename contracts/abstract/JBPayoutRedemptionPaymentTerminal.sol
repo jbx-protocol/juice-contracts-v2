@@ -552,6 +552,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _minReturnedTokens The minimum number of tokens that the `_amount` should be valued at in terms of this terminal's currency, as a fixed point number with 18 decimals.
     @param _beneficiary The address to send the funds to.
     @param _memo A memo to pass along to the emitted event.
+
+    @return netDistributedAmount The amount of tokens that was distributed to the beneficiary, as a fixed point number with the same amount of decimals as the terminal.
   */
   function useAllowanceOf(
     uint256 _projectId,
@@ -565,6 +567,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     virtual
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.USE_ALLOWANCE)
+    returns (uint256 netDistributedAmount)
   {
     // Record the use of the allowance.
     (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordUsedAllowanceOf(
@@ -577,12 +580,12 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // The amount being withdrawn must be at least as much as was expected.
     if (_distributedAmount < _minReturnedTokens) revert INADEQUATE_DISTRIBUTION_AMOUNT();
 
-    // Define variables that will be needed outside the scoped section below.
-    // Keep a reference to the fee amount that was paid.
-    uint256 _fee;
-
     // Scoped section prevents stack too deep. `_projectOwner`, `_feeDiscount`, and `_netAmount` only used within scope.
     {
+      // Define variables that will be needed outside the scoped section below.
+      // Keep a reference to the fee amount that was paid.
+      uint256 _fee;
+
       // Get a reference to the project owner, which will receive tokens from paying the platform fee.
       address _projectOwner = projects.ownerOf(_projectId);
 
@@ -598,10 +601,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         : _takeFeeFrom(_projectId, _fundingCycle, _distributedAmount, _projectOwner, _feeDiscount);
 
       // The net amount is the withdrawn amount without the fee.
-      uint256 _netAmount = _distributedAmount - _fee;
+      netDistributedAmount = _distributedAmount - _fee;
 
       // Transfer any remaining balance to the beneficiary.
-      if (_netAmount > 0) _transferFrom(address(this), _beneficiary, _netAmount);
+      if (netDistributedAmount > 0)
+        _transferFrom(address(this), _beneficiary, netDistributedAmount);
     }
 
     emit UseAllowance(
@@ -611,7 +615,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       _beneficiary,
       _amount,
       _distributedAmount,
-      _fee,
+      netDistributedAmount,
       _memo,
       msg.sender
     );
@@ -626,32 +630,35 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     @param _projectId The ID of the project being migrated.
     @param _to The terminal contract that will gain the project's funds.
+
+    @return balance The amount of funds that was migrated, as a fixed point number with the same amount of decimals as this terminal.
   */
   function migrate(uint256 _projectId, IJBPaymentTerminal _to)
     external
     virtual
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_TERMINAL)
+    returns (uint256 balance)
   {
     // The terminal being migrated to must accept the same token as this terminal.
     if (token != _to.token()) revert TERMINAL_TOKENS_INCOMPATIBLE();
 
     // Record the migration in the store.
-    uint256 _balance = store.recordMigration(_projectId);
+    balance = store.recordMigration(_projectId);
 
     // Transfer the balance if needed.
-    if (_balance > 0) {
+    if (balance > 0) {
       // Trigger any inherited pre-transfer logic.
-      _beforeTransferTo(address(_to), _balance);
+      _beforeTransferTo(address(_to), balance);
 
       // If this terminal's token is ETH, send it in msg.value.
-      uint256 _payableValue = token == JBTokens.ETH ? _balance : 0;
+      uint256 _payableValue = token == JBTokens.ETH ? balance : 0;
 
       // Withdraw the balance to transfer to the new terminal;
-      _to.addToBalanceOf{value: _payableValue}(_projectId, _balance, '');
+      _to.addToBalanceOf{value: _payableValue}(_projectId, balance, '');
     }
 
-    emit Migrate(_projectId, _to, _balance, msg.sender);
+    emit Migrate(_projectId, _to, balance, msg.sender);
   }
 
   /**
