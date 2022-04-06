@@ -611,7 +611,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         '',
         '0x',
       )
-      .returns();
+      .returns(0);
 
     let tx = await jbEthPaymentTerminal
       .connect(caller)
@@ -784,7 +784,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         '',
         '0x',
       )
-      .returns();
+      .returns(0);
 
     await mockJbEthPaymentTerminal.mock.addToBalanceOf
       .withArgs(
@@ -888,7 +888,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
               '',
               '0x',
             )
-            .returns();
+            .returns(0);
       }),
     );
 
@@ -1113,7 +1113,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         '',
         '0x',
       )
-      .returns();
+      .returns(0);
 
     await Promise.all(
       splits.map(async (split) => {
@@ -1127,7 +1127,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             '',
             '0x',
           )
-          .returns();
+          .returns(0);
       }),
     );
 
@@ -1223,7 +1223,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         '',
         '0x',
       )
-      .returns();
+      .returns(0);
 
     await Promise.all(
       splits.map(async (split) => {
@@ -1237,7 +1237,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             '',
             '0x',
           )
-          .returns();
+          .returns(0);
       }),
     );
 
@@ -1333,7 +1333,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         '',
         '0x',
       )
-      .returns();
+      .returns(0);
 
     await Promise.all(
       splits.map(async (split) => {
@@ -1347,7 +1347,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             '',
             '0x',
           )
-          .returns();
+          .returns(0);
       }),
     );
 
@@ -1496,10 +1496,10 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
     } = await setup();
 
     const DISCOUNTED_FEE =
-    DEFAULT_FEE - Math.floor((DEFAULT_FEE * FEE_DISCOUNT) / MAX_FEE_DISCOUNT);
+      DEFAULT_FEE - Math.floor((DEFAULT_FEE * FEE_DISCOUNT) / MAX_FEE_DISCOUNT);
 
     const FEE_AMOUNT =
-    AMOUNT_TO_DISTRIBUTE - Math.floor((AMOUNT_TO_DISTRIBUTE * MAX_FEE) / (DISCOUNTED_FEE + MAX_FEE));
+      AMOUNT_TO_DISTRIBUTE - Math.floor((AMOUNT_TO_DISTRIBUTE * MAX_FEE) / (DISCOUNTED_FEE + MAX_FEE));
 
     const AMOUNT_MINUS_FEES = AMOUNT_TO_DISTRIBUTE - FEE_AMOUNT;
 
@@ -1522,7 +1522,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       .returns(fundingCycle, AMOUNT_TO_DISTRIBUTE);
 
     await jbEthPaymentTerminal.connect(terminalOwner).setFeeGauge(mockJbFeeGauge.address);
-    
+
     await mockJbFeeGauge.mock.currentDiscountFor.withArgs(PROJECT_ID).returns(FEE_DISCOUNT);
 
     await mockJbSplitsStore.mock.splitsOf
@@ -1789,7 +1789,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             '',
             '0x',
           )
-          .returns();
+          .returns(0);
       }),
     );
 
@@ -1857,15 +1857,15 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       mockJBPaymentTerminalStore
     } = await setup();
     const DISCOUNTED_FEE =
-    DEFAULT_FEE - Math.floor((DEFAULT_FEE * FEE_DISCOUNT) / MAX_FEE_DISCOUNT);
+      DEFAULT_FEE - Math.floor((DEFAULT_FEE * FEE_DISCOUNT) / MAX_FEE_DISCOUNT);
 
     const FEE_AMOUNT =
-    AMOUNT_TO_DISTRIBUTE - Math.floor((AMOUNT_TO_DISTRIBUTE * MAX_FEE) / (DISCOUNTED_FEE + MAX_FEE));
+      AMOUNT_TO_DISTRIBUTE - Math.floor((AMOUNT_TO_DISTRIBUTE * MAX_FEE) / (DISCOUNTED_FEE + MAX_FEE));
 
     const AMOUNT_MINUS_FEES = AMOUNT_TO_DISTRIBUTE - FEE_AMOUNT;
 
     await jbEthPaymentTerminal.connect(terminalOwner).setFeeGauge(mockJbFeeGauge.address);
-    
+
     await mockJbFeeGauge.mock.currentDiscountFor.withArgs(PROJECT_ID).returns(FEE_DISCOUNT);
 
     const splits = makeSplits({ count: 1, projectId: OTHER_PROJECT_ID });
@@ -1970,9 +1970,9 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       fakeToken,
       CURRENCY_USD
     } = await setup();
-    
+
     const FEE_AMOUNT =
-    AMOUNT_TO_DISTRIBUTE - Math.floor((AMOUNT_TO_DISTRIBUTE * MAX_FEE) / (DEFAULT_FEE + MAX_FEE));
+      AMOUNT_TO_DISTRIBUTE - Math.floor((AMOUNT_TO_DISTRIBUTE * MAX_FEE) / (DEFAULT_FEE + MAX_FEE));
 
     const AMOUNT_MINUS_FEES = AMOUNT_TO_DISTRIBUTE - FEE_AMOUNT;
 
@@ -2012,7 +2012,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         await fakeToken.mock.approve
           .withArgs(mockJbEthPaymentTerminal.address, Math.floor((AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT))
           .returns(true);
-        
+
         await mockJbEthPaymentTerminal.mock.addToBalanceOf
           .withArgs(
             split.projectId,
@@ -2027,16 +2027,16 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
 
     // Fee
     await mockJbEthPaymentTerminal.mock.pay
-    .withArgs(
-      FEE_AMOUNT,
-      1,
-      projectOwner.address,
+      .withArgs(
+        FEE_AMOUNT,
+        1,
+        projectOwner.address,
       /*minReturnedToken*/ 0,
-      false,
-      '',
-      '0x',
-    )
-    .returns();
+        false,
+        '',
+        '0x',
+      )
+      .returns(0);
 
     await fakeToken.mock.approve
       .withArgs(mockJbEthPaymentTerminal.address, FEE_AMOUNT)
@@ -2546,7 +2546,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       splits.map(async (split) => {
         await mockJbEthPaymentTerminal.mock.pay
           .withArgs(0, split.projectId, split.beneficiary, 0, split.preferClaimed, '', '0x')
-          .returns();
+          .returns(0);
       }),
     );
 
