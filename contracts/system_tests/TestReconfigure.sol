@@ -93,6 +93,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
     uint96 BALANCE
   ) public {
     evm.assume(payable(msg.sender).balance/2 >= BALANCE);
+    evm.assume(100 < BALANCE);
 
     address _beneficiary = address(69420);
     uint256 projectId = controller.launchProjectFor(
@@ -166,8 +167,8 @@ contract TestReconfigureProject is TestBaseWorkflow {
     if(BALANCE != 0) assertEq(jbTokenStore().balanceOf(_beneficiary, projectId), _userTokenBalance + _newUserTokenBalance);
 
     uint256 tokenBalance = jbTokenStore().balanceOf(_beneficiary, projectId);
-    uint256 totalSupply = jbTokenStore().totalSupplyOf(projectId);
-    uint256 ethBalance = jbPaymentTerminalStore().balanceOf(jbETHPaymentTerminal(), projectId);
+    uint256 totalSupply = jbController().totalOutstandingTokensOf(projectId, RESERVED_RATE);
+    uint256 overflow = jbETHPaymentTerminal().currentEthOverflowOf(projectId);
 
     evm.startPrank(_beneficiary);
     jbETHPaymentTerminal().redeemTokensOf(
@@ -181,11 +182,11 @@ contract TestReconfigureProject is TestBaseWorkflow {
     );
     evm.stopPrank();
 
-    if(BALANCE != 0)
+    if(BALANCE != 0 && REDEMPTION_RATE != 0)
       assertEq(
         _beneficiary.balance,
         PRBMath.mulDiv(
-          PRBMath.mulDiv(ethBalance, tokenBalance, totalSupply), // Part of the overflow owned (no constraint->everything is overflow)
+          PRBMath.mulDiv(overflow, tokenBalance, totalSupply),
           REDEMPTION_RATE + PRBMath.mulDiv(tokenBalance, 10000-REDEMPTION_RATE, totalSupply),
           10000
         )
