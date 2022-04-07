@@ -1178,7 +1178,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     }
 
     // Record the refunded fees.
-    store.recordAddedBalanceFor(_projectId, _refundedFees);
+    if (_refundedFees != 0) store.recordAddedBalanceFor(_projectId, _refundedFees);
   }
 
   /** 
