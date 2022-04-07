@@ -849,7 +849,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
 
     // Should be holding fees in the contract
     expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([
-      [ethers.BigNumber.from(AMOUNT), DEFAULT_FEE, projectOwner.address],
+      [ethers.BigNumber.from(AMOUNT), DEFAULT_FEE, 0, projectOwner.address],
     ]);
 
     await mockJbOperatorStore.mock.hasPermission
