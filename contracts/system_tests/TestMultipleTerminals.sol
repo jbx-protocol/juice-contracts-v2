@@ -13,7 +13,6 @@ contract TestMultipleTerminals is TestBaseWorkflow {
   JBFundingCycleData _data;
   JBFundingCycleMetadata _metadata;
   JBGroupedSplits[] _groupedSplits;
-  JBSplit[] splitArray;
   JBFundAccessConstraints[] _fundAccessConstraints;
 
   IJBPaymentTerminal[] _terminals;
@@ -23,33 +22,28 @@ contract TestMultipleTerminals is TestBaseWorkflow {
   JBTokenStore _tokenStore;
   address _projectOwner;
 
+  address caller = address(6942069);
+
   uint256 FAKE_PRICE = 10;
   uint256 WEIGHT = 1000 * 10**18;
   uint256 projectId;
 
-
-// -- fix:
-  JBSplit _split = JBSplit({
-    preferClaimed: false,
-    percent: jbLibraries().SPLITS_TOTAL_PERCENT(),
-    projectId: 0,
-    beneficiary: payable(address(0)),
-    lockedUntil: 0,
-    allocator: IJBSplitAllocator(address(0))
-  });
-
-  splitArray[0] = _split;
-
-  JBGroupedSplits _groupedSplit = JBGroupedSplits({
-    group: 1,
-    splits: splitArray
-  });
-
-
-
-
   function setUp() public override {
     super.setUp();
+    evm.label(caller, 'caller');
+
+    _groupedSplits.push();
+    _groupedSplits[0].group = 1;
+    _groupedSplits[0].splits.push(
+      JBSplit({
+        preferClaimed: false,
+        percent: jbLibraries().SPLITS_TOTAL_PERCENT(),
+        projectId: 0,
+        beneficiary: payable(caller),
+        lockedUntil: 0,
+        allocator: IJBSplitAllocator(address(0))
+      })
+    );
 
     _projectOwner = multisig();
 
@@ -68,7 +62,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
 
     _metadata = JBFundingCycleMetadata({
       reservedRate: 5000, //50%
-      redemptionRate: 5000, //50%
+      redemptionRate: 10000, //100%
       ballotRedemptionRate: 0,
       pausePay: false,
       pauseDistributions: false,
@@ -127,7 +121,6 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     _terminals.push(ERC20terminal);
     _terminals.push(ETHterminal);
 
-    _groupedSplits.push(_groupedSplit);
 
     projectId = controller.launchProjectFor(
       _projectOwner,
@@ -143,12 +136,13 @@ contract TestMultipleTerminals is TestBaseWorkflow {
 
     evm.startPrank(_projectOwner);
     MockPriceFeed _priceFeed = new MockPriceFeed(FAKE_PRICE);
+    MockPriceFeed _priceFeedUsdEth = new MockPriceFeed(FAKE_PRICE);
     evm.label(address(_priceFeed), 'MockPrice Feed');
 
     jbPrices().addFeedFor(
       jbLibraries().USD(), // currency
       jbLibraries().ETH(), // base weight currency
-      _priceFeed
+      _priceFeedUsdEth
     );
 
     jbPrices().addFeedFor(
@@ -162,8 +156,6 @@ contract TestMultipleTerminals is TestBaseWorkflow {
 
   function testMultipleTerminal() public {
     // Send some token to the caller, so he can play
-    address caller = msg.sender;
-    evm.label(caller, 'caller');
     evm.prank(_projectOwner);
     jbToken().transfer(caller, 20*10**18);
 
@@ -171,12 +163,12 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     evm.prank(caller); // back to regular msg.sender (bug?)
     jbToken().approve(address(ERC20terminal), 20*10**18);
     evm.prank(caller); // back to regular msg.sender (bug?)
-    ERC20terminal.pay(20*10**18, projectId, msg.sender, 0, false, 'Forge test', new bytes(0));
+    ERC20terminal.pay(20*10**18, projectId, caller, 0, false, 'Forge test', new bytes(0));
 
     // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
     // price feed will return FAKE_PRICE*18 (for curr usd/base eth); since it's an 18 decimal terminal (ie calling getPrice(18) )
     uint256 _userTokenBalance = PRBMath.mulDiv( 20*10**18, WEIGHT, 36*FAKE_PRICE);
-    assertEq(_tokenStore.balanceOf(msg.sender, projectId), _userTokenBalance);
+    assertEq(_tokenStore.balanceOf(caller, projectId), _userTokenBalance);
 
     // verify: balance in terminal should be up to date
     assertEq(jbPaymentTerminalStore().balanceOf(ERC20terminal, projectId), 20*10**18);
@@ -208,8 +200,8 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     // Funds leaving the contract -> take the fee
     assertEq(jbToken().balanceOf(msg.sender), PRBMath.mulDiv(5*10**18, jbLibraries().MAX_FEE(), jbLibraries().MAX_FEE() + ERC20terminal.fee()));
 
-    // Distribute the funding target ETH -> no split then beneficiary is the project owner
-    uint256 initBalance = _projectOwner.balance;
+    // Distribute the funding target ETH
+    uint256 initBalance = caller.balance;
     evm.prank(_projectOwner);
     ETHterminal.distributePayoutsOf(
       projectId,
@@ -219,23 +211,40 @@ contract TestMultipleTerminals is TestBaseWorkflow {
       'Foundry payment' // Memo
     );
     // Funds leaving the ecosystem -> fee taken
-    assertEq(_projectOwner.balance, initBalance + PRBMath.mulDiv(10*10**18, jbLibraries().MAX_FEE(), ETHterminal.fee() + jbLibraries().MAX_FEE()));
+    assertEq(caller.balance, initBalance + PRBMath.mulDiv(10*10**18, jbLibraries().MAX_FEE(), ETHterminal.fee() + jbLibraries().MAX_FEE()));
 
-  //   // redeem eth from the overflow by the token holder:
-  //   uint256 senderBalance = _tokenStore.balanceOf(msg.sender, projectId);
+    // redeem eth from the overflow by the token holder:
+    uint256 callerBalance = _tokenStore.balanceOf(caller, projectId);
+    uint256 totalSupply = jbController().totalOutstandingTokensOf(projectId, 5000);
+    uint256 overflow = jbETHPaymentTerminal().currentEthOverflowOf(projectId);
+    uint256 callerEthBalanceBefore = caller.balance;
 
-  //   evm.prank(msg.sender);
-  //   ERC20terminal.redeemTokensOf(
-  //     msg.sender,
-  //     projectId,
-  //     senderBalance / (FAKE_PRICE*10**18),
-  //     0,
-  //     payable(msg.sender),
-  //     'gimme my money back',
-  //     new bytes(0)
-  //   );
+    // This terminal had 20eth with a target of 10eth, which have been distributed -> overflow = 10eth (base=eth)
 
-  //   // verify: beneficiary should have a balance of 0 JBTokens
-  //   assertEq(_tokenStore.balanceOf(msg.sender, projectId), 0);
+    // Caller has paid 20e18 ERC20token and received 55555555555555555555555555555555555555 project token
+    // (weight 1000e18, price eth/token=180 and reserved rate = 50% -> (20*10**18 * 1000*10**18) / 180 * 50%
+    // redemption rate is 100%, to claim the whole 10eth, with a price of token/eth=180:
+    // tokenOut = overflow * projectTokenAmount / totalSupply
+
+    // 10eth = 10eth * projectTokenAmount*price / totalSupply -> projectTokenAmount = totalSupply / (180 * overflow)
+
+    uint256 projectTokenToRedeem = totalSupply / (180);
+
+emit log_uint(caller.balance);
+
+    evm.prank(caller);
+    ETHterminal.redeemTokensOf(
+      caller,
+      projectId,
+      projectTokenToRedeem,
+      0,
+      payable(caller),
+      'gimme my money back',
+      new bytes(0)
+    );
+
+emit log_uint(caller.balance);
+    // // verify: beneficiary should have the 10 ether
+    // assertEq(caller.balance, callerEthBalanceBefore + 10 ether);
   }
 }
