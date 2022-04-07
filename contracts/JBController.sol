@@ -240,6 +240,44 @@ contract JBController is IJBController, JBOperatable {
     return _totalSupply + _reservedTokenAmount;
   }
 
+  /** 
+    @notice
+    A project's current funding cycle along with its metadata.
+
+    @param _projectId The ID of the project to which the funding cycle belongs.
+  
+    @return fundingCycle The current funding cycle.
+    @return metadata The current funding cycle's metadata.
+  */
+  function currentFundingCycleOf(uint256 _projectId)
+    external
+    view
+    override
+    returns (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata)
+  {
+    fundingCycle = fundingCycleStore.currentOf(_projectId);
+    metadata = fundingCycle.expandMetadata();
+  }
+
+  /** 
+    @notice
+    A project's queued funding cycle along with its metadata.
+
+    @param _projectId The ID of the project to which the funding cycle belongs.
+  
+    @return fundingCycle The queued funding cycle.
+    @return metadata The queued funding cycle's metadata.
+  */
+  function queuedFundingCycleOf(uint256 _projectId)
+    external
+    view
+    override
+    returns (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata)
+  {
+    fundingCycle = fundingCycleStore.queuedOf(_projectId);
+    metadata = fundingCycle.expandMetadata();
+  }
+
   //*********************************************************************//
   // ---------------------------- constructor -------------------------- //
   //*********************************************************************//

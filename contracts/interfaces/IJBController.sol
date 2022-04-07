@@ -107,6 +107,14 @@ interface IJBController {
     view
     returns (uint256);
 
+  function currentFundingCycleOf(uint256 _projectId)
+    external
+    returns (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata);
+
+  function queuedFundingCycleOf(uint256 _projectId)
+    external
+    returns (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata);
+
   function launchProjectFor(
     address _owner,
     JBProjectMetadata calldata _projectMetadata,
