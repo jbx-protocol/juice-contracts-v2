@@ -1172,11 +1172,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             _heldFees[_i].beneficiary
           )
         );
-        _refundedFees = _feeAmount(
-          _heldFees[_i].amount - _amount,
-          _heldFees[_i].fee,
-          _heldFees[_i].feeDiscount
-        );
+        _refundedFees = _feeAmount(_amount, _heldFees[_i].fee, _heldFees[_i].feeDiscount);
         _amount = 0;
       }
     }
