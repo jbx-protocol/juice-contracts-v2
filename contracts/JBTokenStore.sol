@@ -259,8 +259,8 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     // Store the project for the new token if the new token isn't the zero address.
     if (_token != IJBToken(address(0))) projectOf[_token] = _projectId;
 
-    // Reset the project for the old token.
-    projectOf[oldToken] = 0;
+    // Reset the project for the old token if it isn't the zero address.
+    if (oldToken != IJBToken(address(0))) projectOf[oldToken] = 0;
 
     // If there's a current token and a new owner was provided, transfer ownership of the old token to the new owner.
     if (_newOwner != address(0) && oldToken != IJBToken(address(0)))
