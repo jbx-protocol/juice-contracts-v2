@@ -73,6 +73,32 @@ describe('JBTokenStore::changeFor(...)', function () {
       .withArgs(PROJECT_ID, newTokenAddr, initialTokenAddr, newOwner.address, controller.address);
   });
 
+  it('Should change token to address(0), without changing the owner of address(0), and emit event if caller is controller', async function () {
+    const { newOwner, controller, mockJbDirectory, jbTokenStore } = await setup();
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Issue the initial token and grab a reference to it.
+    await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
+    const initialTokenAddr = await jbTokenStore.connect(controller).tokenOf(PROJECT_ID);
+    const initialToken = new Contract(initialTokenAddr, jbToken.abi);
+
+    // Change to a new token.
+    let newToken = ethers.constants.AddressZero;
+    const changeTx = await jbTokenStore
+      .connect(controller)
+      .changeFor(PROJECT_ID, newToken, newOwner.address);
+
+    expect(await jbTokenStore.projectOf(newToken)).to.equal(ethers.constants.AddressZero);
+
+    // The ownership of the initial token should be changed.
+    expect(await initialToken.connect(controller).owner()).to.equal(newOwner.address);
+
+    await expect(changeTx)
+      .to.emit(jbTokenStore, 'Change')
+      .withArgs(PROJECT_ID, newToken, initialTokenAddr, newOwner.address, controller.address);
+  });
+
   it('Should change tokens without changing owner of old token', async function () {
     const { controller, mockJbDirectory, jbTokenStore } = await setup();
 

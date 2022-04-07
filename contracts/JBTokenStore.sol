@@ -244,7 +244,8 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     if (projectOf[_token] != 0) revert TOKEN_ALREADY_IN_USE();
 
     // Can't change to a token that doesn't use 18 decimals.
-    if (_token.decimals() != 18) revert TOKENS_MUST_HAVE_18_DECIMALS();
+    if (_token != IJBToken(address(0)) && _token.decimals() != 18)
+      revert TOKENS_MUST_HAVE_18_DECIMALS();
 
     // Get a reference to the current token for the project.
     oldToken = tokenOf[_projectId];
@@ -252,8 +253,9 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     // Store the new token.
     tokenOf[_projectId] = _token;
 
-    // Store the project for the new token.
-    projectOf[_token] = _projectId;
+    if (_token != IJBToken(address(0)))
+      // Store the project for the new token.
+      projectOf[_token] = _projectId;
 
     // Reset the project for the old token.
     projectOf[oldToken] = 0;
