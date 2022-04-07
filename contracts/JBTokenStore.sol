@@ -225,6 +225,9 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     @dev
     Can't change to a token that's currently being used by another project.
 
+    @dev
+    Changing to the zero address will remove the current token without adding a new one.
+
     @param _projectId The ID of the project to which the changed token belongs.
     @param _token The new token. Send an empty address to remove the project's current token without adding a new one, if claiming tokens isn't currency required by the project
     @param _newOwner An address to transfer the current token's ownership to. This is optional, but it cannot be done later.
@@ -253,9 +256,8 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     // Store the new token.
     tokenOf[_projectId] = _token;
 
-    if (_token != IJBToken(address(0)))
-      // Store the project for the new token.
-      projectOf[_token] = _projectId;
+    // Store the project for the new token if the new token isn't the zero address.
+    if (_token != IJBToken(address(0))) projectOf[_token] = _projectId;
 
     // Reset the project for the old token.
     projectOf[oldToken] = 0;
