@@ -73,7 +73,7 @@ describe('JBTokenStore::changeFor(...)', function () {
       .withArgs(PROJECT_ID, newTokenAddr, initialTokenAddr, newOwner.address, controller.address);
   });
 
-  it.only('Should change token to address(0), without changing the owner of address(0), and emit event if caller is controller', async function () {
+  it('Should change token to address(0), without changing the owner of address(0), and emit event if caller is controller', async function () {
     const { newOwner, controller, mockJbDirectory, jbTokenStore } = await setup();
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
