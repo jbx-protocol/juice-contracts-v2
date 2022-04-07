@@ -214,37 +214,22 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     assertEq(caller.balance, initBalance + PRBMath.mulDiv(10*10**18, jbLibraries().MAX_FEE(), ETHterminal.fee() + jbLibraries().MAX_FEE()));
 
     // redeem eth from the overflow by the token holder:
-    uint256 callerBalance = _tokenStore.balanceOf(caller, projectId);
     uint256 totalSupply = jbController().totalOutstandingTokensOf(projectId, 5000);
-    uint256 overflow = jbETHPaymentTerminal().currentEthOverflowOf(projectId);
+    uint256 overflow = jbPaymentTerminalStore().currentTotalOverflowOf(projectId, 18, 1);
+    
     uint256 callerEthBalanceBefore = caller.balance;
-
-    // This terminal had 20eth with a target of 10eth, which have been distributed -> overflow = 10eth (base=eth)
-
-    // Caller has paid 20e18 ERC20token and received 55555555555555555555555555555555555555 project token
-    // (weight 1000e18, price eth/token=180 and reserved rate = 50% -> (20*10**18 * 1000*10**18) / 180 * 50%
-    // redemption rate is 100%, to claim the whole 10eth, with a price of token/eth=180:
-    // tokenOut = overflow * projectTokenAmount / totalSupply
-
-    // 10eth = 10eth * projectTokenAmount*price / totalSupply -> projectTokenAmount = totalSupply / (180 * overflow)
-
-    uint256 projectTokenToRedeem = totalSupply / (180);
-
-emit log_uint(caller.balance);
 
     evm.prank(caller);
     ETHterminal.redeemTokensOf(
       caller,
       projectId,
-      projectTokenToRedeem,
+      100_000,
       0,
       payable(caller),
       'gimme my money back',
       new bytes(0)
     );
 
-emit log_uint(caller.balance);
-    // // verify: beneficiary should have the 10 ether
-    // assertEq(caller.balance, callerEthBalanceBefore + 10 ether);
+    assertEq(caller.balance, callerEthBalanceBefore + (100_000 * overflow / totalSupply));
   }
 }
