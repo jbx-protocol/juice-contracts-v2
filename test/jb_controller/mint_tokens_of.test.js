@@ -80,7 +80,7 @@ describe('JBController::mintTokensOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ pauseMint: 0, reservedRate: RESERVED_RATE }),
+      metadata: packFundingCycleMetadata({ allowMinting: 1, reservedRate: RESERVED_RATE }),
     });
 
     await mockJbTokenStore.mock.mintFor
@@ -286,7 +286,7 @@ describe('JBController::mintTokensOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ pauseMint: 1, reservedRate: RESERVED_RATE }),
+      metadata: packFundingCycleMetadata({ allowMinting: 0, reservedRate: RESERVED_RATE }),
     });
 
     await expect(
@@ -300,7 +300,7 @@ describe('JBController::mintTokensOf(...)', function () {
           /*_preferClaimedTokens=*/ true,
           /* _useReservedRate=*/ true,
         ),
-    ).to.be.revertedWith(errors.MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE);
+    ).to.be.revertedWith(errors.MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE);
   });
 
   it(`Should mint token if funding cycle is paused and caller is a terminal delegate`, async function () {
@@ -338,7 +338,7 @@ describe('JBController::mintTokensOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ pauseMint: 1, reservedRate: RESERVED_RATE }),
+      metadata: packFundingCycleMetadata({ allowMinting: 0, reservedRate: RESERVED_RATE }),
     });
 
     await expect(
@@ -391,7 +391,7 @@ describe('JBController::mintTokensOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ reservedRate: 10000 }),
+      metadata: packFundingCycleMetadata({ reservedRate: 10000, allowMinting: 1 }),
     });
 
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(0);
@@ -495,7 +495,7 @@ describe('JBController::mintTokensOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ reservedRate: 0 }),
+      metadata: packFundingCycleMetadata({ reservedRate: 0, allowMinting: 1 }),
     });
 
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(AMOUNT_TO_MINT); // to mint == to receive <=> reserve rate = 0

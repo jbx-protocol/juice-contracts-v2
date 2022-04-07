@@ -80,7 +80,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
         weight: 0,
         discountRate: 0,
         ballot: ethers.constants.AddressZero,
-        metadata: packFundingCycleMetadata({ reservedRate: 10000 }),
+        metadata: packFundingCycleMetadata({ reservedRate: 10000, allowMinting: 1 }),
       }),
 
       mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(0),

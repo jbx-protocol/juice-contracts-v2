@@ -17,12 +17,7 @@ abstract contract JBOperatable is IJBOperatable {
     uint256 _domain,
     uint256 _permissionIndex
   ) {
-    if (
-      msg.sender != _account &&
-      !operatorStore.hasPermission(msg.sender, _account, _domain, _permissionIndex) &&
-      !operatorStore.hasPermission(msg.sender, _account, 0, _permissionIndex)
-    ) revert UNAUTHORIZED();
-
+    _requirePermission(_account, _domain, _permissionIndex);
     _;
   }
 
@@ -32,13 +27,7 @@ abstract contract JBOperatable is IJBOperatable {
     uint256 _permissionIndex,
     bool _override
   ) {
-    if (
-      !_override &&
-      msg.sender != _account &&
-      !operatorStore.hasPermission(msg.sender, _account, _domain, _permissionIndex) &&
-      !operatorStore.hasPermission(msg.sender, _account, 0, _permissionIndex)
-    ) revert UNAUTHORIZED();
-
+    _requirePermissionAllowingOverride(_account, _domain, _permissionIndex, _override);
     _;
   }
 
@@ -53,5 +42,48 @@ abstract contract JBOperatable is IJBOperatable {
   */
   constructor(IJBOperatorStore _operatorStore) {
     operatorStore = _operatorStore;
+  }
+
+  /** 
+    @notice
+    Require the message sender is either the account or has the specified permission.
+
+    @param _account The account to allow.
+    @param _domain The domain within which the permission index will be checked.
+    @param _domain The permission index that an operator must have within the specified domain to be allowed.
+  */
+  function _requirePermission(
+    address _account,
+    uint256 _domain,
+    uint256 _permissionIndex
+  ) internal view {
+    if (
+      msg.sender != _account &&
+      !operatorStore.hasPermission(msg.sender, _account, _domain, _permissionIndex) &&
+      !operatorStore.hasPermission(msg.sender, _account, 0, _permissionIndex)
+    ) revert UNAUTHORIZED();
+  }
+
+  /** 
+    @notice
+    Require the message sender is either the account, has the specified permission, or the override condition is true.
+
+    @param _account The account to allow.
+    @param _domain The domain within which the permission index will be checked.
+    @param _domain The permission index that an operator must have within the specified domain to be allowed.
+    @param _override The override condition to allow.
+  */
+  function _requirePermissionAllowingOverride(
+    address _account,
+    uint256 _domain,
+    uint256 _permissionIndex,
+    bool _override
+  ) internal view {
+    if (
+      !_override &&
+      msg.sender != _account &&
+      !operatorStore.hasPermission(msg.sender, _account, _domain, _permissionIndex) &&
+      !operatorStore.hasPermission(msg.sender, _account, 0, _permissionIndex)
+    ) revert UNAUTHORIZED();
   }
 }

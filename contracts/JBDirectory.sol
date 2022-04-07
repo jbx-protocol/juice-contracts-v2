@@ -6,6 +6,7 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import './abstract/JBOperatable.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
+import './interfaces/IJBDirectory.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
@@ -36,16 +37,16 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//
 
-  /** 
-    @notice 
+  /**
+    @notice
     For each project ID, the terminals that are currently managing its funds.
 
     _projectId The ID of the project to get terminals of.
   */
   mapping(uint256 => IJBPaymentTerminal[]) private _terminalsOf;
 
-  /** 
-    @notice 
+  /**
+    @notice
     The project's primary terminal for a token.
 
     _projectId The ID of the project to get the primary terminal of.
@@ -57,8 +58,8 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
 
-  /** 
-    @notice 
+  /**
+    @notice
     The Projects contract which mints ERC-721's that represent project ownership and transfers.
   */
   IJBProjects public immutable override projects;
@@ -93,7 +94,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   // ------------------------- external views -------------------------- //
   //*********************************************************************//
 
-  /** 
+  /**
     @notice
     For each project ID, the terminals that are currently managing its funds.
 
@@ -110,7 +111,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     return _terminalsOf[_projectId];
   }
 
-  /** 
+  /**
     @notice
     Whether or not a specified terminal is a terminal of the specified project.
 
@@ -130,7 +131,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     return false;
   }
 
-  /** 
+  /**
     @notice
     The primary terminal that is managing funds for a project for a specified token.
 
@@ -166,7 +167,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
 
-  /** 
+  /**
     @param _operatorStore A contract storing operator assignments.
     @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
     @param _fundingCycleStore A contract storing all funding cycle configurations.
@@ -188,7 +189,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @notice
     Update the controller that manages how terminals interact with the ecosystem.
 
-    @dev 
+    @dev
     A controller can be set if:
     - the message sender is the project owner or an operator having the correct authorization.
     - the message sender is the project's current controller.
@@ -277,7 +278,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     emit SetTerminals(_projectId, _terminals, msg.sender);
   }
 
-  /** 
+  /**
     @notice
     Project's can set which terminal should be their primary for a particular token.
     This is useful in case a project has several terminals connected for a particular token.
@@ -338,8 +339,8 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   // --------------------- private helper functions -------------------- //
   //*********************************************************************//
 
-  /** 
-    @notice 
+  /**
+    @notice
     Add a terminal to a project's list of terminals if it hasn't been already.
 
     @param _projectId The ID of the project having a terminal added.

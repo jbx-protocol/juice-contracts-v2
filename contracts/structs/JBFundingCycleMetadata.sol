@@ -16,10 +16,10 @@ struct JBFundingCycleMetadata {
   bool pauseDistributions;
   // If the redeem functionality should be paused during the funding cycle.
   bool pauseRedeem;
-  // If the mint functionality should be paused during the funding cycle.
-  bool pauseMint;
   // If the burn functionality should be paused during the funding cycle.
   bool pauseBurn;
+  // If the mint functionality should be allowed during the funding cycle.
+  bool allowMinting;
   // If changing tokens should be allowed during this funding cycle.
   bool allowChangeToken;
   // If migrating terminals should be allowed during this funding cycle.

@@ -553,6 +553,90 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     ).to.be.revertedWith(errors.FUNDING_CYCLE_REDEEM_PAUSED);
   });
 
+  it(`Can't record redemption with claim amount > total supply`, async function () {
+    const {
+      holder,
+      beneficiary,
+      mockJbController,
+      mockJbDirectory,
+      mockJbFundingCycleStore,
+      mockJbTerminalSigner,
+      mockJbTokenStore,
+      mockJbFundingCycleDataSource,
+      JBPaymentTerminalStore,
+      timestamp,
+      addrs,
+    } = await setup();
+
+    const reservedRate = 0;
+    const redemptionRate = 10000;
+    const ballotRedemptionRate = 10000;
+    const packedMetadata = packFundingCycleMetadata({
+      pauseRedeem: 0,
+      reservedRate: reservedRate,
+      redemptionRate: redemptionRate,
+      ballotRedemptionRate: ballotRedemptionRate,
+      useDataSourceForRedeem: 1,
+      dataSource: mockJbFundingCycleDataSource.address,
+    });
+    const delegate = addrs[0];
+
+    await mockJbTokenStore.mock.balanceOf.withArgs(holder.address, PROJECT_ID).returns(AMOUNT.add(1));
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
+    await mockJbController.mock.totalOutstandingTokensOf
+      .withArgs(PROJECT_ID, reservedRate)
+      .returns(AMOUNT);
+
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      // mock JBFundingCycle obj
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: WEIGHT,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packedMetadata,
+    });
+
+    const newMemo = 'new memo';
+    await mockJbFundingCycleDataSource.mock.redeemParams
+      .withArgs({
+        // JBRedeemParamsData obj
+        terminal: mockJbTerminalSigner.address,
+        holder: holder.address,
+        projectId: PROJECT_ID,
+        tokenCount: AMOUNT.add(1),
+        totalSupply: AMOUNT,
+        overflow: 0,
+        decimals: _FIXED_POINT_MAX_FIDELITY,
+        currency: CURRENCY,
+        reclaimAmount: 0,
+        useTotalOverflow: false,
+        redemptionRate: redemptionRate,
+        ballotRedemptionRate: ballotRedemptionRate,
+        memo: 'test',
+        metadata: METADATA,
+      })
+      .returns(AMOUNT, newMemo, delegate.address);
+
+    // Note: The store has 0 balance because we haven't added anything to it
+    // Record redemption
+    await expect(
+      JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordRedemptionFor(
+        /* holder */ holder.address,
+        /* projectId */ PROJECT_ID,
+        /* tokenCount */ AMOUNT.add(1),
+        /* balanceDecimals*/ 18,
+        /* balanceCurrency */ CURRENCY,
+        /* memo */ 'test',
+        METADATA,
+      ),
+    ).to.be.revertedWith(errors.INSUFFICIENT_TOKENS);
+  });
+
   it(`Can't record redemption with if claim amount > project's total balance`, async function () {
     const {
       holder,

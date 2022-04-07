@@ -31,7 +31,7 @@ error INVALID_BALLOT_REDEMPTION_RATE();
 error INVALID_RESERVED_RATE();
 error INVALID_REDEMPTION_RATE();
 error MIGRATION_NOT_ALLOWED();
-error MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE();
+error MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE();
 error NO_BURNABLE_TOKENS();
 error ZERO_TOKENS_TO_MINT();
 
@@ -238,6 +238,44 @@ contract JBController is IJBController, JBOperatable {
 
     // Add the reserved tokens to the total supply.
     return _totalSupply + _reservedTokenAmount;
+  }
+
+  /** 
+    @notice
+    A project's current funding cycle along with its metadata.
+
+    @param _projectId The ID of the project to which the funding cycle belongs.
+  
+    @return fundingCycle The current funding cycle.
+    @return metadata The current funding cycle's metadata.
+  */
+  function currentFundingCycleOf(uint256 _projectId)
+    external
+    view
+    override
+    returns (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata)
+  {
+    fundingCycle = fundingCycleStore.currentOf(_projectId);
+    metadata = fundingCycle.expandMetadata();
+  }
+
+  /** 
+    @notice
+    A project's queued funding cycle along with its metadata.
+
+    @param _projectId The ID of the project to which the funding cycle belongs.
+  
+    @return fundingCycle The queued funding cycle.
+    @return metadata The queued funding cycle's metadata.
+  */
+  function queuedFundingCycleOf(uint256 _projectId)
+    external
+    view
+    override
+    returns (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata)
+  {
+    fundingCycle = fundingCycleStore.queuedOf(_projectId);
+    metadata = fundingCycle.expandMetadata();
   }
 
   //*********************************************************************//
@@ -538,11 +576,11 @@ contract JBController is IJBController, JBOperatable {
       // Get a reference to the project's current funding cycle.
       JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-      // If the message sender is not a terminal, the current funding cycle must not be paused.
+      // If the message sender is not a terminal, the current funding cycle must allow minting.
       if (
-        _fundingCycle.mintPaused() &&
+        !_fundingCycle.mintingAllowed() &&
         !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))
-      ) revert MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE();
+      ) revert MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE();
 
       // Determine the reserved rate to use.
       _reservedRate = _useReservedRate ? _fundingCycle.reservedRate() : 0;

@@ -37,11 +37,11 @@ library JBFundingCycleMetadataResolver {
     return ((_fundingCycle.metadata >> 58) & 1) == 1;
   }
 
-  function mintPaused(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
+  function burnPaused(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
     return ((_fundingCycle.metadata >> 59) & 1) == 1;
   }
 
-  function burnPaused(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
+  function mintingAllowed(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
     return ((_fundingCycle.metadata >> 60) & 1) == 1;
   }
 
@@ -134,10 +134,10 @@ library JBFundingCycleMetadataResolver {
     if (_metadata.pauseDistributions) packed |= 1 << 57;
     // pause redeem in bit 58.
     if (_metadata.pauseRedeem) packed |= 1 << 58;
-    // pause mint in bit 59.
-    if (_metadata.pauseMint) packed |= 1 << 59;
-    // pause mint in bit 60.
-    if (_metadata.pauseBurn) packed |= 1 << 60;
+    // pause burn in bit 59.
+    if (_metadata.pauseBurn) packed |= 1 << 59;
+    // allow minting in bit 60.
+    if (_metadata.allowMinting) packed |= 1 << 60;
     // pause change token in bit 61.
     if (_metadata.allowChangeToken) packed |= 1 << 61;
     // allow terminal migration in bit 62.
@@ -158,5 +158,41 @@ library JBFundingCycleMetadataResolver {
     if (_metadata.useDataSourceForRedeem) packed |= 1 << 69;
     // data source address in bits 70-229.
     packed |= uint256(uint160(address(_metadata.dataSource))) << 70;
+  }
+
+  /**
+    @notice
+    Expand the funding cycle metadata.
+
+    @param _fundingCycle The funding cycle having its metadata expanded.
+
+    @return metadata The metadata object.
+  */
+  function expandMetadata(JBFundingCycle memory _fundingCycle)
+    internal
+    pure
+    returns (JBFundingCycleMetadata memory metadata)
+  {
+    return
+      JBFundingCycleMetadata(
+        reservedRate(_fundingCycle),
+        redemptionRate(_fundingCycle),
+        ballotRedemptionRate(_fundingCycle),
+        payPaused(_fundingCycle),
+        distributionsPaused(_fundingCycle),
+        redeemPaused(_fundingCycle),
+        burnPaused(_fundingCycle),
+        mintingAllowed(_fundingCycle),
+        changeTokenAllowed(_fundingCycle),
+        terminalMigrationAllowed(_fundingCycle),
+        controllerMigrationAllowed(_fundingCycle),
+        setTerminalsAllowed(_fundingCycle),
+        setControllerAllowed(_fundingCycle),
+        shouldHoldFees(_fundingCycle),
+        useTotalOverflowForRedemptions(_fundingCycle),
+        useDataSourceForPay(_fundingCycle),
+        useDataSourceForRedeem(_fundingCycle),
+        dataSource(_fundingCycle)
+      );
   }
 }

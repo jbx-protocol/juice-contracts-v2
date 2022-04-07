@@ -45,7 +45,7 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
     address beneficiary,
     uint256 amount,
     uint256 distributedAmount,
-    uint256 fee,
+    uint256 netDistributedamount,
     string memo,
     address caller
   );
@@ -68,7 +68,7 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
     address holder,
     address beneficiary,
     uint256 tokenCount,
-    uint256 claimedAmount,
+    uint256 reclaimedAmount,
     string memo,
     address caller
   );
@@ -116,34 +116,34 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
 
   function isFeelessTerminal(IJBPaymentTerminal _terminal) external view returns (bool);
 
-  function distributePayoutsOf(
-    uint256 _projectId,
-    uint256 _amount,
-    uint256 _currency,
-    uint256 _minReturnedAmount,
-    string calldata _memo
-  ) external;
-
   function redeemTokensOf(
     address _holder,
     uint256 _projectId,
     uint256 _count,
-    uint256 _minReturnedAmount,
+    uint256 _minReturnedTokens,
     address payable _beneficiary,
     string calldata _memo,
     bytes calldata _metadata
   ) external returns (uint256 reclaimAmount);
 
+  function distributePayoutsOf(
+    uint256 _projectId,
+    uint256 _amount,
+    uint256 _currency,
+    uint256 _minReturnedTokens,
+    string calldata _memo
+  ) external returns (uint256 netLeftoverDistributionAmount);
+
   function useAllowanceOf(
     uint256 _projectId,
     uint256 _amount,
     uint256 _currency,
-    uint256 _minReturnedAmount,
+    uint256 _minReturnedTokens,
     address payable _beneficiary,
     string calldata _memo
-  ) external;
+  ) external returns (uint256 netDistributedAmount);
 
-  function migrate(uint256 _projectId, IJBPaymentTerminal _to) external;
+  function migrate(uint256 _projectId, IJBPaymentTerminal _to) external returns (uint256 balance);
 
   function processFees(uint256 _projectId) external;
 

@@ -113,7 +113,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     Increases as projects use their allowance.
 
     @dev
-    The used allowance limit is represented as a fixed point number with the same amount of decimals as its relative terminal.
+    The used allowance is represented as a fixed point number with the same amount of decimals as its relative terminal.
 
     _terminal The terminal to which the overflow allowance applies.
     _projectId The ID of the project to get the used overflow allowance of.
@@ -217,6 +217,9 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
       _fundingCycle.reservedRate()
     );
 
+    // Can't redeem more tokens that is in the supply.
+    if (_tokenCount > _totalSupply) return 0;
+
     // Return the reclaimable overflow amount.
     return
       _reclaimableOverflowDuring(
@@ -250,6 +253,9 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
   ) external view override returns (uint256) {
     // If there's no overflow, there's no reclaimable overflow.
     if (_overflow == 0) return 0;
+
+    // Can't redeem more tokens that is in the supply.
+    if (_tokenCount > _totalSupply) return 0;
 
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
@@ -446,6 +452,9 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
         fundingCycle.reservedRate()
       );
 
+      // Can't redeem more tokens that is in the supply.
+      if (_tokenCount > _totalSupply) revert INSUFFICIENT_TOKENS();
+
       if (_currentOverflow > 0)
         // Calculate reclaim amount using the current overflow amount.
         reclaimAmount = _reclaimableOverflowDuring(
@@ -535,7 +544,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
       .distributionLimitOf(_projectId, fundingCycle.configuration, IJBPaymentTerminal(msg.sender));
 
     // Make sure the new used amount is within the distribution limit.
-    if (_newUsedDistributionLimitOf > _distributionLimitOf)
+    if (_newUsedDistributionLimitOf > _distributionLimitOf || _distributionLimitOf == 0)
       revert DISTRIBUTION_AMOUNT_LIMIT_REACHED();
 
     // Make sure the currencies match.
@@ -594,7 +603,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     // Get a reference to the project's current funding cycle.
     fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-    // Get a reference to the new used overflow allowance.
+    // Get a reference to the new used overflow allowance for this funding cycle configuration.
     uint256 _newUsedOverflowAllowanceOf = usedOverflowAllowanceOf[IJBPaymentTerminal(msg.sender)][
       _projectId
     ][fundingCycle.configuration] + _amount;
@@ -605,7 +614,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
       .overflowAllowanceOf(_projectId, fundingCycle.configuration, IJBPaymentTerminal(msg.sender));
 
     // Make sure the new used amount is within the allowance.
-    if (_newUsedOverflowAllowanceOf > _overflowAllowanceOf)
+    if (_newUsedOverflowAllowanceOf > _overflowAllowanceOf || _overflowAllowanceOf == 0)
       revert INADEQUATE_CONTROLLER_ALLOWANCE();
 
     // Make sure the currencies match.

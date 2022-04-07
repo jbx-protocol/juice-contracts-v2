@@ -379,6 +379,77 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
     ).to.equal(0);
   });
 
+  it('Should return 0 if the number of token > total supply', async function () {
+    const {
+      mockJbTerminal,
+      mockJbTerminalSigner,
+      mockJbController,
+      mockJbDirectory,
+      mockJbFundingCycleStore,
+      mockJbTokenStore,
+      JBPaymentTerminalStore,
+      timestamp,
+      CURRENCY_ETH,
+    } = await setup();
+
+    const overflowAmt = ethers.FixedNumber.from(100);
+    const tokenAmt = ethers.FixedNumber.from(50);
+
+    const reservedRate = 0;
+    const fundingCycleMetadata = packFundingCycleMetadata({
+      reservedRate: reservedRate,
+      ballotRedemptionRate: 0, // 0% redemption rate
+    });
+
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: WEIGHT,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: fundingCycleMetadata,
+    });
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
+
+    await mockJbController.mock.distributionLimitOf
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .returns(overflowAmt, CURRENCY_ETH);
+
+    const totalSupply = tokenAmt.subUnsafe(ethers.FixedNumber.from(1));
+    await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(totalSupply); // totalSupply of 100
+    await mockJbController.mock.totalOutstandingTokensOf
+      .withArgs(PROJECT_ID, reservedRate)
+      .returns(totalSupply);
+
+    await mockJbController.mock.reservedTokenBalanceOf
+      .withArgs(PROJECT_ID, reservedRate)
+      .returns(0);
+
+    // Use active ballot
+    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(1);
+
+    // Add to balance beforehand to have an overflow of exactly 100
+    const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));
+    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+      PROJECT_ID,
+      startingBalance,
+    );
+
+    // Get claimable overflow
+    expect(
+      await JBPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
+        mockJbTerminalSigner.address,
+        PROJECT_ID,
+        /* tokenCount */ tokenAmt,
+        false,
+      ),
+    ).to.equal(0);
+  });
+
   it('Should return 0 if redemption rate is 0', async function () {
     const {
       mockJbTerminal,
