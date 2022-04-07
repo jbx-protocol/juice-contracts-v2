@@ -653,14 +653,14 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
 
     // Should be holding fees in the contract
     expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([
-      [ethers.BigNumber.from(AMOUNT), DEFAULT_FEE, projectOwner.address],
+      [ethers.BigNumber.from(AMOUNT), DEFAULT_FEE, /*discount*/ 0, projectOwner.address],
     ]);
 
     // Process held fees
     const tx = await jbEthPaymentTerminal.connect(projectOwner).processFees(PROJECT_ID);
 
     expect(await tx).to.emit(jbEthPaymentTerminal, 'ProcessFees');
-    /** @dev Chai matchers can't seem to match these args even though I've inspected the data inside to be exactly the same. */
+    /** @dev Chai matchers can't seem to match these args. */
     // .withArgs(
     //   PROJECT_ID,
     //   [
@@ -749,7 +749,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
 
     // Should be holding fees in the contract
     expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([
-      [ethers.BigNumber.from(AMOUNT), DEFAULT_FEE, projectOwner.address],
+      [ethers.BigNumber.from(AMOUNT), DEFAULT_FEE, 0, projectOwner.address],
     ]);
 
     await mockJbOperatorStore.mock.hasPermission
