@@ -1127,11 +1127,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _amount,
     string memory _memo
   ) private {
-    // Record the added funds.
-    store.recordAddedBalanceFor(_projectId, _amount);
-
     // Refund any held fees to make sure the project doesn't pay double for funds going in and out of the protocol.
-    _refundHeldFees(_projectId, _amount);
+    uint256 _refundedFees = _refundHeldFees(_projectId, _amount);
+
+    // Record the added funds with any refunded fees.
+    store.recordAddedBalanceFor(_projectId, _amount + _refundedFees);
 
     emit AddToBalance(_projectId, _amount, _memo, msg.sender);
   }
@@ -1142,23 +1142,25 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     @param _projectId The project for which fees are being refunded.
     @param _amount The amount to base the refund on, as a fixed point number with the same amount of decimals as this terminal.
+
+    @return refundedFees Kow much fees were refunded, as a fixed point number with the same number of decimals as this temrinal
   */
-  function _refundHeldFees(uint256 _projectId, uint256 _amount) private {
+  function _refundHeldFees(uint256 _projectId, uint256 _amount)
+    private
+    returns (uint256 refundedFees)
+  {
     // Get a reference to the project's held fees.
     JBFee[] memory _heldFees = _heldFeesOf[_projectId];
 
     // Delete the current held fees.
     delete _heldFeesOf[_projectId];
 
-    // Keep a reference to how much fees were refunded.
-    uint256 _refundedFees = 0;
-
     // Process each fee.
     for (uint256 _i = 0; _i < _heldFees.length; _i++) {
       if (_amount == 0) _heldFeesOf[_projectId].push(_heldFees[_i]);
       else if (_amount >= _heldFees[_i].amount) {
         _amount = _amount - _heldFees[_i].amount;
-        _refundedFees = _feeAmount(
+        refundedFees = _feeAmount(
           _heldFees[_i].amount,
           _heldFees[_i].fee,
           _heldFees[_i].feeDiscount
@@ -1172,13 +1174,10 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             _heldFees[_i].beneficiary
           )
         );
-        _refundedFees = _feeAmount(_amount, _heldFees[_i].fee, _heldFees[_i].feeDiscount);
+        refundedFees = _feeAmount(_amount, _heldFees[_i].fee, _heldFees[_i].feeDiscount);
         _amount = 0;
       }
     }
-
-    // Record the refunded fees.
-    if (_refundedFees != 0) store.recordAddedBalanceFor(_projectId, _refundedFees);
   }
 
   /** 
