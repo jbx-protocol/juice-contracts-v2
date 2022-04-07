@@ -187,7 +187,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
     };
   }
 
-  it.only('Should add to the project balance, refund any held fee and remove them if the transferred amount is enough, and emit event', async function () {
+  it('Should add to the project balance, refund any held fee and remove them if the transferred amount is enough, and emit event', async function () {
     const {
       caller,
       beneficiaryOne,
@@ -234,8 +234,6 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
       .withArgs(PROJECT_ID, AMOUNT, MEMO, caller.address);
 
     expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([]);
-    //Chai invalid:
-    //expect(await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor).to.be.calledWith(PROJECT_ID, AMOUNT.add(feeNetAmount));
   });
   it('Should work with eth terminal with non msg.value amount sent', async function () {
     const { caller, jbEthPaymentTerminal, mockJBPaymentTerminalStore, fundingCycle } =
