@@ -43,7 +43,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     @notice
     The splits will be stored in group 1.
   */
-  uint256 private constant _SPLITS_GROUP = 1;
+  uint256 private constant _DEFAULT_SPLITS_GROUP = 1;
 
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
@@ -92,7 +92,12 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
   {
     // Set splits for the current group being iterated on if there are any.
     if (_groupedSplits.splits.length > 0)
-      _splitsStore.set(1, uint256(uint160(address(this))), _SPLITS_GROUP, _groupedSplits.splits);
+      _splitsStore.set(
+        1,
+        uint256(uint160(address(this))),
+        _DEFAULT_SPLITS_GROUP,
+        _groupedSplits.splits
+      );
 
     splitsStore = _splitsStore;
   }
@@ -107,6 +112,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
   receive() external payable virtual override {
     // Route the payment to the splits.
     _payToSplits(
+      _DEFAULT_SPLITS_GROUP,
       JBTokens.ETH,
       msg.sender,
       address(this).balance,
@@ -127,8 +133,13 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
 
     @param _splits The splits to set.
   */
-  function setSplits(JBSplit[] memory _splits) external virtual override onlyOwner {
-    splitsStore.set(_PROTOCOL_PROJECT_ID, uint256(uint160(address(this))), _SPLITS_GROUP, _splits);
+  function setDefaultSplits(JBSplit[] memory _splits) external virtual override onlyOwner {
+    splitsStore.set(
+      _PROTOCOL_PROJECT_ID,
+      uint256(uint160(address(this))),
+      _DEFAULT_SPLITS_GROUP,
+      _splits
+    );
   }
 
   /** 
@@ -179,6 +190,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     // Route the payment to the splits.
     return
       _payToSplits(
+        _DEFAULT_SPLITS_GROUP,
         _token,
         _payer,
         _amount,
@@ -230,6 +242,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
 
     // Route the payment to the splits.
     _payToSplits(
+      _DEFAULT_SPLITS_GROUP,
       _token,
       _payer,
       _amount,
@@ -248,6 +261,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     @notice 
     Split the contract's balance between all splits.
 
+    @param _group The splits group to pay.
     @param _token The token being paid in.
     @param _payer The address from whom the payment is originating.
     @param _amount The amount of tokens being paid, as a fixed point number. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
@@ -263,6 +277,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     @return beneficiaryTokenCount The number of tokens minted for the beneficiary, as a fixed point number with 18 decimals.
   */
   function _payToSplits(
+    uint256 _group,
     address _token,
     address _payer,
     uint256 _amount,
@@ -279,7 +294,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     JBSplit[] memory _splits = splitsStore.splitsOf(
       _PROTOCOL_PROJECT_ID,
       uint256(uint160(address(this))),
-      _SPLITS_GROUP
+      _group
     );
 
     // Set the leftover amount to the initial balance.

@@ -7,5 +7,5 @@ import './IJBSplitsStore.sol';
 interface IJBSplitsPayer {
   function splitsStore() external view returns (IJBSplitsStore);
 
-  function setSplits(JBSplit[] memory _splits) external;
+  function setDefaultSplits(JBSplit[] memory _splits) external;
 }
