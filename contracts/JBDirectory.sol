@@ -216,7 +216,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-    // Setting controller must be allowed if not called from the current controller or if the project already has a controller.
+    // Setting controller is allowed if called from the current controller, or if the project doesn't have a current controller, or if the project's funding cycle allows setting the controller. Revert otherwise.
     if (
       msg.sender != address(controllerOf[_projectId]) &&
       controllerOf[_projectId] != IJBController(address(0)) &&
