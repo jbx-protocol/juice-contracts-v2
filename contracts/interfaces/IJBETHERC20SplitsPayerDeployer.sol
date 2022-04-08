@@ -10,6 +10,7 @@ interface IJBETHERC20SplitsPayerDeployer {
   event DeploySplitsPayer(
     IJBSplitsPayer indexed splitsPayer,
     uint256 defaultSplitsProjectId,
+    uint256 _defaultSplitsDomain,
     uint256 _defaultSplitsGroup,
     IJBSplitsStore _splitsStore,
     uint256 indexed defaultProjectId,
@@ -18,13 +19,13 @@ interface IJBETHERC20SplitsPayerDeployer {
     string defaultMemo,
     bytes defaultMetadata,
     bool preferAddToBalance,
-    IJBDirectory directory,
     address owner,
     address caller
   );
 
   function deploySplitsPayer(
     uint256 _defaultSplitsProjectId,
+    uint256 _defaultSplitsDomain,
     uint256 _defaultSplitsGroup,
     IJBSplitsStore _splitsStore,
     uint256 _defaultProjectId,
@@ -33,7 +34,6 @@ interface IJBETHERC20SplitsPayerDeployer {
     string calldata _defaultMemo,
     bytes calldata _defaultMetadata,
     bool _preferAddToBalance,
-    IJBDirectory _directory,
     address _owner
   ) external returns (IJBSplitsPayer splitsPayer);
 }

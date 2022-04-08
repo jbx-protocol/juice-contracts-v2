@@ -5,7 +5,12 @@ import './../structs/JBSplit.sol';
 import './IJBSplitsStore.sol';
 
 interface IJBSplitsPayer {
-  event SetDefaultSplits(uint256 projectId, uint256 group, address caller);
+  event SetDefaultSplits(
+    uint256 indexed projectId,
+    uint256 indexed group,
+    uint256 indexed domain,
+    address caller
+  );
 
   function defaultSplitsProjectId() external view returns (uint256);
 
@@ -15,5 +20,9 @@ interface IJBSplitsPayer {
 
   function splitsStore() external view returns (IJBSplitsStore);
 
-  function setDefaultSplits(uint256 _projectId, uint256 _group) external;
+  function setDefaultSplits(
+    uint256 _projectId,
+    uint256 _domain,
+    uint256 _group
+  ) external;
 }

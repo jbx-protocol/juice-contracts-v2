@@ -19,6 +19,7 @@ contract JBETHERC20SplitsPayerDeployer is IJBETHERC20SplitsPayerDeployer {
     Allows anyone to deploy a new project payer contract.
 
     @param _defaultSplitsProjectId The ID of project for which the default splits are stored.
+    @param _defaultSplitsDomain The splits domain to payout when this contract receives direct payments.
     @param _defaultSplitsGroup The splits group to payout when this contract receives direct payments.
     @param _splitsStore A contract that stores splits for each project.
     @param _defaultProjectId The ID of the project whose treasury should be forwarded the project payer contract's received payments.
@@ -27,13 +28,13 @@ contract JBETHERC20SplitsPayerDeployer is IJBETHERC20SplitsPayerDeployer {
     @param _defaultMemo The memo that'll be forwarded with the project payer's received payments. 
     @param _defaultMetadata The metadata that'll be forwarded with the project payer's received payments. 
     @param _defaultPreferAddToBalance  A flag indicating if received payments should call the `pay` function or the `addToBalance` function of a project.
-    @param _directory A contract storing directories of terminals and controllers for each project.
     @param _owner The address that will own the project payer.
 
     @return splitsPayer The splits payer contract.
   */
   function deploySplitsPayer(
     uint256 _defaultSplitsProjectId,
+    uint256 _defaultSplitsDomain,
     uint256 _defaultSplitsGroup,
     IJBSplitsStore _splitsStore,
     uint256 _defaultProjectId,
@@ -42,12 +43,12 @@ contract JBETHERC20SplitsPayerDeployer is IJBETHERC20SplitsPayerDeployer {
     string memory _defaultMemo,
     bytes memory _defaultMetadata,
     bool _defaultPreferAddToBalance,
-    IJBDirectory _directory,
     address _owner
   ) external override returns (IJBSplitsPayer splitsPayer) {
     // Deploy the splits payer.
     splitsPayer = new JBETHERC20SplitsPayer(
       _defaultSplitsProjectId,
+      _defaultSplitsDomain,
       _defaultSplitsGroup,
       _splitsStore,
       _defaultProjectId,
@@ -56,12 +57,12 @@ contract JBETHERC20SplitsPayerDeployer is IJBETHERC20SplitsPayerDeployer {
       _defaultMemo,
       _defaultMetadata,
       _defaultPreferAddToBalance,
-      _directory,
       _owner
     );
     emit DeploySplitsPayer(
       splitsPayer,
       _defaultSplitsProjectId,
+      _defaultSplitsDomain,
       _defaultSplitsGroup,
       _splitsStore,
       _defaultProjectId,
@@ -70,7 +71,6 @@ contract JBETHERC20SplitsPayerDeployer is IJBETHERC20SplitsPayerDeployer {
       _defaultMemo,
       _defaultMetadata,
       _defaultPreferAddToBalance,
-      _directory,
       _owner,
       msg.sender
     );

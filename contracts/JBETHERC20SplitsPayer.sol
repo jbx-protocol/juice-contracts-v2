@@ -43,7 +43,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     @notice
     The domain within which the default splits are stored. 
   */
-  uint256 public immutable override defaultSplitsDomain;
+  uint256 public override defaultSplitsDomain;
 
   /**
     @notice
@@ -59,6 +59,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
 
   /** 
     @param _defaultSplitsProjectId The ID of project for which the default splits are stored.
+    @param _defaultSplitsGroup The splits domain to payout when this contract receives direct payments.
     @param _defaultSplitsGroup The splits group to payout when this contract receives direct payments.
     @param _splitsStore A contract that stores splits for each project.
     @param _defaultProjectId The ID of the project whose treasury should be forwarded this contract's received payments.
@@ -67,11 +68,11 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     @param _defaultMemo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
     @param _defaultMetadata Bytes to send along to the project's data source and delegate, if provided.
     @param _preferAddToBalance  A flag indicating if received payments should call the `pay` function or the `addToBalance` function of a project.
-    @param _directory A contract storing directories of terminals and controllers for each project.
     @param _owner The address that will own the contract.
   */
   constructor(
     uint256 _defaultSplitsProjectId,
+    uint256 _defaultSplitsDomain,
     uint256 _defaultSplitsGroup,
     IJBSplitsStore _splitsStore,
     uint256 _defaultProjectId,
@@ -80,7 +81,6 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     string memory _defaultMemo,
     bytes memory _defaultMetadata,
     bool _preferAddToBalance,
-    IJBDirectory _directory,
     address _owner
   )
     JBETHERC20ProjectPayer(
@@ -90,12 +90,12 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
       _defaultMemo,
       _defaultMetadata,
       _preferAddToBalance,
-      _directory,
+      _splitsStore.directory(),
       _owner
     )
   {
     defaultSplitsProjectId = _defaultSplitsProjectId;
-    defaultSplitsDomain = uint256(uint160(address(this)));
+    defaultSplitsDomain = _defaultSplitsDomain;
     defaultSplitsGroup = _defaultSplitsGroup;
     splitsStore = _splitsStore;
   }
@@ -161,18 +161,19 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     Sets the location of the splits that payments this contract receives will be split between.
 
     @param _projectId The ID of project for which the default splits are stored. 
+    @param _domain The domain within which the default splits are stored. 
     @param _group The group within which the default splits are stored. 
   */
-  function setDefaultSplits(uint256 _projectId, uint256 _group)
-    external
-    virtual
-    override
-    onlyOwner
-  {
+  function setDefaultSplits(
+    uint256 _projectId,
+    uint256 _domain,
+    uint256 _group
+  ) external virtual override onlyOwner {
     if (_projectId != defaultSplitsProjectId) defaultSplitsProjectId = _projectId;
+    if (_domain != defaultSplitsDomain) defaultSplitsDomain = _domain;
     if (_group != defaultSplitsGroup) defaultSplitsGroup = _group;
 
-    emit SetDefaultSplits(_projectId, _group, msg.sender);
+    emit SetDefaultSplits(_projectId, _domain, _group, msg.sender);
   }
 
   /** 
