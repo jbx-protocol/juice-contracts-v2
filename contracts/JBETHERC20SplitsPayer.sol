@@ -132,7 +132,6 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     Make a payment to the specified project after first spliting the amount among the saved splits.
 
     @param _projectId The ID of the project that is being paid after.
-    @param _projectId The ID of the project that is being sent any leftover funds after splits have been settled.
     @param _token The token being paid in.
     @param _payer The address from whom the payment is originating.
     @param _amount The amount of tokens being paid, as a fixed point number. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
@@ -158,10 +157,14 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
+
+      // Transfer tokens to this terminal from the msg sender.
+      if (_payer == address(this))
+        IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
     } else {
       _amount = msg.value;
-      _payer = msg.sender;
       _decimals = 18;
+      _payer = address(this);
     }
 
     // Route the payment to the splits.
@@ -234,12 +237,17 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
         if (_split.allocator != IJBSplitAllocator(address(0))) {
           // Create the data to send to the allocator.
           JBSplitAllocationData memory _data = JBSplitAllocationData(
+            _payer,
             _settleAmount,
             _decimals,
             _PROTOCOL_PROJECT_ID,
             0,
             _split
           );
+
+          // Approve the `_amount` of tokens for the split allocator to transfer tokens from this terminal.
+          if (_payer == address(this) && _token != JBTokens.ETH)
+            IERC20(_token).approve(address(_split.allocator), _amount);
 
           // If this terminal's token is ETH, send it in msg.value.
           uint256 _payableValue = _token == JBTokens.ETH ? _settleAmount : 0;
@@ -275,17 +283,20 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
 
     // If there is a leftover amount, pay the default project.
     if (_leftoverAmount > 0)
-      _pay(
-        _defaultProjectId,
-        _token,
-        _payer,
-        _amount,
-        _decimals,
-        _defaultBeneficiary,
-        _minReturnedTokens,
-        _defaultPreferClaimedTokens,
-        _defaultMemo,
-        _defaultMetadata
-      );
+      if (_defaultProjectId != 0)
+        _pay(
+          _defaultProjectId,
+          _token,
+          _payer,
+          _amount,
+          _decimals,
+          _defaultBeneficiary,
+          _minReturnedTokens,
+          _defaultPreferClaimedTokens,
+          _defaultMemo,
+          _defaultMetadata
+        );
+      else if (_defaultBeneficiary != address(0))
+        Address.sendValue(payable(_defaultBeneficiary), _leftoverAmount);
   }
 }

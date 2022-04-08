@@ -106,7 +106,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     _pay(
       defaultProjectId,
       JBTokens.ETH,
-      msg.sender,
+      address(this),
       address(this).balance,
       18, // balance is a fixed point number with 18 decimals.
       defaultBeneficiary == address(0) ? msg.sender : defaultBeneficiary,
@@ -192,10 +192,14 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
+
+      // Transfer tokens to this terminal from the msg sender.
+      if (_payer == address(this))
+        IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
     } else {
       _amount = msg.value;
-      _payer = msg.sender;
       _decimals = 18;
+      _payer = address(this);
     }
 
     _pay(
@@ -247,6 +251,10 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
 
     // The amount's decimals must match the terminal's expected decimals.
     if (_terminal.decimals() != _decimals) revert INCORRECT_DECIMAL_AMOUNT();
+
+    // Approve the `_amount` of tokens from the destination terminal to transfer tokens from this contract.
+    if (_payer == address(this) && _token != JBTokens.ETH)
+      IERC20(_token).approve(address(_terminal), _amount);
 
     // If this terminal's token is ETH, send it in msg.value.
     uint256 _payableValue = _token == JBTokens.ETH ? _amount : 0;
