@@ -835,7 +835,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       uint256 _netPayoutAmount;
 
       if (_payoutAmount > 0) {
-        // Transfer tokens to the mod.
+        // Transfer tokens to the split.
         // If there's an allocator set, transfer to its `allocate` function.
         if (_split.allocator != IJBSplitAllocator(address(0))) {
           _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT

@@ -1,23 +1,25 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './interfaces/IJBETHERC20ProjectPayerDeployer.sol';
+import './interfaces/IJBETHERC20SplitsPayerDeployer.sol';
 
-import './JBETHERC20ProjectPayer.sol';
+import './JBETHERC20SplitsPayer.sol';
 
 /** 
   @notice 
-  Deploys project payer contracts.
+  Deploys splits payer contracts.
 
   @dev
   Adheres to:
-  IJBETHERC20ProjectPayerDeployer:  General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
+  IJBETHERC20SplitsPayerDeployer:  General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 */
-contract JBETHERC20ProjectPayerDeployer is IJBETHERC20ProjectPayerDeployer {
+contract JBETHERC20SplitsPayerDeployer is IJBETHERC20SplitsPayerDeployer {
   /** 
     @notice 
     Allows anyone to deploy a new project payer contract.
 
+    @param _groupedSplits A group of splits to share payments between.
+    @param _splitsStore A contract that stores splits for each project.
     @param _defaultProjectId The ID of the project whose treasury should be forwarded the project payer contract's received payments.
     @param _defaultBeneficiary The address that'll receive the project's tokens when the project payer receives payments. 
     @param _defaultPreferClaimedTokens A flag indicating whether issued tokens from the project payer's received payments should be automatically claimed into the beneficiary's wallet. 
@@ -26,19 +28,23 @@ contract JBETHERC20ProjectPayerDeployer is IJBETHERC20ProjectPayerDeployer {
     @param _directory A contract storing directories of terminals and controllers for each project.
     @param _owner The address that will own the project payer.
 
-    @return projectPayer The project payer contract.
+    @return splitsPayer The splits payer contract.
   */
-  function deployProjectPayer(
+  function deploySplitsPayer(
+    JBGroupedSplits calldata _groupedSplits,
+    IJBSplitsStore _splitsStore,
     uint256 _defaultProjectId,
     address payable _defaultBeneficiary,
     bool _defaultPreferClaimedTokens,
-    string memory _defaultMemo,
-    bytes memory _defaultMetadata,
+    string calldata _defaultMemo,
+    bytes calldata _defaultMetadata,
     IJBDirectory _directory,
     address _owner
-  ) external override returns (IJBProjectPayer projectPayer) {
-    // Deploy the project payer.
-    projectPayer = new JBETHERC20ProjectPayer(
+  ) external override returns (IJBSplitsPayer splitsPayer) {
+    // Deploy the splits payer.
+    splitsPayer = new JBETHERC20SplitsPayer(
+      _groupedSplits,
+      _splitsStore,
       _defaultProjectId,
       _defaultBeneficiary,
       _defaultPreferClaimedTokens,
@@ -48,8 +54,10 @@ contract JBETHERC20ProjectPayerDeployer is IJBETHERC20ProjectPayerDeployer {
       _owner
     );
 
-    emit DeployProjectPayer(
-      projectPayer,
+    emit DeploySplitsPayer(
+      splitsPayer,
+      _groupedSplits,
+      _splitsStore,
       _defaultProjectId,
       _defaultBeneficiary,
       _defaultPreferClaimedTokens,

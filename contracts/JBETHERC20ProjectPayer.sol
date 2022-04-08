@@ -23,8 +23,11 @@ error INCORRECT_DECIMAL_AMOUNT();
   Inherit from this contract or borrow from its logic to forward ETH or ERC20's to project treasuries from within other contracts.
 
   @dev
-  Inherits from:
+  Adheres to:
   IJBETHERC20ProjectPayerDeployer:  General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
+
+  @dev
+  Inherits from:
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
@@ -166,7 +169,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     @param _token The token being paid in.
     @param _amount The amount of tokens being paid, as a fixed point number. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. If this terminal's token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
-    @param _beneficiary The address who will receive tokens form the payment.
+    @param _beneficiary The address who will receive tokens from the payment.
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with 18 decimals.
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
@@ -215,7 +218,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     @param _token The token being paid in.
     @param _amount The amount of tokens being paid, as a fixed point number. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. If this terminal's token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
-    @param _beneficiary The address who will receive tokens form the payment.
+    @param _beneficiary The address who will receive tokens from the payment.
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with 18 decimals.
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
