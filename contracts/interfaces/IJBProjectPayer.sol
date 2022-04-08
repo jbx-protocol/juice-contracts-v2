@@ -16,7 +16,7 @@ interface IJBProjectPayer {
 
   function directory() external view returns (IJBDirectory);
 
-  function preferAddToBalance() external view returns (bool);
+  function defaultPreferAddToBalance() external view returns (bool);
 
   function defaultProjectId() external view returns (uint256);
 
@@ -34,7 +34,7 @@ interface IJBProjectPayer {
     bool _preferClaimedTokens,
     string memory _memo,
     bytes memory _metadata,
-    bool _preferAddToBalance
+    bool _defaultPreferAddToBalance
   ) external;
 
   function pay(

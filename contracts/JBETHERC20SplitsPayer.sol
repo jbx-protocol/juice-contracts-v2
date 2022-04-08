@@ -63,7 +63,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     @param _defaultPreferClaimedTokens A flag indicating whether issued tokens should be automatically claimed into the beneficiary's wallet. 
     @param _defaultMemo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
     @param _defaultMetadata Bytes to send along to the project's data source and delegate, if provided.
-    @param _preferAddToBalance  A flag indicating if received payments should call the `pay` function or the `addToBalance` function.
+    @param _preferAddToBalance  A flag indicating if received payments should call the `pay` function or the `addToBalance` function of a project.
     @param _directory A contract storing directories of terminals and controllers for each project.
     @param _owner The address that will own the contract.
   */
@@ -115,6 +115,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
       defaultProjectId,
       defaultBeneficiary,
       defaultPreferClaimedTokens,
+      defaultPreferAddToBalance,
       defaultMemo,
       defaultMetadata
     );
@@ -186,6 +187,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
         _projectId,
         _beneficiary,
         _preferClaimedTokens,
+        false,
         _memo,
         _metadata
       );
@@ -196,16 +198,51 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     Add to the balance of the specified project.
 
     @dev
-    Can't add to balance.
+    Set the `payer` as this contract's address if it is to manage the token transfer from the msg.sender to the destination terminal.
+
+    @param _projectId The ID of the project that is being paid.
+    @param _token The token being paid in.
+    @param _payer The address from whom the payment is originating. Set the `payer` as this contract's address if it is to manage the token transfer from the msg.sender to the destination terminal.
+    @param _amount The amount of tokens being paid, as a fixed point number. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
+    @param _decimals The number of decimals in the `_amount` fixed point number. If this terminal's token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
+    @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
   */
   function addToBalance(
-    uint256,
-    address,
-    address,
-    uint256,
-    uint256,
-    string memory // solhint-disable-next-line no-empty-blocks
-  ) public payable virtual override {}
+    uint256 _projectId,
+    address _token,
+    address _payer,
+    uint256 _amount,
+    uint256 _decimals,
+    string memory _memo
+  ) public payable virtual override {
+    // ETH shouldn't be sent if this terminal's token isn't ETH.
+    if (address(_token) != JBTokens.ETH) {
+      if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
+
+      // Transfer tokens to this terminal from the msg sender.
+      if (_payer == address(this))
+        IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
+    } else {
+      _payer = address(this);
+      _amount = msg.value;
+      _decimals = 18;
+    }
+
+    // Route the payment to the splits.
+    _payToSplits(
+      _token,
+      _payer,
+      _amount,
+      _decimals,
+      0,
+      _projectId,
+      address(0),
+      false,
+      true,
+      _memo,
+      bytes('')
+    );
+  }
 
   /** 
     @notice 
@@ -219,6 +256,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     @param _defaultProjectId The ID of the project that is being sent any leftover funds after splits have been settled.
     @param _defaultBeneficiary The address who will receive tokens from the payment made with leftover funds.
     @param _defaultPreferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
+    @param _defaultPreferAddToBalance  A flag indicating if leftover payments should call the `pay` function or the `addToBalance` function of a project.
     @param _defaultMemo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
     @param _defaultMetadata Bytes to send along to the data source and delegate, if provided.
 
@@ -233,6 +271,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     uint256 _defaultProjectId,
     address _defaultBeneficiary,
     bool _defaultPreferClaimedTokens,
+    bool _defaultPreferAddToBalance,
     string memory _defaultMemo,
     bytes memory _defaultMetadata
   ) private returns (uint256 beneficiaryTokenCount) {
@@ -315,7 +354,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     if (_leftoverAmount == 0) return 0;
 
     if (_defaultProjectId != 0)
-      if (preferAddToBalance)
+      if (_defaultPreferAddToBalance)
         _addToBalance(_defaultProjectId, _token, _payer, _amount, _decimals, _defaultMemo);
       else
         return

@@ -39,9 +39,9 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
 
   /**
     @notice 
-    A flag indicating if received payments should call the `pay` function or the `addToBalance` function.
+    A flag indicating if received payments should call the `pay` function or the `addToBalance` function of a project.
   */
-  bool public override preferAddToBalance;
+  bool public override defaultPreferAddToBalance;
 
   /** 
     @notice 
@@ -79,7 +79,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     @param _defaultPreferClaimedTokens A flag indicating whether issued tokens should be automatically claimed into the beneficiary's wallet. 
     @param _defaultMemo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
     @param _defaultMetadata Bytes to send along to the project's data source and delegate, if provided.
-    @param _preferAddToBalance  A flag indicating if received payments should call the `pay` function or the `addToBalance` function.
+    @param _defaultPreferAddToBalance  A flag indicating if received payments should call the `pay` function or the `addToBalance` function of a project.
     @param _directory A contract storing directories of terminals and controllers for each project.
     @param _owner The address that will own the contract.
   */
@@ -89,7 +89,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     bool _defaultPreferClaimedTokens,
     string memory _defaultMemo,
     bytes memory _defaultMetadata,
-    bool _preferAddToBalance,
+    bool _defaultPreferAddToBalance,
     IJBDirectory _directory,
     address _owner
   ) {
@@ -98,7 +98,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     defaultPreferClaimedTokens = _defaultPreferClaimedTokens;
     defaultMemo = _defaultMemo;
     defaultMetadata = _defaultMetadata;
-    preferAddToBalance = _preferAddToBalance;
+    defaultPreferAddToBalance = _defaultPreferAddToBalance;
     directory = _directory;
 
     _transferOwnership(_owner);
@@ -112,7 +112,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     This function is called automatically when the contract receives an ETH payment.
   */
   receive() external payable virtual override {
-    if (preferAddToBalance)
+    if (defaultPreferAddToBalance)
       _addToBalance(
         defaultProjectId,
         JBTokens.ETH,
@@ -145,7 +145,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     @param _preferClaimedTokens A flag indicating whether issued tokens should be automatically claimed into the beneficiary's wallet. 
     @param _memo The memo that'll be used. 
     @param _metadata The metadata that'll be sent. 
-    @param _preferAddToBalance A flag indicating if received payments should call the `pay` function or the `addToBalance` function.
+    @param _defaultPreferAddToBalance A flag indicating if received payments should call the `pay` function or the `addToBalance` function of a project.
   */
   function setDefaultValues(
     uint256 _projectId,
@@ -153,7 +153,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     bool _preferClaimedTokens,
     string memory _memo,
     bytes memory _metadata,
-    bool _preferAddToBalance
+    bool _defaultPreferAddToBalance
   ) external virtual override onlyOwner {
     // Set the default project ID if it has changed.
     if (_projectId != defaultProjectId) defaultProjectId = _projectId;
@@ -174,7 +174,8 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
       defaultMetadata = _metadata;
 
     // Set the add to balance preference if it has changed.
-    if (_preferAddToBalance != preferAddToBalance) preferAddToBalance = _preferAddToBalance;
+    if (_defaultPreferAddToBalance != defaultPreferAddToBalance)
+      defaultPreferAddToBalance = _defaultPreferAddToBalance;
 
     emit SetDefaultValues(
       _projectId,
@@ -182,7 +183,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
       _preferClaimedTokens,
       _memo,
       _metadata,
-      _preferAddToBalance,
+      _defaultPreferAddToBalance,
       msg.sender
     );
   }
