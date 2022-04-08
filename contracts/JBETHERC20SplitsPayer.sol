@@ -41,13 +41,19 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
 
   /**
     @notice
-    The splits will be stored in group 1.
+    The default splits will be stored in group 1.
   */
   uint256 private constant _DEFAULT_SPLITS_GROUP = 1;
 
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
+
+  /**
+    @notice
+    The domain within which the default splits are stored. 
+  */
+  uint256 public immutable override defaultSplitsDomain;
 
   /**
     @notice
@@ -90,14 +96,14 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
       _owner
     )
   {
+    // The default domain is this contract's unique address.
+    uint256 _defaultSplitsDomain = uint256(uint160(address(this)));
+
     // Set splits for the current group being iterated on if there are any.
     if (_groupedSplits.splits.length > 0)
-      _splitsStore.set(
-        1,
-        uint256(uint160(address(this))),
-        _DEFAULT_SPLITS_GROUP,
-        _groupedSplits.splits
-      );
+      _splitsStore.set(1, _defaultSplitsDomain, _DEFAULT_SPLITS_GROUP, _groupedSplits.splits);
+
+    defaultSplitsDomain = _defaultSplitsDomain;
 
     splitsStore = _splitsStore;
   }
@@ -112,6 +118,8 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
   receive() external payable virtual override {
     // Route the payment to the splits.
     _payToSplits(
+      _PROTOCOL_PROJECT_ID,
+      defaultSplitsDomain,
       _DEFAULT_SPLITS_GROUP,
       JBTokens.ETH,
       msg.sender,
@@ -134,12 +142,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     @param _splits The splits to set.
   */
   function setDefaultSplits(JBSplit[] memory _splits) external virtual override onlyOwner {
-    splitsStore.set(
-      _PROTOCOL_PROJECT_ID,
-      uint256(uint160(address(this))),
-      _DEFAULT_SPLITS_GROUP,
-      _splits
-    );
+    splitsStore.set(_PROTOCOL_PROJECT_ID, defaultSplitsDomain, _DEFAULT_SPLITS_GROUP, _splits);
   }
 
   /** 
@@ -190,6 +193,8 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     // Route the payment to the splits.
     return
       _payToSplits(
+        _PROTOCOL_PROJECT_ID,
+        defaultSplitsDomain,
         _DEFAULT_SPLITS_GROUP,
         _token,
         _payer,
@@ -242,6 +247,8 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
 
     // Route the payment to the splits.
     _payToSplits(
+      _PROTOCOL_PROJECT_ID,
+      defaultSplitsDomain,
       _DEFAULT_SPLITS_GROUP,
       _token,
       _payer,
@@ -261,6 +268,8 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     @notice 
     Split the contract's balance between all splits.
 
+    @param _projectId The ID of the project to which the splits belong.
+    @param _domain The splits domain to which the group belongs.
     @param _group The splits group to pay.
     @param _token The token being paid in.
     @param _payer The address from whom the payment is originating.
@@ -277,6 +286,8 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     @return beneficiaryTokenCount The number of tokens minted for the beneficiary, as a fixed point number with 18 decimals.
   */
   function _payToSplits(
+    uint256 _projectId,
+    uint256 _domain,
     uint256 _group,
     address _token,
     address _payer,
@@ -291,11 +302,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     bytes memory _defaultMetadata
   ) private returns (uint256 beneficiaryTokenCount) {
     // Get a reference to the item's settlement splits.
-    JBSplit[] memory _splits = splitsStore.splitsOf(
-      _PROTOCOL_PROJECT_ID,
-      uint256(uint160(address(this))),
-      _group
-    );
+    JBSplit[] memory _splits = splitsStore.splitsOf(_projectId, _domain, _group);
 
     // Set the leftover amount to the initial balance.
     uint256 _leftoverAmount = _amount;
