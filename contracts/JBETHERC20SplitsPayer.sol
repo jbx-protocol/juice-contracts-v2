@@ -193,6 +193,22 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
 
   /** 
     @notice 
+    Add to the balance of the specified project.
+
+    @dev
+    Can't add to balance.
+  */
+  function addToBalance(
+    uint256,
+    address,
+    address,
+    uint256,
+    uint256,
+    string memory // solhint-disable-next-line no-empty-blocks
+  ) public payable virtual override {}
+
+  /** 
+    @notice 
     Split the contract's balance between all splits.
 
     @param _token The token being paid in.
