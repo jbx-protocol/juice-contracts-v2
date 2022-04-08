@@ -48,7 +48,7 @@ interface IJBProjectPayer {
     bool _preferClaimedTokens,
     string memory _memo,
     bytes memory _metadata
-  ) external payable returns (uint256 beneficiaryTokenCount);
+  ) external payable;
 
   function addToBalance(
     uint256 _projectId,

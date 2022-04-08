@@ -205,8 +205,6 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
     @param _metadata Bytes to send along to the data source and delegate, if provided.
-
-    @return beneficiaryTokenCount The number of tokens minted for the beneficiary, as a fixed point number with 18 decimals.
   */
   function pay(
     uint256 _projectId,
@@ -219,7 +217,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     bool _preferClaimedTokens,
     string calldata _memo,
     bytes calldata _metadata
-  ) public payable virtual override returns (uint256 beneficiaryTokenCount) {
+  ) public payable virtual override {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
@@ -233,19 +231,18 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
       _decimals = 18;
     }
 
-    return
-      _pay(
-        _projectId,
-        _token,
-        _payer,
-        _amount,
-        _decimals,
-        _beneficiary,
-        _minReturnedTokens,
-        _preferClaimedTokens,
-        _memo,
-        _metadata
-      );
+    _pay(
+      _projectId,
+      _token,
+      _payer,
+      _amount,
+      _decimals,
+      _beneficiary,
+      _minReturnedTokens,
+      _preferClaimedTokens,
+      _memo,
+      _metadata
+    );
   }
 
   /** 
@@ -300,8 +297,6 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
     @param _metadata Bytes to send along to the data source and delegate, if provided.
-
-    @return beneficiaryTokenCount The number of tokens minted for the beneficiary, as a fixed point number with 18 decimals.
   */
   function _pay(
     uint256 _projectId,
@@ -314,7 +309,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     bool _preferClaimedTokens,
     string memory _memo,
     bytes memory _metadata
-  ) internal virtual returns (uint256 beneficiaryTokenCount) {
+  ) internal virtual {
     // Find the terminal for this contract's project.
     IJBPaymentTerminal _terminal = directory.primaryTerminalOf(_projectId, _token);
 
@@ -332,17 +327,16 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     uint256 _payableValue = _token == JBTokens.ETH ? _amount : 0;
 
     // Send funds to the terminal.
-    return
-      _terminal.pay{value: _payableValue}(
-        _amount, // ignored if the token is JBTokens.ETH.
-        _payer,
-        _projectId,
-        _beneficiary != address(0) ? _beneficiary : msg.sender,
-        _minReturnedTokens,
-        _preferClaimedTokens,
-        _memo,
-        _metadata
-      );
+    _terminal.pay{value: _payableValue}(
+      _amount, // ignored if the token is JBTokens.ETH.
+      _payer,
+      _projectId,
+      _beneficiary != address(0) ? _beneficiary : msg.sender,
+      _minReturnedTokens,
+      _preferClaimedTokens,
+      _memo,
+      _metadata
+    );
   }
 
   /** 
