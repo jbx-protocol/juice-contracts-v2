@@ -9,7 +9,8 @@ import './IJBSplitsStore.sol';
 interface IJBETHERC20SplitsPayerDeployer {
   event DeploySplitsPayer(
     IJBSplitsPayer indexed splitsPayer,
-    JBGroupedSplits splits,
+    uint256 defaultSplitsProjectId,
+    uint256 _defaultSplitsGroup,
     IJBSplitsStore _splitsStore,
     uint256 indexed defaultProjectId,
     address indexed defaultBeneficiary,
@@ -23,7 +24,8 @@ interface IJBETHERC20SplitsPayerDeployer {
   );
 
   function deploySplitsPayer(
-    JBGroupedSplits calldata _groupedSplits,
+    uint256 _defaultSplitsProjectId,
+    uint256 _defaultSplitsGroup,
     IJBSplitsStore _splitsStore,
     uint256 _defaultProjectId,
     address payable _defaultBeneficiary,

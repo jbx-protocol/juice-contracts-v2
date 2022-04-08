@@ -18,7 +18,8 @@ contract JBETHERC20SplitsPayerDeployer is IJBETHERC20SplitsPayerDeployer {
     @notice 
     Allows anyone to deploy a new project payer contract.
 
-    @param _groupedSplits A group of splits to share payments between.
+    @param _defaultSplitsProjectId The ID of project for which the default splits are stored.
+    @param _defaultSplitsGroup The splits group to payout when this contract receives direct payments.
     @param _splitsStore A contract that stores splits for each project.
     @param _defaultProjectId The ID of the project whose treasury should be forwarded the project payer contract's received payments.
     @param _defaultBeneficiary The address that'll receive the project's tokens when the project payer receives payments. 
@@ -32,7 +33,8 @@ contract JBETHERC20SplitsPayerDeployer is IJBETHERC20SplitsPayerDeployer {
     @return splitsPayer The splits payer contract.
   */
   function deploySplitsPayer(
-    JBGroupedSplits memory _groupedSplits,
+    uint256 _defaultSplitsProjectId,
+    uint256 _defaultSplitsGroup,
     IJBSplitsStore _splitsStore,
     uint256 _defaultProjectId,
     address payable _defaultBeneficiary,
@@ -45,7 +47,8 @@ contract JBETHERC20SplitsPayerDeployer is IJBETHERC20SplitsPayerDeployer {
   ) external override returns (IJBSplitsPayer splitsPayer) {
     // Deploy the splits payer.
     splitsPayer = new JBETHERC20SplitsPayer(
-      _groupedSplits,
+      _defaultSplitsProjectId,
+      _defaultSplitsGroup,
       _splitsStore,
       _defaultProjectId,
       _defaultBeneficiary,
@@ -56,10 +59,10 @@ contract JBETHERC20SplitsPayerDeployer is IJBETHERC20SplitsPayerDeployer {
       _directory,
       _owner
     );
-
     emit DeploySplitsPayer(
       splitsPayer,
-      _groupedSplits,
+      _defaultSplitsProjectId,
+      _defaultSplitsGroup,
       _splitsStore,
       _defaultProjectId,
       _defaultBeneficiary,
