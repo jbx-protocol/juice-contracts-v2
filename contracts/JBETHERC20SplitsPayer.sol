@@ -170,9 +170,9 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
       if (_payer == address(this))
         IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
     } else {
+      _payer = address(this);
       _amount = msg.value;
       _decimals = 18;
-      _payer = address(this);
     }
 
     // Route the payment to the splits.
