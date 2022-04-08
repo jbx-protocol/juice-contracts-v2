@@ -107,6 +107,7 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
     // pay terminal
     _terminal.pay{value: payAmountInWei}(
       payAmountInWei,
+      _userWallet, 
       _projectId,
       /* _beneficiary */
       _userWallet,

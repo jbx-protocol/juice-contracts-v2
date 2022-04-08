@@ -37,6 +37,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     _groupedSplits[0].splits.push(
       JBSplit({
         preferClaimed: false,
+        preferAddToBalance: false,
         percent: jbLibraries().SPLITS_TOTAL_PERCENT(),
         projectId: 0,
         beneficiary: payable(caller),
@@ -163,7 +164,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     evm.prank(caller); // back to regular msg.sender (bug?)
     jbToken().approve(address(ERC20terminal), 20*10**18);
     evm.prank(caller); // back to regular msg.sender (bug?)
-    ERC20terminal.pay(20*10**18, projectId, caller, 0, false, 'Forge test', new bytes(0));
+    ERC20terminal.pay(20*10**18, caller, projectId, caller, 0, false, 'Forge test', new bytes(0));
 
     // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
     // price feed will return FAKE_PRICE*18 (for curr usd/base eth); since it's an 18 decimal terminal (ie calling getPrice(18) )
@@ -176,7 +177,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
 
     // ---- Pay in ETH ----
     address beneficiaryTwo = address(696969);
-    ETHterminal.pay{value: 20 ether}(20 ether, projectId, beneficiaryTwo, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
+    ETHterminal.pay{value: 20 ether}(20 ether, beneficiaryTwo, projectId, beneficiaryTwo, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
 
      // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
     uint256 _userEthBalance = PRBMath.mulDiv(20 ether, (WEIGHT / 10**18), 2);

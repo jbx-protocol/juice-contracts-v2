@@ -91,7 +91,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
     evm.prank(caller); // back to regular msg.sender (bug?)
     jbToken().approve(address(terminal), 20*10**18);
     evm.prank(caller); // back to regular msg.sender (bug?)
-    terminal.pay(20*10**18, projectId, msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 token are now in the overflow
+    terminal.pay(20*10**18, msg.sender, projectId, msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 token are now in the overflow
 
      // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
     uint256 _userTokenBalance = PRBMath.mulDiv(20, WEIGHT, 2); // 18dec is in WEIGHT
@@ -177,7 +177,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
     evm.prank(caller); // back to regular msg.sender (bug?)
     jbToken().approve(address(terminal), BALANCE);
     evm.prank(caller); // back to regular msg.sender (bug?)
-    terminal.pay(BALANCE, projectId, msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
+    terminal.pay(BALANCE, msg.sender, projectId, msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
 
      // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
     uint256 _userTokenBalance = PRBMath.mulDiv(BALANCE, (WEIGHT/10**18), 2);
