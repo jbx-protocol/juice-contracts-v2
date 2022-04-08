@@ -15,6 +15,7 @@ interface IJBPaymentTerminal {
 
   function pay(
     uint256 _amount,
+    address _payer,
     uint256 _projectId,
     address _beneficiary,
     uint256 _minReturnedTokens,

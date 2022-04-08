@@ -105,6 +105,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     // Route the payment to the splits.
     _payToSplits(
       JBTokens.ETH,
+      msg.sender,
       address(this).balance,
       18,
       0,
@@ -133,6 +134,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     @param _projectId The ID of the project that is being paid after.
     @param _projectId The ID of the project that is being sent any leftover funds after splits have been settled.
     @param _token The token being paid in.
+    @param _payer The address from whom the payment is originating.
     @param _amount The amount of tokens being paid, as a fixed point number. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. If this terminal's token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
     @param _beneficiary The address who will receive tokens from the payment made with leftover funds.
@@ -144,6 +146,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
   function pay(
     uint256 _projectId,
     address _token,
+    address _payer,
     uint256 _amount,
     uint256 _decimals,
     address _beneficiary,
@@ -155,17 +158,16 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
-
-      // Transfer tokens to this terminal from the msg sender.
-      IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
     } else {
       _amount = msg.value;
+      _payer = msg.sender;
       _decimals = 18;
     }
 
     // Route the payment to the splits.
     _payToSplits(
       _token,
+      _payer,
       _amount,
       _decimals,
       _minReturnedTokens,
@@ -182,6 +184,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     Split the contract's balance between all splits.
 
     @param _token The token being paid in.
+    @param _payer The address from whom the payment is originating.
     @param _amount The amount of tokens being paid, as a fixed point number. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. If this terminal's token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with 18 decimals.
@@ -193,6 +196,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
   */
   function _payToSplits(
     address _token,
+    address _payer,
     uint256 _amount,
     uint256 _decimals,
     uint256 _minReturnedTokens,
@@ -246,6 +250,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
           _pay(
             _split.projectId,
             _token,
+            _payer,
             _settleAmount,
             _decimals,
             _split.beneficiary,
@@ -271,6 +276,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
       _pay(
         _defaultProjectId,
         _token,
+        _payer,
         _amount,
         _decimals,
         _defaultBeneficiary,

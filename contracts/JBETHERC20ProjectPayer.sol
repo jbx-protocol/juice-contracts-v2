@@ -106,6 +106,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     _pay(
       defaultProjectId,
       JBTokens.ETH,
+      msg.sender,
       address(this).balance,
       18, // balance is a fixed point number with 18 decimals.
       defaultBeneficiary == address(0) ? msg.sender : defaultBeneficiary,
@@ -167,6 +168,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
 
     @param _projectId The ID of the project that is being paid.
     @param _token The token being paid in.
+    @param _payer The address from whom the payment is originating.
     @param _amount The amount of tokens being paid, as a fixed point number. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. If this terminal's token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
     @param _beneficiary The address who will receive tokens from the payment.
@@ -178,6 +180,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
   function pay(
     uint256 _projectId,
     address _token,
+    address _payer,
     uint256 _amount,
     uint256 _decimals,
     address _beneficiary,
@@ -189,17 +192,16 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
-
-      // Transfer tokens to this terminal from the msg sender.
-      IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
     } else {
       _amount = msg.value;
+      _payer = msg.sender;
       _decimals = 18;
     }
 
     _pay(
       _projectId,
       _token,
+      _payer,
       _amount,
       _decimals,
       _beneficiary,
@@ -216,6 +218,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
 
     @param _projectId The ID of the project that is being paid.
     @param _token The token being paid in.
+    @param _payer The address from whom the payment is originating.
     @param _amount The amount of tokens being paid, as a fixed point number. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. If this terminal's token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
     @param _beneficiary The address who will receive tokens from the payment.
@@ -227,6 +230,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
   function _pay(
     uint256 _projectId,
     address _token,
+    address _payer,
     uint256 _amount,
     uint256 _decimals,
     address _beneficiary,
@@ -244,9 +248,6 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     // The amount's decimals must match the terminal's expected decimals.
     if (_terminal.decimals() != _decimals) revert INCORRECT_DECIMAL_AMOUNT();
 
-    // Approve the `_amount` of tokens from this terminal to transfer tokens from this terminal.
-    if (_token != JBTokens.ETH) IERC20(_token).approve(address(_terminal), _amount);
-
     // If this terminal's token is ETH, send it in msg.value.
     uint256 _payableValue = _token == JBTokens.ETH ? _amount : 0;
 
@@ -255,6 +256,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
       // Send funds to the terminal.
       _terminal.pay{value: _payableValue}(
         _amount, // ignored if the token is JBTokens.ETH.
+        _payer,
         _projectId,
         _beneficiary,
         _minReturnedTokens,

@@ -36,6 +36,7 @@ interface IJBProjectPayer {
   function pay(
     uint256 _projectId,
     address _token,
+    address _payer,
     uint256 _amount,
     uint256 _decimals,
     address _beneficiary,
