@@ -108,7 +108,10 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
     // -- pay --
     _terminal.pay{value: payAmountInWei}(
       payAmountInWei,
+<<<<<<< HEAD
       _userWallet,
+=======
+>>>>>>> 3ffd343 (wip)
       _projectId,
       /* _beneficiary */
       _userWallet,

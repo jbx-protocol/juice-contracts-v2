@@ -86,7 +86,11 @@ contract TestAllowance is TestBaseWorkflow {
       ''
     );
 
+<<<<<<< HEAD
     terminal.pay{value: 20 ether}(20 ether, _beneficiary, projectId, _beneficiary, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
+=======
+    terminal.pay{value: 20 ether}(20 ether, projectId, _beneficiary, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
+>>>>>>> 3ffd343 (wip)
 
      // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
     uint256 _userTokenBalance = PRBMath.mulDiv(20 ether, (WEIGHT/10**18), 2);
@@ -169,7 +173,11 @@ contract TestAllowance is TestBaseWorkflow {
       ''
     );
 
+<<<<<<< HEAD
     terminal.pay{value: BALANCE}(BALANCE, _beneficiary, projectId, _beneficiary, 0, false, 'Forge test', new bytes(0));
+=======
+    terminal.pay{value: BALANCE}(BALANCE, projectId, _beneficiary, 0, false, 'Forge test', new bytes(0));
+>>>>>>> 3ffd343 (wip)
 
     // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
     uint256 _userTokenBalance = PRBMath.mulDiv(BALANCE, (WEIGHT/10**18), 2);

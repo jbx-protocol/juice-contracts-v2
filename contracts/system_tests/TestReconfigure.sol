@@ -108,7 +108,11 @@ contract TestReconfigureProject is TestBaseWorkflow {
       ''
     );
 
+<<<<<<< HEAD
     jbETHPaymentTerminal().pay{value: BALANCE}(BALANCE, _beneficiary, projectId, _beneficiary, 0, false, 'Forge test', new bytes(0));
+=======
+    jbETHPaymentTerminal().pay{value: BALANCE}(BALANCE, projectId, _beneficiary, 0, false, 'Forge test', new bytes(0));
+>>>>>>> 3ffd343 (wip)
 
     uint256 _userTokenBalance = PRBMath.mulDiv(BALANCE, (WEIGHT/10**18), 2); // initial FC rate is 50%
     if(BALANCE != 0) assertEq(jbTokenStore().balanceOf(_beneficiary, projectId), _userTokenBalance);
@@ -158,7 +162,11 @@ contract TestReconfigureProject is TestBaseWorkflow {
     JBFundingCycle memory newFundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(newFundingCycle.number, 2);
 
+<<<<<<< HEAD
     jbETHPaymentTerminal().pay{value: BALANCE}(BALANCE, _beneficiary, projectId, _beneficiary, 0, false, 'Forge test', new bytes(0));
+=======
+    jbETHPaymentTerminal().pay{value: BALANCE}(BALANCE, projectId, _beneficiary, 0, false, 'Forge test', new bytes(0));
+>>>>>>> 3ffd343 (wip)
 
     uint256 _newUserTokenBalance = RESERVED_RATE == 0 // New fc, rate is RESERVED_RATE
       ? PRBMath.mulDiv(BALANCE, WEIGHT, 10**18)
