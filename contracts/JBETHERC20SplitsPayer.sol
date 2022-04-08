@@ -388,7 +388,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
               _payer,
               _splitAmount,
               _decimals,
-              _split.beneficiary,
+              _split.beneficiary != address(0) ? _split.beneficiary : msg.sender,
               0,
               _split.preferClaimed,
               defaultMemo,
