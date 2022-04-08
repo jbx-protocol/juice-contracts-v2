@@ -323,11 +323,9 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     if (_payer == address(this) && _token != JBTokens.ETH)
       IERC20(_token).approve(address(_terminal), _amount);
 
-    // If this terminal's token is ETH, send it in msg.value.
-    uint256 _payableValue = _token == JBTokens.ETH ? _amount : 0;
-
     // Send funds to the terminal.
-    _terminal.pay{value: _payableValue}(
+    // If this terminal's token is ETH, send it in msg.value.
+    _terminal.pay{value: _token == JBTokens.ETH ? _amount : 0}(
       _amount, // ignored if the token is JBTokens.ETH.
       _payer,
       _projectId,

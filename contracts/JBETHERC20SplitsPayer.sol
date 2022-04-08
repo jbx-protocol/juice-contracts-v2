@@ -295,7 +295,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     bool _defaultPreferAddToBalance,
     string memory _defaultMemo,
     bytes memory _defaultMetadata
-  ) private {
+  ) internal virtual {
     // Pay the split and get a reference to the amount paid.
     uint256 _leftoverAmount = _payToSplits(
       _projectId,
