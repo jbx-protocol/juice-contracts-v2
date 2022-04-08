@@ -134,9 +134,12 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     @notice 
     Make a payment to the specified project after first spliting the amount among the saved splits.
 
+    @dev
+    Set the `payer` as this contract's address if it is to manage the token transfer from the msg.sender to the destination terminal.
+    
     @param _projectId The ID of the project that is being paid after.
     @param _token The token being paid in.
-    @param _payer The address from whom the payment is originating.
+    @param _payer The address from whom the payment is originating. Set the `payer` as this contract's address if it is to manage the token transfer from the msg.sender to the destination terminal.
     @param _amount The amount of tokens being paid, as a fixed point number. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. If this terminal's token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
     @param _beneficiary The address who will receive tokens from the payment made with leftover funds.
