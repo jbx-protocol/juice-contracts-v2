@@ -6,6 +6,7 @@ import './../structs/JBFundingCycleMetadata.sol';
 import './../structs/JBProjectMetadata.sol';
 import './../structs/JBGroupedSplits.sol';
 import './../structs/JBFundAccessConstraints.sol';
+import './../structs/JBProjectMetadata.sol';
 import './IJBDirectory.sol';
 import './IJBToken.sol';
 import './IJBPaymentTerminal.sol';
