@@ -353,9 +353,12 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     // If there is no leftover amount, nothing left to pay.
     if (_leftoverAmount == 0) return 0;
 
+    // If there's a default project ID, try to pay it.
     if (_defaultProjectId != 0)
       if (_defaultPreferAddToBalance)
+        // Pay the project by adding to its balance if prefered.
         _addToBalance(_defaultProjectId, _token, _payer, _leftoverAmount, _decimals, _defaultMemo);
+        // Otherwise, issue a payment to the project.
       else
         return
           _pay(
@@ -370,7 +373,11 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
             _defaultMemo,
             _defaultMetadata
           );
-    else if (_defaultBeneficiary != address(0))
-      Address.sendValue(payable(_defaultBeneficiary), _leftoverAmount);
+    // If no project was specified, send the funds directly to the beneficiary or the msg.sender.
+    else
+      Address.sendValue(
+        _defaultBeneficiary != address(0) ? payable(_defaultBeneficiary) : payable(msg.sender),
+        _leftoverAmount
+      );
   }
 }
