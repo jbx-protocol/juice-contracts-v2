@@ -32,13 +32,13 @@ contract JBETHERC20SplitsPayerDeployer is IJBETHERC20SplitsPayerDeployer {
     @return splitsPayer The splits payer contract.
   */
   function deploySplitsPayer(
-    JBGroupedSplits calldata _groupedSplits,
+    JBGroupedSplits memory _groupedSplits,
     IJBSplitsStore _splitsStore,
     uint256 _defaultProjectId,
     address payable _defaultBeneficiary,
     bool _defaultPreferClaimedTokens,
-    string calldata _defaultMemo,
-    bytes calldata _defaultMetadata,
+    string memory _defaultMemo,
+    bytes memory _defaultMetadata,
     bool _defaultPreferAddToBalance,
     IJBDirectory _directory,
     address _owner

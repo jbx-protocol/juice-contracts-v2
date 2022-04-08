@@ -175,36 +175,34 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     string memory _memo,
     bytes memory _metadata
   ) public payable virtual override {
-    // ETH shouldn't be sent if this terminal's token isn't ETH.
-    if (address(_token) != JBTokens.ETH) {
-      if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
-
-      // Transfer tokens to this terminal from the msg sender.
-      if (_payer == address(this))
-        IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
-    } else {
-      _payer = address(this);
-      _amount = msg.value;
-      _decimals = 18;
-    }
-
-    // Route the payment to the splits.
-    _payToSplitsAndDefault(
-      _PROTOCOL_PROJECT_ID,
-      defaultSplitsDomain,
-      _DEFAULT_SPLITS_GROUP,
-      _token,
-      _payer,
-      _amount,
-      _decimals,
-      _minReturnedTokens,
-      _projectId,
-      _beneficiary,
-      _preferClaimedTokens,
-      false, // don't prefer addToBalance.
-      _memo,
-      _metadata
-    );
+    // // ETH shouldn't be sent if this terminal's token isn't ETH.
+    // if (address(_token) != JBTokens.ETH) {
+    //   if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
+    //   // Transfer tokens to this terminal from the msg sender.
+    //   if (_payer == address(this))
+    //     IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
+    // } else {
+    //   _payer = address(this);
+    //   _amount = msg.value;
+    //   _decimals = 18;
+    // }
+    // // Route the payment to the splits.
+    // _payToSplitsAndDefault(
+    //   _PROTOCOL_PROJECT_ID,
+    //   defaultSplitsDomain,
+    //   _DEFAULT_SPLITS_GROUP,
+    //   _token,
+    //   _payer,
+    //   _amount,
+    //   _decimals,
+    //   _minReturnedTokens,
+    //   _projectId,
+    //   _beneficiary,
+    //   _preferClaimedTokens,
+    //   false, // don't prefer addToBalance.
+    //   _memo,
+    //   _metadata
+    // );
   }
 
   /** 
@@ -229,36 +227,34 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     uint256 _decimals,
     string memory _memo
   ) public payable virtual override {
-    // ETH shouldn't be sent if this terminal's token isn't ETH.
-    if (address(_token) != JBTokens.ETH) {
-      if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
-
-      // Transfer tokens to this terminal from the msg sender.
-      if (_payer == address(this))
-        IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
-    } else {
-      _payer = address(this);
-      _amount = msg.value;
-      _decimals = 18;
-    }
-
-    // Route the payment to the splits.
-    _payToSplitsAndDefault(
-      _PROTOCOL_PROJECT_ID,
-      defaultSplitsDomain,
-      _DEFAULT_SPLITS_GROUP,
-      _token,
-      _payer,
-      _amount,
-      _decimals,
-      0,
-      _projectId,
-      address(0),
-      false,
-      true, // prefer addToBalance.
-      _memo,
-      bytes('')
-    );
+    // // ETH shouldn't be sent if this terminal's token isn't ETH.
+    // if (address(_token) != JBTokens.ETH) {
+    //   if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
+    //   // Transfer tokens to this terminal from the msg sender.
+    //   if (_payer == address(this))
+    //     IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
+    // } else {
+    //   _payer = address(this);
+    //   _amount = msg.value;
+    //   _decimals = 18;
+    // }
+    // // Route the payment to the splits.
+    // _payToSplitsAndDefault(
+    //   _PROTOCOL_PROJECT_ID,
+    //   defaultSplitsDomain,
+    //   _DEFAULT_SPLITS_GROUP,
+    //   _token,
+    //   _payer,
+    //   _amount,
+    //   _decimals,
+    //   0,
+    //   _projectId,
+    //   address(0),
+    //   false,
+    //   true, // prefer addToBalance.
+    //   _memo,
+    //   bytes('')
+    // );
   }
 
   /** 
@@ -357,7 +353,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     address _payer,
     uint256 _amount,
     uint256 _decimals
-  ) private returns (uint256 leftoverAmount) {
+  ) internal virtual returns (uint256 leftoverAmount) {
     // Get a reference to the item's settlement splits.
     JBSplit[] memory _splits = splitsStore.splitsOf(_projectId, _domain, _group);
 
