@@ -187,7 +187,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
         _projectId,
         _beneficiary,
         _preferClaimedTokens,
-        false,
+        false, // don't prefer addToBalance.
         _memo,
         _metadata
       );
@@ -238,7 +238,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
       _projectId,
       address(0),
       false,
-      true,
+      true, // prefer addToBalance.
       _memo,
       bytes('')
     );
@@ -355,14 +355,14 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
 
     if (_defaultProjectId != 0)
       if (_defaultPreferAddToBalance)
-        _addToBalance(_defaultProjectId, _token, _payer, _amount, _decimals, _defaultMemo);
+        _addToBalance(_defaultProjectId, _token, _payer, _leftoverAmount, _decimals, _defaultMemo);
       else
         return
           _pay(
             _defaultProjectId,
             _token,
             _payer,
-            _amount,
+            _leftoverAmount,
             _decimals,
             _defaultBeneficiary,
             _minReturnedTokens,
