@@ -882,19 +882,19 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             // This distribution does not incur a fee.
             _netPayoutAmount = _payoutAmount;
 
-            if (_split.beneficiary != address(0))
+            // Add to balance if prefered.
+            if (_split.preferAddToBalance) _addToBalanceOf(_split.projectId, _netPayoutAmount, '');
+            else
               _pay(
                 _netPayoutAmount,
                 address(this),
                 _split.projectId,
-                _split.beneficiary,
+                (_split.beneficiary != address(0)) ? _split.beneficiary : msg.sender,
                 0,
                 _split.preferClaimed,
                 '',
                 bytes('')
               );
-              // Otherwise just add to balance so tokens don't get issued.
-            else _addToBalanceOf(_split.projectId, _netPayoutAmount, '');
           } else {
             // If the terminal is set as feeless, this distribution is not eligible for a fee.
             if (isFeelessTerminal[_terminal])

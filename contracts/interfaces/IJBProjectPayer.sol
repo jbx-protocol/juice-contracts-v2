@@ -10,10 +10,13 @@ interface IJBProjectPayer {
     bool preferClaimedTokens,
     string memo,
     bytes metadata,
+    bool preferAddToBalance,
     address caller
   );
 
   function directory() external view returns (IJBDirectory);
+
+  function preferAddToBalance() external view returns (bool);
 
   function defaultProjectId() external view returns (uint256);
 
@@ -30,7 +33,8 @@ interface IJBProjectPayer {
     address payable _beneficiary,
     bool _preferClaimedTokens,
     string memory _memo,
-    bytes memory _metadata
+    bytes memory _metadata,
+    bool _preferAddToBalance
   ) external;
 
   function pay(
@@ -44,6 +48,15 @@ interface IJBProjectPayer {
     bool _preferClaimedTokens,
     string memory _memo,
     bytes memory _metadata
+  ) external payable returns (uint256 beneficiaryTokenCount);
+
+  function addToBalance(
+    uint256 _projectId,
+    address _token,
+    address _payer,
+    uint256 _amount,
+    uint256 _decimals,
+    string memory _memo
   ) external payable;
 
   receive() external payable;

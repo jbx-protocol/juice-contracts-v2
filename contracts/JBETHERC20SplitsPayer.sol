@@ -63,6 +63,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     @param _defaultPreferClaimedTokens A flag indicating whether issued tokens should be automatically claimed into the beneficiary's wallet. 
     @param _defaultMemo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
     @param _defaultMetadata Bytes to send along to the project's data source and delegate, if provided.
+    @param _preferAddToBalance  A flag indicating if received payments should call the `pay` function or the `addToBalance` function.
     @param _directory A contract storing directories of terminals and controllers for each project.
     @param _owner The address that will own the contract.
   */
@@ -74,6 +75,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     bool _defaultPreferClaimedTokens,
     string memory _defaultMemo,
     bytes memory _defaultMetadata,
+    bool _preferAddToBalance,
     IJBDirectory _directory,
     address _owner
   )
@@ -83,6 +85,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
       _defaultPreferClaimedTokens,
       _defaultMemo,
       _defaultMetadata,
+      _preferAddToBalance,
       _directory,
       _owner
     )
@@ -141,6 +144,8 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
     @param _metadata Bytes to send along to the data source and delegate, if provided.
+
+    @return beneficiaryTokenCount The number of tokens minted for the beneficiary, as a fixed point number with 18 decimals.
   */
   function pay(
     uint256 _projectId,
@@ -153,7 +158,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     bool _preferClaimedTokens,
     string calldata _memo,
     bytes calldata _metadata
-  ) public payable virtual override {
+  ) public payable virtual override returns (uint256 beneficiaryTokenCount) {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
@@ -168,18 +173,19 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     }
 
     // Route the payment to the splits.
-    _payToSplits(
-      _token,
-      _payer,
-      _amount,
-      _decimals,
-      _minReturnedTokens,
-      _projectId,
-      _beneficiary,
-      _preferClaimedTokens,
-      _memo,
-      _metadata
-    );
+    return
+      _payToSplits(
+        _token,
+        _payer,
+        _amount,
+        _decimals,
+        _minReturnedTokens,
+        _projectId,
+        _beneficiary,
+        _preferClaimedTokens,
+        _memo,
+        _metadata
+      );
   }
 
   /** 
@@ -196,6 +202,8 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     @param _defaultPreferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
     @param _defaultMemo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
     @param _defaultMetadata Bytes to send along to the data source and delegate, if provided.
+
+    @return beneficiaryTokenCount The number of tokens minted for the beneficiary, as a fixed point number with 18 decimals.
   */
   function _payToSplits(
     address _token,
@@ -208,7 +216,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     bool _defaultPreferClaimedTokens,
     string memory _defaultMemo,
     bytes memory _defaultMetadata
-  ) private {
+  ) private returns (uint256 beneficiaryTokenCount) {
     // Get a reference to the item's settlement splits.
     JBSplit[] memory _splits = splitsStore.splitsOf(
       _PROTOCOL_PROJECT_ID,
@@ -257,18 +265,21 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
 
           // Otherwise, if a project is specified, make a payment to it.
         } else if (_split.projectId != 0) {
-          _pay(
-            _split.projectId,
-            _token,
-            _payer,
-            _settleAmount,
-            _decimals,
-            _split.beneficiary,
-            0,
-            _split.preferClaimed,
-            defaultMemo,
-            defaultMetadata
-          );
+          if (_split.preferAddToBalance)
+            _addToBalance(_split.projectId, _token, _payer, _settleAmount, _decimals, defaultMemo);
+          else
+            _pay(
+              _split.projectId,
+              _token,
+              _payer,
+              _settleAmount,
+              _decimals,
+              _split.beneficiary,
+              0,
+              _split.preferClaimed,
+              defaultMemo,
+              defaultMetadata
+            );
         } else {
           // If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
           Address.sendValue(
@@ -281,22 +292,27 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
       }
     }
 
-    // If there is a leftover amount, pay the default project.
-    if (_leftoverAmount > 0)
-      if (_defaultProjectId != 0)
-        _pay(
-          _defaultProjectId,
-          _token,
-          _payer,
-          _amount,
-          _decimals,
-          _defaultBeneficiary,
-          _minReturnedTokens,
-          _defaultPreferClaimedTokens,
-          _defaultMemo,
-          _defaultMetadata
-        );
-      else if (_defaultBeneficiary != address(0))
-        Address.sendValue(payable(_defaultBeneficiary), _leftoverAmount);
+    // If there is no leftover amount, nothing left to pay.
+    if (_leftoverAmount == 0) return 0;
+
+    if (_defaultProjectId != 0)
+      if (preferAddToBalance)
+        _addToBalance(_defaultProjectId, _token, _payer, _amount, _decimals, _defaultMemo);
+      else
+        return
+          _pay(
+            _defaultProjectId,
+            _token,
+            _payer,
+            _amount,
+            _decimals,
+            _defaultBeneficiary,
+            _minReturnedTokens,
+            _defaultPreferClaimedTokens,
+            _defaultMemo,
+            _defaultMetadata
+          );
+    else if (_defaultBeneficiary != address(0))
+      Address.sendValue(payable(_defaultBeneficiary), _leftoverAmount);
   }
 }

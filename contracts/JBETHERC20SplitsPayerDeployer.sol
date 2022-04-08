@@ -38,6 +38,7 @@ contract JBETHERC20SplitsPayerDeployer is IJBETHERC20SplitsPayerDeployer {
     bool _defaultPreferClaimedTokens,
     string calldata _defaultMemo,
     bytes calldata _defaultMetadata,
+    bool _preferAddToBalance,
     IJBDirectory _directory,
     address _owner
   ) external override returns (IJBSplitsPayer splitsPayer) {
@@ -50,6 +51,7 @@ contract JBETHERC20SplitsPayerDeployer is IJBETHERC20SplitsPayerDeployer {
       _defaultPreferClaimedTokens,
       _defaultMemo,
       _defaultMetadata,
+      _preferAddToBalance,
       _directory,
       _owner
     );
@@ -63,6 +65,7 @@ contract JBETHERC20SplitsPayerDeployer is IJBETHERC20SplitsPayerDeployer {
       _defaultPreferClaimedTokens,
       _defaultMemo,
       _defaultMetadata,
+      _preferAddToBalance,
       _directory,
       _owner,
       msg.sender

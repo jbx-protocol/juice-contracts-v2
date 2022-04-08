@@ -204,9 +204,10 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
       if (_percentTotal > JBConstants.SPLITS_TOTAL_PERCENT) revert INVALID_TOTAL_PERCENT();
 
       uint256 _packedSplitParts1 = _splits[_i].preferClaimed ? 1 : 0;
-      _packedSplitParts1 |= _splits[_i].percent << 1;
-      _packedSplitParts1 |= _splits[_i].projectId << 33;
-      _packedSplitParts1 |= uint256(uint160(address(_splits[_i].beneficiary))) << 89;
+      _packedSplitParts1 |= _splits[_i].preferAddToBalance ? 1 : 0;
+      _packedSplitParts1 |= _splits[_i].percent << 2;
+      _packedSplitParts1 |= _splits[_i].projectId << 34;
+      _packedSplitParts1 |= uint256(uint160(address(_splits[_i].beneficiary))) << 90;
 
       // Store the first spit part.
       _packedSplitParts1Of[_projectId][_domain][_group][_i] = _packedSplitParts1;
@@ -259,9 +260,10 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
       JBSplit memory _split;
 
       _split.preferClaimed = (_packedSplitPart1 & 1) == 1;
-      _split.percent = uint256(uint32(_packedSplitPart1 >> 1));
-      _split.projectId = uint256(uint56(_packedSplitPart1 >> 33));
-      _split.beneficiary = payable(address(uint160(_packedSplitPart1 >> 89)));
+      _split.preferAddToBalance = (_packedSplitPart1 & 2) == 1;
+      _split.percent = uint256(uint32(_packedSplitPart1 >> 2));
+      _split.projectId = uint256(uint56(_packedSplitPart1 >> 34));
+      _split.beneficiary = payable(address(uint160(_packedSplitPart1 >> 90)));
 
       // Get a reference to the second packed data.
       uint256 _packedSplitPart2 = _packedSplitParts2Of[_projectId][_domain][_group][_i];
