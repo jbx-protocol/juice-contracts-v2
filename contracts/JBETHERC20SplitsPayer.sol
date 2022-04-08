@@ -241,9 +241,11 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
             _split
           );
 
-          // Trigger the allocator's `allocate` function (avoiding stack too deep)
-          if(_token == JBTokens.ETH) _split.allocator.allocate{value: _settleAmount }(_data);
-          else _split.allocator.allocate(_data);
+          // If this terminal's token is ETH, send it in msg.value.
+          uint256 _payableValue = _token == JBTokens.ETH ? _settleAmount : 0;
+
+          // Trigger the allocator's `allocate` function.
+          _split.allocator.allocate{value: _payableValue}(_data);
 
           // Otherwise, if a project is specified, make a payment to it.
         } else if (_split.projectId != 0) {
