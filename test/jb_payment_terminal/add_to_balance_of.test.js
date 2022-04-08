@@ -24,6 +24,8 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
 
   let CURRENCY_ETH;
   let ETH_PAYOUT_INDEX;
+  let MAX_FEE;
+  let MAX_FEE_DISCOUNT;
 
   before(async function () {
     let jbSplitsGroupsFactory = await ethers.getContractFactory('JBSplitsGroups');
@@ -34,6 +36,11 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
     const jbCurrenciesFactory = await ethers.getContractFactory('JBCurrencies');
     const jbCurrencies = await jbCurrenciesFactory.deploy();
     CURRENCY_ETH = await jbCurrencies.ETH();
+
+    const jbConstantsFactory = await ethers.getContractFactory('JBConstants');
+    const jbConstants = await jbConstantsFactory.deploy();
+    MAX_FEE = await jbConstants.MAX_FEE();
+    MAX_FEE_DISCOUNT = await jbConstants.MAX_FEE_DISCOUNT();
   });
 
   async function setup() {
@@ -180,7 +187,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
     };
   }
 
-  it('Should add to the project balance, refund any held fee by removing them if the transferred amount is enough, and emit event', async function () {
+  it('Should add to the project balance, refund any held fee and remove them if the transferred amount is enough, and emit event', async function () {
     const {
       caller,
       beneficiaryOne,
@@ -188,6 +195,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
       jbEthPaymentTerminal,
       timestamp,
       mockJbSplitsStore,
+      mockJBPaymentTerminalStore,
     } = await setup();
     const splits = makeSplits({
       count: 2,
@@ -201,6 +209,19 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
     await jbEthPaymentTerminal
       .connect(caller)
       .distributePayoutsOf(PROJECT_ID, AMOUNT, ETH_PAYOUT_INDEX, MIN_TOKEN_REQUESTED, MEMO);
+    
+    let heldFee = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
+
+    let discountedFee = 
+      ethers.BigNumber.from(heldFee[0].fee)
+        .sub(
+          ethers.BigNumber.from(heldFee[0].fee)
+            .mul(ethers.BigNumber.from(heldFee[0].feeDiscount))
+            .div(MAX_FEE_DISCOUNT)
+        );
+
+    let feeNetAmount = ethers.BigNumber.from(heldFee[0].amount).sub(ethers.BigNumber.from(heldFee[0].amount).mul(MAX_FEE).div(discountedFee.add(MAX_FEE)));
+    await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor.withArgs(PROJECT_ID, AMOUNT.add(feeNetAmount)).returns();
 
     expect(
       await jbEthPaymentTerminal
@@ -242,7 +263,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
       value: 0,
     });
   });
-  it('Should add to the project balance, refund a held fee by substracting the amount from the held fee amount and emit event', async function () {
+  it('Should add to the project balance, partially refund a held fee and substract the amount from the held fee amount and emit event', async function () {
     const {
       caller,
       beneficiaryOne,
@@ -266,7 +287,8 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
       .connect(caller)
       .distributePayoutsOf(PROJECT_ID, AMOUNT, ETH_PAYOUT_INDEX, MIN_TOKEN_REQUESTED, MEMO);
 
-    await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor.withArgs(PROJECT_ID, 1).returns();
+    // Add 1 and refund 1
+    await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor.withArgs(PROJECT_ID, 1+1).returns();
 
     let heldFeeBefore = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
 
@@ -279,7 +301,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
     let heldFeeAfter = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
     expect(heldFeeAfter[0].amount).to.equal(heldFeeBefore[0].amount.sub(1));
   });
-  it('Should add to the project balance, refund multiple held fee by substracting the amount from the held fee amount when possible, and held the fee left when not', async function () {
+  it('Should add to the project balance, refund multiple held fee by substracting the amount from the held fee amount when possible and emit event', async function () {
     const {
       caller,
       beneficiaryOne,
@@ -324,20 +346,31 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
       .connect(caller)
       .distributePayoutsOf(PROJECT_ID, AMOUNT.div(2), ETH_PAYOUT_INDEX, MIN_TOKEN_REQUESTED, MEMO);
 
-    await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor.withArgs(PROJECT_ID, 10).returns();
+    let heldFee = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
 
-    let heldFeeBefore = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
-
+    // Both held fees are identical:
+    let discountedFee = 
+      ethers.BigNumber.from(heldFee[0].fee)
+        .sub(
+          ethers.BigNumber.from(heldFee[0].fee)
+            .mul(ethers.BigNumber.from(heldFee[0].feeDiscount))
+            .div(MAX_FEE_DISCOUNT)
+        );
+  
+    let feeNetAmount = ethers.BigNumber.from(heldFee[0].amount).sub(ethers.BigNumber.from(heldFee[0].amount).mul(MAX_FEE).div(discountedFee.add(MAX_FEE)));
+    await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor.withArgs(PROJECT_ID, (AMOUNT.sub('10')).add(feeNetAmount)).returns();
+  
     expect(
       await jbEthPaymentTerminal
         .connect(caller)
-        .addToBalanceOf(PROJECT_ID, 10, MEMO, { value: 10 }),
+        .addToBalanceOf(PROJECT_ID, AMOUNT.sub('10'), MEMO, { value: AMOUNT.sub('10') }),
     )
       .to.emit(jbEthPaymentTerminal, 'AddToBalance')
-      .withArgs(PROJECT_ID, 10, MEMO, caller.address);
+      .withArgs(PROJECT_ID, AMOUNT.sub('10'), MEMO, caller.address);
 
     let heldFeeAfter = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
-    expect(heldFeeAfter[0].amount).to.equal(heldFeeBefore[0].amount.sub(10));
+    // Only 10 left
+    expect(heldFeeAfter[0].amount).to.equal(10);
   });
   it("Can't add with value if terminal token isn't ETH", async function () {
     const { caller, JBERC20PaymentTerminal } = await setup();

@@ -6,6 +6,8 @@ struct JBFee {
   uint256 amount;
   // The percent of the fee.
   uint32 fee;
+  // The discount of the fee.
+  uint32 feeDiscount;
   // The address that will receive the tokens that are minted as a result of the fee payment.
   address beneficiary;
 }
