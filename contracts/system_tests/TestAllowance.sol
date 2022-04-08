@@ -86,14 +86,19 @@ contract TestAllowance is TestBaseWorkflow {
       ''
     );
 
-<<<<<<< HEAD
-    terminal.pay{value: 20 ether}(20 ether, _beneficiary, projectId, _beneficiary, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
-=======
-    terminal.pay{value: 20 ether}(20 ether, projectId, _beneficiary, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
->>>>>>> 3ffd343 (wip)
+    terminal.pay{value: 20 ether}(
+      20 ether,
+      _beneficiary,
+      projectId,
+      _beneficiary,
+      0,
+      false,
+      'Forge test',
+      new bytes(0)
+    ); // funding target met and 10 ETH are now in the overflow
 
-     // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
-    uint256 _userTokenBalance = PRBMath.mulDiv(20 ether, (WEIGHT/10**18), 2);
+    // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
+    uint256 _userTokenBalance = PRBMath.mulDiv(20 ether, (WEIGHT / 10**18), 2);
     assertEq(_tokenStore.balanceOf(_beneficiary, projectId), _userTokenBalance);
 
     // verify: ETH balance in terminal should be up to date
@@ -109,8 +114,10 @@ contract TestAllowance is TestBaseWorkflow {
       payable(_beneficiary), // Beneficiary
       'MEMO'
     );
-    assertEq((_beneficiary).balance, PRBMath.mulDiv(5 ether, jbLibraries().MAX_FEE(), jbLibraries().MAX_FEE() + terminal.fee()));
-
+    assertEq(
+      (_beneficiary).balance,
+      PRBMath.mulDiv(5 ether, jbLibraries().MAX_FEE(), jbLibraries().MAX_FEE() + terminal.fee())
+    );
 
     // Distribute the funding target ETH -> splits[] is empty -> everything in left-over, to project owner
     evm.prank(_projectOwner);
@@ -121,7 +128,10 @@ contract TestAllowance is TestBaseWorkflow {
       0, // Min wei out
       'Foundry payment' // Memo
     );
-    assertEq(_projectOwner.balance, (10 ether * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE()) );
+    assertEq(
+      _projectOwner.balance,
+      (10 ether * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE())
+    );
 
     // redeem eth from the overflow by the token holder:
     uint256 senderBalance = _tokenStore.balanceOf(_beneficiary, projectId);
@@ -140,10 +150,15 @@ contract TestAllowance is TestBaseWorkflow {
     assertEq(_tokenStore.balanceOf(_beneficiary, projectId), 0);
   }
 
-  function testFuzzAllowance(uint248 ALLOWANCE, uint248 TARGET, uint96 BALANCE) public {
+  function testFuzzAllowance(
+    uint248 ALLOWANCE,
+    uint248 TARGET,
+    uint96 BALANCE
+  ) public {
     evm.assume(jbToken().totalSupply() >= BALANCE);
 
-    unchecked { // Check for overflow
+    unchecked {
+      // Check for overflow
       evm.assume(ALLOWANCE + TARGET >= ALLOWANCE && ALLOWANCE + TARGET >= TARGET);
     }
 
@@ -173,15 +188,20 @@ contract TestAllowance is TestBaseWorkflow {
       ''
     );
 
-<<<<<<< HEAD
-    terminal.pay{value: BALANCE}(BALANCE, _beneficiary, projectId, _beneficiary, 0, false, 'Forge test', new bytes(0));
-=======
-    terminal.pay{value: BALANCE}(BALANCE, projectId, _beneficiary, 0, false, 'Forge test', new bytes(0));
->>>>>>> 3ffd343 (wip)
+    terminal.pay{value: BALANCE}(
+      BALANCE,
+      _beneficiary,
+      projectId,
+      _beneficiary,
+      0,
+      false,
+      'Forge test',
+      new bytes(0)
+    );
 
     // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
-    uint256 _userTokenBalance = PRBMath.mulDiv(BALANCE, (WEIGHT/10**18), 2);
-    if(BALANCE != 0) assertEq(_tokenStore.balanceOf(_beneficiary, projectId), _userTokenBalance);
+    uint256 _userTokenBalance = PRBMath.mulDiv(BALANCE, (WEIGHT / 10**18), 2);
+    if (BALANCE != 0) assertEq(_tokenStore.balanceOf(_beneficiary, projectId), _userTokenBalance);
 
     // verify: ETH balance in terminal should be up to date
     assertEq(jbPaymentTerminalStore().balanceOf(terminal, projectId), BALANCE);
@@ -190,8 +210,8 @@ contract TestAllowance is TestBaseWorkflow {
 
     if (ALLOWANCE == 0)
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_CONTROLLER_ALLOWANCE()'));
-
-    else if (TARGET >= BALANCE || ALLOWANCE > (BALANCE - TARGET)) // Too much to withdraw or no overflow ?
+    else if (TARGET >= BALANCE || ALLOWANCE > (BALANCE - TARGET))
+      // Too much to withdraw or no overflow ?
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
     terminal.useAllowanceOf(
       projectId,
@@ -202,14 +222,19 @@ contract TestAllowance is TestBaseWorkflow {
       'MEMO'
     );
 
-    if (BALANCE !=0 // there is something to transfer
-    && BALANCE > TARGET // there is an overflow
-    && ALLOWANCE < BALANCE // allowance is not too high
-    ) assertEq((_beneficiary).balance, PRBMath.mulDiv(ALLOWANCE, jbLibraries().MAX_FEE(), jbLibraries().MAX_FEE() + terminal.fee()));
+    if (
+      BALANCE != 0 && // there is something to transfer
+      BALANCE > TARGET && // there is an overflow
+      ALLOWANCE < BALANCE // allowance is not too high
+    )
+      assertEq(
+        (_beneficiary).balance,
+        PRBMath.mulDiv(ALLOWANCE, jbLibraries().MAX_FEE(), jbLibraries().MAX_FEE() + terminal.fee())
+      );
 
     if (TARGET > BALANCE)
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
-    
+
     if (TARGET == 0)
       evm.expectRevert(abi.encodeWithSignature('DISTRIBUTION_AMOUNT_LIMIT_REACHED()'));
 
@@ -220,7 +245,10 @@ contract TestAllowance is TestBaseWorkflow {
       0, // Min wei out
       'Foundry payment' // Memo
     );
-    if(TARGET <= BALANCE && TARGET != 0)
-      assertEq(_projectOwner.balance, (TARGET * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE()));    
+    if (TARGET <= BALANCE && TARGET != 0)
+      assertEq(
+        _projectOwner.balance,
+        (TARGET * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE())
+      );
   }
 }

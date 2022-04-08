@@ -7,7 +7,6 @@ import './mock/MockPriceFeed.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 
 contract TestMultipleTerminals is TestBaseWorkflow {
-
   JBController controller;
   JBProjectMetadata _projectMetadata;
   JBFundingCycleData _data;
@@ -37,10 +36,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     _groupedSplits[0].splits.push(
       JBSplit({
         preferClaimed: false,
-<<<<<<< HEAD
         preferAddToBalance: false,
-=======
->>>>>>> 3ffd343 (wip)
         percent: jbLibraries().SPLITS_TOTAL_PERCENT(),
         projectId: 0,
         beneficiary: payable(caller),
@@ -105,8 +101,8 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
         terminal: ERC20terminal,
-        distributionLimit: 10*10**18,
-        overflowAllowance: 5*10**18,
+        distributionLimit: 10 * 10**18,
+        overflowAllowance: 5 * 10**18,
         distributionLimitCurrency: jbLibraries().USD(),
         overflowAllowanceCurrency: jbLibraries().USD()
       })
@@ -115,8 +111,8 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
         terminal: ETHterminal,
-        distributionLimit: 10*10**18,
-        overflowAllowance: 5*10**18,
+        distributionLimit: 10 * 10**18,
+        overflowAllowance: 5 * 10**18,
         distributionLimitCurrency: jbLibraries().ETH(),
         overflowAllowanceCurrency: jbLibraries().ETH()
       })
@@ -124,7 +120,6 @@ contract TestMultipleTerminals is TestBaseWorkflow {
 
     _terminals.push(ERC20terminal);
     _terminals.push(ETHterminal);
-
 
     projectId = controller.launchProjectFor(
       _projectOwner,
@@ -161,36 +156,36 @@ contract TestMultipleTerminals is TestBaseWorkflow {
   function testMultipleTerminal() public {
     // Send some token to the caller, so he can play
     evm.prank(_projectOwner);
-    jbToken().transfer(caller, 20*10**18);
+    jbToken().transfer(caller, 20 * 10**18);
 
     // ---- Pay in token ----
     evm.prank(caller); // back to regular msg.sender (bug?)
-    jbToken().approve(address(ERC20terminal), 20*10**18);
+    jbToken().approve(address(ERC20terminal), 20 * 10**18);
     evm.prank(caller); // back to regular msg.sender (bug?)
-<<<<<<< HEAD
-    ERC20terminal.pay(20*10**18, caller, projectId, caller, 0, false, 'Forge test', new bytes(0));
-=======
-    ERC20terminal.pay(20*10**18, projectId, caller, 0, false, 'Forge test', new bytes(0));
->>>>>>> 3ffd343 (wip)
+    ERC20terminal.pay(20 * 10**18, caller, projectId, caller, 0, false, 'Forge test', new bytes(0));
 
     // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
     // price feed will return FAKE_PRICE*18 (for curr usd/base eth); since it's an 18 decimal terminal (ie calling getPrice(18) )
-    uint256 _userTokenBalance = PRBMath.mulDiv( 20*10**18, WEIGHT, 36*FAKE_PRICE);
+    uint256 _userTokenBalance = PRBMath.mulDiv(20 * 10**18, WEIGHT, 36 * FAKE_PRICE);
     assertEq(_tokenStore.balanceOf(caller, projectId), _userTokenBalance);
 
     // verify: balance in terminal should be up to date
-    assertEq(jbPaymentTerminalStore().balanceOf(ERC20terminal, projectId), 20*10**18);
-
+    assertEq(jbPaymentTerminalStore().balanceOf(ERC20terminal, projectId), 20 * 10**18);
 
     // ---- Pay in ETH ----
     address beneficiaryTwo = address(696969);
-<<<<<<< HEAD
-    ETHterminal.pay{value: 20 ether}(20 ether, beneficiaryTwo, projectId, beneficiaryTwo, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
-=======
-    ETHterminal.pay{value: 20 ether}(20 ether, projectId, beneficiaryTwo, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
->>>>>>> 3ffd343 (wip)
+    ETHterminal.pay{value: 20 ether}(
+      20 ether,
+      beneficiaryTwo,
+      projectId,
+      beneficiaryTwo,
+      0,
+      false,
+      'Forge test',
+      new bytes(0)
+    ); // funding target met and 10 ETH are now in the overflow
 
-     // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
+    // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
     uint256 _userEthBalance = PRBMath.mulDiv(20 ether, (WEIGHT / 10**18), 2);
     assertEq(_tokenStore.balanceOf(beneficiaryTwo, projectId), _userEthBalance);
 
@@ -201,7 +196,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     evm.startPrank(_projectOwner);
     ERC20terminal.useAllowanceOf(
       projectId,
-      5*10**18, // amt in ETH (overflow allowance currency is in ETH)
+      5 * 10**18, // amt in ETH (overflow allowance currency is in ETH)
       jbLibraries().USD(), // Currency -> (fake price is 10)
       1, // Min wei out
       payable(msg.sender), // Beneficiary
@@ -210,25 +205,40 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     evm.stopPrank();
 
     // Funds leaving the contract -> take the fee
-    assertEq(jbToken().balanceOf(msg.sender), PRBMath.mulDiv(5*10**18, jbLibraries().MAX_FEE(), jbLibraries().MAX_FEE() + ERC20terminal.fee()));
+    assertEq(
+      jbToken().balanceOf(msg.sender),
+      PRBMath.mulDiv(
+        5 * 10**18,
+        jbLibraries().MAX_FEE(),
+        jbLibraries().MAX_FEE() + ERC20terminal.fee()
+      )
+    );
 
     // Distribute the funding target ETH
     uint256 initBalance = caller.balance;
     evm.prank(_projectOwner);
     ETHterminal.distributePayoutsOf(
       projectId,
-      10*10**18,
+      10 * 10**18,
       jbLibraries().ETH(), // Currency
       0, // Min wei out
       'Foundry payment' // Memo
     );
     // Funds leaving the ecosystem -> fee taken
-    assertEq(caller.balance, initBalance + PRBMath.mulDiv(10*10**18, jbLibraries().MAX_FEE(), ETHterminal.fee() + jbLibraries().MAX_FEE()));
+    assertEq(
+      caller.balance,
+      initBalance +
+        PRBMath.mulDiv(
+          10 * 10**18,
+          jbLibraries().MAX_FEE(),
+          ETHterminal.fee() + jbLibraries().MAX_FEE()
+        )
+    );
 
     // redeem eth from the overflow by the token holder:
     uint256 totalSupply = jbController().totalOutstandingTokensOf(projectId, 5000);
     uint256 overflow = jbPaymentTerminalStore().currentTotalOverflowOf(projectId, 18, 1);
-    
+
     uint256 callerEthBalanceBefore = caller.balance;
 
     evm.prank(caller);
@@ -242,6 +252,6 @@ contract TestMultipleTerminals is TestBaseWorkflow {
       new bytes(0)
     );
 
-    assertEq(caller.balance, callerEthBalanceBefore + (100_000 * overflow / totalSupply));
+    assertEq(caller.balance, callerEthBalanceBefore + ((100_000 * overflow) / totalSupply));
   }
 }

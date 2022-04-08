@@ -92,7 +92,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
     uint96 REDEMPTION_RATE,
     uint96 BALANCE
   ) public {
-    evm.assume(payable(msg.sender).balance/2 >= BALANCE);
+    evm.assume(payable(msg.sender).balance / 2 >= BALANCE);
     evm.assume(100 < BALANCE);
 
     address _beneficiary = address(69420);
@@ -108,19 +108,24 @@ contract TestReconfigureProject is TestBaseWorkflow {
       ''
     );
 
-<<<<<<< HEAD
-    jbETHPaymentTerminal().pay{value: BALANCE}(BALANCE, _beneficiary, projectId, _beneficiary, 0, false, 'Forge test', new bytes(0));
-=======
-    jbETHPaymentTerminal().pay{value: BALANCE}(BALANCE, projectId, _beneficiary, 0, false, 'Forge test', new bytes(0));
->>>>>>> 3ffd343 (wip)
+    jbETHPaymentTerminal().pay{value: BALANCE}(
+      BALANCE,
+      _beneficiary,
+      projectId,
+      _beneficiary,
+      0,
+      false,
+      'Forge test',
+      new bytes(0)
+    );
 
-    uint256 _userTokenBalance = PRBMath.mulDiv(BALANCE, (WEIGHT/10**18), 2); // initial FC rate is 50%
-    if(BALANCE != 0) assertEq(jbTokenStore().balanceOf(_beneficiary, projectId), _userTokenBalance);
+    uint256 _userTokenBalance = PRBMath.mulDiv(BALANCE, (WEIGHT / 10**18), 2); // initial FC rate is 50%
+    if (BALANCE != 0)
+      assertEq(jbTokenStore().balanceOf(_beneficiary, projectId), _userTokenBalance);
 
     evm.prank(multisig());
-    if(RESERVED_RATE > 10000)
-      evm.expectRevert(abi.encodeWithSignature('INVALID_RESERVED_RATE()'));
-    else if(REDEMPTION_RATE > 10000)
+    if (RESERVED_RATE > 10000) evm.expectRevert(abi.encodeWithSignature('INVALID_RESERVED_RATE()'));
+    else if (REDEMPTION_RATE > 10000)
       evm.expectRevert(abi.encodeWithSignature('INVALID_REDEMPTION_RATE()'));
 
     controller.reconfigureFundingCyclesOf(
@@ -162,17 +167,26 @@ contract TestReconfigureProject is TestBaseWorkflow {
     JBFundingCycle memory newFundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(newFundingCycle.number, 2);
 
-<<<<<<< HEAD
-    jbETHPaymentTerminal().pay{value: BALANCE}(BALANCE, _beneficiary, projectId, _beneficiary, 0, false, 'Forge test', new bytes(0));
-=======
-    jbETHPaymentTerminal().pay{value: BALANCE}(BALANCE, projectId, _beneficiary, 0, false, 'Forge test', new bytes(0));
->>>>>>> 3ffd343 (wip)
+    jbETHPaymentTerminal().pay{value: BALANCE}(
+      BALANCE,
+      _beneficiary,
+      projectId,
+      _beneficiary,
+      0,
+      false,
+      'Forge test',
+      new bytes(0)
+    );
 
     uint256 _newUserTokenBalance = RESERVED_RATE == 0 // New fc, rate is RESERVED_RATE
       ? PRBMath.mulDiv(BALANCE, WEIGHT, 10**18)
-      : PRBMath.mulDiv( PRBMath.mulDiv(BALANCE, WEIGHT, 10**18), 10000-RESERVED_RATE, 10000);
+      : PRBMath.mulDiv(PRBMath.mulDiv(BALANCE, WEIGHT, 10**18), 10000 - RESERVED_RATE, 10000);
 
-    if(BALANCE != 0) assertEq(jbTokenStore().balanceOf(_beneficiary, projectId), _userTokenBalance + _newUserTokenBalance);
+    if (BALANCE != 0)
+      assertEq(
+        jbTokenStore().balanceOf(_beneficiary, projectId),
+        _userTokenBalance + _newUserTokenBalance
+      );
 
     uint256 tokenBalance = jbTokenStore().balanceOf(_beneficiary, projectId);
     uint256 totalSupply = jbController().totalOutstandingTokensOf(projectId, RESERVED_RATE);
@@ -190,12 +204,12 @@ contract TestReconfigureProject is TestBaseWorkflow {
     );
     evm.stopPrank();
 
-    if(BALANCE != 0 && REDEMPTION_RATE != 0)
+    if (BALANCE != 0 && REDEMPTION_RATE != 0)
       assertEq(
         _beneficiary.balance,
         PRBMath.mulDiv(
           PRBMath.mulDiv(overflow, tokenBalance, totalSupply),
-          REDEMPTION_RATE + PRBMath.mulDiv(tokenBalance, 10000-REDEMPTION_RATE, totalSupply),
+          REDEMPTION_RATE + PRBMath.mulDiv(tokenBalance, 10000 - REDEMPTION_RATE, totalSupply),
           10000
         )
       );
