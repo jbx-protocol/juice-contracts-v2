@@ -292,6 +292,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     Contribute tokens to a project.
 
     @param _amount The amount of terminal tokens being received, as a fixed point number with the same amount of decimals as this terminal. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
+    @param _payer The address from whom the payment is originating.
     @param _projectId The ID of the project being paid.
     @param _beneficiary The address to mint tokens for and pass along to the funding cycle's delegate.
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with the same amount of decimals as this terminal.
@@ -303,6 +304,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   */
   function pay(
     uint256 _amount,
+    address _payer,
     uint256 _projectId,
     address _beneficiary,
     uint256 _minReturnedTokens,
@@ -315,15 +317,18 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
 
       // Transfer tokens to this terminal from the msg sender.
-      _transferFrom(msg.sender, payable(address(this)), _amount);
+      _transferFrom(_payer, payable(address(this)), _amount);
     }
     // If this terminal's token is ETH, override _amount with msg.value.
-    else _amount = msg.value;
+    else {
+      _payer = msg.sender;
+      _amount = msg.value;
+    }
 
     return
       _pay(
         _amount,
-        msg.sender,
+        _payer,
         _projectId,
         _beneficiary,
         _minReturnedTokens,
@@ -912,6 +917,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             if (_split.beneficiary != address(0))
               _terminal.pay{value: _payableValue}(
                 _netPayoutAmount,
+                address(this),
                 _split.projectId,
                 _split.beneficiary,
                 0,
@@ -1009,6 +1015,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       // Send the payment.
       _terminal.pay{value: _payableValue}(
         _amount,
+        address(this),
         _PROTOCOL_PROJECT_ID,
         _beneficiary,
         0,
