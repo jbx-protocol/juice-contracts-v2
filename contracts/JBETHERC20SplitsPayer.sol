@@ -118,8 +118,9 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
   receive() external payable virtual override {
     // Route the payment to the splits.
     _payToSplits(
-      _DEFAULT_SPLITS_GROUP,
+      _PROTOCOL_PROJECT_ID,
       defaultSplitsDomain,
+      _DEFAULT_SPLITS_GROUP,
       JBTokens.ETH,
       msg.sender,
       address(this).balance,
@@ -192,8 +193,9 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     // Route the payment to the splits.
     return
       _payToSplits(
-        _DEFAULT_SPLITS_GROUP,
+        _PROTOCOL_PROJECT_ID,
         defaultSplitsDomain,
+        _DEFAULT_SPLITS_GROUP,
         _token,
         _payer,
         _amount,
@@ -245,8 +247,9 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
 
     // Route the payment to the splits.
     _payToSplits(
-      _DEFAULT_SPLITS_GROUP,
+      _PROTOCOL_PROJECT_ID,
       defaultSplitsDomain,
+      _DEFAULT_SPLITS_GROUP,
       _token,
       _payer,
       _amount,
@@ -265,8 +268,9 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     @notice 
     Split the contract's balance between all splits.
 
-    @param _group The splits group to pay.
+    @param _projectId The ID of the project to which the splits belong.
     @param _domain The splits domain to which the group belongs.
+    @param _group The splits group to pay.
     @param _token The token being paid in.
     @param _payer The address from whom the payment is originating.
     @param _amount The amount of tokens being paid, as a fixed point number. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
@@ -282,8 +286,9 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     @return beneficiaryTokenCount The number of tokens minted for the beneficiary, as a fixed point number with 18 decimals.
   */
   function _payToSplits(
-    uint256 _group,
+    uint256 _projectId,
     uint256 _domain,
+    uint256 _group,
     address _token,
     address _payer,
     uint256 _amount,
@@ -297,7 +302,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     bytes memory _defaultMetadata
   ) private returns (uint256 beneficiaryTokenCount) {
     // Get a reference to the item's settlement splits.
-    JBSplit[] memory _splits = splitsStore.splitsOf(_PROTOCOL_PROJECT_ID, _domain, _group);
+    JBSplit[] memory _splits = splitsStore.splitsOf(_projectId, _domain, _group);
 
     // Set the leftover amount to the initial balance.
     uint256 _leftoverAmount = _amount;
