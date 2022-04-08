@@ -914,24 +914,23 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             // If this terminal's token is ETH, send it in msg.value.
             uint256 _payableValue = token == JBTokens.ETH ? _netPayoutAmount : 0;
 
-            // Pay if there's a beneficiary to receive tokens.
-            if (_split.beneficiary != address(0))
-              _terminal.pay{value: _payableValue}(
-                _netPayoutAmount,
-                address(this),
-                _split.projectId,
-                _split.beneficiary,
-                0,
-                _split.preferClaimed,
-                '',
-                bytes('')
-              );
-              // Otherwise just add to balance so tokens don't get issued.
-            else
+            // Add to balance if prefered.
+            if (_split.preferAddToBalance)
               _terminal.addToBalanceOf{value: _payableValue}(
                 _split.projectId,
                 _netPayoutAmount,
                 ''
+              );
+            else
+              _terminal.pay{value: _payableValue}(
+                _netPayoutAmount,
+                address(this),
+                _split.projectId,
+                _split.beneficiary != address(0) ? _split.beneficiary : msg.sender,
+                0,
+                _split.preferClaimed,
+                '',
+                bytes('')
               );
           }
         } else {
