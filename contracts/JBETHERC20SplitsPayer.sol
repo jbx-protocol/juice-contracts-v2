@@ -116,23 +116,52 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     This function is called automatically when the contract receives an ETH payment.
   */
   receive() external payable virtual override {
-    // Route the payment to the splits.
-    _payToSplitsAndDefault(
+    // Pay the split and get a reference to the amount paid.
+    uint256 _leftoverAmount = _payToSplits(
       _PROTOCOL_PROJECT_ID,
       defaultSplitsDomain,
       _DEFAULT_SPLITS_GROUP,
       JBTokens.ETH,
       msg.sender,
       address(this).balance,
-      18, // decimals.
-      0,
-      defaultProjectId,
-      defaultBeneficiary,
-      defaultPreferClaimedTokens,
-      defaultPreferAddToBalance,
-      defaultMemo,
-      defaultMetadata
+      18 // decimals.
     );
+
+    // If there is no leftover amount, nothing left to pay.
+    if (_leftoverAmount == 0) return;
+
+    // If there's a default project ID, try to pay it.
+    if (defaultProjectId != 0)
+      if (defaultPreferAddToBalance)
+        // Pay the project by adding to its balance if prefered.
+        _addToBalance(
+          defaultProjectId,
+          JBTokens.ETH,
+          msg.sender,
+          _leftoverAmount,
+          18, // decimals.
+          defaultMemo
+        );
+        // Otherwise, issue a payment to the project.
+      else
+        _pay(
+          defaultProjectId,
+          JBTokens.ETH,
+          msg.sender,
+          _leftoverAmount,
+          18, // decimals.
+          defaultBeneficiary,
+          0, // min returned tokens.
+          defaultPreferClaimedTokens,
+          defaultMemo,
+          defaultMetadata
+        );
+    // If no project was specified, send the funds directly to the beneficiary or the msg.sender.
+    else
+      Address.sendValue(
+        defaultBeneficiary != address(0) ? payable(defaultBeneficiary) : payable(msg.sender),
+        _leftoverAmount
+      );
   }
 
   /** 
@@ -175,34 +204,53 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     string memory _memo,
     bytes memory _metadata
   ) public payable virtual override {
-    // // ETH shouldn't be sent if this terminal's token isn't ETH.
-    // if (address(_token) != JBTokens.ETH) {
-    //   if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
-    //   // Transfer tokens to this terminal from the msg sender.
-    //   if (_payer == address(this))
-    //     IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
-    // } else {
-    //   _payer = address(this);
-    //   _amount = msg.value;
-    //   _decimals = 18;
-    // }
-    // // Route the payment to the splits.
-    // _payToSplitsAndDefault(
-    //   _PROTOCOL_PROJECT_ID,
-    //   defaultSplitsDomain,
-    //   _DEFAULT_SPLITS_GROUP,
-    //   _token,
-    //   _payer,
-    //   _amount,
-    //   _decimals,
-    //   _minReturnedTokens,
-    //   _projectId,
-    //   _beneficiary,
-    //   _preferClaimedTokens,
-    //   false, // don't prefer addToBalance.
-    //   _memo,
-    //   _metadata
-    // );
+    // ETH shouldn't be sent if this terminal's token isn't ETH.
+    if (address(_token) != JBTokens.ETH) {
+      if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
+      // Transfer tokens to this terminal from the msg sender.
+      if (_payer == address(this))
+        IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
+    } else {
+      _payer = address(this);
+      _amount = msg.value;
+      _decimals = 18;
+    }
+
+    // Route the payment to the splits.
+    // Pay the split and get a reference to the amount paid.
+    uint256 _leftoverAmount = _payToSplits(
+      _PROTOCOL_PROJECT_ID,
+      defaultSplitsDomain,
+      _DEFAULT_SPLITS_GROUP,
+      _token,
+      _payer,
+      _amount,
+      _decimals
+    );
+
+    // If there is no leftover amount, nothing left to pay.
+    if (_leftoverAmount == 0) return;
+
+    // If there's a default project ID, try to pay it.
+    if (_projectId != 0)
+      _pay(
+        _projectId,
+        _token,
+        _payer,
+        _leftoverAmount,
+        _decimals,
+        _beneficiary,
+        _minReturnedTokens,
+        _preferClaimedTokens,
+        _memo,
+        _metadata
+      );
+      // If no project was specified, send the funds directly to the beneficiary or the msg.sender.
+    else
+      Address.sendValue(
+        _beneficiary != address(0) ? payable(_beneficiary) : payable(msg.sender),
+        _leftoverAmount
+      );
   }
 
   /** 
@@ -227,76 +275,23 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     uint256 _decimals,
     string memory _memo
   ) public payable virtual override {
-    // // ETH shouldn't be sent if this terminal's token isn't ETH.
-    // if (address(_token) != JBTokens.ETH) {
-    //   if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
-    //   // Transfer tokens to this terminal from the msg sender.
-    //   if (_payer == address(this))
-    //     IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
-    // } else {
-    //   _payer = address(this);
-    //   _amount = msg.value;
-    //   _decimals = 18;
-    // }
-    // // Route the payment to the splits.
-    // _payToSplitsAndDefault(
-    //   _PROTOCOL_PROJECT_ID,
-    //   defaultSplitsDomain,
-    //   _DEFAULT_SPLITS_GROUP,
-    //   _token,
-    //   _payer,
-    //   _amount,
-    //   _decimals,
-    //   0,
-    //   _projectId,
-    //   address(0),
-    //   false,
-    //   true, // prefer addToBalance.
-    //   _memo,
-    //   bytes('')
-    // );
-  }
+    // ETH shouldn't be sent if this terminal's token isn't ETH.
+    if (address(_token) != JBTokens.ETH) {
+      if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
+      // Transfer tokens to this terminal from the msg sender.
+      if (_payer == address(this))
+        IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
+    } else {
+      _payer = address(this);
+      _amount = msg.value;
+      _decimals = 18;
+    }
 
-  /** 
-    @notice 
-    Split the contract's balance between all splits, and sends any leftover amount to a specified default destination.
-
-    @param _projectId The ID of the project to which the splits belong.
-    @param _domain The splits domain to which the group belongs.
-    @param _group The splits group to pay.
-    @param _token The token being paid in.
-    @param _payer The address from whom the payment is originating.
-    @param _amount The amount of tokens being paid, as a fixed point number. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
-    @param _decimals The number of decimals in the `_amount` fixed point number. 
-    @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with 18 decimals.
-    @param _defaultProjectId The ID of the project that is being sent any leftover funds after splits have been settled.
-    @param _defaultBeneficiary The address who will receive tokens from the payment made with leftover funds.
-    @param _defaultPreferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
-    @param _defaultPreferAddToBalance  A flag indicating if leftover payments should call the `pay` function or the `addToBalance` function of a project.
-    @param _defaultMemo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
-    @param _defaultMetadata Bytes to send along to the data source and delegate, if provided.
-  */
-  function _payToSplitsAndDefault(
-    uint256 _projectId,
-    uint256 _domain,
-    uint256 _group,
-    address _token,
-    address _payer,
-    uint256 _amount,
-    uint256 _decimals,
-    uint256 _minReturnedTokens,
-    uint256 _defaultProjectId,
-    address _defaultBeneficiary,
-    bool _defaultPreferClaimedTokens,
-    bool _defaultPreferAddToBalance,
-    string memory _defaultMemo,
-    bytes memory _defaultMetadata
-  ) internal virtual {
     // Pay the split and get a reference to the amount paid.
     uint256 _leftoverAmount = _payToSplits(
-      _projectId,
-      _domain,
-      _group,
+      _PROTOCOL_PROJECT_ID,
+      defaultSplitsDomain,
+      _DEFAULT_SPLITS_GROUP,
       _token,
       _payer,
       _amount,
@@ -306,29 +301,15 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     // If there is no leftover amount, nothing left to pay.
     if (_leftoverAmount == 0) return;
 
-    // If there's a default project ID, try to pay it.
-    if (_defaultProjectId != 0)
-      if (_defaultPreferAddToBalance)
-        // Pay the project by adding to its balance if prefered.
-        _addToBalance(_defaultProjectId, _token, _payer, _leftoverAmount, _decimals, _defaultMemo);
-        // Otherwise, issue a payment to the project.
-      else
-        _pay(
-          _defaultProjectId,
-          _token,
-          _payer,
-          _leftoverAmount,
-          _decimals,
-          _defaultBeneficiary,
-          _minReturnedTokens,
-          _defaultPreferClaimedTokens,
-          _defaultMemo,
-          _defaultMetadata
-        );
-    // If no project was specified, send the funds directly to the beneficiary or the msg.sender.
+    // If there's a default project ID, try to add to its balance.
+    if (_projectId != 0)
+      // Add to the project's balance.
+      _addToBalance(_projectId, _token, _payer, _leftoverAmount, _decimals, _memo);
+
+      // Otherwise, send a payment to the beneficiary.
     else
       Address.sendValue(
-        _defaultBeneficiary != address(0) ? payable(_defaultBeneficiary) : payable(msg.sender),
+        defaultBeneficiary != address(0) ? defaultBeneficiary : payable(msg.sender),
         _leftoverAmount
       );
   }
