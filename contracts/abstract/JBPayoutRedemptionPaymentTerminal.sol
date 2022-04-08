@@ -25,7 +25,6 @@ error PROJECT_TERMINAL_MISMATCH();
 error REDEEM_TO_ZERO_ADDRESS();
 error TERMINAL_IN_SPLIT_ZERO_ADDRESS();
 error TERMINAL_TOKENS_INCOMPATIBLE();
-error ZERO_VALUE_SENT();
 error NO_MSG_VALUE_ALLOWED();
 error INADEQUATE_TOKEN_COUNT();
 error INADEQUATE_DISTRIBUTION_AMOUNT();
@@ -520,7 +519,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       // Get a reference to how much to distribute to the project owner, which is the leftover amount minus any fees.
       netLeftoverDistributionAmount = _leftoverDistributionAmount == 0
         ? 0
-        : _leftoverDistributionAmount - _feeAmount(_leftoverDistributionAmount, _feeDiscount);
+        : _leftoverDistributionAmount - _feeAmount(_leftoverDistributionAmount, fee, _feeDiscount);
 
       // Transfer any remaining balance to the project owner.
       if (netLeftoverDistributionAmount > 0)
@@ -721,12 +720,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Process each fee.
     for (uint256 _i = 0; _i < _heldFees.length; _i++)
       _processFee(
-        _heldFees[_i].amount -
-          PRBMath.mulDiv(
-            _heldFees[_i].amount,
-            JBConstants.MAX_FEE,
-            _heldFees[_i].fee + JBConstants.MAX_FEE
-          ),
+        _feeAmount(_heldFees[_i].amount, _heldFees[_i].fee, _heldFees[_i].feeDiscount),
         _heldFees[_i].beneficiary
       );
 
@@ -846,7 +840,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         if (_split.allocator != IJBSplitAllocator(address(0))) {
           _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
             ? _payoutAmount
-            : _payoutAmount - _feeAmount(_payoutAmount, _feeDiscount);
+            : _payoutAmount - _feeAmount(_payoutAmount, fee, _feeDiscount);
 
           // This distribution is eligible for a fee since the funds are leaving the ecosystem.
           feeEligibleDistributionAmount += _payoutAmount;
@@ -903,7 +897,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             else {
               _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
                 ? _payoutAmount
-                : _payoutAmount - _feeAmount(_payoutAmount, _feeDiscount);
+                : _payoutAmount - _feeAmount(_payoutAmount, fee, _feeDiscount);
 
               feeEligibleDistributionAmount += _payoutAmount;
             }
@@ -936,7 +930,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         } else {
           _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
             ? _payoutAmount
-            : _payoutAmount - _feeAmount(_payoutAmount, _feeDiscount);
+            : _payoutAmount - _feeAmount(_payoutAmount, fee, _feeDiscount);
 
           // This distribution is eligible for a fee since the funds are leaving the ecosystem.
           feeEligibleDistributionAmount += _payoutAmount;
@@ -983,9 +977,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     address _beneficiary,
     uint256 _feeDiscount
   ) private returns (uint256 feeAmount) {
-    feeAmount = _feeAmount(_amount, _feeDiscount);
+    feeAmount = _feeAmount(_amount, fee, _feeDiscount);
     _fundingCycle.shouldHoldFees()
-      ? _heldFeesOf[_projectId].push(JBFee(_amount, uint32(fee), _beneficiary))
+      ? _heldFeesOf[_projectId].push(
+        JBFee(_amount, uint32(fee), uint32(_feeDiscount), _beneficiary)
+      )
       : _processFee(feeAmount, _beneficiary); // Take the fee.
   }
 
@@ -1130,11 +1126,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _amount,
     string memory _memo
   ) private {
-    // Record the added funds.
-    store.recordAddedBalanceFor(_projectId, _amount);
-
     // Refund any held fees to make sure the project doesn't pay double for funds going in and out of the protocol.
-    _refundHeldFees(_projectId, _amount);
+    uint256 _refundedFees = _refundHeldFees(_projectId, _amount);
+
+    // Record the added funds with any refunded fees.
+    store.recordAddedBalanceFor(_projectId, _amount + _refundedFees);
 
     emit AddToBalance(_projectId, _amount, _memo, msg.sender);
   }
@@ -1145,8 +1141,13 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     @param _projectId The project for which fees are being refunded.
     @param _amount The amount to base the refund on, as a fixed point number with the same amount of decimals as this terminal.
+
+    @return refundedFees Kow much fees were refunded, as a fixed point number with the same number of decimals as this temrinal
   */
-  function _refundHeldFees(uint256 _projectId, uint256 _amount) private {
+  function _refundHeldFees(uint256 _projectId, uint256 _amount)
+    private
+    returns (uint256 refundedFees)
+  {
     // Get a reference to the project's held fees.
     JBFee[] memory _heldFees = _heldFeesOf[_projectId];
 
@@ -1156,11 +1157,23 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Process each fee.
     for (uint256 _i = 0; _i < _heldFees.length; _i++) {
       if (_amount == 0) _heldFeesOf[_projectId].push(_heldFees[_i]);
-      else if (_amount >= _heldFees[_i].amount) _amount = _amount - _heldFees[_i].amount;
-      else {
-        _heldFeesOf[_projectId].push(
-          JBFee(_heldFees[_i].amount - _amount, _heldFees[_i].fee, _heldFees[_i].beneficiary)
+      else if (_amount >= _heldFees[_i].amount) {
+        _amount = _amount - _heldFees[_i].amount;
+        refundedFees = _feeAmount(
+          _heldFees[_i].amount,
+          _heldFees[_i].fee,
+          _heldFees[_i].feeDiscount
         );
+      } else {
+        _heldFeesOf[_projectId].push(
+          JBFee(
+            _heldFees[_i].amount - _amount,
+            _heldFees[_i].fee,
+            _heldFees[_i].feeDiscount,
+            _heldFees[_i].beneficiary
+          )
+        );
+        refundedFees = _feeAmount(_amount, _heldFees[_i].fee, _heldFees[_i].feeDiscount);
         _amount = 0;
       }
     }
@@ -1171,13 +1184,19 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     Returns the fee amount based on the provided amount for the specified project.
 
     @param _amount The amount that the fee is based on, as a fixed point number with the same amount of decimals as this terminal.
+    @param _fee The percentage of the fee, out of MAX_FEE. 
     @param _feeDiscount The percentage discount that should be applied out of the max amount, out of MAX_FEE_DISCOUNT.
 
     @return The amount of the fee, as a fixed point number with the same amount of decimals as this terminal.
   */
-  function _feeAmount(uint256 _amount, uint256 _feeDiscount) private view returns (uint256) {
+  function _feeAmount(
+    uint256 _amount,
+    uint256 _fee,
+    uint256 _feeDiscount
+  ) private pure returns (uint256) {
     // Calculate the discounted fee.
-    uint256 _discountedFee = fee - PRBMath.mulDiv(fee, _feeDiscount, JBConstants.MAX_FEE_DISCOUNT);
+    uint256 _discountedFee = _fee -
+      PRBMath.mulDiv(_fee, _feeDiscount, JBConstants.MAX_FEE_DISCOUNT);
 
     // The amount of tokens from the `_amount` to pay as a fee.
     return

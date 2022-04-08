@@ -13,7 +13,6 @@ import './JBToken.sol';
 error EMPTY_NAME();
 error EMPTY_SYMBOL();
 error INSUFFICIENT_FUNDS();
-error INVALID_RECIPIENT();
 error INSUFFICIENT_UNCLAIMED_TOKENS();
 error RECIPIENT_ZERO_ADDRESS();
 error TOKEN_NOT_FOUND();
@@ -225,6 +224,9 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     @dev
     Can't change to a token that's currently being used by another project.
 
+    @dev
+    Changing to the zero address will remove the current token without adding a new one.
+
     @param _projectId The ID of the project to which the changed token belongs.
     @param _token The new token. Send an empty address to remove the project's current token without adding a new one, if claiming tokens isn't currency required by the project
     @param _newOwner An address to transfer the current token's ownership to. This is optional, but it cannot be done later.
@@ -244,7 +246,8 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     if (projectOf[_token] != 0) revert TOKEN_ALREADY_IN_USE();
 
     // Can't change to a token that doesn't use 18 decimals.
-    if (_token.decimals() != 18) revert TOKENS_MUST_HAVE_18_DECIMALS();
+    if (_token != IJBToken(address(0)) && _token.decimals() != 18)
+      revert TOKENS_MUST_HAVE_18_DECIMALS();
 
     // Get a reference to the current token for the project.
     oldToken = tokenOf[_projectId];
@@ -252,11 +255,11 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     // Store the new token.
     tokenOf[_projectId] = _token;
 
-    // Store the project for the new token.
-    projectOf[_token] = _projectId;
+    // Store the project for the new token if the new token isn't the zero address.
+    if (_token != IJBToken(address(0))) projectOf[_token] = _projectId;
 
-    // Reset the project for the old token.
-    projectOf[oldToken] = 0;
+    // Reset the project for the old token if it isn't the zero address.
+    if (oldToken != IJBToken(address(0))) projectOf[oldToken] = 0;
 
     // If there's a current token and a new owner was provided, transfer ownership of the old token to the new owner.
     if (_newOwner != address(0) && oldToken != IJBToken(address(0)))

@@ -26,6 +26,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
   const DEFAULT_FEE = 25000000; // 2.5%
   const FEE_DISCOUNT = 500000000; // 50%
 
+  
   const CURRENCY = 1;
   const MIN_TOKEN_REQUESTED = 180;
   const MEMO = 'Memo Test';
@@ -571,7 +572,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       );
 
     expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([
-      [ethers.BigNumber.from(AMOUNT_DISTRIBUTED), DEFAULT_FEE, projectOwner.address],
+      [ethers.BigNumber.from(AMOUNT_DISTRIBUTED), DEFAULT_FEE, /*discount*/0, projectOwner.address],
     ]);
   });
 
@@ -2202,6 +2203,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         caller.address,
       );
   });
+
   it('Should distribute payout and use this terminal if the project set in splits uses it, with no beneficairies', async function () {
     const {
       projectOwner,
@@ -2371,7 +2373,6 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         caller.address,
       );
   });
-
 
   it('Should distribute payout of 0 and emit event', async function () {
     const {
@@ -2561,6 +2562,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         ),
     ).to.be.revertedWith(errors.TERMINAL_IN_SPLIT_ZERO_ADDRESS);
   });
+  
   it('Cant distribute payouts of the distributed amount is less than expected', async function () {
     const {
       terminalOwner,

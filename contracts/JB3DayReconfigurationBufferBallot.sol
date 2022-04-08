@@ -4,8 +4,8 @@ pragma solidity 0.8.6;
 import './interfaces/IJBFundingCycleBallot.sol';
 
 /** 
-   @notice Manages approving funding cycle reconfigurations automatically after a buffer period of 3 days.
- */
+  @notice Manages approving funding cycle reconfigurations automatically after a buffer period of 3 days.
+*/
 contract JB3DayReconfigurationBufferBallot is IJBFundingCycleBallot {
   // --- public stored properties --- //
 
@@ -27,13 +27,13 @@ contract JB3DayReconfigurationBufferBallot is IJBFundingCycleBallot {
   }
 
   /**
-      @notice 
-      The approval state of a particular funding cycle.
+    @notice 
+    The approval state of a particular funding cycle.
 
-      @param _configured The configuration of the funding cycle to check the state of.
+    @param _configured The configuration of the funding cycle to check the state of.
 
-      @return The state of the provided ballot.
-   */
+    @return The state of the provided ballot.
+  */
   function stateOf(uint256, uint256 _configured) external view override returns (JBBallotState) {
     return block.timestamp > _configured + DELAY ? JBBallotState.Approved : JBBallotState.Active;
   }
