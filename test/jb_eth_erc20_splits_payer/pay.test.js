@@ -8,7 +8,7 @@ import jbAllocator from '../../artifacts/contracts/interfaces/IJBSplitAllocator.
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
-import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
+import ierc20 from '../../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
 import errors from '../helpers/errors.json';
 
 describe('JBETHERC20SplitsPayer::pay(...)', function () {
@@ -57,7 +57,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
     let mockJbSplitsStore = await deployMockContract(deployer, jbSplitsStore.abi);
     let mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
-    let mockJbToken = await deployMockContract(deployer, jbToken.abi);
+    let mockToken = await deployMockContract(deployer, ierc20.abi);
     
     const splits = makeSplits();
     const groupedSplits = { group: SPLITS_GROUP, splits };
@@ -108,7 +108,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       caller,
       owner,
       addrs,
-      mockJbToken,
+      mockToken,
       mockJbDirectory,
       mockJbTerminal,
       mockJbSplitsStore,
@@ -167,8 +167,63 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     ).to.not.be.reverted;
   });
 
-  it(`Should send ERC20 with 9-decimals towards allocator if set in split`, async function () {
-    const { caller, deployer, jbSplitsPayer, mockJbToken, mockJbSplitsStore } = await setup();
+  it(`Should send ERC20 with 9-decimals towards allocator if set in split, with splitsPayer as payer`, async function () {
+    const { caller, deployer, jbSplitsPayer, mockToken, mockJbSplitsStore } = await setup();
+    const DECIMALS = 9;
+
+    let mockJbAllocator = await deployMockContract(deployer, jbAllocator.abi);
+
+    let splits = makeSplits({ projectId: PROJECT_ID, allocator: mockJbAllocator.address });
+
+    await Promise.all(
+      splits.map(async split => {
+        await mockToken.mock.approve
+          .withArgs(mockJbAllocator.address, AMOUNT.mul(split.percent).div(maxSplitsPercent))
+          .returns(true);
+
+        await mockJbAllocator.mock.allocate
+          .withArgs(
+            {
+              payer: jbSplitsPayer.address,
+              amount: AMOUNT.mul(split.percent).div(maxSplitsPercent),
+              decimals: DECIMALS,
+              projectId: DEFAULT_PROJECT_ID,
+              group: 0,
+              split: split
+            }
+          )
+          .returns();
+      })
+    );
+
+    await mockJbSplitsStore.mock.splitsOf
+      .withArgs(DEFAULT_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
+      .returns(splits);
+    
+    await mockToken.mock.transferFrom
+      .withArgs(caller.address, jbSplitsPayer.address, AMOUNT)
+      .returns(true);
+    
+    await expect(
+      jbSplitsPayer
+        .connect(caller)
+        .pay(
+        DEFAULT_PROJECT_ID,
+        mockToken.address,
+        jbSplitsPayer.address,
+        AMOUNT,
+        DECIMALS,
+        BENEFICIARY,
+        MIN_RETURNED_TOKENS,
+        PREFER_CLAIMED_TOKENS,
+        MEMO,
+        METADATA,
+      ),
+    ).to.not.be.reverted;
+  });
+
+  it(`Should send ERC20 with 9-decimals towards allocator if set in split, without splitsPayer as payer`, async function () {
+    const { caller, deployer, jbSplitsPayer, mockToken, mockJbSplitsStore } = await setup();
     const DECIMALS = 9;
 
     let mockJbAllocator = await deployMockContract(deployer, jbAllocator.abi);
@@ -195,17 +250,13 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     await mockJbSplitsStore.mock.splitsOf
       .withArgs(DEFAULT_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
       .returns(splits);
-    
-    await mockJbToken.mock.transferFrom
-      .withArgs(caller.address, jbSplitsPayer.address, AMOUNT)
-      .returns(true);
-    
+        
     await expect(
       jbSplitsPayer
         .connect(caller)
         .pay(
         DEFAULT_PROJECT_ID,
-        mockJbToken.address,
+        mockToken.address,
         caller.address,
         AMOUNT,
         DECIMALS,
@@ -429,13 +480,13 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
   });
 
   it(`Cannot send ETH with another token as argument`, async function () {
-    const { owner, jbSplitsPayer, mockJbToken } = await setup();
+    const { owner, jbSplitsPayer, mockToken } = await setup();
 
     await expect(
       jbSplitsPayer
               .pay(
                 DEFAULT_PROJECT_ID,
-                mockJbToken.address,
+                mockToken.address,
                 owner.address,
                 AMOUNT,
                 DEFAULT_DECIMALS,
