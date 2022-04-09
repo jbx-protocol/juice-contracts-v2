@@ -48,7 +48,7 @@ contract JBReconfigurationBufferBallot is IJBFundingCycleBallot {
 
     @return The duration in seconds.
   */
-  function duration() external pure override returns (uint256) {
+  function duration() external view override returns (uint256) {
     return delay;
   }
 
@@ -74,12 +74,28 @@ contract JBReconfigurationBufferBallot is IJBFundingCycleBallot {
     @notice 
     The approval state of a particular funding cycle.
 
+    @param _projectId The ID of the project to which the funding cycle being checked belongs.
     @param _configured The configuration of the funding cycle to check the state of.
+    @param _start The start timestamp of the funding cycle to check the state of.
 
     @return The state of the provided ballot.
   */
-  function stateOf(uint256, uint256 _configured) public view override returns (JBBallotState) {
-    return block.timestamp > _configured + delay ? JBBallotState.Approved : JBBallotState.Active;
+  function stateOf(
+    uint256 _projectId,
+    uint256 _configured,
+    uint256 _start
+  ) public view override returns (JBBallotState) {
+    // If there is a finalized state, return it.
+    if (_finalState[_projectId][_configured] != JBBallotState.Active)
+      return _finalState[_projectId][_configured];
+
+    // If the delay hasn't yet passed, the ballot is active.
+    if (block.timestamp < _configured + delay) return JBBallotState.Active;
+    // If the current timestamp is passed the start, the ballot is failed
+    else if (block.timestamp >= _start) return JBBallotState.Failed;
+
+    // The ballot is otherwise approved.
+    return JBBallotState.Approved;
   }
 
   //*********************************************************************//
@@ -119,9 +135,10 @@ contract JBReconfigurationBufferBallot is IJBFundingCycleBallot {
     // Get the current ballot state.
     ballotState = _finalState[_projectId][_configured];
 
-    // If the funding cycle has started and the final ballot state is still `Active`, save the ballot state if it has finalized.
+    // If the final ballot state is still `Active`, save the ballot state if it has finalized.
     if (block.timestamp >= _fundingCycle.start && ballotState == JBBallotState.Active) {
-      ballotState = stateOf(_projectId, _configured);
+      ballotState = stateOf(_projectId, _configured, _fundingCycle.start);
+      // If the ballot is active after the cycle has started, it should be finalized as failed.
       if (ballotState != JBBallotState.Active) _finalState[_projectId][_configured] = ballotState;
     }
   }
