@@ -4,12 +4,12 @@ import { makeSplits } from '../helpers/utils.js';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
+import errors from '../helpers/errors.json';
+import ierc20 from '../../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
 import jbAllocator from '../../artifacts/contracts/interfaces/IJBSplitAllocator.sol/IJBSplitAllocator.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
-import ierc20 from '../../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
-import errors from '../helpers/errors.json';
+import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 
 describe('JBETHERC20SplitsPayer::pay(...)', function () {
   const DEFAULT_PROJECT_ID = 2;
@@ -34,7 +34,6 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
   const MIN_RETURNED_TOKENS = 1;
   const MEMO = 'hi world';
   const METADATA = [0x2];
-  const DECIMALS = 1;
 
   let ethToken;
   let maxSplitsPercent;
@@ -449,7 +448,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     await expect(tx).to.changeEtherBalance(beneficiaryTwo, AMOUNT.mul(splits[0].percent).div(maxSplitsPercent));
   });
 
-  it(`Should send fund directly to the caller, if no allocator, project ID or beneficiary is set in splits`, async function () {
+  it(`Should send fund directly to the caller, if no allocator, project ID or beneficiary is set`, async function () {
     const { caller, owner, beneficiaryOne, beneficiaryTwo, jbSplitsPayer, mockJbSplitsStore } = await setup();
 
     let splits = makeSplits();
@@ -479,6 +478,12 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     await expect(tx).to.changeEtherBalance(caller, 0); // Send then receive the amount (gas is not taken into account)
   });
 
+  // should send leftover to projectId if set
+
+  // should send leftover to beneficiary if no project id set
+
+  // should set leftover to the caller if no project id nor beneficiary is set
+
   it(`Cannot send ETH with another token as argument`, async function () {
     const { owner, jbSplitsPayer, mockToken } = await setup();
 
@@ -501,5 +506,4 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
               )
     ).to.be.revertedWith(errors.NO_MSG_VALUE_ALLOWED);
   });
-
 });
