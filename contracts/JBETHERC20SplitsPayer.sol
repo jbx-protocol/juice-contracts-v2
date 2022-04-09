@@ -363,7 +363,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
           JBSplitAllocationData memory _data = JBSplitAllocationData(
             _payer,
             _splitAmount,
-            0,
+            _decimals,
             defaultProjectId,
             0,
             _split
