@@ -11,24 +11,20 @@ import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.j
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 
-describe('JBETHERC20SplitsPayer::pay(...)', function () {
+describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
   const DEFAULT_PROJECT_ID = 2;
-  const SPLITS_GROUP = 1;
-  const AMOUNT = ethers.utils.parseEther('1.0');
-
   const DEFAULT_SPLITS_PROJECT_ID = 3;
   const DEFAULT_SPLITS_DOMAIN = 1;
   const DEFAULT_SPLITS_GROUP = 1;
   const DEFAULT_DECIMALS = 18;
-  const PREFER_ADD_TO_BALANCE = false;
-
+  const DEFAULT_BENEFICIARY = ethers.Wallet.createRandom().address;
+  const DEFAULT_PREFER_CLAIMED_TOKENS = false;
+  const DEFAULT_MEMO = 'hello world';
+  const DEFAULT_METADATA = [0x1];
+  
   const PROJECT_ID = 69;
-
-  const INITIAL_BENEFICIARY = ethers.Wallet.createRandom().address;
-  const INITIAL_PREFER_CLAIMED_TOKENS = false;
-  const INITIAL_MEMO = 'hello world';
-  const INITIAL_METADATA = [0x1];
-
+  const AMOUNT = ethers.utils.parseEther('1.0');
+  const PREFER_ADD_TO_BALANCE = false;
   const BENEFICIARY = ethers.Wallet.createRandom().address;
   const PREFER_CLAIMED_TOKENS = true;
   const MIN_RETURNED_TOKENS = 1;
@@ -58,18 +54,8 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     let mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
     let mockToken = await deployMockContract(deployer, ierc20.abi);
     
-    const splits = makeSplits();
-    const groupedSplits = { group: SPLITS_GROUP, splits };
-
     let jbSplitsPayerFactory = await ethers.getContractFactory('JBETHERC20SplitsPayer');
-    
-    const transactionCount = await deployer.getTransactionCount()
-    const jbSplitsPayerAddress = ethers.utils.getContractAddress({
-      from: deployer.address,
-      nonce: transactionCount + 1
-    })
-    //await mockJbSplitsStore.mock.set.withArgs(1, jbSplitsPayerAddress, 1, splits).returns();
-    
+
     await mockJbSplitsStore.mock.directory.returns(mockJbDirectory.address);
 
     let jbSplitsPayer = await jbSplitsPayerFactory.deploy(
@@ -78,10 +64,10 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       DEFAULT_SPLITS_GROUP,
       mockJbSplitsStore.address, 
       DEFAULT_PROJECT_ID,
-      INITIAL_BENEFICIARY,
-      INITIAL_PREFER_CLAIMED_TOKENS,
-      INITIAL_MEMO,
-      INITIAL_METADATA,
+      DEFAULT_BENEFICIARY,
+      DEFAULT_PREFER_CLAIMED_TOKENS,
+      DEFAULT_MEMO,
+      DEFAULT_METADATA,
       PREFER_ADD_TO_BALANCE,
       owner.address,
       );
@@ -92,10 +78,10 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       DEFAULT_SPLITS_GROUP,
       mockJbSplitsStore.address, 
       DEFAULT_PROJECT_ID,
-      INITIAL_BENEFICIARY,
-      INITIAL_PREFER_CLAIMED_TOKENS,
-      INITIAL_MEMO,
-      INITIAL_METADATA,
+      DEFAULT_BENEFICIARY,
+      DEFAULT_PREFER_CLAIMED_TOKENS,
+      DEFAULT_MEMO,
+      DEFAULT_METADATA,
       PREFER_ADD_TO_BALANCE,
       owner.address,
     );
@@ -235,7 +221,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
           .withArgs(
             split.projectId,
             AMOUNT.mul(split.percent).div(maxSplitsPercent),
-            INITIAL_MEMO,
+            DEFAULT_MEMO,
           )
           .returns();
       })
@@ -282,8 +268,8 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
             split.beneficiary,
             0, /*hardcoded*/
             split.preferClaimed,
-            INITIAL_MEMO,
-            INITIAL_METADATA
+            DEFAULT_MEMO,
+            DEFAULT_METADATA
           )
           .returns(0); // Not used
       })
@@ -331,8 +317,8 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
             caller.address,
             0, /*hardcoded*/
             split.preferClaimed,
-            INITIAL_MEMO,
-            INITIAL_METADATA
+            DEFAULT_MEMO,
+            DEFAULT_METADATA
           )
           .returns(0); // Not used
       })
