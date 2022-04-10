@@ -110,7 +110,6 @@ contract TestReconfigureProject is TestBaseWorkflow {
 
     jbETHPaymentTerminal().pay{value: BALANCE}(
       BALANCE,
-      _beneficiary,
       projectId,
       _beneficiary,
       0,
@@ -169,7 +168,6 @@ contract TestReconfigureProject is TestBaseWorkflow {
 
     jbETHPaymentTerminal().pay{value: BALANCE}(
       BALANCE,
-      _beneficiary,
       projectId,
       _beneficiary,
       0,

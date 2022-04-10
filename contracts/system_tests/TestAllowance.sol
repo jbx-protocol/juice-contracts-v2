@@ -88,7 +88,6 @@ contract TestAllowance is TestBaseWorkflow {
 
     terminal.pay{value: 20 ether}(
       20 ether,
-      _beneficiary,
       projectId,
       _beneficiary,
       0,
@@ -190,7 +189,6 @@ contract TestAllowance is TestBaseWorkflow {
 
     terminal.pay{value: BALANCE}(
       BALANCE,
-      _beneficiary,
       projectId,
       _beneficiary,
       0,
