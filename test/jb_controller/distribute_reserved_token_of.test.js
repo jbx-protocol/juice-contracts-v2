@@ -159,6 +159,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -237,6 +238,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -328,6 +330,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -393,6 +396,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -475,6 +479,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
           PROJECT_ID,
           [
             splits[0].preferClaimed,
+            splits[0].preferAddToBalance,
             splits[0].percent,
             splits[0].projectId,
             splits[0].beneficiary,
