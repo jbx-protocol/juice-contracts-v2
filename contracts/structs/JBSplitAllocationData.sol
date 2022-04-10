@@ -5,8 +5,6 @@ import './JBSplit.sol';
 import './JBTokenAmount.sol';
 
 struct JBSplitAllocationData {
-  // The account from which the payment is orginating.
-  address payer;
   // The amount being sent to the split allocator, as a fixed point number.
   uint256 amount;
   // The number of decimals in the amount.

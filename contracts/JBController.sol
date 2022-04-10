@@ -864,7 +864,6 @@ contract JBController is IJBController, JBOperatable {
         if (_split.allocator != IJBSplitAllocator(address(0)))
           _split.allocator.allocate(
             JBSplitAllocationData(
-              address(this), // payer.
               _tokenCount,
               18,
               _projectId,

@@ -40,10 +40,9 @@ interface IJBProjectPayer {
   function pay(
     uint256 _projectId,
     address _token,
-    address _payer,
     uint256 _amount,
     uint256 _decimals,
-    address _beneficiary,
+    address payable _beneficiary,
     uint256 _minReturnedTokens,
     bool _preferClaimedTokens,
     string memory _memo,
@@ -53,7 +52,6 @@ interface IJBProjectPayer {
   function addToBalance(
     uint256 _projectId,
     address _token,
-    address _payer,
     uint256 _amount,
     uint256 _decimals,
     string memory _memo

@@ -15,7 +15,6 @@ interface IJBPaymentTerminal {
 
   function pay(
     uint256 _amount,
-    address _payer,
     uint256 _projectId,
     address _beneficiary,
     uint256 _minReturnedTokens,
@@ -26,7 +25,6 @@ interface IJBPaymentTerminal {
 
   function addToBalanceOf(
     uint256 _projectId,
-    address _payer,
     uint256 _amount,
     string calldata _memo
   ) external payable;

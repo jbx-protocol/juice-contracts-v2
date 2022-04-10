@@ -18,13 +18,7 @@ import './IJBPaymentTerminalStore.sol';
 import './../structs/JBFee.sol';
 
 interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
-  event AddToBalance(
-    uint256 indexed projectId,
-    address payer,
-    uint256 amount,
-    string memo,
-    address caller
-  );
+  event AddToBalance(uint256 indexed projectId, uint256 amount, string memo, address caller);
   event Migrate(
     uint256 indexed projectId,
     IJBPaymentTerminal indexed to,

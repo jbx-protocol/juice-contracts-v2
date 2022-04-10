@@ -114,7 +114,6 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
       defaultSplitsDomain,
       defaultSplitsGroup,
       JBTokens.ETH,
-      msg.sender,
       address(this).balance,
       18 // decimals.
     );
@@ -129,7 +128,6 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
         _addToBalance(
           defaultProjectId,
           JBTokens.ETH,
-          msg.sender,
           _leftoverAmount,
           18, // decimals.
           defaultMemo
@@ -139,7 +137,6 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
         _pay(
           defaultProjectId,
           JBTokens.ETH,
-          msg.sender,
           _leftoverAmount,
           18, // decimals.
           defaultBeneficiary,
@@ -185,7 +182,6 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     
     @param _projectId The ID of the project that is being paid after.
     @param _token The token being paid in.
-    @param _payer The address from whom the payment is originating. Set the `payer` as this contract's address if it is to manage the token transfer from the msg.sender to the destination terminal.
     @param _amount The amount of tokens being paid, as a fixed point number. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. If this terminal's token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
     @param _beneficiary The address who will receive tokens from the payment made with leftover funds.
@@ -197,10 +193,9 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
   function pay(
     uint256 _projectId,
     address _token,
-    address _payer,
     uint256 _amount,
     uint256 _decimals,
-    address _beneficiary,
+    address payable _beneficiary,
     uint256 _minReturnedTokens,
     bool _preferClaimedTokens,
     string memory _memo,
@@ -210,10 +205,8 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
       // Transfer tokens to this terminal from the msg sender.
-      if (_payer == address(this))
-        IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
+      IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
     } else {
-      _payer = address(this);
       _amount = msg.value;
       _decimals = 18;
     }
@@ -225,7 +218,6 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
       defaultSplitsDomain,
       defaultSplitsGroup,
       _token,
-      _payer,
       _amount,
       _decimals
     );
@@ -238,7 +230,6 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
       _pay(
         _projectId,
         _token,
-        _payer,
         _leftoverAmount,
         _decimals,
         _beneficiary,
@@ -248,11 +239,16 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
         _metadata
       );
       // If no project was specified, send the funds directly to the beneficiary or the msg.sender.
-    else
-      Address.sendValue(
-        _beneficiary != address(0) ? payable(_beneficiary) : payable(msg.sender),
-        _leftoverAmount
-      );
+    else {
+      // Get a reference to the address receiving the tokens. If there's a default beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
+      _beneficiary = _beneficiary != address(0) ? _beneficiary : payable(msg.sender);
+
+      // If ETH, send to the beneficiary.
+      if (_token == JBTokens.ETH)
+        Address.sendValue(_beneficiary, _leftoverAmount);
+        // Transfer the ERC20 to the beneficiary.
+      else IERC20(_token).transfer(_beneficiary, _leftoverAmount);
+    }
   }
 
   /** 
@@ -264,7 +260,6 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
 
     @param _projectId The ID of the project that is being paid.
     @param _token The token being paid in.
-    @param _payer The address from whom the payment is originating. Set the `payer` as this contract's address if it is to manage the token transfer from the msg.sender to the destination terminal.
     @param _amount The amount of tokens being paid, as a fixed point number. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. If this terminal's token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
@@ -272,7 +267,6 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
   function addToBalance(
     uint256 _projectId,
     address _token,
-    address _payer,
     uint256 _amount,
     uint256 _decimals,
     string memory _memo
@@ -281,10 +275,8 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
       // Transfer tokens to this terminal from the msg sender.
-      if (_payer == address(this))
-        IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
+      IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
     } else {
-      _payer = address(this);
       _amount = msg.value;
       _decimals = 18;
     }
@@ -295,7 +287,6 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
       defaultSplitsDomain,
       defaultSplitsGroup,
       _token,
-      _payer,
       _amount,
       _decimals
     );
@@ -306,14 +297,21 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     // If there's a default project ID, try to add to its balance.
     if (_projectId != 0)
       // Add to the project's balance.
-      _addToBalance(_projectId, _token, _payer, _leftoverAmount, _decimals, _memo);
+      _addToBalance(_projectId, _token, _leftoverAmount, _decimals, _memo);
 
       // Otherwise, send a payment to the beneficiary.
-    else
-      Address.sendValue(
-        defaultBeneficiary != address(0) ? defaultBeneficiary : payable(msg.sender),
-        _leftoverAmount
-      );
+    else {
+      // Get a reference to the address receiving the tokens. If there's a default beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
+      address payable _beneficiary = defaultBeneficiary != address(0)
+        ? defaultBeneficiary
+        : payable(msg.sender);
+
+      // If ETH, send to the beneficiary.
+      if (_token == JBTokens.ETH)
+        Address.sendValue(_beneficiary, _leftoverAmount);
+        // Transfer the ERC20 to the beneficiary.
+      else IERC20(_token).transfer(_beneficiary, _leftoverAmount);
+    }
   }
 
   /** 
@@ -324,7 +322,6 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     @param _splitsDomain The splits domain to which the group belongs.
     @param _splitsGroup The splits group to pay.
     @param _token The token being paid in.
-    @param _payer The address from whom the payment is originating.
     @param _amount The amount of tokens being paid, as a fixed point number. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. 
   */
@@ -333,7 +330,6 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     uint256 _splitsDomain,
     uint256 _splitsGroup,
     address _token,
-    address _payer,
     uint256 _amount,
     uint256 _decimals
   ) internal virtual returns (uint256 leftoverAmount) {
@@ -361,7 +357,6 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
         if (_split.allocator != IJBSplitAllocator(address(0))) {
           // Create the data to send to the allocator.
           JBSplitAllocationData memory _data = JBSplitAllocationData(
-            _payer,
             _splitAmount,
             _decimals,
             defaultProjectId,
@@ -370,7 +365,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
           );
 
           // Approve the `_amount` of tokens for the split allocator to transfer tokens from this terminal.
-          if (_payer == address(this) && _token != JBTokens.ETH)
+          if (_token != JBTokens.ETH)
             IERC20(_token).approve(address(_split.allocator), _splitAmount);
 
           // If this terminal's token is ETH, send it in msg.value.
@@ -382,12 +377,11 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
           // Otherwise, if a project is specified, make a payment to it.
         } else if (_split.projectId != 0) {
           if (_split.preferAddToBalance)
-            _addToBalance(_split.projectId, _token, _payer, _splitAmount, _decimals, defaultMemo);
+            _addToBalance(_split.projectId, _token, _splitAmount, _decimals, defaultMemo);
           else
             _pay(
               _split.projectId,
               _token,
-              _payer,
               _splitAmount,
               _decimals,
               _split.beneficiary != address(0) ? _split.beneficiary : msg.sender,
@@ -406,11 +400,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
           if (_token == JBTokens.ETH)
             Address.sendValue(_beneficiary, _splitAmount);
             // Transfer the ERC20 to the beneficiary.
-          else {
-            _payer == address(this)
-              ? IERC20(_token).transfer(_beneficiary, _splitAmount)
-              : IERC20(_token).transferFrom(_payer, _beneficiary, _splitAmount);
-          }
+          else IERC20(_token).transfer(_beneficiary, _splitAmount);
         }
 
         // Subtract from the amount to be sent to the beneficiary.

@@ -292,7 +292,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     Contribute tokens to a project.
 
     @param _amount The amount of terminal tokens being received, as a fixed point number with the same amount of decimals as this terminal. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
-    @param _payer The address from whom the payment is originating. If the token being paid is ETH, this is overriden by msg.sender.
     @param _projectId The ID of the project being paid.
     @param _beneficiary The address to mint tokens for and pass along to the funding cycle's delegate.
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with the same amount of decimals as this terminal.
@@ -304,7 +303,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   */
   function pay(
     uint256 _amount,
-    address _payer,
     uint256 _projectId,
     address _beneficiary,
     uint256 _minReturnedTokens,
@@ -317,18 +315,15 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
 
       // Transfer tokens to this terminal from the msg sender.
-      _transferFrom(_payer, payable(address(this)), _amount);
+      _transferFrom(msg.sender, payable(address(this)), _amount);
     }
     // If this terminal's token is ETH, override _amount with msg.value.
-    else {
-      _payer = msg.sender;
-      _amount = msg.value;
-    }
+    else _amount = msg.value;
 
     return
       _pay(
         _amount,
-        _payer,
+        msg.sender,
         _projectId,
         _beneficiary,
         _minReturnedTokens,
@@ -663,7 +658,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       uint256 _payableValue = token == JBTokens.ETH ? balance : 0;
 
       // Withdraw the balance to transfer to the new terminal;
-      _to.addToBalanceOf{value: _payableValue}(_projectId, address(this), balance, '');
+      _to.addToBalanceOf{value: _payableValue}(_projectId, balance, '');
     }
 
     emit Migrate(_projectId, _to, balance, msg.sender);
@@ -674,13 +669,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     Receives funds belonging to the specified project.
 
     @param _projectId The ID of the project to which the funds received belong.
-    @param _payer The address from whom the payment is originating. If the token being paid is ETH, this is overriden by msg.sender.
     @param _amount The amount of tokens to add, as a fixed point number with the same number of decimals as this terminal. If this is an ETH terminal, this is ignored and msg.value is used instead.
     @param _memo A memo to pass along to the emitted event.
   */
   function addToBalanceOf(
     uint256 _projectId,
-    address _payer,
     uint256 _amount,
     string calldata _memo
   ) external payable virtual override isTerminalOf(_projectId) {
@@ -690,15 +683,12 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
 
       // Transfer tokens to this terminal from the msg sender.
-      _transferFrom(_payer, payable(address(this)), _amount);
+      _transferFrom(msg.sender, payable(address(this)), _amount);
     }
     // If the terminal's token is ETH, override `_amount` with msg.value.
-    else {
-      _payer = msg.sender;
-      _amount = msg.value;
-    }
+    else _amount = msg.value;
 
-    _addToBalanceOf(_projectId, _payer, _amount, _memo);
+    _addToBalanceOf(_projectId, _amount, _memo);
   }
 
   /**
@@ -863,7 +853,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
           // Create the data to send to the allocator.
           JBSplitAllocationData memory _data = JBSplitAllocationData(
-            address(this), // payer.
             _netPayoutAmount,
             decimals,
             _projectId,
@@ -888,8 +877,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             _netPayoutAmount = _payoutAmount;
 
             // Add to balance if prefered.
-            if (_split.preferAddToBalance)
-              _addToBalanceOf(_split.projectId, address(this), _netPayoutAmount, '');
+            if (_split.preferAddToBalance) _addToBalanceOf(_split.projectId, _netPayoutAmount, '');
             else
               _pay(
                 _netPayoutAmount,
@@ -924,14 +912,12 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             if (_split.preferAddToBalance)
               _terminal.addToBalanceOf{value: _payableValue}(
                 _split.projectId,
-                address(this),
                 _netPayoutAmount,
                 ''
               );
             else
               _terminal.pay{value: _payableValue}(
                 _netPayoutAmount,
-                address(this),
                 _split.projectId,
                 _split.beneficiary != address(0) ? _split.beneficiary : msg.sender,
                 0,
@@ -1022,7 +1008,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       // Send the payment.
       _terminal.pay{value: _payableValue}(
         _amount,
-        address(this),
         _PROTOCOL_PROJECT_ID,
         _beneficiary,
         0,
@@ -1133,13 +1118,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     Receives funds belonging to the specified project.
 
     @param _projectId The ID of the project to which the funds received belong.
-    @param _payer The address from whom the payment is originating.
     @param _amount The amount of tokens to add, as a fixed point number with the same number of decimals as this terminal. If this is an ETH terminal, this is ignored and msg.value is used instead.
     @param _memo A memo to pass along to the emitted event.
   */
   function _addToBalanceOf(
     uint256 _projectId,
-    address _payer,
     uint256 _amount,
     string memory _memo
   ) private {
@@ -1149,7 +1132,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Record the added funds with any refunded fees.
     store.recordAddedBalanceFor(_projectId, _amount + _refundedFees);
 
-    emit AddToBalance(_projectId, _payer, _amount, _memo, msg.sender);
+    emit AddToBalance(_projectId, _amount, _memo, msg.sender);
   }
 
   /**
