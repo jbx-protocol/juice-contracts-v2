@@ -239,7 +239,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     if (_terminal == IJBPaymentTerminal(address(0))) revert TERMINAL_NOT_FOUND();
 
     // The amount's decimals must match the terminal's expected decimals.
-    if (_terminal.decimals() != _decimals) revert INCORRECT_DECIMAL_AMOUNT();
+    if (_terminal.decimalsForToken(_token) != _decimals) revert INCORRECT_DECIMAL_AMOUNT();
 
     // Approve the `_amount` of tokens from this terminal to transfer tokens from this terminal.
     if (_token != JBTokens.ETH) IERC20(_token).approve(address(_terminal), _amount);
@@ -251,8 +251,9 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     if (_beneficiary != address(0))
       // Send funds to the terminal.
       _terminal.pay{value: _payableValue}(
-        _amount, // ignored if the token is JBTokens.ETH.
         _projectId,
+        _amount, // ignored if the token is JBTokens.ETH.
+        _token,
         _beneficiary,
         _minReturnedTokens,
         _preferClaimedTokens,
@@ -260,6 +261,6 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
         _metadata
       );
       // Otherwise just add to balance so tokens don't get issued.
-    else _terminal.addToBalanceOf{value: _payableValue}(_projectId, _amount, _memo);
+    else _terminal.addToBalanceOf{value: _payableValue}(_projectId, _amount, _token, _memo);
   }
 }

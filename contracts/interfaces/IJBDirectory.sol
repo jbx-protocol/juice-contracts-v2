@@ -46,7 +46,11 @@ interface IJBDirectory {
 
   function setTerminalsOf(uint256 _projectId, IJBPaymentTerminal[] calldata _terminals) external;
 
-  function setPrimaryTerminalOf(uint256 _projectId, IJBPaymentTerminal _terminal) external;
+  function setPrimaryTerminalOf(
+    uint256 _projectId,
+    address _token,
+    IJBPaymentTerminal _terminal
+  ) external;
 
   function setIsAllowedToSetFirstController(address _address, bool _flag) external;
 }

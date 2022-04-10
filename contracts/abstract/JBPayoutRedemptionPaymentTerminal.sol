@@ -237,6 +237,18 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     return _heldFeesOf[_projectId];
   }
 
+  function acceptsToken(address _token) external view override returns (bool) {
+    return _token == token;
+  }
+
+  function currencyForToken(address) external view override returns (uint256) {
+    return currency;
+  }
+
+  function decimalsForToken(address) external view override returns (uint256) {
+    return decimals;
+  }
+
   //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
@@ -291,8 +303,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @notice
     Contribute tokens to a project.
 
-    @param _amount The amount of terminal tokens being received, as a fixed point number with the same amount of decimals as this terminal. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
     @param _projectId The ID of the project being paid.
+    @param _amount The amount of terminal tokens being received, as a fixed point number with the same amount of decimals as this terminal. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
+    // _param _token The token being paid. This terminal ignores this property since it only manages one currency. 
     @param _beneficiary The address to mint tokens for and pass along to the funding cycle's delegate.
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with the same amount of decimals as this terminal.
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
@@ -302,8 +315,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @return The number of tokens minted for the beneficiary, as a fixed point number with 18 decimals.
   */
   function pay(
-    uint256 _amount,
     uint256 _projectId,
+    uint256 _amount,
+    address,
     address _beneficiary,
     uint256 _minReturnedTokens,
     bool _preferClaimedTokens,
@@ -322,9 +336,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     return
       _pay(
+        _projectId,
         _amount,
         msg.sender,
-        _projectId,
         _beneficiary,
         _minReturnedTokens,
         _preferClaimedTokens,
@@ -644,7 +658,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     returns (uint256 balance)
   {
     // The terminal being migrated to must accept the same token as this terminal.
-    if (token != _to.token()) revert TERMINAL_TOKENS_INCOMPATIBLE();
+    if (!_to.acceptsToken(token)) revert TERMINAL_TOKENS_INCOMPATIBLE();
 
     // Record the migration in the store.
     balance = store.recordMigration(_projectId);
@@ -658,7 +672,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       uint256 _payableValue = token == JBTokens.ETH ? balance : 0;
 
       // Withdraw the balance to transfer to the new terminal;
-      _to.addToBalanceOf{value: _payableValue}(_projectId, balance, '');
+      _to.addToBalanceOf{value: _payableValue}(_projectId, balance, token, '');
     }
 
     emit Migrate(_projectId, _to, balance, msg.sender);
@@ -670,11 +684,13 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     @param _projectId The ID of the project to which the funds received belong.
     @param _amount The amount of tokens to add, as a fixed point number with the same number of decimals as this terminal. If this is an ETH terminal, this is ignored and msg.value is used instead.
+    // _param _token The token being paid. This terminal ignores this property since it only manages one currency. 
     @param _memo A memo to pass along to the emitted event.
   */
   function addToBalanceOf(
     uint256 _projectId,
     uint256 _amount,
+    address,
     string calldata _memo
   ) external payable virtual override isTerminalOf(_projectId) {
     // If this terminal's token isn't ETH, make sure no msg.value was sent, then transfer the tokens in from msg.sender.
@@ -878,9 +894,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
             if (_split.beneficiary != address(0))
               _pay(
+                _split.projectId,
                 _netPayoutAmount,
                 address(this),
-                _split.projectId,
                 _split.beneficiary,
                 0,
                 _split.preferClaimed,
@@ -911,8 +927,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             // Pay if there's a beneficiary to receive tokens.
             if (_split.beneficiary != address(0))
               _terminal.pay{value: _payableValue}(
-                _netPayoutAmount,
                 _split.projectId,
+                _netPayoutAmount,
+                token,
                 _split.beneficiary,
                 0,
                 _split.preferClaimed,
@@ -924,6 +941,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
               _terminal.addToBalanceOf{value: _payableValue}(
                 _split.projectId,
                 _netPayoutAmount,
+                token,
                 ''
               );
           }
@@ -998,7 +1016,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     // When processing the admin fee, save gas if the admin is using this contract as its terminal.
     if (_terminal == this)
-      _pay(_amount, address(this), _PROTOCOL_PROJECT_ID, _beneficiary, 0, false, '', bytes('')); // Use the local pay call.
+      _pay(_PROTOCOL_PROJECT_ID, _amount, address(this), _beneficiary, 0, false, '', bytes('')); // Use the local pay call.
     else {
       // Trigger any inherited pre-transfer logic.
       _beforeTransferTo(address(_terminal), _amount);
@@ -1008,8 +1026,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
       // Send the payment.
       _terminal.pay{value: _payableValue}(
-        _amount,
         _PROTOCOL_PROJECT_ID,
+        _amount,
+        token,
         _beneficiary,
         0,
         false,
@@ -1023,9 +1042,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @notice
     Contribute tokens to a project.
 
+    @param _projectId The ID of the project being paid.
     @param _amount The amount of terminal tokens being received, as a fixed point number with the same amount of decimals as this terminal. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
     @param _payer The address making the payment.
-    @param _projectId The ID of the project being paid.
     @param _beneficiary The address to mint tokens for and pass along to the funding cycle's delegate.
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with the same amount of decimals as this terminal.
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
@@ -1035,9 +1054,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @return beneficiaryTokenCount The number of tokens minted for the beneficiary, as a fixed point number with 18 decimals.
   */
   function _pay(
+    uint256 _projectId,
     uint256 _amount,
     address _payer,
-    uint256 _projectId,
     address _beneficiary,
     uint256 _minReturnedTokens,
     bool _preferClaimedTokens,
