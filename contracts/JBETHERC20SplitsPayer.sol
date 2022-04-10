@@ -3,6 +3,7 @@ pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Address.sol';
+import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 
@@ -28,7 +29,7 @@ import './JBETHERC20ProjectPayer.sol';
   Inherits from:
   JBETHERC20ProjectPayer: Sends ETH or ERC20's to a project treasury as it receives direct payments or has it's functions called.
 */
-contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
+contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, ReentrancyGuard {
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
@@ -107,7 +108,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     @dev
     This function is called automatically when the contract receives an ETH payment.
   */
-  receive() external payable virtual override {
+  receive() external payable nonReentrant virtual override {
     // Pay the split and get a reference to the amount paid.
     uint256 _leftoverAmount = _payToSplits(
       defaultSplitsProjectId,
@@ -200,12 +201,14 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     bool _preferClaimedTokens,
     string memory _memo,
     bytes memory _metadata
-  ) public payable virtual override {
+  ) public payable nonReentrant virtual override {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
       // Transfer tokens to this terminal from the msg sender.
+
       IERC20(_token).transferFrom(msg.sender, address(this), _amount);
+
     } else {
       _amount = msg.value;
       _decimals = 18;
@@ -226,7 +229,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     if (_leftoverAmount == 0) return;
 
     // If there's a default project ID, try to pay it.
-    if (_projectId != 0)
+    if (_projectId != 0) {
       _pay(
         _projectId,
         _token,
@@ -238,6 +241,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
         _memo,
         _metadata
       );
+    }
       // If no project was specified, send the funds directly to the beneficiary or the msg.sender.
     else {
       // Transfer the ETH.
@@ -276,7 +280,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
     uint256 _amount,
     uint256 _decimals,
     string memory _memo
-  ) public payable virtual override {
+  ) public payable nonReentrant virtual override {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
@@ -409,12 +413,13 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
               _splitAmount
             );
             // Or, transfer the ERC20.
-          else
+          else {
             IERC20(_token).transfer(
               // Get a reference to the address receiving the tokens. If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
               _split.beneficiary != address(0) ? _split.beneficiary : msg.sender,
               _splitAmount
             );
+          }
         }
 
         // Subtract from the amount to be sent to the beneficiary.

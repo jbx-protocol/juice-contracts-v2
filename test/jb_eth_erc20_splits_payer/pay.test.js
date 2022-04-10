@@ -218,7 +218,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     ).to.not.be.reverted;
   });
 
-  it(`Should send fund towards project terminal if project ID set and add to balance if it is prefered`, async function () {
+  it(`Should send fund towards project terminal if project ID is set in split and add to balance if it is prefered`, async function () {
     const { jbSplitsPayer, mockJbSplitsStore, mockJbDirectory, mockJbTerminal } = await setup();
 
     let splits = makeSplits({ projectId: PROJECT_ID, preferAddToBalance: true });
@@ -263,7 +263,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     ).to.not.be.reverted;
   });
 
-  it(`Should send fund towards project terminal if project ID set, using pay with beneficiaries set in splits`, async function () {
+  it(`Should send fund towards project terminal if project ID is set in split, using pay with beneficiaries set in splits`, async function () {
     const { beneficiaryOne, beneficiaryTwo, jbSplitsPayer, mockJbSplitsStore, mockJbDirectory, mockJbTerminal } = await setup();
     let splits = makeSplits({ count: 2, projectId: PROJECT_ID, beneficiary: [beneficiaryOne.address, beneficiaryTwo.address]});
 
@@ -311,7 +311,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     ).to.not.be.reverted;
   });
 
-  it(`Should send fund towards project terminal if project ID set, using pay with the caller as beneficiary is none is set in splits`, async function () {
+  it(`Should send fund towards project terminal if project ID is set in split, using pay with the caller as beneficiary is none is set in splits`, async function () {
     const { caller, jbSplitsPayer, mockJbSplitsStore, mockJbDirectory, mockJbTerminal } = await setup();
 
     let splits = makeSplits({ projectId: PROJECT_ID});
