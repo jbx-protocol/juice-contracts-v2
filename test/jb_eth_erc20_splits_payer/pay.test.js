@@ -11,12 +11,12 @@ import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.j
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 
-describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
+describe('JBETHERC20SplitsPayer::pay(...)', function () {
   const DEFAULT_PROJECT_ID = 2;
   const DEFAULT_SPLITS_PROJECT_ID = 3;
   const DEFAULT_SPLITS_DOMAIN = 1;
   const DEFAULT_SPLITS_GROUP = 1;
-  const DEFAULT_DECIMALS = 18;
+  const DECIMALS = 18;
   const DEFAULT_BENEFICIARY = ethers.Wallet.createRandom().address;
   const DEFAULT_PREFER_CLAIMED_TOKENS = false;
   const DEFAULT_MEMO = 'hello world';
@@ -53,7 +53,7 @@ describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
     let mockJbSplitsStore = await deployMockContract(deployer, jbSplitsStore.abi);
     let mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
     let mockToken = await deployMockContract(deployer, ierc20.abi);
-    
+
     let jbSplitsPayerFactory = await ethers.getContractFactory('JBETHERC20SplitsPayer');
 
     await mockJbSplitsStore.mock.directory.returns(mockJbDirectory.address);
@@ -135,10 +135,10 @@ describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
       jbSplitsPayer
       .connect(owner)
       .pay(
-        DEFAULT_PROJECT_ID,
+        PROJECT_ID,
         ethToken,
         AMOUNT,
-        DEFAULT_DECIMALS,
+        DECIMALS,
         BENEFICIARY,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
@@ -191,7 +191,7 @@ describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
       jbSplitsPayer
         .connect(caller)
         .pay(
-        DEFAULT_PROJECT_ID,
+        PROJECT_ID,
         mockToken.address,
         AMOUNT,
         DECIMALS,
@@ -233,10 +233,10 @@ describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
     
     await expect(
       jbSplitsPayer.pay(
-        DEFAULT_PROJECT_ID,
+        PROJECT_ID,
         ethToken,
         AMOUNT,
-        DEFAULT_DECIMALS,
+        DECIMALS,
         BENEFICIARY,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
@@ -281,10 +281,10 @@ describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
     
     await expect(
       jbSplitsPayer.pay(
-        DEFAULT_PROJECT_ID,
+        PROJECT_ID,
         ethToken,
         AMOUNT,
-        DEFAULT_DECIMALS,
+        DECIMALS,
         BENEFICIARY,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
@@ -332,10 +332,10 @@ describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
       jbSplitsPayer
         .connect(caller)
         .pay(
-          DEFAULT_PROJECT_ID,
+          PROJECT_ID,
           ethToken,
           AMOUNT,
-          DEFAULT_DECIMALS,
+          DECIMALS,
           BENEFICIARY,
           MIN_RETURNED_TOKENS,
           PREFER_CLAIMED_TOKENS,
@@ -360,10 +360,10 @@ describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
     let tx = await jbSplitsPayer
               .connect(caller)
               .pay(
-                DEFAULT_PROJECT_ID,
+                PROJECT_ID,
                 ethToken,
                 AMOUNT,
-                DEFAULT_DECIMALS,
+                DECIMALS,
                 BENEFICIARY,
                 MIN_RETURNED_TOKENS,
                 PREFER_CLAIMED_TOKENS,
@@ -390,10 +390,10 @@ describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
     let tx = await jbSplitsPayer
               .connect(caller)
               .pay(
-                DEFAULT_PROJECT_ID,
+                PROJECT_ID,
                 ethToken,
                 AMOUNT,
-                DEFAULT_DECIMALS,
+                DECIMALS,
                 BENEFICIARY,
                 MIN_RETURNED_TOKENS,
                 PREFER_CLAIMED_TOKENS,
@@ -420,13 +420,13 @@ describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
     await mockJbTerminal.mock.decimals.returns(18);
 
     await mockJbDirectory.mock.primaryTerminalOf
-      .withArgs(DEFAULT_PROJECT_ID, ethToken)
+      .withArgs(PROJECT_ID, ethToken)
       .returns(mockJbTerminal.address);
     
     await mockJbTerminal.mock.pay
       .withArgs(
         AMOUNT.div('2'),
-        DEFAULT_PROJECT_ID,
+        PROJECT_ID,
         beneficiaryThree.address,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
@@ -438,10 +438,10 @@ describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
     await expect(jbSplitsPayer
       .connect(caller)
       .pay(
-        DEFAULT_PROJECT_ID,
+        PROJECT_ID,
         ethToken,
         AMOUNT,
-        DEFAULT_DECIMALS,
+        DECIMALS,
         beneficiaryThree.address,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
@@ -476,9 +476,9 @@ describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
       })
     );
 
-    // leftover: terminal of default project ID
+    // leftover: terminal of project ID
     await mockJbDirectory.mock.primaryTerminalOf
-      .withArgs(DEFAULT_PROJECT_ID, mockToken.address)
+      .withArgs(PROJECT_ID, mockToken.address)
       .returns(mockJbTerminal.address);
 
     await mockJbTerminal.mock.decimals.returns(18);
@@ -488,11 +488,11 @@ describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
     .withArgs(mockJbTerminal.address, AMOUNT.div('2'))
     .returns(true);
 
-    // Pay the leftover with the default benefiary
+    // Pay the leftover with the default beneficiary
     await mockJbTerminal.mock.pay
       .withArgs(
         AMOUNT.div('2'),
-        DEFAULT_PROJECT_ID,
+        PROJECT_ID,
         beneficiaryThree.address,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
@@ -504,10 +504,10 @@ describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
     await expect(jbSplitsPayer
       .connect(caller)
       .pay(
-        DEFAULT_PROJECT_ID,
+        PROJECT_ID,
         mockToken.address,
         AMOUNT,
-        DEFAULT_DECIMALS,
+        DECIMALS,
         beneficiaryThree.address, // default beneficiary
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
@@ -517,7 +517,7 @@ describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
   });
 
   it(`Should send eth leftover to beneficiary if no project id set`, async function () {
-    const { caller, jbSplitsPayer, mockJbDirectory, mockJbSplitsStore, mockJbTerminal, beneficiaryOne, beneficiaryTwo, beneficiaryThree } = await setup();
+    const { caller, jbSplitsPayer, mockJbSplitsStore, mockJbTerminal, beneficiaryOne, beneficiaryTwo, beneficiaryThree } = await setup();
 
     // 50% to beneficiaries
     let splits = makeSplits({ count: 2, beneficiary: [beneficiaryOne.address, beneficiaryTwo.address], percent: maxSplitsPercent.div('4')});
@@ -546,7 +546,7 @@ describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
                 0,
                 ethToken,
                 AMOUNT,
-                DEFAULT_DECIMALS,
+                DECIMALS,
                 beneficiaryThree.address,
                 MIN_RETURNED_TOKENS,
                 PREFER_CLAIMED_TOKENS,
@@ -595,7 +595,7 @@ describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
                 0,
                 mockToken.address,
                 AMOUNT,
-                DEFAULT_DECIMALS,
+                DECIMALS,
                 beneficiaryThree.address,
                 MIN_RETURNED_TOKENS,
                 PREFER_CLAIMED_TOKENS,
@@ -634,7 +634,7 @@ describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
                 0,
                 ethToken,
                 AMOUNT,
-                DEFAULT_DECIMALS,
+                DECIMALS,
                 ethers.constants.AddressZero,
                 MIN_RETURNED_TOKENS,
                 PREFER_CLAIMED_TOKENS,
@@ -683,7 +683,7 @@ describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
                 0,
                 ethToken,
                 AMOUNT,
-                DEFAULT_DECIMALS,
+                DECIMALS,
                 ethers.constants.AddressZero,
                 MIN_RETURNED_TOKENS,
                 PREFER_CLAIMED_TOKENS,
@@ -706,7 +706,7 @@ describe.only('JBETHERC20SplitsPayer::pay(...)', function () {
                 DEFAULT_PROJECT_ID,
                 mockToken.address,
                 AMOUNT,
-                DEFAULT_DECIMALS,
+                DECIMALS,
                 BENEFICIARY,
                 MIN_RETURNED_TOKENS,
                 PREFER_CLAIMED_TOKENS,
