@@ -26,6 +26,7 @@ interface IJBPaymentTerminal {
 
   function addToBalanceOf(
     uint256 _projectId,
+    address _payer,
     uint256 _amount,
     string calldata _memo
   ) external payable;
