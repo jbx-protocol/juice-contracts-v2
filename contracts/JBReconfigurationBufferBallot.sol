@@ -91,7 +91,7 @@ contract JBReconfigurationBufferBallot is IJBFundingCycleBallot {
 
     // If the delay hasn't yet passed, the ballot is either failed or active.
     if (block.timestamp < _configured + delay)
-      // If the current timestamp is passed the start, the ballot is failed
+      // If the current timestamp is past the start, the ballot is failed.
       return (block.timestamp >= _start) ? JBBallotState.Failed : JBBallotState.Active;
 
     // The ballot is otherwise approved.
