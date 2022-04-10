@@ -219,7 +219,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
 
       // Transfer tokens to this terminal from the msg sender.
-      IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
+      IERC20(_token).transferFrom(msg.sender, address(this), _amount);
     } else {
       _amount = msg.value;
       _decimals = 18;
@@ -263,7 +263,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
 
       // Transfer tokens to this terminal from the msg sender.
-      IERC20(_token).transferFrom(msg.sender, payable(address(this)), _amount);
+      IERC20(_token).transferFrom(msg.sender, address(this), _amount);
     } else {
       _amount = msg.value;
       _decimals = 18;
