@@ -240,14 +240,20 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
       );
       // If no project was specified, send the funds directly to the beneficiary or the msg.sender.
     else {
-      // Get a reference to the address receiving the tokens. If there's a default beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
-      _beneficiary = _beneficiary != address(0) ? _beneficiary : payable(msg.sender);
-
-      // If ETH, send to the beneficiary.
+      // Transfer the ETH.
       if (_token == JBTokens.ETH)
-        Address.sendValue(_beneficiary, _leftoverAmount);
-        // Transfer the ERC20 to the beneficiary.
-      else IERC20(_token).transfer(_beneficiary, _leftoverAmount);
+        Address.sendValue(
+          // If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
+          _beneficiary != address(0) ? _beneficiary : payable(msg.sender),
+          _leftoverAmount
+        );
+        // Or, transfer the ERC20.
+      else
+        IERC20(_token).transfer(
+          // If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
+          _beneficiary != address(0) ? _beneficiary : payable(msg.sender),
+          _leftoverAmount
+        );
     }
   }
 
@@ -301,16 +307,20 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
 
       // Otherwise, send a payment to the beneficiary.
     else {
-      // Get a reference to the address receiving the tokens. If there's a default beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
-      address payable _beneficiary = defaultBeneficiary != address(0)
-        ? defaultBeneficiary
-        : payable(msg.sender);
-
-      // If ETH, send to the beneficiary.
+      // Transfer the ETH.
       if (_token == JBTokens.ETH)
-        Address.sendValue(_beneficiary, _leftoverAmount);
-        // Transfer the ERC20 to the beneficiary.
-      else IERC20(_token).transfer(_beneficiary, _leftoverAmount);
+        Address.sendValue(
+          // If there's a default beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
+          defaultBeneficiary != address(0) ? defaultBeneficiary : payable(msg.sender),
+          _leftoverAmount
+        );
+        // Or, transfer the ERC20.
+      else
+        IERC20(_token).transfer(
+          // If there's a default beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
+          defaultBeneficiary != address(0) ? defaultBeneficiary : msg.sender,
+          _leftoverAmount
+        );
     }
   }
 
@@ -391,16 +401,20 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
               defaultMetadata
             );
         } else {
-          // Get a reference to the address receiving the tokens. If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
-          address payable _beneficiary = _split.beneficiary != address(0)
-            ? _split.beneficiary
-            : payable(msg.sender);
-
-          // If ETH, send to the beneficiary.
+          // Transfer the ETH.
           if (_token == JBTokens.ETH)
-            Address.sendValue(_beneficiary, _splitAmount);
-            // Transfer the ERC20 to the beneficiary.
-          else IERC20(_token).transfer(_beneficiary, _splitAmount);
+            Address.sendValue(
+              // Get a reference to the address receiving the tokens. If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
+              _split.beneficiary != address(0) ? _split.beneficiary : payable(msg.sender),
+              _splitAmount
+            );
+            // Or, transfer the ERC20.
+          else
+            IERC20(_token).transfer(
+              // Get a reference to the address receiving the tokens. If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
+              _split.beneficiary != address(0) ? _split.beneficiary : msg.sender,
+              _splitAmount
+            );
         }
 
         // Subtract from the amount to be sent to the beneficiary.
