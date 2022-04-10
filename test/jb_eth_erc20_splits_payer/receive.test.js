@@ -11,7 +11,7 @@ import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.j
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 
-describe.only('JBETHERC20SplitsPayer::receive()', function () {
+describe('JBETHERC20SplitsPayer::receive()', function () {
   const DEFAULT_PROJECT_ID = 2;
   const DEFAULT_SPLITS_PROJECT_ID = 3;
   const DEFAULT_SPLITS_DOMAIN = 1;
@@ -21,7 +21,6 @@ describe.only('JBETHERC20SplitsPayer::receive()', function () {
   const DEFAULT_MEMO = 'hello world';
   const DEFAULT_METADATA = [0x1];
   
-  const DECIMALS = 18;
   const PROJECT_ID = 69;
   const AMOUNT = ethers.utils.parseEther('1.0');
   const PREFER_ADD_TO_BALANCE = false;
