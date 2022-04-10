@@ -373,6 +373,6 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     uint256 _payableValue = _token == JBTokens.ETH ? _amount : 0;
 
     // Add to balance so tokens don't get issued.
-    _terminal.addToBalanceOf{value: _payableValue}(_projectId, _amount, _memo);
+    _terminal.addToBalanceOf{value: _payableValue}(_projectId, _payer, _amount, _memo);
   }
 }
