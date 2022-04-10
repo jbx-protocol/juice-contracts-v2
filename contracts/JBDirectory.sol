@@ -150,9 +150,11 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     override
     returns (IJBPaymentTerminal)
   {
-    // If a primary terminal for the token was specifically set, return it.
-    if (_primaryTerminalOf[_projectId][_token] != IJBPaymentTerminal(address(0)))
-      return _primaryTerminalOf[_projectId][_token];
+    // If a primary terminal for the token was specifically set and its one of the project's terminals, return it.
+    if (
+      _primaryTerminalOf[_projectId][_token] != IJBPaymentTerminal(address(0)) &&
+      isTerminalOf(_projectId, _primaryTerminalOf[_projectId][_token])
+    ) return _primaryTerminalOf[_projectId][_token];
 
     // Return the first terminal which accepts the specified token.
     for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++) {
@@ -265,16 +267,6 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
       for (uint256 _i; _i < _terminals.length; _i++)
         for (uint256 _j = _i + 1; _j < _terminals.length; _j++)
           if (_terminals[_i] == _terminals[_j]) revert DUPLICATE_TERMINALS();
-
-    // If one of the old terminals was set as a primary terminal but is not included in the new terminals, remove it from being a primary terminal.
-    //TODO
-    // // Get a reference to the terminals of the project.
-    // IJBPaymentTerminal[] memory _oldTerminals = _terminalsOf[_projectId];
-    // for (uint256 _i; _i < _oldTerminals.length; _i++)
-    //   if (
-    //     _primaryTerminalOf[_projectId][_oldTerminals[_i].token()] == _oldTerminals[_i] &&
-    //     !_contains(_terminals, _oldTerminals[_i])
-    //   ) delete _primaryTerminalOf[_projectId][_oldTerminals[_i].token()];
 
     emit SetTerminals(_projectId, _terminals, msg.sender);
   }
