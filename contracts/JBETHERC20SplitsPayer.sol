@@ -397,11 +397,20 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
               defaultMetadata
             );
         } else {
-          // If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
-          Address.sendValue(
-            _split.beneficiary != address(0) ? _split.beneficiary : payable(msg.sender),
-            _splitAmount
-          );
+          // Get a reference to the address receiving the tokens. If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
+          address payable _beneficiary = _split.beneficiary != address(0)
+            ? _split.beneficiary
+            : payable(msg.sender);
+
+          // If ETH, send to the beneficiary.
+          if (_token == JBTokens.ETH)
+            Address.sendValue(_beneficiary, _splitAmount);
+            // Transfer the ERC20 to the beneficiary.
+          else {
+            _payer == address(this)
+              ? IERC20(_token).transfer(_beneficiary, _splitAmount)
+              : IERC20(_token).transferFrom(_payer, _beneficiary, _splitAmount);
+          }
         }
 
         // Subtract from the amount to be sent to the beneficiary.
