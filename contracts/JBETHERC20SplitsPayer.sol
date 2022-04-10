@@ -251,7 +251,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer {
       else
         IERC20(_token).transfer(
           // If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
-          _beneficiary != address(0) ? _beneficiary : payable(msg.sender),
+          _beneficiary != address(0) ? _beneficiary : msg.sender,
           _leftoverAmount
         );
     }
