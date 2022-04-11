@@ -481,7 +481,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       // Also get a reference to the amount that was distributed to splits from which fees should be taken.
       (_leftoverDistributionAmount, _feeEligibleDistributionAmount) = _distributeToPayoutSplitsOf(
         _projectId,
-        _fundingCycle,
+        _fundingCycle.configuration,
+        payoutSplitsGroup,
         _distributedAmount,
         _feeDiscount
       );
@@ -782,7 +783,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     Pays out splits for a project's funding cycle configuration.
 
     @param _projectId The ID of the project for which payout splits are being distributed.
-    @param _fundingCycle The funding cycle during which the distribution is being made.
+    @param _domain The domain of the splits to distribute the payout between.
+    @param _payoutSplitsGroup The group of the splits to distribute the payout between.
     @param _amount The total amount being distributed, as a fixed point number with the same number of decimals as this terminal.
     @param _feeDiscount The amount of discount to apply to the fee, out of the MAX_FEE.
 
@@ -791,7 +793,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   */
   function _distributeToPayoutSplitsOf(
     uint256 _projectId,
-    JBFundingCycle memory _fundingCycle,
+    uint256 _domain,
+    uint256 _payoutSplitsGroup,
     uint256 _amount,
     uint256 _feeDiscount
   ) private returns (uint256 leftoverAmount, uint256 feeEligibleDistributionAmount) {
@@ -799,11 +802,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     leftoverAmount = _amount;
 
     // Get a reference to the project's payout splits.
-    JBSplit[] memory _splits = splitsStore.splitsOf(
-      _projectId,
-      _fundingCycle.configuration,
-      payoutSplitsGroup
-    );
+    JBSplit[] memory _splits = splitsStore.splitsOf(_projectId, _domain, _payoutSplitsGroup);
 
     // Transfer between all splits.
     for (uint256 _i = 0; _i < _splits.length; _i++) {
@@ -936,9 +935,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       }
 
       emit DistributeToPayoutSplit(
-        _fundingCycle.configuration,
-        _fundingCycle.number,
         _projectId,
+        _domain,
+        _payoutSplitsGroup,
         _split,
         _netPayoutAmount,
         msg.sender

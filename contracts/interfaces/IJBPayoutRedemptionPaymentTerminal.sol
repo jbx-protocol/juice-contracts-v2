@@ -80,9 +80,9 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
   );
 
   event DistributeToPayoutSplit(
-    uint256 indexed fundingCycleConfiguration,
-    uint256 indexed fundingCycleNumber,
     uint256 indexed projectId,
+    uint256 indexed domain,
+    uint256 indexed group,
     JBSplit split,
     uint256 amount,
     address caller
