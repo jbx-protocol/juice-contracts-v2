@@ -36,6 +36,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     _groupedSplits[0].splits.push(
       JBSplit({
         preferClaimed: false,
+        preferAddToBalance: false,
         percent: jbLibraries().SPLITS_TOTAL_PERCENT(),
         projectId: 0,
         beneficiary: payable(caller),

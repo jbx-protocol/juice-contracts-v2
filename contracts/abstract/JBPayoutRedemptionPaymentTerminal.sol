@@ -820,7 +820,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       uint256 _netPayoutAmount;
 
       if (_payoutAmount > 0) {
-        // Transfer tokens to the mod.
+        // Transfer tokens to the split.
         // If there's an allocator set, transfer to its `allocate` function.
         if (_split.allocator != IJBSplitAllocator(address(0))) {
           _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
@@ -838,6 +838,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
           // Create the data to send to the allocator.
           JBSplitAllocationData memory _data = JBSplitAllocationData(
+            token,
             _netPayoutAmount,
             decimals,
             _projectId,
@@ -861,19 +862,19 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             // This distribution does not incur a fee.
             _netPayoutAmount = _payoutAmount;
 
-            if (_split.beneficiary != address(0))
+            // Add to balance if prefered.
+            if (_split.preferAddToBalance) _addToBalanceOf(_split.projectId, _netPayoutAmount, '');
+            else
               _pay(
                 _netPayoutAmount,
                 address(this),
                 _split.projectId,
-                _split.beneficiary,
+                (_split.beneficiary != address(0)) ? _split.beneficiary : msg.sender,
                 0,
                 _split.preferClaimed,
                 '',
                 bytes('')
               );
-              // Otherwise just add to balance so tokens don't get issued.
-            else _addToBalanceOf(_split.projectId, _netPayoutAmount, '');
           } else {
             // If the terminal is set as feeless, this distribution is not eligible for a fee.
             if (isFeelessTerminal[_terminal])
@@ -893,25 +894,24 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             // If this terminal's token is ETH, send it in msg.value.
             uint256 _payableValue = token == JBTokens.ETH ? _netPayoutAmount : 0;
 
-            // Pay if there's a beneficiary to receive tokens.
-            if (_split.beneficiary != address(0))
-              _terminal.pay{value: _payableValue}(
-                _split.projectId,
-                _netPayoutAmount,
-                token,
-                _split.beneficiary,
-                0,
-                _split.preferClaimed,
-                '',
-                bytes('')
-              );
-              // Otherwise just add to balance so tokens don't get issued.
-            else
+            // Add to balance if prefered.
+            if (_split.preferAddToBalance)
               _terminal.addToBalanceOf{value: _payableValue}(
                 _split.projectId,
                 _netPayoutAmount,
                 token,
                 ''
+              );
+            else
+              _terminal.pay{value: _payableValue}(
+                _split.projectId,
+                _netPayoutAmount,
+                token,
+                _split.beneficiary != address(0) ? _split.beneficiary : msg.sender,
+                0,
+                _split.preferClaimed,
+                '',
+                bytes('')
               );
           }
         } else {
@@ -1093,6 +1093,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       _fundingCycle.configuration,
       _fundingCycle.number,
       _projectId,
+      _payer,
       _beneficiary,
       _amount,
       beneficiaryTokenCount,

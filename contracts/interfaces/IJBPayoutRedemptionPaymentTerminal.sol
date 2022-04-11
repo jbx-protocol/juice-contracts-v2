@@ -54,6 +54,7 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
     uint256 indexed fundingCycleConfiguration,
     uint256 indexed fundingCycleNumber,
     uint256 indexed projectId,
+    address payer,
     address beneficiary,
     uint256 amount,
     uint256 beneficiaryTokenCount,

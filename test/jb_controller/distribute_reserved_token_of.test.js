@@ -159,6 +159,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -237,6 +238,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -270,6 +272,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       mockJbTokenStore,
       mockSplitsStore,
       mockJbAllocator,
+      mockJbToken,
       timestamp,
     } = await setup();
     const caller = addrs[0];
@@ -296,12 +299,15 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
         PREFERED_CLAIMED_TOKEN,
       )
       .returns();
+    
+    await mockJbTokenStore.mock.tokenOf.withArgs(PROJECT_ID).returns(mockJbToken.address);
 
     await Promise.all(
       splits.map(async (split) => {
         await mockJbAllocator.mock.allocate
           .withArgs({
             // JBSplitAllocationData obj
+            token: mockJbToken.address,
             amount: Math.floor(RESERVED_AMOUNT / splits.length),
             decimals: 18,
             projectId: PROJECT_ID,
@@ -328,6 +334,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -393,6 +400,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -475,6 +483,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
           PROJECT_ID,
           [
             splits[0].preferClaimed,
+            splits[0].preferAddToBalance,
             splits[0].percent,
             splits[0].projectId,
             splits[0].beneficiary,
