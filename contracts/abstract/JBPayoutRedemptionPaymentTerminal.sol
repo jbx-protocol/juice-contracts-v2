@@ -853,6 +853,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
           // Create the data to send to the allocator.
           JBSplitAllocationData memory _data = JBSplitAllocationData(
+            token,
             _netPayoutAmount,
             decimals,
             _projectId,

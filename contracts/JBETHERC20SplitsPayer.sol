@@ -376,6 +376,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
         if (_split.allocator != IJBSplitAllocator(address(0))) {
           // Create the data to send to the allocator.
           JBSplitAllocationData memory _data = JBSplitAllocationData(
+            _token,
             _splitAmount,
             _decimals,
             defaultProjectId,
