@@ -27,7 +27,7 @@ error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
 
 /**
   @notice
-  Manages all bookkeeping for inflows and outflows of funds from any IJBPayoutRedemptionPaymentTerminal.
+  Manages all bookkeeping for inflows and outflows of funds from any ISingleTokenPaymentTerminal.
 
   @dev
   Adheres to:
@@ -83,9 +83,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     _terminal The terminal to which the balance applies.
     _projectId The ID of the project to get the balance of.
   */
-  mapping(IJBPayoutRedemptionPaymentTerminal => mapping(uint256 => uint256))
-    public
-    override balanceOf;
+  mapping(IJBSingleTokenPaymentTerminal => mapping(uint256 => uint256)) public override balanceOf;
 
   /**
     @notice
@@ -101,7 +99,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     _projectId The ID of the project to get the used distribution limit of.
     _fundingCycleNumber The number of the funding cycle during which the distribution limit was used.
   */
-  mapping(IJBPayoutRedemptionPaymentTerminal => mapping(uint256 => mapping(uint256 => uint256)))
+  mapping(IJBSingleTokenPaymentTerminal => mapping(uint256 => mapping(uint256 => uint256)))
     public
     override usedDistributionLimitOf;
 
@@ -119,7 +117,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     _projectId The ID of the project to get the used overflow allowance of.
     _configuration The configuration of the during which the allowance was used.
   */
-  mapping(IJBPayoutRedemptionPaymentTerminal => mapping(uint256 => mapping(uint256 => uint256)))
+  mapping(IJBSingleTokenPaymentTerminal => mapping(uint256 => mapping(uint256 => uint256)))
     public
     override usedOverflowAllowanceOf;
 
@@ -139,7 +137,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
 
     @return The current amount of overflow that project has in the specified terminal.
   */
-  function currentOverflowOf(IJBPayoutRedemptionPaymentTerminal _terminal, uint256 _projectId)
+  function currentOverflowOf(IJBSingleTokenPaymentTerminal _terminal, uint256 _projectId)
     external
     view
     override
@@ -194,7 +192,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     @return The amount of overflowed tokens that can be reclaimed, as a fixed point number with the same number of decimals as the provided `_terminal`.
   */
   function currentReclaimableOverflowOf(
-    IJBPayoutRedemptionPaymentTerminal _terminal,
+    IJBSingleTokenPaymentTerminal _terminal,
     uint256 _projectId,
     uint256 _tokenCount,
     bool _useTotalOverflow
@@ -296,7 +294,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     Mint's the project's tokens according to values provided by a configured data source. If no data source is configured, mints tokens proportional to the amount of the contribution.
 
     @dev
-    The msg.sender must be an IJBPayoutRedemptionPaymentTerminal. The amount specified in the params is in terms of the msg.sender's tokens.
+    The msg.sender must be an IJBSingleTokenPaymentTerminal. The amount specified in the params is in terms of the msg.sender's tokens.
 
     @param _payer The original address that sent the payment to the terminal.
     @param _amount The amount of tokens being paid. Includes the token being paid, the value, the number of decimals included, and the currency of the amount.
@@ -344,7 +342,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     if (fundingCycle.useDataSourceForPay()) {
       // Create the params that'll be sent to the data source.
       JBPayParamsData memory _data = JBPayParamsData(
-        IJBPayoutRedemptionPaymentTerminal(msg.sender),
+        IJBSingleTokenPaymentTerminal(msg.sender),
         _payer,
         _amount,
         _projectId,
@@ -365,8 +363,8 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     if (_amount.value == 0) return (fundingCycle, 0, delegate, memo);
 
     // Add the amount to the token balance of the project.
-    balanceOf[IJBPayoutRedemptionPaymentTerminal(msg.sender)][_projectId] =
-      balanceOf[IJBPayoutRedemptionPaymentTerminal(msg.sender)][_projectId] +
+    balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
+      balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] +
       _amount.value;
 
     // If there's no weight, token count must be 0 so there's nothing left to do.
@@ -393,7 +391,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     Redeems the project's tokens according to values provided by a configured data source. If no data source is configured, redeems tokens along a redemption bonding curve that is a function of the number of tokens being burned.
 
     @dev
-    The msg.sender must be an IJBPayoutRedemptionPaymentTerminal. The amount specified in the params is in terms of the msg.senders tokens.
+    The msg.sender must be an IJBSingleTokenPaymentTerminal. The amount specified in the params is in terms of the msg.senders tokens.
 
     @param _holder The account that is having its tokens redeemed.
     @param _projectId The ID of the project to which the tokens being redeemed belong.
@@ -440,7 +438,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
       uint256 _currentOverflow = fundingCycle.useTotalOverflowForRedemptions()
         ? _currentTotalOverflowOf(_projectId, _balanceDecimals, _balanceCurrency)
         : _overflowDuring(
-          IJBPayoutRedemptionPaymentTerminal(msg.sender),
+          IJBSingleTokenPaymentTerminal(msg.sender),
           _projectId,
           fundingCycle,
           _balanceCurrency
@@ -469,7 +467,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
       if (fundingCycle.useDataSourceForRedeem()) {
         // Create the params that'll be sent to the data source.
         JBRedeemParamsData memory _data = JBRedeemParamsData(
-          IJBPayoutRedemptionPaymentTerminal(msg.sender),
+          IJBSingleTokenPaymentTerminal(msg.sender),
           _holder,
           _projectId,
           _tokenCount,
@@ -491,13 +489,13 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     }
 
     // The amount being reclaimed must be within the project's balance.
-    if (reclaimAmount > balanceOf[IJBPayoutRedemptionPaymentTerminal(msg.sender)][_projectId])
+    if (reclaimAmount > balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId])
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
 
     // Remove the reclaimed funds from the project's balance.
     if (reclaimAmount > 0)
-      balanceOf[IJBPayoutRedemptionPaymentTerminal(msg.sender)][_projectId] =
-        balanceOf[IJBPayoutRedemptionPaymentTerminal(msg.sender)][_projectId] -
+      balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
+        balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] -
         reclaimAmount;
   }
 
@@ -506,7 +504,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     Records newly distributed funds for a project.
 
     @dev
-    The msg.sender must be an IJBPayoutRedemptionPaymentTerminal. 
+    The msg.sender must be an IJBSingleTokenPaymentTerminal. 
 
     @param _projectId The ID of the project that is having funds distributed.
     @param _amount The amount to use from the distribution limit, as a fixed point number.
@@ -535,7 +533,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
 
     // The new total amount that has been distributed during this funding cycle.
     uint256 _newUsedDistributionLimitOf = usedDistributionLimitOf[
-      IJBPayoutRedemptionPaymentTerminal(msg.sender)
+      IJBSingleTokenPaymentTerminal(msg.sender)
     ][_projectId][fundingCycle.number] + _amount;
 
     // Amount must be within what is still distributable.
@@ -544,7 +542,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
       .distributionLimitOf(
         _projectId,
         fundingCycle.configuration,
-        IJBPayoutRedemptionPaymentTerminal(msg.sender)
+        IJBSingleTokenPaymentTerminal(msg.sender)
       );
 
     // Make sure the new used amount is within the distribution limit.
@@ -564,17 +562,17 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
       );
 
     // The amount being distributed must be available.
-    if (distributedAmount > balanceOf[IJBPayoutRedemptionPaymentTerminal(msg.sender)][_projectId])
+    if (distributedAmount > balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId])
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
 
     // Store the new amount.
-    usedDistributionLimitOf[IJBPayoutRedemptionPaymentTerminal(msg.sender)][_projectId][
+    usedDistributionLimitOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId][
       fundingCycle.number
     ] = _newUsedDistributionLimitOf;
 
     // Removed the distributed funds from the project's token balance.
-    balanceOf[IJBPayoutRedemptionPaymentTerminal(msg.sender)][_projectId] =
-      balanceOf[IJBPayoutRedemptionPaymentTerminal(msg.sender)][_projectId] -
+    balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
+      balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] -
       distributedAmount;
   }
 
@@ -583,7 +581,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     Records newly used allowance funds of a project.
 
     @dev
-    The msg.sender must be an IJBPayoutRedemptionPaymentTerminal. 
+    The msg.sender must be an IJBSingleTokenPaymentTerminal. 
 
     @param _projectId The ID of the project to use the allowance of.
     @param _amount The amount to use from the allowance, as a fixed point number. 
@@ -609,7 +607,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
 
     // Get a reference to the new used overflow allowance for this funding cycle configuration.
     uint256 _newUsedOverflowAllowanceOf = usedOverflowAllowanceOf[
-      IJBPayoutRedemptionPaymentTerminal(msg.sender)
+      IJBSingleTokenPaymentTerminal(msg.sender)
     ][_projectId][fundingCycle.configuration] + _amount;
 
     // There must be sufficient allowance available.
@@ -618,7 +616,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
       .overflowAllowanceOf(
         _projectId,
         fundingCycle.configuration,
-        IJBPayoutRedemptionPaymentTerminal(msg.sender)
+        IJBSingleTokenPaymentTerminal(msg.sender)
       );
 
     // Make sure the new used amount is within the allowance.
@@ -641,7 +639,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     if (
       usedAmount >
       _overflowDuring(
-        IJBPayoutRedemptionPaymentTerminal(msg.sender),
+        IJBSingleTokenPaymentTerminal(msg.sender),
         _projectId,
         fundingCycle,
         _balanceCurrency
@@ -649,13 +647,13 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     ) revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
 
     // Store the incremented value.
-    usedOverflowAllowanceOf[IJBPayoutRedemptionPaymentTerminal(msg.sender)][_projectId][
+    usedOverflowAllowanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId][
       fundingCycle.configuration
     ] = _newUsedOverflowAllowanceOf;
 
     // Update the project's balance.
-    balanceOf[IJBPayoutRedemptionPaymentTerminal(msg.sender)][_projectId] =
-      balanceOf[IJBPayoutRedemptionPaymentTerminal(msg.sender)][_projectId] -
+    balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
+      balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] -
       usedAmount;
   }
 
@@ -664,7 +662,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     Records newly added funds for the project.
 
     @dev
-    The msg.sender must be an IJBPayoutRedemptionPaymentTerminal. 
+    The msg.sender must be an IJBSingleTokenPaymentTerminal. 
 
     @param _projectId The ID of the project to which the funds being added belong.
     @param _amount The amount of temrinal tokens added, as a fixed point number with the same amount of decimals as its relative terminal.
@@ -675,8 +673,8 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     nonReentrant
   {
     // Increment the balance.
-    balanceOf[IJBPayoutRedemptionPaymentTerminal(msg.sender)][_projectId] =
-      balanceOf[IJBPayoutRedemptionPaymentTerminal(msg.sender)][_projectId] +
+    balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
+      balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] +
       _amount;
   }
 
@@ -685,7 +683,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     Records the migration of funds from this store.
 
     @dev
-    The msg.sender must be an IJBPayoutRedemptionPaymentTerminal. The amount returned is in terms of the msg.senders tokens.
+    The msg.sender must be an IJBSingleTokenPaymentTerminal. The amount returned is in terms of the msg.senders tokens.
 
     @param _projectId The ID of the project being migrated.
 
@@ -704,10 +702,10 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     if (!_fundingCycle.terminalMigrationAllowed()) revert PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
 
     // Return the current balance.
-    balance = balanceOf[IJBPayoutRedemptionPaymentTerminal(msg.sender)][_projectId];
+    balance = balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId];
 
     // Set the balance to 0.
-    balanceOf[IJBPayoutRedemptionPaymentTerminal(msg.sender)][_projectId] = 0;
+    balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] = 0;
   }
 
   //*********************************************************************//
@@ -782,7 +780,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     @return overflow The overflow of funds, as a fixed point number with 18 decimals.
   */
   function _overflowDuring(
-    IJBPayoutRedemptionPaymentTerminal _terminal,
+    IJBSingleTokenPaymentTerminal _terminal,
     uint256 _projectId,
     JBFundingCycle memory _fundingCycle,
     uint256 _balanceCurrency

@@ -12,12 +12,12 @@ import './IJBTokenStore.sol';
 import './IJBPrices.sol';
 import './IJBRedemptionDelegate.sol';
 import './IJBFeeGauge.sol';
-import './IJBPaymentTerminal.sol';
+import './IJBSingleTokenPaymentTerminal.sol';
 import './IJBPaymentTerminalStore.sol';
 
 import './../structs/JBFee.sol';
 
-interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
+interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
   event AddToBalance(uint256 indexed projectId, uint256 amount, string memo, address caller);
   event Migrate(
     uint256 indexed projectId,
@@ -107,12 +107,6 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBPaymentTerminal {
   function baseWeightCurrency() external view returns (uint256);
 
   function payoutSplitsGroup() external view returns (uint256);
-
-  function token() external view returns (address);
-
-  function currency() external view returns (uint256);
-
-  function decimals() external view returns (uint256);
 
   function heldFeesOf(uint256 _projectId) external view returns (JBFee[] memory);
 

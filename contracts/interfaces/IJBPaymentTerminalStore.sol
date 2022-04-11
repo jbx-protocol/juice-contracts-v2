@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './IJBPayoutRedemptionPaymentTerminal.sol';
+import './IJBSingleTokenPaymentTerminal.sol';
 import './IJBPayDelegate.sol';
 import './IJBRedemptionDelegate.sol';
 import './IJBTokenStore.sol';
@@ -17,24 +17,24 @@ interface IJBPaymentTerminalStore {
 
   function prices() external view returns (IJBPrices);
 
-  function balanceOf(IJBPayoutRedemptionPaymentTerminal _terminal, uint256 _projectId)
+  function balanceOf(IJBSingleTokenPaymentTerminal _terminal, uint256 _projectId)
     external
     view
     returns (uint256);
 
   function usedDistributionLimitOf(
-    IJBPayoutRedemptionPaymentTerminal _terminal,
+    IJBSingleTokenPaymentTerminal _terminal,
     uint256 _projectId,
     uint256 _fundingCycleNumber
   ) external view returns (uint256);
 
   function usedOverflowAllowanceOf(
-    IJBPayoutRedemptionPaymentTerminal _terminal,
+    IJBSingleTokenPaymentTerminal _terminal,
     uint256 _projectId,
     uint256 _fundingCycleConfiguration
   ) external view returns (uint256);
 
-  function currentOverflowOf(IJBPayoutRedemptionPaymentTerminal _terminal, uint256 _projectId)
+  function currentOverflowOf(IJBSingleTokenPaymentTerminal _terminal, uint256 _projectId)
     external
     view
     returns (uint256);
@@ -46,7 +46,7 @@ interface IJBPaymentTerminalStore {
   ) external view returns (uint256);
 
   function currentReclaimableOverflowOf(
-    IJBPayoutRedemptionPaymentTerminal _terminal,
+    IJBSingleTokenPaymentTerminal _terminal,
     uint256 _projectId,
     uint256 _tokenCount,
     bool _useTotalOverflow
