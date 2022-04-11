@@ -79,7 +79,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     @param _defaultPreferClaimedTokens A flag indicating whether issued tokens should be automatically claimed into the beneficiary's wallet. 
     @param _defaultMemo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
     @param _defaultMetadata Bytes to send along to the project's data source and delegate, if provided.
-    @param _defaultPreferAddToBalance  A flag indicating if received payments should call the `pay` function or the `addToBalance` function of a project.
+    @param _defaultPreferAddToBalance A flag indicating if received payments should call the `pay` function or the `addToBalance` function of a project.
     @param _directory A contract storing directories of terminals and controllers for each project.
     @param _owner The address that will own the contract.
   */

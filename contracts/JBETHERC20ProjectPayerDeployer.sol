@@ -23,7 +23,7 @@ contract JBETHERC20ProjectPayerDeployer is IJBETHERC20ProjectPayerDeployer {
     @param _defaultPreferClaimedTokens A flag indicating whether issued tokens from the project payer's received payments should be automatically claimed into the beneficiary's wallet. 
     @param _defaultMemo The memo that'll be forwarded with the project payer's received payments. 
     @param _defaultMetadata The metadata that'll be forwarded with the project payer's received payments. 
-    @param _defaultPreferAddToBalance  A flag indicating if received payments should call the `pay` function or the `addToBalance` function of a project.
+    @param _defaultPreferAddToBalance A flag indicating if received payments should call the `pay` function or the `addToBalance` function of a project.
     @param _directory A contract storing directories of terminals and controllers for each project.
     @param _owner The address that will own the project payer.
 
