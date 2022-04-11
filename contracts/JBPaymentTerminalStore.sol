@@ -542,7 +542,8 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
       .distributionLimitOf(
         _projectId,
         fundingCycle.configuration,
-        IJBSingleTokenPaymentTerminal(msg.sender)
+        IJBSingleTokenPaymentTerminal(msg.sender),
+        IJBSingleTokenPaymentTerminal(msg.sender).token()
       );
 
     // Make sure the new used amount is within the distribution limit.
@@ -616,7 +617,8 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
       .overflowAllowanceOf(
         _projectId,
         fundingCycle.configuration,
-        IJBSingleTokenPaymentTerminal(msg.sender)
+        IJBSingleTokenPaymentTerminal(msg.sender),
+        IJBSingleTokenPaymentTerminal(msg.sender).token()
       );
 
     // Make sure the new used amount is within the allowance.
@@ -794,7 +796,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
     // Get a reference to the distribution limit during the funding cycle.
     (uint256 _distributionLimit, uint256 _distributionLimitCurrency) = directory
       .controllerOf(_projectId)
-      .distributionLimitOf(_projectId, _fundingCycle.configuration, _terminal);
+      .distributionLimitOf(_projectId, _fundingCycle.configuration, _terminal, _terminal.token());
 
     // Get a reference to the amount still distributable during the funding cycle.
     uint256 _distributionLimitRemaining = _distributionLimit -

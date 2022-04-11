@@ -94,13 +94,15 @@ interface IJBController {
   function distributionLimitOf(
     uint256 _projectId,
     uint256 _configuration,
-    IJBPaymentTerminal _terminal
+    IJBPaymentTerminal _terminal,
+    address _token
   ) external view returns (uint256 distributionLimit, uint256 distributionLimitCurrency);
 
   function overflowAllowanceOf(
     uint256 _projectId,
     uint256 _configuration,
-    IJBPaymentTerminal _terminal
+    IJBPaymentTerminal _terminal,
+    address _token
   ) external view returns (uint256 overflowAllowance, uint256 overflowAllowanceCurrency);
 
   function totalOutstandingTokensOf(uint256 _projectId, uint256 _reservedRate)

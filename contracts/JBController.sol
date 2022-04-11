@@ -77,8 +77,9 @@ contract JBController is IJBController, JBOperatable {
     _projectId The ID of the project to get the packed distribution limit data of.
     _configuration The configuration during which the packed distribution limit data applies.
     _terminal The terminal from which distributions are being limited.
+    _token The token for which distributions are being limited.
   */
-  mapping(uint256 => mapping(uint256 => mapping(IJBPaymentTerminal => uint256)))
+  mapping(uint256 => mapping(uint256 => mapping(IJBPaymentTerminal => mapping(address => uint256))))
     private _packedDistributionLimitDataOf;
 
   /**
@@ -94,8 +95,9 @@ contract JBController is IJBController, JBOperatable {
     _projectId The ID of the project to get the packed overflow allowance data of.
     _configuration The configuration during which the packed overflow allowance data applies.
     _terminal The terminal managing the overflow.
+    _token The token for which distributions are being limited.
   */
-  mapping(uint256 => mapping(uint256 => mapping(IJBPaymentTerminal => uint256)))
+  mapping(uint256 => mapping(uint256 => mapping(IJBPaymentTerminal => mapping(address => uint256))))
     private _packedOverflowAllowanceDataOf;
 
   //*********************************************************************//
@@ -146,6 +148,7 @@ contract JBController is IJBController, JBOperatable {
     @param _projectId The ID of the project to get the distribution limit of.
     @param _configuration The configuration during which the distribution limit applies.
     @param _terminal The terminal from which distributions are being limited.
+    @param _token The token for which the distribution limit applies.
 
     @return The distribution limit, as a fixed point number with the same number of decimals as the provided terminal.
     @return The currency of the distribution limit.
@@ -153,10 +156,11 @@ contract JBController is IJBController, JBOperatable {
   function distributionLimitOf(
     uint256 _projectId,
     uint256 _configuration,
-    IJBPaymentTerminal _terminal
+    IJBPaymentTerminal _terminal,
+    address _token
   ) external view override returns (uint256, uint256) {
     // Get a reference to the packed data.
-    uint256 _data = _packedDistributionLimitDataOf[_projectId][_configuration][_terminal];
+    uint256 _data = _packedDistributionLimitDataOf[_projectId][_configuration][_terminal][_token];
 
     // The limit is in bits 0-247. The currency is in bits 248-255.
     return (uint256(uint248(_data)), _data >> 248);
@@ -172,6 +176,7 @@ contract JBController is IJBController, JBOperatable {
     @param _projectId The ID of the project to get the overflow allowance of.
     @param _configuration The configuration of the during which the allowance applies.
     @param _terminal The terminal managing the overflow.
+    @param _token The token for which the distribution limit applies.
 
     @return The overflow allowance, as a fixed point number with the same number of decimals as the provided terminal.
     @return The currency of the overflow allowance.
@@ -179,10 +184,11 @@ contract JBController is IJBController, JBOperatable {
   function overflowAllowanceOf(
     uint256 _projectId,
     uint256 _configuration,
-    IJBPaymentTerminal _terminal
+    IJBPaymentTerminal _terminal,
+    address _token
   ) external view override returns (uint256, uint256) {
     // Get a reference to the packed data.
-    uint256 _data = _packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal];
+    uint256 _data = _packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal][_token];
 
     // The allowance is in bits 0-247. The currency is in bits 248-255.
     return (uint256(uint248(_data)), _data >> 248);
@@ -959,13 +965,17 @@ contract JBController is IJBController, JBOperatable {
       if (_constraints.distributionLimit > 0)
         _packedDistributionLimitDataOf[_projectId][_fundingCycle.configuration][
           _constraints.terminal
-        ] = _constraints.distributionLimit | (_constraints.distributionLimitCurrency << 248);
+        ][_constraints.token] =
+          _constraints.distributionLimit |
+          (_constraints.distributionLimitCurrency << 248);
 
       // Set the overflow allowance if there is one.
       if (_constraints.overflowAllowance > 0)
         _packedOverflowAllowanceDataOf[_projectId][_fundingCycle.configuration][
           _constraints.terminal
-        ] = _constraints.overflowAllowance | (_constraints.overflowAllowanceCurrency << 248);
+        ][_constraints.token] =
+          _constraints.overflowAllowance |
+          (_constraints.overflowAllowanceCurrency << 248);
 
       emit SetFundAccessConstraints(
         _fundingCycle.configuration,
