@@ -872,13 +872,7 @@ contract JBController is IJBController, JBOperatable {
         // If there's an allocator set, trigger its `allocate` function.
         if (_split.allocator != IJBSplitAllocator(address(0)))
           _split.allocator.allocate(
-            JBSplitAllocationData(
-              _tokenCount,
-              18,
-              _projectId,
-              JBSplitsGroups.RESERVED_TOKENS,
-              _split
-            )
+            JBSplitAllocationData(_tokenCount, 18, _projectId, _group, _split)
           );
 
         // Subtract from the amount to be sent to the beneficiary.

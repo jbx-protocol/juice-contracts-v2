@@ -841,7 +841,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             _netPayoutAmount,
             decimals,
             _projectId,
-            payoutSplitsGroup,
+            _group,
             _split
           );
 
