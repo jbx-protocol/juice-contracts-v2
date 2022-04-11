@@ -208,7 +208,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     address _token,
     uint256 _amount,
     uint256 _decimals,
-    address payable _beneficiary,
+    address _beneficiary,
     uint256 _minReturnedTokens,
     bool _preferClaimedTokens,
     string calldata _memo,

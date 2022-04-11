@@ -28,6 +28,7 @@ import './JBETHERC20ProjectPayer.sol';
   @dev
   Inherits from:
   JBETHERC20ProjectPayer: Sends ETH or ERC20's to a project treasury as it receives direct payments or has it's functions called.
+  ReentrancyGuard: Contract module that helps prevent reentrant calls to a function.
 */
 contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, ReentrancyGuard {
   //*********************************************************************//
@@ -108,7 +109,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
     @dev
     This function is called automatically when the contract receives an ETH payment.
   */
-  receive() external payable nonReentrant virtual override {
+  receive() external payable virtual override nonReentrant {
     // Pay the split and get a reference to the amount paid.
     uint256 _leftoverAmount = _payToSplits(
       defaultSplitsProjectId,
@@ -196,19 +197,18 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
     address _token,
     uint256 _amount,
     uint256 _decimals,
-    address payable _beneficiary,
+    address _beneficiary,
     uint256 _minReturnedTokens,
     bool _preferClaimedTokens,
     string memory _memo,
     bytes memory _metadata
-  ) public payable nonReentrant virtual override {
+  ) public payable virtual override nonReentrant {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
       // Transfer tokens to this terminal from the msg sender.
 
       IERC20(_token).transferFrom(msg.sender, address(this), _amount);
-
     } else {
       _amount = msg.value;
       _decimals = 18;
@@ -242,13 +242,13 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
         _metadata
       );
     }
-      // If no project was specified, send the funds directly to the beneficiary or the msg.sender.
+    // If no project was specified, send the funds directly to the beneficiary or the msg.sender.
     else {
       // Transfer the ETH.
       if (_token == JBTokens.ETH)
         Address.sendValue(
           // If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
-          _beneficiary != address(0) ? _beneficiary : payable(msg.sender),
+          _beneficiary != address(0) ? payable(_beneficiary) : payable(msg.sender),
           _leftoverAmount
         );
         // Or, transfer the ERC20.
@@ -280,7 +280,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
     uint256 _amount,
     uint256 _decimals,
     string memory _memo
-  ) public payable nonReentrant virtual override {
+  ) public payable virtual override nonReentrant {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
