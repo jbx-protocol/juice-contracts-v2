@@ -235,6 +235,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -333,6 +334,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -446,6 +448,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -544,6 +547,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -633,6 +637,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -720,6 +725,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -814,6 +820,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -916,6 +923,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -1025,6 +1033,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -1151,6 +1160,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -1261,6 +1271,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -1371,6 +1382,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -1452,6 +1464,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -1564,6 +1577,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -1650,6 +1664,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -1719,6 +1734,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -1813,6 +1829,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -1926,6 +1943,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -2062,6 +2080,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -2163,6 +2182,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -2262,6 +2282,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -2343,6 +2364,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -2412,6 +2434,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -2492,6 +2515,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
