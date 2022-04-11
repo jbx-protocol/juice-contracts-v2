@@ -87,7 +87,11 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
     );
   }
 
-  function testHeldFeeReimburse(uint256 payAmountInWei, uint256 fee, uint256 feeDiscount) external {
+  function testHeldFeeReimburse(
+    uint256 payAmountInWei,
+    uint256 fee,
+    uint256 feeDiscount
+  ) external {
     // Assuming we don't revert when distributing too much
     evm.assume(payAmountInWei <= _targetInWei);
     evm.assume(feeDiscount <= jbLibraries().MAX_FEE());
@@ -99,7 +103,11 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
 
     IJBFeeGauge feeGauge = IJBFeeGauge(address(69696969));
     evm.etch(address(feeGauge), new bytes(0x1));
-    evm.mockCall(address(feeGauge), abi.encodeWithSignature('currentDiscountFor(uint256)', _projectId), abi.encode(feeDiscount));
+    evm.mockCall(
+      address(feeGauge),
+      abi.encodeWithSignature('currentDiscountFor(uint256)', _projectId),
+      abi.encode(feeDiscount)
+    );
     evm.prank(multisig());
     _terminal.setFeeGauge(feeGauge);
 
@@ -130,10 +138,18 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
     assertEq(jbPaymentTerminalStore().balanceOf(_terminal, _projectId), _terminalBalanceInWei);
 
     // -- distribute --
-    _terminal.distributePayoutsOf(_projectId, payAmountInWei, jbLibraries().ETH(), /*min out*/0, /*LFG*/ 'lfg');
+    _terminal.distributePayoutsOf(
+      _projectId,
+      payAmountInWei,
+      jbLibraries().ETH(),
+      /*min out*/
+      0,
+      /*LFG*/
+      'lfg'
+    );
 
     // verify: should have held the fee
-    if(fee > 0 && payAmountInWei > 0) {
+    if (fee > 0 && payAmountInWei > 0) {
       assertEq(_terminal.heldFeesOf(_projectId)[0].fee, _terminal.fee());
       assertEq(_terminal.heldFeesOf(_projectId)[0].feeDiscount, feeDiscount);
       assertEq(_terminal.heldFeesOf(_projectId)[0].amount, payAmountInWei);
@@ -141,11 +157,23 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
 
     // -- add to balance --
     // Will get the fee reimbursed:
-    uint256 heldFee = payAmountInWei - PRBMath.mulDiv(payAmountInWei, jbLibraries().MAX_FEE(), discountedFee + jbLibraries().MAX_FEE()); // no discount
+    uint256 heldFee = payAmountInWei -
+      PRBMath.mulDiv(
+        payAmountInWei,
+        jbLibraries().MAX_FEE(),
+        discountedFee + jbLibraries().MAX_FEE()
+      ); // no discount
     uint256 balanceBefore = jbPaymentTerminalStore().balanceOf(_terminal, _projectId);
-    _terminal.addToBalanceOf{value: payAmountInWei}(_projectId, payAmountInWei, 'thanks for all the fish');
-    
+    _terminal.addToBalanceOf{value: payAmountInWei}(
+      _projectId,
+      payAmountInWei,
+      'thanks for all the fish'
+    );
+
     // verify: project should get the fee back (plus the addToBalance amount)
-    assertEq(jbPaymentTerminalStore().balanceOf(_terminal, _projectId), balanceBefore + heldFee + payAmountInWei);
+    assertEq(
+      jbPaymentTerminalStore().balanceOf(_terminal, _projectId),
+      balanceBefore + heldFee + payAmountInWei
+    );
   }
 }

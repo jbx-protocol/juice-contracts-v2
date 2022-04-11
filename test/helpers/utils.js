@@ -168,6 +168,7 @@ export function makeSplits({
   count = 4,
   beneficiary = Array(count).fill(ethers.constants.AddressZero),
   preferClaimed = false,
+  preferAddToBalance = false,
   percent = Math.floor(1000000000 / count),
   lockedUntil = 0,
   allocator = ethers.constants.AddressZero,
@@ -177,11 +178,12 @@ export function makeSplits({
   for (let i = 0; i < count; i++) {
     splits.push({
       preferClaimed,
+      preferAddToBalance,
       percent,
-      lockedUntil,
-      beneficiary: beneficiary[i],
-      allocator,
       projectId,
+      beneficiary: beneficiary[i],
+      lockedUntil,
+      allocator,
     });
   }
   return splits;
