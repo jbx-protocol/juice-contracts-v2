@@ -168,8 +168,13 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
     uint256 _domain,
     uint256 _group
   ) external virtual override onlyOwner {
+    // Set the default splits project ID if it's changing.
     if (_projectId != defaultSplitsProjectId) defaultSplitsProjectId = _projectId;
+
+    // Set the default splits domain if it's changing.
     if (_domain != defaultSplitsDomain) defaultSplitsDomain = _domain;
+
+    // Set the default splits group if it's changing.
     if (_group != defaultSplitsGroup) defaultSplitsGroup = _group;
 
     emit SetDefaultSplits(_projectId, _domain, _group, msg.sender);
