@@ -14,6 +14,7 @@ import './../libraries/JBTokens.sol';
 import './../libraries/JBFixedPointNumber.sol';
 import './../libraries/JBFundingCycleMetadataResolver.sol';
 import './../structs/JBTokenAmount.sol';
+import './JBSingleTokenPaymentTerminal.sol';
 import './JBOperatable.sol';
 
 //*********************************************************************//
@@ -43,12 +44,14 @@ error INADEQUATE_RECLAIM_AMOUNT();
 
   @dev
   Inherits from:
+  JBPayoutRedemptionPaymentTerminal: Generic terminal managing all inflows and outflows of funds into the protocol ecosystem for one token.
   JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
   ReentrancyGuard: Contract module that helps prevent reentrant calls to a function.
 */
 abstract contract JBPayoutRedemptionPaymentTerminal is
   IJBPayoutRedemptionPaymentTerminal,
+  JBSingleTokenPaymentTerminal,
   JBOperatable,
   Ownable,
   ReentrancyGuard
@@ -129,24 +132,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     The contract that stores and manages the terminal's data.
   */
   IJBPaymentTerminalStore public immutable override store;
-
-  /**
-    @notice
-    The token that this terminal accepts.
-  */
-  address public immutable override token;
-
-  /**
-    @notice
-    The number of decimals the token fixed point amounts are expected to have.
-  */
-  uint256 public immutable override decimals;
-
-  /**
-    @notice
-    The currency to use when resolving price feeds for this terminal.
-  */
-  uint256 public immutable override currency;
 
   /**
     @notice
@@ -237,18 +222,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     return _heldFeesOf[_projectId];
   }
 
-  function acceptsToken(address _token) external view override returns (bool) {
-    return _token == token;
-  }
-
-  function currencyForToken(address) external view override returns (uint256) {
-    return currency;
-  }
-
-  function decimalsForToken(address) external view override returns (uint256) {
-    return decimals;
-  }
-
   //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
@@ -280,12 +253,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     IJBPrices _prices,
     IJBPaymentTerminalStore _store,
     address _owner
-  ) JBOperatable(_operatorStore) {
-    token = _token;
-    decimals = _decimals;
+  ) JBSingleTokenPaymentTerminal(_token, _decimals, _currency) JBOperatable(_operatorStore) {
     baseWeightCurrency = _baseWeightCurrency;
     payoutSplitsGroup = _payoutSplitsGroup;
-    currency = _currency;
     projects = _projects;
     directory = _directory;
     splitsStore = _splitsStore;
