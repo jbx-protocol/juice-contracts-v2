@@ -103,6 +103,7 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
         await mockJbAllocator.mock.allocate
           .withArgs(
             {
+              token: ethToken,
               amount: AMOUNT.mul(split.percent).div(maxSplitsPercent),
               decimals: 18,
               projectId: DEFAULT_PROJECT_ID,

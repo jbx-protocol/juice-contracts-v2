@@ -1622,6 +1622,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         await mockJbAllocator.mock.allocate
           .withArgs({
             // JBSplitAllocationData
+            token: ETH_ADDRESS,
             amount: Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             decimals: 18,
             projectId: PROJECT_ID,
@@ -1735,6 +1736,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         await mockJbAllocator.mock.allocate
           .withArgs({
             // JBSplitAllocationData
+            token: ETH_ADDRESS,
             amount: AMOUNT_MINUS_FEES, // One split
             decimals: 18,
             projectId: PROJECT_ID,
@@ -1822,6 +1824,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         await mockJbAllocator.mock.allocate
           .withArgs({
             // JBSplitAllocationData
+            token: fakeToken.address,
             amount: Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             decimals: 18,
             projectId: PROJECT_ID,

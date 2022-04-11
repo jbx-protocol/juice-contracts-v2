@@ -272,6 +272,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       mockJbTokenStore,
       mockSplitsStore,
       mockJbAllocator,
+      mockJbToken,
       timestamp,
     } = await setup();
     const caller = addrs[0];
@@ -298,12 +299,15 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
         PREFERED_CLAIMED_TOKEN,
       )
       .returns();
+    
+    await mockJbTokenStore.mock.tokenOf.withArgs(PROJECT_ID).returns(mockJbToken.address);
 
     await Promise.all(
       splits.map(async (split) => {
         await mockJbAllocator.mock.allocate
           .withArgs({
             // JBSplitAllocationData obj
+            token: mockJbToken.address,
             amount: Math.floor(RESERVED_AMOUNT / splits.length),
             decimals: 18,
             projectId: PROJECT_ID,
