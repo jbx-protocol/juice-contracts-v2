@@ -235,6 +235,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -333,6 +334,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -349,6 +351,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             timestamp,
             1,
             split.projectId,
+            jbEthPaymentTerminal.address,
             split.beneficiary,
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             0,
@@ -446,6 +449,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -462,6 +466,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             timestamp,
             1,
             split.projectId,
+            jbEthPaymentTerminal.address,
             split.beneficiary,
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             0,
@@ -544,6 +549,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -633,6 +639,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -661,7 +668,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       );
   });
 
-  it('Should distribute payout without fee if distributing to a project in another terminal not subject to fees', async function () {
+  it('Should distribute payout without fee if distributing to a project in another terminal not subject to fees, using add to balance', async function () {
     const {
       projectOwner,
       terminalOwner,
@@ -672,7 +679,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       mockJbEthPaymentTerminal,
       mockJbSplitsStore
     } = await setup();
-    const splits = makeSplits({ count: 2, projectId: OTHER_PROJECT_ID });
+    const splits = makeSplits({ count: 2, projectId: OTHER_PROJECT_ID, preferAddToBalance: true });
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(OTHER_PROJECT_ID, ETH_ADDRESS)
@@ -720,6 +727,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -750,11 +758,202 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       );
   });
 
-  it('Should distribute to projects in same terminal using addToBalance if no beneficiary specified, and pay if one is specified', async function () {
+  it('Should distribute payout without fee if distributing to a project in another terminal not subject to fees, using pay, with a beneficiary', async function () {
+    const {
+      projectOwner,
+      terminalOwner,
+      caller,
+      jbEthPaymentTerminal,
+      timestamp,
+      mockJbDirectory,
+      mockJbEthPaymentTerminal,
+      mockJbSplitsStore
+    } = await setup();
+    const beneficiaryOne = ethers.Wallet.createRandom();
+    const beneficiaryTwo = ethers.Wallet.createRandom();
+
+    const splits = makeSplits({ count: 2, projectId: OTHER_PROJECT_ID, preferAddToBalance: false, beneficiary: [beneficiaryOne.address, beneficiaryTwo.address] });
+
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(OTHER_PROJECT_ID, ETH_ADDRESS)
+      .returns(mockJbEthPaymentTerminal.address);
+
+    await mockJbSplitsStore.mock.splitsOf
+      .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
+      .returns(splits);
+
+    await Promise.all(
+      splits.map(async (split) => {
+        await mockJbEthPaymentTerminal.mock.pay
+          .withArgs(
+            /*payoutAmount*/ Math.floor(
+              (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
+            split.projectId,
+            split.beneficiary,
+            0,
+            split.preferClaimed,
+            '',
+            '0x'
+          )
+          .returns(0);
+      }),
+    );
+
+    await jbEthPaymentTerminal
+      .connect(terminalOwner)
+      .setFeelessTerminal(mockJbEthPaymentTerminal.address, true);
+
+    let tx = await jbEthPaymentTerminal
+      .connect(caller)
+      .distributePayoutsOf(
+        PROJECT_ID,
+        AMOUNT_TO_DISTRIBUTE,
+        ETH_PAYOUT_INDEX,
+        MIN_TOKEN_REQUESTED,
+        MEMO,
+      );
+
+    await Promise.all(
+      splits.map(async (split) => {
+        await expect(tx)
+          .to.emit(jbEthPaymentTerminal, 'DistributeToPayoutSplit')
+          .withArgs(
+            /*_fundingCycle.configuration*/ timestamp,
+            /*_fundingCycle.number*/ 1,
+            PROJECT_ID,
+            [
+              split.preferClaimed,
+              split.preferAddToBalance,
+              split.percent,
+              split.projectId,
+              split.beneficiary,
+              split.lockedUntil,
+              split.allocator,
+            ],
+            /*payoutAmount*/ Math.floor(
+              (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
+            ),
+            caller.address,
+          );
+      }),
+    );
+
+    expect(await tx)
+      .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
+      .withArgs(
+        /*_fundingCycle.configuration*/ timestamp,
+        /*_fundingCycle.number*/ 1,
+        PROJECT_ID,
+        projectOwner.address,
+        /*_amount*/ AMOUNT_TO_DISTRIBUTE,
+        /*_distributedAmount*/ AMOUNT_DISTRIBUTED,
+        /*_feeAmount*/ 0,
+        /*_leftoverDistributionAmount*/ 0,
+        MEMO,
+        caller.address,
+      );
+  });
+
+  it('Should distribute payout without fee if distributing to a project in another terminal not subject to fees, using pay, with caller as default beneficiary', async function () {
+    const {
+      projectOwner,
+      terminalOwner,
+      caller,
+      jbEthPaymentTerminal,
+      timestamp,
+      mockJbDirectory,
+      mockJbEthPaymentTerminal,
+      mockJbSplitsStore
+    } = await setup();
+
+    const splits = makeSplits({ count: 2, projectId: OTHER_PROJECT_ID, preferAddToBalance: false });
+
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(OTHER_PROJECT_ID, ETH_ADDRESS)
+      .returns(mockJbEthPaymentTerminal.address);
+
+    await mockJbSplitsStore.mock.splitsOf
+      .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
+      .returns(splits);
+
+    await Promise.all(
+      splits.map(async (split) => {
+        await mockJbEthPaymentTerminal.mock.pay
+          .withArgs(
+            /*payoutAmount*/ Math.floor(
+              (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
+            split.projectId,
+            caller.address,
+            0,
+            split.preferClaimed,
+            '',
+            '0x'
+          )
+          .returns(0);
+      }),
+    );
+
+    await jbEthPaymentTerminal
+      .connect(terminalOwner)
+      .setFeelessTerminal(mockJbEthPaymentTerminal.address, true);
+
+    let tx = await jbEthPaymentTerminal
+      .connect(caller)
+      .distributePayoutsOf(
+        PROJECT_ID,
+        AMOUNT_TO_DISTRIBUTE,
+        ETH_PAYOUT_INDEX,
+        MIN_TOKEN_REQUESTED,
+        MEMO,
+      );
+
+    await Promise.all(
+      splits.map(async (split) => {
+        await expect(tx)
+          .to.emit(jbEthPaymentTerminal, 'DistributeToPayoutSplit')
+          .withArgs(
+            /*_fundingCycle.configuration*/ timestamp,
+            /*_fundingCycle.number*/ 1,
+            PROJECT_ID,
+            [
+              split.preferClaimed,
+              split.preferAddToBalance,
+              split.percent,
+              split.projectId,
+              split.beneficiary,
+              split.lockedUntil,
+              split.allocator,
+            ],
+            /*payoutAmount*/ Math.floor(
+              (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
+            ),
+            caller.address,
+          );
+      }),
+    );
+
+    expect(await tx)
+      .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
+      .withArgs(
+        /*_fundingCycle.configuration*/ timestamp,
+        /*_fundingCycle.number*/ 1,
+        PROJECT_ID,
+        projectOwner.address,
+        /*_amount*/ AMOUNT_TO_DISTRIBUTE,
+        /*_distributedAmount*/ AMOUNT_DISTRIBUTED,
+        /*_feeAmount*/ 0,
+        /*_leftoverDistributionAmount*/ 0,
+        MEMO,
+        caller.address,
+      );
+  });
+
+  it('Should distribute to projects in same terminal using pay if prefered', async function () {
     const {
       projectOwner,
       caller,
       beneficiaryOne,
+      beneficiaryTwo,
       jbEthPaymentTerminal,
       timestamp,
       mockJbEthPaymentTerminal,
@@ -763,7 +962,8 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
     } = await setup();
     const splits = makeSplits({
       count: 2,
-      beneficiary: [beneficiaryOne.address, ethers.constants.AddressZero],
+      beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
+      preferAddToBalance: false
     });
 
     await mockJbSplitsStore.mock.splitsOf
@@ -774,6 +974,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       .withArgs(1, ETH_ADDRESS)
       .returns(mockJbEthPaymentTerminal.address);
 
+    // Fee
     await mockJbEthPaymentTerminal.mock.pay
       .withArgs(
         AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES,
@@ -814,6 +1015,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -842,59 +1044,52 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       );
   });
 
-  it('Should distribute to projects in same terminal using addToBalance if no beneficiary specified, and pay if one is specified', async function () {
+  it('Should distribute to projects in same terminal using addToBalance if prefered', async function () {
     const {
       projectOwner,
-      terminalOwner,
       caller,
+      beneficiaryOne,
+      beneficiaryTwo,
       jbEthPaymentTerminal,
       timestamp,
-      mockJbDirectory,
       mockJbEthPaymentTerminal,
+      mockJbDirectory,
       mockJbSplitsStore,
-      beneficiaryOne
     } = await setup();
-    const splits = makeSplits({ count: 2, projectId: OTHER_PROJECT_ID, beneficiary: [beneficiaryOne.address, ethers.constants.AddressZero] });
-
-    await mockJbDirectory.mock.primaryTerminalOf
-      .withArgs(OTHER_PROJECT_ID, ETH_ADDRESS)
-      .returns(mockJbEthPaymentTerminal.address);
+    const splits = makeSplits({
+      count: 2,
+      beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
+      preferAddToBalance: true
+    });
 
     await mockJbSplitsStore.mock.splitsOf
       .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
       .returns(splits);
 
-    await Promise.all(
-      splits.map(async (split) => {
-        split.beneficiary == ethers.constants.AddressZero ?
-          await mockJbEthPaymentTerminal.mock.addToBalanceOf
-            .withArgs(
-              split.projectId,
-            /*payoutAmount*/ Math.floor(
-                (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
-              ),
-              '',
-            )
-            .returns()
-          : await mockJbEthPaymentTerminal.mock.pay
-            .withArgs(
-            /*payoutAmount*/ Math.floor(
-              (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
-            ),
-              split.projectId,
-              split.beneficiary,
-            /*minReturnedToken*/ 0,
-              split.preferClaimed,
-              '',
-              '0x',
-            )
-            .returns(0);
-      }),
-    );
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(1, ETH_ADDRESS)
+      .returns(mockJbEthPaymentTerminal.address);
 
-    await jbEthPaymentTerminal
-      .connect(terminalOwner)
-      .setFeelessTerminal(mockJbEthPaymentTerminal.address, true);
+    // Fee
+    await mockJbEthPaymentTerminal.mock.pay
+      .withArgs(
+        AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES,
+        1, //JBX Dao
+        projectOwner.address,
+        0,
+        /*preferedClaimedToken*/ false,
+        '',
+        '0x',
+      )
+      .returns(0);
+
+    await mockJbEthPaymentTerminal.mock.addToBalanceOf
+      .withArgs(
+        1, //JBX Dao
+        AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES,
+        ''
+      )
+      .returns();
 
     let tx = await jbEthPaymentTerminal
       .connect(caller)
@@ -916,15 +1111,14 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
               split.lockedUntil,
               split.allocator,
             ],
-            /*payoutAmount*/ Math.floor(
-              (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
-            ),
+            /*payoutAmount*/ Math.floor((AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT),
             caller.address,
           );
       }),
@@ -939,12 +1133,13 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         projectOwner.address,
         /*_amount*/ AMOUNT_TO_DISTRIBUTE,
         /*_distributedAmount*/ AMOUNT_DISTRIBUTED,
-        /*_feeAmount*/ 0,
+        /*_feeAmount*/ AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES,
         /*_leftoverDistributionAmount*/ 0,
         MEMO,
         caller.address,
       );
   });
+
   it('Should distribute payout minus fee and pay the fee via the same terminal, if using Juicebox DAO terminal', async function () {
     const {
       projectOwner,
@@ -1025,6 +1220,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -1039,6 +1235,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             timestamp,
             1,
             /*projectId*/ 1,
+            jbEthPaymentTerminal.address,
             projectOwner.address,
             Math.floor(AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES),
             0,
@@ -1151,6 +1348,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -1261,6 +1459,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -1371,6 +1570,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -1422,6 +1622,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         await mockJbAllocator.mock.allocate
           .withArgs({
             // JBSplitAllocationData
+            token: ETH_ADDRESS,
             amount: Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             decimals: 18,
             projectId: PROJECT_ID,
@@ -1452,6 +1653,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -1534,6 +1736,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         await mockJbAllocator.mock.allocate
           .withArgs({
             // JBSplitAllocationData
+            token: ETH_ADDRESS,
             amount: AMOUNT_MINUS_FEES, // One split
             decimals: 18,
             projectId: PROJECT_ID,
@@ -1564,6 +1767,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -1620,6 +1824,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         await mockJbAllocator.mock.allocate
           .withArgs({
             // JBSplitAllocationData
+            token: fakeToken.address,
             amount: Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             decimals: 18,
             projectId: PROJECT_ID,
@@ -1650,6 +1855,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -1719,6 +1925,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -1813,6 +2020,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -1868,7 +2076,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
 
     await mockJbFeeGauge.mock.currentDiscountFor.withArgs(PROJECT_ID).returns(FEE_DISCOUNT);
 
-    const splits = makeSplits({ count: 1, projectId: OTHER_PROJECT_ID });
+    const splits = makeSplits({ count: 1, projectId: OTHER_PROJECT_ID, preferAddToBalance: true });
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(OTHER_PROJECT_ID, ETH_ADDRESS)
@@ -1926,6 +2134,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -1976,7 +2185,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
 
     const AMOUNT_MINUS_FEES = AMOUNT_TO_DISTRIBUTE - FEE_AMOUNT;
 
-    const splits = makeSplits({ count: 2, projectId: OTHER_PROJECT_ID });
+    const splits = makeSplits({ count: 2, projectId: OTHER_PROJECT_ID, preferAddToBalance: true });
 
     fundingCycle = {
       number: 1,
@@ -2062,6 +2271,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -2163,6 +2373,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -2179,6 +2390,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             timestamp,
             1,
             split.projectId,
+            jbEthPaymentTerminal.address,
             split.beneficiary,
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             0,
@@ -2217,7 +2429,8 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
     } = await setup();
     const splits = makeSplits({
       count: 2,
-      projectId: OTHER_PROJECT_ID
+      projectId: OTHER_PROJECT_ID,
+      preferAddToBalance: true
     });
 
     await jbEthPaymentTerminal.connect(terminalOwner).setFee(0);
@@ -2262,6 +2475,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -2343,6 +2557,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -2412,6 +2627,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,
@@ -2492,6 +2708,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             PROJECT_ID,
             [
               split.preferClaimed,
+              split.preferAddToBalance,
               split.percent,
               split.projectId,
               split.beneficiary,

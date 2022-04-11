@@ -57,6 +57,7 @@ describe('JBSplitsStore::set(...)', function () {
     for (let i = 0; i < count; i++) {
       splits.push({
         preferClaimed: false,
+        preferAddToBalance: false,
         percent: BigNumber.from(Math.floor(1000000000 / count)),
         projectId: BigNumber.from(4),
         beneficiary: beneficiaryAddress,
@@ -72,11 +73,12 @@ describe('JBSplitsStore::set(...)', function () {
     for (let split of splits) {
       cleanedSplits.push({
         preferClaimed: split[0],
-        percent: BigNumber.from(split[1]),
-        projectId: BigNumber.from(split[2].toNumber()),
-        beneficiary: split[3],
-        lockedUntil: BigNumber.from(split[4]),
-        allocator: split[5],
+        preferAddToBalance: split[1],
+        percent: BigNumber.from(split[2]),
+        projectId: BigNumber.from(split[3].toNumber()),
+        beneficiary: split[4],
+        lockedUntil: BigNumber.from(split[5]),
+        allocator: split[6],
       });
     }
     return cleanedSplits;

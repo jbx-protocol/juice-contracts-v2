@@ -52,6 +52,12 @@ module.exports = async ({ deployments, getChainId }) => {
     args: [],
   });
 
+  // Deploy a JBETHERC20SplitsPayerDeployer contract.
+  await deploy('JBETHERC20SplitsPayerDeployer', {
+    ...baseDeployArgs,
+    args: [],
+  });
+
   // Deploy a JBOperatorStore contract.
   const JBOperatorStore = await deploy('JBOperatorStore', {
     ...baseDeployArgs,
