@@ -46,9 +46,9 @@ interface IJBController {
   );
 
   event DistributeToReservedTokenSplit(
-    uint256 indexed fundingCycleConfiguration,
-    uint256 indexed fundingCycleNumber,
     uint256 indexed projectId,
+    uint256 indexed domain,
+    uint256 indexed group,
     JBSplit split,
     uint256 tokenCount,
     address caller

@@ -794,7 +794,12 @@ contract JBController is IJBController, JBOperatable {
     // Distribute tokens to splits and get a reference to the leftover amount to mint after all splits have gotten their share.
     uint256 _leftoverTokenCount = tokenCount == 0
       ? 0
-      : _distributeToReservedTokenSplitsOf(_projectId, _fundingCycle, tokenCount);
+      : _distributeToReservedTokenSplitsOf(
+        _projectId,
+        _fundingCycle.configuration,
+        JBSplitsGroups.RESERVED_TOKENS,
+        tokenCount
+      );
 
     // Mint any leftover tokens to the project owner.
     if (_leftoverTokenCount > 0) tokenStore.mintFor(_owner, _projectId, _leftoverTokenCount, false);
@@ -816,25 +821,23 @@ contract JBController is IJBController, JBOperatable {
     Distribute tokens to the splits according to the specified funding cycle configuration.
 
     @param _projectId The ID of the project for which reserved token splits are being distributed.
-    @param _fundingCycle The funding cycle to base the token distribution on.
+    @param _domain The domain of the splits to distribute the reserved tokens between.
+    @param _group The group of the splits to distribute the reserved tokens between.
     @param _amount The total amount of tokens to mint.
 
     @return leftoverAmount If the splits percents dont add up to 100%, the leftover amount is returned.
   */
   function _distributeToReservedTokenSplitsOf(
     uint256 _projectId,
-    JBFundingCycle memory _fundingCycle,
+    uint256 _domain,
+    uint256 _group,
     uint256 _amount
   ) private returns (uint256 leftoverAmount) {
     // Set the leftover amount to the initial amount.
     leftoverAmount = _amount;
 
     // Get a reference to the project's reserved token splits.
-    JBSplit[] memory _splits = splitsStore.splitsOf(
-      _projectId,
-      _fundingCycle.configuration,
-      JBSplitsGroups.RESERVED_TOKENS
-    );
+    JBSplit[] memory _splits = splitsStore.splitsOf(_projectId, _domain, _group);
 
     //Transfer between all splits.
     for (uint256 _i = 0; _i < _splits.length; _i++) {
@@ -883,9 +886,9 @@ contract JBController is IJBController, JBOperatable {
       }
 
       emit DistributeToReservedTokenSplit(
-        _fundingCycle.configuration,
-        _fundingCycle.number,
         _projectId,
+        _domain,
+        _group,
         _split,
         _tokenCount,
         msg.sender
