@@ -902,6 +902,10 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
       firstFundingCycleData.duration,
     );
 
+
+// -------- following currentOf returns empty fc
+
+    // 
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql({
       ...expectedFirstFundingCycle,
       number: expectedFirstFundingCycle.number.add(1),
