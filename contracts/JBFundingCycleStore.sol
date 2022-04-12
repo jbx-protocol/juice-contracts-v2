@@ -782,8 +782,8 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
 
     @param _projectId The ID of the project to which the funding cycle belongs.
     @param _configuration The funding cycle configuration to get the ballot state of.
-    @param _ballotFundingCycleConfiguration The configuration of the funding cycle which is configured with the ballot that should be used.
     @param _start The start time of the funding cycle configuration to get the ballot state of.
+    @param _ballotFundingCycleConfiguration The configuration of the funding cycle which is configured with the ballot that should be used.
 
     @return The ballot state of the project.
   */
