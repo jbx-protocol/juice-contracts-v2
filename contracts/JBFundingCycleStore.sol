@@ -771,8 +771,8 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
       _ballotStateOf(
         _projectId,
         _fundingCycle.configuration,
-        _fundingCycle.basedOn,
-        _fundingCycle.start
+        _fundingCycle.start,
+        _fundingCycle.basedOn
       ) == JBBallotState.Approved;
   }
 

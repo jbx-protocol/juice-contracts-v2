@@ -3,6 +3,8 @@ pragma solidity 0.8.6;
 
 import './helpers/TestBaseWorkflow.sol';
 
+import '../JBReconfigurationBufferBallot.sol';
+
 uint256 constant WEIGHT = 1000 * 10**18;
 
 contract TestReconfigureProject is TestBaseWorkflow {
@@ -10,6 +12,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
   JBProjectMetadata _projectMetadata;
   JBFundingCycleData _data;
   JBFundingCycleMetadata _metadata;
+  JBReconfigurationBufferBallot _ballot;
   JBGroupedSplits[] _groupedSplits; // Default empty
   JBFundAccessConstraints[] _fundAccessConstraints; // Default empty
   IJBPaymentTerminal[] _terminals; // Default empty
@@ -21,11 +24,13 @@ contract TestReconfigureProject is TestBaseWorkflow {
 
     _projectMetadata = JBProjectMetadata({content: 'myIPFSHash', domain: 1});
 
+    _ballot = new JBReconfigurationBufferBallot(0, jbFundingCycleStore());
+
     _data = JBFundingCycleData({
       duration: 14,
       weight: 1000 * 10**18,
       discountRate: 0,
-      ballot: IJBFundingCycleBallot(address(0))
+      ballot: _ballot
     });
 
     _metadata = JBFundingCycleMetadata({
