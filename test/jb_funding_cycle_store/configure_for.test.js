@@ -824,6 +824,12 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     // Set the ballot to have a short duration.
     await mockBallot.mock.duration.withArgs().returns(0);
 
+    // // Mock the ballot on the initial configureFor.
+    // -> should be if (_ballotFundingCycleConfiguration == 0) return JBBallotState.Approved; ?
+    // await mockBallot.mock.stateOf
+    //   .withArgs(PROJECT_ID, config, start)
+    //   .returns(ballotStatus.APPROVED);
+
     // Configure first funding cycle
     const firstConfigureForTx = await jbFundingCycleStore
       .connect(controller)
@@ -889,9 +895,8 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
 
     // Mock the ballot on the failed funding cycle as failed.
     await mockBallot.mock.stateOf
-      .withArgs(PROJECT_ID, failedConfigurationTimestamp)
+      .withArgs(PROJECT_ID, failedConfigurationTimestamp, firstConfigurationTimestamp.add(firstFundingCycleData.duration))
       .returns(ballotStatus.FAILED);
-
     // Go to the next cycle of the cycle. 
     await fastForward(
       firstConfigureForTx.blockNumber,
@@ -913,7 +918,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
 
     // Approve the ballot.
     await mockBallot.mock.stateOf
-      .withArgs(PROJECT_ID, failedConfigurationTimestamp)
+      .withArgs(PROJECT_ID, failedConfigurationTimestamp, expectedFirstFundingCycle.start.add(expectedFirstFundingCycle.duration.mul(2)))
       .returns(ballotStatus.APPROVED);
 
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(
