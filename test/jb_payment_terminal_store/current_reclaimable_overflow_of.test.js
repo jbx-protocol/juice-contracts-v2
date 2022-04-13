@@ -454,7 +454,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
       await JBPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
         mockJbTerminalSigner.address,
         PROJECT_ID,
-        /* tokenCount */ tokenAmt,
+        /* tokenCount */ totalSupply.addUnsafe(ethers.FixedNumber.from(1)),
         false,
       ),
     ).to.equal(0);

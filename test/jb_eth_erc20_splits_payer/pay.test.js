@@ -691,6 +691,35 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     await expect(tx).to.changeEtherBalance(caller, AMOUNT.div('-2')); // Only 50% are dsitributed
   });
 
+  it(`Should pay to split with a null amount`, async function () {
+    const { caller, jbSplitsPayer, mockJbSplitsStore } = await setup();
+
+    let splits = makeSplits();
+
+    await mockJbSplitsStore.mock.splitsOf
+      .withArgs(DEFAULT_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
+      .returns(splits);
+    
+    let tx = await jbSplitsPayer
+              .connect(caller)
+              .pay(
+                PROJECT_ID,
+                ethToken,
+                0,
+                DECIMALS,
+                BENEFICIARY,
+                MIN_RETURNED_TOKENS,
+                PREFER_CLAIMED_TOKENS,
+                MEMO,
+                METADATA,
+                {
+                  value: AMOUNT,
+                },
+              );
+
+    await expect(tx).to.changeEtherBalance(caller, 0); // Send then receive the amount (gas is not taken into account)
+  });
+
   it(`Cannot send ETH with another token as argument`, async function () {
     const { jbSplitsPayer, mockToken } = await setup();
 

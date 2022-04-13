@@ -106,7 +106,7 @@ describe('JBSplitsStore::set(...)', function () {
     expect(splitsStored).to.eql(splits);
   });
 
-  it('Should set splits with allocators set', async function () {
+  it.only('Should set splits with allocators set', async function () {
     const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore, mockJbDirectory } =
       await setup();
 
@@ -116,6 +116,7 @@ describe('JBSplitsStore::set(...)', function () {
     const newSplits = splits.map((elt) => ({
       ...elt,
       preferClaimed: true,
+      preferAddToBalance: true,
       beneficiary: ethers.constants.AddressZero,
       allocator: addrs[5].address,
     }));
