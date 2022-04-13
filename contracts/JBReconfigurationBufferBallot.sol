@@ -135,8 +135,8 @@ contract JBReconfigurationBufferBallot is IJBFundingCycleBallot {
     // Get the current ballot state.
     ballotState = _finalState[_projectId][_configured];
 
-    // If the final ballot state is still `Active`, save the ballot state if it has finalized.
-    if (block.timestamp >= _fundingCycle.start && ballotState == JBBallotState.Active) {
+    // If the final ballot state is still `Active`.
+    if (ballotState == JBBallotState.Active) {
       ballotState = stateOf(_projectId, _configured, _fundingCycle.start);
       // If the ballot is active after the cycle has started, it should be finalized as failed.
       if (ballotState != JBBallotState.Active) _finalState[_projectId][_configured] = ballotState;
