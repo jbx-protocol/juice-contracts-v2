@@ -460,6 +460,25 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
     ).to.equal(0);
   });
 
+  it('Should return 0 if claiming more than the total supply', async function () {
+    const {
+      JBPaymentTerminalStore,
+    } = await setup();
+
+    const overflowAmt = ethers.FixedNumber.from(100);
+    const totalSupply =  ethers.FixedNumber.from(50);
+
+    // Get claimable overflow
+    expect(
+      await JBPaymentTerminalStore['currentReclaimableOverflowOf(uint256,uint256,uint256,uint256)'](
+        PROJECT_ID,
+        /* tokenCount */ totalSupply.addUnsafe(ethers.FixedNumber.from(1)),
+        totalSupply,
+        overflowAmt,
+      ),
+    ).to.equal(0);
+  });
+
   it('Should return 0 if redemption rate is 0', async function () {
     const {
       mockJbTerminal,
