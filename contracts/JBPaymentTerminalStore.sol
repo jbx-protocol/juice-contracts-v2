@@ -41,6 +41,10 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
+  //*********************************************************************//
+  // --------------------------- public constants ---------------------- //
+  //*********************************************************************//
+
   /**
     @notice
     Ensures a maximum number of decimal points of persisted fidelity on mulDiv operations of fixed point numbers. 

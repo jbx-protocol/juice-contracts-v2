@@ -2,6 +2,7 @@
 pragma solidity 0.8.6;
 
 import './IJBFundingCycleBallot.sol';
+import './../enums/JBBallotState.sol';
 import './../structs/JBFundingCycle.sol';
 import './../structs/JBFundingCycleData.sol';
 

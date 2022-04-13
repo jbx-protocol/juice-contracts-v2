@@ -3,13 +3,18 @@ pragma solidity 0.8.6;
 
 import './helpers/TestBaseWorkflow.sol';
 
+import '../JBReconfigurationBufferBallot.sol';
+
 uint256 constant WEIGHT = 1000 * 10**18;
 
 contract TestReconfigureProject is TestBaseWorkflow {
   JBController controller;
   JBProjectMetadata _projectMetadata;
   JBFundingCycleData _data;
+  JBFundingCycleData _dataReconfiguration;
+  JBFundingCycleData _dataWithoutBallot;
   JBFundingCycleMetadata _metadata;
+  JBReconfigurationBufferBallot _ballot;
   JBGroupedSplits[] _groupedSplits; // Default empty
   JBFundAccessConstraints[] _fundAccessConstraints; // Default empty
   IJBPaymentTerminal[] _terminals; // Default empty
@@ -21,11 +26,27 @@ contract TestReconfigureProject is TestBaseWorkflow {
 
     _projectMetadata = JBProjectMetadata({content: 'myIPFSHash', domain: 1});
 
+    _ballot = new JBReconfigurationBufferBallot(3 days, jbFundingCycleStore());
+
     _data = JBFundingCycleData({
-      duration: 14,
+      duration: 6 days,
       weight: 1000 * 10**18,
       discountRate: 0,
-      ballot: IJBFundingCycleBallot(address(0))
+      ballot: _ballot
+    });
+
+    _dataWithoutBallot = JBFundingCycleData({
+      duration: 6 days,
+      weight: 1000 * 10**18,
+      discountRate: 0,
+      ballot: JBReconfigurationBufferBallot(address(0))
+    });
+
+    _dataReconfiguration = JBFundingCycleData({
+      duration: 6 days,
+      weight: 69 * 10**18,
+      discountRate: 0,
+      ballot: JBReconfigurationBufferBallot(address(0))
     });
 
     _metadata = JBFundingCycleMetadata({
@@ -53,12 +74,13 @@ contract TestReconfigureProject is TestBaseWorkflow {
   }
 
   function testReconfigureProject() public {
+
     uint256 projectId = controller.launchProjectFor(
       multisig(),
       _projectMetadata,
       _data,
       _metadata,
-      block.timestamp, // _mustStartAtOrAfter
+      0, // Start asap
       _groupedSplits,
       _fundAccessConstraints,
       _terminals,
@@ -68,23 +90,37 @@ contract TestReconfigureProject is TestBaseWorkflow {
     JBFundingCycle memory fundingCycle = jbFundingCycleStore().currentOf(projectId); //, latestConfig);
 
     assertEq(fundingCycle.number, 1);
-    assertEq(fundingCycle.weight, 1000 * 10**18);
+    assertEq(fundingCycle.weight, _data.weight);
+  
+    uint256 currentConfiguration = fundingCycle.configuration;
+
+    evm.warp(block.timestamp + 10);
 
     evm.prank(multisig());
     controller.reconfigureFundingCyclesOf(
       projectId,
-      _data,
+      _dataReconfiguration,
       _metadata,
-      block.timestamp + 5,
+      0, // Start asap
       _groupedSplits,
       _fundAccessConstraints,
       ''
     );
 
-    evm.warp(block.timestamp + 10);
+    uint256 newConfiguration = block.timestamp;
 
+    // Shouldn't have changed
+    fundingCycle = jbFundingCycleStore().currentOf(projectId);
+    assertEq(fundingCycle.number, 1);
+    assertEq(fundingCycle.configuration, currentConfiguration);
+    assertEq(fundingCycle.weight, _data.weight);
+
+    // should be new funding cycle
+    evm.warp(fundingCycle.configuration + fundingCycle.duration);
+    
     JBFundingCycle memory newFundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(newFundingCycle.number, 2);
+    assertEq(newFundingCycle.weight, _dataReconfiguration.weight);
   }
 
   function testReconfigureProjectFuzzRates(
@@ -99,14 +135,19 @@ contract TestReconfigureProject is TestBaseWorkflow {
     uint256 projectId = controller.launchProjectFor(
       multisig(),
       _projectMetadata,
-      _data,
+      _dataWithoutBallot,
       _metadata,
-      block.timestamp, // _mustStartAtOrAfter
+      0, // _mustStartAtOrAfter
       _groupedSplits,
       _fundAccessConstraints,
       _terminals,
       ''
     );
+
+    JBFundingCycle memory fundingCycle = jbFundingCycleStore().currentOf(projectId);
+    assertEq(fundingCycle.number, 1);
+
+    evm.warp(block.timestamp + 1);
 
     jbETHPaymentTerminal().pay{value: BALANCE}(
       BALANCE,
@@ -129,7 +170,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
 
     controller.reconfigureFundingCyclesOf(
       projectId,
-      _data,
+      _dataWithoutBallot,
       JBFundingCycleMetadata({
         reservedRate: RESERVED_RATE,
         redemptionRate: REDEMPTION_RATE,
@@ -150,7 +191,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
         useDataSourceForRedeem: false,
         dataSource: IJBFundingCycleDataSource(address(0))
       }),
-      block.timestamp + 5,
+      0,
       _groupedSplits,
       _fundAccessConstraints,
       ''
@@ -161,10 +202,10 @@ contract TestReconfigureProject is TestBaseWorkflow {
       RESERVED_RATE = 5000;
     }
 
-    evm.warp(block.timestamp + 15);
+    evm.warp(block.timestamp + fundingCycle.duration);
 
-    JBFundingCycle memory newFundingCycle = jbFundingCycleStore().currentOf(projectId);
-    assertEq(newFundingCycle.number, 2);
+    fundingCycle = jbFundingCycleStore().currentOf(projectId);
+    assertEq(fundingCycle.number, 2);
 
     jbETHPaymentTerminal().pay{value: BALANCE}(
       BALANCE,
