@@ -200,7 +200,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       .withArgs(PROJECT_ID, ethToken)
       .returns(mockJbTerminal.address);
     
-    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(18);
 
     await Promise.all(
       splits.map(async split => {
@@ -208,6 +208,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
           .withArgs(
             split.projectId,
             AMOUNT.mul(split.percent).div(maxSplitsPercent),
+            ethToken,
             DEFAULT_MEMO,
           )
           .returns();
@@ -244,14 +245,15 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       .withArgs(PROJECT_ID, ethToken)
       .returns(mockJbTerminal.address);
     
-    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(18);
 
     await Promise.all(
       splits.map(async split => {
         await mockJbTerminal.mock.pay
           .withArgs(
-            AMOUNT.mul(split.percent).div(maxSplitsPercent),
             split.projectId,
+            AMOUNT.mul(split.percent).div(maxSplitsPercent),
+            ethToken,
             split.beneficiary,
             0, /*hardcoded*/
             split.preferClaimed,
@@ -293,14 +295,15 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       .withArgs(PROJECT_ID, ethToken)
       .returns(mockJbTerminal.address);
     
-    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(18);
 
     await Promise.all(
       splits.map(async split => {
         await mockJbTerminal.mock.pay
           .withArgs(
-            AMOUNT.mul(split.percent).div(maxSplitsPercent),
             split.projectId,
+            AMOUNT.mul(split.percent).div(maxSplitsPercent),
+            ethToken,
             caller.address,
             0, /*hardcoded*/
             split.preferClaimed,
@@ -404,7 +407,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       .withArgs(DEFAULT_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
       .returns(splits);
     
-    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(18);
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(PROJECT_ID, ethToken)
@@ -412,8 +415,9 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     
     await mockJbTerminal.mock.pay
       .withArgs(
-        AMOUNT.div('2'),
         PROJECT_ID,
+        AMOUNT.div('2'),
+        ethToken,
         beneficiaryThree.address,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
@@ -468,7 +472,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       .withArgs(PROJECT_ID, mockToken.address)
       .returns(mockJbTerminal.address);
 
-    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.decimalsForToken.withArgs(mockToken.address).returns(18);
 
     // Approve transfer to the default project ID terminal
     await mockToken.mock.approve
@@ -478,8 +482,9 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     // Pay the leftover with the default beneficiary
     await mockJbTerminal.mock.pay
       .withArgs(
-        AMOUNT.div('2'),
         PROJECT_ID,
+        AMOUNT.div('2'),
+        mockToken.address,
         beneficiaryThree.address,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
@@ -513,12 +518,13 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       .withArgs(DEFAULT_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
       .returns(splits);
     
-    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(18);
     
     await mockJbTerminal.mock.pay
       .withArgs(
-        AMOUNT.div('2'),
         0,
+        AMOUNT.div('2'),
+        ethToken,
         beneficiaryThree.address,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
@@ -601,12 +607,13 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       .withArgs(DEFAULT_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
       .returns(splits);
     
-    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(18);
     
     await mockJbTerminal.mock.pay
       .withArgs(
-        AMOUNT.div('2'),
         0,
+        AMOUNT.div('2'),
+        ethToken,
         ethers.constants.AddressZero,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,

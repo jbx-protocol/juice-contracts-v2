@@ -50,8 +50,13 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
     let terminal2 = await deployMockContract(projectOwner, jbTerminal.abi);
     let terminal3 = await deployMockContract(projectOwner, jbTerminal.abi);
 
-    await terminal1.mock.token.returns(ethers.Wallet.createRandom().address);
-    await terminal2.mock.token.returns(ethers.Wallet.createRandom().address);
+    const tokenTerminal1 = ethers.Wallet.createRandom().address;
+    await terminal1.mock.token.returns(tokenTerminal1);
+    await terminal1.mock.acceptsToken.withArgs(tokenTerminal1).returns(true);
+
+    const tokenTerminal2 = ethers.Wallet.createRandom().address;
+    await terminal2.mock.token.returns(tokenTerminal2);
+    await terminal2.mock.acceptsToken.withArgs(tokenTerminal2).returns(true);
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
     await mockJbOperatorStore.mock.hasPermission
@@ -103,14 +108,16 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
       .withArgs(PROJECT_ID, terminals, projectOwner.address);
   });
 
-  it('Should add terminals and remove a previous primary terminal if it is not included in the new terminals', async function () {
+  it('Should add terminals and return the first compatible terminal if the previous primary terminal is not part of the new ones', async function () {
     const { projectOwner, jbDirectory, terminal1, terminal2, terminal3 } = await setup();
 
     const terminals = [terminal1.address, terminal2.address];
 
     await terminal3.mock.token.returns(ADDRESS_TOKEN_3);
+    await terminal3.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3).returns(true);
+
     expect(
-      await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, terminal3.address),
+      await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, ADDRESS_TOKEN_3, terminal3.address),
     )
       .to.emit(jbDirectory, 'SetPrimaryTerminal')
       .withArgs(PROJECT_ID, ADDRESS_TOKEN_3, terminal3.address, projectOwner.address);
@@ -120,6 +127,37 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
       'SetTerminals',
     );
     //.withArgs(PROJECT_ID, terminals, projectOwner.address);
+
+    await terminal1.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3).returns(false);
+    await terminal2.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3).returns(true);
+
+    expect(await jbDirectory.primaryTerminalOf(PROJECT_ID, ADDRESS_TOKEN_3)).to.equal(
+      terminal2.address
+    );
+  });
+
+  it('Should add terminals and return address 0 if the previous primary terminal is not part of the new ones and none support the token', async function () {
+    const { projectOwner, jbDirectory, terminal1, terminal2, terminal3 } = await setup();
+
+    const terminals = [terminal1.address, terminal2.address];
+
+    await terminal3.mock.token.returns(ADDRESS_TOKEN_3);
+    await terminal3.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3).returns(true);
+
+    expect(
+      await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, ADDRESS_TOKEN_3, terminal3.address),
+    )
+      .to.emit(jbDirectory, 'SetPrimaryTerminal')
+      .withArgs(PROJECT_ID, ADDRESS_TOKEN_3, terminal3.address, projectOwner.address);
+
+    await expect(jbDirectory.connect(projectOwner).setTerminalsOf(PROJECT_ID, terminals)).to.emit(
+      jbDirectory,
+      'SetTerminals',
+    );
+    //.withArgs(PROJECT_ID, terminals, projectOwner.address);
+
+    await terminal1.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3).returns(false);
+    await terminal2.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3).returns(false);
 
     expect(await jbDirectory.primaryTerminalOf(PROJECT_ID, ADDRESS_TOKEN_3)).to.equal(
       ethers.constants.AddressZero,
@@ -132,8 +170,10 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
     const terminals = [terminal1.address, terminal2.address, terminal3.address];
 
     await terminal3.mock.token.returns(ADDRESS_TOKEN_3);
+    await terminal3.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3).returns(true);
+    
     expect(
-      await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, terminal3.address),
+      await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, ADDRESS_TOKEN_3, terminal3.address),
     )
       .to.emit(jbDirectory, 'SetPrimaryTerminal')
       .withArgs(PROJECT_ID, ADDRESS_TOKEN_3, terminal3.address, projectOwner.address);

@@ -114,14 +114,17 @@ describe('JBPayoutRedemptionPaymentTerminal::migrate(...)', function () {
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
     await mockJbEthPaymentTerminal.mock.token.returns(TOKEN_ETH);
+    await mockJbEthPaymentTerminal.mock.acceptsToken.withArgs(TOKEN_ETH).returns(true);
+    
     await mockJBERC20PaymentTerminal.mock.token.returns(NON_ETH_TOKEN);
+    await mockJBERC20PaymentTerminal.mock.acceptsToken.withArgs(NON_ETH_TOKEN).returns(true);
 
     // addToBalanceOf _amount is 0 if ETH terminal
     await mockJbEthPaymentTerminal.mock.addToBalanceOf
-      .withArgs(PROJECT_ID, CURRENT_TERMINAL_BALANCE, '')
+      .withArgs(PROJECT_ID, CURRENT_TERMINAL_BALANCE, TOKEN_ETH, '')
       .returns();
     await mockJBERC20PaymentTerminal.mock.addToBalanceOf
-      .withArgs(PROJECT_ID, CURRENT_TERMINAL_BALANCE, '')
+      .withArgs(PROJECT_ID, CURRENT_TERMINAL_BALANCE, NON_ETH_TOKEN, '')
       .returns();
 
     await setBalance(jbEthPaymentTerminal.address, CURRENT_TERMINAL_BALANCE);
@@ -144,6 +147,7 @@ describe('JBPayoutRedemptionPaymentTerminal::migrate(...)', function () {
       mockJBPaymentTerminalStore,
       mockJbOperatorStore,
       mockJbToken,
+      TOKEN_ETH
     };
   }
 
@@ -248,10 +252,10 @@ describe('JBPayoutRedemptionPaymentTerminal::migrate(...)', function () {
       .withArgs(PROJECT_ID, mockJbEthPaymentTerminal.address, 0, projectOwner.address);
   });
 
-  it("Can't migrate terminal with different token", async function () {
-    const { projectOwner, jbEthPaymentTerminal, mockJbEthPaymentTerminal } = await setup();
+  it("Can't migrate to a terminal which doesn't accept token", async function () {
+    const { TOKEN_ETH, projectOwner, jbEthPaymentTerminal, mockJbEthPaymentTerminal } = await setup();
 
-    await mockJbEthPaymentTerminal.mock.token.returns(ethers.Wallet.createRandom().address);
+    await mockJbEthPaymentTerminal.mock.acceptsToken.withArgs(TOKEN_ETH).returns(false);
 
     await expect(
       jbEthPaymentTerminal

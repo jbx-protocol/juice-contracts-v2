@@ -183,8 +183,9 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
       await jbEthPaymentTerminal
         .connect(caller)
         .pay(
-          ETH_TO_PAY,
           PROJECT_ID,
+          ETH_TO_PAY,
+          ethers.constants.AddressZero,
           beneficiary.address,
           MIN_TOKEN_REQUESTED,
           PREFER_CLAIMED_TOKENS,
@@ -285,8 +286,9 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
     const tx = await jbEthPaymentTerminal
       .connect(caller)
       .pay(
-        ETH_TO_PAY,
         PROJECT_ID,
+        ETH_TO_PAY,
+        ethers.constants.AddressZero,
         beneficiary.address,
         MIN_TOKEN_REQUESTED,
         PREFER_CLAIMED_TOKENS,
@@ -353,8 +355,9 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
     await jbEthPaymentTerminal
       .connect(caller)
       .pay(
-        ETH_TO_PAY + 1,
         PROJECT_ID,
+        ETH_TO_PAY + 1,
+        ethers.constants.AddressZero,
         beneficiary.address,
         MIN_TOKEN_REQUESTED,
         /*preferClaimedToken=*/ true,
@@ -402,8 +405,9 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
     await jbEthPaymentTerminal
       .connect(caller)
       .pay(
-        ETH_TO_PAY + 1,
         PROJECT_ID,
+        ETH_TO_PAY + 1,
+        ethers.constants.AddressZero,
         beneficiary.address,
         0,
         PREFER_CLAIMED_TOKENS,
@@ -471,8 +475,9 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
       );
 
     await JBERC20PaymentTerminal.connect(caller).pay(
-      ETH_TO_PAY,
       PROJECT_ID,
+      ETH_TO_PAY,
+      ethers.constants.AddressZero,
       beneficiary.address,
       MIN_TOKEN_REQUESTED,
       PREFER_CLAIMED_TOKENS,
@@ -487,8 +492,9 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
 
     await expect(
       JBERC20PaymentTerminal.connect(caller).pay(
-        ETH_TO_PAY,
         PROJECT_ID,
+        ETH_TO_PAY,
+        ethers.constants.AddressZero,
         ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         PREFER_CLAIMED_TOKENS,
@@ -506,8 +512,9 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
       jbEthPaymentTerminal
         .connect(caller)
         .pay(
-          ETH_TO_PAY,
           PROJECT_ID,
+          ETH_TO_PAY,
+          ethers.constants.AddressZero,
           ethers.constants.AddressZero,
           MIN_TOKEN_REQUESTED,
           PREFER_CLAIMED_TOKENS,
@@ -530,8 +537,9 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
       jbEthPaymentTerminal
         .connect(caller)
         .pay(
-          ETH_TO_PAY,
           otherProjectId,
+          ETH_TO_PAY,
+          ethers.constants.AddressZero,
           ethers.constants.AddressZero,
           MIN_TOKEN_REQUESTED,
           PREFER_CLAIMED_TOKENS,
@@ -581,8 +589,9 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
       jbEthPaymentTerminal
         .connect(caller)
         .pay(
-          ETH_TO_PAY + 1,
           PROJECT_ID,
+          ETH_TO_PAY + 1,
+          ethers.constants.AddressZero,
           beneficiary.address,
           MIN_TOKEN_REQUESTED,
           PREFER_CLAIMED_TOKENS,

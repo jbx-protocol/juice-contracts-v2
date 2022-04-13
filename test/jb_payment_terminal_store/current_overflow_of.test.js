@@ -36,6 +36,8 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
     const CURRENCY_ETH = await jbCurrencies.ETH();
     const CURRENCY_USD = await jbCurrencies.USD();
 
+    const token = ethers.Wallet.createRandom().address;
+
     const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBPaymentTerminalStore');
     const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbPrices.address,
@@ -57,6 +59,7 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
       mockJbPrices,
       JBPaymentTerminalStore,
       timestamp,
+      token,
       CURRENCY_ETH,
       CURRENCY_USD,
     };
@@ -71,6 +74,7 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
       mockJbPrices,
       JBPaymentTerminalStore,
       timestamp,
+      token,
       CURRENCY_ETH,
       CURRENCY_USD,
     } = await setup();
@@ -89,8 +93,10 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
+    await mockJbTerminal.mock.token.returns(token);
+
     await mockJbController.mock.distributionLimitOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_USD);
 
     await mockJbPrices.mock.priceFor
@@ -117,6 +123,7 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
       mockJbFundingCycleStore,
       JBPaymentTerminalStore,
       timestamp,
+      token,
       CURRENCY_ETH,
     } = await setup();
 
@@ -135,7 +142,7 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
     await mockJbController.mock.distributionLimitOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_ETH);
 
     // Get current overflow

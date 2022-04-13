@@ -71,12 +71,13 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
       .returns(mockJbTerminal.address);
 
     // Eth payments should use 18 decimals.
-    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(18);
 
     await mockJbTerminal.mock.pay
       .withArgs(
-        AMOUNT,
         PROJECT_ID,
+        AMOUNT,
+        ethToken,
         BENEFICIARY,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
@@ -111,12 +112,13 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
       .returns(mockJbTerminal.address);
 
     // Eth payments should use 18 decimals.
-    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(18);
 
     await mockJbTerminal.mock.pay
       .withArgs(
-        AMOUNT,
         PROJECT_ID,
+        AMOUNT,
+        ethToken,
         caller.address,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
@@ -148,7 +150,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
   it(`Should pay funds towards project with a 9-decimals erc20 tokens`, async function () {
     const { jbProjectPayer, mockJbDirectory, mockJbTerminal, mockJbToken, addrs } = await setup();
 
-    await mockJbTerminal.mock.decimals.returns(9);
+    await mockJbTerminal.mock.decimalsForToken.withArgs(mockJbToken.address).returns(9);
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(PROJECT_ID, mockJbToken.address)
@@ -156,8 +158,9 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
 
     await mockJbTerminal.mock.pay
       .withArgs(
-        AMOUNT,
         PROJECT_ID,
+        AMOUNT,
+        mockJbToken.address,
         BENEFICIARY,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
@@ -198,12 +201,13 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
       .returns(mockJbTerminal.address);
 
     // Eth payments should use 18 decimals.
-    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(18);
 
     await mockJbTerminal.mock.addToBalanceOf
       .withArgs(
         PROJECT_ID,
         AMOUNT,
+        ethToken,
         MEMO,
       )
       .returns();
@@ -225,7 +229,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
   it(`Should pay funds towards project using addToBalanceOf with a 9-decimals erc20 tokens`, async function () {
     const { jbProjectPayer, mockJbDirectory, mockJbTerminal, mockJbToken, addrs } = await setup();
 
-    await mockJbTerminal.mock.decimals.returns(9);
+    await mockJbTerminal.mock.decimalsForToken.withArgs(mockJbToken.address).returns(9);
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(PROJECT_ID, mockJbToken.address)
@@ -235,6 +239,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
       .withArgs(
         PROJECT_ID,
         AMOUNT,
+        mockJbToken.address,
         MEMO,
       )
       .returns();
@@ -265,7 +270,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
     let caller = addrs[0];
 
     // fallback uses 18 decimals.
-    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(18);
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(INITIAL_PROJECT_ID, ethToken)
@@ -273,8 +278,9 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
 
     await mockJbTerminal.mock.pay
       .withArgs(
-        AMOUNT,
         INITIAL_PROJECT_ID,
+        AMOUNT,
+        ethToken,
         INITIAL_BENEFICIARY,
         0,
         INITIAL_PREFER_CLAIMED_TOKENS,
@@ -297,7 +303,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
     let caller = addrs[0];
 
     // fallback uses 18 decimals.
-    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(18);
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(INITIAL_PROJECT_ID, ethToken)
@@ -318,8 +324,9 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
 
     await mockJbTerminal.mock.pay
       .withArgs(
-        AMOUNT,
         INITIAL_PROJECT_ID,
+        AMOUNT,
+        ethToken,
         addrs[0].address,
         0,
         INITIAL_PREFER_CLAIMED_TOKENS,
@@ -342,7 +349,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
     let caller = addrs[0];
 
     // fallback uses 18 decimals.
-    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(18);
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(INITIAL_PROJECT_ID, ethToken)
@@ -365,6 +372,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
       .withArgs(
         INITIAL_PROJECT_ID,
         AMOUNT,
+        ethToken,
         INITIAL_MEMO,
       )
       .returns();
@@ -409,8 +417,8 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
       .withArgs(PROJECT_ID, ethToken)
       .returns(mockJbTerminal.address);
 
-    await mockJbTerminal.mock.decimals
-      .returns(19);
+      await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(10);
+
 
     await expect(
       jbProjectPayer.pay(
