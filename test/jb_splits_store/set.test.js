@@ -106,7 +106,7 @@ describe('JBSplitsStore::set(...)', function () {
     expect(splitsStored).to.eql(splits);
   });
 
-  it.only('Should set splits with allocators set', async function () {
+  it('Should set splits with allocators set', async function () {
     const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore, mockJbDirectory } =
       await setup();
 
