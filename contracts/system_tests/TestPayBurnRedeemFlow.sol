@@ -69,6 +69,7 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
         terminal: _terminal,
+        token: jbLibraries().ETHToken(),
         distributionLimit: _targetInWei, // 10 ETH target
         overflowAllowance: 5 ether,
         distributionLimitCurrency: 1, // Currency = ETH

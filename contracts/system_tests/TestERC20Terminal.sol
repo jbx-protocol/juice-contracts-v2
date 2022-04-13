@@ -64,6 +64,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
         terminal: terminal,
+        token: address(jbToken()),
         distributionLimit: 10 * 10**18,
         overflowAllowance: 5 * 10**18,
         distributionLimitCurrency: jbLibraries().ETH(),
@@ -171,6 +172,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
         terminal: terminal,
+        token: address(jbToken()),
         distributionLimit: TARGET,
         overflowAllowance: ALLOWANCE,
         distributionLimitCurrency: jbLibraries().ETH(),

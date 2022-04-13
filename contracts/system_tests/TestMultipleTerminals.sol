@@ -101,6 +101,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
         terminal: ERC20terminal,
+        token: address(jbToken()),
         distributionLimit: 10 * 10**18,
         overflowAllowance: 5 * 10**18,
         distributionLimitCurrency: jbLibraries().USD(),
@@ -111,6 +112,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
         terminal: ETHterminal,
+        token: jbLibraries().ETHToken(),
         distributionLimit: 10 * 10**18,
         overflowAllowance: 5 * 10**18,
         distributionLimitCurrency: jbLibraries().ETH(),
