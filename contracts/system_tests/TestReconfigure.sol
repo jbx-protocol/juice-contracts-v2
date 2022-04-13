@@ -12,6 +12,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
   JBProjectMetadata _projectMetadata;
   JBFundingCycleData _data;
   JBFundingCycleData _dataReconfiguration;
+  JBFundingCycleData _dataWithoutBallot;
   JBFundingCycleMetadata _metadata;
   JBReconfigurationBufferBallot _ballot;
   JBGroupedSplits[] _groupedSplits; // Default empty
@@ -34,11 +35,18 @@ contract TestReconfigureProject is TestBaseWorkflow {
       ballot: _ballot
     });
 
+    _dataWithoutBallot = JBFundingCycleData({
+      duration: 6 days,
+      weight: 1000 * 10**18,
+      discountRate: 0,
+      ballot: JBReconfigurationBufferBallot(address(0))
+    });
+
     _dataReconfiguration = JBFundingCycleData({
       duration: 6 days,
       weight: 69 * 10**18,
       discountRate: 0,
-      ballot: _ballot
+      ballot: JBReconfigurationBufferBallot(address(0))
     });
 
     _metadata = JBFundingCycleMetadata({
@@ -86,7 +94,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
   
     uint256 currentConfiguration = fundingCycle.configuration;
 
-    evm.warp(10);
+    evm.warp(block.timestamp + 10);
 
     evm.prank(multisig());
     controller.reconfigureFundingCyclesOf(
@@ -108,136 +116,141 @@ contract TestReconfigureProject is TestBaseWorkflow {
     assertEq(fundingCycle.weight, _data.weight);
 
     // should be new funding cycle
-    evm.warp(200 days);
+    evm.warp(fundingCycle.configuration + fundingCycle.duration);
     
     JBFundingCycle memory newFundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(newFundingCycle.number, 2);
     assertEq(newFundingCycle.weight, _dataReconfiguration.weight);
   }
 
-  // function testReconfigureProjectFuzzRates(
-  //   uint96 RESERVED_RATE,
-  //   uint96 REDEMPTION_RATE,
-  //   uint96 BALANCE
-  // ) public {
-  //   evm.assume(payable(msg.sender).balance / 2 >= BALANCE);
-  //   evm.assume(100 < BALANCE);
+  function testReconfigureProjectFuzzRates(
+    uint96 RESERVED_RATE,
+    uint96 REDEMPTION_RATE,
+    uint96 BALANCE
+  ) public {
+    evm.assume(payable(msg.sender).balance / 2 >= BALANCE);
+    evm.assume(100 < BALANCE);
 
-  //   address _beneficiary = address(69420);
-  //   uint256 projectId = controller.launchProjectFor(
-  //     multisig(),
-  //     _projectMetadata,
-  //     _data,
-  //     _metadata,
-  //     block.timestamp, // _mustStartAtOrAfter
-  //     _groupedSplits,
-  //     _fundAccessConstraints,
-  //     _terminals,
-  //     ''
-  //   );
+    address _beneficiary = address(69420);
+    uint256 projectId = controller.launchProjectFor(
+      multisig(),
+      _projectMetadata,
+      _dataWithoutBallot,
+      _metadata,
+      0, // _mustStartAtOrAfter
+      _groupedSplits,
+      _fundAccessConstraints,
+      _terminals,
+      ''
+    );
 
-  //   jbETHPaymentTerminal().pay{value: BALANCE}(
-  //     BALANCE,
-  //     projectId,
-  //     _beneficiary,
-  //     0,
-  //     false,
-  //     'Forge test',
-  //     new bytes(0)
-  //   );
+    JBFundingCycle memory fundingCycle = jbFundingCycleStore().currentOf(projectId);
+    assertEq(fundingCycle.number, 1);
 
-  //   uint256 _userTokenBalance = PRBMath.mulDiv(BALANCE, (WEIGHT / 10**18), 2); // initial FC rate is 50%
-  //   if (BALANCE != 0)
-  //     assertEq(jbTokenStore().balanceOf(_beneficiary, projectId), _userTokenBalance);
+    evm.warp(block.timestamp + 1);
 
-  //   evm.prank(multisig());
-  //   if (RESERVED_RATE > 10000) evm.expectRevert(abi.encodeWithSignature('INVALID_RESERVED_RATE()'));
-  //   else if (REDEMPTION_RATE > 10000)
-  //     evm.expectRevert(abi.encodeWithSignature('INVALID_REDEMPTION_RATE()'));
+    jbETHPaymentTerminal().pay{value: BALANCE}(
+      BALANCE,
+      projectId,
+      _beneficiary,
+      0,
+      false,
+      'Forge test',
+      new bytes(0)
+    );
 
-  //   controller.reconfigureFundingCyclesOf(
-  //     projectId,
-  //     _data,
-  //     JBFundingCycleMetadata({
-  //       reservedRate: RESERVED_RATE,
-  //       redemptionRate: REDEMPTION_RATE,
-  //       ballotRedemptionRate: 0,
-  //       pausePay: false,
-  //       pauseDistributions: false,
-  //       pauseRedeem: false,
-  //       pauseBurn: false,
-  //       allowMinting: true,
-  //       allowChangeToken: false,
-  //       allowTerminalMigration: false,
-  //       allowControllerMigration: false,
-  //       allowSetTerminals: false,
-  //       allowSetController: false,
-  //       holdFees: false,
-  //       useTotalOverflowForRedemptions: false,
-  //       useDataSourceForPay: false,
-  //       useDataSourceForRedeem: false,
-  //       dataSource: IJBFundingCycleDataSource(address(0))
-  //     }),
-  //     block.timestamp + 5,
-  //     _groupedSplits,
-  //     _fundAccessConstraints,
-  //     ''
-  //   );
+    uint256 _userTokenBalance = PRBMath.mulDiv(BALANCE, (WEIGHT / 10**18), 2); // initial FC rate is 50%
+    if (BALANCE != 0)
+      assertEq(jbTokenStore().balanceOf(_beneficiary, projectId), _userTokenBalance);
 
-  //   if (RESERVED_RATE > 10000 || REDEMPTION_RATE > 10000) {
-  //     REDEMPTION_RATE = 5000; // If reconfigure has reverted, keep previous rates
-  //     RESERVED_RATE = 5000;
-  //   }
+    evm.prank(multisig());
+    if (RESERVED_RATE > 10000) evm.expectRevert(abi.encodeWithSignature('INVALID_RESERVED_RATE()'));
+    else if (REDEMPTION_RATE > 10000)
+      evm.expectRevert(abi.encodeWithSignature('INVALID_REDEMPTION_RATE()'));
 
-  //   evm.warp(block.timestamp + 15);
+    controller.reconfigureFundingCyclesOf(
+      projectId,
+      _dataWithoutBallot,
+      JBFundingCycleMetadata({
+        reservedRate: RESERVED_RATE,
+        redemptionRate: REDEMPTION_RATE,
+        ballotRedemptionRate: 0,
+        pausePay: false,
+        pauseDistributions: false,
+        pauseRedeem: false,
+        pauseBurn: false,
+        allowMinting: true,
+        allowChangeToken: false,
+        allowTerminalMigration: false,
+        allowControllerMigration: false,
+        allowSetTerminals: false,
+        allowSetController: false,
+        holdFees: false,
+        useTotalOverflowForRedemptions: false,
+        useDataSourceForPay: false,
+        useDataSourceForRedeem: false,
+        dataSource: IJBFundingCycleDataSource(address(0))
+      }),
+      0,
+      _groupedSplits,
+      _fundAccessConstraints,
+      ''
+    );
 
-  //   JBFundingCycle memory newFundingCycle = jbFundingCycleStore().currentOf(projectId);
-  //   assertEq(newFundingCycle.number, 2);
+    if (RESERVED_RATE > 10000 || REDEMPTION_RATE > 10000) {
+      REDEMPTION_RATE = 5000; // If reconfigure has reverted, keep previous rates
+      RESERVED_RATE = 5000;
+    }
 
-  //   jbETHPaymentTerminal().pay{value: BALANCE}(
-  //     BALANCE,
-  //     projectId,
-  //     _beneficiary,
-  //     0,
-  //     false,
-  //     'Forge test',
-  //     new bytes(0)
-  //   );
+    evm.warp(block.timestamp + fundingCycle.duration);
 
-  //   uint256 _newUserTokenBalance = RESERVED_RATE == 0 // New fc, rate is RESERVED_RATE
-  //     ? PRBMath.mulDiv(BALANCE, WEIGHT, 10**18)
-  //     : PRBMath.mulDiv(PRBMath.mulDiv(BALANCE, WEIGHT, 10**18), 10000 - RESERVED_RATE, 10000);
+    fundingCycle = jbFundingCycleStore().currentOf(projectId);
+    assertEq(fundingCycle.number, 2);
 
-  //   if (BALANCE != 0)
-  //     assertEq(
-  //       jbTokenStore().balanceOf(_beneficiary, projectId),
-  //       _userTokenBalance + _newUserTokenBalance
-  //     );
+    jbETHPaymentTerminal().pay{value: BALANCE}(
+      BALANCE,
+      projectId,
+      _beneficiary,
+      0,
+      false,
+      'Forge test',
+      new bytes(0)
+    );
 
-  //   uint256 tokenBalance = jbTokenStore().balanceOf(_beneficiary, projectId);
-  //   uint256 totalSupply = jbController().totalOutstandingTokensOf(projectId, RESERVED_RATE);
-  //   uint256 overflow = jbETHPaymentTerminal().currentEthOverflowOf(projectId);
+    uint256 _newUserTokenBalance = RESERVED_RATE == 0 // New fc, rate is RESERVED_RATE
+      ? PRBMath.mulDiv(BALANCE, WEIGHT, 10**18)
+      : PRBMath.mulDiv(PRBMath.mulDiv(BALANCE, WEIGHT, 10**18), 10000 - RESERVED_RATE, 10000);
 
-  //   evm.startPrank(_beneficiary);
-  //   jbETHPaymentTerminal().redeemTokensOf(
-  //     _beneficiary,
-  //     projectId,
-  //     tokenBalance,
-  //     0,
-  //     payable(_beneficiary),
-  //     '',
-  //     new bytes(0)
-  //   );
-  //   evm.stopPrank();
+    if (BALANCE != 0)
+      assertEq(
+        jbTokenStore().balanceOf(_beneficiary, projectId),
+        _userTokenBalance + _newUserTokenBalance
+      );
 
-  //   if (BALANCE != 0 && REDEMPTION_RATE != 0)
-  //     assertEq(
-  //       _beneficiary.balance,
-  //       PRBMath.mulDiv(
-  //         PRBMath.mulDiv(overflow, tokenBalance, totalSupply),
-  //         REDEMPTION_RATE + PRBMath.mulDiv(tokenBalance, 10000 - REDEMPTION_RATE, totalSupply),
-  //         10000
-  //       )
-  //     );
-  // }
+    uint256 tokenBalance = jbTokenStore().balanceOf(_beneficiary, projectId);
+    uint256 totalSupply = jbController().totalOutstandingTokensOf(projectId, RESERVED_RATE);
+    uint256 overflow = jbETHPaymentTerminal().currentEthOverflowOf(projectId);
+
+    evm.startPrank(_beneficiary);
+    jbETHPaymentTerminal().redeemTokensOf(
+      _beneficiary,
+      projectId,
+      tokenBalance,
+      0,
+      payable(_beneficiary),
+      '',
+      new bytes(0)
+    );
+    evm.stopPrank();
+
+    if (BALANCE != 0 && REDEMPTION_RATE != 0)
+      assertEq(
+        _beneficiary.balance,
+        PRBMath.mulDiv(
+          PRBMath.mulDiv(overflow, tokenBalance, totalSupply),
+          REDEMPTION_RATE + PRBMath.mulDiv(tokenBalance, 10000 - REDEMPTION_RATE, totalSupply),
+          10000
+        )
+      );
+  }
 }
