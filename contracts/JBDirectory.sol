@@ -360,22 +360,4 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     emit AddTerminal(_projectId, _terminal, msg.sender);
   }
-
-  /** 
-    @notice
-    Check if the provided terminal array contains the provided terminal.
-
-    @param _terminals The terminals to look through.
-    @param _terminal The terminal to check for.
-
-    @return Whether or not the `_terminals` includes the `_terminal`.
-  */
-  function _contains(IJBPaymentTerminal[] calldata _terminals, IJBPaymentTerminal _terminal)
-    private
-    pure
-    returns (bool)
-  {
-    for (uint256 _i; _i < _terminals.length; _i++) if (_terminals[_i] == _terminal) return true;
-    return false;
-  }
 }
