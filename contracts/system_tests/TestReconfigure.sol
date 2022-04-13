@@ -86,8 +86,9 @@ contract TestReconfigureProject is TestBaseWorkflow {
   
     uint256 currentConfiguration = fundingCycle.configuration;
 
-    evm.prank(multisig());
+    evm.warp(10);
 
+    evm.prank(multisig());
     controller.reconfigureFundingCyclesOf(
       projectId,
       _dataReconfiguration,
@@ -98,17 +99,20 @@ contract TestReconfigureProject is TestBaseWorkflow {
       ''
     );
 
+    uint256 newConfiguration = block.timestamp;
+
     // Shouldn't have changed
     fundingCycle = jbFundingCycleStore().currentOf(projectId);
-    assertEq(fundingCycle.number,3);
+    assertEq(fundingCycle.number, 1);
     assertEq(fundingCycle.configuration, currentConfiguration);
-    assertEq(fundingCycle.weight, _dataReconfiguration.weight);
+    assertEq(fundingCycle.weight, _data.weight);
 
     // should be new funding cycle
-    evm.warp(6 days);
+    evm.warp(200 days);
+    
     JBFundingCycle memory newFundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(newFundingCycle.number, 2);
-
+    assertEq(newFundingCycle.weight, _dataReconfiguration.weight);
   }
 
   // function testReconfigureProjectFuzzRates(
