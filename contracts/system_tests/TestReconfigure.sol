@@ -194,7 +194,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
 
         // ballot should be in Approved state now, queued is the reconfiguration rolled over
         queuedFundingCycle = jbFundingCycleStore().queuedOf(projectId);
-        assertEq(queuedFundingCycle.weight+1, currentFundingCycle.weight);
+        assertEq(queuedFundingCycle.weight, currentFundingCycle.weight-1);
         assertEq(queuedFundingCycle.number, currentFundingCycle.number+2); 
       }
       // the ballot is accross two funding cycles
