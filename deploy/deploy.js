@@ -52,6 +52,12 @@ module.exports = async ({ deployments, getChainId }) => {
     args: [],
   });
 
+  // Deploy a JBETHERC20SplitsPayerDeployer contract.
+  await deploy('JBETHERC20SplitsPayerDeployer', {
+    ...baseDeployArgs,
+    args: [],
+  });
+
   // Deploy a JBOperatorStore contract.
   const JBOperatorStore = await deploy('JBOperatorStore', {
     ...baseDeployArgs,
@@ -91,15 +97,15 @@ module.exports = async ({ deployments, getChainId }) => {
   });
 
   // Deploy a JB3DayReconfigurationBufferBallot.
-  const JB3DayReconfigurationBufferBallot = await deploy('JB3DayReconfigurationBufferBallot', {
+  const JB3DayReconfigurationBufferBallot = await deploy('JBReconfigurationBufferBallot', {
     ...baseDeployArgs,
-    args: [],
+    args: [259200, JBFundingCycleStore.address],
   });
 
   // Deploy a JB7DayReconfigurationBufferBallot.
-  await deploy('JB7DayReconfigurationBufferBallot', {
+  await deploy('JBReconfigurationBufferBallot', {
     ...baseDeployArgs,
-    args: [],
+    args: [604800, JBFundingCycleStore.address],
   });
 
   // Deploy a JBTokenStore.

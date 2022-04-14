@@ -127,7 +127,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
       .returns(0);
 
     // Use active ballot
-    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(1);
+    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(0);
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));
@@ -215,7 +215,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
       .returns(0);
 
     // Use active ballot
-    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(1);
+    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(0);
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));
@@ -310,7 +310,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
       .returns(0);
 
     // Use active ballot
-    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(1);
+    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(0);
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));
@@ -501,7 +501,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
       .returns(0);
 
     // Use active ballot
-    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(1);
+    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(0);
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));
@@ -659,7 +659,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
       .returns(0);
 
     // Use active ballot
-    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(1);
+    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(0);
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));

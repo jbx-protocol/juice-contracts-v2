@@ -14,6 +14,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
   const INITIAL_PREFER_CLAIMED_TOKENS = false;
   const INITIAL_MEMO = 'hello world';
   const INITIAL_METADATA = [0x1];
+  const INITIAL_PREFER_ADD_TO_BALANCE = false;
   const PROJECT_ID = 7;
   const AMOUNT = ethers.utils.parseEther('1.0');
   const BENEFICIARY = ethers.Wallet.createRandom().address;
@@ -32,7 +33,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
   });
 
   async function setup() {
-    let [deployer, owner, ...addrs] = await ethers.getSigners();
+    let [deployer, owner, caller, ...addrs] = await ethers.getSigners();
 
     let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
     let mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
@@ -45,6 +46,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
       INITIAL_PREFER_CLAIMED_TOKENS,
       INITIAL_MEMO,
       INITIAL_METADATA,
+      INITIAL_PREFER_ADD_TO_BALANCE,
       mockJbDirectory.address,
       owner.address,
     );
@@ -52,6 +54,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
     return {
       deployer,
       owner,
+      caller,
       addrs,
       mockJbToken,
       mockJbDirectory,
@@ -100,8 +103,8 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
     ).to.not.be.reverted;
   });
 
-  it(`Should add to balance if no beneficiary`, async function () {
-    const { jbProjectPayer, mockJbDirectory, mockJbTerminal } = await setup();
+  it(`Should pay and use the caller if no beneficiary is set`, async function () {
+    const { caller, jbProjectPayer, mockJbDirectory, mockJbTerminal } = await setup();
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(PROJECT_ID, ethToken)
@@ -110,36 +113,42 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
     // Eth payments should use 18 decimals.
     await mockJbTerminal.mock.decimals.returns(18);
 
-    await mockJbTerminal.mock.addToBalanceOf
+    await mockJbTerminal.mock.pay
       .withArgs(
-        PROJECT_ID,
         AMOUNT,
-        MEMO
-      )
-      .returns();
-
-    await expect(
-      jbProjectPayer.pay(
         PROJECT_ID,
-        ethToken,
-        0,
-        DECIMALS,
-        ethers.constants.AddressZero,
+        caller.address,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
         MEMO,
         METADATA,
-        {
-          value: AMOUNT,
-        },
-      ),
+      )
+      .returns(0);
+
+    await expect(
+      jbProjectPayer
+        .connect(caller)
+        .pay(
+          PROJECT_ID,
+          ethToken,
+          0,
+          DECIMALS,
+          ethers.constants.AddressZero,
+          MIN_RETURNED_TOKENS,
+          PREFER_CLAIMED_TOKENS,
+          MEMO,
+          METADATA,
+          {
+            value: AMOUNT,
+          },
+        ),
     ).to.not.be.reverted;
   });
 
-  it(`Should pay funds towards project with an erc20 tokens`, async function () {
+  it(`Should pay funds towards project with a 9-decimals erc20 tokens`, async function () {
     const { jbProjectPayer, mockJbDirectory, mockJbTerminal, mockJbToken, addrs } = await setup();
 
-    await mockJbTerminal.mock.decimals.returns(DECIMALS);
+    await mockJbTerminal.mock.decimals.returns(9);
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(PROJECT_ID, mockJbToken.address)
@@ -171,12 +180,81 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
           PROJECT_ID,
           mockJbToken.address,
           AMOUNT,
-          DECIMALS,
+          9,
           BENEFICIARY,
           MIN_RETURNED_TOKENS,
           PREFER_CLAIMED_TOKENS,
           MEMO,
           METADATA,
+        ),
+    ).to.not.be.reverted;
+  });
+
+  it(`Should pay funds towards project using addToBalanceOf`, async function () {
+    const { jbProjectPayer, mockJbDirectory, mockJbTerminal } = await setup();
+
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(PROJECT_ID, ethToken)
+      .returns(mockJbTerminal.address);
+
+    // Eth payments should use 18 decimals.
+    await mockJbTerminal.mock.decimals.returns(18);
+
+    await mockJbTerminal.mock.addToBalanceOf
+      .withArgs(
+        PROJECT_ID,
+        AMOUNT,
+        MEMO,
+      )
+      .returns();
+
+    await expect(
+      jbProjectPayer.addToBalance(
+        PROJECT_ID,
+        ethToken,
+        AMOUNT,
+        DECIMALS,
+        MEMO,
+        {
+          value: AMOUNT,
+        },
+      ),
+    ).to.not.be.reverted;
+  });
+
+  it(`Should pay funds towards project using addToBalanceOf with a 9-decimals erc20 tokens`, async function () {
+    const { jbProjectPayer, mockJbDirectory, mockJbTerminal, mockJbToken, addrs } = await setup();
+
+    await mockJbTerminal.mock.decimals.returns(9);
+
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(PROJECT_ID, mockJbToken.address)
+      .returns(mockJbTerminal.address);
+
+    await mockJbTerminal.mock.addToBalanceOf
+      .withArgs(
+        PROJECT_ID,
+        AMOUNT,
+        MEMO,
+      )
+      .returns();
+
+    const payer = addrs[0];
+    await mockJbToken.mock['transferFrom(address,address,uint256)']
+      .withArgs(payer.address, jbProjectPayer.address, AMOUNT)
+      .returns(0);
+    await mockJbToken.mock['approve(address,uint256)']
+      .withArgs(mockJbTerminal.address, AMOUNT)
+      .returns(0);
+    await expect(
+      jbProjectPayer
+        .connect(payer)
+        .addToBalance(
+          PROJECT_ID,
+          mockJbToken.address,
+          AMOUNT,
+          9,
+          MEMO,
         ),
     ).to.not.be.reverted;
   });
@@ -235,6 +313,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
         INITIAL_PREFER_CLAIMED_TOKENS,
         INITIAL_MEMO,
         INITIAL_METADATA,
+        false // prefer add to balance
       );
 
     await mockJbTerminal.mock.pay
@@ -248,6 +327,47 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
         INITIAL_METADATA,
       )
       .returns(0);
+
+    await expect(
+      caller.sendTransaction({
+        to: jbProjectPayer.address,
+        value: AMOUNT,
+      }),
+    ).to.not.be.reverted;
+  });
+
+  it(`Fallback function should pay ETH funds towards default project with addToBalance`, async function () {
+    const { jbProjectPayer, mockJbDirectory, mockJbTerminal, owner, addrs } = await setup();
+
+    let caller = addrs[0];
+
+    // fallback uses 18 decimals.
+    await mockJbTerminal.mock.decimals.returns(18);
+
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(INITIAL_PROJECT_ID, ethToken)
+      .returns(mockJbTerminal.address);
+
+    // Set the default beneficiary to the zero address.
+
+    await jbProjectPayer
+      .connect(owner)
+      .setDefaultValues(
+        INITIAL_PROJECT_ID,
+        ethers.constants.AddressZero,
+        INITIAL_PREFER_CLAIMED_TOKENS,
+        INITIAL_MEMO,
+        INITIAL_METADATA,
+        true // prefer add to balance
+      );
+
+    await mockJbTerminal.mock.addToBalanceOf
+      .withArgs(
+        INITIAL_PROJECT_ID,
+        AMOUNT,
+        INITIAL_MEMO,
+      )
+      .returns();
 
     await expect(
       caller.sendTransaction({

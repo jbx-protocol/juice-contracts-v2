@@ -7,6 +7,8 @@ struct JBSplit {
   // A flag that only has effect if a projectId is also specified, and the project has a token contract attached.
   // If so, this flag indicates if the tokens that result from making a payment to the project should be delivered claimed into the beneficiary's wallet, or unclaimed to save gas.
   bool preferClaimed;
+  // A flag indicating if a distribution to a project should prefer triggering it's addToBalance function instead of its pay function.
+  bool preferAddToBalance;
   // The percent of the whole group that this split occupies. This number is out of `JBConstants.SPLITS_TOTAL_PERCENT`.
   uint256 percent;
   // If an allocator is not set but a projectId is set, funds will be sent to the protocol treasury belonging to the project who's ID is specified.
