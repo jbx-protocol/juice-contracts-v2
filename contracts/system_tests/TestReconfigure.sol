@@ -143,7 +143,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
 
     evm.warp(currentFundingCycle.start+1); // Avoid overwriting current fc while reconfiguring
 
-    for(uint i=0; i<7; i++) {
+    for(uint i=0; i<18; i++) {
       currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
 
       if(BALLOT_DURATION + i * 1 days < currentFundingCycle.duration)
@@ -170,26 +170,24 @@ contract TestReconfigureProject is TestBaseWorkflow {
       // Should remain unchanged
       currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
 
-      // Is the full ballot delay included into the funding cycle?
+      // Is the full ballot duration included in the funding cycle?
       if(currentFundingCycle.duration % (BALLOT_DURATION + i * 1 days) < currentFundingCycle.duration) {
         assertEq(currentFundingCycle.weight, initialFundingCycle.weight - i);
         // Duration is 6 days, ballot is 3 days, we move forward into the duration, one day at a time, from fc to fc
         evm.warp(currentFundingCycle.start + currentFundingCycle.duration + i * 1 days);
       } 
-      // the ballot includes the end/begining of the funding cycle -> the reconfiguration shouldn't get active before the next fc
+      // the ballot is accross two funding cycles
       else {
-        // Should be the same configuration
-        evm.warp(currentFundingCycle.start + currentFundingCycle.duration + i * 1 days);
-        currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
-        assertEq(currentFundingCycle.weight, initialFundingCycle.weight - i);
-
-        // Next funding cycle -> should be the reconfiguration
+        // Warp to begining of next FC: should be the previous fc config rolled over (ballot is in Failed state)
         evm.warp(currentFundingCycle.start + currentFundingCycle.duration);
+        assertEq(currentFundingCycle.weight, initialFundingCycle.weight - i);
+        uint256 cycleNumber = currentFundingCycle.number;
 
-        // Next test
-        evm.warp(block.timestamp + i * 1 days);
-
-        emit log('he');
+        // Warp to after the end of the ballot, within the same fc: should be the new fc (ballot is in Approved state)
+        evm.warp(currentFundingCycle.start + currentFundingCycle.duration + BALLOT_DURATION);
+        currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
+        assertEq(currentFundingCycle.weight, initialFundingCycle.weight - i - 1);
+        assertEq(currentFundingCycle.number, cycleNumber + 1);
       }
     }
   }
