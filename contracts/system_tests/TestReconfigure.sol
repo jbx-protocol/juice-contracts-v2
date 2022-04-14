@@ -149,13 +149,15 @@ contract TestReconfigureProject is TestBaseWorkflow {
 
     JBFundingCycle memory initialFundingCycle = jbFundingCycleStore().currentOf(projectId);
     JBFundingCycle memory currentFundingCycle = initialFundingCycle;
+    JBFundingCycle memory queuedFundingCycle = jbFundingCycleStore().queuedOf(projectId);
 
     evm.warp(currentFundingCycle.start+1); // Avoid overwriting current fc while reconfiguring
 
-    for(uint i=0; i<18; i++) {
+    for(uint i=0; i<4; i++) {
       currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
 
-      if(BALLOT_DURATION + i * 1 days < currentFundingCycle.duration)
+
+      if(FUZZED_BALLOT_DURATION + i * 1 days < currentFundingCycle.duration)
         assertEq(currentFundingCycle.weight, initialFundingCycle.weight - i);
 
       _data = JBFundingCycleData({
@@ -177,12 +179,23 @@ contract TestReconfigureProject is TestBaseWorkflow {
       );
 
       currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
+      queuedFundingCycle = jbFundingCycleStore().queuedOf(projectId);
+
+      // While ballot is failed, queued is current rolled over
+      assertEq(queuedFundingCycle.weight, currentFundingCycle.weight);
+      assertEq(queuedFundingCycle.number, currentFundingCycle.number+1);
 
       // Is the full ballot duration included in the funding cycle?
       if(FUZZED_BALLOT_DURATION == 0 || currentFundingCycle.duration % (FUZZED_BALLOT_DURATION + i * 1 days) < currentFundingCycle.duration) {
         assertEq(currentFundingCycle.weight, initialFundingCycle.weight - i);
-        // Duration is 6 days, ballot is 3 days, we move forward into the duration, one day at a time, from fc to fc
+        
+        // we shift forward the start of the ballot into the fc, one day at a time, from fc to fc
         evm.warp(currentFundingCycle.start + currentFundingCycle.duration + i * 1 days);
+
+        // ballot should be in Approved state now, queued is the reconfiguration rolled over
+        queuedFundingCycle = jbFundingCycleStore().queuedOf(projectId);
+        assertEq(queuedFundingCycle.weight+1, currentFundingCycle.weight);
+        assertEq(queuedFundingCycle.number, currentFundingCycle.number+2); 
       }
       // the ballot is accross two funding cycles
       else {
