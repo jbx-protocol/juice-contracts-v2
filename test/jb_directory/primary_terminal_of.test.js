@@ -61,8 +61,9 @@ describe('JBDirectory::primaryTerminalOf(...)', function () {
 
     let token = ethers.Wallet.createRandom().address;
     await terminal1.mock.token.returns(token);
+    await terminal1.mock.acceptsToken.withArgs(token).returns(true);
 
-    await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, terminal1.address);
+    await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, token, terminal1.address);
 
     expect(await jbDirectory.connect(projectOwner).primaryTerminalOf(PROJECT_ID, token)).to.equal(
       terminal1.address,
@@ -76,6 +77,9 @@ describe('JBDirectory::primaryTerminalOf(...)', function () {
 
     let token = ethers.Wallet.createRandom().address;
     await terminal2.mock.token.returns(token);
+
+    await terminal1.mock.acceptsToken.withArgs(token).returns(false);
+    await terminal2.mock.acceptsToken.withArgs(token).returns(true);
 
     expect(await jbDirectory.connect(projectOwner).primaryTerminalOf(PROJECT_ID, token)).to.equal(
       terminal2.address,

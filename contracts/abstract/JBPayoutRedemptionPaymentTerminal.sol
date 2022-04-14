@@ -14,6 +14,7 @@ import './../libraries/JBTokens.sol';
 import './../libraries/JBFixedPointNumber.sol';
 import './../libraries/JBFundingCycleMetadataResolver.sol';
 import './../structs/JBTokenAmount.sol';
+import './JBSingleTokenPaymentTerminal.sol';
 import './JBOperatable.sol';
 
 //*********************************************************************//
@@ -43,12 +44,14 @@ error INADEQUATE_RECLAIM_AMOUNT();
 
   @dev
   Inherits from:
+  JBPayoutRedemptionPaymentTerminal: Generic terminal managing all inflows and outflows of funds into the protocol ecosystem for one token.
   JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
   ReentrancyGuard: Contract module that helps prevent reentrant calls to a function.
 */
 abstract contract JBPayoutRedemptionPaymentTerminal is
   IJBPayoutRedemptionPaymentTerminal,
+  JBSingleTokenPaymentTerminal,
   JBOperatable,
   Ownable,
   ReentrancyGuard
@@ -129,24 +132,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     The contract that stores and manages the terminal's data.
   */
   IJBPaymentTerminalStore public immutable override store;
-
-  /**
-    @notice
-    The token that this terminal accepts.
-  */
-  address public immutable override token;
-
-  /**
-    @notice
-    The number of decimals the token fixed point amounts are expected to have.
-  */
-  uint256 public immutable override decimals;
-
-  /**
-    @notice
-    The currency to use when resolving price feeds for this terminal.
-  */
-  uint256 public immutable override currency;
 
   /**
     @notice
@@ -268,12 +253,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     IJBPrices _prices,
     IJBPaymentTerminalStore _store,
     address _owner
-  ) JBOperatable(_operatorStore) {
-    token = _token;
-    decimals = _decimals;
+  ) JBSingleTokenPaymentTerminal(_token, _decimals, _currency) JBOperatable(_operatorStore) {
     baseWeightCurrency = _baseWeightCurrency;
     payoutSplitsGroup = _payoutSplitsGroup;
-    currency = _currency;
     projects = _projects;
     directory = _directory;
     splitsStore = _splitsStore;
@@ -291,8 +273,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @notice
     Contribute tokens to a project.
 
-    @param _amount The amount of terminal tokens being received, as a fixed point number with the same amount of decimals as this terminal. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
     @param _projectId The ID of the project being paid.
+    @param _amount The amount of terminal tokens being received, as a fixed point number with the same amount of decimals as this terminal. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
+    // _param _token The token being paid. This terminal ignores this property since it only manages one currency. 
     @param _beneficiary The address to mint tokens for and pass along to the funding cycle's delegate.
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with the same amount of decimals as this terminal.
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
@@ -302,8 +285,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @return The number of tokens minted for the beneficiary, as a fixed point number with 18 decimals.
   */
   function pay(
-    uint256 _amount,
     uint256 _projectId,
+    uint256 _amount,
+    address,
     address _beneficiary,
     uint256 _minReturnedTokens,
     bool _preferClaimedTokens,
@@ -497,7 +481,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       // Also get a reference to the amount that was distributed to splits from which fees should be taken.
       (_leftoverDistributionAmount, _feeEligibleDistributionAmount) = _distributeToPayoutSplitsOf(
         _projectId,
-        _fundingCycle,
+        _fundingCycle.configuration,
+        payoutSplitsGroup,
         _distributedAmount,
         _feeDiscount
       );
@@ -644,7 +629,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     returns (uint256 balance)
   {
     // The terminal being migrated to must accept the same token as this terminal.
-    if (token != _to.token()) revert TERMINAL_TOKENS_INCOMPATIBLE();
+    if (!_to.acceptsToken(token)) revert TERMINAL_TOKENS_INCOMPATIBLE();
 
     // Record the migration in the store.
     balance = store.recordMigration(_projectId);
@@ -658,7 +643,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       uint256 _payableValue = token == JBTokens.ETH ? balance : 0;
 
       // Withdraw the balance to transfer to the new terminal;
-      _to.addToBalanceOf{value: _payableValue}(_projectId, balance, '');
+      _to.addToBalanceOf{value: _payableValue}(_projectId, balance, token, '');
     }
 
     emit Migrate(_projectId, _to, balance, msg.sender);
@@ -670,11 +655,13 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     @param _projectId The ID of the project to which the funds received belong.
     @param _amount The amount of tokens to add, as a fixed point number with the same number of decimals as this terminal. If this is an ETH terminal, this is ignored and msg.value is used instead.
+    // _param _token The token being paid. This terminal ignores this property since it only manages one currency. 
     @param _memo A memo to pass along to the emitted event.
   */
   function addToBalanceOf(
     uint256 _projectId,
     uint256 _amount,
+    address,
     string calldata _memo
   ) external payable virtual override isTerminalOf(_projectId) {
     // If this terminal's token isn't ETH, make sure no msg.value was sent, then transfer the tokens in from msg.sender.
@@ -796,7 +783,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     Pays out splits for a project's funding cycle configuration.
 
     @param _projectId The ID of the project for which payout splits are being distributed.
-    @param _fundingCycle The funding cycle during which the distribution is being made.
+    @param _domain The domain of the splits to distribute the payout between.
+    @param _group The group of the splits to distribute the payout between.
     @param _amount The total amount being distributed, as a fixed point number with the same number of decimals as this terminal.
     @param _feeDiscount The amount of discount to apply to the fee, out of the MAX_FEE.
 
@@ -805,7 +793,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   */
   function _distributeToPayoutSplitsOf(
     uint256 _projectId,
-    JBFundingCycle memory _fundingCycle,
+    uint256 _domain,
+    uint256 _group,
     uint256 _amount,
     uint256 _feeDiscount
   ) private returns (uint256 leftoverAmount, uint256 feeEligibleDistributionAmount) {
@@ -813,11 +802,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     leftoverAmount = _amount;
 
     // Get a reference to the project's payout splits.
-    JBSplit[] memory _splits = splitsStore.splitsOf(
-      _projectId,
-      _fundingCycle.configuration,
-      payoutSplitsGroup
-    );
+    JBSplit[] memory _splits = splitsStore.splitsOf(_projectId, _domain, _group);
 
     // Transfer between all splits.
     for (uint256 _i = 0; _i < _splits.length; _i++) {
@@ -857,7 +842,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             _netPayoutAmount,
             decimals,
             _projectId,
-            payoutSplitsGroup,
+            _group,
             _split
           );
 
@@ -914,12 +899,14 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
               _terminal.addToBalanceOf{value: _payableValue}(
                 _split.projectId,
                 _netPayoutAmount,
+                token,
                 ''
               );
             else
               _terminal.pay{value: _payableValue}(
-                _netPayoutAmount,
                 _split.projectId,
+                _netPayoutAmount,
+                token,
                 _split.beneficiary != address(0) ? _split.beneficiary : msg.sender,
                 0,
                 _split.preferClaimed,
@@ -948,9 +935,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       }
 
       emit DistributeToPayoutSplit(
-        _fundingCycle.configuration,
-        _fundingCycle.number,
         _projectId,
+        _domain,
+        _group,
         _split,
         _netPayoutAmount,
         msg.sender
@@ -1008,8 +995,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
       // Send the payment.
       _terminal.pay{value: _payableValue}(
-        _amount,
         _PROTOCOL_PROJECT_ID,
+        _amount,
+        token,
         _beneficiary,
         0,
         false,

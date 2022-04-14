@@ -150,8 +150,9 @@ contract TestReconfigureProject is TestBaseWorkflow {
     evm.warp(block.timestamp + 1);
 
     jbETHPaymentTerminal().pay{value: BALANCE}(
-      BALANCE,
       projectId,
+      BALANCE,
+      address(0),
       _beneficiary,
       0,
       false,
@@ -208,8 +209,9 @@ contract TestReconfigureProject is TestBaseWorkflow {
     assertEq(fundingCycle.number, 2);
 
     jbETHPaymentTerminal().pay{value: BALANCE}(
-      BALANCE,
       projectId,
+      BALANCE,
+      address(0),
       _beneficiary,
       0,
       false,

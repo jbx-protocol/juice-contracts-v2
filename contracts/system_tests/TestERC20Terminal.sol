@@ -64,6 +64,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
         terminal: terminal,
+        token: address(jbToken()),
         distributionLimit: 10 * 10**18,
         overflowAllowance: 5 * 10**18,
         distributionLimitCurrency: jbLibraries().ETH(),
@@ -92,8 +93,9 @@ contract TestERC20Terminal is TestBaseWorkflow {
     jbToken().approve(address(terminal), 20 * 10**18);
     evm.prank(caller); // back to regular msg.sender (bug?)
     terminal.pay(
-      20 * 10**18,
       projectId,
+      20 * 10**18,
+      address(0),
       msg.sender,
       0,
       false,
@@ -170,6 +172,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
         terminal: terminal,
+        token: address(jbToken()),
         distributionLimit: TARGET,
         overflowAllowance: ALLOWANCE,
         distributionLimitCurrency: jbLibraries().ETH(),
@@ -197,7 +200,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
     evm.prank(caller); // back to regular msg.sender (bug?)
     jbToken().approve(address(terminal), BALANCE);
     evm.prank(caller); // back to regular msg.sender (bug?)
-    terminal.pay(BALANCE, projectId, msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
+    terminal.pay(projectId, BALANCE, address(0), msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
 
     // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
     uint256 _userTokenBalance = PRBMath.mulDiv(BALANCE, (WEIGHT / 10**18), 2);

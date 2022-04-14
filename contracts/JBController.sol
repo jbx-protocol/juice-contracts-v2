@@ -77,8 +77,9 @@ contract JBController is IJBController, JBOperatable {
     _projectId The ID of the project to get the packed distribution limit data of.
     _configuration The configuration during which the packed distribution limit data applies.
     _terminal The terminal from which distributions are being limited.
+    _token The token for which distributions are being limited.
   */
-  mapping(uint256 => mapping(uint256 => mapping(IJBPaymentTerminal => uint256)))
+  mapping(uint256 => mapping(uint256 => mapping(IJBPaymentTerminal => mapping(address => uint256))))
     private _packedDistributionLimitDataOf;
 
   /**
@@ -94,8 +95,9 @@ contract JBController is IJBController, JBOperatable {
     _projectId The ID of the project to get the packed overflow allowance data of.
     _configuration The configuration during which the packed overflow allowance data applies.
     _terminal The terminal managing the overflow.
+    _token The token for which distributions are being limited.
   */
-  mapping(uint256 => mapping(uint256 => mapping(IJBPaymentTerminal => uint256)))
+  mapping(uint256 => mapping(uint256 => mapping(IJBPaymentTerminal => mapping(address => uint256))))
     private _packedOverflowAllowanceDataOf;
 
   //*********************************************************************//
@@ -146,6 +148,7 @@ contract JBController is IJBController, JBOperatable {
     @param _projectId The ID of the project to get the distribution limit of.
     @param _configuration The configuration during which the distribution limit applies.
     @param _terminal The terminal from which distributions are being limited.
+    @param _token The token for which the distribution limit applies.
 
     @return The distribution limit, as a fixed point number with the same number of decimals as the provided terminal.
     @return The currency of the distribution limit.
@@ -153,10 +156,11 @@ contract JBController is IJBController, JBOperatable {
   function distributionLimitOf(
     uint256 _projectId,
     uint256 _configuration,
-    IJBPaymentTerminal _terminal
+    IJBPaymentTerminal _terminal,
+    address _token
   ) external view override returns (uint256, uint256) {
     // Get a reference to the packed data.
-    uint256 _data = _packedDistributionLimitDataOf[_projectId][_configuration][_terminal];
+    uint256 _data = _packedDistributionLimitDataOf[_projectId][_configuration][_terminal][_token];
 
     // The limit is in bits 0-247. The currency is in bits 248-255.
     return (uint256(uint248(_data)), _data >> 248);
@@ -172,6 +176,7 @@ contract JBController is IJBController, JBOperatable {
     @param _projectId The ID of the project to get the overflow allowance of.
     @param _configuration The configuration of the during which the allowance applies.
     @param _terminal The terminal managing the overflow.
+    @param _token The token for which the distribution limit applies.
 
     @return The overflow allowance, as a fixed point number with the same number of decimals as the provided terminal.
     @return The currency of the overflow allowance.
@@ -179,10 +184,11 @@ contract JBController is IJBController, JBOperatable {
   function overflowAllowanceOf(
     uint256 _projectId,
     uint256 _configuration,
-    IJBPaymentTerminal _terminal
+    IJBPaymentTerminal _terminal,
+    address _token
   ) external view override returns (uint256, uint256) {
     // Get a reference to the packed data.
-    uint256 _data = _packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal];
+    uint256 _data = _packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal][_token];
 
     // The allowance is in bits 0-247. The currency is in bits 248-255.
     return (uint256(uint248(_data)), _data >> 248);
@@ -788,7 +794,12 @@ contract JBController is IJBController, JBOperatable {
     // Distribute tokens to splits and get a reference to the leftover amount to mint after all splits have gotten their share.
     uint256 _leftoverTokenCount = tokenCount == 0
       ? 0
-      : _distributeToReservedTokenSplitsOf(_projectId, _fundingCycle, tokenCount);
+      : _distributeToReservedTokenSplitsOf(
+        _projectId,
+        _fundingCycle.configuration,
+        JBSplitsGroups.RESERVED_TOKENS,
+        tokenCount
+      );
 
     // Mint any leftover tokens to the project owner.
     if (_leftoverTokenCount > 0) tokenStore.mintFor(_owner, _projectId, _leftoverTokenCount, false);
@@ -810,25 +821,23 @@ contract JBController is IJBController, JBOperatable {
     Distribute tokens to the splits according to the specified funding cycle configuration.
 
     @param _projectId The ID of the project for which reserved token splits are being distributed.
-    @param _fundingCycle The funding cycle to base the token distribution on.
+    @param _domain The domain of the splits to distribute the reserved tokens between.
+    @param _group The group of the splits to distribute the reserved tokens between.
     @param _amount The total amount of tokens to mint.
 
     @return leftoverAmount If the splits percents dont add up to 100%, the leftover amount is returned.
   */
   function _distributeToReservedTokenSplitsOf(
     uint256 _projectId,
-    JBFundingCycle memory _fundingCycle,
+    uint256 _domain,
+    uint256 _group,
     uint256 _amount
   ) private returns (uint256 leftoverAmount) {
     // Set the leftover amount to the initial amount.
     leftoverAmount = _amount;
 
     // Get a reference to the project's reserved token splits.
-    JBSplit[] memory _splits = splitsStore.splitsOf(
-      _projectId,
-      _fundingCycle.configuration,
-      JBSplitsGroups.RESERVED_TOKENS
-    );
+    JBSplit[] memory _splits = splitsStore.splitsOf(_projectId, _domain, _group);
 
     //Transfer between all splits.
     for (uint256 _i = 0; _i < _splits.length; _i++) {
@@ -868,7 +877,7 @@ contract JBController is IJBController, JBOperatable {
               _tokenCount,
               18,
               _projectId,
-              JBSplitsGroups.RESERVED_TOKENS,
+              _group,
               _split
             )
           );
@@ -878,9 +887,9 @@ contract JBController is IJBController, JBOperatable {
       }
 
       emit DistributeToReservedTokenSplit(
-        _fundingCycle.configuration,
-        _fundingCycle.number,
         _projectId,
+        _domain,
+        _group,
         _split,
         _tokenCount,
         msg.sender
@@ -960,13 +969,17 @@ contract JBController is IJBController, JBOperatable {
       if (_constraints.distributionLimit > 0)
         _packedDistributionLimitDataOf[_projectId][_fundingCycle.configuration][
           _constraints.terminal
-        ] = _constraints.distributionLimit | (_constraints.distributionLimitCurrency << 248);
+        ][_constraints.token] =
+          _constraints.distributionLimit |
+          (_constraints.distributionLimitCurrency << 248);
 
       // Set the overflow allowance if there is one.
       if (_constraints.overflowAllowance > 0)
         _packedOverflowAllowanceDataOf[_projectId][_fundingCycle.configuration][
           _constraints.terminal
-        ] = _constraints.overflowAllowance | (_constraints.overflowAllowanceCurrency << 248);
+        ][_constraints.token] =
+          _constraints.overflowAllowance |
+          (_constraints.overflowAllowanceCurrency << 248);
 
       emit SetFundAccessConstraints(
         _fundingCycle.configuration,

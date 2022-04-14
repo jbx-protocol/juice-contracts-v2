@@ -15,6 +15,7 @@ error INVALID_PROJECT_ID_IN_DIRECTORY();
 error DUPLICATE_TERMINALS();
 error SET_CONTROLLER_NOT_ALLOWED();
 error SET_TERMINALS_NOT_ALLOWED();
+error TOKEN_NOT_ACCEPTED();
 
 /**
   @notice
@@ -149,14 +150,16 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     override
     returns (IJBPaymentTerminal)
   {
-    // If a primary terminal for the token was specifically set, return it.
-    if (_primaryTerminalOf[_projectId][_token] != IJBPaymentTerminal(address(0)))
-      return _primaryTerminalOf[_projectId][_token];
+    // If a primary terminal for the token was specifically set and its one of the project's terminals, return it.
+    if (
+      _primaryTerminalOf[_projectId][_token] != IJBPaymentTerminal(address(0)) &&
+      isTerminalOf(_projectId, _primaryTerminalOf[_projectId][_token])
+    ) return _primaryTerminalOf[_projectId][_token];
 
     // Return the first terminal which accepts the specified token.
     for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++) {
       IJBPaymentTerminal _terminal = _terminalsOf[_projectId][_i];
-      if (_terminal.token() == _token) return _terminal;
+      if (_terminal.acceptsToken(_token)) return _terminal;
     }
 
     // Not found.
@@ -256,9 +259,6 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     if (msg.sender != address(controllerOf[_projectId]) && !_fundingCycle.setTerminalsAllowed())
       revert SET_TERMINALS_NOT_ALLOWED();
 
-    // Get a reference to the terminals of the project.
-    IJBPaymentTerminal[] memory _oldTerminals = _terminalsOf[_projectId];
-
     // Delete the stored terminals for the project.
     _terminalsOf[_projectId] = _terminals;
 
@@ -267,13 +267,6 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
       for (uint256 _i; _i < _terminals.length; _i++)
         for (uint256 _j = _i + 1; _j < _terminals.length; _j++)
           if (_terminals[_i] == _terminals[_j]) revert DUPLICATE_TERMINALS();
-
-    // If one of the old terminals was set as a primary terminal but is not included in the new terminals, remove it from being a primary terminal.
-    for (uint256 _i; _i < _oldTerminals.length; _i++)
-      if (
-        _primaryTerminalOf[_projectId][_oldTerminals[_i].token()] == _oldTerminals[_i] &&
-        !_contains(_terminals, _oldTerminals[_i])
-      ) delete _primaryTerminalOf[_projectId][_oldTerminals[_i].token()];
 
     emit SetTerminals(_projectId, _terminals, msg.sender);
   }
@@ -290,15 +283,20 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     If setting a newly added terminal and the funding cycle doesn't allow new terminals, the caller must be the current controller.
 
     @param _projectId The ID of the project for which a primary token is being set.
+    @param _token The token to set the primary terminal of.
     @param _terminal The terminal to make primary.
   */
-  function setPrimaryTerminalOf(uint256 _projectId, IJBPaymentTerminal _terminal)
+  function setPrimaryTerminalOf(
+    uint256 _projectId,
+    address _token,
+    IJBPaymentTerminal _terminal
+  )
     external
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.SET_PRIMARY_TERMINAL)
   {
-    // Get a reference to the token that the terminal accepts.
-    address _token = _terminal.token();
+    // Can't set the primary terminal for a token if it doesn't accept the token.
+    if (!_terminal.acceptsToken(_token)) revert TOKEN_NOT_ACCEPTED();
 
     // Add the terminal to the project if it hasn't been already.
     _addTerminalIfNeeded(_projectId, _terminal);
@@ -361,23 +359,5 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     _terminalsOf[_projectId].push(_terminal);
 
     emit AddTerminal(_projectId, _terminal, msg.sender);
-  }
-
-  /** 
-    @notice
-    Check if the provided terminal array contains the provided terminal.
-
-    @param _terminals The terminals to look through.
-    @param _terminal The terminal to check for.
-
-    @return Whether or not the `_terminals` includes the `_terminal`.
-  */
-  function _contains(IJBPaymentTerminal[] calldata _terminals, IJBPaymentTerminal _terminal)
-    private
-    pure
-    returns (bool)
-  {
-    for (uint256 _i; _i < _terminals.length; _i++) if (_terminals[_i] == _terminal) return true;
-    return false;
   }
 }
