@@ -151,7 +151,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
 
       _data = JBFundingCycleData({
         duration: 6 days,
-        weight: initialFundingCycle.weight - (i+1), // i+1 -> for the next funding cycle
+        weight: initialFundingCycle.weight - (i+1), // i+1 -> next funding cycle
         discountRate: 0,
         ballot: _ballot
       });
@@ -167,7 +167,6 @@ contract TestReconfigureProject is TestBaseWorkflow {
         ''
       );
 
-      // Should remain unchanged
       currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
 
       // Is the full ballot duration included in the funding cycle?
