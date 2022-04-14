@@ -30,7 +30,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
 
     _data = JBFundingCycleData({
       duration: 6 days,
-      weight: 1000 * 10**18,
+      weight: 10000 * 10**18,
       discountRate: 0,
       ballot: _ballot
     });
@@ -87,19 +87,23 @@ contract TestReconfigureProject is TestBaseWorkflow {
       ''
     );
 
-    JBFundingCycle memory fundingCycle = jbFundingCycleStore().currentOf(projectId); //, latestConfig);
 
-    assertEq(fundingCycle.number, 1);
-    assertEq(fundingCycle.weight, _data.weight);
+// --  Current = FC #1 -- 
+    JBFundingCycle memory fundingCycle = jbFundingCycleStore().currentOf(projectId);
+
+    assertEq(fundingCycle.number, 1); // ok
+    assertEq(fundingCycle.weight, _data.weight); 
+    emit log_uint(fundingCycle.basedOn);
+    emit log_uint(fundingCycle.configuration);
   
     uint256 currentConfiguration = fundingCycle.configuration;
 
-    evm.warp(block.timestamp + 10);
+    evm.warp(currentConfiguration + 1); // Avoid overwriting if same timestamp
 
     evm.prank(multisig());
     controller.reconfigureFundingCyclesOf(
       projectId,
-      _dataReconfiguration,
+      _data, // 3days ballot
       _metadata,
       0, // Start asap
       _groupedSplits,
@@ -107,20 +111,106 @@ contract TestReconfigureProject is TestBaseWorkflow {
       ''
     );
 
-    uint256 newConfiguration = block.timestamp;
-
     // Shouldn't have changed
     fundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(fundingCycle.number, 1);
     assertEq(fundingCycle.configuration, currentConfiguration);
     assertEq(fundingCycle.weight, _data.weight);
 
+
+// -- Go to FC#2: reconfig?
+
     // should be new funding cycle
     evm.warp(fundingCycle.configuration + fundingCycle.duration);
     
     JBFundingCycle memory newFundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(newFundingCycle.number, 2);
-    assertEq(newFundingCycle.weight, _dataReconfiguration.weight);
+    assertEq(newFundingCycle.weight, _data.weight);
+
+    emit log_uint(fundingCycle.basedOn);
+    emit log_uint(fundingCycle.configuration);
+
+
+    evm.prank(multisig());
+    controller.reconfigureFundingCyclesOf(
+      projectId,
+      _data,
+      _metadata,
+      0, // Start asap
+      _groupedSplits,
+      _fundAccessConstraints,
+      ''
+    );
+
+    // Shouldn't have changed
+    fundingCycle = jbFundingCycleStore().currentOf(projectId);
+    assertEq(fundingCycle.number, 2);
+    assertEq(fundingCycle.weight, _data.weight);
+
+// --- Go to FC#3
+
+    // should be new funding cycle
+    evm.warp(fundingCycle.configuration + fundingCycle.duration);
+    
+    newFundingCycle = jbFundingCycleStore().currentOf(projectId);
+    assertEq(newFundingCycle.number, 3); // false -> returns 2
+    emit log_uint(fundingCycle.basedOn); // correct for 2
+    emit log_uint(fundingCycle.configuration); // idem
+    assertEq(newFundingCycle.weight, _data.weight);
+
+    JBFundingCycle memory theo3 = jbFundingCycleStore().get(projectId, 1644320748);
+
+    emit log_uint(theo3.configuration); // correct for 3
+    emit log_uint(theo3.basedOn); // correct, config==2
+
+  }
+
+  function testMultipleReconfigure() public {
+    uint256 projectId = controller.launchProjectFor(
+      multisig(),
+      _projectMetadata,
+      _data, // duration 6 days, weight=10k, ballot 3days
+      _metadata,
+      0, // Start asap
+      _groupedSplits,
+      _fundAccessConstraints,
+      _terminals,
+      ''
+    );
+
+    JBFundingCycle memory initialFundingCycle = jbFundingCycleStore().currentOf(projectId);
+    JBFundingCycle memory currentFundingCycle = initialFundingCycle;
+
+    evm.warp(currentFundingCycle.configuration+1); // Avoid overwriting current fc while reconfiguring
+
+    for(uint i=0; i<2; i++) {
+      currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
+      assertEq(currentFundingCycle.weight, initialFundingCycle.weight / (i+1) );
+
+      _data = JBFundingCycleData({
+        duration: 6 days,
+        weight: initialFundingCycle.weight / (i+1),
+        discountRate: 0,
+        ballot: JBReconfigurationBufferBallot(address(0))//_ballot
+      });
+
+      evm.prank(multisig());
+      controller.reconfigureFundingCyclesOf(
+        projectId,
+        _data,
+        _metadata,
+        0, // Start asap
+        _groupedSplits,
+        _fundAccessConstraints,
+        ''
+      );
+
+      // Should remain unchanged
+      currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
+      assertEq(currentFundingCycle.weight, initialFundingCycle.weight / (i+2) );
+
+      evm.warp(currentFundingCycle.configuration + (i * currentFundingCycle.duration));
+    }
   }
 
   function testReconfigureProjectFuzzRates(
