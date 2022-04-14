@@ -125,7 +125,16 @@ contract TestReconfigureProject is TestBaseWorkflow {
     assertEq(newFundingCycle.weight, _data.weight);
   }
 
-  function testMultipleReconfigure() public {
+  function testMultipleReconfigure(uint8 FUZZED_BALLOT_DURATION) public {
+    _ballot = new JBReconfigurationBufferBallot(FUZZED_BALLOT_DURATION, jbFundingCycleStore());
+
+    _data = JBFundingCycleData({
+      duration: 6 days,
+      weight: 10000 ether,
+      discountRate: 0,
+      ballot: _ballot
+    });
+
     uint256 projectId = controller.launchProjectFor(
       multisig(),
       _projectMetadata,
@@ -170,11 +179,11 @@ contract TestReconfigureProject is TestBaseWorkflow {
       currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
 
       // Is the full ballot duration included in the funding cycle?
-      if(currentFundingCycle.duration % (BALLOT_DURATION + i * 1 days) < currentFundingCycle.duration) {
+      if(FUZZED_BALLOT_DURATION == 0 || currentFundingCycle.duration % (FUZZED_BALLOT_DURATION + i * 1 days) < currentFundingCycle.duration) {
         assertEq(currentFundingCycle.weight, initialFundingCycle.weight - i);
         // Duration is 6 days, ballot is 3 days, we move forward into the duration, one day at a time, from fc to fc
         evm.warp(currentFundingCycle.start + currentFundingCycle.duration + i * 1 days);
-      } 
+      }
       // the ballot is accross two funding cycles
       else {
         // Warp to begining of next FC: should be the previous fc config rolled over (ballot is in Failed state)
@@ -183,7 +192,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
         uint256 cycleNumber = currentFundingCycle.number;
 
         // Warp to after the end of the ballot, within the same fc: should be the new fc (ballot is in Approved state)
-        evm.warp(currentFundingCycle.start + currentFundingCycle.duration + BALLOT_DURATION);
+        evm.warp(currentFundingCycle.start + currentFundingCycle.duration + FUZZED_BALLOT_DURATION);
         currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
         assertEq(currentFundingCycle.weight, initialFundingCycle.weight - i - 1);
         assertEq(currentFundingCycle.number, cycleNumber + 1);
