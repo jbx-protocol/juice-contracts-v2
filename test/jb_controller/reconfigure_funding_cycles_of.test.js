@@ -165,6 +165,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
 
   function makeFundingAccessConstraints({
     terminals,
+    token = ethers.Wallet.createRandom().address,
     distributionLimit = 200,
     distributionLimitCurrency = 1,
     overflowAllowance = 100,
@@ -174,6 +175,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
     for (let terminal of terminals) {
       constraints.push({
         terminal,
+        token,
         distributionLimit,
         distributionLimitCurrency,
         overflowAllowance,
@@ -235,6 +237,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
             PROJECT_ID,
             [
               constraints.terminal,
+              constraints.token,
               constraints.distributionLimit,
               constraints.distributionLimitCurrency,
               constraints.overflowAllowance,
@@ -372,6 +375,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
             PROJECT_ID,
             [
               constraints.terminal,
+              constraints.token,
               constraints.distributionLimit,
               constraints.distributionLimitCurrency,
               constraints.overflowAllowance,
@@ -474,6 +478,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
             PROJECT_ID,
             [
               constraints.terminal,
+              constraints.token,
               constraints.distributionLimit,
               constraints.distributionLimitCurrency,
               constraints.overflowAllowance,
@@ -541,6 +546,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
             PROJECT_ID,
             [
               constraints.terminal,
+              constraints.token,
               constraints.distributionLimit,
               constraints.distributionLimitCurrency,
               constraints.overflowAllowance,

@@ -192,11 +192,15 @@ module.exports = async ({ deployments, getChainId }) => {
   if ((await jbPricesContract.connect(deployer).owner()) != multisigAddress)
     await jbPricesContract.connect(deployer).transferOwnership(multisigAddress);
 
+  let isAllowedToSetFirstController = await jbDirectoryContract
+    .connect(deployer)
+    .isAllowedToSetFirstController(JBController.address);
+
+  console.log({ isAllowedToSetFirstController });
+
   // If needed, allow the controller to set projects' first controller, then transfer the ownership of the JBDirectory to the multisig.
   if (
-    !(await jbDirectoryContract
-      .connect(deployer)
-      .isAllowedToSetFirstController(JBController.address))
+    !isAllowedToSetFirstController
   ) {
     await jbDirectoryContract
       .connect(deployer)
@@ -212,6 +216,7 @@ module.exports = async ({ deployments, getChainId }) => {
   if ((await jbProjects.connect(deployer).count()) == 0) {
 
     console.log('Deploying protocol project...');
+
     await jbControllerContract.connect(deployer).launchProjectFor(
       /*owner*/ multisigAddress,
 

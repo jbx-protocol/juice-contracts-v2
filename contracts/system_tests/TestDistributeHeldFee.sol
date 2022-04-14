@@ -65,6 +65,7 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
         terminal: _terminal,
+        token: jbLibraries().ETHToken(),
         distributionLimit: _targetInWei, // 10 ETH target
         overflowAllowance: 5 ether,
         distributionLimitCurrency: 1, // Currency = ETH
@@ -115,8 +116,9 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
 
     // -- pay --
     _terminal.pay{value: payAmountInWei}(
-      payAmountInWei,
       _projectId,
+      payAmountInWei,
+      address(0),
       /* _beneficiary */
       _userWallet,
       /* _minReturnedTokens */
@@ -167,6 +169,7 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
     _terminal.addToBalanceOf{value: payAmountInWei}(
       _projectId,
       payAmountInWei,
+      address(0),
       'thanks for all the fish'
     );
 

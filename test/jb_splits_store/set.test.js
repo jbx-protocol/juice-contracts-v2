@@ -116,6 +116,7 @@ describe('JBSplitsStore::set(...)', function () {
     const newSplits = splits.map((elt) => ({
       ...elt,
       preferClaimed: true,
+      preferAddToBalance: true,
       beneficiary: ethers.constants.AddressZero,
       allocator: addrs[5].address,
     }));

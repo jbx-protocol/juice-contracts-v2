@@ -226,7 +226,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
     expect(
       await jbEthPaymentTerminal
         .connect(caller)
-        .addToBalanceOf(PROJECT_ID, AMOUNT, MEMO, { value: AMOUNT }),
+        .addToBalanceOf(PROJECT_ID, AMOUNT, ETH_ADDRESS, MEMO, { value: AMOUNT }),
     )
       .to.emit(jbEthPaymentTerminal, 'AddToBalance')
       .withArgs(PROJECT_ID, AMOUNT, MEMO, caller.address);
@@ -242,7 +242,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
 
     await jbEthPaymentTerminal
       .connect(caller)
-      .addToBalanceOf(PROJECT_ID, AMOUNT + 1, MEMO, { value: AMOUNT });
+      .addToBalanceOf(PROJECT_ID, AMOUNT + 1, ETH_ADDRESS, MEMO, { value: AMOUNT });
   });
   it('Should work with non-eth terminal if no value is sent', async function () {
     const {
@@ -259,7 +259,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
     await mockJbToken.mock.transferFrom
       .withArgs(caller.address, JBERC20PaymentTerminal.address, AMOUNT)
       .returns(0);
-    await JBERC20PaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, AMOUNT, MEMO, {
+    await JBERC20PaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, AMOUNT, mockJbToken.address, MEMO, {
       value: 0,
     });
   });
@@ -293,7 +293,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
     let heldFeeBefore = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
 
     expect(
-      await jbEthPaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, 1, MEMO, { value: 1 }),
+      await jbEthPaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, 1, ETH_ADDRESS, MEMO, { value: 1 }),
     )
       .to.emit(jbEthPaymentTerminal, 'AddToBalance')
       .withArgs(PROJECT_ID, 1, MEMO, caller.address);
@@ -363,7 +363,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
     expect(
       await jbEthPaymentTerminal
         .connect(caller)
-        .addToBalanceOf(PROJECT_ID, AMOUNT.sub('10'), MEMO, { value: AMOUNT.sub('10') }),
+        .addToBalanceOf(PROJECT_ID, AMOUNT.sub('10'), ETH_ADDRESS, MEMO, { value: AMOUNT.sub('10') }),
     )
       .to.emit(jbEthPaymentTerminal, 'AddToBalance')
       .withArgs(PROJECT_ID, AMOUNT.sub('10'), MEMO, caller.address);
@@ -373,10 +373,10 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
     expect(heldFeeAfter[0].amount).to.equal(10);
   });
   it("Can't add with value if terminal token isn't ETH", async function () {
-    const { caller, JBERC20PaymentTerminal } = await setup();
+    const { caller, JBERC20PaymentTerminal, mockJbToken } = await setup();
 
     await expect(
-      JBERC20PaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, AMOUNT, MEMO, {
+      JBERC20PaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, AMOUNT, mockJbToken.address, MEMO, {
         value: 10,
       }),
     ).to.be.revertedWith(errors.NO_MSG_VALUE_ALLOWED);
@@ -392,7 +392,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
     await expect(
       jbEthPaymentTerminal
         .connect(caller)
-        .addToBalanceOf(otherProjectId, AMOUNT, MEMO, { value: 0 }),
+        .addToBalanceOf(otherProjectId, AMOUNT, ETH_ADDRESS, MEMO, { value: 0 }),
     ).to.be.revertedWith(errors.PROJECT_TERMINAL_MISMATCH);
   });
 });

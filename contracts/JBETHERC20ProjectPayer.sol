@@ -304,7 +304,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     if (_terminal == IJBPaymentTerminal(address(0))) revert TERMINAL_NOT_FOUND();
 
     // The amount's decimals must match the terminal's expected decimals.
-    if (_terminal.decimals() != _decimals) revert INCORRECT_DECIMAL_AMOUNT();
+    if (_terminal.decimalsForToken(_token) != _decimals) revert INCORRECT_DECIMAL_AMOUNT();
 
     // Approve the `_amount` of tokens from the destination terminal to transfer tokens from this contract.
     if (_token != JBTokens.ETH) IERC20(_token).approve(address(_terminal), _amount);
@@ -312,8 +312,9 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     // Send funds to the terminal.
     // If this terminal's token is ETH, send it in msg.value.
     _terminal.pay{value: _token == JBTokens.ETH ? _amount : 0}(
-      _amount, // ignored if the token is JBTokens.ETH.
       _projectId,
+      _amount, // ignored if the token is JBTokens.ETH.
+      _token,
       _beneficiary != address(0) ? _beneficiary : msg.sender,
       _minReturnedTokens,
       _preferClaimedTokens,
@@ -346,7 +347,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     if (_terminal == IJBPaymentTerminal(address(0))) revert TERMINAL_NOT_FOUND();
 
     // The amount's decimals must match the terminal's expected decimals.
-    if (_terminal.decimals() != _decimals) revert INCORRECT_DECIMAL_AMOUNT();
+    if (_terminal.decimalsForToken(_token) != _decimals) revert INCORRECT_DECIMAL_AMOUNT();
 
     // Approve the `_amount` of tokens from the destination terminal to transfer tokens from this contract.
     if (_token != JBTokens.ETH) IERC20(_token).approve(address(_terminal), _amount);
@@ -355,6 +356,6 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     uint256 _payableValue = _token == JBTokens.ETH ? _amount : 0;
 
     // Add to balance so tokens don't get issued.
-    _terminal.addToBalanceOf{value: _payableValue}(_projectId, _amount, _memo);
+    _terminal.addToBalanceOf{value: _payableValue}(_projectId, _amount, _token, _memo);
   }
 }

@@ -55,6 +55,9 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     const mockJbTerminalSigner = await impersonateAccount(mockJbTerminal.address);
 
+    const token = ethers.Wallet.createRandom().address;
+    await mockJbTerminal.mock.token.returns(token);
+
     return {
       holder,
       beneficiary,
@@ -67,6 +70,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTokenStore,
       JBPaymentTerminalStore,
       timestamp,
+      token,
       CURRENCY_ETH,
       addrs,
     };
@@ -86,6 +90,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTokenStore,
       JBPaymentTerminalStore,
       timestamp,
+      token,
       CURRENCY_ETH,
     } = await setup();
 
@@ -114,7 +119,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     /* Mocks for _reclaimableOverflowOf private method */
     await mockJbController.mock.distributionLimitOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_ETH);
 
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(AMOUNT);
@@ -167,6 +172,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTokenStore,
       JBPaymentTerminalStore,
       timestamp,
+      token,
       CURRENCY_ETH,
     } = await setup();
 
@@ -199,7 +205,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     /* Mocks for _reclaimableOverflowOf private method */
     await mockJbController.mock.distributionLimitOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_ETH);
 
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(AMOUNT);
@@ -252,6 +258,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTokenStore,
       JBPaymentTerminalStore,
       timestamp,
+      token,
       CURRENCY_ETH,
     } = await setup();
 
@@ -280,7 +287,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     /* Mocks for _claimableOverflowOf private method */
     await mockJbController.mock.distributionLimitOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_ETH);
 
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(AMOUNT);
@@ -330,6 +337,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTokenStore,
       JBPaymentTerminalStore,
       timestamp,
+      token,
       CURRENCY_ETH,
     } = await setup();
 
@@ -356,7 +364,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     /* Mocks for _reclaimableOverflowOf private method */
     await mockJbController.mock.distributionLimitOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_ETH);
 
     await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(AMOUNT);
@@ -407,6 +415,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbFundingCycleDataSource,
       JBPaymentTerminalStore,
       timestamp,
+      token,
       addrs,
       CURRENCY_ETH,
     } = await setup();
@@ -470,7 +479,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
     await mockJbController.mock.distributionLimitOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminalSigner.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminalSigner.address, token)
       .returns(AMOUNT, CURRENCY_ETH);
 
     // Add to balance beforehand to have sufficient overflow

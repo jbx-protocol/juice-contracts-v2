@@ -67,6 +67,7 @@ contract TestAllowance is TestBaseWorkflow {
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
         terminal: terminal,
+        token: jbLibraries().ETHToken(),
         distributionLimit: 10 ether,
         overflowAllowance: 5 ether,
         distributionLimitCurrency: jbLibraries().ETH(),
@@ -87,8 +88,9 @@ contract TestAllowance is TestBaseWorkflow {
     );
 
     terminal.pay{value: 20 ether}(
-      20 ether,
       projectId,
+      20 ether,
+      address(0),
       _beneficiary,
       0,
       false,
@@ -168,6 +170,7 @@ contract TestAllowance is TestBaseWorkflow {
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
         terminal: terminal,
+        token: jbLibraries().ETHToken(),
         distributionLimit: TARGET,
         distributionLimitCurrency: CURRENCY,
         overflowAllowance: ALLOWANCE,
@@ -188,8 +191,9 @@ contract TestAllowance is TestBaseWorkflow {
     );
 
     terminal.pay{value: BALANCE}(
-      BALANCE,
       projectId,
+      BALANCE,
+      address(0),
       _beneficiary,
       0,
       false,
