@@ -2,8 +2,8 @@
 pragma solidity 0.8.6;
 
 import './abstract/JBOperatable.sol';
-import './interfaces/IJBSplitsStore.sol';
 import './interfaces/IJBDirectory.sol';
+import './interfaces/IJBSplitsStore.sol';
 import './libraries/JBConstants.sol';
 import './libraries/JBOperations.sol';
 

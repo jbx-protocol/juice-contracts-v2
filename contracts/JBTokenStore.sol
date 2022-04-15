@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './abstract/JBOperatable.sol';
 import './abstract/JBControllerUtility.sol';
+import './abstract/JBOperatable.sol';
 import './interfaces/IJBTokenStore.sol';
 import './libraries/JBOperations.sol';
 import './JBToken.sol';
