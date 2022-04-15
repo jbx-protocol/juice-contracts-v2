@@ -210,11 +210,17 @@ contract TestAllowance is TestBaseWorkflow {
 
     evm.startPrank(_projectOwner);
 
-    if (ALLOWANCE == 0)
+    bool willRevert;
+
+    if (ALLOWANCE == 0) {
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_CONTROLLER_ALLOWANCE()'));
-    else if (TARGET >= BALANCE || ALLOWANCE > (BALANCE - TARGET))
+      willRevert = true;
+    }
+    else if (TARGET >= BALANCE || ALLOWANCE > (BALANCE - TARGET)) {
       // Too much to withdraw or no overflow ?
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
+      willRevert = true;
+    }
     terminal.useAllowanceOf(
       projectId,
       ALLOWANCE,
@@ -225,9 +231,8 @@ contract TestAllowance is TestBaseWorkflow {
     );
 
     if (
-      BALANCE != 0 && // there is something to transfer
-      BALANCE > TARGET && // there is an overflow
-      ALLOWANCE < BALANCE // allowance is not too high
+      !willRevert && // if allowance ==0 or not enough overflow (target>=balance, allowance > overflow)
+      BALANCE != 0 // there is something to transfer
     )
       assertEq(
         (_beneficiary).balance,
