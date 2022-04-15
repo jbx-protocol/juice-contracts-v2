@@ -65,7 +65,7 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
     };
   }
 
-  it.only('Should return the current overflowed amount', async function () {
+  it('Should return the current overflowed amount', async function () {
     const {
       mockJbTerminal,
       mockJbController,
