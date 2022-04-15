@@ -188,6 +188,10 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     _transferOwnership(_owner);
   }
 
+  //*********************************************************************//
+  // ---------------------- external transactions ---------------------- //
+  //*********************************************************************//
+
   /**
     @notice
     Update the controller that manages how terminals interact with the ecosystem.

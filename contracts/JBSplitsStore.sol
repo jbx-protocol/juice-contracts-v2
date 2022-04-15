@@ -10,10 +10,10 @@ import './libraries/JBOperations.sol';
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
 //*********************************************************************//
+error INVALID_LOCKED_UNTIL();
+error INVALID_PROJECT_ID();
 error INVALID_SPLIT_PERCENT();
 error INVALID_TOTAL_PERCENT();
-error INVALID_PROJECT_ID();
-error INVALID_LOCKED_UNTIL();
 error PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();
 
 /**
@@ -26,7 +26,6 @@ error PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();
 
   @dev
   Inherits from:
-  JBControllerUtility: Includes convenience functionality for checking if the message sender is the current controller of the project whose data is being manipulated.
   JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBSplitsStore is IJBSplitsStore, JBOperatable {
@@ -204,9 +203,9 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
       if (_percentTotal > JBConstants.SPLITS_TOTAL_PERCENT) revert INVALID_TOTAL_PERCENT();
 
       uint256 _packedSplitParts1;
-      
-      if(_splits[_i].preferClaimed) _packedSplitParts1 = 1;
-      if(_splits[_i].preferAddToBalance) _packedSplitParts1 |= 1 << 1;
+
+      if (_splits[_i].preferClaimed) _packedSplitParts1 = 1;
+      if (_splits[_i].preferAddToBalance) _packedSplitParts1 |= 1 << 1;
       _packedSplitParts1 |= _splits[_i].percent << 2;
       _packedSplitParts1 |= _splits[_i].projectId << 34;
       _packedSplitParts1 |= uint256(uint160(address(_splits[_i].beneficiary))) << 90;
@@ -232,6 +231,10 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     // Set the new length of the splits.
     _splitCountOf[_projectId][_domain][_group] = _splits.length;
   }
+
+  //*********************************************************************//
+  // --------------------- private helper functions -------------------- //
+  //*********************************************************************//
 
   /**
     @notice 
@@ -259,6 +262,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
       // Get a reference to the fist packed data.
       uint256 _packedSplitPart1 = _packedSplitParts1Of[_projectId][_domain][_group][_i];
 
+      // Populate the split struct.
       JBSplit memory _split;
 
       _split.preferClaimed = _packedSplitPart1 & 1 == 1;

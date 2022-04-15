@@ -13,7 +13,7 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function () {
+describe('JBSingleTokenPaymentTerminalStore::currentReclaimableOverflowOf(...)', function () {
   const PROJECT_ID = 2;
   const WEIGHT = ethers.FixedNumber.fromString('900000000.23411');
   const CURRENCY = 1;
@@ -34,11 +34,11 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
     const jbCurrencies = await jbCurrenciesFactory.deploy();
     const CURRENCY_ETH = await jbCurrencies.ETH();
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBPaymentTerminalStore');
-    const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
-      mockJbPrices.address,
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBSingleTokenPaymentTerminalStore');
+    const JBSingleTokenPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
+      mockJbPrices.address,
     );
 
     const token = ethers.Wallet.createRandom().address;
@@ -66,7 +66,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
       mockJbTerminal2,
       mockJbTerminalSigner,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       token,
       CURRENCY_ETH,
@@ -89,7 +89,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
       mockJbTerminal,
       mockJbTerminalSigner,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       token,
       CURRENCY_ETH,
@@ -137,14 +137,14 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
       PROJECT_ID,
       startingBalance,
     );
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await JBPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
+      await JBSingleTokenPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
         mockJbTerminalSigner.address,
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
@@ -170,7 +170,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
       mockJbTerminal2,
       mockJbTerminalSigner,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       token,
       CURRENCY_ETH,
@@ -226,14 +226,14 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
       PROJECT_ID,
       startingBalance,
     );
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await JBPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
+      await JBSingleTokenPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
         mockJbTerminalSigner.address,
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
@@ -260,7 +260,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
       mockJbTerminal2,
       mockJbTerminalSigner,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       token,
       CURRENCY_ETH,
@@ -295,7 +295,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
     });
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
-    
+
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(overflowAmt, CURRENCY_ETH);
@@ -322,14 +322,14 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
       PROJECT_ID,
       startingBalance,
     );
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await JBPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
+      await JBSingleTokenPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
         mockJbTerminalSigner.address,
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
@@ -344,7 +344,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
       mockJbController,
       mockJbDirectory,
       mockJbFundingCycleStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       token,
       CURRENCY_ETH,
@@ -379,7 +379,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
     // Get claimable overflow
     expect(
-      await JBPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
+      await JBSingleTokenPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
         mockJbTerminal.address,
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
@@ -396,7 +396,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       token,
       CURRENCY_ETH,
@@ -426,7 +426,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
     await mockJbController.mock.distributionLimitOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address,token)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(overflowAmt, CURRENCY_ETH);
 
     const totalSupply = tokenAmt.subUnsafe(ethers.FixedNumber.from(1));
@@ -444,14 +444,14 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
       PROJECT_ID,
       startingBalance,
     );
 
     // Get claimable overflow
     expect(
-      await JBPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
+      await JBSingleTokenPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
         mockJbTerminalSigner.address,
         PROJECT_ID,
         /* tokenCount */ totalSupply.addUnsafe(ethers.FixedNumber.from(1)),
@@ -462,15 +462,15 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
   it('Should return 0 if claiming more than the total supply', async function () {
     const {
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
     } = await setup();
 
     const overflowAmt = ethers.FixedNumber.from(100);
-    const totalSupply =  ethers.FixedNumber.from(50);
+    const totalSupply = ethers.FixedNumber.from(50);
 
     // Get claimable overflow
     expect(
-      await JBPaymentTerminalStore['currentReclaimableOverflowOf(uint256,uint256,uint256,uint256)'](
+      await JBSingleTokenPaymentTerminalStore['currentReclaimableOverflowOf(uint256,uint256,uint256,uint256)'](
         PROJECT_ID,
         /* tokenCount */ totalSupply.addUnsafe(ethers.FixedNumber.from(1)),
         totalSupply,
@@ -487,7 +487,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       token,
       CURRENCY_ETH,
@@ -535,14 +535,14 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
       PROJECT_ID,
       startingBalance,
     );
 
     // Get claimable overflow
     expect(
-      await JBPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
+      await JBSingleTokenPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
         mockJbTerminalSigner.address,
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
@@ -567,7 +567,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       token,
       CURRENCY_ETH,
@@ -611,7 +611,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
       PROJECT_ID,
       startingBalance,
     );
@@ -622,7 +622,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await JBPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
+      await JBSingleTokenPaymentTerminalStore['currentReclaimableOverflowOf(address,uint256,uint256,bool)'](
         mockJbTerminalSigner.address,
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
@@ -647,7 +647,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
       mockJbTerminal,
       mockJbTerminalSigner,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       token,
       CURRENCY_ETH,
@@ -677,7 +677,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
     await mockJbController.mock.distributionLimitOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address,token)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(overflowAmt, CURRENCY_ETH);
 
     const totalSupply = tokenAmt.mulUnsafe(ethers.FixedNumber.from(2));
@@ -695,14 +695,14 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
     // Add to balance beforehand to have an overflow of exactly 100
     const startingBalance = overflowAmt.mulUnsafe(ethers.FixedNumber.from(2));
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
       PROJECT_ID,
       startingBalance,
     );
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await JBPaymentTerminalStore['currentReclaimableOverflowOf(uint256,uint256,uint256,uint256)'](
+      await JBSingleTokenPaymentTerminalStore['currentReclaimableOverflowOf(uint256,uint256,uint256,uint256)'](
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
         /* totalSupply */ totalSupply,
@@ -711,7 +711,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
     ).to.equal(ethers.FixedNumber.fromString('41.25'));
   });
   it('Should return claimable overflow when no terminal is passed, with 0 overflow', async function () {
-    const { JBPaymentTerminalStore } = await setup();
+    const { JBSingleTokenPaymentTerminalStore } = await setup();
 
     const overflowAmt = ethers.FixedNumber.from(0);
     const tokenAmt = ethers.FixedNumber.from(50);
@@ -719,7 +719,7 @@ describe('JBPaymentTerminalStore::currentReclaimableOverflowOf(...)', function (
 
     // Get claimable overflow where tokenCount is half the total supply of tokens
     expect(
-      await JBPaymentTerminalStore['currentReclaimableOverflowOf(uint256,uint256,uint256,uint256)'](
+      await JBSingleTokenPaymentTerminalStore['currentReclaimableOverflowOf(uint256,uint256,uint256,uint256)'](
         PROJECT_ID,
         /* tokenCount */ tokenAmt,
         /* totalSupply */ totalSupply,

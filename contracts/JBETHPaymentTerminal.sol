@@ -13,6 +13,10 @@ import './abstract/JBPayoutRedemptionPaymentTerminal.sol';
   JBPayoutRedemptionPaymentTerminal: Generic terminal managing all inflows and outflows of funds into the protocol ecosystem.
 */
 contract JBETHPaymentTerminal is JBPayoutRedemptionPaymentTerminal {
+  //*********************************************************************//
+  // -------------------------- constructor ---------------------------- //
+  //*********************************************************************//
+
   constructor(
     uint256 _baseWeightCurrency,
     IJBOperatorStore _operatorStore,
@@ -20,7 +24,7 @@ contract JBETHPaymentTerminal is JBPayoutRedemptionPaymentTerminal {
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
     IJBPrices _prices,
-    IJBPaymentTerminalStore _store,
+    IJBSingleTokenPaymentTerminalStore _store,
     address _owner
   )
     JBPayoutRedemptionPaymentTerminal(
@@ -41,6 +45,10 @@ contract JBETHPaymentTerminal is JBPayoutRedemptionPaymentTerminal {
   {
 
   }
+
+  //*********************************************************************//
+  // ---------------------- internal transactions ---------------------- //
+  //*********************************************************************//
 
   /** 
     @notice

@@ -16,8 +16,6 @@ interface IJBProjectPayer {
 
   function directory() external view returns (IJBDirectory);
 
-  function defaultPreferAddToBalance() external view returns (bool);
-
   function defaultProjectId() external view returns (uint256);
 
   function defaultBeneficiary() external view returns (address payable);
@@ -27,6 +25,8 @@ interface IJBProjectPayer {
   function defaultMemo() external view returns (string memory);
 
   function defaultMetadata() external view returns (bytes memory);
+
+  function defaultPreferAddToBalance() external view returns (bool);
 
   function setDefaultValues(
     uint256 _projectId,
