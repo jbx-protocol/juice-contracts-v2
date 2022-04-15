@@ -52,26 +52,26 @@ abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal 
 
   /** 
     @notice
-    The currency that should be used for the specified token.
-
-    // param _token The token to check for the currency of.
-
-    @return The currency index.
-  */
-  function currencyForToken(address) external view override returns (uint256) {
-    return currency;
-  }
-
-  /** 
-    @notice
     The decimals that should be used in fixed number accounting for the specified token.
 
-    // param _token The token to check for the decimals of.
+    ignored: _token The token to check for the decimals of.
 
     @return The number of decimals for the token.
   */
   function decimalsForToken(address) external view override returns (uint256) {
     return decimals;
+  }
+
+  /** 
+    @notice
+    The currency that should be used for the specified token.
+
+    ignored: _token The token to check for the currency of.
+
+    @return The currency index.
+  */
+  function currencyForToken(address) external view override returns (uint256) {
+    return currency;
   }
 
   //*********************************************************************//
