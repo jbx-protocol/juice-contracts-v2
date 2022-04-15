@@ -133,10 +133,10 @@ module.exports = async ({ deployments, getChainId }) => {
     ],
   });
 
-  // Deploy a JBPaymentTerminalStore contract.
-  const JBPaymentTerminalStore = await deploy('JBPaymentTerminalStore', {
+  // Deploy a JBSingleTokenPaymentTerminalStore contract.
+  const JBSingleTokenPaymentTerminalStore = await deploy('JBSingleTokenPaymentTerminalStore', {
     ...baseDeployArgs,
-    args: [JBPrices.address, JBDirectory.address, JBFundingCycleStore.address],
+    args: [JBDirectory.address, JBFundingCycleStore.address, JBPrices.address],
   });
 
   // Deploy the currencies library.
@@ -166,7 +166,7 @@ module.exports = async ({ deployments, getChainId }) => {
       JBDirectory.address,
       JBSplitStore.address,
       JBPrices.address,
-      JBPaymentTerminalStore.address,
+      JBSingleTokenPaymentTerminalStore.address,
       multisigAddress,
     ],
   });

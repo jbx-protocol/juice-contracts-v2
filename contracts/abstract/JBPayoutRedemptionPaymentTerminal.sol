@@ -21,15 +21,15 @@ import './JBOperatable.sol';
 // --------------------------- custom errors ------------------------- //
 //*********************************************************************//
 error FEE_TOO_HIGH();
+error INADEQUATE_DISTRIBUTION_AMOUNT();
+error INADEQUATE_RECLAIM_AMOUNT();
+error INADEQUATE_TOKEN_COUNT();
+error NO_MSG_VALUE_ALLOWED();
 error PAY_TO_ZERO_ADDRESS();
 error PROJECT_TERMINAL_MISMATCH();
 error REDEEM_TO_ZERO_ADDRESS();
 error TERMINAL_IN_SPLIT_ZERO_ADDRESS();
 error TERMINAL_TOKENS_INCOMPATIBLE();
-error NO_MSG_VALUE_ALLOWED();
-error INADEQUATE_TOKEN_COUNT();
-error INADEQUATE_DISTRIBUTION_AMOUNT();
-error INADEQUATE_RECLAIM_AMOUNT();
 
 /**
   @notice
@@ -44,7 +44,7 @@ error INADEQUATE_RECLAIM_AMOUNT();
 
   @dev
   Inherits from:
-  JBPayoutRedemptionPaymentTerminal: Generic terminal managing all inflows and outflows of funds into the protocol ecosystem for one token.
+  JBSingleTokenPaymentTerminal: Generic terminal managing all inflows of funds into the protocol ecosystem for one token.
   JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
   ReentrancyGuard: Contract module that helps prevent reentrant calls to a function.
@@ -58,6 +58,10 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
+
+  //*********************************************************************//
+  // ---------------------------- modifiers ---------------------------- //
+  //*********************************************************************//
 
   /** 
     @notice 
@@ -131,7 +135,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @notice
     The contract that stores and manages the terminal's data.
   */
-  IJBPaymentTerminalStore public immutable override store;
+  IJBSingleTokenPaymentTerminalStore public immutable override store;
 
   /**
     @notice
@@ -251,7 +255,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
     IJBPrices _prices,
-    IJBPaymentTerminalStore _store,
+    IJBSingleTokenPaymentTerminalStore _store,
     address _owner
   ) JBSingleTokenPaymentTerminal(_token, _decimals, _currency) JBOperatable(_operatorStore) {
     baseWeightCurrency = _baseWeightCurrency;
@@ -275,7 +279,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     @param _projectId The ID of the project being paid.
     @param _amount The amount of terminal tokens being received, as a fixed point number with the same amount of decimals as this terminal. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
-    // _param _token The token being paid. This terminal ignores this property since it only manages one currency. 
+    ignored: _token The token being paid. This terminal ignores this property since it only manages one currency. 
     @param _beneficiary The address to mint tokens for and pass along to the funding cycle's delegate.
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with the same amount of decimals as this terminal.
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
@@ -655,7 +659,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     @param _projectId The ID of the project to which the funds received belong.
     @param _amount The amount of tokens to add, as a fixed point number with the same number of decimals as this terminal. If this is an ETH terminal, this is ignored and msg.value is used instead.
-    // _param _token The token being paid. This terminal ignores this property since it only manages one currency. 
+    ignored: _token The token being paid. This terminal ignores this property since it only manages one currency. 
     @param _memo A memo to pass along to the emitted event.
   */
   function addToBalanceOf(

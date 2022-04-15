@@ -3,7 +3,7 @@ pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
-import './interfaces/IJBPaymentTerminalStore.sol';
+import './interfaces/IJBSingleTokenPaymentTerminalStore.sol';
 import './libraries/JBConstants.sol';
 import './libraries/JBCurrencies.sol';
 import './libraries/JBOperations.sol';
@@ -31,13 +31,13 @@ error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
 
   @dev
   Adheres to:
-  IJBPaymentTerminalStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
+  IJBSingleTokenPaymentTerminalStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
   Inherits from:
   ReentrancyGuard: Contract module that helps prevent reentrant calls to a function.
 */
-contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
+contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore, ReentrancyGuard {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
@@ -272,18 +272,18 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
   //*********************************************************************//
 
   /**
-    @param _prices A contract that exposes price feeds.
     @param _directory A contract storing directories of terminals and controllers for each project.
     @param _fundingCycleStore A contract storing all funding cycle configurations.
+    @param _prices A contract that exposes price feeds.
   */
   constructor(
-    IJBPrices _prices,
     IJBDirectory _directory,
-    IJBFundingCycleStore _fundingCycleStore
+    IJBFundingCycleStore _fundingCycleStore,
+    IJBPrices _prices
   ) {
-    prices = _prices;
     directory = _directory;
     fundingCycleStore = _fundingCycleStore;
+    prices = _prices;
   }
 
   //*********************************************************************//
@@ -641,7 +641,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
         prices.priceFor(_currency, _balanceCurrency, _MAX_FIXED_POINT_FIDELITY)
       );
 
-    // The amount being withdrawn must be available in the overflow.
+    // The amount being distributed must be available in the overflow.
     if (
       usedAmount >
       _overflowDuring(

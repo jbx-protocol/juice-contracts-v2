@@ -13,7 +13,7 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbPaymentTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
+describe('JBSingleTokenPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
   const PROJECT_ID = 2;
   const WEIGHT = ethers.BigNumber.from('1' + '0'.repeat(17));
 
@@ -40,11 +40,11 @@ describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
     const CURRENCY_ETH = await jbCurrencies.ETH();
     const CURRENCY_USD = await jbCurrencies.USD();
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBPaymentTerminalStore');
-    const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
-      mockJbPrices.address,
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBSingleTokenPaymentTerminalStore');
+    const JBSingleTokenPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
+      mockJbPrices.address,
     );
 
     const blockNum = await ethers.provider.getBlockNumber();
@@ -58,7 +58,7 @@ describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbPrices,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
       CURRENCY_USD,
@@ -72,7 +72,7 @@ describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbPrices,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
       CURRENCY_USD,
@@ -99,7 +99,7 @@ describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
 
     // Get total overflow across both terminals, in same currency; should equal sum of the overflows
     expect(
-      await JBPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, DECIMAL, CURRENCY_ETH),
+      await JBSingleTokenPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, DECIMAL, CURRENCY_ETH),
     ).to.equal(ETH_OVERFLOW_A.add(ETH_OVERFLOW_B));
   });
 
@@ -110,7 +110,7 @@ describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbPrices,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
       CURRENCY_USD,
@@ -137,7 +137,7 @@ describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
 
     // Get total overflow across both terminals, in same currency; should equal sum of the overflows
     expect(
-      await JBPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, NON_18_DECIMAL, CURRENCY_ETH),
+      await JBSingleTokenPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, NON_18_DECIMAL, CURRENCY_ETH),
     ).to.equal(ETH_OVERFLOW_A.add(ETH_OVERFLOW_B).div(10 ** (DECIMAL - NON_18_DECIMAL)));
   });
 
@@ -148,7 +148,7 @@ describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbPrices,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       CURRENCY_ETH,
       CURRENCY_USD,
@@ -179,7 +179,7 @@ describe('JBPaymentTerminalStore::currentTotalOverflowOf(...)', function () {
 
     // Get total overflow across both terminals, in a different currency; should equal to the sum of the overflow / price
     expect(
-      await JBPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, DECIMAL, CURRENCY_USD),
+      await JBSingleTokenPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, DECIMAL, CURRENCY_USD),
     ).to.equal(ETH_OVERFLOW_A.add(ETH_OVERFLOW_B).mul(ethers.utils.parseEther('1')).div(PRICE));
   });
 });

@@ -4,7 +4,12 @@ pragma solidity 0.8.6;
 import './interfaces/IJBFundingCycleStore.sol';
 
 /** 
-  @notice Manages approving funding cycle reconfigurations automatically after a buffer period.
+  @notice 
+  Manages approving funding cycle reconfigurations automatically after a buffer period.
+
+  @dev
+  Adheres to:
+  IJBFundingCycleBallot: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 */
 contract JBReconfigurationBufferBallot is IJBFundingCycleBallot {
   //*********************************************************************//
@@ -21,12 +26,12 @@ contract JBReconfigurationBufferBallot is IJBFundingCycleBallot {
   mapping(uint256 => mapping(uint256 => JBBallotState)) private _finalState;
 
   //*********************************************************************//
-  // --------------------- public stored properties -------------------- //
+  // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
 
   /**
     @notice 
-    The number of seconds that must pass for a funding cycle reconfiguration to become active.
+    The number of seconds that must pass for a funding cycle reconfiguration to become either `Approved` or `Failed`.
   */
   uint256 public immutable override delay;
 
@@ -42,9 +47,10 @@ contract JBReconfigurationBufferBallot is IJBFundingCycleBallot {
 
   /** 
     @notice 
-    The time that this ballot is active for.
+    The number of seconds that this ballot is active for.
 
-    @dev A ballot should not be considered final until the duration has passed.
+    @dev 
+    A ballot should not be considered final until the duration has passed.
 
     @return The duration in seconds.
   */
@@ -103,7 +109,7 @@ contract JBReconfigurationBufferBallot is IJBFundingCycleBallot {
   //*********************************************************************//
 
   /**
-    @param _delay The delay to wait until a reconfiguration is considered approved.
+    @param _delay The number of seconds to wait until a reconfiguration can be either `Approved` or `Failed`.
     @param _fundingCycleStore A contract storing all funding cycle configurations.
   */
   constructor(uint256 _delay, IJBFundingCycleStore _fundingCycleStore) {
@@ -117,7 +123,7 @@ contract JBReconfigurationBufferBallot is IJBFundingCycleBallot {
 
   /**
     @notice 
-    Finalizes a configuration state if the funding cycle has started and the current state has settled.
+    Finalizes a configuration state if the current state has settled.
 
     @param _projectId The ID of the project to which the funding cycle being checked belongs.
     @param _configured The configuration of the funding cycle to check the state of.

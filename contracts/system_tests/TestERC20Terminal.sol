@@ -209,13 +209,19 @@ contract TestERC20Terminal is TestBaseWorkflow {
     // verify: ETH balance in terminal should be up to date
     assertEq(jbPaymentTerminalStore().balanceOf(terminal, projectId), BALANCE);
 
+    bool willRevert;
+
     // Discretionary use of overflow allowance by project owner (allowance = 5ETH)
-    if (ALLOWANCE == 0)
+    if (ALLOWANCE == 0) {
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_CONTROLLER_ALLOWANCE()'));
-    else if (TARGET >= BALANCE || ALLOWANCE > (BALANCE - TARGET))
+      willRevert = true;
+    }
+    else if (TARGET >= BALANCE || ALLOWANCE > (BALANCE - TARGET)) {
       // Too much to withdraw or no overflow ?
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
-
+      willRevert = true;
+    }
+    
     evm.prank(_projectOwner); // Prank only next call
     terminal.useAllowanceOf(
       projectId,
@@ -225,7 +231,8 @@ contract TestERC20Terminal is TestBaseWorkflow {
       payable(msg.sender), // Beneficiary
       'MEMO'
     );
-    if (BALANCE != 0 && BALANCE > TARGET && ALLOWANCE < BALANCE && TARGET < BALANCE)
+
+    if (BALANCE != 0 && !willRevert)
       assertEq(
         jbToken().balanceOf(msg.sender),
         PRBMath.mulDiv(ALLOWANCE, jbLibraries().MAX_FEE(), jbLibraries().MAX_FEE() + terminal.fee())

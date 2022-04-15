@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+import '@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 
 import './interfaces/IJBToken.sol';
@@ -16,10 +16,10 @@ import './interfaces/IJBToken.sol';
 
   @dev
   Inherits from:
-  ERC20: General token standard for fungible accounting. 
+  ERC20Permit: General token standard for fungible accounting. 
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
-contract JBToken is IJBToken, ERC20, Ownable {
+contract JBToken is IJBToken, ERC20Permit, Ownable {
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
   //*********************************************************************//
@@ -66,6 +66,7 @@ contract JBToken is IJBToken, ERC20, Ownable {
   */
   constructor(string memory _name, string memory _symbol)
     ERC20(_name, _symbol)
+    ERC20Permit(_name)
   // solhint-disable-next-line no-empty-blocks
   {
 
@@ -157,6 +158,10 @@ contract JBToken is IJBToken, ERC20, Ownable {
   ) external override {
     transferFrom(_from, _to, _amount);
   }
+
+  //*********************************************************************//
+  // ------------------------ public transactions ---------------------- //
+  //*********************************************************************//
 
   /** 
     @notice

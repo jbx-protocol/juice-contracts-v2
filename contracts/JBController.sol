@@ -18,21 +18,21 @@ import './libraries/JBFundingCycleMetadataResolver.sol';
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
 //*********************************************************************//
-error INVALID_DISTRIBUTION_LIMIT();
-error INVALID_DISTRIBUTION_LIMIT_CURRENCY();
-error INVALID_OVERFLOW_ALLOWANCE();
-error INVALID_OVERFLOW_ALLOWANCE_CURRENCY();
 error BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE();
-error NOT_CURRENT_CONTROLLER();
 error CANT_MIGRATE_TO_CURRENT_CONTROLLER();
 error CHANGE_TOKEN_NOT_ALLOWED();
 error FUNDING_CYCLE_ALREADY_LAUNCHED();
 error INVALID_BALLOT_REDEMPTION_RATE();
-error INVALID_RESERVED_RATE();
+error INVALID_DISTRIBUTION_LIMIT();
+error INVALID_DISTRIBUTION_LIMIT_CURRENCY();
+error INVALID_OVERFLOW_ALLOWANCE();
+error INVALID_OVERFLOW_ALLOWANCE_CURRENCY();
 error INVALID_REDEMPTION_RATE();
+error INVALID_RESERVED_RATE();
 error MIGRATION_NOT_ALLOWED();
 error MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE();
 error NO_BURNABLE_TOKENS();
+error NOT_CURRENT_CONTROLLER();
 error ZERO_TOKENS_TO_MINT();
 
 /**
@@ -46,7 +46,6 @@ error ZERO_TOKENS_TO_MINT();
   @dev
   Inherits from:
   JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
-  ReentrencyGuard - several function in this contract shouldn't be accessible recursively.
 */
 contract JBController is IJBController, JBOperatable {
   // A library that parses the packed funding cycle metadata into a more friendly format.
@@ -95,7 +94,7 @@ contract JBController is IJBController, JBOperatable {
     _projectId The ID of the project to get the packed overflow allowance data of.
     _configuration The configuration during which the packed overflow allowance data applies.
     _terminal The terminal managing the overflow.
-    _token The token for which distributions are being limited.
+    _token The token for which overflow is being allowed.
   */
   mapping(uint256 => mapping(uint256 => mapping(IJBPaymentTerminal => mapping(address => uint256))))
     private _packedOverflowAllowanceDataOf;
@@ -176,7 +175,7 @@ contract JBController is IJBController, JBOperatable {
     @param _projectId The ID of the project to get the overflow allowance of.
     @param _configuration The configuration of the during which the allowance applies.
     @param _terminal The terminal managing the overflow.
-    @param _token The token for which the distribution limit applies.
+    @param _token The token for which the overflow allowance applies.
 
     @return The overflow allowance, as a fixed point number with the same number of decimals as the provided terminal.
     @return The currency of the overflow allowance.

@@ -15,7 +15,7 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
+describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function () {
   const PROJECT_ID = 2;
 
   const AMOUNT = ethers.utils.parseEther('4351');
@@ -41,11 +41,11 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     const mockJbController = await deployMockContract(deployer, jbController.abi);
     const mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBPaymentTerminalStore');
-    const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
-      mockJbPrices.address,
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBSingleTokenPaymentTerminalStore');
+    const JBSingleTokenPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
+      mockJbPrices.address,
     );
 
     const blockNum = await ethers.provider.getBlockNumber();
@@ -69,7 +69,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       mockJbFundingCycleStore,
       mockJbFundingCycleDataSource,
       mockJbPrices,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       addrs,
     };
@@ -83,7 +83,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       payer,
       beneficiary,
       mockJbFundingCycleStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
     } = await setup();
 
@@ -103,11 +103,11 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     });
 
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(0);
 
     // Record the payment
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
       payer.address,
       ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
       PROJECT_ID,
@@ -118,7 +118,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
     // Expect recorded balance to change
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(AMOUNT);
   });
 
@@ -128,7 +128,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       payer,
       beneficiary,
       mockJbFundingCycleStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
     } = await setup();
 
@@ -148,11 +148,11 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     });
 
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(0);
 
     // Record the payment
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
       /* payer */ payer.address,
       ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
       PROJECT_ID,
@@ -163,7 +163,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
     // Expect recorded balance to change
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(AMOUNT);
   });
 
@@ -174,7 +174,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       beneficiary,
       mockJbFundingCycleStore,
       mockJbFundingCycleDataSource,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       addrs,
     } = await setup();
@@ -221,11 +221,11 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       .returns(WEIGHT, newMemo, delegate.address);
 
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(0);
 
     // Record the payment
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
       /* payer */ payer.address,
       /* amount */
       ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
@@ -237,7 +237,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
     // Expect recorded balance to change
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(AMOUNT);
   });
 
@@ -247,7 +247,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       payer,
       beneficiary,
       mockJbFundingCycleStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
     } = await setup();
 
@@ -267,11 +267,11 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     });
 
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(0);
 
     // Record the payment
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
       /* payer */ payer.address,
       ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
       PROJECT_ID,
@@ -282,7 +282,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
     // Expect recorded balance to change
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(AMOUNT);
   });
 
@@ -292,7 +292,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       payer,
       beneficiary,
       mockJbFundingCycleStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       mockJbTerminal,
       mockJbPrices,
       timestamp,
@@ -321,11 +321,11 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
     });
 
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(0);
 
     // Record the payment
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
       /* payer */ payer.address,
       ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
       PROJECT_ID,
@@ -336,7 +336,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
     // Expect recorded balance to change
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(AMOUNT);
   });
 
@@ -347,7 +347,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       beneficiary,
       mockJbFundingCycleStore,
       mockJbFundingCycleDataSource,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       addrs,
     } = await setup();
@@ -393,11 +393,11 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       .returns(WEIGHT, newMemo, delegate.address);
 
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(0);
 
     // Record the payment
-    const tx = await JBPaymentTerminalStore.connect(
+    const tx = await JBSingleTokenPaymentTerminalStore.connect(
       mockJbTerminalSigner,
     ).callStatic.recordPaymentFrom(
       /* payer */ payer.address,
@@ -410,7 +410,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
     // Recorded balance should not have changed
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(0);
 
     expect(tx.delegate).to.equal(delegate.address);
@@ -424,7 +424,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       payer,
       beneficiary,
       mockJbFundingCycleStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
     } = await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
@@ -442,7 +442,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
     // Record the payment
     await expect(
-      JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
+      JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
         /* payer */ payer.address,
         ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
         PROJECT_ID,
@@ -459,7 +459,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
       payer,
       beneficiary,
       mockJbFundingCycleStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
     } = await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
@@ -477,7 +477,7 @@ describe('JBPaymentTerminalStore::recordPaymentFrom(...)', function () {
 
     // Record the payment
     await expect(
-      JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
+      JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
         /* payer */ payer.address,
         ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
         PROJECT_ID,

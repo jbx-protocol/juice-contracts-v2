@@ -90,7 +90,7 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
 
   function testHeldFeeReimburse(
     uint256 payAmountInWei,
-    uint256 fee,
+    uint16 fee,
     uint256 feeDiscount
   ) external {
     // Assuming we don't revert when distributing too much

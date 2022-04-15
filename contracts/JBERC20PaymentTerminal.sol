@@ -6,7 +6,23 @@ import '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 // Inheritance
 import './abstract/JBPayoutRedemptionPaymentTerminal.sol';
 
+/** 
+  @notice 
+  Manages the inflows and outflows of an ERC-20 token.
+
+  @dev
+  Adheres to:
+  IJBProjectPayer:  General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
+
+  @dev
+  Inherits from:
+  JBPayoutRedemptionPaymentTerminal: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
+*/
 contract JBERC20PaymentTerminal is JBPayoutRedemptionPaymentTerminal {
+  //*********************************************************************//
+  // -------------------------- constructor ---------------------------- //
+  //*********************************************************************//
+
   constructor(
     IERC20Metadata _token,
     uint256 _currency,
@@ -17,7 +33,7 @@ contract JBERC20PaymentTerminal is JBPayoutRedemptionPaymentTerminal {
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
     IJBPrices _prices,
-    IJBPaymentTerminalStore _store,
+    IJBSingleTokenPaymentTerminalStore _store,
     address _owner
   )
     JBPayoutRedemptionPaymentTerminal(
@@ -38,6 +54,10 @@ contract JBERC20PaymentTerminal is JBPayoutRedemptionPaymentTerminal {
   {
 
   }
+
+  //*********************************************************************//
+  // ---------------------- internal transactions ---------------------- //
+  //*********************************************************************//
 
   /** 
     @notice
