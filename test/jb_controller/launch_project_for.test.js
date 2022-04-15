@@ -91,6 +91,8 @@ describe('JBController::launchProjectFor(...)', function () {
       .withArgs(PROJECT_ID, /*configuration=*/ timestamp, /*group=*/ 1, splits)
       .returns();
 
+    const token = ethers.Wallet.createRandom().address;
+
     return {
       deployer,
       projectOwner,
@@ -105,6 +107,7 @@ describe('JBController::launchProjectFor(...)', function () {
       mockJbTerminal1,
       mockJbTerminal2,
       timestamp,
+      token,
       fundingCycleData,
       fundingCycleMetadata,
       splits,
@@ -161,6 +164,7 @@ describe('JBController::launchProjectFor(...)', function () {
 
   function makeFundingAccessConstraints({
     terminals,
+    token = ethers.Wallet.createRandom().address,
     distributionLimit = 200,
     distributionLimitCurrency = 1,
     overflowAllowance = 100,
@@ -170,6 +174,7 @@ describe('JBController::launchProjectFor(...)', function () {
     for (let terminal of terminals) {
       constraints.push({
         terminal,
+        token,
         distributionLimit,
         distributionLimitCurrency,
         overflowAllowance,
@@ -184,6 +189,7 @@ describe('JBController::launchProjectFor(...)', function () {
       jbController,
       projectOwner,
       timestamp,
+      token,
       fundingCycleData,
       fundingCycleMetadata,
       splits,
@@ -192,7 +198,7 @@ describe('JBController::launchProjectFor(...)', function () {
     } = await setup();
     const groupedSplits = [{ group: 1, splits }];
     const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
-    const fundAccessConstraints = makeFundingAccessConstraints({ terminals });
+    const fundAccessConstraints = makeFundingAccessConstraints({ terminals, token });
 
     expect(
       await jbController
@@ -234,6 +240,7 @@ describe('JBController::launchProjectFor(...)', function () {
             PROJECT_ID,
             [
               constraints.terminal,
+              constraints.token,
               constraints.distributionLimit,
               constraints.distributionLimitCurrency,
               constraints.overflowAllowance,
@@ -242,7 +249,7 @@ describe('JBController::launchProjectFor(...)', function () {
             projectOwner.address,
           );
 
-        const args = [PROJECT_ID, timestamp, constraints.terminal];
+        const args = [PROJECT_ID, timestamp, constraints.terminal, token];
         expect(await jbController.distributionLimitOf(...args)).deep.equals([
           ethers.BigNumber.from(constraints.distributionLimit),
           ethers.BigNumber.from(constraints.distributionLimitCurrency),

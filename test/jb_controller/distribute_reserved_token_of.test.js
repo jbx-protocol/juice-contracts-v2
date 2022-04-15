@@ -154,9 +154,9 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
         await expect(tx)
           .to.emit(jbController, 'DistributeToReservedTokenSplit')
           .withArgs(
-            /*fundingCycleConfiguration=*/ timestamp,
-            /*fundingCycleNumber=*/ 1,
             PROJECT_ID,
+            /*domain=*/ timestamp,
+            /*splitsGroup.RESERVED_TOKEN=*/ RESERVED_SPLITS_GROUP,
             [
               split.preferClaimed,
               split.preferAddToBalance,
@@ -233,9 +233,9 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
         await expect(tx)
           .to.emit(jbController, 'DistributeToReservedTokenSplit')
           .withArgs(
-            /*fundingCycleConfiguration=*/ timestamp,
-            /*fundingCycleNumber=*/ 1,
             PROJECT_ID,
+            /*domain=*/ timestamp,
+            /*splitsGroup.RESERVED_TOKEN=*/ RESERVED_SPLITS_GROUP,
             [
               split.preferClaimed,
               split.preferAddToBalance,
@@ -329,9 +329,9 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
         await expect(tx)
           .to.emit(jbController, 'DistributeToReservedTokenSplit')
           .withArgs(
-            /*fundingCycleConfiguration=*/ timestamp,
-            /*fundingCycleNumber=*/ 1,
             PROJECT_ID,
+            /*domain=*/ timestamp,
+            /*splitsGroup.RESERVED_TOKEN=*/ RESERVED_SPLITS_GROUP,
             [
               split.preferClaimed,
               split.preferAddToBalance,
@@ -395,9 +395,9 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
         await expect(tx)
           .to.emit(jbController, 'DistributeToReservedTokenSplit')
           .withArgs(
-            /*fundingCycleConfiguration=*/ timestamp,
-            /*fundingCycleNumber=*/ 1,
             PROJECT_ID,
+            /*domain=*/ timestamp,
+            /*splitsGroup.RESERVED_TOKEN=*/ RESERVED_SPLITS_GROUP,
             [
               split.preferClaimed,
               split.preferAddToBalance,
@@ -478,9 +478,9 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       await expect(tx)
         .to.emit(jbController, 'DistributeToReservedTokenSplit')
         .withArgs(
-          /*fundingCycleConfiguration=*/ timestamp,
-          /*fundingCycleNumber=*/ 1,
           PROJECT_ID,
+          /*domain=*/ timestamp,
+          /*splitsGroup.RESERVED_TOKEN=*/ RESERVED_SPLITS_GROUP,
           [
             splits[0].preferClaimed,
             splits[0].preferAddToBalance,

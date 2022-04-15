@@ -186,6 +186,7 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
 
   function makeFundingAccessConstraints({
     terminals,
+    token = ethers.Wallet.createRandom().address,
     distributionLimit = 200,
     distributionLimitCurrency = 1,
     overflowAllowance = 100,
@@ -195,6 +196,7 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
     for (let terminal of terminals) {
       constraints.push({
         terminal,
+        token,
         distributionLimit,
         distributionLimitCurrency,
         overflowAllowance,
@@ -217,7 +219,8 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
     } = await setup();
     const groupedSplits = [{ group: 1, splits }];
     const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
-    const fundAccessConstraints = makeFundingAccessConstraints({ terminals });
+    const token = ethers.Wallet.createRandom().address;
+    const fundAccessConstraints = makeFundingAccessConstraints({ terminals, token });
 
     expect(
       await jbController
@@ -257,6 +260,7 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
             EXISTING_PROJECT,
             [
               constraints.terminal,
+              constraints.token,
               constraints.distributionLimit,
               constraints.distributionLimitCurrency,
               constraints.overflowAllowance,
@@ -265,7 +269,7 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
             projectOwner.address,
           );
 
-        const args = [EXISTING_PROJECT, timestamp, constraints.terminal];
+        const args = [EXISTING_PROJECT, timestamp, constraints.terminal, token];
         expect(await jbController.distributionLimitOf(...args)).deep.equals([
           ethers.BigNumber.from(constraints.distributionLimit),
           ethers.BigNumber.from(constraints.distributionLimitCurrency),

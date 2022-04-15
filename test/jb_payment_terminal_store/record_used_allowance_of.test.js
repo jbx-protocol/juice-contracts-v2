@@ -71,6 +71,9 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
 
     const mockJbTerminalSigner = await impersonateAccount(mockJbTerminal.address);
 
+    const token = ethers.Wallet.createRandom().address;
+    await mockJbTerminal.mock.token.returns(token);
+
     return {
       addr,
       mockJbController,
@@ -79,6 +82,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       mockJbTerminalSigner,
       JBPaymentTerminalStore,
       timestamp,
+      token,
       CURRENCY_ETH,
       CURRENCY_USD,
     };
@@ -92,6 +96,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       mockJbTerminalSigner,
       JBPaymentTerminalStore,
       timestamp,
+      token,
       CURRENCY_ETH, // base weight currency
       CURRENCY_USD, // terminal currency
     } = await setup();
@@ -106,11 +111,11 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
 
     // Both limit and allowance in USD
     await mockJbController.mock.distributionLimitOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(0, CURRENCY_USD);
 
     await mockJbController.mock.overflowAllowanceOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_USD);
 
     // Pre-checks
@@ -153,6 +158,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       mockJbTerminalSigner,
       JBPaymentTerminalStore,
       timestamp,
+      token,
       CURRENCY_ETH, // base weight currency
       CURRENCY_USD, // terminal currency
     } = await setup();
@@ -169,11 +175,11 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
 
     // Both limit and allowance in USD
     await mockJbController.mock.distributionLimitOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(distributionLimit, CURRENCY_USD);
 
     await mockJbController.mock.overflowAllowanceOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_USD);
 
     // Pre-checks
@@ -216,6 +222,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       mockJbTerminalSigner,
       JBPaymentTerminalStore,
       timestamp,
+      token,
       CURRENCY_ETH, // base weight currency
       CURRENCY_USD, // terminal currency
     } = await setup();
@@ -237,11 +244,11 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     );
 
     await mockJbController.mock.distributionLimitOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(distributionLimit, CURRENCY_USD); // in usd
 
     await mockJbController.mock.overflowAllowanceOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(amountToUse, CURRENCY_ETH); // in eth
 
     await mockJbPrices.mock.priceFor
@@ -292,12 +299,13 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       mockJbTerminalSigner,
       JBPaymentTerminalStore,
       timestamp,
+      token,
       CURRENCY_ETH,
       CURRENCY_USD,
     } = await setup();
 
     await mockJbController.mock.overflowAllowanceOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_USD);
 
     // Record the used allowance
@@ -318,6 +326,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       mockJbTerminalSigner,
       JBPaymentTerminalStore,
       timestamp,
+      token,
       CURRENCY_USD,
     } = await setup();
 
@@ -329,7 +338,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
 
     const smallTotalAllowance = AMOUNT.sub(ethers.BigNumber.from(1));
     await mockJbController.mock.overflowAllowanceOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(smallTotalAllowance, CURRENCY_USD); // Set the controller's overflowAllowance to something small
 
     // Record the used allowance
@@ -350,6 +359,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       mockJbTerminalSigner,
       JBPaymentTerminalStore,
       timestamp,
+      token,
       CURRENCY_USD,
     } = await setup();
 
@@ -360,7 +370,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
     );
 
     await mockJbController.mock.overflowAllowanceOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(0, CURRENCY_USD); // Set the controller's overflowAllowance to something small
 
     // Record the used allowance
@@ -381,16 +391,17 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       mockJbTerminalSigner,
       JBPaymentTerminalStore,
       timestamp,
+      token,
       CURRENCY_USD,
     } = await setup();
 
     // Create a big overflow
     await mockJbController.mock.distributionLimitOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_USD);
 
     await mockJbController.mock.overflowAllowanceOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_USD);
 
     // Note: We didn't add an initial balance to the store
@@ -413,6 +424,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       mockJbTerminalSigner,
       JBPaymentTerminalStore,
       timestamp,
+      token,
       CURRENCY_ETH,
       CURRENCY_USD,
     } = await setup();
@@ -427,11 +439,11 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
 
     // Leave a small overflow
     await mockJbController.mock.distributionLimitOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(smallBalance, CURRENCY_ETH);
 
     await mockJbController.mock.overflowAllowanceOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_ETH);
 
     await mockJbPrices.mock.priceFor
@@ -456,6 +468,7 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
       mockJbTerminalSigner,
       JBPaymentTerminalStore,
       timestamp,
+      token,
       CURRENCY_ETH, // base weight currency
       CURRENCY_USD, // terminal currency
     } = await setup();
@@ -472,11 +485,11 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
 
     // Both limit and allowance in USD
     await mockJbController.mock.distributionLimitOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(distributionLimit, CURRENCY_USD);
 
     await mockJbController.mock.overflowAllowanceOf
-      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address)
+      .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_USD);
 
     await mockJbPrices.mock.priceFor

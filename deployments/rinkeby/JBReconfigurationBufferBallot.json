@@ -1,0 +1,273 @@
+{
+  "address": "0xA95102676eab70260Acfc8813e813b41A788448E",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_delay",
+          "type": "uint256"
+        },
+        {
+          "internalType": "contract IJBFundingCycleStore",
+          "name": "_fundingCycleStore",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "delay",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "duration",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_projectId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_configuration",
+          "type": "uint256"
+        }
+      ],
+      "name": "finalState",
+      "outputs": [
+        {
+          "internalType": "enum JBBallotState",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_projectId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_configured",
+          "type": "uint256"
+        }
+      ],
+      "name": "finalize",
+      "outputs": [
+        {
+          "internalType": "enum JBBallotState",
+          "name": "ballotState",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "fundingCycleStore",
+      "outputs": [
+        {
+          "internalType": "contract IJBFundingCycleStore",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_projectId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_configured",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_start",
+          "type": "uint256"
+        }
+      ],
+      "name": "stateOf",
+      "outputs": [
+        {
+          "internalType": "enum JBBallotState",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xe22704b9b3db09a2f8116c5ca941860be3e6fd4b65527e4650f7f06a432826fa",
+  "receipt": {
+    "to": null,
+    "from": "0xE9bE6df23C7f9CaBa3005DA2fa2d8714d340D0aF",
+    "contractAddress": "0xA95102676eab70260Acfc8813e813b41A788448E",
+    "transactionIndex": 0,
+    "gasUsed": "378051",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x21578ba6cd839b6b17b3e5f2bc2529119e1472a0da858d484622c688f1bb91ff",
+    "transactionHash": "0xe22704b9b3db09a2f8116c5ca941860be3e6fd4b65527e4650f7f06a432826fa",
+    "logs": [],
+    "blockNumber": 10500809,
+    "cumulativeGasUsed": "378051",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    604800,
+    "0xB9efC201A5B5f91003D307Ad85e51c8A4277d262"
+  ],
+  "numDeployments": 16,
+  "solcInputHash": "c0f3fc8aab6e6d623a274a19ce38362f",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_delay\",\"type\":\"uint256\"},{\"internalType\":\"contract IJBFundingCycleStore\",\"name\":\"_fundingCycleStore\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"delay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"duration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_projectId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_configuration\",\"type\":\"uint256\"}],\"name\":\"finalState\",\"outputs\":[{\"internalType\":\"enum JBBallotState\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_projectId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_configured\",\"type\":\"uint256\"}],\"name\":\"finalize\",\"outputs\":[{\"internalType\":\"enum JBBallotState\",\"name\":\"ballotState\",\"type\":\"uint8\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"fundingCycleStore\",\"outputs\":[{\"internalType\":\"contract IJBFundingCycleStore\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_projectId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_configured\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_start\",\"type\":\"uint256\"}],\"name\":\"stateOf\",\"outputs\":[{\"internalType\":\"enum JBBallotState\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"constructor\":{\"params\":{\"_delay\":\"The delay to wait until a reconfiguration is considered approved.\",\"_fundingCycleStore\":\"A contract storing all funding cycle configurations.\"}},\"duration()\":{\"details\":\"A ballot should not be considered final until the duration has passed.\",\"returns\":{\"_0\":\"The duration in seconds.\"}},\"finalState(uint256,uint256)\":{\"details\":\"If `Active`, the ballot for the provided configuration can still be finalized whenever its state settles.\",\"returns\":{\"_0\":\"The duration in seconds.\"}},\"finalize(uint256,uint256)\":{\"params\":{\"_configured\":\"The configuration of the funding cycle to check the state of.\",\"_projectId\":\"The ID of the project to which the funding cycle being checked belongs.\"},\"returns\":{\"ballotState\":\"The state of the finalized ballot. If `Active`, the ballot can still later be finalized when it's state resolves.\"}},\"stateOf(uint256,uint256,uint256)\":{\"params\":{\"_configured\":\"The configuration of the funding cycle to check the state of.\",\"_projectId\":\"The ID of the project to which the funding cycle being checked belongs.\",\"_start\":\"The start timestamp of the funding cycle to check the state of.\"},\"returns\":{\"_0\":\"The state of the provided ballot.\"}}},\"stateVariables\":{\"_finalState\":{\"details\":\"If `Active`, the ballot for the provided configuration can still be finalized whenever its state settles.\"}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"delay()\":{\"notice\":\" The number of seconds that must pass for a funding cycle reconfiguration to become active.\"},\"duration()\":{\"notice\":\" The time that this ballot is active for.\"},\"finalState(uint256,uint256)\":{\"notice\":\" The finalized state.\"},\"finalize(uint256,uint256)\":{\"notice\":\" Finalizes a configuration state if the funding cycle has started and the current state has settled.\"},\"fundingCycleStore()\":{\"notice\":\"The contract storing all funding cycle configurations.\"},\"stateOf(uint256,uint256,uint256)\":{\"notice\":\" The approval state of a particular funding cycle.\"}},\"notice\":\"Manages approving funding cycle reconfigurations automatically after a buffer period.\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/JBReconfigurationBufferBallot.sol\":\"JBReconfigurationBufferBallot\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":100000000},\"remappings\":[]},\"sources\":{\"contracts/JBReconfigurationBufferBallot.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.6;\\n\\nimport './interfaces/IJBFundingCycleStore.sol';\\n\\n/** \\n  @notice Manages approving funding cycle reconfigurations automatically after a buffer period.\\n*/\\ncontract JBReconfigurationBufferBallot is IJBFundingCycleBallot {\\n  //*********************************************************************//\\n  // --------------------- private stored properties ------------------- //\\n  //*********************************************************************//\\n\\n  /**\\n    @notice \\n    The finalized state.\\n\\n    @dev\\n    If `Active`, the ballot for the provided configuration can still be finalized whenever its state settles.\\n  */\\n  mapping(uint256 => mapping(uint256 => JBBallotState)) private _finalState;\\n\\n  //*********************************************************************//\\n  // --------------------- public stored properties -------------------- //\\n  //*********************************************************************//\\n\\n  /**\\n    @notice \\n    The number of seconds that must pass for a funding cycle reconfiguration to become active.\\n  */\\n  uint256 public immutable override delay;\\n\\n  /**\\n    @notice\\n    The contract storing all funding cycle configurations.\\n  */\\n  IJBFundingCycleStore public immutable override fundingCycleStore;\\n\\n  //*********************************************************************//\\n  // ------------------------- external views -------------------------- //\\n  //*********************************************************************//\\n\\n  /** \\n    @notice \\n    The time that this ballot is active for.\\n\\n    @dev A ballot should not be considered final until the duration has passed.\\n\\n    @return The duration in seconds.\\n  */\\n  function duration() external view override returns (uint256) {\\n    return delay;\\n  }\\n\\n  /** \\n    @notice \\n    The finalized state.\\n\\n    @dev\\n    If `Active`, the ballot for the provided configuration can still be finalized whenever its state settles.\\n\\n    @return The duration in seconds.\\n  */\\n  function finalState(uint256 _projectId, uint256 _configuration)\\n    external\\n    view\\n    override\\n    returns (JBBallotState)\\n  {\\n    return _finalState[_projectId][_configuration];\\n  }\\n\\n  /**\\n    @notice \\n    The approval state of a particular funding cycle.\\n\\n    @param _projectId The ID of the project to which the funding cycle being checked belongs.\\n    @param _configured The configuration of the funding cycle to check the state of.\\n    @param _start The start timestamp of the funding cycle to check the state of.\\n\\n    @return The state of the provided ballot.\\n  */\\n  function stateOf(\\n    uint256 _projectId,\\n    uint256 _configured,\\n    uint256 _start\\n  ) public view override returns (JBBallotState) {\\n    // If there is a finalized state, return it.\\n    if (_finalState[_projectId][_configured] != JBBallotState.Active)\\n      return _finalState[_projectId][_configured];\\n\\n    // If the delay hasn't yet passed, the ballot is either failed or active.\\n    if (block.timestamp < _configured + delay)\\n      // If the current timestamp is past the start, the ballot is failed.\\n      return (block.timestamp >= _start) ? JBBallotState.Failed : JBBallotState.Active;\\n\\n    // The ballot is otherwise approved.\\n    return JBBallotState.Approved;\\n  }\\n\\n  //*********************************************************************//\\n  // -------------------------- constructor ---------------------------- //\\n  //*********************************************************************//\\n\\n  /**\\n    @param _delay The delay to wait until a reconfiguration is considered approved.\\n    @param _fundingCycleStore A contract storing all funding cycle configurations.\\n  */\\n  constructor(uint256 _delay, IJBFundingCycleStore _fundingCycleStore) {\\n    delay = _delay;\\n    fundingCycleStore = _fundingCycleStore;\\n  }\\n\\n  //*********************************************************************//\\n  // ---------------------- external transactions ---------------------- //\\n  //*********************************************************************//\\n\\n  /**\\n    @notice \\n    Finalizes a configuration state if the funding cycle has started and the current state has settled.\\n\\n    @param _projectId The ID of the project to which the funding cycle being checked belongs.\\n    @param _configured The configuration of the funding cycle to check the state of.\\n\\n    @return ballotState The state of the finalized ballot. If `Active`, the ballot can still later be finalized when it's state resolves.\\n  */\\n  function finalize(uint256 _projectId, uint256 _configured)\\n    external\\n    override\\n    returns (JBBallotState ballotState)\\n  {\\n    // Get the funding cycle for the configuration in question.\\n    JBFundingCycle memory _fundingCycle = fundingCycleStore.get(_projectId, _configured);\\n\\n    // Get the current ballot state.\\n    ballotState = _finalState[_projectId][_configured];\\n\\n    // If the final ballot state is still `Active`.\\n    if (ballotState == JBBallotState.Active) {\\n      ballotState = stateOf(_projectId, _configured, _fundingCycle.start);\\n      // If the ballot is active after the cycle has started, it should be finalized as failed.\\n      if (ballotState != JBBallotState.Active) _finalState[_projectId][_configured] = ballotState;\\n    }\\n  }\\n}\\n\",\"keccak256\":\"0x2f45dd1666e2b1bfafefe75bde21242464362c7ac236898a37ee65a0047b997f\",\"license\":\"MIT\"},\"contracts/enums/JBBallotState.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.6;\\n\\nenum JBBallotState {\\n  Active,\\n  Approved,\\n  Failed\\n}\\n\",\"keccak256\":\"0xadf07fd49f7e0947006fa1921bc7fd8fb532e8fecf3b9266721a8b7e43907461\",\"license\":\"MIT\"},\"contracts/interfaces/IJBFundingCycleBallot.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.6;\\n\\nimport './IJBFundingCycleStore.sol';\\nimport './../enums/JBBallotState.sol';\\n\\ninterface IJBFundingCycleBallot {\\n  function delay() external view returns (uint256);\\n\\n  function fundingCycleStore() external view returns (IJBFundingCycleStore);\\n\\n  function duration() external view returns (uint256);\\n\\n  function finalState(uint256 _projectId, uint256 _configuration) external returns (JBBallotState);\\n\\n  function stateOf(\\n    uint256 _projectId,\\n    uint256 _configuration,\\n    uint256 _start\\n  ) external view returns (JBBallotState);\\n\\n  function finalize(uint256 _projectId, uint256 _configured) external returns (JBBallotState);\\n}\\n\",\"keccak256\":\"0x3b3f644a4cd6b41f682763bdf8e1cfec9cc5eca2c5c3791558bb34c1a292f714\",\"license\":\"MIT\"},\"contracts/interfaces/IJBFundingCycleStore.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.6;\\n\\nimport './IJBFundingCycleBallot.sol';\\nimport './../enums/JBBallotState.sol';\\nimport './../structs/JBFundingCycle.sol';\\nimport './../structs/JBFundingCycleData.sol';\\n\\ninterface IJBFundingCycleStore {\\n  event Configure(\\n    uint256 indexed configuration,\\n    uint256 indexed projectId,\\n    JBFundingCycleData data,\\n    uint256 metadata,\\n    uint256 mustStartAtOrAfter,\\n    address caller\\n  );\\n\\n  event Init(uint256 indexed configuration, uint256 indexed projectId, uint256 indexed basedOn);\\n\\n  function latestConfigurationOf(uint256 _projectId) external view returns (uint256);\\n\\n  function get(uint256 _projectId, uint256 _configuration)\\n    external\\n    view\\n    returns (JBFundingCycle memory);\\n\\n  function queuedOf(uint256 _projectId) external view returns (JBFundingCycle memory);\\n\\n  function currentOf(uint256 _projectId) external view returns (JBFundingCycle memory);\\n\\n  function currentBallotStateOf(uint256 _projectId) external view returns (JBBallotState);\\n\\n  function configureFor(\\n    uint256 _projectId,\\n    JBFundingCycleData calldata _data,\\n    uint256 _metadata,\\n    uint256 _mustStartAtOrAfter\\n  ) external returns (JBFundingCycle memory fundingCycle);\\n}\\n\",\"keccak256\":\"0x98cf13694d24d79ab5612b4d14a9662dd67ad73e7438af5aac6a076e3a4db6e3\",\"license\":\"MIT\"},\"contracts/structs/JBFundingCycle.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.6;\\n\\nimport './../interfaces/IJBFundingCycleBallot.sol';\\n\\nstruct JBFundingCycle {\\n  // The funding cycle number for each project.\\n  // Each funding cycle has a number that is an increment of the cycle that directly preceded it.\\n  // Each project's first funding cycle has a number of 1.\\n  uint256 number;\\n  // The timestamp when the parameters for this funding cycle were configured.\\n  // This value will stay the same for subsequent funding cycles that roll over from an originally configured cycle.\\n  uint256 configuration;\\n  // The `configuration` of the funding cycle that was active when this cycle was created.\\n  uint256 basedOn;\\n  // The timestamp marking the moment from which the funding cycle is considered active.\\n  // It is a unix timestamp measured in seconds.\\n  uint256 start;\\n  // The number of seconds the funding cycle lasts for, after which a new funding cycle will start.\\n  // A duration of 0 means that the funding cycle will stay active until the project owner explicitly issues a reconfiguration, at which point a new funding cycle will immediately start with the updated properties.\\n  // If the duration is greater than 0, a project owner cannot make changes to a funding cycle's parameters while it is active \\u2013 any proposed changes will apply to the subsequent cycle.\\n  // If no changes are proposed, a funding cycle rolls over to another one with the same properties but new `start` timestamp and a discounted `weight`.\\n  uint256 duration;\\n  // A fixed point number with 18 decimals that contracts can use to base arbitrary calculations on.\\n  // For example, payment terminals can use this to determine how many tokens should be minted when a payment is received.\\n  uint256 weight;\\n  // A percent by how much the `weight` of the subsequent funding cycle should be reduced, if the project owner hasn't configured the subsequent funding cycle with an explicit `weight`.\\n  // If it's 0, each funding cycle will have equal weight.\\n  // If the number is 90%, the next funding cycle will have a 10% smaller weight.\\n  // This weight is out of `JBConstants.MAX_DISCOUNT_RATE`.\\n  uint256 discountRate;\\n  // An address of a contract that says whether a proposed reconfiguration should be accepted or rejected.\\n  // It can be used to create rules around how a project owner can change funding cycle parameters over time.\\n  IJBFundingCycleBallot ballot;\\n  // Extra data that can be associated with a funding cycle.\\n  uint256 metadata;\\n}\\n\",\"keccak256\":\"0x1b8aabfc72ba75adcf6d26789732e3bd511976b28f6916f1ebde21a795dcfdf7\",\"license\":\"MIT\"},\"contracts/structs/JBFundingCycleData.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.6;\\n\\nimport './../interfaces/IJBFundingCycleBallot.sol';\\n\\nstruct JBFundingCycleData {\\n  // The number of seconds the funding cycle lasts for, after which a new funding cycle will start.\\n  // A duration of 0 means that the funding cycle will stay active until the project owner explicitly issues a reconfiguration, at which point a new funding cycle will immediately start with the updated properties.\\n  // If the duration is greater than 0, a project owner cannot make changes to a funding cycle's parameters while it is active \\u2013 any proposed changes will apply to the subsequent cycle.\\n  // If no changes are proposed, a funding cycle rolls over to another one with the same properties but new `start` timestamp and a discounted `weight`.\\n  uint256 duration;\\n  // A fixed point number with 18 decimals that contracts can use to base arbitrary calculations on.\\n  // For example, payment terminals can use this to determine how many tokens should be minted when a payment is received.\\n  uint256 weight;\\n  // A percent by how much the `weight` of the subsequent funding cycle should be reduced, if the project owner hasn't configured the subsequent funding cycle with an explicit `weight`.\\n  // If it's 0, each funding cycle will have equal weight.\\n  // If the number is 90%, the next funding cycle will have a 10% smaller weight.\\n  // This weight is out of `JBConstants.MAX_DISCOUNT_RATE`.\\n  uint256 discountRate;\\n  // An address of a contract that says whether a proposed reconfiguration should be accepted or rejected.\\n  // It can be used to create rules around how a project owner can change funding cycle parameters over time.\\n  IJBFundingCycleBallot ballot;\\n}\\n\",\"keccak256\":\"0x453e70b56ec06dab62d72fe04e5e38539f6503c1d42fa0462cf51d6d94cffa66\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60c060405234801561001057600080fd5b506040516106a23803806106a283398101604081905261002f9161004a565b60809190915260601b6001600160601b03191660a052610087565b6000806040838503121561005d57600080fd5b825160208401519092506001600160a01b038116811461007c57600080fd5b809150509250929050565b60805160a05160601c6105e16100c16000396000818160b1015261027801526000818160790152818160fd01526101d801526105e16000f3fe608060405234801561001057600080fd5b50600436106100725760003560e01c80637416790711610050578063741679071461011f578063a994c09f1461013f578063b6013cef1461016b57600080fd5b80630fb5a6b414610077578063557e7155146100ac5780636a42b8f8146100f8575b600080fd5b7f00000000000000000000000000000000000000000000000000000000000000005b6040519081526020015b60405180910390f35b6100d37f000000000000000000000000000000000000000000000000000000000000000081565b60405173ffffffffffffffffffffffffffffffffffffffff90911681526020016100a3565b6100997f000000000000000000000000000000000000000000000000000000000000000081565b61013261012d36600461047f565b61017e565b6040516100a391906104ab565b61013261014d36600461045d565b60009182526020828152604080842092845291905290205460ff1690565b61013261017936600461045d565b610228565b60008060008581526020818152604080832087845290915290205460ff1660028111156101ad576101ad61057c565b146101d3575060008381526020818152604080832085845290915290205460ff16610221565b6101fd7f00000000000000000000000000000000000000000000000000000000000000008461053d565b42101561021d5781421015610213576000610216565b60025b9050610221565b5060015b9392505050565b6040517f669e48aa0000000000000000000000000000000000000000000000000000000081526004810183905260248101829052600090819073ffffffffffffffffffffffffffffffffffffffff7f0000000000000000000000000000000000000000000000000000000000000000169063669e48aa906044016101206040518083038186803b1580156102bb57600080fd5b505afa1580156102cf573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906102f391906103dd565b60008581526020818152604080832087845290915281205460ff1693509091508260028111156103255761032561057c565b14156103ad5761033a8484836060015161017e565b915060008260028111156103505761035061057c565b146103ad57600084815260208181526040808320868452909152902080548391907fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff001660018360028111156103a7576103a761057c565b02179055505b5092915050565b805173ffffffffffffffffffffffffffffffffffffffff811681146103d857600080fd5b919050565b600061012082840312156103f057600080fd5b6103f86104ec565b825181526020830151602082015260408301516040820152606083015160608201526080830151608082015260a083015160a082015260c083015160c082015261044460e084016103b4565b60e0820152610100928301519281019290925250919050565b6000806040838503121561047057600080fd5b50508035926020909101359150565b60008060006060848603121561049457600080fd5b505081359360208301359350604090920135919050565b60208101600383106104e6577f4e487b7100000000000000000000000000000000000000000000000000000000600052602160045260246000fd5b91905290565b604051610120810167ffffffffffffffff81118282101715610537577f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b60405290565b60008219821115610577577f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b500190565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052602160045260246000fdfea26469706673582212200d5ba27a74a4fd4552e7e9ad08514d0b7f8db77fd9e62aaf32a33c5e886eac2b64736f6c63430008060033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100725760003560e01c80637416790711610050578063741679071461011f578063a994c09f1461013f578063b6013cef1461016b57600080fd5b80630fb5a6b414610077578063557e7155146100ac5780636a42b8f8146100f8575b600080fd5b7f00000000000000000000000000000000000000000000000000000000000000005b6040519081526020015b60405180910390f35b6100d37f000000000000000000000000000000000000000000000000000000000000000081565b60405173ffffffffffffffffffffffffffffffffffffffff90911681526020016100a3565b6100997f000000000000000000000000000000000000000000000000000000000000000081565b61013261012d36600461047f565b61017e565b6040516100a391906104ab565b61013261014d36600461045d565b60009182526020828152604080842092845291905290205460ff1690565b61013261017936600461045d565b610228565b60008060008581526020818152604080832087845290915290205460ff1660028111156101ad576101ad61057c565b146101d3575060008381526020818152604080832085845290915290205460ff16610221565b6101fd7f00000000000000000000000000000000000000000000000000000000000000008461053d565b42101561021d5781421015610213576000610216565b60025b9050610221565b5060015b9392505050565b6040517f669e48aa0000000000000000000000000000000000000000000000000000000081526004810183905260248101829052600090819073ffffffffffffffffffffffffffffffffffffffff7f0000000000000000000000000000000000000000000000000000000000000000169063669e48aa906044016101206040518083038186803b1580156102bb57600080fd5b505afa1580156102cf573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906102f391906103dd565b60008581526020818152604080832087845290915281205460ff1693509091508260028111156103255761032561057c565b14156103ad5761033a8484836060015161017e565b915060008260028111156103505761035061057c565b146103ad57600084815260208181526040808320868452909152902080548391907fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff001660018360028111156103a7576103a761057c565b02179055505b5092915050565b805173ffffffffffffffffffffffffffffffffffffffff811681146103d857600080fd5b919050565b600061012082840312156103f057600080fd5b6103f86104ec565b825181526020830151602082015260408301516040820152606083015160608201526080830151608082015260a083015160a082015260c083015160c082015261044460e084016103b4565b60e0820152610100928301519281019290925250919050565b6000806040838503121561047057600080fd5b50508035926020909101359150565b60008060006060848603121561049457600080fd5b505081359360208301359350604090920135919050565b60208101600383106104e6577f4e487b7100000000000000000000000000000000000000000000000000000000600052602160045260246000fd5b91905290565b604051610120810167ffffffffffffffff81118282101715610537577f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b60405290565b60008219821115610577577f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b500190565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052602160045260246000fdfea26469706673582212200d5ba27a74a4fd4552e7e9ad08514d0b7f8db77fd9e62aaf32a33c5e886eac2b64736f6c63430008060033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "constructor": {
+        "params": {
+          "_delay": "The delay to wait until a reconfiguration is considered approved.",
+          "_fundingCycleStore": "A contract storing all funding cycle configurations."
+        }
+      },
+      "duration()": {
+        "details": "A ballot should not be considered final until the duration has passed.",
+        "returns": {
+          "_0": "The duration in seconds."
+        }
+      },
+      "finalState(uint256,uint256)": {
+        "details": "If `Active`, the ballot for the provided configuration can still be finalized whenever its state settles.",
+        "returns": {
+          "_0": "The duration in seconds."
+        }
+      },
+      "finalize(uint256,uint256)": {
+        "params": {
+          "_configured": "The configuration of the funding cycle to check the state of.",
+          "_projectId": "The ID of the project to which the funding cycle being checked belongs."
+        },
+        "returns": {
+          "ballotState": "The state of the finalized ballot. If `Active`, the ballot can still later be finalized when it's state resolves."
+        }
+      },
+      "stateOf(uint256,uint256,uint256)": {
+        "params": {
+          "_configured": "The configuration of the funding cycle to check the state of.",
+          "_projectId": "The ID of the project to which the funding cycle being checked belongs.",
+          "_start": "The start timestamp of the funding cycle to check the state of."
+        },
+        "returns": {
+          "_0": "The state of the provided ballot."
+        }
+      }
+    },
+    "stateVariables": {
+      "_finalState": {
+        "details": "If `Active`, the ballot for the provided configuration can still be finalized whenever its state settles."
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "delay()": {
+        "notice": " The number of seconds that must pass for a funding cycle reconfiguration to become active."
+      },
+      "duration()": {
+        "notice": " The time that this ballot is active for."
+      },
+      "finalState(uint256,uint256)": {
+        "notice": " The finalized state."
+      },
+      "finalize(uint256,uint256)": {
+        "notice": " Finalizes a configuration state if the funding cycle has started and the current state has settled."
+      },
+      "fundingCycleStore()": {
+        "notice": "The contract storing all funding cycle configurations."
+      },
+      "stateOf(uint256,uint256,uint256)": {
+        "notice": " The approval state of a particular funding cycle."
+      }
+    },
+    "notice": "Manages approving funding cycle reconfigurations automatically after a buffer period.",
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 11588,
+        "contract": "contracts/JBReconfigurationBufferBallot.sol:JBReconfigurationBufferBallot",
+        "label": "_finalState",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_enum(JBBallotState)15774))"
+      }
+    ],
+    "types": {
+      "t_enum(JBBallotState)15774": {
+        "encoding": "inplace",
+        "label": "enum JBBallotState",
+        "numberOfBytes": "1"
+      },
+      "t_mapping(t_uint256,t_enum(JBBallotState)15774)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => enum JBBallotState)",
+        "numberOfBytes": "32",
+        "value": "t_enum(JBBallotState)15774"
+      },
+      "t_mapping(t_uint256,t_mapping(t_uint256,t_enum(JBBallotState)15774))": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => mapping(uint256 => enum JBBallotState))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_uint256,t_enum(JBBallotState)15774)"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}
