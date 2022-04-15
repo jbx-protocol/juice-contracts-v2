@@ -202,7 +202,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
 
   /** 
     @notice 
-    Make a payment to the specified project after first spliting the amount among the stored default splits.
+    Make a payment to the specified project after first splitting the amount among the stored default splits.
 
     @param _projectId The ID of the project that is being paid after.
     @param _token The token being paid in.
@@ -299,9 +299,9 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
 
   /** 
     @notice 
-    Add to the balance of the specified project.
+    Add to the balance of the specified project after first splitting the amount among the stored default splits.
 
-    @param _projectId The ID of the project that is being paid.
+    @param _projectId The ID of the project that is being paid after.
     @param _token The token being paid in.
     @param _amount The amount of tokens being paid, as a fixed point number. If the token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. If the token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
@@ -388,6 +388,8 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
     @param _token The token the amonut being split is in.
     @param _amount The amount of tokens being split, as a fixed point number. If the `_token` is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. 
+
+    @return leftoverAmount The amount leftover after all splits were paid.
   */
   function _payToSplits(
     uint256 _splitsProjectId,
