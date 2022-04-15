@@ -7,23 +7,10 @@ import './IJBSplitsStore.sol';
 interface IJBSplitsPayer {
   event SetDefaultSplits(
     uint256 indexed projectId,
-    uint256 indexed group,
     uint256 indexed domain,
+    uint256 indexed group,
     address caller
   );
-  event DistributePayouts(
-    uint256 indexed fundingCycleConfiguration,
-    uint256 indexed fundingCycleNumber,
-    uint256 indexed projectId,
-    address beneficiary,
-    uint256 amount,
-    uint256 distributedAmount,
-    uint256 fee,
-    uint256 beneficiaryDistributionAmount,
-    string memo,
-    address caller
-  );
-
   event Pay(
     uint256 indexed projectId,
     address beneficiary,

@@ -69,10 +69,10 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
 
   /** 
     @param _defaultSplitsProjectId The ID of project for which the default splits are stored.
-    @param _defaultSplitsGroup The splits domain to payout when this contract receives direct payments.
+    @param _defaultSplitsDomain The splits domain to payout when this contract receives direct payments.
     @param _defaultSplitsGroup The splits group to payout when this contract receives direct payments.
     @param _splitsStore A contract that stores splits for each project.
-    @param _defaultProjectId The ID of the project whose treasury should be forwarded this contract's received payments.
+    @param _defaultProjectId The ID of the project whose treasury should be forwarded the splits payer contract's received payment leftovers after distributing to the default splits group.
     @param _defaultBeneficiary The address that'll receive the project's tokens. 
     @param _defaultPreferClaimedTokens A flag indicating whether issued tokens should be automatically claimed into the beneficiary's wallet. 
     @param _defaultMemo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
@@ -153,7 +153,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
           JBTokens.ETH,
           _leftoverAmount,
           18, // decimals.
-          defaultBeneficiary,
+          defaultBeneficiary != address(0) ? payable(defaultBeneficiary) : payable(msg.sender),
           0, // min returned tokens.
           defaultPreferClaimedTokens,
           defaultMemo,
