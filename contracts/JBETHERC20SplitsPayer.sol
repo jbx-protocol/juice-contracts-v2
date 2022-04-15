@@ -247,40 +247,54 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
       _decimals
     );
 
-    // If there is no leftover amount, nothing left to pay.
-    if (_leftoverAmount == 0) return;
+    // Pay any leftover amount.
+    if (_leftoverAmount > 0) {
+      // If there's a default project ID, try to pay it.
+      if (_projectId != 0) {
+        _pay(
+          _projectId,
+          _token,
+          _leftoverAmount,
+          _decimals,
+          _beneficiary,
+          _minReturnedTokens,
+          _preferClaimedTokens,
+          _memo,
+          _metadata
+        );
+      }
+      // If no project was specified, send the funds directly to the beneficiary or the msg.sender.
+      else {
+        // Transfer the ETH.
+        if (_token == JBTokens.ETH)
+          Address.sendValue(
+            // If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
+            _beneficiary != address(0) ? payable(_beneficiary) : payable(msg.sender),
+            _leftoverAmount
+          );
+          // Or, transfer the ERC20.
+        else
+          IERC20(_token).transfer(
+            // If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
+            _beneficiary != address(0) ? _beneficiary : msg.sender,
+            _leftoverAmount
+          );
+      }
+    }
 
-    // If there's a default project ID, try to pay it.
-    if (_projectId != 0) {
-      _pay(
-        _projectId,
-        _token,
-        _leftoverAmount,
-        _decimals,
-        _beneficiary,
-        _minReturnedTokens,
-        _preferClaimedTokens,
-        _memo,
-        _metadata
-      );
-    }
-    // If no project was specified, send the funds directly to the beneficiary or the msg.sender.
-    else {
-      // Transfer the ETH.
-      if (_token == JBTokens.ETH)
-        Address.sendValue(
-          // If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
-          _beneficiary != address(0) ? payable(_beneficiary) : payable(msg.sender),
-          _leftoverAmount
-        );
-        // Or, transfer the ERC20.
-      else
-        IERC20(_token).transfer(
-          // If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
-          _beneficiary != address(0) ? _beneficiary : msg.sender,
-          _leftoverAmount
-        );
-    }
+    emit Pay(
+      _projectId,
+      defaultBeneficiary != address(0) ? defaultBeneficiary : msg.sender,
+      _token,
+      _amount,
+      _decimals,
+      _leftoverAmount,
+      _minReturnedTokens,
+      _preferClaimedTokens,
+      _memo,
+      _metadata,
+      msg.sender
+    );
   }
 
   /** 
@@ -322,31 +336,42 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
       _decimals
     );
 
-    // If there is no leftover amount, nothing left to pay.
-    if (_leftoverAmount == 0) return;
+    // Distribute any leftover amount.
+    if (_leftoverAmount > 0) {
+      // If there's a default project ID, try to add to its balance.
+      if (_projectId != 0)
+        // Add to the project's balance.
+        _addToBalance(_projectId, _token, _leftoverAmount, _decimals, _memo);
 
-    // If there's a default project ID, try to add to its balance.
-    if (_projectId != 0)
-      // Add to the project's balance.
-      _addToBalance(_projectId, _token, _leftoverAmount, _decimals, _memo);
-
-      // Otherwise, send a payment to the beneficiary.
-    else {
-      // Transfer the ETH.
-      if (_token == JBTokens.ETH)
-        Address.sendValue(
-          // If there's a default beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
-          defaultBeneficiary != address(0) ? defaultBeneficiary : payable(msg.sender),
-          _leftoverAmount
-        );
-        // Or, transfer the ERC20.
-      else
-        IERC20(_token).transfer(
-          // If there's a default beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
-          defaultBeneficiary != address(0) ? defaultBeneficiary : msg.sender,
-          _leftoverAmount
-        );
+        // Otherwise, send a payment to the beneficiary.
+      else {
+        // Transfer the ETH.
+        if (_token == JBTokens.ETH)
+          Address.sendValue(
+            // If there's a default beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
+            defaultBeneficiary != address(0) ? defaultBeneficiary : payable(msg.sender),
+            _leftoverAmount
+          );
+          // Or, transfer the ERC20.
+        else
+          IERC20(_token).transfer(
+            // If there's a default beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
+            defaultBeneficiary != address(0) ? defaultBeneficiary : msg.sender,
+            _leftoverAmount
+          );
+      }
     }
+
+    emit AddToBalance(
+      _projectId,
+      defaultBeneficiary != address(0) ? defaultBeneficiary : msg.sender,
+      _token,
+      _amount,
+      _decimals,
+      _leftoverAmount,
+      _memo,
+      msg.sender
+    );
   }
 
   //*********************************************************************//
@@ -451,6 +476,15 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
         // Subtract from the amount to be sent to the beneficiary.
         leftoverAmount = leftoverAmount - _splitAmount;
       }
+
+      emit DistributeToSplit(
+        _splitsProjectId,
+        _splitsDomain,
+        _splitsGroup,
+        _split,
+        _splitAmount,
+        msg.sender
+      );
     }
   }
 }
