@@ -3,6 +3,7 @@ pragma solidity 0.8.6;
 
 import './../interfaces/IJBOperatable.sol';
 
+//*********************************************************************//
 // --------------------------- custom errors -------------------------- //
 //*********************************************************************//
 error UNAUTHORIZED();
@@ -12,6 +13,10 @@ error UNAUTHORIZED();
   Modifiers to allow access to functions based on the message sender's operator status.
 */
 abstract contract JBOperatable is IJBOperatable {
+  //*********************************************************************//
+  // ---------------------------- modifiers ---------------------------- //
+  //*********************************************************************//
+
   modifier requirePermission(
     address _account,
     uint256 _domain,
@@ -31,11 +36,19 @@ abstract contract JBOperatable is IJBOperatable {
     _;
   }
 
+  //*********************************************************************//
+  // ---------------- public immutable stored properties --------------- //
+  //*********************************************************************//
+
   /** 
     @notice 
     A contract storing operator assignments.
   */
   IJBOperatorStore public immutable override operatorStore;
+
+  //*********************************************************************//
+  // -------------------------- constructor ---------------------------- //
+  //*********************************************************************//
 
   /** 
     @param _operatorStore A contract storing operator assignments.
@@ -43,6 +56,10 @@ abstract contract JBOperatable is IJBOperatable {
   constructor(IJBOperatorStore _operatorStore) {
     operatorStore = _operatorStore;
   }
+
+  //*********************************************************************//
+  // -------------------------- internal views ------------------------- //
+  //*********************************************************************//
 
   /** 
     @notice

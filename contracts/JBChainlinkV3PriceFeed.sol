@@ -7,7 +7,8 @@ import './interfaces/IJBPriceFeed.sol';
 import './libraries/JBFixedPointNumber.sol';
 
 /** 
-  @notice A generalized price feed for the Chainlink AggregatorV3Interface.
+  @notice 
+  A generalized price feed for the Chainlink AggregatorV3Interface.
 
   @dev
   Adheres to:
@@ -17,18 +18,19 @@ contract JBChainlinkV3PriceFeed is IJBPriceFeed {
   // A library that provides utility for fixed point numbers.
   using JBFixedPointNumber for uint256;
 
+  //*********************************************************************//
+  // --------------------- public stored properties -------------------- //
+  //*********************************************************************//
+
   /** 
     @notice 
     The feed that prices are reported from.
   */
   AggregatorV3Interface public feed;
 
-  /** 
-    @param _feed The feed to report prices from.
-  */
-  constructor(AggregatorV3Interface _feed) {
-    feed = _feed;
-  }
+  //*********************************************************************//
+  // ------------------------- external views -------------------------- //
+  //*********************************************************************//
 
   /** 
     @notice 
@@ -47,5 +49,16 @@ contract JBChainlinkV3PriceFeed is IJBPriceFeed {
 
     // Return the price, adjusted to the target decimals.
     return uint256(_price).adjustDecimals(_feedDecimals, _decimals);
+  }
+
+  //*********************************************************************//
+  // -------------------------- constructor ---------------------------- //
+  //*********************************************************************//
+
+  /** 
+    @param _feed The feed to report prices from.
+  */
+  constructor(AggregatorV3Interface _feed) {
+    feed = _feed;
   }
 }

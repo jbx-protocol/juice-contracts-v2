@@ -272,18 +272,18 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
   //*********************************************************************//
 
   /**
-    @param _prices A contract that exposes price feeds.
     @param _directory A contract storing directories of terminals and controllers for each project.
     @param _fundingCycleStore A contract storing all funding cycle configurations.
+    @param _prices A contract that exposes price feeds.
   */
   constructor(
-    IJBPrices _prices,
     IJBDirectory _directory,
-    IJBFundingCycleStore _fundingCycleStore
+    IJBFundingCycleStore _fundingCycleStore,
+    IJBPrices _prices
   ) {
-    prices = _prices;
     directory = _directory;
     fundingCycleStore = _fundingCycleStore;
+    prices = _prices;
   }
 
   //*********************************************************************//
@@ -641,7 +641,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
         prices.priceFor(_currency, _balanceCurrency, _MAX_FIXED_POINT_FIDELITY)
       );
 
-    // The amount being withdrawn must be available in the overflow.
+    // The amount being distributed must be available in the overflow.
     if (
       usedAmount >
       _overflowDuring(
