@@ -256,7 +256,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
           _token,
           _leftoverAmount,
           _decimals,
-          _beneficiary,
+          _beneficiary != address(0) ? _beneficiary : msg.sender,
           _minReturnedTokens,
           _preferClaimedTokens,
           _memo,
