@@ -10,10 +10,10 @@ import './libraries/JBOperations.sol';
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
 //*********************************************************************//
+error INVALID_LOCKED_UNTIL();
+error INVALID_PROJECT_ID();
 error INVALID_SPLIT_PERCENT();
 error INVALID_TOTAL_PERCENT();
-error INVALID_PROJECT_ID();
-error INVALID_LOCKED_UNTIL();
 error PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();
 
 /**

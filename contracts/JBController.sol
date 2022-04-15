@@ -18,21 +18,21 @@ import './libraries/JBFundingCycleMetadataResolver.sol';
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
 //*********************************************************************//
-error INVALID_DISTRIBUTION_LIMIT();
-error INVALID_DISTRIBUTION_LIMIT_CURRENCY();
-error INVALID_OVERFLOW_ALLOWANCE();
-error INVALID_OVERFLOW_ALLOWANCE_CURRENCY();
 error BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE();
-error NOT_CURRENT_CONTROLLER();
 error CANT_MIGRATE_TO_CURRENT_CONTROLLER();
 error CHANGE_TOKEN_NOT_ALLOWED();
 error FUNDING_CYCLE_ALREADY_LAUNCHED();
 error INVALID_BALLOT_REDEMPTION_RATE();
-error INVALID_RESERVED_RATE();
+error INVALID_DISTRIBUTION_LIMIT();
+error INVALID_DISTRIBUTION_LIMIT_CURRENCY();
+error INVALID_OVERFLOW_ALLOWANCE();
+error INVALID_OVERFLOW_ALLOWANCE_CURRENCY();
 error INVALID_REDEMPTION_RATE();
+error INVALID_RESERVED_RATE();
 error MIGRATION_NOT_ALLOWED();
 error MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE();
 error NO_BURNABLE_TOKENS();
+error NOT_CURRENT_CONTROLLER();
 error ZERO_TOKENS_TO_MINT();
 
 /**
