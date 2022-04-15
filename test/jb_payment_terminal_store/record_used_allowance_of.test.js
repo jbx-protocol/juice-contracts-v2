@@ -39,9 +39,9 @@ describe('JBPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
 
     const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBPaymentTerminalStore');
     const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
-      mockJbPrices.address,
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
+      mockJbPrices.address,
     );
 
     const blockNum = await ethers.provider.getBlockNumber();

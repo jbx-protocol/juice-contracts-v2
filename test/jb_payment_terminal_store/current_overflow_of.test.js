@@ -40,9 +40,9 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
 
     const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBPaymentTerminalStore');
     const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
-      mockJbPrices.address,
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
+      mockJbPrices.address,
     );
 
     const blockNum = await ethers.provider.getBlockNumber();
@@ -65,7 +65,7 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
     };
   }
 
-  it('Should return the current overflowed amount', async function () {
+  it.only('Should return the current overflowed amount', async function () {
     const {
       mockJbTerminal,
       mockJbController,
