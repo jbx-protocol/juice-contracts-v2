@@ -6,10 +6,10 @@ import '@paulrberg/contracts/math/PRBMath.sol';
 import './interfaces/IJBSingleTokenPaymentTerminalStore.sol';
 import './libraries/JBConstants.sol';
 import './libraries/JBCurrencies.sol';
+import './libraries/JBFixedPointNumber.sol';
+import './libraries/JBFundingCycleMetadataResolver.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
-import './libraries/JBFundingCycleMetadataResolver.sol';
-import './libraries/JBFixedPointNumber.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //

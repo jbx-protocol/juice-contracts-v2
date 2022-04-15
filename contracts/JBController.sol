@@ -3,17 +3,16 @@ pragma solidity 0.8.6;
 
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './abstract/JBOperatable.sol';
-import './interfaces/IJBProjects.sol';
-import './interfaces/IJBPaymentTerminal.sol';
-import './interfaces/IJBOperatorStore.sol';
+import './interfaces/IJBController.sol';
 import './interfaces/IJBFundingCycleDataSource.sol';
+import './interfaces/IJBOperatorStore.sol';
+import './interfaces/IJBPaymentTerminal.sol';
 import './interfaces/IJBPrices.sol';
-import './interfaces/IJBController.sol';
-import './interfaces/IJBController.sol';
+import './interfaces/IJBProjects.sol';
 import './libraries/JBConstants.sol';
+import './libraries/JBFundingCycleMetadataResolver.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
-import './libraries/JBFundingCycleMetadataResolver.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //

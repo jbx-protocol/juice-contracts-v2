@@ -2,7 +2,6 @@
 pragma solidity 0.8.6;
 
 import './interfaces/IJBETHERC20SplitsPayerDeployer.sol';
-
 import './JBETHERC20SplitsPayer.sol';
 
 /** 
