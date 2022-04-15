@@ -272,18 +272,18 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
   //*********************************************************************//
 
   /**
-    @param _prices A contract that exposes price feeds.
     @param _directory A contract storing directories of terminals and controllers for each project.
     @param _fundingCycleStore A contract storing all funding cycle configurations.
+    @param _prices A contract that exposes price feeds.
   */
   constructor(
-    IJBPrices _prices,
     IJBDirectory _directory,
-    IJBFundingCycleStore _fundingCycleStore
+    IJBFundingCycleStore _fundingCycleStore,
+    IJBPrices _prices
   ) {
-    prices = _prices;
     directory = _directory;
     fundingCycleStore = _fundingCycleStore;
+    prices = _prices;
   }
 
   //*********************************************************************//

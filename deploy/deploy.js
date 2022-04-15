@@ -136,7 +136,7 @@ module.exports = async ({ deployments, getChainId }) => {
   // Deploy a JBPaymentTerminalStore contract.
   const JBPaymentTerminalStore = await deploy('JBPaymentTerminalStore', {
     ...baseDeployArgs,
-    args: [JBPrices.address, JBDirectory.address, JBFundingCycleStore.address],
+    args: [JBDirectory.address, JBFundingCycleStore.address, JBPrices.address],
   });
 
   // Deploy the currencies library.
