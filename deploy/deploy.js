@@ -202,9 +202,10 @@ module.exports = async ({ deployments, getChainId }) => {
   if (
     !isAllowedToSetFirstController
   ) {
-    await jbDirectoryContract
+    let tx = await jbDirectoryContract
       .connect(deployer)
       .setIsAllowedToSetFirstController(JBController.address, true);
+    await tx.wait();
   }
 
   // If needed, transfer the ownership of the JBDirectory contract to the multisig.
