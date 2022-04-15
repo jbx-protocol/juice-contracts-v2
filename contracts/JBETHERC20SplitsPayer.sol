@@ -153,7 +153,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
           JBTokens.ETH,
           _leftoverAmount,
           18, // decimals.
-          defaultBeneficiary != address(0) ? payable(defaultBeneficiary) : payable(msg.sender),
+          defaultBeneficiary != address(0) ? defaultBeneficiary : msg.sender,
           0, // min returned tokens.
           defaultPreferClaimedTokens,
           defaultMemo,
