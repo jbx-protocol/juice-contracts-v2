@@ -8,7 +8,7 @@ import '../../JBController.sol';
 import '../../JBDirectory.sol';
 import '../../JBETHPaymentTerminal.sol';
 import '../../JBERC20PaymentTerminal.sol';
-import '../../JBPaymentTerminalStore.sol';
+import '../../JBSingleTokenPaymentTerminalStore.sol';
 import '../../JBFundingCycleStore.sol';
 import '../../JBOperatorStore.sol';
 import '../../JBPrices.sol';
@@ -73,7 +73,7 @@ contract TestBaseWorkflow is DSTest {
   // JBController
   JBController private _jbController;
   // JBETHPaymentTerminalStore
-  JBPaymentTerminalStore private _jbPaymentTerminalStore;
+  JBSingleTokenPaymentTerminalStore private _jbPaymentTerminalStore;
   // JBETHPaymentTerminal
   JBETHPaymentTerminal private _jbETHPaymentTerminal;
   // JBERC20PaymentTerminal
@@ -125,7 +125,7 @@ contract TestBaseWorkflow is DSTest {
     return _jbController;
   }
 
-  function jbPaymentTerminalStore() internal view returns (JBPaymentTerminalStore) {
+  function jbPaymentTerminalStore() internal view returns (JBSingleTokenPaymentTerminalStore) {
     return _jbPaymentTerminalStore;
   }
 
@@ -200,12 +200,12 @@ contract TestBaseWorkflow is DSTest {
     _jbDirectory.setIsAllowedToSetFirstController(address(_jbController), true);
 
     // JBETHPaymentTerminalStore
-    _jbPaymentTerminalStore = new JBPaymentTerminalStore(
+    _jbPaymentTerminalStore = new JBSingleTokenPaymentTerminalStore(
       _jbDirectory,
       _jbFundingCycleStore,
       _jbPrices
     );
-    evm.label(address(_jbPaymentTerminalStore), 'JBPaymentTerminalStore');
+    evm.label(address(_jbPaymentTerminalStore), 'JBSingleTokenPaymentTerminalStore');
 
     // AccessJBLib
     _accessJBLib = new AccessJBLib();

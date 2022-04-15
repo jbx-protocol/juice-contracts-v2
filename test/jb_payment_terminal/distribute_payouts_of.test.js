@@ -7,7 +7,7 @@ import errors from '../helpers/errors.json';
 import jbAllocator from '../../artifacts/contracts/interfaces/IJBSplitAllocator.sol/IJBSplitAllocator.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import JBETHPaymentTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
-import jbPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalStore.sol/JBPaymentTerminalStore.json';
+import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
 import jbFeeGauge from '../../artifacts/contracts/interfaces/IJBFeeGauge.sol/IJBFeeGauge.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
@@ -2000,7 +2000,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
           .withArgs(
             split.projectId,
             /*payoutAmount*/ Math.floor(
-            (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
+              (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             ETH_ADDRESS,
             split.beneficiary,
             /*minReturnedToken*/ 0,
@@ -2794,7 +2794,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         ),
     ).to.be.revertedWith(errors.TERMINAL_IN_SPLIT_ZERO_ADDRESS);
   });
-  
+
   it('Cannot distribute payouts of the distributed amount is less than expected', async function () {
     const {
       terminalOwner,

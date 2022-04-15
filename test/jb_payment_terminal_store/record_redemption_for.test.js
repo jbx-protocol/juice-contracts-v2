@@ -15,7 +15,7 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
+describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function () {
   const PROJECT_ID = 2;
   const AMOUNT = ethers.BigNumber.from('4398540');
   const WEIGHT = ethers.BigNumber.from('900000000');
@@ -42,8 +42,8 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     const jbCurrencies = await jbCurrenciesFactory.deploy();
     const CURRENCY_ETH = await jbCurrencies.ETH();
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBPaymentTerminalStore');
-    const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBSingleTokenPaymentTerminalStore');
+    const JBSingleTokenPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
       mockJbPrices.address,
@@ -68,7 +68,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTerminal,
       mockJbTerminalSigner,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       token,
       CURRENCY_ETH,
@@ -88,7 +88,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTerminal,
       mockJbTerminalSigner,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       token,
       CURRENCY_ETH,
@@ -134,17 +134,17 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     // Add to balance beforehand to have sufficient overflow
     const startingBalance = AMOUNT.mul(ethers.BigNumber.from(2));
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
       PROJECT_ID,
       startingBalance,
     );
 
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(startingBalance);
 
     // Record redemption
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordRedemptionFor(
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordRedemptionFor(
       /* holder */ holder.address,
       /* projectId */ PROJECT_ID,
       /* tokenCount */ AMOUNT,
@@ -156,7 +156,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     // Expect recorded balance to decrease by redeemed amount
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(startingBalance.sub(AMOUNT));
   });
 
@@ -170,7 +170,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTerminal,
       mockJbTerminalSigner,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       token,
       CURRENCY_ETH,
@@ -199,7 +199,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     });
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
-    
+
     await mockJbDirectory.mock.terminalsOf.withArgs(PROJECT_ID).returns([mockJbTerminal.address]);
     await mockJbTerminal.mock.currentEthOverflowOf.withArgs(PROJECT_ID).returns(AMOUNT)
 
@@ -220,17 +220,17 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     // Add to balance beforehand to have sufficient overflow
     const startingBalance = AMOUNT.mul(ethers.BigNumber.from(2));
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
       PROJECT_ID,
       startingBalance,
     );
 
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(startingBalance);
 
     // Record redemption
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordRedemptionFor(
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordRedemptionFor(
       /* holder */ holder.address,
       /* projectId */ PROJECT_ID,
       /* tokenCount */ AMOUNT,
@@ -242,7 +242,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     // Expect recorded balance to decrease by redeemed amount
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(startingBalance.sub(AMOUNT));
   });
 
@@ -256,7 +256,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTerminal,
       mockJbTerminalSigner,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       token,
       CURRENCY_ETH,
@@ -305,11 +305,11 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     const startingBalance = 0;
 
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(startingBalance);
 
     // Record redemption
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordRedemptionFor(
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordRedemptionFor(
       /* holder */ holder.address,
       /* projectId */ PROJECT_ID,
       /* tokenCount */ 0,
@@ -321,7 +321,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     // Expect recorded balance to not have changed
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(startingBalance);
   });
 
@@ -335,7 +335,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTerminal,
       mockJbTerminalSigner,
       mockJbTokenStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       token,
       CURRENCY_ETH,
@@ -383,11 +383,11 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     const startingBalance = 0;
 
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(startingBalance);
 
     // Record redemption
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordRedemptionFor(
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordRedemptionFor(
       /* holder */ holder.address,
       /* projectId */ PROJECT_ID,
       /* tokenCount */ AMOUNT,
@@ -399,7 +399,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     // Expect recorded balance to not have changed
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(startingBalance);
   });
 
@@ -413,7 +413,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTerminalSigner,
       mockJbTokenStore,
       mockJbFundingCycleDataSource,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       token,
       addrs,
@@ -483,17 +483,17 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       .returns(AMOUNT, CURRENCY_ETH);
 
     // Add to balance beforehand to have sufficient overflow
-    await JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
       PROJECT_ID,
       startingBalance,
     );
 
     expect(
-      await JBPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(startingBalance);
 
     // Record redemption
-    const tx = await JBPaymentTerminalStore.connect(
+    const tx = await JBSingleTokenPaymentTerminalStore.connect(
       mockJbTerminalSigner,
     ).callStatic.recordRedemptionFor(
       /* holder */ holder.address,
@@ -517,7 +517,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTerminalSigner,
       mockJbTokenStore,
       mockJbFundingCycleDataSource,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
     } = await setup();
 
@@ -550,7 +550,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
 
     // Record redemption
     await expect(
-      JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordRedemptionFor(
+      JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordRedemptionFor(
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
         /* tokenCount */ AMOUNT,
@@ -572,7 +572,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTerminalSigner,
       mockJbTokenStore,
       mockJbFundingCycleDataSource,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       addrs,
     } = await setup();
@@ -634,7 +634,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     // Note: The store has 0 balance because we haven't added anything to it
     // Record redemption
     await expect(
-      JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordRedemptionFor(
+      JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordRedemptionFor(
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
         /* tokenCount */ AMOUNT.add(1),
@@ -656,7 +656,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
       mockJbTerminalSigner,
       mockJbTokenStore,
       mockJbFundingCycleDataSource,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       addrs,
     } = await setup();
@@ -718,7 +718,7 @@ describe('JBPaymentTerminalStore::recordRedemptionFor(...)', function () {
     // Note: The store has 0 balance because we haven't added anything to it
     // Record redemption
     await expect(
-      JBPaymentTerminalStore.connect(mockJbTerminalSigner).recordRedemptionFor(
+      JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordRedemptionFor(
         /* holder */ holder.address,
         /* projectId */ PROJECT_ID,
         /* tokenCount */ AMOUNT,
