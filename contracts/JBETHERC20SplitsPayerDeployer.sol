@@ -14,6 +14,10 @@ import './JBETHERC20SplitsPayer.sol';
   IJBETHERC20SplitsPayerDeployer:  General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 */
 contract JBETHERC20SplitsPayerDeployer is IJBETHERC20SplitsPayerDeployer {
+  //*********************************************************************//
+  // ---------------------- external transactions ---------------------- //
+  //*********************************************************************//
+
   /** 
     @notice 
     Allows anyone to deploy a new project payer contract.

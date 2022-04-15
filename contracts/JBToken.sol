@@ -158,6 +158,10 @@ contract JBToken is IJBToken, ERC20, Ownable {
     transferFrom(_from, _to, _amount);
   }
 
+  //*********************************************************************//
+  // ------------------------ public transactions ---------------------- //
+  //*********************************************************************//
+
   /** 
     @notice
     Transfer ownership of this contract to another address.

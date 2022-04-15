@@ -5,25 +5,17 @@ import './../interfaces/IJBSingleTokenPaymentTerminal.sol';
 
 /**
   @notice
-  Generic terminal managing all inflows and outflows of funds into the protocol ecosystem for one token.
-
-  @dev
-  A project can transfer its funds, along with the power to reconfigure and mint/burn their tokens, from this contract to another allowed terminal of the same token type contract at any time.
+  Generic terminal managing all inflows of funds into the protocol ecosystem for one token.
 
   @dev
   Adheres to:
   IJBSingleTokenPaymentTerminals: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
-
-  @dev
-  Inherits from:
-  JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
-  Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
-  ReentrancyGuard: Contract module that helps prevent reentrant calls to a function.
 */
 abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal {
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
+
   /**
     @notice
     The token that this terminal accepts.
@@ -46,14 +38,38 @@ abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal 
   // ------------------------- external views -------------------------- //
   //*********************************************************************//
 
+  /** 
+    @notice
+    A flag indicating if this terminal accepts the specified token.
+
+    @param _token The token to check if this terminal accepts or not.
+
+    @return The flag.
+  */
   function acceptsToken(address _token) external view override returns (bool) {
     return _token == token;
   }
 
+  /** 
+    @notice
+    The currency that should be used for the specified token.
+
+    // param _token The token to check for the currency of.
+
+    @return The currency index.
+  */
   function currencyForToken(address) external view override returns (uint256) {
     return currency;
   }
 
+  /** 
+    @notice
+    The decimals that should be used in fixed number accounting for the specified token.
+
+    // param _token The token to check for the decimals of.
+
+    @return The number of decimals for the token.
+  */
   function decimalsForToken(address) external view override returns (uint256) {
     return decimals;
   }

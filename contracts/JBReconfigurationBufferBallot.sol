@@ -4,7 +4,12 @@ pragma solidity 0.8.6;
 import './interfaces/IJBFundingCycleStore.sol';
 
 /** 
-  @notice Manages approving funding cycle reconfigurations automatically after a buffer period.
+  @notice 
+  Manages approving funding cycle reconfigurations automatically after a buffer period.
+
+  @dev
+  Adheres to:
+  IJBFundingCycleBallot: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 */
 contract JBReconfigurationBufferBallot is IJBFundingCycleBallot {
   //*********************************************************************//
@@ -21,7 +26,7 @@ contract JBReconfigurationBufferBallot is IJBFundingCycleBallot {
   mapping(uint256 => mapping(uint256 => JBBallotState)) private _finalState;
 
   //*********************************************************************//
-  // --------------------- public stored properties -------------------- //
+  // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
 
   /**

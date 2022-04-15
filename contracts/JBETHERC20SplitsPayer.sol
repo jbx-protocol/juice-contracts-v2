@@ -37,6 +37,16 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
 
   /**
     @notice
+    The contract that stores splits for each project.
+  */
+  IJBSplitsStore public immutable override splitsStore;
+
+  //*********************************************************************//
+  // --------------------- public stored properties -------------------- //
+  //*********************************************************************//
+
+  /**
+    @notice
     The ID of project for which the default splits are stored. 
   */
   uint256 public override defaultSplitsProjectId;
@@ -53,11 +63,9 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
   */
   uint256 public override defaultSplitsGroup;
 
-  /**
-    @notice
-    The contract that stores splits for each project.
-  */
-  IJBSplitsStore public immutable override splitsStore;
+  //*********************************************************************//
+  // -------------------------- constructor ---------------------------- //
+  //*********************************************************************//
 
   /** 
     @param _defaultSplitsProjectId The ID of project for which the default splits are stored.
@@ -101,6 +109,10 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
     defaultSplitsGroup = _defaultSplitsGroup;
     splitsStore = _splitsStore;
   }
+
+  //*********************************************************************//
+  // ------------------------- default receive ------------------------- //
+  //*********************************************************************//
 
   /** 
     @notice
@@ -155,6 +167,10 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
       );
   }
 
+  //*********************************************************************//
+  // ---------------------- external transactions ---------------------- //
+  //*********************************************************************//
+
   /** 
     @notice
     Sets the location of the splits that payments this contract receives will be split between.
@@ -179,6 +195,10 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
 
     emit SetDefaultSplits(_projectId, _domain, _group, msg.sender);
   }
+
+  //*********************************************************************//
+  // ----------------------- public transactions ----------------------- //
+  //*********************************************************************//
 
   /** 
     @notice 
@@ -332,6 +352,10 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
         );
     }
   }
+
+  //*********************************************************************//
+  // ---------------------- internal transactions ---------------------- //
+  //*********************************************************************//
 
   /** 
     @notice 

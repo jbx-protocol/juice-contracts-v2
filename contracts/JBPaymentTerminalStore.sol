@@ -641,7 +641,7 @@ contract JBPaymentTerminalStore is IJBPaymentTerminalStore, ReentrancyGuard {
         prices.priceFor(_currency, _balanceCurrency, _MAX_FIXED_POINT_FIDELITY)
       );
 
-    // The amount being withdrawn must be available in the overflow.
+    // The amount being distributed must be available in the overflow.
     if (
       usedAmount >
       _overflowDuring(

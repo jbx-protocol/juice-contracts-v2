@@ -24,24 +24,26 @@ error INCORRECT_DECIMAL_AMOUNT();
 
   @dev
   Adheres to:
-  IJBETHERC20ProjectPayerDeployer:  General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
+  IJBProjectPayer:  General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
   Inherits from:
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
+  //*********************************************************************//
+  // ---------------- public immutable stored properties --------------- //
+  //*********************************************************************//
+
   /**
     @notice 
     A contract storing directories of terminals and controllers for each project.
   */
   IJBDirectory public immutable override directory;
 
-  /**
-    @notice 
-    A flag indicating if received payments should call the `pay` function or the `addToBalance` function of a project.
-  */
-  bool public override defaultPreferAddToBalance;
+  //*********************************************************************//
+  // --------------------- public stored properties -------------------- //
+  //*********************************************************************//
 
   /** 
     @notice 
@@ -72,6 +74,16 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     The metadata that should be used in the payment made when this contract receives payments.
   */
   bytes public override defaultMetadata;
+
+  /**
+    @notice 
+    A flag indicating if received payments should call the `pay` function or the `addToBalance` function of a project.
+  */
+  bool public override defaultPreferAddToBalance;
+
+  //*********************************************************************//
+  // -------------------------- constructor ---------------------------- //
+  //*********************************************************************//
 
   /** 
     @param _defaultProjectId The ID of the project whose treasury should be forwarded this contract's received payments.
@@ -104,9 +116,16 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     _transferOwnership(_owner);
   }
 
+  //*********************************************************************//
+  // ------------------------- default receive ------------------------- //
+  //*********************************************************************//
+
   /** 
     @notice
     Received funds are paid to the default project ID using the stored default properties.
+
+    @dev
+    Use the `addToBalance` function if there's a preference to do so. Otherwise use `pay`.
 
     @dev
     This function is called automatically when the contract receives an ETH payment.
@@ -133,6 +152,10 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
         defaultMetadata
       );
   }
+
+  //*********************************************************************//
+  // ---------------------- external transactions ---------------------- //
+  //*********************************************************************//
 
   /** 
     @notice 
@@ -186,12 +209,13 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     );
   }
 
+  //*********************************************************************//
+  // ----------------------- public transactions ----------------------- //
+  //*********************************************************************//
+
   /** 
     @notice 
     Make a payment to the specified project.
-
-    @dev
-    Set the `payer` as this contract's address if it is to manage the token transfer from the msg.sender to the destination terminal.
 
     @param _projectId The ID of the project that is being paid.
     @param _token The token being paid in.
@@ -214,7 +238,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     string calldata _memo,
     bytes calldata _metadata
   ) public payable virtual override {
-    // ETH shouldn't be sent if this terminal's token isn't ETH.
+    // ETH shouldn't be sent if the token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
 
@@ -242,14 +266,11 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     @notice 
     Add to the balance of the specified project.
 
-    @dev
-    Set the `payer` as this contract's address if it is to manage the token transfer from the msg.sender to the destination terminal.
-
     @param _projectId The ID of the project that is being paid.
     @param _token The token being paid in.
     @param _amount The amount of tokens being paid, as a fixed point number. If the token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. If the token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
-    @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
+    @param _memo A memo to pass along to the emitted event.
   */
   function addToBalance(
     uint256 _projectId,
@@ -258,7 +279,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     uint256 _decimals,
     string memory _memo
   ) public payable virtual override {
-    // ETH shouldn't be sent if this terminal's token isn't ETH.
+    // ETH shouldn't be sent if the token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
 
@@ -271,6 +292,10 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
 
     _addToBalance(_projectId, _token, _amount, _decimals, _memo);
   }
+
+  //*********************************************************************//
+  // ---------------------- internal transactions ---------------------- //
+  //*********************************************************************//
 
   /** 
     @notice 
@@ -297,7 +322,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     string memory _memo,
     bytes memory _metadata
   ) internal virtual {
-    // Find the terminal for this contract's project.
+    // Find the terminal for the specified project.
     IJBPaymentTerminal _terminal = directory.primaryTerminalOf(_projectId, _token);
 
     // There must be a terminal.
@@ -309,9 +334,12 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     // Approve the `_amount` of tokens from the destination terminal to transfer tokens from this contract.
     if (_token != JBTokens.ETH) IERC20(_token).approve(address(_terminal), _amount);
 
+    // If the token is ETH, send it in msg.value.
+    uint256 _payableValue = _token == JBTokens.ETH ? _amount : 0;
+
     // Send funds to the terminal.
-    // If this terminal's token is ETH, send it in msg.value.
-    _terminal.pay{value: _token == JBTokens.ETH ? _amount : 0}(
+    // If the token is ETH, send it in msg.value.
+    _terminal.pay{value: _payableValue}(
       _projectId,
       _amount, // ignored if the token is JBTokens.ETH.
       _token,
@@ -329,9 +357,9 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
 
     @param _projectId The ID of the project that is being paid.
     @param _token The token being paid in.
-    @param _amount The amount of tokens being paid, as a fixed point number. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
-    @param _decimals The number of decimals in the `_amount` fixed point number. If this terminal's token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
-    @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
+    @param _amount The amount of tokens being paid, as a fixed point number. If the token is ETH, this is ignored and msg.value is used in its place.
+    @param _decimals The number of decimals in the `_amount` fixed point number. If the token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
+    @param _memo A memo to pass along to the emitted event.
   */
   function _addToBalance(
     uint256 _projectId,
@@ -340,7 +368,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     uint256 _decimals,
     string memory _memo
   ) internal virtual {
-    // Find the terminal for this contract's project.
+    // Find the terminal for the specified project.
     IJBPaymentTerminal _terminal = directory.primaryTerminalOf(_projectId, _token);
 
     // There must be a terminal.
@@ -352,7 +380,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     // Approve the `_amount` of tokens from the destination terminal to transfer tokens from this contract.
     if (_token != JBTokens.ETH) IERC20(_token).approve(address(_terminal), _amount);
 
-    // If this terminal's token is ETH, send it in msg.value.
+    // If the token is ETH, send it in msg.value.
     uint256 _payableValue = _token == JBTokens.ETH ? _amount : 0;
 
     // Add to balance so tokens don't get issued.

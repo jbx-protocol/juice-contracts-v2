@@ -95,7 +95,7 @@ contract JBController is IJBController, JBOperatable {
     _projectId The ID of the project to get the packed overflow allowance data of.
     _configuration The configuration during which the packed overflow allowance data applies.
     _terminal The terminal managing the overflow.
-    _token The token for which distributions are being limited.
+    _token The token for which overflow is being allowed.
   */
   mapping(uint256 => mapping(uint256 => mapping(IJBPaymentTerminal => mapping(address => uint256))))
     private _packedOverflowAllowanceDataOf;
@@ -176,7 +176,7 @@ contract JBController is IJBController, JBOperatable {
     @param _projectId The ID of the project to get the overflow allowance of.
     @param _configuration The configuration of the during which the allowance applies.
     @param _terminal The terminal managing the overflow.
-    @param _token The token for which the distribution limit applies.
+    @param _token The token for which the overflow allowance applies.
 
     @return The overflow allowance, as a fixed point number with the same number of decimals as the provided terminal.
     @return The currency of the overflow allowance.
