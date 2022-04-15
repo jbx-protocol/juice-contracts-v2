@@ -4,7 +4,6 @@ pragma solidity 0.8.6;
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Address.sol';
 import '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
-
 import './interfaces/IJBProjectPayer.sol';
 import './libraries/JBTokens.sol';
 
@@ -224,7 +223,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     @param _beneficiary The address who will receive tokens from the payment.
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with 18 decimals.
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
-    @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
+    @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate. A data source can alter the memo before emitting in the event and forwarding to the delegate.
     @param _metadata Bytes to send along to the data source and delegate, if provided.
   */
   function pay(

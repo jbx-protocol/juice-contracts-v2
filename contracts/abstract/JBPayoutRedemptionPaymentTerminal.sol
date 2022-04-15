@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './../interfaces/IJBPayoutRedemptionPaymentTerminal.sol';
 import './../libraries/JBConstants.sol';
 import './../libraries/JBCurrencies.sol';
+import './../libraries/JBFixedPointNumber.sol';
+import './../libraries/JBFundingCycleMetadataResolver.sol';
 import './../libraries/JBOperations.sol';
 import './../libraries/JBSplitsGroups.sol';
 import './../libraries/JBTokens.sol';
-import './../libraries/JBFixedPointNumber.sol';
-import './../libraries/JBFundingCycleMetadataResolver.sol';
 import './../structs/JBTokenAmount.sol';
-import './JBSingleTokenPaymentTerminal.sol';
 import './JBOperatable.sol';
+import './JBSingleTokenPaymentTerminal.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
