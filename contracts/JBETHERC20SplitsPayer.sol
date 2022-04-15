@@ -16,7 +16,7 @@ import './JBETHERC20ProjectPayer.sol';
 
 /** 
   @notice 
-  Sends ETH or ERC20's to a group of splits as it receives direct payments or has it's functions called.
+  Sends ETH or ERC20's to a group of splits as it receives direct payments or has its functions called.
 
   @dev
   Inherit from this contract or borrow from its logic to forward ETH or ERC20's to a group of splits from within other contracts.
@@ -69,10 +69,10 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
 
   /** 
     @param _defaultSplitsProjectId The ID of project for which the default splits are stored.
-    @param _defaultSplitsGroup The splits domain to payout when this contract receives direct payments.
+    @param _defaultSplitsDomain The splits domain to payout when this contract receives direct payments.
     @param _defaultSplitsGroup The splits group to payout when this contract receives direct payments.
     @param _splitsStore A contract that stores splits for each project.
-    @param _defaultProjectId The ID of the project whose treasury should be forwarded this contract's received payments.
+    @param _defaultProjectId The ID of the project whose treasury should be forwarded the splits payer contract's received payment leftovers after distributing to the default splits group.
     @param _defaultBeneficiary The address that'll receive the project's tokens. 
     @param _defaultPreferClaimedTokens A flag indicating whether issued tokens should be automatically claimed into the beneficiary's wallet. 
     @param _defaultMemo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
@@ -153,7 +153,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
           JBTokens.ETH,
           _leftoverAmount,
           18, // decimals.
-          defaultBeneficiary,
+          defaultBeneficiary != address(0) ? defaultBeneficiary : msg.sender,
           0, // min returned tokens.
           defaultPreferClaimedTokens,
           defaultMemo,
@@ -202,7 +202,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
 
   /** 
     @notice 
-    Make a payment to the specified project after first spliting the amount among the stored default splits.
+    Make a payment to the specified project after first splitting the amount among the stored default splits.
 
     @param _projectId The ID of the project that is being paid after.
     @param _token The token being paid in.
@@ -211,7 +211,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
     @param _beneficiary The address who will receive tokens from the payment made with leftover funds.
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with 18 decimals.
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
-    @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
+    @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate. A data source can alter the memo before emitting in the event and forwarding to the delegate.
     @param _metadata Bytes to send along to the data source and delegate, if provided.
   */
   function pay(
@@ -256,7 +256,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
           _token,
           _leftoverAmount,
           _decimals,
-          _beneficiary,
+          _beneficiary != address(0) ? _beneficiary : msg.sender,
           _minReturnedTokens,
           _preferClaimedTokens,
           _memo,
@@ -299,9 +299,9 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
 
   /** 
     @notice 
-    Add to the balance of the specified project.
+    Add to the balance of the specified project after first splitting the amount among the stored default splits.
 
-    @param _projectId The ID of the project that is being paid.
+    @param _projectId The ID of the project that is being paid after.
     @param _token The token being paid in.
     @param _amount The amount of tokens being paid, as a fixed point number. If the token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. If the token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
@@ -388,6 +388,8 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
     @param _token The token the amonut being split is in.
     @param _amount The amount of tokens being split, as a fixed point number. If the `_token` is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. 
+
+    @return leftoverAmount The amount leftover after all splits were paid.
   */
   function _payToSplits(
     uint256 _splitsProjectId,
