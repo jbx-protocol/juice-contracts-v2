@@ -284,7 +284,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
 
     emit Pay(
       _projectId,
-      defaultBeneficiary != address(0) ? defaultBeneficiary : msg.sender,
+      _beneficiary != address(0) ? defaultBeneficiary : msg.sender,
       _token,
       _amount,
       _decimals,
