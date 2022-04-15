@@ -19,6 +19,8 @@ contract TestReconfigureProject is TestBaseWorkflow {
   JBFundAccessConstraints[] _fundAccessConstraints; // Default empty
   IJBPaymentTerminal[] _terminals; // Default empty
 
+  uint256 BALLOT_DURATION = 3 days;
+
   function setUp() public override {
     super.setUp();
 
@@ -26,11 +28,11 @@ contract TestReconfigureProject is TestBaseWorkflow {
 
     _projectMetadata = JBProjectMetadata({content: 'myIPFSHash', domain: 1});
 
-    _ballot = new JBReconfigurationBufferBallot(3 days, jbFundingCycleStore());
+    _ballot = new JBReconfigurationBufferBallot(BALLOT_DURATION, jbFundingCycleStore());
 
     _data = JBFundingCycleData({
       duration: 6 days,
-      weight: 1000 * 10**18,
+      weight: 10000 * 10**18,
       discountRate: 0,
       ballot: _ballot
     });
@@ -87,27 +89,27 @@ contract TestReconfigureProject is TestBaseWorkflow {
       ''
     );
 
-    JBFundingCycle memory fundingCycle = jbFundingCycleStore().currentOf(projectId); //, latestConfig);
+    JBFundingCycle memory fundingCycle = jbFundingCycleStore().currentOf(projectId);
 
-    assertEq(fundingCycle.number, 1);
-    assertEq(fundingCycle.weight, _data.weight);
+    assertEq(fundingCycle.number, 1); // ok
+    assertEq(fundingCycle.weight, _data.weight); 
+    emit log_uint(fundingCycle.basedOn);
+    emit log_uint(fundingCycle.configuration);
   
     uint256 currentConfiguration = fundingCycle.configuration;
 
-    evm.warp(block.timestamp + 10);
+    evm.warp(block.timestamp + 1); // Avoid overwriting if same timestamp
 
     evm.prank(multisig());
     controller.reconfigureFundingCyclesOf(
       projectId,
-      _dataReconfiguration,
+      _data, // 3days ballot
       _metadata,
       0, // Start asap
       _groupedSplits,
       _fundAccessConstraints,
       ''
     );
-
-    uint256 newConfiguration = block.timestamp;
 
     // Shouldn't have changed
     fundingCycle = jbFundingCycleStore().currentOf(projectId);
@@ -116,11 +118,99 @@ contract TestReconfigureProject is TestBaseWorkflow {
     assertEq(fundingCycle.weight, _data.weight);
 
     // should be new funding cycle
-    evm.warp(fundingCycle.configuration + fundingCycle.duration);
+    evm.warp(fundingCycle.start + fundingCycle.duration);
     
     JBFundingCycle memory newFundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(newFundingCycle.number, 2);
-    assertEq(newFundingCycle.weight, _dataReconfiguration.weight);
+    assertEq(newFundingCycle.weight, _data.weight);
+  }
+
+  function testMultipleReconfigure(uint8 FUZZED_BALLOT_DURATION) public {
+    _ballot = new JBReconfigurationBufferBallot(FUZZED_BALLOT_DURATION, jbFundingCycleStore());
+
+    _data = JBFundingCycleData({
+      duration: 6 days,
+      weight: 10000 ether,
+      discountRate: 0,
+      ballot: _ballot
+    });
+
+    uint256 projectId = controller.launchProjectFor(
+      multisig(),
+      _projectMetadata,
+      _data, // duration 6 days, weight=10k, ballot 3days
+      _metadata,
+      0, // Start asap
+      _groupedSplits,
+      _fundAccessConstraints,
+      _terminals,
+      ''
+    );
+
+    JBFundingCycle memory initialFundingCycle = jbFundingCycleStore().currentOf(projectId);
+    JBFundingCycle memory currentFundingCycle = initialFundingCycle;
+    JBFundingCycle memory queuedFundingCycle = jbFundingCycleStore().queuedOf(projectId);
+
+    evm.warp(currentFundingCycle.start+1); // Avoid overwriting current fc while reconfiguring
+
+    for(uint i=0; i<4; i++) {
+      currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
+
+
+      if(FUZZED_BALLOT_DURATION + i * 1 days < currentFundingCycle.duration)
+        assertEq(currentFundingCycle.weight, initialFundingCycle.weight - i);
+
+      _data = JBFundingCycleData({
+        duration: 6 days,
+        weight: initialFundingCycle.weight - (i+1), // i+1 -> next funding cycle
+        discountRate: 0,
+        ballot: _ballot
+      });
+
+      evm.prank(multisig());
+      controller.reconfigureFundingCyclesOf(
+        projectId,
+        _data,
+        _metadata,
+        0,
+        _groupedSplits,
+        _fundAccessConstraints,
+        ''
+      );
+
+      currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
+      queuedFundingCycle = jbFundingCycleStore().queuedOf(projectId);
+
+      // While ballot is failed, queued is current rolled over
+      assertEq(queuedFundingCycle.weight, currentFundingCycle.weight);
+      assertEq(queuedFundingCycle.number, currentFundingCycle.number+1);
+
+      // Is the full ballot duration included in the funding cycle?
+      if(FUZZED_BALLOT_DURATION == 0 || currentFundingCycle.duration % (FUZZED_BALLOT_DURATION + i * 1 days) < currentFundingCycle.duration) {
+        assertEq(currentFundingCycle.weight, initialFundingCycle.weight - i);
+        
+        // we shift forward the start of the ballot into the fc, one day at a time, from fc to fc
+        evm.warp(currentFundingCycle.start + currentFundingCycle.duration + i * 1 days);
+
+        // ballot should be in Approved state now, queued is the reconfiguration rolled over
+        queuedFundingCycle = jbFundingCycleStore().queuedOf(projectId);
+        assertEq(queuedFundingCycle.weight, currentFundingCycle.weight-1);
+        assertEq(queuedFundingCycle.number, currentFundingCycle.number+2); 
+      }
+      // the ballot is accross two funding cycles
+      else {
+        // Warp to begining of next FC: should be the previous fc config rolled over (ballot is in Failed state)
+        evm.warp(currentFundingCycle.start + currentFundingCycle.duration);
+        assertEq(currentFundingCycle.weight, initialFundingCycle.weight - i);
+        uint256 cycleNumber = currentFundingCycle.number;
+
+        // Warp to after the end of the ballot, within the same fc: should be the new fc (ballot is in Approved state)
+        evm.warp(currentFundingCycle.start + currentFundingCycle.duration + FUZZED_BALLOT_DURATION);
+        currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
+        assertEq(currentFundingCycle.weight, initialFundingCycle.weight - i - 1);
+        assertEq(currentFundingCycle.number, cycleNumber + 1);
+      }
+    }
   }
 
   function testReconfigureProjectFuzzRates(

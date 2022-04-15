@@ -75,11 +75,13 @@ contract TestLaunchProject is TestBaseWorkflow {
       ballot: IJBFundingCycleBallot(address(0))
     });
 
+    uint256 projectId;
+
     // expectRevert on the next call if weight overflowing
     if (WEIGHT > type(uint88).max) {
       evm.expectRevert(abi.encodeWithSignature('INVALID_WEIGHT()'));
 
-      uint256 projectId = controller.launchProjectFor(
+      projectId = controller.launchProjectFor(
         msg.sender,
         _projectMetadata,
         _data,
@@ -91,7 +93,7 @@ contract TestLaunchProject is TestBaseWorkflow {
         ''
       );
     } else {
-      uint256 projectId = controller.launchProjectFor(
+      projectId = controller.launchProjectFor(
         msg.sender,
         _projectMetadata,
         _data,
