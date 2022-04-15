@@ -46,7 +46,6 @@ error ZERO_TOKENS_TO_MINT();
   @dev
   Inherits from:
   JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
-  ReentrencyGuard - several function in this contract shouldn't be accessible recursively.
 */
 contract JBController is IJBController, JBOperatable {
   // A library that parses the packed funding cycle metadata into a more friendly format.

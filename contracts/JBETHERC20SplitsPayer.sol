@@ -16,10 +16,10 @@ import './JBETHERC20ProjectPayer.sol';
 
 /** 
   @notice 
-  Sends ETH or ERC20's to a project treasury as it receives direct payments or has it's functions called.
+  Sends ETH or ERC20's to a group of splits as it receives direct payments or has it's functions called.
 
   @dev
-  Inherit from this contract or borrow from its logic to forward ETH or ERC20's to project treasuries from within other contracts.
+  Inherit from this contract or borrow from its logic to forward ETH or ERC20's to a group of splits from within other contracts.
 
   @dev
   Adheres to:
@@ -116,13 +116,13 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
 
   /** 
     @notice
-    Received funds are paid to the default project ID using the stored default properties.
+    Received funds are paid to the default split group using the stored default properties.
 
     @dev
     This function is called automatically when the contract receives an ETH payment.
   */
   receive() external payable virtual override nonReentrant {
-    // Pay the split and get a reference to the amount paid.
+    // Pay the splits and get a reference to the amount leftover.
     uint256 _leftoverAmount = _payToSplits(
       defaultSplitsProjectId,
       defaultSplitsDomain,
@@ -202,11 +202,8 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
 
   /** 
     @notice 
-    Make a payment to the specified project after first spliting the amount among the saved splits.
+    Make a payment to the specified project after first spliting the amount among the stored default splits.
 
-    @dev
-    Set the `payer` as this contract's address if it is to manage the token transfer from the msg.sender to the destination terminal.
-    
     @param _projectId The ID of the project that is being paid after.
     @param _token The token being paid in.
     @param _amount The amount of tokens being paid, as a fixed point number. If the token is ETH, this is ignored and msg.value is used in its place.
@@ -228,19 +225,19 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
     string memory _memo,
     bytes memory _metadata
   ) public payable virtual override nonReentrant {
-    // ETH shouldn't be sent if this terminal's token isn't ETH.
+    // ETH shouldn't be sent if the token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
-      // Transfer tokens to this terminal from the msg sender.
 
+      // Transfer tokens to this contract from the msg sender.
       IERC20(_token).transferFrom(msg.sender, address(this), _amount);
     } else {
+      // If ETH is being paid, set the amount to the message value, and decimals to 18.
       _amount = msg.value;
       _decimals = 18;
     }
 
-    // Route the payment to the splits.
-    // Pay the split and get a reference to the amount paid.
+    // Pay the splits and get a reference to the amount leftover.
     uint256 _leftoverAmount = _payToSplits(
       defaultProjectId,
       defaultSplitsDomain,
@@ -290,14 +287,11 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
     @notice 
     Add to the balance of the specified project.
 
-    @dev
-    Set the `payer` as this contract's address if it is to manage the token transfer from the msg.sender to the destination terminal.
-
     @param _projectId The ID of the project that is being paid.
     @param _token The token being paid in.
     @param _amount The amount of tokens being paid, as a fixed point number. If the token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. If the token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
-    @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
+    @param _memo A memo to pass along to the emitted event.  
   */
   function addToBalance(
     uint256 _projectId,
@@ -309,14 +303,16 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
-      // Transfer tokens to this terminal from the msg sender.
+
+      // Transfer tokens to this contract from the msg sender.
       IERC20(_token).transferFrom(msg.sender, address(this), _amount);
     } else {
+      // If ETH is being paid, set the amount to the message value, and decimals to 18.
       _amount = msg.value;
       _decimals = 18;
     }
 
-    // Pay the split and get a reference to the amount paid.
+    // Pay the splits and get a reference to the amount leftover.
     uint256 _leftoverAmount = _payToSplits(
       defaultProjectId,
       defaultSplitsDomain,
@@ -359,13 +355,13 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
 
   /** 
     @notice 
-    Split the contract's balance between all splits.
+    Split an amount between all splits.
 
     @param _splitsProjectId The ID of the project to which the splits belong.
     @param _splitsDomain The splits domain to which the group belongs.
     @param _splitsGroup The splits group to pay.
-    @param _token The token being paid in.
-    @param _amount The amount of tokens being paid, as a fixed point number. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
+    @param _token The token the amonut being split is in.
+    @param _amount The amount of tokens being split, as a fixed point number. If the `_token` is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. 
   */
   function _payToSplits(
@@ -376,7 +372,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
     uint256 _amount,
     uint256 _decimals
   ) internal virtual returns (uint256 leftoverAmount) {
-    // Get a reference to the item's settlement splits.
+    // Get a reference to the splits.
     JBSplit[] memory _splits = splitsStore.splitsOf(_splitsProjectId, _splitsDomain, _splitsGroup);
 
     // Set the leftover amount to the initial balance.
@@ -386,7 +382,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
     for (uint256 i = 0; i < _splits.length; i++) {
       // Get a reference to the split being iterated on.
       JBSplit memory _split = _splits[i];
-      // Pay the split and get a reference to the amount paid.
+
       // The amount to send towards the split.
       uint256 _splitAmount = PRBMath.mulDiv(
         _amount,
@@ -408,11 +404,11 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
             _split
           );
 
-          // Approve the `_amount` of tokens for the split allocator to transfer tokens from this terminal.
+          // Approve the `_amount` of tokens for the split allocator to transfer tokens from this contract.
           if (_token != JBTokens.ETH)
             IERC20(_token).approve(address(_split.allocator), _splitAmount);
 
-          // If this terminal's token is ETH, send it in msg.value.
+          // If the token is ETH, send it in msg.value.
           uint256 _payableValue = _token == JBTokens.ETH ? _splitAmount : 0;
 
           // Trigger the allocator's `allocate` function.
