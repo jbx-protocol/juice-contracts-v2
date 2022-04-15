@@ -13,7 +13,7 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
+describe('JBSingleTokenPaymentTerminalStore::currentOverflowOf(...)', function () {
   const PROJECT_ID = 2;
   const AMOUNT = ethers.FixedNumber.fromString('4398541.345');
   const WEIGHT = ethers.FixedNumber.fromString('900000000.23411');
@@ -38,8 +38,8 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
 
     const token = ethers.Wallet.createRandom().address;
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBPaymentTerminalStore');
-    const JBPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBSingleTokenPaymentTerminalStore');
+    const JBSingleTokenPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
       mockJbPrices.address,
@@ -57,7 +57,7 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbPrices,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       token,
       CURRENCY_ETH,
@@ -72,7 +72,7 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
       mockJbDirectory,
       mockJbFundingCycleStore,
       mockJbPrices,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       token,
       CURRENCY_ETH,
@@ -105,13 +105,13 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
 
     // Add to balance beforehand to have sufficient overflow
     const startingBalance = AMOUNT.mulUnsafe(ethers.FixedNumber.from(2));
-    await JBPaymentTerminalStore.connect(
+    await JBSingleTokenPaymentTerminalStore.connect(
       await impersonateAccount(mockJbTerminal.address),
     ).recordAddedBalanceFor(PROJECT_ID, startingBalance);
 
     // Get current overflow
     expect(
-      await JBPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID),
     ).to.equal(AMOUNT);
   });
 
@@ -121,7 +121,7 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
       mockJbController,
       mockJbDirectory,
       mockJbFundingCycleStore,
-      JBPaymentTerminalStore,
+      JBSingleTokenPaymentTerminalStore,
       timestamp,
       token,
       CURRENCY_ETH,
@@ -147,12 +147,12 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
 
     // Get current overflow
     expect(
-      await JBPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID),
     ).to.equal(0);
   });
 
   it('Should return 0 overflow if ETH balance is 0', async function () {
-    const { mockJbFundingCycleStore, mockJbTerminal, JBPaymentTerminalStore, timestamp } =
+    const { mockJbFundingCycleStore, mockJbTerminal, JBSingleTokenPaymentTerminalStore, timestamp } =
       await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
@@ -169,7 +169,7 @@ describe('JBPaymentTerminalStore::currentOverflowOf(...)', function () {
 
     // Get current overflow
     expect(
-      await JBPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID),
+      await JBSingleTokenPaymentTerminalStore.currentOverflowOf(mockJbTerminal.address, PROJECT_ID),
     ).to.equal(0);
   });
 });

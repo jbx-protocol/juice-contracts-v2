@@ -7,7 +7,7 @@ import errors from '../helpers/errors.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import JBEthPaymentTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
 import jbErc20PaymentTerminal from '../../artifacts/contracts/JBERC20PaymentTerminal.sol/JBERC20PaymentTerminal.json';
-import jbPaymentTerminalStore from '../../artifacts/contracts/JBPaymentTerminalStore.sol/JBPaymentTerminalStore.json';
+import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
@@ -115,7 +115,7 @@ describe('JBPayoutRedemptionPaymentTerminal::migrate(...)', function () {
 
     await mockJbEthPaymentTerminal.mock.token.returns(TOKEN_ETH);
     await mockJbEthPaymentTerminal.mock.acceptsToken.withArgs(TOKEN_ETH).returns(true);
-    
+
     await mockJBERC20PaymentTerminal.mock.token.returns(NON_ETH_TOKEN);
     await mockJBERC20PaymentTerminal.mock.acceptsToken.withArgs(NON_ETH_TOKEN).returns(true);
 
@@ -167,7 +167,7 @@ describe('JBPayoutRedemptionPaymentTerminal::migrate(...)', function () {
         projectOwner.address,
       );
   });
-  
+
   it('Should migrate terminal and emit event if caller is authorized', async function () {
     const {
       projectOwner,

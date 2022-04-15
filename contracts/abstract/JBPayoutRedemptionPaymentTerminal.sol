@@ -135,7 +135,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @notice
     The contract that stores and manages the terminal's data.
   */
-  IJBPaymentTerminalStore public immutable override store;
+  IJBSingleTokenPaymentTerminalStore public immutable override store;
 
   /**
     @notice
@@ -255,7 +255,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
     IJBPrices _prices,
-    IJBPaymentTerminalStore _store,
+    IJBSingleTokenPaymentTerminalStore _store,
     address _owner
   ) JBSingleTokenPaymentTerminal(_token, _decimals, _currency) JBOperatable(_operatorStore) {
     baseWeightCurrency = _baseWeightCurrency;
