@@ -4,7 +4,13 @@
 
 ### Unit Tests
 
-To run the unit tests suite (in Javascript), you'll need to deploy the contracts to a local blockchain first:
+To run the unit tests suite (in Javascript), you'll need to manually run Hardhat in order to enable ESM support:
+
+```bash
+node --require esm ./node_modules/.bin/hardhat test --network hardhat
+```
+
+Alternatively, you can run a local Hardhat node in another terminal using
 
 ```bash
 yarn chain --network hardhat
@@ -26,6 +32,10 @@ End-to-end tests have been written in Solidity, using Foundry.
 To get set up:
 
 1. Install [Foundry](https://github.com/gakonst/foundry).
+
+```bash
+curl -L https://foundry.paradigm.xyz | sh
+```
 
 2. Install external lib(s)
 
@@ -61,6 +71,7 @@ A few notes:
 
 - Hardhat doesn't support [esm](https://nodejs.org/api/esm.html) yet, hence running manually with node.
 - We are currently using a forked version of [solidity-coverage](https://www.npmjs.com/package/solidity-coverage) that includes optimizer settings. Ideally we will move to the maintained version after this is fixed on their end.
+- Juicebox V2 codebase being quite large, Solidity Coverage might run out of memory if you modify/add parts to it. Please check [Solidity-coverage FAQ](https://github.com/sc-forks/solidity-coverage/blob/master/docs/faq.md) in order to address the issue.
 
 ## Deploy
 
