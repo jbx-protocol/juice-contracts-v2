@@ -1077,6 +1077,12 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
       .withArgs(PROJECT_ID, failedConfigurationTimestamp, firstConfigurationTimestamp.add(firstFundingCycleData.duration))
       .returns(ballotStatus.FAILED);
 
+    let [latestFundingCycle, ballotState] = await jbFundingCycleStore.latestConfiguredOf(PROJECT_ID);
+    expect(cleanFundingCycle(latestFundingCycle)).to.eql(
+      expectedFailedFundingCycle,
+    );
+    expect(ballotState).to.deep.eql(ballotStatus.FAILED);
+
     // Current should be a copy of the first fc.
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql({
       ...expectedFirstFundingCycle,
@@ -1097,6 +1103,12 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
     await mockBallot.mock.stateOf
       .withArgs(PROJECT_ID, failedConfigurationTimestamp, firstConfigurationTimestamp.add(firstFundingCycleData.duration))
       .returns(ballotStatus.APPROVED);
+
+    [latestFundingCycle, ballotState] = await jbFundingCycleStore.latestConfiguredOf(PROJECT_ID);
+    expect(cleanFundingCycle(latestFundingCycle)).to.eql(
+      expectedFailedFundingCycle,
+    );
+    expect(ballotState).to.deep.eql(1);
 
     // Current should be the now-approved fc.
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(
