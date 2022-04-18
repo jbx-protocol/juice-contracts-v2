@@ -161,8 +161,8 @@ contract TestERC20Terminal is TestBaseWorkflow {
   }
 
   function testFuzzedAllowanceERC20(
-    uint248 ALLOWANCE,
-    uint248 TARGET,
+    uint232 ALLOWANCE,
+    uint232 TARGET,
     uint96 BALANCE
   ) public {
     evm.assume(jbToken().totalSupply() >= BALANCE);
