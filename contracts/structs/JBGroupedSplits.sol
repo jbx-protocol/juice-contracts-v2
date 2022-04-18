@@ -2,7 +2,6 @@
 pragma solidity 0.8.6;
 
 import './JBSplit.sol';
-import '../libraries/JBSplitsGroups.sol';
 
 struct JBGroupedSplits {
   // The group indentifier.

@@ -2,7 +2,6 @@
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
-
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBDirectory.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
@@ -11,8 +10,8 @@ import './libraries/JBOperations.sol';
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //
 //*********************************************************************//
-error INVALID_PROJECT_ID_IN_DIRECTORY();
 error DUPLICATE_TERMINALS();
+error INVALID_PROJECT_ID_IN_DIRECTORY();
 error SET_CONTROLLER_NOT_ALLOWED();
 error SET_TERMINALS_NOT_ALLOWED();
 error TOKEN_NOT_ACCEPTED();

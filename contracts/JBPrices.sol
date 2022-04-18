@@ -4,7 +4,6 @@ pragma solidity 0.8.6;
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './interfaces/IJBPrices.sol';
-import './libraries/JBCurrencies.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //

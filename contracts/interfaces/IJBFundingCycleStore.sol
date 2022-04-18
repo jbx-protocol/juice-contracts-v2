@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './IJBFundingCycleBallot.sol';
 import './../enums/JBBallotState.sol';
 import './../structs/JBFundingCycle.sol';
 import './../structs/JBFundingCycleData.sol';
@@ -24,6 +23,11 @@ interface IJBFundingCycleStore {
     external
     view
     returns (JBFundingCycle memory);
+
+  function latestConfiguredOf(uint256 _projectId)
+    external
+    view
+    returns (JBFundingCycle memory, JBBallotState);
 
   function queuedOf(uint256 _projectId) external view returns (JBFundingCycle memory);
 

@@ -2,7 +2,6 @@
 pragma solidity 0.8.6;
 
 import './JBSplit.sol';
-import './JBTokenAmount.sol';
 
 struct JBSplitAllocationData {
   // The token being sent to the split allocator.

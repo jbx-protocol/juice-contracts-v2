@@ -2,7 +2,6 @@
 pragma solidity 0.8.6;
 
 import './../interfaces/IJBPaymentTerminal.sol';
-
 import './JBTokenAmount.sol';
 
 struct JBPayParamsData {

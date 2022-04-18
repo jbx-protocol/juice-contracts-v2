@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import '../structs/JBGroupedSplits.sol';
-import './IJBDirectory.sol';
 import './IJBSplitsPayer.sol';
 import './IJBSplitsStore.sol';
 

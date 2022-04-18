@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './JBConstants.sol';
-import './../interfaces/IJBFundingCycleStore.sol';
 import './../interfaces/IJBFundingCycleDataSource.sol';
 import './../structs/JBFundingCycleMetadata.sol';
+import './JBConstants.sol';
 
 library JBFundingCycleMetadataResolver {
   function reservedRate(JBFundingCycle memory _fundingCycle) internal pure returns (uint256) {

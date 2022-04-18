@@ -2,9 +2,7 @@
 pragma solidity 0.8.6;
 
 import '@paulrberg/contracts/math/PRBMath.sol';
-
 import './abstract/JBControllerUtility.sol';
-import './interfaces/IJBFundingCycleStore.sol';
 import './libraries/JBConstants.sol';
 
 //*********************************************************************//
@@ -90,6 +88,38 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     returns (JBFundingCycle memory fundingCycle)
   {
     return _getStructFor(_projectId, _configuration);
+  }
+
+  /**
+    @notice 
+    The latest funding cycle to be configured for the specified project, and its current ballot state.
+
+    @param _projectId The ID of the project to get the latest configured funding cycle of.
+
+    @return fundingCycle The project's queued funding cycle.
+    @return The state of the ballot for the reconfiguration.
+  */
+  function latestConfiguredOf(uint256 _projectId)
+    external
+    view
+    override
+    returns (JBFundingCycle memory fundingCycle, JBBallotState)
+  {
+    // Get a reference to the latest funding cycle configuration.
+    uint256 _fundingCycleConfiguration = latestConfigurationOf[_projectId];
+
+    // Resolve the funding cycle for the latest configuration.
+    JBFundingCycle memory _fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
+
+    return (
+      _fundingCycle,
+      _ballotStateOf(
+        _projectId,
+        _fundingCycle.configuration,
+        _fundingCycle.start,
+        _fundingCycle.basedOn
+      )
+    );
   }
 
   /**

@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './IJBDirectory.sol';
-
 interface IJBPaymentTerminal {
   function acceptsToken(address _token) external view returns (bool);
 

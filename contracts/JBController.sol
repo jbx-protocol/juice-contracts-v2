@@ -4,10 +4,8 @@ pragma solidity 0.8.6;
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBController.sol';
-import './interfaces/IJBFundingCycleDataSource.sol';
 import './interfaces/IJBOperatorStore.sol';
 import './interfaces/IJBPaymentTerminal.sol';
-import './interfaces/IJBPrices.sol';
 import './interfaces/IJBProjects.sol';
 import './libraries/JBConstants.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
@@ -242,6 +240,30 @@ contract JBController is IJBController, JBOperatable {
 
     // Add the reserved tokens to the total supply.
     return _totalSupply + _reservedTokenAmount;
+  }
+
+  /** 
+    @notice
+    A project's latest configured funding cycle along with its metadata and the ballot state of the configuration.
+
+    @param _projectId The ID of the project to which the funding cycle belongs.
+  
+    @return fundingCycle The current funding cycle.
+    @return metadata The current funding cycle's metadata.
+    @return ballotState The state of the configuration.
+  */
+  function latestConfiguredFundingCycleOf(uint256 _projectId)
+    external
+    view
+    override
+    returns (
+      JBFundingCycle memory fundingCycle,
+      JBFundingCycleMetadata memory metadata,
+      JBBallotState ballotState
+    )
+  {
+    (fundingCycle, ballotState) = fundingCycleStore.latestConfiguredOf(_projectId);
+    metadata = fundingCycle.expandMetadata();
   }
 
   /** 

@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import './../structs/JBFundAccessConstraints.sol';
 import './../structs/JBFundingCycleData.sol';
 import './../structs/JBFundingCycleMetadata.sol';
-import './../structs/JBProjectMetadata.sol';
 import './../structs/JBGroupedSplits.sol';
-import './../structs/JBFundAccessConstraints.sol';
 import './../structs/JBProjectMetadata.sol';
 import './IJBDirectory.sol';
-import './IJBToken.sol';
-import './IJBPaymentTerminal.sol';
 import './IJBFundingCycleStore.sol';
-import './IJBTokenStore.sol';
+import './IJBPaymentTerminal.sol';
 import './IJBSplitsStore.sol';
+import './IJBToken.sol';
+import './IJBTokenStore.sol';
 
 interface IJBController {
   event LaunchProject(uint256 configuration, uint256 projectId, string memo, address caller);
@@ -109,6 +108,15 @@ interface IJBController {
     external
     view
     returns (uint256);
+
+  function latestConfiguredFundingCycleOf(uint256 _projectId)
+    external
+    view
+    returns (
+      JBFundingCycle memory,
+      JBFundingCycleMetadata memory metadata,
+      JBBallotState
+    );
 
   function currentFundingCycleOf(uint256 _projectId)
     external

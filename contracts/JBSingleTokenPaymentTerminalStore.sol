@@ -8,8 +8,6 @@ import './libraries/JBConstants.sol';
 import './libraries/JBCurrencies.sol';
 import './libraries/JBFixedPointNumber.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
-import './libraries/JBOperations.sol';
-import './libraries/JBSplitsGroups.sol';
 
 //*********************************************************************//
 // --------------------------- custom errors ------------------------- //

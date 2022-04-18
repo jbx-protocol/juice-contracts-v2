@@ -8,7 +8,7 @@ pragma solidity 0.8.6;
 library JBConstants {
   /** 
     @notice
-    Maximum value for reserved, redemption, and ballot redemption rates. Does not include discount rate.
+    Maximum value for reserved, redemption, and ballot redemption rates.
   */
   uint256 public constant MAX_RESERVED_RATE = 10000;
 
@@ -20,7 +20,7 @@ library JBConstants {
 
   /** 
     @notice
-    A funding cycle's discount rate is expressed as a percentage out of 1000000000.
+    Maximum funding cycle discount rate.
   */
   uint256 public constant MAX_DISCOUNT_RATE = 1000000000;
 
@@ -32,7 +32,7 @@ library JBConstants {
 
   /** 
     @notice
-    Maximum fee rate as a percentage out of 1000000000
+    Maximum fee.
   */
   uint256 public constant MAX_FEE = 1000000000;
 

@@ -2,10 +2,6 @@
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
-
-import './IJBPaymentTerminal.sol';
-import './IJBTokenUriResolver.sol';
-
 import './../structs/JBProjectMetadata.sol';
 import './IJBTokenUriResolver.sol';
 

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import './IJBController.sol';
+import './IJBFundingCycleStore.sol';
 import './IJBPaymentTerminal.sol';
 import './IJBProjects.sol';
-import './IJBFundingCycleStore.sol';
-import './IJBController.sol';
 
 interface IJBDirectory {
   event SetController(uint256 indexed projectId, IJBController indexed controller, address caller);
