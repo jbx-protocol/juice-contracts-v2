@@ -159,7 +159,7 @@ contract JBController is IJBController, JBOperatable {
     uint256 _data = _packedDistributionLimitDataOf[_projectId][_configuration][_terminal][_token];
 
     // The limit is in bits 0-231. The currency is in bits 232-255.
-    return (uint256(uint248(_data)), _data >> 232);
+    return (uint256(uint232(_data)), _data >> 232);
   }
 
   /**
@@ -187,7 +187,7 @@ contract JBController is IJBController, JBOperatable {
     uint256 _data = _packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal][_token];
 
     // The allowance is in bits 0-231. The currency is in bits 232-255.
-    return (uint256(uint248(_data)), _data >> 232);
+    return (uint256(uint232(_data)), _data >> 232);
   }
 
   /**
