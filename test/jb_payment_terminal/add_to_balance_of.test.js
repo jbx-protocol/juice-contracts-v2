@@ -358,7 +358,8 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
         );
 
     let feeNetAmount = ethers.BigNumber.from(heldFee[0].amount).sub(ethers.BigNumber.from(heldFee[0].amount).mul(MAX_FEE).div(discountedFee.add(MAX_FEE)));
-    await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor.withArgs(PROJECT_ID, (AMOUNT.sub('10')).add(feeNetAmount)).returns();
+
+    await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor.withArgs(PROJECT_ID, (AMOUNT.sub('10')).add(feeNetAmount.mul(2))).returns();
 
     expect(
       await jbEthPaymentTerminal
