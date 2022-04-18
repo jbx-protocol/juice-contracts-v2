@@ -65,10 +65,10 @@ contract JBController is IJBController, JBOperatable {
     Data regarding the distribution limit of a project during a configuration.
 
     @dev
-    bits 0-247: The amount of token that a project can distribute per funding cycle.
+    bits 0-231: The amount of token that a project can distribute per funding cycle.
 
     @dev
-    bits 248-255: The currency of amount that a project can distribute.
+    bits 232-255: The currency of amount that a project can distribute.
 
     _projectId The ID of the project to get the packed distribution limit data of.
     _configuration The configuration during which the packed distribution limit data applies.
@@ -83,10 +83,10 @@ contract JBController is IJBController, JBOperatable {
     Data regarding the overflow allowance of a project during a configuration.
 
     @dev
-    bits 0-247: The amount of overflow that a project is allowed to tap into on-demand throughout the configuration.
+    bits 0-231: The amount of overflow that a project is allowed to tap into on-demand throughout the configuration.
 
     @dev
-    bits 248-255: The currency of the amount of overflow that a project is allowed to tap.
+    bits 232-255: The currency of the amount of overflow that a project is allowed to tap.
 
     _projectId The ID of the project to get the packed overflow allowance data of.
     _configuration The configuration during which the packed overflow allowance data applies.
@@ -158,8 +158,8 @@ contract JBController is IJBController, JBOperatable {
     // Get a reference to the packed data.
     uint256 _data = _packedDistributionLimitDataOf[_projectId][_configuration][_terminal][_token];
 
-    // The limit is in bits 0-247. The currency is in bits 248-255.
-    return (uint256(uint248(_data)), _data >> 248);
+    // The limit is in bits 0-231. The currency is in bits 232-255.
+    return (uint256(uint248(_data)), _data >> 232);
   }
 
   /**
@@ -186,8 +186,8 @@ contract JBController is IJBController, JBOperatable {
     // Get a reference to the packed data.
     uint256 _data = _packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal][_token];
 
-    // The allowance is in bits 0-247. The currency is in bits 248-255.
-    return (uint256(uint248(_data)), _data >> 248);
+    // The allowance is in bits 0-231. The currency is in bits 232-255.
+    return (uint256(uint248(_data)), _data >> 232);
   }
 
   /**
@@ -972,18 +972,18 @@ contract JBController is IJBController, JBOperatable {
     for (uint256 _i; _i < _fundAccessConstraints.length; _i++) {
       JBFundAccessConstraints memory _constraints = _fundAccessConstraints[_i];
 
-      // If distribution limit value is larger than 248 bits, revert.
-      if (_constraints.distributionLimit > type(uint248).max) revert INVALID_DISTRIBUTION_LIMIT();
+      // If distribution limit value is larger than 232 bits, revert.
+      if (_constraints.distributionLimit > type(uint232).max) revert INVALID_DISTRIBUTION_LIMIT();
 
-      // If distribution limit currency value is larger than 8 bits, revert.
-      if (_constraints.distributionLimitCurrency > type(uint8).max)
+      // If distribution limit currency value is larger than 24 bits, revert.
+      if (_constraints.distributionLimitCurrency > type(uint24).max)
         revert INVALID_DISTRIBUTION_LIMIT_CURRENCY();
 
-      // If overflow allowance value is larger than 248 bits, revert.
-      if (_constraints.overflowAllowance > type(uint248).max) revert INVALID_OVERFLOW_ALLOWANCE();
+      // If overflow allowance value is larger than 232 bits, revert.
+      if (_constraints.overflowAllowance > type(uint232).max) revert INVALID_OVERFLOW_ALLOWANCE();
 
-      // If overflow allowance currency value is larger than 8 bits, revert.
-      if (_constraints.overflowAllowanceCurrency > type(uint8).max)
+      // If overflow allowance currency value is larger than 24 bits, revert.
+      if (_constraints.overflowAllowanceCurrency > type(uint24).max)
         revert INVALID_OVERFLOW_ALLOWANCE_CURRENCY();
 
       // Set the distribution limit if there is one.
@@ -992,7 +992,7 @@ contract JBController is IJBController, JBOperatable {
           _constraints.terminal
         ][_constraints.token] =
           _constraints.distributionLimit |
-          (_constraints.distributionLimitCurrency << 248);
+          (_constraints.distributionLimitCurrency << 232);
 
       // Set the overflow allowance if there is one.
       if (_constraints.overflowAllowance > 0)
@@ -1000,7 +1000,7 @@ contract JBController is IJBController, JBOperatable {
           _constraints.terminal
         ][_constraints.token] =
           _constraints.overflowAllowance |
-          (_constraints.overflowAllowanceCurrency << 248);
+          (_constraints.overflowAllowanceCurrency << 232);
 
       emit SetFundAccessConstraints(
         _fundingCycle.configuration,
