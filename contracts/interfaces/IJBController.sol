@@ -121,10 +121,12 @@ interface IJBController is IJBMigratable {
 
   function currentFundingCycleOf(uint256 _projectId)
     external
+    view
     returns (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata);
 
   function queuedFundingCycleOf(uint256 _projectId)
     external
+    view
     returns (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata);
 
   function launchProjectFor(
