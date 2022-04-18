@@ -666,7 +666,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     The msg.sender must be an IJBSingleTokenPaymentTerminal. 
 
     @param _projectId The ID of the project to which the funds being added belong.
-    @param _amount The amount of temrinal tokens added, as a fixed point number with the same amount of decimals as its relative terminal.
+    @param _amount The amount of terminal tokens added, as a fixed point number with the same amount of decimals as its relative terminal.
   */
   function recordAddedBalanceFor(uint256 _projectId, uint256 _amount)
     external

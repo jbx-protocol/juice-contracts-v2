@@ -1136,7 +1136,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _projectId The project for which fees are being refunded.
     @param _amount The amount to base the refund on, as a fixed point number with the same amount of decimals as this terminal.
 
-    @return refundedFees Kow much fees were refunded, as a fixed point number with the same number of decimals as this temrinal
+    @return refundedFees How much fees were refunded, as a fixed point number with the same number of decimals as this terminal
   */
   function _refundHeldFees(uint256 _projectId, uint256 _amount)
     private
@@ -1153,7 +1153,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       if (_amount == 0) _heldFeesOf[_projectId].push(_heldFees[_i]);
       else if (_amount >= _heldFees[_i].amount) {
         _amount = _amount - _heldFees[_i].amount;
-        refundedFees = _feeAmount(
+        refundedFees += _feeAmount(
           _heldFees[_i].amount,
           _heldFees[_i].fee,
           _heldFees[_i].feeDiscount
@@ -1167,7 +1167,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             _heldFees[_i].beneficiary
           )
         );
-        refundedFees = _feeAmount(_amount, _heldFees[_i].fee, _heldFees[_i].feeDiscount);
+        refundedFees += _feeAmount(_amount, _heldFees[_i].fee, _heldFees[_i].feeDiscount);
         _amount = 0;
       }
     }
