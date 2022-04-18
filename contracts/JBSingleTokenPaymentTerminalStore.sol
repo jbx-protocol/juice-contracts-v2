@@ -3,6 +3,7 @@ pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
+import './interfaces/IJBController.sol';
 import './interfaces/IJBSingleTokenPaymentTerminalStore.sol';
 import './libraries/JBConstants.sol';
 import './libraries/JBCurrencies.sol';
@@ -212,10 +213,8 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     if (_currentOverflow == 0) return 0;
 
     // Get the number of outstanding tokens the project has.
-    uint256 _totalSupply = directory.controllerOf(_projectId).totalOutstandingTokensOf(
-      _projectId,
-      _fundingCycle.reservedRate()
-    );
+    uint256 _totalSupply = IJBController(directory.controllerOf(_projectId))
+      .totalOutstandingTokensOf(_projectId, _fundingCycle.reservedRate());
 
     // Can't redeem more tokens that is in the supply.
     if (_tokenCount > _totalSupply) return 0;
@@ -447,10 +446,8 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
         );
 
       // Get the number of outstanding tokens the project has.
-      uint256 _totalSupply = directory.controllerOf(_projectId).totalOutstandingTokensOf(
-        _projectId,
-        fundingCycle.reservedRate()
-      );
+      uint256 _totalSupply = IJBController(directory.controllerOf(_projectId))
+        .totalOutstandingTokensOf(_projectId, fundingCycle.reservedRate());
 
       // Can't redeem more tokens that is in the supply.
       if (_tokenCount > _totalSupply) revert INSUFFICIENT_TOKENS();
@@ -539,9 +536,9 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     ][_projectId][fundingCycle.number] + _amount;
 
     // Amount must be within what is still distributable.
-    (uint256 _distributionLimitOf, uint256 _distributionLimitCurrencyOf) = directory
-      .controllerOf(_projectId)
-      .distributionLimitOf(
+    (uint256 _distributionLimitOf, uint256 _distributionLimitCurrencyOf) = IJBController(
+      directory.controllerOf(_projectId)
+    ).distributionLimitOf(
         _projectId,
         fundingCycle.configuration,
         IJBSingleTokenPaymentTerminal(msg.sender),
@@ -614,9 +611,9 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     ][_projectId][fundingCycle.configuration] + _amount;
 
     // There must be sufficient allowance available.
-    (uint256 _overflowAllowanceOf, uint256 _overflowAllowanceCurrency) = directory
-      .controllerOf(_projectId)
-      .overflowAllowanceOf(
+    (uint256 _overflowAllowanceOf, uint256 _overflowAllowanceCurrency) = IJBController(
+      directory.controllerOf(_projectId)
+    ).overflowAllowanceOf(
         _projectId,
         fundingCycle.configuration,
         IJBSingleTokenPaymentTerminal(msg.sender),
@@ -796,9 +793,9 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     if (_balanceOf == 0) return 0;
 
     // Get a reference to the distribution limit during the funding cycle.
-    (uint256 _distributionLimit, uint256 _distributionLimitCurrency) = directory
-      .controllerOf(_projectId)
-      .distributionLimitOf(_projectId, _fundingCycle.configuration, _terminal, _terminal.token());
+    (uint256 _distributionLimit, uint256 _distributionLimitCurrency) = IJBController(
+      directory.controllerOf(_projectId)
+    ).distributionLimitOf(_projectId, _fundingCycle.configuration, _terminal, _terminal.token());
 
     // Get a reference to the amount still distributable during the funding cycle.
     uint256 _distributionLimitRemaining = _distributionLimit -

@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './IJBController.sol';
 import './IJBFundingCycleStore.sol';
 import './IJBPaymentTerminal.sol';
 import './IJBProjects.sol';
 
 interface IJBDirectory {
-  event SetController(uint256 indexed projectId, IJBController indexed controller, address caller);
+  event SetController(uint256 indexed projectId, address indexed controller, address caller);
 
   event AddTerminal(uint256 indexed projectId, IJBPaymentTerminal indexed terminal, address caller);
 
@@ -26,7 +25,7 @@ interface IJBDirectory {
 
   function fundingCycleStore() external view returns (IJBFundingCycleStore);
 
-  function controllerOf(uint256 _projectId) external view returns (IJBController);
+  function controllerOf(uint256 _projectId) external view returns (address);
 
   function isAllowedToSetFirstController(address _address) external view returns (bool);
 
@@ -42,7 +41,7 @@ interface IJBDirectory {
     view
     returns (IJBPaymentTerminal);
 
-  function setControllerOf(uint256 _projectId, IJBController _controller) external;
+  function setControllerOf(uint256 _projectId, address _controller) external;
 
   function setTerminalsOf(uint256 _projectId, IJBPaymentTerminal[] calldata _terminals) external;
 

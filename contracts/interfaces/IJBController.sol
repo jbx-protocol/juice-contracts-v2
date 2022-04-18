@@ -8,12 +8,13 @@ import './../structs/JBGroupedSplits.sol';
 import './../structs/JBProjectMetadata.sol';
 import './IJBDirectory.sol';
 import './IJBFundingCycleStore.sol';
+import './IJBMigratable.sol';
 import './IJBPaymentTerminal.sol';
 import './IJBSplitsStore.sol';
 import './IJBToken.sol';
 import './IJBTokenStore.sol';
 
-interface IJBController {
+interface IJBController is IJBMigratable {
   event LaunchProject(uint256 configuration, uint256 projectId, string memo, address caller);
 
   event LaunchFundingCycles(uint256 configuration, uint256 projectId, string memo, address caller);
@@ -71,9 +72,9 @@ interface IJBController {
     address caller
   );
 
-  event Migrate(uint256 indexed projectId, IJBController to, address caller);
+  event Migrate(uint256 indexed projectId, IJBMigratable to, address caller);
 
-  event PrepMigration(uint256 indexed projectId, IJBController from, address caller);
+  event PrepMigration(uint256 indexed projectId, address from, address caller);
 
   function projects() external view returns (IJBProjects);
 
@@ -192,7 +193,5 @@ interface IJBController {
     external
     returns (uint256);
 
-  function prepForMigrationOf(uint256 _projectId, IJBController _from) external;
-
-  function migrate(uint256 _projectId, IJBController _to) external;
+  function migrate(uint256 _projectId, IJBMigratable _to) external;
 }

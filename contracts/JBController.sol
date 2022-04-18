@@ -372,7 +372,7 @@ contract JBController is IJBController, JBOperatable {
     projectId = projects.createFor(_owner, _projectMetadata);
 
     // Set this contract as the project's controller in the directory.
-    directory.setControllerOf(projectId, this);
+    directory.setControllerOf(projectId, address(this));
 
     // Configure the first funding cycle.
     uint256 _configuration = _configure(
@@ -432,7 +432,7 @@ contract JBController is IJBController, JBOperatable {
       revert FUNDING_CYCLE_ALREADY_LAUNCHED();
 
     // Set this contract as the project's controller in the directory.
-    directory.setControllerOf(_projectId, this);
+    directory.setControllerOf(_projectId, address(this));
 
     // Configure the first funding cycle.
     configuration = _configure(
@@ -727,9 +727,10 @@ contract JBController is IJBController, JBOperatable {
     @param _projectId The ID of the project that will be migrated to this controller.
     @param _from The controller being migrated from.
   */
-  function prepForMigrationOf(uint256 _projectId, IJBController _from) external virtual override {
+  function prepForMigrationOf(uint256 _projectId, address _from) external virtual override {
     // This controller must not be the project's current controller.
-    if (directory.controllerOf(_projectId) == this) revert CANT_MIGRATE_TO_CURRENT_CONTROLLER();
+    if (directory.controllerOf(_projectId) == address(this))
+      revert CANT_MIGRATE_TO_CURRENT_CONTROLLER();
 
     // Set the tracker as the total supply.
     _processedTokenTrackerOf[_projectId] = int256(tokenStore.totalSupplyOf(_projectId));
@@ -747,14 +748,14 @@ contract JBController is IJBController, JBOperatable {
     @param _projectId The ID of the project that will be migrated from this controller.
     @param _to The controller to which the project is migrating.
   */
-  function migrate(uint256 _projectId, IJBController _to)
+  function migrate(uint256 _projectId, IJBMigratable _to)
     external
     virtual
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_CONTROLLER)
   {
     // This controller must be the project's current controller.
-    if (directory.controllerOf(_projectId) != this) revert NOT_CURRENT_CONTROLLER();
+    if (directory.controllerOf(_projectId) != address(this)) revert NOT_CURRENT_CONTROLLER();
 
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
@@ -767,10 +768,10 @@ contract JBController is IJBController, JBOperatable {
       _distributeReservedTokensOf(_projectId, '');
 
     // Make sure the new controller is prepped for the migration.
-    _to.prepForMigrationOf(_projectId, this);
+    _to.prepForMigrationOf(_projectId, address(this));
 
     // Set the new controller.
-    directory.setControllerOf(_projectId, _to);
+    directory.setControllerOf(_projectId, address(_to));
 
     emit Migrate(_projectId, _to, msg.sender);
   }

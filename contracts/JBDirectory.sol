@@ -80,7 +80,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     _projectId The ID of the project to get the controller of.
   */
-  mapping(uint256 => IJBController) public override controllerOf;
+  mapping(uint256 => address) public override controllerOf;
 
   /**
     @notice
@@ -204,7 +204,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @param _projectId The ID of the project to set a new controller for.
     @param _controller The new controller to set.
   */
-  function setControllerOf(uint256 _projectId, IJBController _controller)
+  function setControllerOf(uint256 _projectId, address _controller)
     external
     override
     requirePermissionAllowingOverride(
@@ -212,8 +212,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
       _projectId,
       JBOperations.SET_CONTROLLER,
       (msg.sender == address(controllerOf[_projectId]) ||
-        (isAllowedToSetFirstController[msg.sender] &&
-          controllerOf[_projectId] == IJBController(address(0))))
+        (isAllowedToSetFirstController[msg.sender] && controllerOf[_projectId] == address(0)))
     )
   {
     // The project must exist.
@@ -225,7 +224,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     // Setting controller is allowed if called from the current controller, or if the project doesn't have a current controller, or if the project's funding cycle allows setting the controller. Revert otherwise.
     if (
       msg.sender != address(controllerOf[_projectId]) &&
-      controllerOf[_projectId] != IJBController(address(0)) &&
+      controllerOf[_projectId] != address(0) &&
       !_fundingCycle.setControllerAllowed()
     ) revert SET_CONTROLLER_NOT_ALLOWED();
 

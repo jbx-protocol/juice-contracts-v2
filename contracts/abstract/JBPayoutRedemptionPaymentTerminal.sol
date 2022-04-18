@@ -5,6 +5,7 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
+import './../interfaces/IJBController.sol';
 import './../interfaces/IJBPayoutRedemptionPaymentTerminal.sol';
 import './../libraries/JBConstants.sol';
 import './../libraries/JBCurrencies.sol';
@@ -380,7 +381,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
       // Burn the project tokens.
       if (_tokenCount > 0)
-        directory.controllerOf(_projectId).burnTokensOf(
+        IJBController(directory.controllerOf(_projectId)).burnTokensOf(
           _holder,
           _projectId,
           _tokenCount,
@@ -1064,7 +1065,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       // Mint the tokens if needed.
       if (_tokenCount > 0)
         // Set token count to be the number of tokens minted for the beneficiary instead of the total amount.
-        beneficiaryTokenCount = directory.controllerOf(_projectId).mintTokensOf(
+        beneficiaryTokenCount = IJBController(directory.controllerOf(_projectId)).mintTokensOf(
           _projectId,
           _tokenCount,
           _beneficiary,
