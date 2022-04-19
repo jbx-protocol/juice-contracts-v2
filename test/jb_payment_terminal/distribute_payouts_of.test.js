@@ -700,7 +700,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             ),
             ETH_ADDRESS,
             '',
-            '0x'
+            ethers.utils.hexZeroPad(ethers.utils.hexlify(PROJECT_ID), 32)
           )
           .returns();
       }),
@@ -797,7 +797,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             0,
             split.preferClaimed,
             '',
-            '0x'
+            ethers.utils.hexZeroPad(ethers.utils.hexlify(PROJECT_ID), 32)
           )
           .returns(0);
       }),
@@ -892,7 +892,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             0,
             split.preferClaimed,
             '',
-            '0x'
+            ethers.utils.hexZeroPad(ethers.utils.hexlify(PROJECT_ID), 32)
           )
           .returns(0);
       }),
@@ -2012,7 +2012,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             /*minReturnedToken*/ 0,
             split.preferClaimed,
             '',
-            '0x',
+            ethers.utils.hexZeroPad(ethers.utils.hexlify(PROJECT_ID), 32)
           )
           .returns(0);
       }),
@@ -2128,7 +2128,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             AMOUNT_MINUS_FEES,
             ETH_ADDRESS,
             '',
-            '0x'
+            ethers.utils.hexZeroPad(ethers.utils.hexlify(PROJECT_ID), 32)
           )
           .returns();
       }),
@@ -2248,7 +2248,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             ),
             fakeToken.address,
             '',
-            '0x'
+            ethers.utils.hexZeroPad(ethers.utils.hexlify(PROJECT_ID), 32)
           )
           .returns();
       }),
