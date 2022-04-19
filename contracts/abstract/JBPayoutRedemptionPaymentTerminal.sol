@@ -909,7 +909,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
                 _netPayoutAmount,
                 token,
                 '',
-                bytes('')
+                bytes(abi.encode(_projectId))
               );
             else
               _terminal.pay{value: _payableValue}(
@@ -920,7 +920,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
                 0,
                 _split.preferClaimed,
                 '',
-                bytes('')
+                bytes(abi.encode(_projectId))
               );
           }
         } else {
