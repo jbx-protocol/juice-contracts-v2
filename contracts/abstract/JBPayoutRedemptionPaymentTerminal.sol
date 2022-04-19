@@ -902,6 +902,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             // If this terminal's token is ETH, send it in msg.value.
             uint256 _payableValue = token == JBTokens.ETH ? _netPayoutAmount : 0;
 
+            bytes memory _projectMetadata = new bytes(_projectId);
+
             // Add to balance if prefered.
             if (_split.preferAddToBalance)
               _terminal.addToBalanceOf{value: _payableValue}(
@@ -909,7 +911,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
                 _netPayoutAmount,
                 token,
                 '',
-                bytes(abi.encode(_projectId))
+                _projectMetadata
               );
             else
               _terminal.pay{value: _payableValue}(
@@ -920,7 +922,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
                 0,
                 _split.preferClaimed,
                 '',
-                bytes(abi.encode(_projectId))
+                _projectMetadata
               );
           }
         } else {
