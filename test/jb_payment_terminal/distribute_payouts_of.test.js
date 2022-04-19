@@ -15,7 +15,7 @@ import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsS
 import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 import IERC20Metadata from '../../artifacts/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol/IERC20Metadata.json';
 
-describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function () {
+describe.only('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function () {
   const PLATFORM_PROJECT_ID = 1;
   const PROJECT_ID = 2;
   const OTHER_PROJECT_ID = 3;
@@ -354,6 +354,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             0,
             '',
+            '0x',
             caller.address,
           );
       }),
@@ -469,6 +470,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             0,
             '',
+            '0x',
             caller.address,
           );
       }),
@@ -697,7 +699,8 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
               (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
             ),
             ETH_ADDRESS,
-            ''
+            '',
+            '0x'
           )
           .returns();
       }),
@@ -995,7 +998,8 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         1, //JBX Dao
         AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES,
         ETH_ADDRESS,
-        ''
+        '',
+        '0x'
       )
       .returns();
 
@@ -1093,7 +1097,8 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         1, //JBX Dao
         AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES,
         ETH_ADDRESS,
-        ''
+        '',
+        '0x'
       )
       .returns();
 
@@ -1246,6 +1251,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             Math.floor(AMOUNT_DISTRIBUTED - AMOUNT_MINUS_FEES),
             0,
             '',
+            '0x',
             caller.address,
           );
       }),
@@ -2122,6 +2128,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             AMOUNT_MINUS_FEES,
             ETH_ADDRESS,
             '',
+            '0x'
           )
           .returns();
       }),
@@ -2241,6 +2248,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             ),
             fakeToken.address,
             '',
+            '0x'
           )
           .returns();
       }),
@@ -2408,6 +2416,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             0,
             '',
+            '0x',
             caller.address,
           );
       }),
@@ -2506,6 +2515,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             0,
             '',
+            '0x',
             caller.address,
           );
       }),
