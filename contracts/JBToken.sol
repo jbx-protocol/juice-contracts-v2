@@ -37,7 +37,7 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     @notice
     The total supply of this ERC20.
 
-    _projectId the ID of the project to which the token belongs. This is ignored.
+    ignored: _projectId the ID of the project to which the token belongs. This is ignored.
 
     @return The total supply of this ERC20, as a fixed point number.
   */
@@ -50,7 +50,7 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     An account's balance of this ERC20.
 
     @param _account The account to get a balance of.
-    _projectId is the ID of the project to which the token belongs. This is ignored.
+    ignored: _projectId is the ID of the project to which the token belongs. This is ignored.
 
     @return The balance of the `_account` of this ERC20, as a fixed point number with 18 decimals.
   */
@@ -85,7 +85,7 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     @dev
     Only the owner of this contract cant mint more of it.
 
-    _projectId The ID of the project to which the token belongs. This is ignored.
+    ignored: _projectId The ID of the project to which the token belongs. This is ignored.
     @param _account The account to mint the tokens for.
     @param _amount The amount of tokens to mint, as a fixed point number with 18 decimals.
   */
@@ -104,7 +104,7 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     @dev
     Only the owner of this contract cant burn some of its supply.
 
-    _projectId The ID of the project to which the token belongs. This is ignored.
+    ignored: _projectId The ID of the project to which the token belongs. This is ignored.
     @param _account The account to burn tokens from.
     @param _amount The amount of tokens to burn, as a fixed point number with 18 decimals.
   */
@@ -120,7 +120,7 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     @notice
     Approves an account to spend tokens on the `msg.sender`s behalf.
 
-    _projectId the ID of the project to which the token belongs. This is ignored.
+    ignored: _projectId the ID of the project to which the token belongs. This is ignored.
     @param _spender The address that will be spending tokens on the `msg.sender`s behalf.
     @param _amount The amount the `_spender` is allowed to spend.
   */
@@ -136,7 +136,7 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     @notice
     Transfer tokens to an account.
     
-    _projectId The ID of the project to which the token belongs. This is ignored.
+    ignored: _projectId The ID of the project to which the token belongs. This is ignored.
     @param _to The destination address.
     @param _amount The amount of the transfer, as a fixed point number with 18 decimals.
   */
@@ -152,7 +152,7 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     @notice
     Transfer tokens between accounts.
 
-    _projectId The ID of the project to which the token belongs. This is ignored.
+    ignored: _projectId The ID of the project to which the token belongs. This is ignored.
     @param _from The originating address.
     @param _to The destination address.
     @param _amount The amount of the transfer, as a fixed point number with 18 decimals.
@@ -177,7 +177,7 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     @dev
     Only the owner of this contract can transfer it.
 
-    _projectId The ID of the project to which the token belongs. This is ignored.
+    ignored: _projectId The ID of the project to which the token belongs. This is ignored.
     @param _newOwner The new owner.
   */
   function transferOwnership(uint256, address _newOwner) public virtual override onlyOwner {
