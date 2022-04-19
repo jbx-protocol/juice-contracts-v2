@@ -51,7 +51,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
 
   /**
     @notice
-    The Projects contract which mints ERC-721's that represent project ownership and transfers.
+    Mints ERC-721's that represent project ownership and transfers.
   */
   IJBProjects public immutable override projects;
 

@@ -102,7 +102,7 @@ contract JBController is IJBController, JBOperatable {
 
   /**
     @notice
-    The Projects contract which mints ERC-721's that represent project ownership.
+    Mints ERC-721's that represent project ownership.
   */
   IJBProjects public immutable override projects;
 

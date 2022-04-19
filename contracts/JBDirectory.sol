@@ -60,7 +60,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
   /**
     @notice
-    The Projects contract which mints ERC-721's that represent project ownership and transfers.
+    Mints ERC-721's that represent project ownership and transfers.
   */
   IJBProjects public immutable override projects;
 
