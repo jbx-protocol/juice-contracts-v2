@@ -135,7 +135,8 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
         JBTokens.ETH,
         address(this).balance,
         18, // balance is a fixed point number with 18 decimals.
-        defaultMemo
+        defaultMemo,
+        defaultMetadata
       );
     else
       _pay(
@@ -270,13 +271,15 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     @param _amount The amount of tokens being paid, as a fixed point number. If the token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. If the token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
     @param _memo A memo to pass along to the emitted event.
+    @param _metadata Metadata to pass along to the terminal.
   */
   function addToBalance(
     uint256 _projectId,
     address _token,
     uint256 _amount,
     uint256 _decimals,
-    string memory _memo
+    string memory _memo,
+    bytes memory _metadata
   ) public payable virtual override {
     // ETH shouldn't be sent if the token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
@@ -290,7 +293,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
       _decimals = 18;
     }
 
-    _addToBalance(_projectId, _token, _amount, _decimals, _memo);
+    _addToBalance(_projectId, _token, _amount, _decimals, _memo, _metadata);
   }
 
   //*********************************************************************//
@@ -360,13 +363,15 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     @param _amount The amount of tokens being paid, as a fixed point number. If the token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. If the token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
     @param _memo A memo to pass along to the emitted event.
+    @param _metadata Metadata to pass along to the terminal.
   */
   function _addToBalance(
     uint256 _projectId,
     address _token,
     uint256 _amount,
     uint256 _decimals,
-    string memory _memo
+    string memory _memo,
+    bytes memory _metadata
   ) internal virtual {
     // Find the terminal for the specified project.
     IJBPaymentTerminal _terminal = directory.primaryTerminalOf(_projectId, _token);
@@ -384,6 +389,6 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     uint256 _payableValue = _token == JBTokens.ETH ? _amount : 0;
 
     // Add to balance so tokens don't get issued.
-    _terminal.addToBalanceOf{value: _payableValue}(_projectId, _amount, _token, _memo);
+    _terminal.addToBalanceOf{value: _payableValue}(_projectId, _amount, _token, _memo, _metadata);
   }
 }

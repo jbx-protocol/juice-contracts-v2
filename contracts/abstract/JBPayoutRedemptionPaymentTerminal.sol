@@ -285,7 +285,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with the same amount of decimals as this terminal.
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
-    @param _metadata Bytes to send along to the data source and delegate, if provided.
+    @param _metadata Bytes to send along to the data source, delegate, and emitted event, if provided.
 
     @return The number of tokens minted for the beneficiary, as a fixed point number with 18 decimals.
   */
@@ -648,7 +648,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       uint256 _payableValue = token == JBTokens.ETH ? balance : 0;
 
       // Withdraw the balance to transfer to the new terminal;
-      _to.addToBalanceOf{value: _payableValue}(_projectId, balance, token, '');
+      _to.addToBalanceOf{value: _payableValue}(_projectId, balance, token, '', bytes(''));
     }
 
     emit Migrate(_projectId, _to, balance, msg.sender);
@@ -662,12 +662,14 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _amount The amount of tokens to add, as a fixed point number with the same number of decimals as this terminal. If this is an ETH terminal, this is ignored and msg.value is used instead.
     ignored: _token The token being paid. This terminal ignores this property since it only manages one currency. 
     @param _memo A memo to pass along to the emitted event.
+    @param _metadata Metadata to pass along to the emitted event.
   */
   function addToBalanceOf(
     uint256 _projectId,
     uint256 _amount,
     address,
-    string calldata _memo
+    string calldata _memo,
+    bytes calldata _metadata
   ) external payable virtual override isTerminalOf(_projectId) {
     // If this terminal's token isn't ETH, make sure no msg.value was sent, then transfer the tokens in from msg.sender.
     if (token != JBTokens.ETH) {
@@ -680,7 +682,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // If the terminal's token is ETH, override `_amount` with msg.value.
     else _amount = msg.value;
 
-    _addToBalanceOf(_projectId, _amount, _memo);
+    _addToBalanceOf(_projectId, _amount, _memo, _metadata);
   }
 
   /**
@@ -868,7 +870,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             _netPayoutAmount = _payoutAmount;
 
             // Add to balance if prefered.
-            if (_split.preferAddToBalance) _addToBalanceOf(_split.projectId, _netPayoutAmount, '');
+            if (_split.preferAddToBalance)
+              _addToBalanceOf(_split.projectId, _netPayoutAmount, '', bytes(''));
             else
               _pay(
                 _netPayoutAmount,
@@ -905,7 +908,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
                 _split.projectId,
                 _netPayoutAmount,
                 token,
-                ''
+                '',
+                bytes('')
               );
             else
               _terminal.pay{value: _payableValue}(
@@ -1023,7 +1027,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with the same amount of decimals as this terminal.
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
-    @param _metadata Bytes to send along to the data source and delegate, if provided.
+    @param _metadata Bytes to send along to the data source, delegate, and emitted event, if provided.
 
     @return beneficiaryTokenCount The number of tokens minted for the beneficiary, as a fixed point number with 18 decimals.
   */
@@ -1103,6 +1107,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       _amount,
       beneficiaryTokenCount,
       _memo,
+      _metadata,
       msg.sender
     );
   }
@@ -1114,11 +1119,13 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _projectId The ID of the project to which the funds received belong.
     @param _amount The amount of tokens to add, as a fixed point number with the same number of decimals as this terminal. If this is an ETH terminal, this is ignored and msg.value is used instead.
     @param _memo A memo to pass along to the emitted event.
+    @param _metadata Metadata to pass along to the emitted event.
   */
   function _addToBalanceOf(
     uint256 _projectId,
     uint256 _amount,
-    string memory _memo
+    string memory _memo,
+    bytes memory _metadata
   ) private {
     // Refund any held fees to make sure the project doesn't pay double for funds going in and out of the protocol.
     uint256 _refundedFees = _refundHeldFees(_projectId, _amount);
@@ -1126,7 +1133,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Record the added funds with any refunded fees.
     store.recordAddedBalanceFor(_projectId, _amount + _refundedFees);
 
-    emit AddToBalance(_projectId, _amount, _refundedFees, _memo, msg.sender);
+    emit AddToBalance(_projectId, _amount, _refundedFees, _memo, _metadata, msg.sender);
   }
 
   /**

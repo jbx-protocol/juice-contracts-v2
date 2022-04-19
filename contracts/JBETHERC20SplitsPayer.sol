@@ -139,7 +139,8 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
           JBTokens.ETH,
           _leftoverAmount,
           18, // decimals.
-          defaultMemo
+          defaultMemo,
+          defaultMetadata
         );
         // Otherwise, issue a payment to the project.
       else
@@ -301,13 +302,15 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
     @param _amount The amount of tokens being paid, as a fixed point number. If the token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. If the token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
     @param _memo A memo to pass along to the emitted event.  
+    @param _metadata Metadata to pass along to the terminal.
   */
   function addToBalance(
     uint256 _projectId,
     address _token,
     uint256 _amount,
     uint256 _decimals,
-    string memory _memo
+    string memory _memo,
+    bytes memory _metadata
   ) public payable virtual override nonReentrant {
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
@@ -336,7 +339,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
       // If there's a default project ID, try to add to its balance.
       if (_projectId != 0)
         // Add to the project's balance.
-        _addToBalance(_projectId, _token, _leftoverAmount, _decimals, _memo);
+        _addToBalance(_projectId, _token, _leftoverAmount, _decimals, _memo, _metadata);
 
         // Otherwise, send a payment to the beneficiary.
       else {
@@ -365,6 +368,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
       _decimals,
       _leftoverAmount,
       _memo,
+      _metadata,
       msg.sender
     );
   }
@@ -439,7 +443,14 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
           // Otherwise, if a project is specified, make a payment to it.
         } else if (_split.projectId != 0) {
           if (_split.preferAddToBalance)
-            _addToBalance(_split.projectId, _token, _splitAmount, _decimals, defaultMemo);
+            _addToBalance(
+              _split.projectId,
+              _token,
+              _splitAmount,
+              _decimals,
+              defaultMemo,
+              defaultMetadata
+            );
           else
             _pay(
               _split.projectId,

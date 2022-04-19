@@ -54,7 +54,8 @@ interface IJBProjectPayer {
     address _token,
     uint256 _amount,
     uint256 _decimals,
-    string memory _memo
+    string memory _memo,
+    bytes memory _metadata
   ) external payable;
 
   receive() external payable;

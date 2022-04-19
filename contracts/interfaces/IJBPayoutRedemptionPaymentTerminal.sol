@@ -19,6 +19,7 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
     uint256 amount,
     uint256 refundedFees,
     string memo,
+    bytes metadata,
     address caller
   );
   event Migrate(
@@ -61,6 +62,7 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
     uint256 amount,
     uint256 beneficiaryTokenCount,
     string memo,
+    bytes metadata,
     address caller
   );
   event DelegateDidPay(IJBPayDelegate indexed delegate, JBDidPayData data, address caller);
