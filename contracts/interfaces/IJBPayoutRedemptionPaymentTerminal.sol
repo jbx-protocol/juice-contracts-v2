@@ -14,7 +14,13 @@ import './IJBSingleTokenPaymentTerminalStore.sol';
 import './IJBSplitsStore.sol';
 
 interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
-  event AddToBalance(uint256 indexed projectId, uint256 amount, string memo, address caller);
+  event AddToBalance(
+    uint256 indexed projectId,
+    uint256 amount,
+    uint256 refundedFees,
+    string memo,
+    address caller
+  );
   event Migrate(
     uint256 indexed projectId,
     IJBPaymentTerminal indexed to,

@@ -229,7 +229,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
         .addToBalanceOf(PROJECT_ID, AMOUNT, ETH_ADDRESS, MEMO, { value: AMOUNT }),
     )
       .to.emit(jbEthPaymentTerminal, 'AddToBalance')
-      .withArgs(PROJECT_ID, AMOUNT, MEMO, caller.address);
+      .withArgs(PROJECT_ID, AMOUNT, feeNetAmount, MEMO, caller.address);
 
     expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([]);
   });
@@ -296,7 +296,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
       await jbEthPaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, 1, ETH_ADDRESS, MEMO, { value: 1 }),
     )
       .to.emit(jbEthPaymentTerminal, 'AddToBalance')
-      .withArgs(PROJECT_ID, 1, MEMO, caller.address);
+      .withArgs(PROJECT_ID, 1, 1, MEMO, caller.address);
 
     let heldFeeAfter = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
     expect(heldFeeAfter[0].amount).to.equal(heldFeeBefore[0].amount.sub(1));
@@ -367,7 +367,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
         .addToBalanceOf(PROJECT_ID, AMOUNT.sub('10'), ETH_ADDRESS, MEMO, { value: AMOUNT.sub('10') }),
     )
       .to.emit(jbEthPaymentTerminal, 'AddToBalance')
-      .withArgs(PROJECT_ID, AMOUNT.sub('10'), MEMO, caller.address);
+      .withArgs(PROJECT_ID, AMOUNT.sub('10'), feeNetAmount.add(feeNetAmount), MEMO, caller.address);
 
     let heldFeeAfter = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
     // Only 10 left

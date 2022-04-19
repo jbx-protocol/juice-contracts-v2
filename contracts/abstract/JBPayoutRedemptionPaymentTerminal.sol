@@ -82,7 +82,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     Maximum fee that can be set for a funding cycle configuration.
 
     @dev
-    Out of MAX_FEE (50_000_000 / 1_000_000_000)
+    Out of MAX_FEE (50_000_000 / 1_000_000_000).
   */
   uint256 private constant _FEE_CAP = 50_000_000;
 
@@ -616,7 +616,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
   /**
     @notice
-    Allows a project owner to migrate its funds and operations to a new terminal of the same token type.
+    Allows a project owner to migrate its funds and operations to a new terminal that accepts the same token type.
 
     @dev
     Only a project's owner or a designated operator can migrate it.
@@ -1126,7 +1126,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Record the added funds with any refunded fees.
     store.recordAddedBalanceFor(_projectId, _amount + _refundedFees);
 
-    emit AddToBalance(_projectId, _amount, _memo, msg.sender);
+    emit AddToBalance(_projectId, _amount, _refundedFees, _memo, msg.sender);
   }
 
   /**

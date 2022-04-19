@@ -114,7 +114,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
 
     // Payment routing
     await mockJbSplitsStore.mock.splitsOf
-      .withArgs(DEFAULT_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
+      .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
       .returns(splits);
 
     let tx = jbSplitsPayer
@@ -153,7 +153,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       splits.map(async split => {
         await expect(tx).to.emit(jbSplitsPayer, 'DistributeToSplit')
           .withArgs(
-            DEFAULT_PROJECT_ID,
+            DEFAULT_SPLITS_PROJECT_ID,
             DEFAULT_SPLITS_DOMAIN,
             DEFAULT_SPLITS_GROUP,
             [
@@ -203,7 +203,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     );
 
     await mockJbSplitsStore.mock.splitsOf
-      .withArgs(DEFAULT_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
+      .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
       .returns(splits);
 
     await mockToken.mock.transferFrom
@@ -265,7 +265,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     );
 
     await mockJbSplitsStore.mock.splitsOf
-      .withArgs(DEFAULT_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
+      .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
       .returns(splits);
 
     let tx = jbSplitsPayer
@@ -329,7 +329,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     );
 
     await mockJbSplitsStore.mock.splitsOf
-      .withArgs(DEFAULT_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
+      .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
       .returns(splits);
 
     let tx = jbSplitsPayer
@@ -366,7 +366,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       splits.map(async split => {
         await expect(tx).to.emit(jbSplitsPayer, 'DistributeToSplit')
           .withArgs(
-            DEFAULT_PROJECT_ID,
+            DEFAULT_SPLITS_PROJECT_ID,
             DEFAULT_SPLITS_DOMAIN,
             DEFAULT_SPLITS_GROUP,
             [
@@ -414,7 +414,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     );
 
     await mockJbSplitsStore.mock.splitsOf
-      .withArgs(DEFAULT_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
+      .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
       .returns(splits);
 
     let tx = jbSplitsPayer
@@ -452,7 +452,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       splits.map(async split => {
         await expect(tx).to.emit(jbSplitsPayer, 'DistributeToSplit')
           .withArgs(
-            DEFAULT_PROJECT_ID,
+            DEFAULT_SPLITS_PROJECT_ID,
             DEFAULT_SPLITS_DOMAIN,
             DEFAULT_SPLITS_GROUP,
             [
@@ -477,7 +477,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     let splits = makeSplits({ count: 2, beneficiary: [beneficiaryOne.address, beneficiaryTwo.address] });
 
     await mockJbSplitsStore.mock.splitsOf
-      .withArgs(DEFAULT_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
+      .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
       .returns(splits);
 
     let tx = await jbSplitsPayer
@@ -519,7 +519,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       splits.map(async split => {
         await expect(tx).to.emit(jbSplitsPayer, 'DistributeToSplit')
           .withArgs(
-            DEFAULT_PROJECT_ID,
+            DEFAULT_SPLITS_PROJECT_ID,
             DEFAULT_SPLITS_DOMAIN,
             DEFAULT_SPLITS_GROUP,
             [
@@ -544,7 +544,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     let splits = makeSplits();
 
     await mockJbSplitsStore.mock.splitsOf
-      .withArgs(DEFAULT_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
+      .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
       .returns(splits);
 
     let tx = await jbSplitsPayer
@@ -583,7 +583,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       splits.map(async split => {
         await expect(tx).to.emit(jbSplitsPayer, 'DistributeToSplit')
           .withArgs(
-            DEFAULT_PROJECT_ID,
+            DEFAULT_SPLITS_PROJECT_ID,
             DEFAULT_SPLITS_DOMAIN,
             DEFAULT_SPLITS_GROUP,
             [
@@ -609,7 +609,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     let splits = makeSplits({ count: 2, beneficiary: [beneficiaryOne.address, beneficiaryTwo.address], percent: maxSplitsPercent.div('4') });
 
     await mockJbSplitsStore.mock.splitsOf
-      .withArgs(DEFAULT_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
+      .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
       .returns(splits);
 
     await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(18);
@@ -673,7 +673,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       .returns(true);
 
     await mockJbSplitsStore.mock.splitsOf
-      .withArgs(DEFAULT_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
+      .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
       .returns(splits);
 
     // Transfer from splitsPayer to splits beneficiaries
@@ -746,7 +746,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     let splits = makeSplits({ count: 2, beneficiary: [beneficiaryOne.address, beneficiaryTwo.address], percent: maxSplitsPercent.div('4') });
 
     await mockJbSplitsStore.mock.splitsOf
-      .withArgs(DEFAULT_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
+      .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
       .returns(splits);
 
     await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(18);
@@ -811,7 +811,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       .returns(true);
 
     await mockJbSplitsStore.mock.splitsOf
-      .withArgs(DEFAULT_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
+      .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
       .returns(splits);
 
     // Transfer from splitsPayer to splits beneficiaries
@@ -865,7 +865,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     let splits = makeSplits({ count: 2, beneficiary: [beneficiaryOne.address, beneficiaryTwo.address], percent: maxSplitsPercent.div('4') });
 
     await mockJbSplitsStore.mock.splitsOf
-      .withArgs(DEFAULT_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
+      .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
       .returns(splits);
 
     await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(18);
@@ -929,7 +929,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       .returns(true);
 
     await mockJbSplitsStore.mock.splitsOf
-      .withArgs(DEFAULT_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
+      .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
       .returns(splits);
 
     // Transfer from splitsPayer to splits beneficiaries
@@ -982,7 +982,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     let splits = makeSplits();
 
     await mockJbSplitsStore.mock.splitsOf
-      .withArgs(DEFAULT_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
+      .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
       .returns(splits);
 
     let tx = await jbSplitsPayer

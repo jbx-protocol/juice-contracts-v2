@@ -234,7 +234,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
 
     // Pay the splits and get a reference to the amount leftover.
     uint256 _leftoverAmount = _payToSplits(
-      defaultProjectId,
+      defaultSplitsProjectId,
       defaultSplitsDomain,
       defaultSplitsGroup,
       _token,
@@ -323,7 +323,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
 
     // Pay the splits and get a reference to the amount leftover.
     uint256 _leftoverAmount = _payToSplits(
-      defaultProjectId,
+      defaultSplitsProjectId,
       defaultSplitsDomain,
       defaultSplitsGroup,
       _token,
