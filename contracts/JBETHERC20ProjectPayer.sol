@@ -130,7 +130,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
   */
   receive() external payable virtual override {
     if (defaultPreferAddToBalance)
-      _addToBalance(
+      _addToBalanceOf(
         defaultProjectId,
         JBTokens.ETH,
         address(this).balance,
@@ -273,7 +273,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     @param _memo A memo to pass along to the emitted event.
     @param _metadata Metadata to pass along to the terminal.
   */
-  function addToBalance(
+  function addToBalanceOf(
     uint256 _projectId,
     address _token,
     uint256 _amount,
@@ -293,7 +293,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
       _decimals = 18;
     }
 
-    _addToBalance(_projectId, _token, _amount, _decimals, _memo, _metadata);
+    _addToBalanceOf(_projectId, _token, _amount, _decimals, _memo, _metadata);
   }
 
   //*********************************************************************//
@@ -365,7 +365,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     @param _memo A memo to pass along to the emitted event.
     @param _metadata Metadata to pass along to the terminal.
   */
-  function _addToBalance(
+  function _addToBalanceOf(
     uint256 _projectId,
     address _token,
     uint256 _amount,

@@ -134,7 +134,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
     if (defaultProjectId != 0)
       if (defaultPreferAddToBalance)
         // Pay the project by adding to its balance if prefered.
-        _addToBalance(
+        _addToBalanceOf(
           defaultProjectId,
           JBTokens.ETH,
           _leftoverAmount,
@@ -304,7 +304,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
     @param _memo A memo to pass along to the emitted event.  
     @param _metadata Metadata to pass along to the terminal.
   */
-  function addToBalance(
+  function addToBalanceOf(
     uint256 _projectId,
     address _token,
     uint256 _amount,
@@ -339,7 +339,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
       // If there's a default project ID, try to add to its balance.
       if (_projectId != 0)
         // Add to the project's balance.
-        _addToBalance(_projectId, _token, _leftoverAmount, _decimals, _memo, _metadata);
+        _addToBalanceOf(_projectId, _token, _leftoverAmount, _decimals, _memo, _metadata);
 
         // Otherwise, send a payment to the beneficiary.
       else {
@@ -443,7 +443,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
           // Otherwise, if a project is specified, make a payment to it.
         } else if (_split.projectId != 0) {
           if (_split.preferAddToBalance)
-            _addToBalance(
+            _addToBalanceOf(
               _split.projectId,
               _token,
               _splitAmount,

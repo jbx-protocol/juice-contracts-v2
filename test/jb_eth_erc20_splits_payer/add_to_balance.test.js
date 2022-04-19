@@ -11,7 +11,7 @@ import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.j
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
 
-describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
+describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
   const DEFAULT_PROJECT_ID = 2;
   const DEFAULT_SPLITS_PROJECT_ID = 3;
   const DEFAULT_SPLITS_DOMAIN = 1;
@@ -120,7 +120,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
 
     let tx = await jbSplitsPayer
       .connect(caller)
-      .addToBalance(
+      .addToBalanceOf(
         PROJECT_ID,
         ethToken,
         AMOUNT,
@@ -210,7 +210,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
 
     let tx = jbSplitsPayer
       .connect(caller)
-      .addToBalance(
+      .addToBalanceOf(
         PROJECT_ID,
         mockToken.address,
         AMOUNT,
@@ -286,7 +286,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
 
     let tx = await jbSplitsPayer
       .connect(caller)
-      .addToBalance(
+      .addToBalanceOf(
         PROJECT_ID,
         ethToken,
         AMOUNT,
@@ -370,7 +370,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
 
     let tx = await jbSplitsPayer
       .connect(caller)
-      .addToBalance(
+      .addToBalanceOf(
         PROJECT_ID,
         ethToken,
         AMOUNT,
@@ -455,7 +455,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
 
     let tx = await jbSplitsPayer
       .connect(caller)
-      .addToBalance(
+      .addToBalanceOf(
         PROJECT_ID,
         ethToken,
         AMOUNT,
@@ -517,7 +517,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
 
     let tx = await jbSplitsPayer
       .connect(caller)
-      .addToBalance(
+      .addToBalanceOf(
         PROJECT_ID,
         ethToken,
         AMOUNT,
@@ -579,7 +579,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
 
     let tx = await jbSplitsPayer
       .connect(caller)
-      .addToBalance(
+      .addToBalanceOf(
         PROJECT_ID,
         ethToken,
         AMOUNT,
@@ -636,7 +636,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
 
     let tx = await jbSplitsPayer
       .connect(caller)
-      .addToBalance(
+      .addToBalanceOf(
         PROJECT_ID,
         ethToken,
         AMOUNT,
@@ -713,7 +713,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
 
     await expect(jbSplitsPayer
       .connect(caller)
-      .addToBalance(
+      .addToBalanceOf(
         PROJECT_ID,
         mockToken.address,
         AMOUNT,
@@ -777,7 +777,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
 
     let tx = await jbSplitsPayer
       .connect(caller)
-      .addToBalance(
+      .addToBalanceOf(
         0,
         ethToken,
         AMOUNT,
@@ -851,7 +851,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
 
     await expect(jbSplitsPayer
       .connect(caller)
-      .addToBalance(
+      .addToBalanceOf(
         0,
         mockToken.address,
         AMOUNT,
@@ -914,7 +914,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
 
     let tx = await jbSplitsPayer
       .connect(caller)
-      .addToBalance(
+      .addToBalanceOf(
         0,
         ethToken,
         AMOUNT,
@@ -987,7 +987,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
 
     await expect(jbSplitsPayer
       .connect(caller)
-      .addToBalance(
+      .addToBalanceOf(
         0,
         mockToken.address,
         AMOUNT,
@@ -1015,7 +1015,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
 
     await expect(
       jbSplitsPayer
-        .addToBalance(
+        .addToBalanceOf(
           PROJECT_ID,
           mockToken.address,
           AMOUNT,

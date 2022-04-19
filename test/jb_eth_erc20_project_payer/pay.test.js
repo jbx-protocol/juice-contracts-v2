@@ -214,7 +214,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
       .returns();
 
     await expect(
-      jbProjectPayer.addToBalance(
+      jbProjectPayer.addToBalanceOf(
         PROJECT_ID,
         ethToken,
         AMOUNT,
@@ -257,7 +257,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
     await expect(
       jbProjectPayer
         .connect(payer)
-        .addToBalance(
+        .addToBalanceOf(
           PROJECT_ID,
           mockJbToken.address,
           AMOUNT,
@@ -422,7 +422,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
       .withArgs(PROJECT_ID, ethToken)
       .returns(mockJbTerminal.address);
 
-      await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(10);
+    await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(10);
 
 
     await expect(
