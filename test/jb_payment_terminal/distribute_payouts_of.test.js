@@ -15,13 +15,13 @@ import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsS
 import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 import IERC20Metadata from '../../artifacts/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol/IERC20Metadata.json';
 
-describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function () {
+describe.only('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function () {
   const PLATFORM_PROJECT_ID = 1;
   const PROJECT_ID = 2;
   const OTHER_PROJECT_ID = 3;
 
-  const AMOUNT_TO_DISTRIBUTE = 500000000000;
-  const AMOUNT_DISTRIBUTED = 1000000000000;
+  const AMOUNT_TO_DISTRIBUTE =1100000000000;
+  const AMOUNT_DISTRIBUTED =  1000000000000;
 
   const DEFAULT_FEE = 25000000; // 2.5%
   const FEE_DISCOUNT = 500000000; // 50%
@@ -1713,9 +1713,9 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       DEFAULT_FEE - Math.floor((DEFAULT_FEE * FEE_DISCOUNT) / MAX_FEE_DISCOUNT);
 
     const FEE_AMOUNT =
-      AMOUNT_TO_DISTRIBUTE - Math.floor((AMOUNT_TO_DISTRIBUTE * MAX_FEE) / (DISCOUNTED_FEE + MAX_FEE));
+    AMOUNT_DISTRIBUTED - Math.floor((AMOUNT_DISTRIBUTED * MAX_FEE) / (DISCOUNTED_FEE + MAX_FEE));
 
-    const AMOUNT_MINUS_FEES = AMOUNT_TO_DISTRIBUTE - FEE_AMOUNT;
+    const AMOUNT_MINUS_FEES = AMOUNT_DISTRIBUTED - FEE_AMOUNT;
 
     const splits = makeSplits({ count: 1, allocator: mockJbAllocator.address });
 
@@ -1733,7 +1733,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
 
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
       .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY, CURRENCY)
-      .returns(fundingCycle, AMOUNT_TO_DISTRIBUTE);
+      .returns(fundingCycle, AMOUNT_DISTRIBUTED);
 
     await jbEthPaymentTerminal.connect(terminalOwner).setFeeGauge(mockJbFeeGauge.address);
 
@@ -1800,7 +1800,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         projectOwner.address,
         /*_amount*/ AMOUNT_TO_DISTRIBUTE,
-        /*_distributedAmount*/ AMOUNT_TO_DISTRIBUTE,
+        /*_distributedAmount*/ AMOUNT_DISTRIBUTED,
         /*_feeAmount*/ FEE_AMOUNT,
         /*_leftoverDistributionAmount*/ 0,
         MEMO,
@@ -2080,9 +2080,9 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       DEFAULT_FEE - Math.floor((DEFAULT_FEE * FEE_DISCOUNT) / MAX_FEE_DISCOUNT);
 
     const FEE_AMOUNT =
-      AMOUNT_TO_DISTRIBUTE - Math.floor((AMOUNT_TO_DISTRIBUTE * MAX_FEE) / (DISCOUNTED_FEE + MAX_FEE));
+      AMOUNT_DISTRIBUTED - Math.floor((AMOUNT_DISTRIBUTED * MAX_FEE) / (DISCOUNTED_FEE + MAX_FEE));
 
-    const AMOUNT_MINUS_FEES = AMOUNT_TO_DISTRIBUTE - FEE_AMOUNT;
+    const AMOUNT_MINUS_FEES = AMOUNT_DISTRIBUTED - FEE_AMOUNT;
 
     await jbEthPaymentTerminal.connect(terminalOwner).setFeeGauge(mockJbFeeGauge.address);
 
@@ -2112,7 +2112,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
 
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
       .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY, CURRENCY)
-      .returns(fundingCycle, AMOUNT_TO_DISTRIBUTE);
+      .returns(fundingCycle, AMOUNT_DISTRIBUTED);
 
     await Promise.all(
       splits.map(async (split) => {
@@ -2170,7 +2170,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         projectOwner.address,
         /*_amount*/ AMOUNT_TO_DISTRIBUTE,
-        /*_distributedAmount*/ AMOUNT_TO_DISTRIBUTE,
+        /*_distributedAmount*/ AMOUNT_DISTRIBUTED,
         /*_feeAmount*/ FEE_AMOUNT,
         /*_leftoverDistributionAmount*/ 0,
         MEMO,
@@ -2181,7 +2181,6 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
   it('Should distribute payout and use the terminal of the project if project id is set in splits, for non-eth token', async function () {
     const {
       projectOwner,
-      terminalOwner,
       caller,
       jbErc20PaymentTerminal,
       timestamp,
@@ -2193,10 +2192,9 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       CURRENCY_USD
     } = await setup();
 
-    const FEE_AMOUNT =
-      AMOUNT_TO_DISTRIBUTE - Math.floor((AMOUNT_TO_DISTRIBUTE * MAX_FEE) / (DEFAULT_FEE + MAX_FEE));
+    const FEE_AMOUNT = AMOUNT_DISTRIBUTED - Math.floor((AMOUNT_DISTRIBUTED * MAX_FEE) / (DEFAULT_FEE + MAX_FEE));
 
-    const AMOUNT_MINUS_FEES = AMOUNT_TO_DISTRIBUTE - FEE_AMOUNT;
+    const AMOUNT_MINUS_FEES = AMOUNT_DISTRIBUTED - FEE_AMOUNT;
 
     const splits = makeSplits({ count: 2, projectId: OTHER_PROJECT_ID, preferAddToBalance: true });
 
@@ -2214,7 +2212,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
 
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
       .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY, CURRENCY_USD)
-      .returns(fundingCycle, AMOUNT_TO_DISTRIBUTE);
+      .returns(fundingCycle, AMOUNT_DISTRIBUTED);
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(OTHER_PROJECT_ID, fakeToken.address)
@@ -2309,7 +2307,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         projectOwner.address,
         /*_amount*/ AMOUNT_TO_DISTRIBUTE,
-        /*_distributedAmount*/ AMOUNT_TO_DISTRIBUTE,
+        /*_distributedAmount*/ AMOUNT_DISTRIBUTED,
         /*_feeAmount*/ FEE_AMOUNT,
         /*_leftoverDistributionAmount*/ 0,
         MEMO,
