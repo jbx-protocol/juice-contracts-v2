@@ -21,6 +21,12 @@ abstract contract JBControllerUtility is IJBControllerUtility {
   // ---------------------------- modifiers ---------------------------- //
   //*********************************************************************//
 
+  /** 
+    @notice
+    Only allows the controller of the specified project to proceed. 
+
+    @param _projectId The ID of the project. 
+  */
   modifier onlyController(uint256 _projectId) {
     if (address(directory.controllerOf(_projectId)) != msg.sender) revert CONTROLLER_UNAUTHORIZED();
     _;
