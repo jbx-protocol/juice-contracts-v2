@@ -121,10 +121,10 @@ describe('JBPayoutRedemptionPaymentTerminal::migrate(...)', function () {
 
     // addToBalanceOf _amount is 0 if ETH terminal
     await mockJbEthPaymentTerminal.mock.addToBalanceOf
-      .withArgs(PROJECT_ID, CURRENT_TERMINAL_BALANCE, TOKEN_ETH, '')
+      .withArgs(PROJECT_ID, CURRENT_TERMINAL_BALANCE, TOKEN_ETH, '', '0x')
       .returns();
     await mockJBERC20PaymentTerminal.mock.addToBalanceOf
-      .withArgs(PROJECT_ID, CURRENT_TERMINAL_BALANCE, NON_ETH_TOKEN, '')
+      .withArgs(PROJECT_ID, CURRENT_TERMINAL_BALANCE, NON_ETH_TOKEN, '', '0x')
       .returns();
 
     await setBalance(jbEthPaymentTerminal.address, CURRENT_TERMINAL_BALANCE);
