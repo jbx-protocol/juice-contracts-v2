@@ -2504,6 +2504,7 @@ describe.only('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', fun
           .withArgs(
             split.projectId,
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
+            0,
             '',
             caller.address,
           );
