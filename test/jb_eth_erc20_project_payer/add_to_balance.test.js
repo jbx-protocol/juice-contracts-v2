@@ -21,7 +21,7 @@ describe('JBETHERC20ProjectPayer::addToBalance(...)', function () {
   const PREFER_CLAIMED_TOKENS = true;
   const MIN_RETURNED_TOKENS = 1;
   const MEMO = 'hi world';
-  const METADATA = [0x2];
+  const METADATA = '0x69';
   const DECIMALS = 1;
   let ethToken;
 
@@ -79,6 +79,7 @@ describe('JBETHERC20ProjectPayer::addToBalance(...)', function () {
         AMOUNT,
         ethToken,
         MEMO,
+        METADATA
       )
       .returns();
 
@@ -89,6 +90,7 @@ describe('JBETHERC20ProjectPayer::addToBalance(...)', function () {
         AMOUNT,
         DECIMALS, // Dropped if token == eth
         MEMO,
+        METADATA,
         { value: AMOUNT }
       ),
     ).to.not.be.reverted;
@@ -109,6 +111,7 @@ describe('JBETHERC20ProjectPayer::addToBalance(...)', function () {
       AMOUNT,
       mockToken.address,
       MEMO,
+      METADATA,
       )
       .returns();
       
@@ -123,7 +126,8 @@ describe('JBETHERC20ProjectPayer::addToBalance(...)', function () {
         mockToken.address,
         AMOUNT,
         DECIMALS,
-        MEMO
+        MEMO,
+        METADATA
       )
     ).to.be.not.reverted;
     
@@ -142,7 +146,8 @@ describe('JBETHERC20ProjectPayer::addToBalance(...)', function () {
         ethToken,
         AMOUNT,
         DECIMALS,
-        MEMO
+        MEMO,
+        METADATA
       )
     ).to.be.revertedWith(errors.TERMINAL_NOT_FOUND);
   });
@@ -162,7 +167,8 @@ describe('JBETHERC20ProjectPayer::addToBalance(...)', function () {
           ethToken,
           AMOUNT,
           DECIMALS,
-          MEMO
+          MEMO,
+          METADATA
         )
     ).to.be.revertedWith(errors.INCORRECT_DECIMAL_AMOUNT);
   });
@@ -177,6 +183,7 @@ describe('JBETHERC20ProjectPayer::addToBalance(...)', function () {
         AMOUNT,
         DECIMALS,
         MEMO,
+        METADATA,
         {
           value: AMOUNT,
         },

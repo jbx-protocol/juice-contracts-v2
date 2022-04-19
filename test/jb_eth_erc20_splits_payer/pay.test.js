@@ -20,7 +20,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
   const DEFAULT_BENEFICIARY = ethers.Wallet.createRandom().address;
   const DEFAULT_PREFER_CLAIMED_TOKENS = false;
   const DEFAULT_MEMO = 'hello world';
-  const DEFAULT_METADATA = [0x1];
+  const DEFAULT_METADATA = '0x42';
 
   const PROJECT_ID = 69;
   const AMOUNT = ethers.utils.parseEther('1.0');
@@ -259,6 +259,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
             AMOUNT.mul(split.percent).div(maxSplitsPercent),
             ethToken,
             DEFAULT_MEMO,
+            DEFAULT_METADATA
           )
           .returns();
       })

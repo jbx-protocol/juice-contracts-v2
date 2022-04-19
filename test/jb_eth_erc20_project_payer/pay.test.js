@@ -13,7 +13,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
   const INITIAL_BENEFICIARY = ethers.Wallet.createRandom().address;
   const INITIAL_PREFER_CLAIMED_TOKENS = false;
   const INITIAL_MEMO = 'hello world';
-  const INITIAL_METADATA = [0x1];
+  const INITIAL_METADATA = '0x69';
   const INITIAL_PREFER_ADD_TO_BALANCE = false;
   const PROJECT_ID = 7;
   const AMOUNT = ethers.utils.parseEther('1.0');
@@ -21,7 +21,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
   const PREFER_CLAIMED_TOKENS = true;
   const MIN_RETURNED_TOKENS = 1;
   const MEMO = 'hi world';
-  const METADATA = [0x2];
+  const METADATA = '0x42';
   const DECIMALS = 1;
   let ethToken;
 
@@ -209,6 +209,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
         AMOUNT,
         ethToken,
         MEMO,
+        METADATA
       )
       .returns();
 
@@ -219,6 +220,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
         AMOUNT,
         DECIMALS,
         MEMO,
+        METADATA,
         {
           value: AMOUNT,
         },
@@ -241,6 +243,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
         AMOUNT,
         mockJbToken.address,
         MEMO,
+        METADATA
       )
       .returns();
 
@@ -260,6 +263,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
           AMOUNT,
           9,
           MEMO,
+          METADATA
         ),
     ).to.not.be.reverted;
   });
@@ -374,6 +378,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
         AMOUNT,
         ethToken,
         INITIAL_MEMO,
+        INITIAL_METADATA
       )
       .returns();
 

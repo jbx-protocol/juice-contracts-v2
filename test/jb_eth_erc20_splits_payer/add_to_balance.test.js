@@ -20,7 +20,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
   const DEFAULT_BENEFICIARY = ethers.Wallet.createRandom().address;
   const DEFAULT_PREFER_CLAIMED_TOKENS = false;
   const DEFAULT_MEMO = 'hello world';
-  const DEFAULT_METADATA = [0x1];
+  const DEFAULT_METADATA = '0x42';
 
   const PROJECT_ID = 69;
   const AMOUNT = ethers.utils.parseEther('1.0');
@@ -29,7 +29,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
   const PREFER_CLAIMED_TOKENS = true;
   const MIN_RETURNED_TOKENS = 1;
   const MEMO = 'hi world';
-  const METADATA = [0x2];
+  const METADATA = '0x69';
 
   let ethToken;
   let maxSplitsPercent;
@@ -126,6 +126,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         AMOUNT,
         DECIMALS,
         MEMO,
+        METADATA,
         {
           value: AMOUNT,
         },
@@ -165,6 +166,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         DECIMALS,
         0, //leftover
         MEMO,
+        METADATA,
         caller.address
       );
   });
@@ -213,7 +215,8 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         mockToken.address,
         AMOUNT,
         DECIMALS,
-        MEMO
+        MEMO,
+        METADATA,
       );
 
     await expect(tx).to.emit(jbSplitsPayer, 'AddToBalance')
@@ -225,6 +228,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         DECIMALS,
         0, //leftover
         MEMO,
+        METADATA,
         caller.address
       );
 
@@ -270,6 +274,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
             AMOUNT.mul(split.percent).div(maxSplitsPercent),
             ethToken,
             DEFAULT_MEMO,
+            DEFAULT_METADATA
           )
           .returns();
       })
@@ -287,6 +292,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         AMOUNT,
         DECIMALS,
         MEMO,
+        METADATA,
         {
           value: AMOUNT,
         },
@@ -304,6 +310,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         DECIMALS,
         0, //leftover
         MEMO,
+        METADATA,
         caller.address
       );
 
@@ -369,6 +376,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         AMOUNT,
         DECIMALS,
         MEMO,
+        METADATA,
         {
           value: AMOUNT,
         },
@@ -386,6 +394,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         DECIMALS,
         0, //leftover
         MEMO,
+        METADATA,
         caller.address
       );
 
@@ -452,6 +461,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         AMOUNT,
         DECIMALS,
         MEMO,
+        METADATA,
         {
           value: AMOUNT,
         },
@@ -469,6 +479,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         DECIMALS,
         0, //leftover
         MEMO,
+        METADATA,
         caller.address
       );
 
@@ -512,6 +523,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         AMOUNT,
         DECIMALS,
         MEMO,
+        METADATA,
         {
           value: AMOUNT,
         },
@@ -529,6 +541,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         DECIMALS,
         0, //leftover
         MEMO,
+        METADATA,
         caller.address
       );
 
@@ -572,6 +585,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         AMOUNT,
         DECIMALS,
         MEMO,
+        METADATA,
         {
           value: AMOUNT,
         },
@@ -589,6 +603,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         DECIMALS,
         0, //leftover
         MEMO,
+        METADATA,
         caller.address
       );
   });
@@ -615,6 +630,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         AMOUNT.div('2'),
         ethToken,
         MEMO,
+        METADATA
       )
       .returns();
 
@@ -626,6 +642,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         AMOUNT,
         DECIMALS,
         MEMO,
+        METADATA,
         {
           value: AMOUNT,
         },
@@ -643,6 +660,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         DECIMALS,
         AMOUNT.div('2'), //leftover
         MEMO,
+        METADATA,
         caller.address
       );
   });
@@ -689,6 +707,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         AMOUNT.div('2'),
         mockToken.address,
         MEMO,
+        METADATA
       )
       .returns();
 
@@ -700,6 +719,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         AMOUNT,
         DECIMALS,
         MEMO,
+        METADATA
       )
     ).to
       .emit(jbSplitsPayer, 'AddToBalance')
@@ -711,6 +731,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         DECIMALS,
         AMOUNT.div('2'), //leftover
         MEMO,
+        METADATA,
         caller.address
       );
   });
@@ -762,6 +783,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         AMOUNT,
         DECIMALS,
         MEMO,
+        METADATA,
         {
           value: AMOUNT,
         },
@@ -779,6 +801,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         DECIMALS,
         AMOUNT.div('2'), //leftover
         MEMO,
+        METADATA,
         caller.address
       );
   });
@@ -834,6 +857,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         AMOUNT,
         DECIMALS,
         MEMO,
+        METADATA
       )
     ).to.emit(jbSplitsPayer, 'AddToBalance')
       .withArgs(
@@ -844,6 +868,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         DECIMALS,
         AMOUNT.div('2'), //leftover
         MEMO,
+        METADATA,
         caller.address
       );
   });
@@ -895,6 +920,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         AMOUNT,
         DECIMALS,
         MEMO,
+        METADATA,
         {
           value: AMOUNT,
         },
@@ -911,6 +937,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         DECIMALS,
         AMOUNT.div('2'), //leftover
         MEMO,
+        METADATA,
         caller.address
       );
   });
@@ -966,6 +993,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         AMOUNT,
         DECIMALS,
         MEMO,
+        METADATA
       )
     ).to
       .emit(jbSplitsPayer, 'AddToBalance')
@@ -977,6 +1005,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
         DECIMALS,
         AMOUNT.div('2'), //leftover
         MEMO,
+        METADATA,
         caller.address
       );
   });
@@ -992,6 +1021,7 @@ describe('JBETHERC20SplitsPayer::addToBalance(...)', function () {
           AMOUNT,
           DECIMALS,
           MEMO,
+          METADATA,
           {
             value: AMOUNT,
           }
