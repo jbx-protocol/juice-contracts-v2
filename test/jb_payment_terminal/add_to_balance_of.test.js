@@ -165,7 +165,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
       .withArgs(PROJECT_ID, AMOUNT)
       .returns();
 
-    await setBalance(jbEthPaymentTerminal.address, AMOUNT);
+    await network.provider.send('hardhat_setBalance', [jbEthPaymentTerminal.address, '0x100000000000000000000']);
 
     return {
       deployer,
@@ -383,7 +383,90 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
     // Only 10 left
     expect(heldFeeAfter[0].amount).to.equal(10);
   });
-  it('Should add to the project balance, refund all the held fees if the amount if bigger and emit event', async function () {
+  it('Should add to the project balance, refund one out of multiple held fees bigger than the amount, keep the held fee difference and emit event', async function () {
+    const {
+      caller,
+      beneficiaryOne,
+      beneficiaryTwo,
+      jbEthPaymentTerminal,
+      timestamp,
+      mockJbSplitsStore,
+      mockJBPaymentTerminalStore,
+      fundingCycle,
+    } = await setup();
+    const splits = makeSplits({
+      count: 2,
+      beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
+    });
+
+    await mockJbSplitsStore.mock.splitsOf
+      .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
+      .returns(splits);
+
+    await mockJBPaymentTerminalStore.mock.recordDistributionFor
+      .withArgs(PROJECT_ID, AMOUNT.div(2), CURRENCY_ETH, CURRENCY_ETH)
+      .returns(
+        {
+          number: 1,
+          configuration: timestamp,
+          basedOn: timestamp,
+          start: timestamp,
+          duration: 0,
+          weight: 0,
+          discountRate: 0,
+          ballot: ethers.constants.AddressZero,
+          metadata: packFundingCycleMetadata({ holdFees: 1 }),
+        },
+        AMOUNT,
+      );
+
+    await jbEthPaymentTerminal
+      .connect(caller)
+      .distributePayoutsOf(PROJECT_ID, AMOUNT, ETH_PAYOUT_INDEX, MIN_TOKEN_REQUESTED, MEMO);
+
+    await jbEthPaymentTerminal
+      .connect(caller)
+      .distributePayoutsOf(PROJECT_ID, AMOUNT, ETH_PAYOUT_INDEX, MIN_TOKEN_REQUESTED, MEMO);
+
+    let heldFee = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
+
+    // Both held fees are identical:
+    let discountedFee =
+      ethers.BigNumber.from(heldFee[0].fee)
+        .sub(
+          ethers.BigNumber.from(heldFee[0].fee)
+            .mul(ethers.BigNumber.from(heldFee[0].feeDiscount))
+            .div(MAX_FEE_DISCOUNT)
+        );
+    
+    // Adding amount/4 to balance while there are 2 fee held on 'amount'
+    const amountToAdd = AMOUNT.div(2);
+
+    // fee from one distribute
+    let feeFromOneAmount = ethers.BigNumber.from(heldFee[0].amount).sub(ethers.BigNumber.from(heldFee[0].amount).mul(MAX_FEE).div(discountedFee.add(MAX_FEE)));
+    
+    // fee which can be used based on amountToAdd
+    let feeNetAmount = feeFromOneAmount.div(2);
+
+    await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor.withArgs(PROJECT_ID, amountToAdd.add(feeNetAmount)).returns();
+
+    expect(
+      await jbEthPaymentTerminal
+        .connect(caller)
+        .addToBalanceOf(PROJECT_ID, amountToAdd, ETH_ADDRESS, MEMO, METADATA, { value: amountToAdd }),
+    )
+      .to.emit(jbEthPaymentTerminal, 'AddToBalance')
+      .withArgs(PROJECT_ID, amountToAdd, feeNetAmount, MEMO, METADATA, caller.address)
+      .and.to.emit(jbEthPaymentTerminal, 'RefundHeldFees')
+      // add to balance: amountToAdd -> refund feeNetAmount * 0.75 and left over is 0
+      .withArgs(PROJECT_ID, amountToAdd/*amount*/, feeNetAmount/*refund*/, 0/*leftOver*/,caller.address);
+
+    let heldFeeAfter = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
+    
+    // Only 25% of the initial held fee left
+    expect(heldFeeAfter[0].amount).to.equal(AMOUNT.div(2));
+  });
+  it('Should add to the project balance, refund all the held fees if the amount to add to balance if bigger and emit event', async function () {
     const {
       caller,
       beneficiaryOne,
