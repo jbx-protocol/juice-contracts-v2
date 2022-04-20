@@ -723,7 +723,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       // Process the fee.
       _processFee(_amount, _heldFees[_i].beneficiary);
 
-      emit ProcessFee(_projectId, _amount, msg.sender);
+      emit ProcessFee(_projectId, _amount, _heldFees[_i].beneficiary, msg.sender);
     }
   }
 

@@ -60,7 +60,12 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
     address beneficiary,
     address caller
   );
-  event ProcessFee(uint256 indexed projectId, uint256 indexed amount, address caller);
+  event ProcessFee(
+    uint256 indexed projectId,
+    uint256 indexed amount,
+    address beneficiary,
+    address caller
+  );
   event Pay(
     uint256 indexed fundingCycleConfiguration,
     uint256 indexed fundingCycleNumber,

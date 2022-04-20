@@ -659,20 +659,13 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     // Process held fees
     const tx = await jbEthPaymentTerminal.connect(projectOwner).processFees(PROJECT_ID);
 
-    expect(await tx).to.emit(jbEthPaymentTerminal, 'ProcessFees');
-    /** @dev Chai matchers can't seem to match these args. */
-    // .withArgs(
-    //   PROJECT_ID,
-    //   [
-    //     [
-    //       ethers.BigNumber.from(AMOUNT),
-    //       DEFAULT_FEE,
-    //       projectOwner.address,
-    //       '',
-    //     ],
-    //   ],
-    //   projectOwner.address,
-    // );
+    expect(await tx).to.emit(jbEthPaymentTerminal, 'ProcessFee')
+      .withArgs(
+        PROJECT_ID,
+        ethers.BigNumber.from(AMOUNT).sub(ethers.BigNumber.from(AMOUNT).mul(MAX_FEE).div(ethers.BigNumber.from(MAX_FEE).add(DEFAULT_FEE))),
+        projectOwner.address,
+        projectOwner.address,
+      );
 
     // Held fees shoudn't exist after being processed
     expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([]);
@@ -759,20 +752,13 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     // Process held fees
     const tx = await jbEthPaymentTerminal.connect(caller).processFees(PROJECT_ID);
 
-    expect(await tx).to.emit(jbEthPaymentTerminal, 'ProcessFees');
-    /** @dev Chai matchers can't seem to match these args even though I've inspected the data inside to be exactly the same. */
-    // .withArgs(
-    //   PROJECT_ID,
-    //   [
-    //     [
-    //       ethers.BigNumber.from(AMOUNT),
-    //       DEFAULT_FEE,
-    //       projectOwner.address,
-    //       '',
-    //     ],
-    //   ],
-    //   projectOwner.address,
-    // );
+    expect(await tx).to.emit(jbEthPaymentTerminal, 'ProcessFee')
+      .withArgs(
+        PROJECT_ID,
+        ethers.BigNumber.from(AMOUNT).sub(ethers.BigNumber.from(AMOUNT).mul(MAX_FEE).div(ethers.BigNumber.from(MAX_FEE).add(DEFAULT_FEE))),
+        projectOwner.address,
+        caller.address,
+      );
 
     // Held fees shoudn't exist after being processed
     expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([]);
