@@ -3,17 +3,19 @@ pragma solidity 0.8.6;
 
 import './JBSplit.sol';
 
+/** 
+  @member token The token being sent to the split allocator.
+  @member amount The amount being sent to the split allocator, as a fixed point number.
+  @member decimals The number of decimals in the amount.
+  @member projectId The project to which the split belongs.
+  @member group The group to which the split belongs.
+  @member split The split that caused the allocation.
+*/
 struct JBSplitAllocationData {
-  // The token being sent to the split allocator.
   address token;
-  // The amount being sent to the split allocator, as a fixed point number.
   uint256 amount;
-  // The number of decimals in the amount.
   uint256 decimals;
-  // The project to which the split belongs.
   uint256 projectId;
-  // The group to which the split belongs.
   uint256 group;
-  // The split that caused the allocation.
   JBSplit split;
 }
