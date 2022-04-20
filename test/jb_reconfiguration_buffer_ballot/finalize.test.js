@@ -96,7 +96,7 @@ describe('JBReconfigurationBufferBallot::finalize(...)', function () {
     expect(await jbBallot.stateOf(PROJECT_ID, configuration, configuration-1)).to.equal(2);
   });
 
-  it.only('Should not finalize an Active ballot', async function () {
+  it('Should not finalize an Active ballot', async function () {
     const { caller, timestamp, jbBallot, mockJbFundingCycleStore } = await setup();
 
     const blockNum = await ethers.provider.getBlockNumber();
