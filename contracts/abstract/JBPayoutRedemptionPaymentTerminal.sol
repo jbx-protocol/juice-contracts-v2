@@ -335,7 +335,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _minReturnedTokens The minimum amount of terminal tokens expected in return, as a fixed point number with the same amount of decimals as the terminal.
     @param _beneficiary The address to send the terminal tokens to.
     @param _memo A memo to pass along to the emitted event.
-    @param _metadata Bytes to send along to the data source and delegate, if provided.
+    @param _metadata Bytes to send along to the data source, delegate, and emitted event, if provided.
 
     @return reclaimAmount The amount of terminal tokens that the project tokens were redeemed for, as a fixed point number with 18 decimals.
   */
@@ -417,6 +417,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       _tokenCount,
       reclaimAmount,
       _memo,
+      _metadata,
       msg.sender
     );
   }
@@ -662,7 +663,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _amount The amount of tokens to add, as a fixed point number with the same number of decimals as this terminal. If this is an ETH terminal, this is ignored and msg.value is used instead.
     ignored: _token The token being paid. This terminal ignores this property since it only manages one currency. 
     @param _memo A memo to pass along to the emitted event.
-    @param _metadata Metadata to pass along to the emitted event.
+    @param _metadata Extra data to pass along to the emitted event.
   */
   function addToBalanceOf(
     uint256 _projectId,
@@ -723,7 +724,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       // Process the fee.
       _processFee(_amount, _heldFees[_i].beneficiary);
 
-      emit ProcessFee(_projectId, _amount, _heldFees[_i].beneficiary, msg.sender);
+      emit ProcessFee(_projectId, _amount, true, _heldFees[_i].beneficiary, msg.sender);
     }
   }
 
@@ -988,7 +989,12 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       // Store the held fee.
       _heldFeesOf[_projectId].push(JBFee(_amount, uint32(fee), uint32(_feeDiscount), _beneficiary));
       emit HoldFee(_projectId, _amount, fee, _feeDiscount, _beneficiary, msg.sender);
-    } else _processFee(feeAmount, _beneficiary); // Take the fee.
+    } else {
+      // Process the fee.
+      _processFee(feeAmount, _beneficiary); // Take the fee.
+
+      emit ProcessFee(_projectId, feeAmount, false, _beneficiary, msg.sender);
+    }
   }
 
   /**

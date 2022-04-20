@@ -224,7 +224,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with 18 decimals.
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate. A data source can alter the memo before emitting in the event and forwarding to the delegate.
-    @param _metadata Bytes to send along to the data source and delegate, if provided.
+    @param _metadata Bytes to send along to the data source, delegate, and emitted event, if provided.
   */
   function pay(
     uint256 _projectId,
@@ -363,7 +363,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     @param _amount The amount of tokens being paid, as a fixed point number. If the token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. If the token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
     @param _memo A memo to pass along to the emitted event.
-    @param _metadata Metadata to pass along to the terminal.
+    @param _metadata Extra data to pass along to the terminal.
   */
   function _addToBalanceOf(
     uint256 _projectId,

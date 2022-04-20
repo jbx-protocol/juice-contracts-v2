@@ -248,8 +248,8 @@ contract JBController is IJBController, JBOperatable {
 
     @param _projectId The ID of the project to which the funding cycle belongs.
   
-    @return fundingCycle The current funding cycle.
-    @return metadata The current funding cycle's metadata.
+    @return fundingCycle The latest configured funding cycle.
+    @return metadata The latest configured funding cycle's metadata.
     @return ballotState The state of the configuration.
   */
   function latestConfiguredFundingCycleOf(uint256 _projectId)

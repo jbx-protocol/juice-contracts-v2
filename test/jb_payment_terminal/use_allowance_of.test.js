@@ -651,14 +651,14 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         MEMO,
       )
     ).to.emit(jbEthPaymentTerminal, 'HoldFee')
-    .withArgs(
-      PROJECT_ID,
-      AMOUNT,
-      DEFAULT_FEE,
-      0, // discount fee
-      projectOwner.address,
-      projectOwner.address
-    );
+      .withArgs(
+        PROJECT_ID,
+        AMOUNT,
+        DEFAULT_FEE,
+        0, // discount fee
+        projectOwner.address,
+        projectOwner.address
+      );
 
     // Should be holding fees in the contract
     expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([
@@ -672,6 +672,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
       .withArgs(
         PROJECT_ID,
         ethers.BigNumber.from(AMOUNT).sub(ethers.BigNumber.from(AMOUNT).mul(MAX_FEE).div(ethers.BigNumber.from(MAX_FEE).add(DEFAULT_FEE))),
+        true,
         projectOwner.address,
         projectOwner.address,
       );
@@ -774,6 +775,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
       .withArgs(
         PROJECT_ID,
         ethers.BigNumber.from(AMOUNT).sub(ethers.BigNumber.from(AMOUNT).mul(MAX_FEE).div(ethers.BigNumber.from(MAX_FEE).add(DEFAULT_FEE))),
+        true,
         projectOwner.address,
         caller.address,
       );

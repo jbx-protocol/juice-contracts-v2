@@ -22,12 +22,14 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
     bytes metadata,
     address caller
   );
+
   event Migrate(
     uint256 indexed projectId,
     IJBPaymentTerminal indexed to,
     uint256 amount,
     address caller
   );
+
   event DistributePayouts(
     uint256 indexed fundingCycleConfiguration,
     uint256 indexed fundingCycleNumber,
@@ -52,6 +54,7 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
     string memo,
     address caller
   );
+
   event HoldFee(
     uint256 indexed projectId,
     uint256 indexed amount,
@@ -60,12 +63,23 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
     address beneficiary,
     address caller
   );
+
   event ProcessFee(
     uint256 indexed projectId,
     uint256 indexed amount,
+    bool indexed wasHeld,
     address beneficiary,
     address caller
   );
+
+  event RefundHeldFees(
+    uint256 indexed projectId,
+    uint256 indexed amount,
+    uint256 indexed refundedFees,
+    uint256 leftoverAmount,
+    address caller
+  );
+
   event Pay(
     uint256 indexed fundingCycleConfiguration,
     uint256 indexed fundingCycleNumber,
@@ -78,7 +92,9 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
     bytes metadata,
     address caller
   );
+
   event DelegateDidPay(IJBPayDelegate indexed delegate, JBDidPayData data, address caller);
+
   event RedeemTokens(
     uint256 indexed fundingCycleConfiguration,
     uint256 indexed fundingCycleNumber,
@@ -88,14 +104,7 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
     uint256 tokenCount,
     uint256 reclaimedAmount,
     string memo,
-    address caller
-  );
-
-  event RefundHeldFees(
-    uint256 indexed projectId,
-    uint256 indexed amount,
-    uint256 indexed refundedFees,
-    uint256 leftoverAmount,
+    bytes metadata,
     address caller
   );
 

@@ -111,6 +111,7 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     // Resolve the funding cycle for the latest configuration.
     fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
 
+    // Resolve the ballot state.
     ballotState = _ballotStateOf(
       _projectId,
       fundingCycle.configuration,
