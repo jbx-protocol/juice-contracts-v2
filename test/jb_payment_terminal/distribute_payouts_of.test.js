@@ -306,7 +306,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             split.projectId,
             CURRENCY,
             '',
-            '0x',
+            ethers.utils.hexZeroPad(ethers.utils.hexlify(PROJECT_ID), 32)
           )
           .returns(fundingCycle, /*count*/ 0, /* delegate */ ethers.constants.AddressZero, '');
       }),
@@ -354,7 +354,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             0,
             '',
-            '0x',
+            ethers.utils.hexZeroPad(ethers.utils.hexlify(PROJECT_ID), 32),
             caller.address,
           );
       }),
@@ -422,7 +422,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             split.projectId,
             CURRENCY,
             '',
-            '0x',
+            ethers.utils.hexZeroPad(ethers.utils.hexlify(PROJECT_ID), 32),
           )
           .returns(fundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
       }),
@@ -470,7 +470,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             0,
             '',
-            '0x',
+            ethers.utils.hexZeroPad(ethers.utils.hexlify(PROJECT_ID), 32),
             caller.address,
           );
       }),
@@ -2368,7 +2368,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             split.projectId,
             CURRENCY,
             '',
-            '0x',
+            ethers.utils.hexZeroPad(ethers.utils.hexlify(PROJECT_ID), 32),
           )
           .returns(fundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
       }),
@@ -2416,7 +2416,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             0,
             '',
-            '0x',
+            ethers.utils.hexZeroPad(ethers.utils.hexlify(PROJECT_ID), 32),
             caller.address,
           );
       }),
@@ -2515,7 +2515,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             Math.floor((AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT),
             0,
             '',
-            '0x',
+            ethers.utils.hexZeroPad(ethers.utils.hexlify(PROJECT_ID), 32),
             caller.address,
           );
       }),

@@ -876,9 +876,13 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             // This distribution does not incur a fee.
             _netPayoutAmount = _payoutAmount;
 
+            // Send the projectId in the metadata.
+            bytes memory _projectMetadata = new bytes(32);
+            _projectMetadata = bytes(abi.encodePacked(_projectId));
+
             // Add to balance if prefered.
             if (_split.preferAddToBalance)
-              _addToBalanceOf(_split.projectId, _netPayoutAmount, '', bytes(''));
+              _addToBalanceOf(_split.projectId, _netPayoutAmount, '', _projectMetadata);
             else
               _pay(
                 _netPayoutAmount,
@@ -888,7 +892,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
                 0,
                 _split.preferClaimed,
                 '',
-                bytes('')
+                _projectMetadata
               );
           } else {
             // If the terminal is set as feeless, this distribution is not eligible for a fee.
