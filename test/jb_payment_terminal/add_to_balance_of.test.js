@@ -230,7 +230,10 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
         .addToBalanceOf(PROJECT_ID, AMOUNT, ETH_ADDRESS, MEMO, METADATA, { value: AMOUNT }),
     )
       .to.emit(jbEthPaymentTerminal, 'AddToBalance')
-      .withArgs(PROJECT_ID, AMOUNT, feeNetAmount, MEMO, METADATA, caller.address);
+      .withArgs(PROJECT_ID, AMOUNT, feeNetAmount, MEMO, METADATA, caller.address)
+      .and.to.emit(jbEthPaymentTerminal, 'RefundHeldFees')
+      // add to balance: AMOUNT -> refund feeNetAmount (given AMOUNT > feeNetAmount) and left over is 0
+      .withArgs(PROJECT_ID, AMOUNT, feeNetAmount, 0 /*leftOver*/,caller.address);
 
     expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([]);
   });
@@ -297,7 +300,10 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
       await jbEthPaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, 1, ETH_ADDRESS, MEMO, METADATA, { value: 1 }),
     )
       .to.emit(jbEthPaymentTerminal, 'AddToBalance')
-      .withArgs(PROJECT_ID, 1, 1, MEMO, METADATA, caller.address);
+      .withArgs(PROJECT_ID, 1, 1, MEMO, METADATA, caller.address)
+      .and.to.emit(jbEthPaymentTerminal, 'RefundHeldFees')
+      // add to balance: 1 -> refund 1 and left over is 0
+      .withArgs(PROJECT_ID, 1/*amount*/, 1/*refund*/, 0 /*leftOver*/,caller.address);
 
     let heldFeeAfter = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
     expect(heldFeeAfter[0].amount).to.equal(heldFeeBefore[0].amount.sub(1));
@@ -368,11 +374,65 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
         .addToBalanceOf(PROJECT_ID, AMOUNT.sub('10'), ETH_ADDRESS, MEMO, METADATA, { value: AMOUNT.sub('10') }),
     )
       .to.emit(jbEthPaymentTerminal, 'AddToBalance')
-      .withArgs(PROJECT_ID, AMOUNT.sub('10'), feeNetAmount.add(feeNetAmount), MEMO, METADATA, caller.address);
+      .withArgs(PROJECT_ID, AMOUNT.sub('10'), feeNetAmount.add(feeNetAmount), MEMO, METADATA, caller.address)
+      .and.to.emit(jbEthPaymentTerminal, 'RefundHeldFees')
+      // add to balance: AMOUNT.sub('10') -> refund feeNetAmount.mul(2) and left over is 0
+      .withArgs(PROJECT_ID, AMOUNT.sub('10')/*amount*/, feeNetAmount.mul(2)/*refund*/, 0/*leftOver*/,caller.address);
 
     let heldFeeAfter = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
     // Only 10 left
     expect(heldFeeAfter[0].amount).to.equal(10);
+  });
+  it('Should add to the project balance, refund all the held fees if the amount if bigger and emit event', async function () {
+    const {
+      caller,
+      beneficiaryOne,
+      beneficiaryTwo,
+      jbEthPaymentTerminal,
+      timestamp,
+      mockJbSplitsStore,
+      mockJBPaymentTerminalStore,
+      fundingCycle,
+    } = await setup();
+    const splits = makeSplits({
+      count: 2,
+      beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
+    });
+
+    await mockJbSplitsStore.mock.splitsOf
+      .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
+      .returns(splits);
+
+    await jbEthPaymentTerminal
+      .connect(caller)
+      .distributePayoutsOf(PROJECT_ID, AMOUNT, ETH_PAYOUT_INDEX, MIN_TOKEN_REQUESTED, MEMO);
+
+    // Only one held fee
+    let heldFeeBefore = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
+    
+    let discountedFee = ethers.BigNumber.from(heldFeeBefore[0].fee)
+      .sub(
+        ethers.BigNumber.from(heldFeeBefore[0].fee)
+          .mul(ethers.BigNumber.from(heldFeeBefore[0].feeDiscount))
+          .div(MAX_FEE_DISCOUNT)
+      );
+
+    let netHeldFee = ethers.BigNumber.from(heldFeeBefore[0].amount).sub(ethers.BigNumber.from(heldFeeBefore[0].amount).mul(MAX_FEE).div(discountedFee.add(MAX_FEE)));
+
+    // both total amount and refund fee are added
+    await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor.withArgs(PROJECT_ID, (AMOUNT.mul(2)).add(netHeldFee)).returns();
+    
+    expect(
+      await jbEthPaymentTerminal.connect(caller).addToBalanceOf(PROJECT_ID, AMOUNT.mul(2), ETH_ADDRESS, MEMO, METADATA, { value: AMOUNT.mul(2) }),
+    )
+      .to.emit(jbEthPaymentTerminal, 'AddToBalance')
+      .withArgs(PROJECT_ID, AMOUNT.mul(2), netHeldFee, MEMO, METADATA, caller.address)
+      .and.to.emit(jbEthPaymentTerminal, 'RefundHeldFees')
+      // add to balance: AMOUNT*2 -> refund the whole net fee and the left over is the amount for which a fee wasn't refunded
+      .withArgs(PROJECT_ID, AMOUNT.mul(2)/*amount*/, netHeldFee/*refund*/, AMOUNT /*leftOver*/,caller.address);
+
+    let heldFeeAfter = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
+    expect(heldFeeAfter).to.eql([]);
   });
   it("Can't add with value if terminal token isn't ETH", async function () {
     const { caller, JBERC20PaymentTerminal, mockJbToken } = await setup();
