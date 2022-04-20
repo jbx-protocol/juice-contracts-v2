@@ -105,8 +105,16 @@ describe('JBPayoutRedemptionPaymentTerminal::getters', function () {
     ).to.be.true;
 
     expect(
+      await JBERC20PaymentTerminal.acceptsToken(ETH_ADDRESS)
+    ).to.be.false;
+
+    expect(
       await jbEthPaymentTerminal.acceptsToken(ETH_ADDRESS)
     ).to.be.true;
+
+    expect(
+      await jbEthPaymentTerminal.acceptsToken(NON_ETH_TOKEN)
+    ).to.be.false;
   });
 
   it("Should return the decimals for the token", async function () {
