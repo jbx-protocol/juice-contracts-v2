@@ -17,7 +17,7 @@ import './../interfaces/IJBPaymentTerminal.sol';
   @member redemptionRate The redemption rate of the funding cycle during which the redemption is being made.
   @member ballotRedemptionRate The ballot redemption rate of the funding cycle during which the redemption is being made.
   @member memo The proposed memo that is being emitted alongside the redemption.
-  @member metadata Arbitrary metadata provided by the redeemer.
+  @member metadata Extra data provided by the redeemer.
 */
 struct JBRedeemParamsData {
   IJBPaymentTerminal terminal;

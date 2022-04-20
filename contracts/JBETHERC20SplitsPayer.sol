@@ -302,7 +302,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
     @param _amount The amount of tokens being paid, as a fixed point number. If the token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. If the token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
     @param _memo A memo to pass along to the emitted event.  
-    @param _metadata Metadata to pass along to the terminal.
+    @param _metadata Extra data to pass along to the terminal.
   */
   function addToBalanceOf(
     uint256 _projectId,

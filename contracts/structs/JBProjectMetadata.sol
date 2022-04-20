@@ -2,7 +2,7 @@
 pragma solidity 0.8.6;
 
 /** 
-  @member content Metadata content.
+  @member content The metadata content.
   @member domain The domain within which the metadata applies.
 */
 struct JBProjectMetadata {

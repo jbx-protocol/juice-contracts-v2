@@ -12,7 +12,7 @@ import './JBTokenAmount.sol';
   @member weight The weight of the funding cycle during which the payment is being made.
   @member reservedRate The reserved rate of the funding cycle during which the payment is being made.
   @member memo The memo that was sent alongside the payment.
-  @member metadata Arbitrary metadata provided by the payer.
+  @member metadata Extra data provided by the payer.
 */
 struct JBPayParamsData {
   IJBPaymentTerminal terminal;

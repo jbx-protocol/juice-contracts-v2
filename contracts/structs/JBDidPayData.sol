@@ -10,7 +10,7 @@ import './JBTokenAmount.sol';
   @member projectTokenCount The number of project tokens minted for the beneficiary.
   @member beneficiary The address to which the tokens were minted.
   @member memo The memo that is being emitted alongside the payment.
-  @member metadata Metadata to send to the delegate.
+  @member metadata Extra data to send to the delegate.
 */
 struct JBDidPayData {
   address payer;
