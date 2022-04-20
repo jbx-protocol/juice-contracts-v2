@@ -712,13 +712,19 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     delete _heldFeesOf[_projectId];
 
     // Process each fee.
-    for (uint256 _i = 0; _i < _heldFees.length; _i++)
-      _processFee(
-        _feeAmount(_heldFees[_i].amount, _heldFees[_i].fee, _heldFees[_i].feeDiscount),
-        _heldFees[_i].beneficiary
+    for (uint256 _i = 0; _i < _heldFees.length; _i++) {
+      // Get the fee amount.
+      uint256 _amount = _feeAmount(
+        _heldFees[_i].amount,
+        _heldFees[_i].fee,
+        _heldFees[_i].feeDiscount
       );
 
-    emit ProcessFees(_projectId, _heldFees, msg.sender);
+      // Process the fee.
+      _processFee(_amount, _heldFees[_i].beneficiary);
+
+      emit ProcessFee(_projectId, _amount, msg.sender);
+    }
   }
 
   /**
@@ -977,11 +983,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _feeDiscount
   ) private returns (uint256 feeAmount) {
     feeAmount = _feeAmount(_amount, fee, _feeDiscount);
-    _fundingCycle.shouldHoldFees()
-      ? _heldFeesOf[_projectId].push(
-        JBFee(_amount, uint32(fee), uint32(_feeDiscount), _beneficiary)
-      )
-      : _processFee(feeAmount, _beneficiary); // Take the fee.
+    if (_fundingCycle.shouldHoldFees()) {
+      // Store the held fee.
+      _heldFeesOf[_projectId].push(JBFee(_amount, uint32(fee), uint32(_feeDiscount), _beneficiary));
+      emit HoldFee(_projectId, _amount, fee, _feeDiscount, _beneficiary, msg.sender);
+    } else _processFee(feeAmount, _beneficiary); // Take the fee.
   }
 
   /**
@@ -1158,11 +1164,14 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Delete the current held fees.
     delete _heldFeesOf[_projectId];
 
+    // Get a reference to the leftover amount once all fees have been settled.
+    uint256 leftoverAmount = _amount;
+
     // Process each fee.
     for (uint256 _i = 0; _i < _heldFees.length; _i++) {
-      if (_amount == 0) _heldFeesOf[_projectId].push(_heldFees[_i]);
-      else if (_amount >= _heldFees[_i].amount) {
-        _amount = _amount - _heldFees[_i].amount;
+      if (leftoverAmount == 0) _heldFeesOf[_projectId].push(_heldFees[_i]);
+      else if (leftoverAmount >= _heldFees[_i].amount) {
+        leftoverAmount = leftoverAmount - _heldFees[_i].amount;
         refundedFees += _feeAmount(
           _heldFees[_i].amount,
           _heldFees[_i].fee,
@@ -1171,16 +1180,18 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       } else {
         _heldFeesOf[_projectId].push(
           JBFee(
-            _heldFees[_i].amount - _amount,
+            _heldFees[_i].amount - leftoverAmount,
             _heldFees[_i].fee,
             _heldFees[_i].feeDiscount,
             _heldFees[_i].beneficiary
           )
         );
-        refundedFees += _feeAmount(_amount, _heldFees[_i].fee, _heldFees[_i].feeDiscount);
-        _amount = 0;
+        refundedFees += _feeAmount(leftoverAmount, _heldFees[_i].fee, _heldFees[_i].feeDiscount);
+        leftoverAmount = 0;
       }
     }
+
+    emit RefundHeldFees(_projectId, _amount, refundedFees, leftoverAmount, msg.sender);
   }
 
   /** 

@@ -52,7 +52,15 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
     string memo,
     address caller
   );
-  event ProcessFees(uint256 indexed projectId, JBFee[] fees, address caller);
+  event HoldFee(
+    uint256 indexed projectId,
+    uint256 indexed amount,
+    uint256 indexed fee,
+    uint256 feeDiscount,
+    address beneficiary,
+    address caller
+  );
+  event ProcessFee(uint256 indexed projectId, uint256 indexed amount, address caller);
   event Pay(
     uint256 indexed fundingCycleConfiguration,
     uint256 indexed fundingCycleNumber,
@@ -75,6 +83,14 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
     uint256 tokenCount,
     uint256 reclaimedAmount,
     string memo,
+    address caller
+  );
+
+  event RefundHeldFees(
+    uint256 indexed projectId,
+    uint256 indexed amount,
+    uint256 indexed refundedFees,
+    uint256 leftoverAmount,
     address caller
   );
 
