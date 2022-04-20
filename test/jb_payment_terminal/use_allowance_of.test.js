@@ -640,7 +640,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
 
     // Use allowance and hold fee
-    await jbEthPaymentTerminal
+    expect(await jbEthPaymentTerminal
       .connect(projectOwner)
       .useAllowanceOf(
         PROJECT_ID,
@@ -649,7 +649,16 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO,
-      );
+      )
+    ).to.emit(jbEthPaymentTerminal, 'HoldFee')
+    .withArgs(
+      PROJECT_ID,
+      AMOUNT,
+      DEFAULT_FEE,
+      0, // discount fee
+      projectOwner.address,
+      projectOwner.address
+    );
 
     // Should be holding fees in the contract
     expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([
@@ -729,7 +738,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
 
     // Use allowance and hold fee
-    await jbEthPaymentTerminal
+    expect(await jbEthPaymentTerminal
       .connect(projectOwner)
       .useAllowanceOf(
         PROJECT_ID,
@@ -738,6 +747,15 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO,
+      )
+    ).to.emit(jbEthPaymentTerminal, 'HoldFee')
+      .withArgs(
+        PROJECT_ID,
+        AMOUNT,
+        DEFAULT_FEE,
+        0, // discount fee
+        projectOwner.address,
+        projectOwner.address
       );
 
     // Should be holding fees in the contract
@@ -822,7 +840,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
 
     // Use allowance and hold fee
-    await jbEthPaymentTerminal
+    expect(await jbEthPaymentTerminal
       .connect(projectOwner)
       .useAllowanceOf(
         PROJECT_ID,
@@ -831,6 +849,15 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO,
+      )
+    ).to.emit(jbEthPaymentTerminal, 'HoldFee')
+      .withArgs(
+        PROJECT_ID,
+        AMOUNT,
+        DEFAULT_FEE,
+        0, // discount fee
+        projectOwner.address,
+        projectOwner.address
       );
 
     // Should be holding fees in the contract
