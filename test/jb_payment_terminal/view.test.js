@@ -98,7 +98,7 @@ describe('JBPayoutRedemptionPaymentTerminal::getters', function () {
     };
   }
 
-  it.only("Should return true if the terminal accepts a token", async function () {
+  it("Should return true if the terminal accepts a token", async function () {
     const { JBERC20PaymentTerminal, jbEthPaymentTerminal, NON_ETH_TOKEN } = await setup();
     expect(
       await JBERC20PaymentTerminal.acceptsToken(NON_ETH_TOKEN)
