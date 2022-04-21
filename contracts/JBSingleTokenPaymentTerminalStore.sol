@@ -33,7 +33,7 @@ error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
   IJBSingleTokenPaymentTerminalStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
-  Inherits from:
+  Inherits from -
   ReentrancyGuard: Contract module that helps prevent reentrant calls to a function.
 */
 contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore, ReentrancyGuard {

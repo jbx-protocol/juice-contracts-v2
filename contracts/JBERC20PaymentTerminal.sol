@@ -9,11 +9,11 @@ import './abstract/JBPayoutRedemptionPaymentTerminal.sol';
   Manages the inflows and outflows of an ERC-20 token.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBProjectPayer:  General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
-  Inherits from:
+  Inherits from -
   JBPayoutRedemptionPaymentTerminal: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBERC20PaymentTerminal is JBPayoutRedemptionPaymentTerminal {

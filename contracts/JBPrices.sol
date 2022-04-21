@@ -16,11 +16,11 @@ error PRICE_FEED_NOT_FOUND();
   Manages and normalizes price feeds.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBPrices: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
-  Inherits from:
+  Inherits from -
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBPrices is IJBPrices, Ownable {

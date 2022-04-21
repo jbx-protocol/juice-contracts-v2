@@ -13,7 +13,7 @@ error CONTROLLER_UNAUTHORIZED();
   Provides tools for contracts with functionality that can only be accessed by a project's controller.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBControllerUtility: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 */
 abstract contract JBControllerUtility is IJBControllerUtility {

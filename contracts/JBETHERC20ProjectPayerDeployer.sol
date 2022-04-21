@@ -9,7 +9,7 @@ import './JBETHERC20ProjectPayer.sol';
   Deploys project payer contracts.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBETHERC20ProjectPayerDeployer:  General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 */
 contract JBETHERC20ProjectPayerDeployer is IJBETHERC20ProjectPayerDeployer {

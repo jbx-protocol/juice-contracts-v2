@@ -17,11 +17,11 @@ error INVALID_WEIGHT();
   Manages funding cycle configurations and scheduling.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBTokenStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
-  Inherits from:
+  Inherits from -
   JBControllerUtility: Includes convenience functionality for checking if the message sender is the current controller of the project whose data is being manipulated.
 */
 contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {

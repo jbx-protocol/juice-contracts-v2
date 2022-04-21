@@ -4,6 +4,7 @@ pragma solidity 0.8.6;
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBController.sol';
+import './interfaces/IJBMigratable.sol';
 import './interfaces/IJBOperatorStore.sol';
 import './interfaces/IJBPaymentTerminal.sol';
 import './interfaces/IJBProjects.sol';
@@ -37,14 +38,15 @@ error ZERO_TOKENS_TO_MINT();
   Stitches together funding cycles and community tokens, making sure all activity is accounted for and correct.
 
   @dev
-  Adheres to:
-  IJBController - general interface for the generic controller methods in this contract that interacts with funding cycles and tokens according to the protocol's rules.
+  Adheres to -
+  IJBController: General interface for the generic controller methods in this contract that interacts with funding cycles and tokens according to the protocol's rules.
+  IJBMigratable: Allows migrating to this contract, with a hook called to prepare for the migration.
 
   @dev
-  Inherits from:
-  JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
+  Inherits from -
+  JBOperatable: Several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
 */
-contract JBController is IJBController, JBOperatable {
+contract JBController is IJBController, IJBMigratable, JBOperatable {
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 

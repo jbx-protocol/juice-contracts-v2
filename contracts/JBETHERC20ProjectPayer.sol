@@ -21,11 +21,11 @@ error TERMINAL_NOT_FOUND();
   Inherit from this contract or borrow from its logic to forward ETH or ERC20's to project treasuries from within other contracts.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBProjectPayer:  General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
-  Inherits from:
+  Inherits from -
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {

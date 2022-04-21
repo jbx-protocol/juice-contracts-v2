@@ -13,7 +13,7 @@ error PERMISSION_INDEX_OUT_OF_BOUNDS();
   Stores operator permissions for all addresses. Addresses can give permissions to any other address to take specific indexed actions on their behalf.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBOperatorStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 */
 contract JBOperatorStore is IJBOperatorStore {

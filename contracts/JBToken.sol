@@ -10,11 +10,11 @@ import './interfaces/IJBToken.sol';
   An ERC-20 token that can be used by a project in the `JBTokenStore`.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBToken: Allows this contract to be used by projects in the JBTokenStore.
 
   @dev
-  Inherits from:
+  Inherits from -
   ERC20Permit: General token standard for fungible accounting. 
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */

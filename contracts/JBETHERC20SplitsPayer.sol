@@ -17,11 +17,11 @@ import './JBETHERC20ProjectPayer.sol';
   Inherit from this contract or borrow from its logic to forward ETH or ERC20's to a group of splits from within other contracts.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBSplitsPayer:  General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
-  Inherits from:
+  Inherits from -
   JBETHERC20ProjectPayer: Sends ETH or ERC20's to a project treasury as it receives direct payments or has it's functions called.
   ReentrancyGuard: Contract module that helps prevent reentrant calls to a function.
 */

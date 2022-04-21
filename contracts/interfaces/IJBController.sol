@@ -14,7 +14,7 @@ import './IJBSplitsStore.sol';
 import './IJBToken.sol';
 import './IJBTokenStore.sol';
 
-interface IJBController is IJBMigratable {
+interface IJBController {
   event LaunchProject(uint256 configuration, uint256 projectId, string memo, address caller);
 
   event LaunchFundingCycles(uint256 configuration, uint256 projectId, string memo, address caller);
