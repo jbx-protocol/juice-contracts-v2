@@ -50,12 +50,13 @@ interface IJBProjectPayer is IERC165 {
     bytes memory _metadata
   ) external payable;
 
-  function addToBalance(
+  function addToBalanceOf(
     uint256 _projectId,
     address _token,
     uint256 _amount,
     uint256 _decimals,
-    string memory _memo
+    string memory _memo,
+    bytes memory _metadata
   ) external payable;
 
   receive() external payable;

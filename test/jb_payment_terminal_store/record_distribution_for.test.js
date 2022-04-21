@@ -398,7 +398,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordDistributionFor(...)', functi
     await expect(
       JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
         PROJECT_ID,
-        AMOUNT,
+        0,
         CURRENCY_ETH,
         CURRENCY_ETH,
       ),

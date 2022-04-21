@@ -640,7 +640,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
 
     // Use allowance and hold fee
-    await jbEthPaymentTerminal
+    expect(await jbEthPaymentTerminal
       .connect(projectOwner)
       .useAllowanceOf(
         PROJECT_ID,
@@ -649,6 +649,15 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO,
+      )
+    ).to.emit(jbEthPaymentTerminal, 'HoldFee')
+      .withArgs(
+        PROJECT_ID,
+        AMOUNT,
+        DEFAULT_FEE,
+        0, // discount fee
+        projectOwner.address,
+        projectOwner.address
       );
 
     // Should be holding fees in the contract
@@ -659,20 +668,14 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     // Process held fees
     const tx = await jbEthPaymentTerminal.connect(projectOwner).processFees(PROJECT_ID);
 
-    expect(await tx).to.emit(jbEthPaymentTerminal, 'ProcessFees');
-    /** @dev Chai matchers can't seem to match these args. */
-    // .withArgs(
-    //   PROJECT_ID,
-    //   [
-    //     [
-    //       ethers.BigNumber.from(AMOUNT),
-    //       DEFAULT_FEE,
-    //       projectOwner.address,
-    //       '',
-    //     ],
-    //   ],
-    //   projectOwner.address,
-    // );
+    expect(await tx).to.emit(jbEthPaymentTerminal, 'ProcessFee')
+      .withArgs(
+        PROJECT_ID,
+        ethers.BigNumber.from(AMOUNT).sub(ethers.BigNumber.from(AMOUNT).mul(MAX_FEE).div(ethers.BigNumber.from(MAX_FEE).add(DEFAULT_FEE))),
+        true,
+        projectOwner.address,
+        projectOwner.address,
+      );
 
     // Held fees shoudn't exist after being processed
     expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([]);
@@ -736,7 +739,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
 
     // Use allowance and hold fee
-    await jbEthPaymentTerminal
+    expect(await jbEthPaymentTerminal
       .connect(projectOwner)
       .useAllowanceOf(
         PROJECT_ID,
@@ -745,6 +748,15 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO,
+      )
+    ).to.emit(jbEthPaymentTerminal, 'HoldFee')
+      .withArgs(
+        PROJECT_ID,
+        AMOUNT,
+        DEFAULT_FEE,
+        0, // discount fee
+        projectOwner.address,
+        projectOwner.address
       );
 
     // Should be holding fees in the contract
@@ -759,20 +771,14 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     // Process held fees
     const tx = await jbEthPaymentTerminal.connect(caller).processFees(PROJECT_ID);
 
-    expect(await tx).to.emit(jbEthPaymentTerminal, 'ProcessFees');
-    /** @dev Chai matchers can't seem to match these args even though I've inspected the data inside to be exactly the same. */
-    // .withArgs(
-    //   PROJECT_ID,
-    //   [
-    //     [
-    //       ethers.BigNumber.from(AMOUNT),
-    //       DEFAULT_FEE,
-    //       projectOwner.address,
-    //       '',
-    //     ],
-    //   ],
-    //   projectOwner.address,
-    // );
+    expect(await tx).to.emit(jbEthPaymentTerminal, 'ProcessFee')
+      .withArgs(
+        PROJECT_ID,
+        ethers.BigNumber.from(AMOUNT).sub(ethers.BigNumber.from(AMOUNT).mul(MAX_FEE).div(ethers.BigNumber.from(MAX_FEE).add(DEFAULT_FEE))),
+        true,
+        projectOwner.address,
+        caller.address,
+      );
 
     // Held fees shoudn't exist after being processed
     expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([]);
@@ -836,7 +842,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
 
     // Use allowance and hold fee
-    await jbEthPaymentTerminal
+    expect(await jbEthPaymentTerminal
       .connect(projectOwner)
       .useAllowanceOf(
         PROJECT_ID,
@@ -845,6 +851,15 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO,
+      )
+    ).to.emit(jbEthPaymentTerminal, 'HoldFee')
+      .withArgs(
+        PROJECT_ID,
+        AMOUNT,
+        DEFAULT_FEE,
+        0, // discount fee
+        projectOwner.address,
+        projectOwner.address
       );
 
     // Should be holding fees in the contract

@@ -2,7 +2,6 @@
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
-import './IJBDirectory.sol';
 
 interface IJBPaymentTerminal is IERC165 {
   function acceptsToken(address _token) external view returns (bool);
@@ -29,6 +28,7 @@ interface IJBPaymentTerminal is IERC165 {
     uint256 _projectId,
     uint256 _amount,
     address _token,
-    string calldata _memo
+    string calldata _memo,
+    bytes calldata _metadata
   ) external payable;
 }

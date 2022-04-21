@@ -5,6 +5,7 @@ import { deployJbToken } from '../helpers/utils';
 describe('JBToken::transferOwnership(...)', function () {
   const name = 'TestTokenDAO';
   const symbol = 'TEST';
+  const projectIdDoesntMatter = 123;
 
   async function setup() {
     const [deployer, ...addrs] = await ethers.getSigners();
@@ -16,7 +17,7 @@ describe('JBToken::transferOwnership(...)', function () {
     const { deployer, addrs, jbToken } = await setup();
     const newAddr = addrs[0];
 
-    const transferOwnershipTx = await jbToken.connect(deployer).transferOwnership(newAddr.address);
+    const transferOwnershipTx = await jbToken.connect(deployer)['transferOwnership(uint256,address)'](projectIdDoesntMatter, newAddr.address);
 
     await expect(transferOwnershipTx)
       .to.emit(jbToken, 'OwnershipTransferred')
@@ -29,14 +30,14 @@ describe('JBToken::transferOwnership(...)', function () {
     const { addrs, jbToken } = await setup();
     const newAddr = addrs[0];
     const nonOwner = addrs[1];
-    await expect(jbToken.connect(nonOwner).transferOwnership(newAddr.address)).to.be.revertedWith(
+    await expect(jbToken.connect(nonOwner)['transferOwnership(uint256,address)'](projectIdDoesntMatter, newAddr.address)).to.be.revertedWith(
       'Ownable: caller is not the owner',
     );
   });
 
   it(`Can't set new owner to zero address`, async function () {
     const { jbToken } = await setup();
-    await expect(jbToken.transferOwnership(ethers.constants.AddressZero)).to.be.revertedWith(
+    await expect(jbToken['transferOwnership(uint256,address)'](projectIdDoesntMatter, ethers.constants.AddressZero)).to.be.revertedWith(
       'Ownable: new owner is the zero address',
     );
   });

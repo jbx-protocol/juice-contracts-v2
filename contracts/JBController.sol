@@ -4,10 +4,8 @@ pragma solidity 0.8.6;
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBController.sol';
-import './interfaces/IJBFundingCycleDataSource.sol';
 import './interfaces/IJBOperatorStore.sol';
 import './interfaces/IJBPaymentTerminal.sol';
-import './interfaces/IJBPrices.sol';
 import './interfaces/IJBProjects.sol';
 import './libraries/JBConstants.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
@@ -67,10 +65,10 @@ contract JBController is IJBController, JBOperatable {
     Data regarding the distribution limit of a project during a configuration.
 
     @dev
-    bits 0-247: The amount of token that a project can distribute per funding cycle.
+    bits 0-231: The amount of token that a project can distribute per funding cycle.
 
     @dev
-    bits 248-255: The currency of amount that a project can distribute.
+    bits 232-255: The currency of amount that a project can distribute.
 
     _projectId The ID of the project to get the packed distribution limit data of.
     _configuration The configuration during which the packed distribution limit data applies.
@@ -85,10 +83,10 @@ contract JBController is IJBController, JBOperatable {
     Data regarding the overflow allowance of a project during a configuration.
 
     @dev
-    bits 0-247: The amount of overflow that a project is allowed to tap into on-demand throughout the configuration.
+    bits 0-231: The amount of overflow that a project is allowed to tap into on-demand throughout the configuration.
 
     @dev
-    bits 248-255: The currency of the amount of overflow that a project is allowed to tap.
+    bits 232-255: The currency of the amount of overflow that a project is allowed to tap.
 
     _projectId The ID of the project to get the packed overflow allowance data of.
     _configuration The configuration during which the packed overflow allowance data applies.
@@ -104,7 +102,7 @@ contract JBController is IJBController, JBOperatable {
 
   /**
     @notice
-    The Projects contract which mints ERC-721's that represent project ownership.
+    Mints ERC-721's that represent project ownership.
   */
   IJBProjects public immutable override projects;
 
@@ -160,8 +158,8 @@ contract JBController is IJBController, JBOperatable {
     // Get a reference to the packed data.
     uint256 _data = _packedDistributionLimitDataOf[_projectId][_configuration][_terminal][_token];
 
-    // The limit is in bits 0-247. The currency is in bits 248-255.
-    return (uint256(uint248(_data)), _data >> 248);
+    // The limit is in bits 0-231. The currency is in bits 232-255.
+    return (uint256(uint232(_data)), _data >> 232);
   }
 
   /**
@@ -188,8 +186,8 @@ contract JBController is IJBController, JBOperatable {
     // Get a reference to the packed data.
     uint256 _data = _packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal][_token];
 
-    // The allowance is in bits 0-247. The currency is in bits 248-255.
-    return (uint256(uint248(_data)), _data >> 248);
+    // The allowance is in bits 0-231. The currency is in bits 232-255.
+    return (uint256(uint232(_data)), _data >> 232);
   }
 
   /**
@@ -242,6 +240,30 @@ contract JBController is IJBController, JBOperatable {
 
     // Add the reserved tokens to the total supply.
     return _totalSupply + _reservedTokenAmount;
+  }
+
+  /** 
+    @notice
+    A project's latest configured funding cycle along with its metadata and the ballot state of the configuration.
+
+    @param _projectId The ID of the project to which the funding cycle belongs.
+  
+    @return fundingCycle The latest configured funding cycle.
+    @return metadata The latest configured funding cycle's metadata.
+    @return ballotState The state of the configuration.
+  */
+  function latestConfiguredFundingCycleOf(uint256 _projectId)
+    external
+    view
+    override
+    returns (
+      JBFundingCycle memory fundingCycle,
+      JBFundingCycleMetadata memory metadata,
+      JBBallotState ballotState
+    )
+  {
+    (fundingCycle, ballotState) = fundingCycleStore.latestConfiguredOf(_projectId);
+    metadata = fundingCycle.expandMetadata();
   }
 
   /** 
@@ -350,7 +372,7 @@ contract JBController is IJBController, JBOperatable {
     projectId = projects.createFor(_owner, _projectMetadata);
 
     // Set this contract as the project's controller in the directory.
-    directory.setControllerOf(projectId, this);
+    directory.setControllerOf(projectId, address(this));
 
     // Configure the first funding cycle.
     uint256 _configuration = _configure(
@@ -410,7 +432,7 @@ contract JBController is IJBController, JBOperatable {
       revert FUNDING_CYCLE_ALREADY_LAUNCHED();
 
     // Set this contract as the project's controller in the directory.
-    directory.setControllerOf(_projectId, this);
+    directory.setControllerOf(_projectId, address(this));
 
     // Configure the first funding cycle.
     configuration = _configure(
@@ -705,9 +727,10 @@ contract JBController is IJBController, JBOperatable {
     @param _projectId The ID of the project that will be migrated to this controller.
     @param _from The controller being migrated from.
   */
-  function prepForMigrationOf(uint256 _projectId, IJBController _from) external virtual override {
+  function prepForMigrationOf(uint256 _projectId, address _from) external virtual override {
     // This controller must not be the project's current controller.
-    if (directory.controllerOf(_projectId) == this) revert CANT_MIGRATE_TO_CURRENT_CONTROLLER();
+    if (directory.controllerOf(_projectId) == address(this))
+      revert CANT_MIGRATE_TO_CURRENT_CONTROLLER();
 
     // Set the tracker as the total supply.
     _processedTokenTrackerOf[_projectId] = int256(tokenStore.totalSupplyOf(_projectId));
@@ -725,14 +748,14 @@ contract JBController is IJBController, JBOperatable {
     @param _projectId The ID of the project that will be migrated from this controller.
     @param _to The controller to which the project is migrating.
   */
-  function migrate(uint256 _projectId, IJBController _to)
+  function migrate(uint256 _projectId, IJBMigratable _to)
     external
     virtual
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_CONTROLLER)
   {
     // This controller must be the project's current controller.
-    if (directory.controllerOf(_projectId) != this) revert NOT_CURRENT_CONTROLLER();
+    if (directory.controllerOf(_projectId) != address(this)) revert NOT_CURRENT_CONTROLLER();
 
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
@@ -745,10 +768,10 @@ contract JBController is IJBController, JBOperatable {
       _distributeReservedTokensOf(_projectId, '');
 
     // Make sure the new controller is prepped for the migration.
-    _to.prepForMigrationOf(_projectId, this);
+    _to.prepForMigrationOf(_projectId, address(this));
 
     // Set the new controller.
-    directory.setControllerOf(_projectId, _to);
+    directory.setControllerOf(_projectId, address(_to));
 
     emit Migrate(_projectId, _to, msg.sender);
   }
@@ -949,18 +972,18 @@ contract JBController is IJBController, JBOperatable {
     for (uint256 _i; _i < _fundAccessConstraints.length; _i++) {
       JBFundAccessConstraints memory _constraints = _fundAccessConstraints[_i];
 
-      // If distribution limit value is larger than 248 bits, revert.
-      if (_constraints.distributionLimit > type(uint248).max) revert INVALID_DISTRIBUTION_LIMIT();
+      // If distribution limit value is larger than 232 bits, revert.
+      if (_constraints.distributionLimit > type(uint232).max) revert INVALID_DISTRIBUTION_LIMIT();
 
-      // If distribution limit currency value is larger than 8 bits, revert.
-      if (_constraints.distributionLimitCurrency > type(uint8).max)
+      // If distribution limit currency value is larger than 24 bits, revert.
+      if (_constraints.distributionLimitCurrency > type(uint24).max)
         revert INVALID_DISTRIBUTION_LIMIT_CURRENCY();
 
-      // If overflow allowance value is larger than 248 bits, revert.
-      if (_constraints.overflowAllowance > type(uint248).max) revert INVALID_OVERFLOW_ALLOWANCE();
+      // If overflow allowance value is larger than 232 bits, revert.
+      if (_constraints.overflowAllowance > type(uint232).max) revert INVALID_OVERFLOW_ALLOWANCE();
 
-      // If overflow allowance currency value is larger than 8 bits, revert.
-      if (_constraints.overflowAllowanceCurrency > type(uint8).max)
+      // If overflow allowance currency value is larger than 24 bits, revert.
+      if (_constraints.overflowAllowanceCurrency > type(uint24).max)
         revert INVALID_OVERFLOW_ALLOWANCE_CURRENCY();
 
       // Set the distribution limit if there is one.
@@ -969,7 +992,7 @@ contract JBController is IJBController, JBOperatable {
           _constraints.terminal
         ][_constraints.token] =
           _constraints.distributionLimit |
-          (_constraints.distributionLimitCurrency << 248);
+          (_constraints.distributionLimitCurrency << 232);
 
       // Set the overflow allowance if there is one.
       if (_constraints.overflowAllowance > 0)
@@ -977,7 +1000,7 @@ contract JBController is IJBController, JBOperatable {
           _constraints.terminal
         ][_constraints.token] =
           _constraints.overflowAllowance |
-          (_constraints.overflowAllowanceCurrency << 248);
+          (_constraints.overflowAllowanceCurrency << 232);
 
       emit SetFundAccessConstraints(
         _fundingCycle.configuration,

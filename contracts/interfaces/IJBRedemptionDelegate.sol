@@ -2,8 +2,6 @@
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
-import './IJBFundingCycleStore.sol';
-
 import './../structs/JBDidRedeemData.sol';
 
 interface IJBRedemptionDelegate is IERC165 {

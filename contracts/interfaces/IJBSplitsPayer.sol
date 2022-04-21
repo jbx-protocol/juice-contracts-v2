@@ -34,6 +34,7 @@ interface IJBSplitsPayer is IERC165 {
     uint256 decimals,
     uint256 leftoverAmount,
     string memo,
+    bytes metadata,
     address caller
   );
 
