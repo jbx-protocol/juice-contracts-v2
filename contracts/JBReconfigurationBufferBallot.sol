@@ -78,6 +78,22 @@ contract JBReconfigurationBufferBallot is IJBReconfigurationBufferBallot, ERC165
     return JBBallotState.Approved;
   }
 
+  /**
+    @dev See {IERC165-supportsInterface}.
+  */
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(ERC165, IERC165)
+    returns (bool)
+  {
+    return
+      interfaceId == type(IJBReconfigurationBufferBallot).interfaceId ||
+      interfaceId == type(IJBFundingCycleBallot).interfaceId ||
+      super.supportsInterface(interfaceId);
+  }
+
   //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
@@ -126,21 +142,5 @@ contract JBReconfigurationBufferBallot is IJBReconfigurationBufferBallot, ERC165
         emit Finalize(_projectId, _configured, ballotState, msg.sender);
       }
     }
-  }
-
-  /**
-    @dev See {IERC165-supportsInterface}.
-  */
-  function supportsInterface(bytes4 interfaceId)
-    public
-    view
-    virtual
-    override(ERC165, IERC165)
-    returns (bool)
-  {
-    return
-      interfaceId == type(IJBReconfigurationBufferBallot).interfaceId ||
-      interfaceId == type(IJBFundingCycleBallot).interfaceId ||
-      super.supportsInterface(interfaceId);
   }
 }

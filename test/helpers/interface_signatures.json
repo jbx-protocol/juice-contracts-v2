@@ -3,13 +3,13 @@
   "IERC721": "0x80ac58cd",
   "IERC721Metadata": "0x5b5e139f",
 
-  "IJBController": "0xf69f5025",
+  "IJBController": "0xd742352d",
   "IJBSplitsPayer": "0x989785b6",
-  "IJBProjectPayer": "0x78b19768",
+  "IJBProjectPayer": "0xd90c137e",
   "IJBReconfigurationBufferBallot": "0x4aeb8d25",
   "IJBFundingCycleBallot": "0x7ba3dfb3",
   "IJBOperatable": "0xad007d63",
-  "IJBPaymentTerminal": "0x375bf308",
+  "IJBPaymentTerminal": "0x99d14e9c",
   "IJBSingleTokenPaymentTerminal": "0x28960002",
   "IJBPayoutRedemptionPaymentTerminal": "0xd4815398"
 }

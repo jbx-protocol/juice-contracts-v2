@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import './../interfaces/IJBOperatable.sol';
 
 //*********************************************************************//
@@ -17,7 +16,7 @@ error UNAUTHORIZED();
   Adheres to:
   IJBOperatable: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 */
-abstract contract JBOperatable is ERC165, IJBOperatable {
+abstract contract JBOperatable is IJBOperatable {
   //*********************************************************************//
   // ---------------------------- modifiers ---------------------------- //
   //*********************************************************************//
@@ -124,18 +123,5 @@ abstract contract JBOperatable is ERC165, IJBOperatable {
       !operatorStore.hasPermission(msg.sender, _account, _domain, _permissionIndex) &&
       !operatorStore.hasPermission(msg.sender, _account, 0, _permissionIndex)
     ) revert UNAUTHORIZED();
-  }
-
-  /**
-    @dev See {IERC165-supportsInterface}.
-  */
-  function supportsInterface(bytes4 interfaceId)
-    public
-    view
-    virtual
-    override(ERC165, IERC165)
-    returns (bool)
-  {
-    return interfaceId == type(IJBOperatable).interfaceId || super.supportsInterface(interfaceId);
   }
 }

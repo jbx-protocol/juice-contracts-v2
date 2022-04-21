@@ -75,6 +75,22 @@ abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal,
     return currency;
   }
 
+  /**
+    @dev See {IERC165-supportsInterface}.
+  */
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(ERC165, IERC165)
+    returns (bool)
+  {
+    return
+      interfaceId == type(IJBPaymentTerminal).interfaceId ||
+      interfaceId == type(IJBSingleTokenPaymentTerminal).interfaceId ||
+      super.supportsInterface(interfaceId);
+  }
+
   //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
@@ -92,21 +108,5 @@ abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal,
     token = _token;
     decimals = _decimals;
     currency = _currency;
-  }
-
-  /**
-    @dev See {IERC165-supportsInterface}.
-  */
-  function supportsInterface(bytes4 interfaceId)
-    public
-    view
-    virtual
-    override(ERC165, IERC165)
-    returns (bool)
-  {
-    return
-      interfaceId == type(IJBPaymentTerminal).interfaceId ||
-      interfaceId == type(IJBSingleTokenPaymentTerminal).interfaceId ||
-      super.supportsInterface(interfaceId);
   }
 }

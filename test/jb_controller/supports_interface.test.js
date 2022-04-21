@@ -12,15 +12,6 @@ import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
 
 describe('JBController::supportsInterface(...)', function () {
-  let ISSUE_PERMISSION_INDEX;
-
-  before(async function () {
-    let jbOperationsFactory = await ethers.getContractFactory('JBOperations');
-    let jbOperations = await jbOperationsFactory.deploy();
-
-    ISSUE_PERMISSION_INDEX = await jbOperations.ISSUE();
-  });
-
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
 

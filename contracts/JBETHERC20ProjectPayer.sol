@@ -81,6 +81,23 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable, ERC165 {
   bool public override defaultPreferAddToBalance;
 
   //*********************************************************************//
+  // ------------------------- external views -------------------------- //
+  //*********************************************************************//
+
+  /**
+    @dev See {IERC165-supportsInterface}.
+  */
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(ERC165, IERC165)
+    returns (bool)
+  {
+    return interfaceId == type(IJBProjectPayer).interfaceId || super.supportsInterface(interfaceId);
+  }
+
+  //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
 
@@ -391,18 +408,5 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable, ERC165 {
 
     // Add to balance so tokens don't get issued.
     _terminal.addToBalanceOf{value: _payableValue}(_projectId, _amount, _token, _memo, _metadata);
-  }
-
-  /**
-    @dev See {IERC165-supportsInterface}.
-  */
-  function supportsInterface(bytes4 interfaceId)
-    public
-    view
-    virtual
-    override(ERC165, IERC165)
-    returns (bool)
-  {
-    return interfaceId == type(IJBProjectPayer).interfaceId || super.supportsInterface(interfaceId);
   }
 }
