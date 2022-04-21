@@ -74,6 +74,27 @@ abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal 
     return currency;
   }
 
+  /** 
+    @notice
+    The token, decimals, and currency that should be used.
+
+    @return token The terminal's token.
+    @return decimals The number of decimals the token fixed point amounts are expected to have.
+    @return currency The currency to use when resolving price feeds for this terminal.
+  */
+  function info()
+    external
+    view
+    override
+    returns (
+      address,
+      uint256,
+      uint256
+    )
+  {
+    return (token, decimals, currency);
+  }
+
   //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//

@@ -143,7 +143,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
       .returns(JBERC20PaymentTerminal.address);
 
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT, CURRENCY_ETH, CURRENCY_ETH)
+      .withArgs(PROJECT_ID, AMOUNT, CURRENCY_ETH)
       .returns(
         {
           number: 1,
@@ -329,7 +329,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
       .returns(splits);
 
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT.div(2), CURRENCY_ETH, CURRENCY_ETH)
+      .withArgs(PROJECT_ID, AMOUNT.div(2), CURRENCY_ETH)
       .returns(
         {
           number: 1,
@@ -404,7 +404,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
       .returns(splits);
 
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT.div(2), CURRENCY_ETH, CURRENCY_ETH)
+      .withArgs(PROJECT_ID, AMOUNT.div(2), CURRENCY_ETH)
       .returns(
         {
           number: 1,
