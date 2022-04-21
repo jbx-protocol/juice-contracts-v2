@@ -165,7 +165,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
       .withArgs(PROJECT_ID, AMOUNT)
       .returns();
 
-    await network.provider.send('hardhat_setBalance', [jbEthPaymentTerminal.address, '0x100000000000000000000']);
+    await ethers.provider.send('hardhat_setBalance', [jbEthPaymentTerminal.address, '0x100000000000000000000']);
 
     return {
       deployer,
