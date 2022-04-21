@@ -3,6 +3,7 @@ pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import './../structs/JBFee.sol';
+import './IJBAllowanceTerminal.sol';
 import './IJBDirectory.sol';
 import './IJBFeeGauge.sol';
 import './IJBPayoutTerminal.sol';
@@ -19,6 +20,7 @@ import './IJBSplitsStore.sol';
 interface IJBPayoutRedemptionPaymentTerminal is
   IJBPaymentTerminal,
   IJBPayoutTerminal,
+  IJBAllowanceTerminal,
   IJBRedemptionTerminal
 {
   event AddToBalance(
