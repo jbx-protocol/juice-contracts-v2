@@ -227,6 +227,22 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     return _heldFeesOf[_projectId];
   }
 
+  /**
+    @dev See {IERC165-supportsInterface}.
+  */
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(JBSingleTokenPaymentTerminal, IERC165)
+    returns (bool)
+  {
+    return
+      interfaceId == type(IJBPayoutRedemptionPaymentTerminal).interfaceId ||
+      interfaceId == type(IJBOperatable).interfaceId ||
+      super.supportsInterface(interfaceId);
+  }
+
   //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//

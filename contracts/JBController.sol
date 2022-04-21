@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBController.sol';
@@ -44,7 +45,7 @@ error ZERO_TOKENS_TO_MINT();
   Inherits from:
   JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
 */
-contract JBController is IJBController, JBOperatable {
+contract JBController is IJBController, JBOperatable, ERC165 {
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
@@ -302,6 +303,22 @@ contract JBController is IJBController, JBOperatable {
   {
     fundingCycle = fundingCycleStore.queuedOf(_projectId);
     metadata = fundingCycle.expandMetadata();
+  }
+
+  /**
+    @dev See {IERC165-supportsInterface}.
+  */
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(ERC165, IERC165)
+    returns (bool)
+  {
+    return
+      interfaceId == type(IJBController).interfaceId ||
+      interfaceId == type(IJBOperatable).interfaceId ||
+      super.supportsInterface(interfaceId);
   }
 
   //*********************************************************************//
