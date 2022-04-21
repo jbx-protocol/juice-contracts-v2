@@ -103,9 +103,6 @@ describe('JBSingleTokenPaymentTerminalStore::recordDistributionFor(...)', functi
       metadata: packFundingCycleMetadata({ pauseDistributions: 0 }),
     });
 
-    // const usdToEthPrice = ethers.FixedNumber.from(10000);
-    // const amountInWei = AMOUNT.divUnsafe(usdToEthPrice);
-
     // Add to balance beforehand
     await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
       PROJECT_ID,
@@ -115,6 +112,8 @@ describe('JBSingleTokenPaymentTerminalStore::recordDistributionFor(...)', functi
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_USD);
+    
+    await mockJbTerminal.mock.currency.returns(CURRENCY_USD);
 
     // Pre-checks
     expect(
@@ -132,7 +131,6 @@ describe('JBSingleTokenPaymentTerminalStore::recordDistributionFor(...)', functi
     await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
       PROJECT_ID,
       AMOUNT,
-      CURRENCY_USD,
       CURRENCY_USD,
     );
 
@@ -193,6 +191,8 @@ describe('JBSingleTokenPaymentTerminalStore::recordDistributionFor(...)', functi
       .withArgs(CURRENCY_USD, CURRENCY_ETH, _FIXED_POINT_MAX_FIDELITY)
       .returns(usdToEthPrice);
 
+    await mockJbTerminal.mock.currency.returns(CURRENCY_ETH);
+
     // Pre-checks
     expect(
       await JBSingleTokenPaymentTerminalStore.usedDistributionLimitOf(
@@ -210,7 +210,6 @@ describe('JBSingleTokenPaymentTerminalStore::recordDistributionFor(...)', functi
       PROJECT_ID,
       AMOUNT,
       CURRENCY_USD,
-      CURRENCY_ETH,
     );
 
     // Post-checks
@@ -230,6 +229,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordDistributionFor(...)', functi
 
   it(`Can't record distribution if distributions are paused`, async function () {
     const {
+      mockJbTerminal,
       mockJbTerminalSigner,
       mockJbFundingCycleStore,
       JBSingleTokenPaymentTerminalStore,
@@ -250,12 +250,13 @@ describe('JBSingleTokenPaymentTerminalStore::recordDistributionFor(...)', functi
       metadata: packFundingCycleMetadata({ pauseDistributions: 1 }),
     });
 
+    await mockJbTerminal.mock.currency.returns(CURRENCY_ETH);
+
     // Record the distributions
     await expect(
       JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
         PROJECT_ID,
         AMOUNT,
-        CURRENCY_ETH,
         CURRENCY_ETH,
       ),
     ).to.be.revertedWith(errors.FUNDING_CYCLE_DISTRIBUTION_PAUSED);
@@ -290,13 +291,14 @@ describe('JBSingleTokenPaymentTerminalStore::recordDistributionFor(...)', functi
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_USD);
+    
+    await mockJbTerminal.mock.currency.returns(CURRENCY_ETH);
 
     // Record the distributions
     await expect(
       JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
         PROJECT_ID,
         AMOUNT,
-        CURRENCY_ETH,
         CURRENCY_ETH,
       ), // Use ETH instead of expected USD
     ).to.be.revertedWith(errors.CURRENCY_MISMATCH);
@@ -338,17 +340,14 @@ describe('JBSingleTokenPaymentTerminalStore::recordDistributionFor(...)', functi
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(smallDistributionLimit, CURRENCY_ETH); // Set intentionally small distribution limit
-
-    await mockJbPrices.mock.priceFor
-      .withArgs(CURRENCY_ETH, CURRENCY_ETH, _FIXED_POINT_MAX_FIDELITY)
-      .returns(ethers.FixedNumber.from(1));
+    
+    await mockJbTerminal.mock.currency.returns(CURRENCY_ETH);
 
     // Record the distributions
     await expect(
       JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
         PROJECT_ID,
         AMOUNT,
-        CURRENCY_ETH,
         CURRENCY_ETH,
       ),
     ).to.be.revertedWith(errors.DISTRIBUTION_AMOUNT_LIMIT_REACHED);
@@ -390,16 +389,13 @@ describe('JBSingleTokenPaymentTerminalStore::recordDistributionFor(...)', functi
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(0, CURRENCY_ETH);
 
-    await mockJbPrices.mock.priceFor
-      .withArgs(CURRENCY_ETH, CURRENCY_ETH, _FIXED_POINT_MAX_FIDELITY)
-      .returns(ethers.FixedNumber.from(1));
+    await mockJbTerminal.mock.currency.returns(CURRENCY_ETH);
 
     // Record the distributions
     await expect(
       JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
         PROJECT_ID,
         0,
-        CURRENCY_ETH,
         CURRENCY_ETH,
       ),
     ).to.be.revertedWith(errors.DISTRIBUTION_AMOUNT_LIMIT_REACHED);
@@ -442,16 +438,13 @@ describe('JBSingleTokenPaymentTerminalStore::recordDistributionFor(...)', functi
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_ETH);
 
-    await mockJbPrices.mock.priceFor
-      .withArgs(CURRENCY_ETH, CURRENCY_ETH, _FIXED_POINT_MAX_FIDELITY)
-      .returns(ethers.FixedNumber.from(1));
+    await mockJbTerminal.mock.currency.returns(CURRENCY_ETH);
 
     // Record the distributions
     await expect(
       JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordDistributionFor(
         PROJECT_ID,
         AMOUNT,
-        CURRENCY_ETH,
         CURRENCY_ETH,
       ),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
