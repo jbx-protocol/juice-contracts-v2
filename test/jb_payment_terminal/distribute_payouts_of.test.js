@@ -158,12 +158,12 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
 
     // ETH distribution
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY, CURRENCY)
+      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY)
       .returns(fundingCycle, AMOUNT_DISTRIBUTED);
 
     // ERC20 distribution
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY, CURRENCY_USD)
+      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY)
       .returns(fundingCycle, AMOUNT_DISTRIBUTED);
 
     await setBalance(jbEthPaymentTerminal.address, AMOUNT_DISTRIBUTED);
@@ -509,7 +509,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
     });
 
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY, CURRENCY)
+      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY)
       .returns(
         {
           number: 1,
@@ -1738,7 +1738,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
     };
 
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY, CURRENCY)
+      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY)
       .returns(fundingCycle, AMOUNT_DISTRIBUTED);
 
     await jbEthPaymentTerminal.connect(terminalOwner).setFeeGauge(mockJbFeeGauge.address);
@@ -2117,7 +2117,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
     };
 
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY, CURRENCY)
+      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY)
       .returns(fundingCycle, AMOUNT_DISTRIBUTED);
 
     await Promise.all(
@@ -2218,7 +2218,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
     };
 
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY, CURRENCY_USD)
+      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY)
       .returns(fundingCycle, AMOUNT_DISTRIBUTED);
 
     await mockJbDirectory.mock.primaryTerminalOf
@@ -2634,7 +2634,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       .returns(splits);
 
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY, CURRENCY)
+      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY)
       .returns(fundingCycle, 0);
 
     let tx = await jbEthPaymentTerminal
@@ -2707,7 +2707,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       .returns(splits);
 
     await mockJBPaymentTerminalStore.mock.recordDistributionFor
-      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY, CURRENCY_USD)
+      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY)
       .returns(fundingCycle, AMOUNT_TO_DISTRIBUTE);
 
     await Promise.all(
