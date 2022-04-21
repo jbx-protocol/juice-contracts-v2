@@ -328,6 +328,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
       _beneficiary,
       projectId,
       tokenBalance,
+      address(0), //token (unused)
       0,
       payable(_beneficiary),
       '',

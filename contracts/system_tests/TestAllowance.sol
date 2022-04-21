@@ -111,6 +111,7 @@ contract TestAllowance is TestBaseWorkflow {
       projectId,
       5 ether,
       1, // Currency
+      address(0), //token (unused)
       0, // Min wei out
       payable(_beneficiary), // Beneficiary
       'MEMO'
@@ -126,6 +127,7 @@ contract TestAllowance is TestBaseWorkflow {
       projectId,
       10 ether,
       1, // Currency
+      address(0), //token (unused)
       0, // Min wei out
       'Foundry payment' // Memo
     );
@@ -141,6 +143,7 @@ contract TestAllowance is TestBaseWorkflow {
       _beneficiary,
       projectId,
       senderBalance,
+      address(0), //token (unused)
       0,
       payable(_beneficiary),
       'gimme my money back',
@@ -225,6 +228,7 @@ contract TestAllowance is TestBaseWorkflow {
       projectId,
       ALLOWANCE,
       CURRENCY, // Currency
+      address(0), //token (unused)
       0, // Min wei out
       payable(_beneficiary), // Beneficiary
       'MEMO'
@@ -249,6 +253,7 @@ contract TestAllowance is TestBaseWorkflow {
       projectId,
       TARGET,
       1, // Currency
+      address(0), //token (unused)
       0, // Min wei out
       'Foundry payment' // Memo
     );
