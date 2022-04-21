@@ -384,6 +384,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _projectId The ID of the project having its payouts distributed.
     @param _amount The amount of terminal tokens to distribute, as a fixed point number with same number of decimals as this terminal.
     @param _currency The expected currency of the amount being distributed. Must match the project's current funding cycle's distribution limit currency.
+    ignored: _token The token being distributed. This terminal ignores this property since it only manages one token. 
     @param _minReturnedTokens The minimum number of terminal tokens that the `_amount` should be valued at in terms of this terminal's currency, as a fixed point number with the same number of decimals as this terminal.
     @param _memo A memo to pass along to the emitted event.
 
@@ -393,6 +394,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _projectId,
     uint256 _amount,
     uint256 _currency,
+    address,
     uint256 _minReturnedTokens,
     string calldata _memo
   ) external virtual override returns (uint256 netLeftoverDistributionAmount) {
@@ -489,6 +491,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _projectId The ID of the project to use the allowance of.
     @param _amount The amount of terminal tokens to use from this project's current allowance, as a fixed point number with the same amount of decimals as this terminal.
     @param _currency The expected currency of the amount being distributed. Must match the project's current funding cycle's overflow allowance currency.
+    ignored: _token The token being distributed. This terminal ignores this property since it only manages one token. 
     @param _minReturnedTokens The minimum number of tokens that the `_amount` should be valued at in terms of this terminal's currency, as a fixed point number with 18 decimals.
     @param _beneficiary The address to send the funds to.
     @param _memo A memo to pass along to the emitted event.
@@ -499,6 +502,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _projectId,
     uint256 _amount,
     uint256 _currency,
+    address,
     uint256 _minReturnedTokens,
     address payable _beneficiary,
     string memory _memo
