@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
-import errors from '../helpers/errors.json';
+import interfaceSignatures from '../helpers/interface_signatures.json';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
@@ -65,29 +65,29 @@ describe('JBController::supportsInterface(...)', function () {
 
   it('Supports IERC165', async function () {
     const { jbController } = await setup();
-
-    const interfaceId = '0x01ffc9a7';
-    expect(await jbController.supportsInterface(interfaceId)).to.equal(true);
+    expect(
+      await jbController.supportsInterface(interfaceSignatures.IERC165)
+    ).to.equal(true);
   });
 
   it('Supports IJBController', async function () {
     const { jbController } = await setup();
-
-    const interfaceId = '0xf69f5025';
-    expect(await jbController.supportsInterface(interfaceId)).to.equal(true);
+    expect(
+      await jbController.supportsInterface(interfaceSignatures.IJBController)
+    ).to.equal(true);
   });
 
   it('Supports IJBOperatable', async function () {
     const { jbController } = await setup();
-
-    const interfaceId = '0xad007d63';
-    expect(await jbController.supportsInterface(interfaceId)).to.equal(true);
+    expect(
+      await jbController.supportsInterface(interfaceSignatures.IJBOperatable)
+    ).to.equal(true);
   });
 
   it('Does not return true by default', async function () {
     const { jbController } = await setup();
-
-    const interfaceId = '0xffffffff';
-    expect(await jbController.supportsInterface(interfaceId)).to.equal(false);
+    expect(
+      await jbController.supportsInterface('0xffffffff')
+    ).to.equal(false);
   });
 });

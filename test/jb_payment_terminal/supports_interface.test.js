@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
+import interfaceSignatures from '../helpers/interface_signatures.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
@@ -84,55 +85,67 @@ describe('JBPayoutRedemptionPaymentTerminal::supportsInterface(...)', function (
 
   it('Supports IERC165', async function () {
     const { jbEthPaymentTerminal, jbErc20PaymentTerminal } = await setup();
+    expect(
+      await jbEthPaymentTerminal.supportsInterface(interfaceSignatures.IERC165)
+    ).to.equal(true);
 
-    const interfaceId = '0x01ffc9a7';
-    expect(await jbEthPaymentTerminal.supportsInterface(interfaceId)).to.equal(true);
-
-    expect(await jbErc20PaymentTerminal.supportsInterface(interfaceId)).to.equal(true);
+    expect(
+      await jbErc20PaymentTerminal.supportsInterface(interfaceSignatures.IERC165)
+    ).to.equal(true);
   });
 
   it('Supports IJBOperatable', async function () {
     const { jbEthPaymentTerminal, jbErc20PaymentTerminal } = await setup();
+    expect(
+      await jbEthPaymentTerminal.supportsInterface(interfaceSignatures.IJBOperatable)
+    ).to.equal(true);
 
-    const interfaceId = '0xad007d63';
-    expect(await jbEthPaymentTerminal.supportsInterface(interfaceId)).to.equal(true);
-
-    expect(await jbErc20PaymentTerminal.supportsInterface(interfaceId)).to.equal(true);
+    expect(
+      await jbErc20PaymentTerminal.supportsInterface(interfaceSignatures.IJBOperatable)
+    ).to.equal(true);
   });
 
   it('Supports IJBPaymentTerminal', async function () {
     const { jbEthPaymentTerminal, jbErc20PaymentTerminal } = await setup();
+    expect(
+      await jbEthPaymentTerminal.supportsInterface(interfaceSignatures.IJBPaymentTerminal)
+    ).to.equal(true);
 
-    const interfaceId = '0x375bf308';
-    expect(await jbEthPaymentTerminal.supportsInterface(interfaceId)).to.equal(true);
-
-    expect(await jbErc20PaymentTerminal.supportsInterface(interfaceId)).to.equal(true);
+    expect(
+      await jbErc20PaymentTerminal.supportsInterface(interfaceSignatures.IJBPaymentTerminal)
+    ).to.equal(true);
   });
 
   it('Supports IJBSingleTokenPaymentTerminal', async function () {
     const { jbEthPaymentTerminal, jbErc20PaymentTerminal } = await setup();
+    expect(
+      await jbEthPaymentTerminal.supportsInterface(interfaceSignatures.IJBSingleTokenPaymentTerminal)
+    ).to.equal(true);
 
-    const interfaceId = '0x28960002';
-    expect(await jbEthPaymentTerminal.supportsInterface(interfaceId)).to.equal(true);
-
-    expect(await jbErc20PaymentTerminal.supportsInterface(interfaceId)).to.equal(true);
+    expect(
+      await jbErc20PaymentTerminal.supportsInterface(interfaceSignatures.IJBSingleTokenPaymentTerminal)
+    ).to.equal(true);
   });
 
   it('Supports IJBPayoutRedemptionPaymentTerminal', async function () {
     const { jbEthPaymentTerminal, jbErc20PaymentTerminal } = await setup();
+    expect(
+      await jbEthPaymentTerminal.supportsInterface(interfaceSignatures.IJBPayoutRedemptionPaymentTerminal)
+    ).to.equal(true);
 
-    const interfaceId = '0xd4815398';
-    expect(await jbEthPaymentTerminal.supportsInterface(interfaceId)).to.equal(true);
-
-    expect(await jbErc20PaymentTerminal.supportsInterface(interfaceId)).to.equal(true);
+    expect(
+      await jbErc20PaymentTerminal.supportsInterface(interfaceSignatures.IJBPayoutRedemptionPaymentTerminal)
+    ).to.equal(true);
   });
 
   it('Does not return true by default', async function () {
     const { jbEthPaymentTerminal, jbErc20PaymentTerminal } = await setup();
+    expect(
+      await jbEthPaymentTerminal.supportsInterface('0xffffffff')
+    ).to.equal(false);
 
-    const interfaceId = '0xffffffff';
-    expect(await jbEthPaymentTerminal.supportsInterface(interfaceId)).to.equal(false);
-
-    expect(await jbErc20PaymentTerminal.supportsInterface(interfaceId)).to.equal(false);
+    expect(
+      await jbErc20PaymentTerminal.supportsInterface('0xffffffff')
+    ).to.equal(false);
   });
 });

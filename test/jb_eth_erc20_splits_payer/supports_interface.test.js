@@ -1,6 +1,7 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
+import interfaceSignatures from '../helpers/interface_signatures.json';
 import ierc20 from '../../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
@@ -58,29 +59,29 @@ describe('JBETHERC20SplitsPayer::supportsInterface(...)', function () {
 
   it('Supports IERC165', async function () {
     const { jbSplitsPayer } = await setup();
-
-    const interfaceId = '0x01ffc9a7';
-    expect(await jbSplitsPayer.supportsInterface(interfaceId)).to.equal(true);
+    expect(
+      await jbSplitsPayer.supportsInterface(interfaceSignatures.IERC165)
+    ).to.equal(true);
   });
 
   it('Supports IJBSplitsPayer', async function () {
     const { jbSplitsPayer } = await setup();
-
-    const interfaceId = '0x989785b6';
-    expect(await jbSplitsPayer.supportsInterface(interfaceId)).to.equal(true);
+    expect(
+      await jbSplitsPayer.supportsInterface(interfaceSignatures.IJBSplitsPayer)
+    ).to.equal(true);
   });
 
   it('Supports IJBProjectPayer', async function () {
     const { jbSplitsPayer } = await setup();
-
-    const interfaceId = '0x78b19768';
-    expect(await jbSplitsPayer.supportsInterface(interfaceId)).to.equal(true);
+    expect(
+      await jbSplitsPayer.supportsInterface(interfaceSignatures.IJBProjectPayer)
+    ).to.equal(true);
   });
 
   it('Does not return true by default', async function () {
     const { jbSplitsPayer } = await setup();
-
-    const interfaceId = '0xffffffff';
-    expect(await jbSplitsPayer.supportsInterface(interfaceId)).to.equal(false);
+    expect(
+      await jbSplitsPayer.supportsInterface('0xffffffff')
+    ).to.equal(false);
   });
 });
