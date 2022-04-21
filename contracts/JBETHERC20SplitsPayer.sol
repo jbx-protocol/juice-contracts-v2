@@ -487,4 +487,17 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
       );
     }
   }
+
+  /**
+    @dev See {IERC165-supportsInterface}.
+  */
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(JBETHERC20ProjectPayer, IERC165)
+    returns (bool)
+  {
+    return interfaceId == type(IJBSplitsPayer).interfaceId || super.supportsInterface(interfaceId);
+  }
 }

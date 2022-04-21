@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Address.sol';
 import '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
@@ -29,7 +30,7 @@ error TERMINAL_NOT_FOUND();
   Inherits from:
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
-contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
+contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable, ERC165 {
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
@@ -386,5 +387,18 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
 
     // Add to balance so tokens don't get issued.
     _terminal.addToBalanceOf{value: _payableValue}(_projectId, _amount, _token, _memo);
+  }
+
+  /**
+    @dev See {IERC165-supportsInterface}.
+  */
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(ERC165, IERC165)
+    returns (bool)
+  {
+    return interfaceId == type(IJBProjectPayer).interfaceId || super.supportsInterface(interfaceId);
   }
 }

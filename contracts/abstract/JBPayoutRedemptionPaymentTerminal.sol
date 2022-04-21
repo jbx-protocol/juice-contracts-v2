@@ -50,11 +50,11 @@ error TERMINAL_TOKENS_INCOMPATIBLE();
   ReentrancyGuard: Contract module that helps prevent reentrant calls to a function.
 */
 abstract contract JBPayoutRedemptionPaymentTerminal is
+  Ownable,
+  ReentrancyGuard,
   IJBPayoutRedemptionPaymentTerminal,
   JBSingleTokenPaymentTerminal,
-  JBOperatable,
-  Ownable,
-  ReentrancyGuard
+  JBOperatable
 {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
@@ -1222,6 +1222,21 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     // If the fee discount is greater than the max, nullify the discount.
     if (feeDiscount > JBConstants.MAX_FEE_DISCOUNT) feeDiscount = 0;
+  }
+
+  /**
+    @dev See {IERC165-supportsInterface}.
+  */
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(JBSingleTokenPaymentTerminal, JBOperatable, IERC165)
+    returns (bool)
+  {
+    return
+      interfaceId == type(IJBPayoutRedemptionPaymentTerminal).interfaceId ||
+      super.supportsInterface(interfaceId);
   }
 
   /** 

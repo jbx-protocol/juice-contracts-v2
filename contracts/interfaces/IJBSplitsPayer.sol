@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 import './../structs/JBSplit.sol';
 import './IJBSplitsStore.sol';
 
-interface IJBSplitsPayer {
+interface IJBSplitsPayer is IERC165 {
   event SetDefaultSplits(
     uint256 indexed projectId,
     uint256 indexed domain,

@@ -1024,4 +1024,17 @@ contract JBController is IJBController, JBOperatable {
         JBConstants.MAX_RESERVED_RATE - _reservedRate
       ) - _unprocessedTokenBalanceOf;
   }
+
+  /**
+    @dev See {IERC165-supportsInterface}.
+  */
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(JBOperatable, IERC165)
+    returns (bool)
+  {
+    return interfaceId == type(IJBController).interfaceId || super.supportsInterface(interfaceId);
+  }
 }

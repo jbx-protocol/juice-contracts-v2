@@ -160,4 +160,17 @@ contract JBProjects is IJBProjects, JBOperatable, ERC721Votes, Ownable {
 
     emit SetTokenUriResolver(_newResolver, msg.sender);
   }
+
+  /**
+    @dev See {IERC165-supportsInterface}.
+  */
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(IERC165, ERC721, JBOperatable)
+    returns (bool)
+  {
+    return interfaceId == type(IJBProjects).interfaceId || super.supportsInterface(interfaceId);
+  }
 }

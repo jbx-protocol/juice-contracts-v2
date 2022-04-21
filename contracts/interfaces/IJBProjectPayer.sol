@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 import './IJBDirectory.sol';
 
-interface IJBProjectPayer {
+interface IJBProjectPayer is IERC165 {
   event SetDefaultValues(
     uint256 indexed projectId,
     address indexed beneficiary,
