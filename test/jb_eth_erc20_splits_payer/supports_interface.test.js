@@ -57,17 +57,17 @@ describe('JBETHERC20SplitsPayer::supportsInterface(...)', function () {
     };
   }
 
+  it('Does not return true by default', async function () {
+    const { jbSplitsPayer } = await setup();
+    expect(
+      await jbSplitsPayer.supportsInterface('0xffffffff')
+    ).to.equal(false);
+  });
+
   it('Supports IERC165', async function () {
     const { jbSplitsPayer } = await setup();
     expect(
       await jbSplitsPayer.supportsInterface(interfaceSignatures.IERC165)
-    ).to.equal(true);
-  });
-
-  it('Supports IJBSplitsPayer', async function () {
-    const { jbSplitsPayer } = await setup();
-    expect(
-      await jbSplitsPayer.supportsInterface(interfaceSignatures.IJBSplitsPayer)
     ).to.equal(true);
   });
 
@@ -78,10 +78,10 @@ describe('JBETHERC20SplitsPayer::supportsInterface(...)', function () {
     ).to.equal(true);
   });
 
-  it('Does not return true by default', async function () {
+  it('Supports IJBSplitsPayer', async function () {
     const { jbSplitsPayer } = await setup();
     expect(
-      await jbSplitsPayer.supportsInterface('0xffffffff')
-    ).to.equal(false);
+      await jbSplitsPayer.supportsInterface(interfaceSignatures.IJBSplitsPayer)
+    ).to.equal(true);
   });
 });

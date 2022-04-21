@@ -23,6 +23,13 @@ describe('JBProjects::supportsInterface(...)', function () {
     };
   }
 
+  it('Does not return true by default', async function () {
+    const { jbProjects } = await setup();
+    expect(
+      await jbProjects.supportsInterface('0xffffffff')
+    ).to.equal(false);
+  });
+
   it('Supports IERC165', async function () {
     const { jbProjects } = await setup();
     expect(
@@ -49,12 +56,5 @@ describe('JBProjects::supportsInterface(...)', function () {
     expect(
       await jbProjects.supportsInterface(interfaceSignatures.IJBOperatable)
     ).to.equal(true);
-  });
-
-  it('Does not return true by default', async function () {
-    const { jbProjects } = await setup();
-    expect(
-      await jbProjects.supportsInterface('0xffffffff')
-    ).to.equal(false);
   });
 });

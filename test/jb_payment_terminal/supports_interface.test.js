@@ -1,19 +1,18 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
-
+import ierc20Metadata from '../../artifacts/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol/IERC20Metadata.json';
 import interfaceSignatures from '../helpers/interface_signatures.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
+import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
-import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
-import IERC20Metadata from '../../artifacts/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol/IERC20Metadata.json';
+import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 
 describe('JBPayoutRedemptionPaymentTerminal::supportsInterface(...)', function () {
   async function setup() {
-    let [deployer, terminalOwner, caller] = await ethers.getSigners();
+    let [deployer, terminalOwner] = await ethers.getSigners();
 
     let [
       fakeToken,
@@ -24,7 +23,7 @@ describe('JBPayoutRedemptionPaymentTerminal::supportsInterface(...)', function (
       mockJbSplitsStore,
       mockJbPrices,
     ] = await Promise.all([
-      deployMockContract(deployer, IERC20Metadata.abi),
+      deployMockContract(deployer, ierc20Metadata.abi),
       deployMockContract(deployer, jbDirectory.abi),
       deployMockContract(deployer, jbPaymentTerminalStore.abi),
       deployMockContract(deployer, jbOperatoreStore.abi),
@@ -78,10 +77,20 @@ describe('JBPayoutRedemptionPaymentTerminal::supportsInterface(...)', function (
     return {
       jbEthPaymentTerminal,
       jbErc20PaymentTerminal,
-      terminalOwner,
-      caller,
+      terminalOwner
     };
   }
+
+  it('Does not return true by default', async function () {
+    const { jbEthPaymentTerminal, jbErc20PaymentTerminal } = await setup();
+    expect(
+      await jbEthPaymentTerminal.supportsInterface('0xffffffff')
+    ).to.equal(false);
+
+    expect(
+      await jbErc20PaymentTerminal.supportsInterface('0xffffffff')
+    ).to.equal(false);
+  });
 
   it('Supports IERC165', async function () {
     const { jbEthPaymentTerminal, jbErc20PaymentTerminal } = await setup();
@@ -116,17 +125,6 @@ describe('JBPayoutRedemptionPaymentTerminal::supportsInterface(...)', function (
     ).to.equal(true);
   });
 
-  it('Supports IJBSingleTokenPaymentTerminal', async function () {
-    const { jbEthPaymentTerminal, jbErc20PaymentTerminal } = await setup();
-    expect(
-      await jbEthPaymentTerminal.supportsInterface(interfaceSignatures.IJBSingleTokenPaymentTerminal)
-    ).to.equal(true);
-
-    expect(
-      await jbErc20PaymentTerminal.supportsInterface(interfaceSignatures.IJBSingleTokenPaymentTerminal)
-    ).to.equal(true);
-  });
-
   it('Supports IJBPayoutRedemptionPaymentTerminal', async function () {
     const { jbEthPaymentTerminal, jbErc20PaymentTerminal } = await setup();
     expect(
@@ -138,14 +136,14 @@ describe('JBPayoutRedemptionPaymentTerminal::supportsInterface(...)', function (
     ).to.equal(true);
   });
 
-  it('Does not return true by default', async function () {
+  it('Supports IJBSingleTokenPaymentTerminal', async function () {
     const { jbEthPaymentTerminal, jbErc20PaymentTerminal } = await setup();
     expect(
-      await jbEthPaymentTerminal.supportsInterface('0xffffffff')
-    ).to.equal(false);
+      await jbEthPaymentTerminal.supportsInterface(interfaceSignatures.IJBSingleTokenPaymentTerminal)
+    ).to.equal(true);
 
     expect(
-      await jbErc20PaymentTerminal.supportsInterface('0xffffffff')
-    ).to.equal(false);
+      await jbErc20PaymentTerminal.supportsInterface(interfaceSignatures.IJBSingleTokenPaymentTerminal)
+    ).to.equal(true);
   });
 });

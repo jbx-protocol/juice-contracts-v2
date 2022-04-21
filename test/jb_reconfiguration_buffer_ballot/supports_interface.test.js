@@ -24,17 +24,17 @@ describe('JBReconfigurationBufferBallot::supportsInterface(...)', function () {
     };
   }
 
+  it('Does not return true by default', async function () {
+    const { jbBallot } = await setup();
+    expect(
+      await jbBallot.supportsInterface('0xffffffff')
+    ).to.equal(false);
+  });
+
   it('Supports IERC165', async function () {
     const { jbBallot } = await setup();
     expect(
       await jbBallot.supportsInterface(interfaceSignatures.IERC165)
-    ).to.equal(true);
-  });
-
-  it('Supports IJBReconfigurationBufferBallot', async function () {
-    const { jbBallot } = await setup();
-    expect(
-      await jbBallot.supportsInterface(interfaceSignatures.IJBReconfigurationBufferBallot)
     ).to.equal(true);
   });
 
@@ -45,10 +45,10 @@ describe('JBReconfigurationBufferBallot::supportsInterface(...)', function () {
     ).to.equal(true);
   });
 
-  it('Does not return true by default', async function () {
+  it('Supports IJBReconfigurationBufferBallot', async function () {
     const { jbBallot } = await setup();
     expect(
-      await jbBallot.supportsInterface('0xffffffff')
-    ).to.equal(false);
+      await jbBallot.supportsInterface(interfaceSignatures.IJBReconfigurationBufferBallot)
+    ).to.equal(true);
   });
 });
