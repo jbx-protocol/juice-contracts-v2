@@ -95,4 +95,73 @@ describe('JBReconfigurationBufferBallot::finalize(...)', function () {
 
     expect(await jbBallot.stateOf(PROJECT_ID, configuration, configuration-1)).to.equal(2);
   });
+
+  it('Should not finalize an Active ballot', async function () {
+    const { caller, timestamp, jbBallot, mockJbFundingCycleStore } = await setup();
+
+    const blockNum = await ethers.provider.getBlockNumber();
+    const block = await ethers.provider.getBlock(blockNum);
+    const configuration = block.timestamp;
+
+    
+    await mockJbFundingCycleStore.mock.get.withArgs(PROJECT_ID, configuration).returns({
+      number: 1,
+      configuration: timestamp + 10,
+      basedOn: configuration,
+      start: timestamp + 10,
+      duration: 0,
+      weight: 0,
+      discountRate: 0,
+      ballot: jbBallot.address,
+      metadata: '0x69',
+    });
+
+    // Try to finalize, while still Active
+    expect(await jbBallot
+      .connect(caller)
+      .finalize(PROJECT_ID, configuration)
+    ).to.not.emit(jbBallot, 'Finalize');
+  });
+
+  it('Should not finalize a ballot which is not active', async function () {
+    const { caller, jbBallot, mockJbFundingCycleStore } = await setup();
+
+    const blockNum = await ethers.provider.getBlockNumber();
+    const block = await ethers.provider.getBlock(blockNum);
+    const configuration = block.timestamp;
+
+    await mockJbFundingCycleStore.mock.get.withArgs(PROJECT_ID, configuration).returns({
+      number: 1,
+      configuration: configuration,
+      basedOn: configuration,
+      start: configuration - 1,
+      duration: 0,
+      weight: 0,
+      discountRate: 0,
+      ballot: jbBallot.address,
+      metadata: '0x69',
+    });
+
+    // Finalize as failed
+    expect(await jbBallot
+      .connect(caller)
+      .finalize(PROJECT_ID, configuration)
+    ).to.emit(jbBallot, 'Finalize')
+      .withArgs(
+        PROJECT_ID,
+        configuration,
+        2,
+        caller.address
+    )
+
+    expect(await jbBallot.stateOf(PROJECT_ID, configuration, configuration-1)).to.equal(2);
+
+    // Try to finalize it again
+    expect(await jbBallot
+      .connect(caller)
+      .finalize(PROJECT_ID, configuration)
+    ).to.not.emit(jbBallot, 'Finalize');
+
+    expect(await jbBallot.stateOf(PROJECT_ID, configuration, configuration-1)).to.equal(2);
+  });
 });

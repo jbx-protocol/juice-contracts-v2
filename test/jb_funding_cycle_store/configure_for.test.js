@@ -79,6 +79,12 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
 
     // Ballot status should be approved since there is no ballot.
     expect(await jbFundingCycleStore.currentBallotStateOf(PROJECT_ID)).to.eql(1);
+
+    const [latestFundingCycle, ballotState] = await jbFundingCycleStore.latestConfiguredOf(PROJECT_ID);
+    expect(cleanFundingCycle(latestFundingCycle)).to.eql(
+      EMPTY_FUNDING_CYCLE,
+    );
+    expect(ballotState).to.deep.eql(1);
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(
       EMPTY_FUNDING_CYCLE,
     );
@@ -145,6 +151,12 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     expect(
       cleanFundingCycle(await jbFundingCycleStore.get(PROJECT_ID, configurationTimestamp)),
     ).to.eql(expectedCurrentFundingCycle);
+
+    let [latestFundingCycle, ballotState] = await jbFundingCycleStore.latestConfiguredOf(PROJECT_ID);
+    expect(cleanFundingCycle(latestFundingCycle)).to.eql(
+      expectedCurrentFundingCycle,
+    );
+    expect(ballotState).to.deep.eql(1);
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(
       expectedCurrentFundingCycle,
     );
@@ -158,6 +170,14 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     //Subtract at least two from the end of the cycle, otherwise the second might tick between the fast forward and the check.
     await fastForward(configureForTx.blockNumber, DEFAULT_FUNDING_CYCLE_DATA.duration.sub(2));
 
+    [latestFundingCycle, ballotState] = await jbFundingCycleStore.latestConfiguredOf(PROJECT_ID);
+    expect(cleanFundingCycle(latestFundingCycle)).to.eql(
+      expectedCurrentFundingCycle,
+    );
+    expect(ballotState).to.deep.eql(1);
+    expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(
+      expectedCurrentFundingCycle,
+    );
     // The stored properties should not have changed.
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(
       expectedCurrentFundingCycle,
@@ -171,6 +191,11 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     //fast forward to the next cycle.
     await fastForward(configureForTx.blockNumber, DEFAULT_FUNDING_CYCLE_DATA.duration);
 
+    [latestFundingCycle, ballotState] = await jbFundingCycleStore.latestConfiguredOf(PROJECT_ID);
+    expect(cleanFundingCycle(latestFundingCycle)).to.eql(
+      expectedCurrentFundingCycle,
+    );
+    expect(ballotState).to.deep.eql(1);
     // What was the queued cycle should now be the current cycle.
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql({
       ...expectedCurrentFundingCycle,
@@ -189,6 +214,11 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     //fast forward to the subsequent cycle, repeat the process.
     await fastForward(configureForTx.blockNumber, DEFAULT_FUNDING_CYCLE_DATA.duration.mul(2));
 
+    [latestFundingCycle, ballotState] = await jbFundingCycleStore.latestConfiguredOf(PROJECT_ID);
+    expect(cleanFundingCycle(latestFundingCycle)).to.eql(
+      expectedCurrentFundingCycle,
+    );
+    expect(ballotState).to.deep.eql(1);
     // What was the queued cycle should now be the current cycle.
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql({
       ...expectedCurrentFundingCycle,
@@ -273,6 +303,11 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     expect(
       cleanFundingCycle(await jbFundingCycleStore.get(PROJECT_ID, configurationTimestamp)),
     ).to.eql(expectedUpcomingFundingCycle);
+    let [latestFundingCycle, ballotState] = await jbFundingCycleStore.latestConfiguredOf(PROJECT_ID);
+    expect(cleanFundingCycle(latestFundingCycle)).to.eql(
+      expectedUpcomingFundingCycle,
+    );
+    expect(ballotState).to.deep.eql(1);
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(
       EMPTY_FUNDING_CYCLE,
     );
@@ -362,6 +397,12 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     expect(
       cleanFundingCycle(await jbFundingCycleStore.get(PROJECT_ID, secondConfigurationTimestamp)),
     ).to.eql(expectedSecondFundingCycle);
+
+    let [latestFundingCycle, ballotState] = await jbFundingCycleStore.latestConfiguredOf(PROJECT_ID);
+    expect(cleanFundingCycle(latestFundingCycle)).to.eql(
+      expectedSecondFundingCycle,
+    );
+    expect(ballotState).to.deep.eql(1);
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(
       expectedFirstFundingCycle,
     );
@@ -448,6 +489,12 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     expect(
       cleanFundingCycle(await jbFundingCycleStore.get(PROJECT_ID, secondConfigurationTimestamp)),
     ).to.eql(expectedSecondFundingCycle);
+
+    let [latestFundingCycle, ballotState] = await jbFundingCycleStore.latestConfiguredOf(PROJECT_ID);
+    expect(cleanFundingCycle(latestFundingCycle)).to.eql(
+      expectedSecondFundingCycle,
+    );
+    expect(ballotState).to.deep.eql(1);
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(
       expectedFirstFundingCycle,
     );
@@ -548,6 +595,12 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     expect(
       cleanFundingCycle(await jbFundingCycleStore.get(PROJECT_ID, secondConfigurationTimestamp)),
     ).to.eql(expectedSecondFundingCycle);
+
+    let [latestFundingCycle, ballotState] = await jbFundingCycleStore.latestConfiguredOf(PROJECT_ID);
+    expect(cleanFundingCycle(latestFundingCycle)).to.eql(
+      expectedSecondFundingCycle,
+    );
+    expect(ballotState).to.deep.eql(1);
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(
       expectedFirstFundingCycle,
     );
@@ -634,6 +687,12 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     expect(
       cleanFundingCycle(await jbFundingCycleStore.get(PROJECT_ID, secondConfigurationTimestamp)),
     ).to.eql(expectedSecondFundingCycle);
+
+    let [latestFundingCycle, ballotState] = await jbFundingCycleStore.latestConfiguredOf(PROJECT_ID);
+    expect(cleanFundingCycle(latestFundingCycle)).to.eql(
+      expectedSecondFundingCycle,
+    );
+    expect(ballotState).to.deep.eql(1);
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql({
       ...expectedFirstFundingCycle,
       number: expectedFirstFundingCycle.number.add(cycleDiff.sub(1)),
@@ -732,6 +791,12 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     expect(
       cleanFundingCycle(await jbFundingCycleStore.get(PROJECT_ID, secondConfigurationTimestamp)),
     ).to.eql(expectedSecondFundingCycle);
+
+    let [latestFundingCycle, ballotState] = await jbFundingCycleStore.latestConfiguredOf(PROJECT_ID);
+    expect(cleanFundingCycle(latestFundingCycle)).to.eql(
+      expectedSecondFundingCycle,
+    );
+    expect(ballotState).to.deep.eql(ballotStatus.APPROVED);
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql({
       ...expectedFirstFundingCycle,
       number: expectedFirstFundingCycle.number.add(cycleDiff.sub(1)),
@@ -886,6 +951,18 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     // The timestamp the second configuration was made during.
     const failedConfigurationTimestamp = await getTimestamp(failedConfigureForTx.blockNumber);
 
+    const expectedFailedFundingCycle = {
+      number: ethers.BigNumber.from(2),
+      configuration: failedConfigurationTimestamp,
+      basedOn: firstConfigurationTimestamp,
+      start: expectedFirstFundingCycle.start.add(expectedFirstFundingCycle.duration),
+      duration: failedFundingCycleData.duration,
+      weight: failedFundingCycleData.weight,
+      discountRate: failedFundingCycleData.discountRate,
+      ballot: failedFundingCycleData.ballot,
+      metadata: failedFundingCycleMetadata,
+    };
+
     // Mock the ballot on the failed funding cycle as failed.
     await mockBallot.mock.stateOf
       .withArgs(PROJECT_ID, failedConfigurationTimestamp, firstConfigurationTimestamp.add(firstFundingCycleData.duration))
@@ -899,6 +976,11 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
       firstFundingCycleData.duration.mul(cycleDiff).sub(5),
     );
 
+    let [latestFundingCycle, ballotState] = await jbFundingCycleStore.latestConfiguredOf(PROJECT_ID);
+    expect(cleanFundingCycle(latestFundingCycle)).to.eql(
+      expectedFailedFundingCycle,
+    );
+    expect(ballotState).to.deep.eql(ballotStatus.FAILED);
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql({
       ...expectedFirstFundingCycle,
       number: expectedFirstFundingCycle.number.add(cycleDiff.sub(1)),
@@ -995,6 +1077,12 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
       .withArgs(PROJECT_ID, failedConfigurationTimestamp, firstConfigurationTimestamp.add(firstFundingCycleData.duration))
       .returns(ballotStatus.FAILED);
 
+    let [latestFundingCycle, ballotState] = await jbFundingCycleStore.latestConfiguredOf(PROJECT_ID);
+    expect(cleanFundingCycle(latestFundingCycle)).to.eql(
+      expectedFailedFundingCycle,
+    );
+    expect(ballotState).to.deep.eql(ballotStatus.FAILED);
+
     // Current should be a copy of the first fc.
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql({
       ...expectedFirstFundingCycle,
@@ -1015,6 +1103,12 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     await mockBallot.mock.stateOf
       .withArgs(PROJECT_ID, failedConfigurationTimestamp, firstConfigurationTimestamp.add(firstFundingCycleData.duration))
       .returns(ballotStatus.APPROVED);
+
+    [latestFundingCycle, ballotState] = await jbFundingCycleStore.latestConfiguredOf(PROJECT_ID);
+    expect(cleanFundingCycle(latestFundingCycle)).to.eql(
+      expectedFailedFundingCycle,
+    );
+    expect(ballotState).to.deep.eql(1);
 
     // Current should be the now-approved fc.
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(

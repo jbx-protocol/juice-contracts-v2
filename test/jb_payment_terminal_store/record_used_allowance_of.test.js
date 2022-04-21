@@ -377,7 +377,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordUsedAllowanceOf(...)', functi
     await expect(
       JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
         PROJECT_ID,
-        AMOUNT,
+        0,
         CURRENCY_USD,
         CURRENCY_USD,
       ),

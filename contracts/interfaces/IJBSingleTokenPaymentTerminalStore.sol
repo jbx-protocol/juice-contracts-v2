@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './IJBSingleTokenPaymentTerminal.sol';
-import './IJBPayDelegate.sol';
-import './IJBRedemptionDelegate.sol';
-import './IJBTokenStore.sol';
-import './IJBSplitsStore.sol';
-import './IJBPrices.sol';
-import './../structs/JBTokenAmount.sol';
 import './../structs/JBFundingCycle.sol';
+import './../structs/JBTokenAmount.sol';
+import './IJBDirectory.sol';
+import './IJBFundingCycleStore.sol';
+import './IJBPayDelegate.sol';
+import './IJBPrices.sol';
+import './IJBRedemptionDelegate.sol';
+import './IJBSingleTokenPaymentTerminal.sol';
 
 interface IJBSingleTokenPaymentTerminalStore {
   function fundingCycleStore() external view returns (IJBFundingCycleStore);

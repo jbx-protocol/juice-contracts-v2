@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import './../structs/JBFundAccessConstraints.sol';
 import './../structs/JBFundingCycleData.sol';
 import './../structs/JBFundingCycleMetadata.sol';
-import './../structs/JBProjectMetadata.sol';
 import './../structs/JBGroupedSplits.sol';
-import './../structs/JBFundAccessConstraints.sol';
 import './../structs/JBProjectMetadata.sol';
 import './IJBDirectory.sol';
-import './IJBToken.sol';
-import './IJBPaymentTerminal.sol';
 import './IJBFundingCycleStore.sol';
-import './IJBTokenStore.sol';
+import './IJBMigratable.sol';
+import './IJBPaymentTerminal.sol';
 import './IJBSplitsStore.sol';
+import './IJBToken.sol';
+import './IJBTokenStore.sol';
 
-interface IJBController {
+interface IJBController is IJBMigratable {
   event LaunchProject(uint256 configuration, uint256 projectId, string memo, address caller);
 
   event LaunchFundingCycles(uint256 configuration, uint256 projectId, string memo, address caller);
@@ -72,9 +72,9 @@ interface IJBController {
     address caller
   );
 
-  event Migrate(uint256 indexed projectId, IJBController to, address caller);
+  event Migrate(uint256 indexed projectId, IJBMigratable to, address caller);
 
-  event PrepMigration(uint256 indexed projectId, IJBController from, address caller);
+  event PrepMigration(uint256 indexed projectId, address from, address caller);
 
   function projects() external view returns (IJBProjects);
 
@@ -110,12 +110,23 @@ interface IJBController {
     view
     returns (uint256);
 
+  function latestConfiguredFundingCycleOf(uint256 _projectId)
+    external
+    view
+    returns (
+      JBFundingCycle memory,
+      JBFundingCycleMetadata memory metadata,
+      JBBallotState
+    );
+
   function currentFundingCycleOf(uint256 _projectId)
     external
+    view
     returns (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata);
 
   function queuedFundingCycleOf(uint256 _projectId)
     external
+    view
     returns (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata);
 
   function launchProjectFor(
@@ -184,7 +195,5 @@ interface IJBController {
     external
     returns (uint256);
 
-  function prepForMigrationOf(uint256 _projectId, IJBController _from) external;
-
-  function migrate(uint256 _projectId, IJBController _to) external;
+  function migrate(uint256 _projectId, IJBMigratable _to) external;
 }

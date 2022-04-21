@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './IJBFundingCycleStore.sol';
-
-import './IJBPayDelegate.sol';
-import './IJBRedemptionDelegate.sol';
-
 import './../structs/JBPayParamsData.sol';
 import './../structs/JBRedeemParamsData.sol';
+import './IJBFundingCycleStore.sol';
+import './IJBPayDelegate.sol';
+import './IJBRedemptionDelegate.sol';
 
 interface IJBFundingCycleDataSource {
   function payParams(JBPayParamsData calldata _data)

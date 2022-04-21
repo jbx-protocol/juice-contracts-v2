@@ -17,8 +17,7 @@ module.exports = async ({ deployments, getChainId }) => {
   let baseDeployArgs = {
     from: deployer.address,
     log: true,
-    // On mainnet, we will not redeploy contracts if they have already been deployed.
-    skipIfAlreadyDeployed: chainId === '1',
+    skipIfAlreadyDeployed: true,
   };
   let protocolProjectStartsAtOrAfter;
 
