@@ -386,8 +386,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         _holder,
         _projectId,
         _tokenCount,
-        decimals, // The fixed point balance has this terminal's token's number of decimals.
-        currency, // The balance is in terms of this terminal's currency.
         _memo,
         _metadata
       );
@@ -468,11 +466,10 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   ) external virtual override returns (uint256 netLeftoverDistributionAmount) {
     // Record the distribution.
     (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordDistributionFor(
-        _projectId,
-        _amount,
-        _currency,
-        currency // The balance is in terms of this terminal's currency.
-      );
+      _projectId,
+      _amount,
+      _currency
+    );
 
     // The amount being distributed must be at least as much as was expected.
     if (_distributedAmount < _minReturnedTokens) revert INADEQUATE_DISTRIBUTION_AMOUNT();
@@ -582,11 +579,10 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   {
     // Record the use of the allowance.
     (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordUsedAllowanceOf(
-        _projectId,
-        _amount,
-        _currency,
-        currency // The balance is in terms of this terminal's currency.
-      );
+      _projectId,
+      _amount,
+      _currency
+    );
 
     // The amount being withdrawn must be at least as much as was expected.
     if (_distributedAmount < _minReturnedTokens) revert INADEQUATE_DISTRIBUTION_AMOUNT();

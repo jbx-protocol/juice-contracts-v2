@@ -98,7 +98,7 @@ describe('JBPayoutRedemptionPaymentTerminal::getters', function () {
     };
   }
 
-  it.only("Should return true if the terminal accepts a token", async function () {
+  it("Should return true if the terminal accepts a token", async function () {
     const { JBERC20PaymentTerminal, jbEthPaymentTerminal, NON_ETH_TOKEN } = await setup();
     expect(
       await JBERC20PaymentTerminal.acceptsToken(NON_ETH_TOKEN)
@@ -138,4 +138,16 @@ describe('JBPayoutRedemptionPaymentTerminal::getters', function () {
       await jbEthPaymentTerminal.currencyForToken(ETH_ADDRESS)
     ).to.equal(CURRENCY_ETH);
   });
+
+  it("Should return the token, decimals and currency for the token", async function () {
+    const { JBERC20PaymentTerminal, jbEthPaymentTerminal, NON_ETH_TOKEN, DECIMALS } = await setup();
+    expect(
+      await JBERC20PaymentTerminal.info()
+    ).to.eql([NON_ETH_TOKEN, ethers.BigNumber.from(DECIMALS), CURRENCY_ETH]);
+
+    expect(
+      await jbEthPaymentTerminal.info()
+    ).to.eql([ETH_ADDRESS, ethers.BigNumber.from(18), CURRENCY_ETH]);
+  });
+
 });
