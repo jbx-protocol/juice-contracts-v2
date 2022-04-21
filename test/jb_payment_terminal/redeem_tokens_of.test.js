@@ -140,8 +140,6 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
         holder.address,
         PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        DECIMALS_ETH,
-        CURRENCY_ETH,
         MEMO,
         METADATA,
       )
@@ -208,8 +206,6 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
         holder.address,
         PROJECT_ID,
         /* tokenCount */ 0,
-        DECIMALS_ETH,
-        CURRENCY_ETH,
         MEMO,
         METADATA,
       )
@@ -284,8 +280,6 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
         holder.address,
         PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        DECIMALS_ETH,
-        CURRENCY_ETH,
         MEMO,
         METADATA,
       )
@@ -401,8 +395,6 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
         holder.address,
         PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        DECIMALS_ETH,
-        CURRENCY_ETH,
         MEMO,
         METADATA,
       )
@@ -514,8 +506,6 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
         holder.address,
         PROJECT_ID,
         /* tokenCount */ AMOUNT,
-        DECIMALS_ETH,
-        CURRENCY_ETH,
         MEMO,
         METADATA,
       )
