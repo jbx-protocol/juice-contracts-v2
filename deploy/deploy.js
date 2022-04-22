@@ -222,40 +222,42 @@ module.exports = async ({ deployments, getChainId }) => {
     if(chainId == 1) {
       beneficiaries =
         [
-          'jango.eth',
-          'peri.eth',  
-          'zeugh.eth',
-          'atomicmieos.eth',
           'sagekellyn.eth',
+          'mieos.eth',
+          'natasha-pankina.eth',
+          'zeugh.eth',
+          'burtula.eth',
+          'tankbottoms.eth',
+          'jasonz.eth',
+          'zom-bae.eth',
           'johnnyd.eth',
-          'DrGorilla.eth',
+          'drgorilla.eth',
           'filipv.eth',
           'twodam.eth',
           '0xstvg.eth',
           'aeolian.eth',
-          'zom-bae.eth',
-          '0x5d95baEBB8412AD827287240A5c281E3bB30d27E',
-          '0x111040F27f05E2017e32B9ac6d1e9593E4E19A2a',
-          '0x1DD2091f250876Ba87B6fE17e6ca925e1B1c0CF0'
+          'peri.eth',
+          'jango.eth'
         ]
     } else {
       beneficiaries =
         [
-          '0x823b92d6a4b2aed4b15675c7917c9f922ea8adad',
-          '0x63a2368f4b509438ca90186cb1c15156713d5834',  
-          '0xf7253a0e87e39d2cd6365919d4a3d56d431d0041',
-          '0xe7879a2D05dBA966Fcca34EE9C3F99eEe7eDEFd1',
           '0x90eda5165e5e1633e0bdb6307cdecae564b10ff7',
+          '0xe7879a2d05dba966fcca34ee9c3f99eee7edefd1',
+          '0x1dd2091f250876ba87b6fe17e6ca925e1b1c0cf0',
+          '0xf7253a0e87e39d2cd6365919d4a3d56d431d0041',
+          '0x111040f27f05e2017e32b9ac6d1e9593e4e19a2a',
+          '0x5d95baebb8412ad827287240a5c281e3bb30d27e',
+          '0xd551b861414b7a2836e4b4615b8155c4b1ecc067',
+          '0x34724d71ce674fcd4d06e60dd1baa88c14d36b75',
           '0xf0fe43a75ff248fd2e75d33fa1ebde71c6d1abad',
           '0x6860f1a0cf179ed93abd3739c7f6c8961a4eea3c',
           '0x30670d81e487c80b9edc54370e6eaf943b6eab39',
           '0xca6ed3fdc8162304d7f1fcfc9ca3a81632d5e5b0',
           '0x28c173b8f20488eef1b0f48df8453a2f59c38337',
           '0xe16a238d207b9ac8b419c7a866b0de013c73357b',
-          '0x34724d71ce674fcd4d06e60dd1baa88c14d36b75',
-          '0x5d95baEBB8412AD827287240A5c281E3bB30d27E',
-          '0x111040F27f05E2017e32B9ac6d1e9593E4E19A2a',
-          '0x1DD2091f250876Ba87B6fE17e6ca925e1B1c0CF0'
+          '0x63a2368f4b509438ca90186cb1c15156713d5834',
+          '0x823b92d6a4b2aed4b15675c7917c9f922ea8adad'
         ]
     }
 
