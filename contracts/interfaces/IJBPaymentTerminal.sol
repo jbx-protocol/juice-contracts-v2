@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './IJBDirectory.sol';
+import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 
-interface IJBPaymentTerminal {
+interface IJBPaymentTerminal is IERC165 {
   function acceptsToken(address _token) external view returns (bool);
 
   function currencyForToken(address _token) external view returns (uint256);
@@ -28,6 +28,7 @@ interface IJBPaymentTerminal {
     uint256 _projectId,
     uint256 _amount,
     address _token,
-    string calldata _memo
+    string calldata _memo,
+    bytes calldata _metadata
   ) external payable;
 }

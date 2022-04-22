@@ -88,7 +88,7 @@ contract TestTokenFlow is TestBaseWorkflow {
 
     // create a new IJBToken and change it's owner to the tokenStore
     IJBToken _newToken = new JBToken('NewTestName', 'NewTestSymbol');
-    _newToken.transferOwnership(address(_tokenStore));
+    _newToken.transferOwnership(_projectId, address(_tokenStore));
 
     // change the projects token to _newToken
     _controller.changeTokenOf(_projectId, _newToken, address(0));
@@ -111,7 +111,7 @@ contract TestTokenFlow is TestBaseWorkflow {
       'Mint memo',
       mintPreferClaimed,
       true /*use reserved rate*/
-      );
+    );
 
     // total token balance should be half of token count due to 50% reserved rate
     assertEq(_tokenStore.balanceOf(_beneficiary, _projectId), _expectedTokenBalance);
@@ -174,7 +174,12 @@ contract TestTokenFlow is TestBaseWorkflow {
     // try to claim the unclaimed tokens
     evm.stopPrank();
     evm.prank(_beneficiary);
-    _tokenStore.claimFor(_beneficiary, _projectId, /* _amount */ 1);
+    _tokenStore.claimFor(
+      _beneficiary,
+      _projectId,
+      /* _amount */
+      1
+    );
   }
 
   /**
@@ -202,7 +207,7 @@ contract TestTokenFlow is TestBaseWorkflow {
 
     // create a new IJBToken and change it's owner to the tokenStore
     IJBToken _newToken = new JBToken('NewTestName', 'NewTestSymbol');
-    _newToken.transferOwnership(address(_tokenStore));
+    _newToken.transferOwnership(_projectId, address(_tokenStore));
 
     // change the projects token to _newToken
     _controller.changeTokenOf(_projectId, _newToken, address(0));
@@ -214,7 +219,10 @@ contract TestTokenFlow is TestBaseWorkflow {
 
     // total token balanced should be updated
     assertEq(_newToken.balanceOf(_beneficiary, _projectId), type(uint224).max);
-    assertEq(_tokenStore.unclaimedBalanceOf(_beneficiary, _projectId), type(uint256).max - type(uint224).max);
+    assertEq(
+      _tokenStore.unclaimedBalanceOf(_beneficiary, _projectId),
+      type(uint256).max - type(uint224).max
+    );
     assertEq(_tokenStore.unclaimedTotalSupplyOf(_projectId), type(uint256).max - type(uint224).max);
     assertEq(_tokenStore.balanceOf(_beneficiary, _projectId), type(uint256).max);
   }

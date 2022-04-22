@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './JBConstants.sol';
-import './../interfaces/IJBFundingCycleStore.sol';
-import './../interfaces/IJBFundingCycleDataSource.sol';
-import './../structs/JBFundingCycleMetadata.sol';
-
 library JBFixedPointNumber {
   function adjustDecimals(
     uint256 _value,

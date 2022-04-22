@@ -11,12 +11,24 @@ error UNAUTHORIZED();
 /** 
   @notice
   Modifiers to allow access to functions based on the message sender's operator status.
+
+  @dev
+  Adheres to:
+  IJBOperatable: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 */
 abstract contract JBOperatable is IJBOperatable {
   //*********************************************************************//
   // ---------------------------- modifiers ---------------------------- //
   //*********************************************************************//
 
+  /** 
+    @notice
+    Only allows the speficied account or an operator of the account to proceed. 
+
+    @param _account The account to check for.
+    @param _domain The domain namespace to look for an operator within. 
+    @param _permissionIndex The index of the permission to check for. 
+  */
   modifier requirePermission(
     address _account,
     uint256 _domain,
@@ -26,6 +38,15 @@ abstract contract JBOperatable is IJBOperatable {
     _;
   }
 
+  /** 
+    @notice
+    Only allows the speficied account, an operator of the account to proceed, or a truthy override flag. 
+
+    @param _account The account to check for.
+    @param _domain The domain namespace to look for an operator within. 
+    @param _permissionIndex The index of the permission to check for. 
+    @param _override A condition to force allowance for.
+  */
   modifier requirePermissionAllowingOverride(
     address _account,
     uint256 _domain,
@@ -66,8 +87,8 @@ abstract contract JBOperatable is IJBOperatable {
     Require the message sender is either the account or has the specified permission.
 
     @param _account The account to allow.
-    @param _domain The domain within which the permission index will be checked.
-    @param _domain The permission index that an operator must have within the specified domain to be allowed.
+    @param _domain The domain namespace within which the permission index will be checked.
+    @param _permissionIndex The permission index that an operator must have within the specified domain to be allowed.
   */
   function _requirePermission(
     address _account,
@@ -86,7 +107,7 @@ abstract contract JBOperatable is IJBOperatable {
     Require the message sender is either the account, has the specified permission, or the override condition is true.
 
     @param _account The account to allow.
-    @param _domain The domain within which the permission index will be checked.
+    @param _domain The domain namespace within which the permission index will be checked.
     @param _domain The permission index that an operator must have within the specified domain to be allowed.
     @param _override The override condition to allow.
   */

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/utils/Address.sol';
-import '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import './interfaces/IJBProjectPayer.sol';
 import './libraries/JBTokens.sol';
 
@@ -29,7 +29,7 @@ error TERMINAL_NOT_FOUND();
   Inherits from:
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
-contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
+contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable, ERC165 {
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
@@ -79,6 +79,23 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     A flag indicating if received payments should call the `pay` function or the `addToBalance` function of a project.
   */
   bool public override defaultPreferAddToBalance;
+
+  //*********************************************************************//
+  // ------------------------- external views -------------------------- //
+  //*********************************************************************//
+
+  /**
+    @dev See {IERC165-supportsInterface}.
+  */
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(ERC165, IERC165)
+    returns (bool)
+  {
+    return interfaceId == type(IJBProjectPayer).interfaceId || super.supportsInterface(interfaceId);
+  }
 
   //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
@@ -131,12 +148,13 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
   */
   receive() external payable virtual override {
     if (defaultPreferAddToBalance)
-      _addToBalance(
+      _addToBalanceOf(
         defaultProjectId,
         JBTokens.ETH,
         address(this).balance,
         18, // balance is a fixed point number with 18 decimals.
-        defaultMemo
+        defaultMemo,
+        defaultMetadata
       );
     else
       _pay(
@@ -224,7 +242,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with 18 decimals.
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate. A data source can alter the memo before emitting in the event and forwarding to the delegate.
-    @param _metadata Bytes to send along to the data source and delegate, if provided.
+    @param _metadata Bytes to send along to the data source, delegate, and emitted event, if provided.
   */
   function pay(
     uint256 _projectId,
@@ -271,13 +289,15 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     @param _amount The amount of tokens being paid, as a fixed point number. If the token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. If the token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
     @param _memo A memo to pass along to the emitted event.
+    @param _metadata Extra data to pass along to the terminal.
   */
-  function addToBalance(
+  function addToBalanceOf(
     uint256 _projectId,
     address _token,
     uint256 _amount,
     uint256 _decimals,
-    string memory _memo
+    string calldata _memo,
+    bytes calldata _metadata
   ) public payable virtual override {
     // ETH shouldn't be sent if the token isn't ETH.
     if (address(_token) != JBTokens.ETH) {
@@ -291,7 +311,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
       _decimals = 18;
     }
 
-    _addToBalance(_projectId, _token, _amount, _decimals, _memo);
+    _addToBalanceOf(_projectId, _token, _amount, _decimals, _memo, _metadata);
   }
 
   //*********************************************************************//
@@ -361,13 +381,15 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     @param _amount The amount of tokens being paid, as a fixed point number. If the token is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. If the token is ETH, this is ignored and 18 is used in its place, which corresponds to the amount of decimals expected in msg.value.
     @param _memo A memo to pass along to the emitted event.
+    @param _metadata Extra data to pass along to the terminal.
   */
-  function _addToBalance(
+  function _addToBalanceOf(
     uint256 _projectId,
     address _token,
     uint256 _amount,
     uint256 _decimals,
-    string memory _memo
+    string memory _memo,
+    bytes memory _metadata
   ) internal virtual {
     // Find the terminal for the specified project.
     IJBPaymentTerminal _terminal = directory.primaryTerminalOf(_projectId, _token);
@@ -385,6 +407,6 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable {
     uint256 _payableValue = _token == JBTokens.ETH ? _amount : 0;
 
     // Add to balance so tokens don't get issued.
-    _terminal.addToBalanceOf{value: _payableValue}(_projectId, _amount, _token, _memo);
+    _terminal.addToBalanceOf{value: _payableValue}(_projectId, _amount, _token, _memo, _metadata);
   }
 }

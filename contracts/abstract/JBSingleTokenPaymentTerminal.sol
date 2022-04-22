@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import './../interfaces/IJBSingleTokenPaymentTerminal.sol';
 
 /**
@@ -11,7 +12,7 @@ import './../interfaces/IJBSingleTokenPaymentTerminal.sol';
   Adheres to:
   IJBSingleTokenPaymentTerminals: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 */
-abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal {
+abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal, ERC165 {
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
@@ -72,6 +73,43 @@ abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal 
   */
   function currencyForToken(address) external view override returns (uint256) {
     return currency;
+  }
+
+  /** 
+    @notice
+    The token, decimals, and currency that should be used.
+
+    @return token The terminal's token.
+    @return decimals The number of decimals the token fixed point amounts are expected to have.
+    @return currency The currency to use when resolving price feeds for this terminal.
+  */
+  function info()
+    external
+    view
+    override
+    returns (
+      address,
+      uint256,
+      uint256
+    )
+  {
+    return (token, decimals, currency);
+  }
+
+  /**
+    @dev See {IERC165-supportsInterface}.
+  */
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(ERC165, IERC165)
+    returns (bool)
+  {
+    return
+      interfaceId == type(IJBPaymentTerminal).interfaceId ||
+      interfaceId == type(IJBSingleTokenPaymentTerminal).interfaceId ||
+      super.supportsInterface(interfaceId);
   }
 
   //*********************************************************************//

@@ -5,6 +5,7 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
+import './../interfaces/IJBController.sol';
 import './../interfaces/IJBPayoutRedemptionPaymentTerminal.sol';
 import './../libraries/JBConstants.sol';
 import './../libraries/JBCurrencies.sol';
@@ -81,7 +82,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     Maximum fee that can be set for a funding cycle configuration.
 
     @dev
-    Out of MAX_FEE (50_000_000 / 1_000_000_000)
+    Out of MAX_FEE (50_000_000 / 1_000_000_000).
   */
   uint256 private constant _FEE_CAP = 50_000_000;
 
@@ -109,7 +110,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
   /**
     @notice
-    The Projects contract which mints ERC-721's that represent project ownership and transfers.
+    Mints ERC-721's that represent project ownership and transfers.
   */
   IJBProjects public immutable override projects;
 
@@ -226,6 +227,22 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     return _heldFeesOf[_projectId];
   }
 
+  /**
+    @dev See {IERC165-supportsInterface}.
+  */
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(JBSingleTokenPaymentTerminal, IERC165)
+    returns (bool)
+  {
+    return
+      interfaceId == type(IJBPayoutRedemptionPaymentTerminal).interfaceId ||
+      interfaceId == type(IJBOperatable).interfaceId ||
+      super.supportsInterface(interfaceId);
+  }
+
   //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
@@ -284,7 +301,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with the same amount of decimals as this terminal.
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
-    @param _metadata Bytes to send along to the data source and delegate, if provided.
+    @param _metadata Bytes to send along to the data source, delegate, and emitted event, if provided.
 
     @return The number of tokens minted for the beneficiary, as a fixed point number with 18 decimals.
   */
@@ -334,7 +351,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _minReturnedTokens The minimum amount of terminal tokens expected in return, as a fixed point number with the same amount of decimals as the terminal.
     @param _beneficiary The address to send the terminal tokens to.
     @param _memo A memo to pass along to the emitted event.
-    @param _metadata Bytes to send along to the data source and delegate, if provided.
+    @param _metadata Bytes to send along to the data source, delegate, and emitted event, if provided.
 
     @return reclaimAmount The amount of terminal tokens that the project tokens were redeemed for, as a fixed point number with 18 decimals.
   */
@@ -369,8 +386,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         _holder,
         _projectId,
         _tokenCount,
-        decimals, // The fixed point balance has this terminal's token's number of decimals.
-        currency, // The balance is in terms of this terminal's currency.
         _memo,
         _metadata
       );
@@ -380,7 +395,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
       // Burn the project tokens.
       if (_tokenCount > 0)
-        directory.controllerOf(_projectId).burnTokensOf(
+        IJBController(directory.controllerOf(_projectId)).burnTokensOf(
           _holder,
           _projectId,
           _tokenCount,
@@ -416,6 +431,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       _tokenCount,
       reclaimAmount,
       _memo,
+      _metadata,
       msg.sender
     );
   }
@@ -450,11 +466,10 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   ) external virtual override returns (uint256 netLeftoverDistributionAmount) {
     // Record the distribution.
     (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordDistributionFor(
-        _projectId,
-        _amount,
-        _currency,
-        currency // The balance is in terms of this terminal's currency.
-      );
+      _projectId,
+      _amount,
+      _currency
+    );
 
     // The amount being distributed must be at least as much as was expected.
     if (_distributedAmount < _minReturnedTokens) revert INADEQUATE_DISTRIBUTION_AMOUNT();
@@ -564,11 +579,10 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   {
     // Record the use of the allowance.
     (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordUsedAllowanceOf(
-        _projectId,
-        _amount,
-        _currency,
-        currency // The balance is in terms of this terminal's currency.
-      );
+      _projectId,
+      _amount,
+      _currency
+    );
 
     // The amount being withdrawn must be at least as much as was expected.
     if (_distributedAmount < _minReturnedTokens) revert INADEQUATE_DISTRIBUTION_AMOUNT();
@@ -615,7 +629,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
   /**
     @notice
-    Allows a project owner to migrate its funds and operations to a new terminal of the same token type.
+    Allows a project owner to migrate its funds and operations to a new terminal that accepts the same token type.
 
     @dev
     Only a project's owner or a designated operator can migrate it.
@@ -647,7 +661,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       uint256 _payableValue = token == JBTokens.ETH ? balance : 0;
 
       // Withdraw the balance to transfer to the new terminal;
-      _to.addToBalanceOf{value: _payableValue}(_projectId, balance, token, '');
+      _to.addToBalanceOf{value: _payableValue}(_projectId, balance, token, '', bytes(''));
     }
 
     emit Migrate(_projectId, _to, balance, msg.sender);
@@ -661,12 +675,14 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _amount The amount of tokens to add, as a fixed point number with the same number of decimals as this terminal. If this is an ETH terminal, this is ignored and msg.value is used instead.
     ignored: _token The token being paid. This terminal ignores this property since it only manages one currency. 
     @param _memo A memo to pass along to the emitted event.
+    @param _metadata Extra data to pass along to the emitted event.
   */
   function addToBalanceOf(
     uint256 _projectId,
     uint256 _amount,
     address,
-    string calldata _memo
+    string calldata _memo,
+    bytes calldata _metadata
   ) external payable virtual override isTerminalOf(_projectId) {
     // If this terminal's token isn't ETH, make sure no msg.value was sent, then transfer the tokens in from msg.sender.
     if (token != JBTokens.ETH) {
@@ -679,7 +695,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // If the terminal's token is ETH, override `_amount` with msg.value.
     else _amount = msg.value;
 
-    _addToBalanceOf(_projectId, _amount, _memo);
+    _addToBalanceOf(_projectId, _amount, _memo, _metadata);
   }
 
   /**
@@ -709,13 +725,19 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     delete _heldFeesOf[_projectId];
 
     // Process each fee.
-    for (uint256 _i = 0; _i < _heldFees.length; _i++)
-      _processFee(
-        _feeAmount(_heldFees[_i].amount, _heldFees[_i].fee, _heldFees[_i].feeDiscount),
-        _heldFees[_i].beneficiary
+    for (uint256 _i = 0; _i < _heldFees.length; _i++) {
+      // Get the fee amount.
+      uint256 _amount = _feeAmount(
+        _heldFees[_i].amount,
+        _heldFees[_i].fee,
+        _heldFees[_i].feeDiscount
       );
 
-    emit ProcessFees(_projectId, _heldFees, msg.sender);
+      // Process the fee.
+      _processFee(_amount, _heldFees[_i].beneficiary);
+
+      emit ProcessFee(_projectId, _amount, true, _heldFees[_i].beneficiary, msg.sender);
+    }
   }
 
   /**
@@ -866,8 +888,13 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             // This distribution does not incur a fee.
             _netPayoutAmount = _payoutAmount;
 
+            // Send the projectId in the metadata.
+            bytes memory _projectMetadata = new bytes(32);
+            _projectMetadata = bytes(abi.encodePacked(_projectId));
+
             // Add to balance if prefered.
-            if (_split.preferAddToBalance) _addToBalanceOf(_split.projectId, _netPayoutAmount, '');
+            if (_split.preferAddToBalance)
+              _addToBalanceOf(_split.projectId, _netPayoutAmount, '', _projectMetadata);
             else
               _pay(
                 _netPayoutAmount,
@@ -877,7 +904,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
                 0,
                 _split.preferClaimed,
                 '',
-                bytes('')
+                _projectMetadata
               );
           } else {
             // If the terminal is set as feeless, this distribution is not eligible for a fee.
@@ -898,13 +925,18 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             // If this terminal's token is ETH, send it in msg.value.
             uint256 _payableValue = token == JBTokens.ETH ? _netPayoutAmount : 0;
 
+            // Send the projectId in the metadata.
+            bytes memory _projectMetadata = new bytes(32);
+            _projectMetadata = bytes(abi.encodePacked(_projectId));
+
             // Add to balance if prefered.
             if (_split.preferAddToBalance)
               _terminal.addToBalanceOf{value: _payableValue}(
                 _split.projectId,
                 _netPayoutAmount,
                 token,
-                ''
+                '',
+                _projectMetadata
               );
             else
               _terminal.pay{value: _payableValue}(
@@ -915,7 +947,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
                 0,
                 _split.preferClaimed,
                 '',
-                bytes('')
+                _projectMetadata
               );
           }
         } else {
@@ -969,11 +1001,16 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _feeDiscount
   ) private returns (uint256 feeAmount) {
     feeAmount = _feeAmount(_amount, fee, _feeDiscount);
-    _fundingCycle.shouldHoldFees()
-      ? _heldFeesOf[_projectId].push(
-        JBFee(_amount, uint32(fee), uint32(_feeDiscount), _beneficiary)
-      )
-      : _processFee(feeAmount, _beneficiary); // Take the fee.
+    if (_fundingCycle.shouldHoldFees()) {
+      // Store the held fee.
+      _heldFeesOf[_projectId].push(JBFee(_amount, uint32(fee), uint32(_feeDiscount), _beneficiary));
+      emit HoldFee(_projectId, _amount, fee, _feeDiscount, _beneficiary, msg.sender);
+    } else {
+      // Process the fee.
+      _processFee(feeAmount, _beneficiary); // Take the fee.
+
+      emit ProcessFee(_projectId, feeAmount, false, _beneficiary, msg.sender);
+    }
   }
 
   /**
@@ -1022,7 +1059,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with the same amount of decimals as this terminal.
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
-    @param _metadata Bytes to send along to the data source and delegate, if provided.
+    @param _metadata Bytes to send along to the data source, delegate, and emitted event, if provided.
 
     @return beneficiaryTokenCount The number of tokens minted for the beneficiary, as a fixed point number with 18 decimals.
   */
@@ -1064,7 +1101,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       // Mint the tokens if needed.
       if (_tokenCount > 0)
         // Set token count to be the number of tokens minted for the beneficiary instead of the total amount.
-        beneficiaryTokenCount = directory.controllerOf(_projectId).mintTokensOf(
+        beneficiaryTokenCount = IJBController(directory.controllerOf(_projectId)).mintTokensOf(
           _projectId,
           _tokenCount,
           _beneficiary,
@@ -1102,6 +1139,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       _amount,
       beneficiaryTokenCount,
       _memo,
+      _metadata,
       msg.sender
     );
   }
@@ -1113,11 +1151,13 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _projectId The ID of the project to which the funds received belong.
     @param _amount The amount of tokens to add, as a fixed point number with the same number of decimals as this terminal. If this is an ETH terminal, this is ignored and msg.value is used instead.
     @param _memo A memo to pass along to the emitted event.
+    @param _metadata Extra data to pass along to the emitted event.
   */
   function _addToBalanceOf(
     uint256 _projectId,
     uint256 _amount,
-    string memory _memo
+    string memory _memo,
+    bytes memory _metadata
   ) private {
     // Refund any held fees to make sure the project doesn't pay double for funds going in and out of the protocol.
     uint256 _refundedFees = _refundHeldFees(_projectId, _amount);
@@ -1125,7 +1165,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Record the added funds with any refunded fees.
     store.recordAddedBalanceFor(_projectId, _amount + _refundedFees);
 
-    emit AddToBalance(_projectId, _amount, _memo, msg.sender);
+    emit AddToBalance(_projectId, _amount, _refundedFees, _memo, _metadata, msg.sender);
   }
 
   /**
@@ -1135,7 +1175,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _projectId The project for which fees are being refunded.
     @param _amount The amount to base the refund on, as a fixed point number with the same amount of decimals as this terminal.
 
-    @return refundedFees Kow much fees were refunded, as a fixed point number with the same number of decimals as this temrinal
+    @return refundedFees How much fees were refunded, as a fixed point number with the same number of decimals as this terminal
   */
   function _refundHeldFees(uint256 _projectId, uint256 _amount)
     private
@@ -1147,12 +1187,15 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Delete the current held fees.
     delete _heldFeesOf[_projectId];
 
+    // Get a reference to the leftover amount once all fees have been settled.
+    uint256 leftoverAmount = _amount;
+
     // Process each fee.
     for (uint256 _i = 0; _i < _heldFees.length; _i++) {
-      if (_amount == 0) _heldFeesOf[_projectId].push(_heldFees[_i]);
-      else if (_amount >= _heldFees[_i].amount) {
-        _amount = _amount - _heldFees[_i].amount;
-        refundedFees = _feeAmount(
+      if (leftoverAmount == 0) _heldFeesOf[_projectId].push(_heldFees[_i]);
+      else if (leftoverAmount >= _heldFees[_i].amount) {
+        leftoverAmount = leftoverAmount - _heldFees[_i].amount;
+        refundedFees += _feeAmount(
           _heldFees[_i].amount,
           _heldFees[_i].fee,
           _heldFees[_i].feeDiscount
@@ -1160,16 +1203,18 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       } else {
         _heldFeesOf[_projectId].push(
           JBFee(
-            _heldFees[_i].amount - _amount,
+            _heldFees[_i].amount - leftoverAmount,
             _heldFees[_i].fee,
             _heldFees[_i].feeDiscount,
             _heldFees[_i].beneficiary
           )
         );
-        refundedFees = _feeAmount(_amount, _heldFees[_i].fee, _heldFees[_i].feeDiscount);
-        _amount = 0;
+        refundedFees += _feeAmount(leftoverAmount, _heldFees[_i].fee, _heldFees[_i].feeDiscount);
+        leftoverAmount = 0;
       }
     }
+
+    emit RefundHeldFees(_projectId, _amount, refundedFees, leftoverAmount, msg.sender);
   }
 
   /** 

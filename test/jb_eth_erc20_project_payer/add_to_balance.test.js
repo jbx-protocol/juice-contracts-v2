@@ -8,7 +8,7 @@ import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemption
 import ierc20 from '../../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
 import errors from '../helpers/errors.json';
 
-describe('JBETHERC20ProjectPayer::addToBalance(...)', function () {
+describe('JBETHERC20ProjectPayer::addToBalanceOf(...)', function () {
   const INITIAL_PROJECT_ID = 1;
   const INITIAL_BENEFICIARY = ethers.Wallet.createRandom().address;
   const INITIAL_PREFER_CLAIMED_TOKENS = false;
@@ -21,7 +21,7 @@ describe('JBETHERC20ProjectPayer::addToBalance(...)', function () {
   const PREFER_CLAIMED_TOKENS = true;
   const MIN_RETURNED_TOKENS = 1;
   const MEMO = 'hi world';
-  const METADATA = [0x2];
+  const METADATA = '0x69';
   const DECIMALS = 1;
   let ethToken;
 
@@ -79,16 +79,18 @@ describe('JBETHERC20ProjectPayer::addToBalance(...)', function () {
         AMOUNT,
         ethToken,
         MEMO,
+        METADATA
       )
       .returns();
 
     await expect(
-      jbProjectPayer.addToBalance(
+      jbProjectPayer.addToBalanceOf(
         PROJECT_ID,
         ethToken,
         AMOUNT,
         DECIMALS, // Dropped if token == eth
         MEMO,
+        METADATA,
         { value: AMOUNT }
       ),
     ).to.not.be.reverted;
@@ -100,33 +102,35 @@ describe('JBETHERC20ProjectPayer::addToBalance(...)', function () {
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(PROJECT_ID, mockToken.address)
       .returns(mockJbTerminal.address);
-    
+
     await mockJbTerminal.mock.decimalsForToken.withArgs(mockToken.address).returns(DECIMALS);
-    
+
     await mockJbTerminal.mock.addToBalanceOf
-    .withArgs(
-      PROJECT_ID,
-      AMOUNT,
-      mockToken.address,
-      MEMO,
+      .withArgs(
+        PROJECT_ID,
+        AMOUNT,
+        mockToken.address,
+        MEMO,
+        METADATA,
       )
       .returns();
-      
+
     await mockToken.mock.transferFrom.withArgs(caller.address, jbProjectPayer.address, AMOUNT).returns(true);
     await mockToken.mock.approve.withArgs(mockJbTerminal.address, AMOUNT).returns(true);
 
     await expect(
       jbProjectPayer
-      .connect(caller)
-      .addToBalance(
-        PROJECT_ID,
-        mockToken.address,
-        AMOUNT,
-        DECIMALS,
-        MEMO
-      )
+        .connect(caller)
+        .addToBalanceOf(
+          PROJECT_ID,
+          mockToken.address,
+          AMOUNT,
+          DECIMALS,
+          MEMO,
+          METADATA
+        )
     ).to.be.not.reverted;
-    
+
   });
 
   it(`Can't add to balance if terminal not found`, async function () {
@@ -137,12 +141,13 @@ describe('JBETHERC20ProjectPayer::addToBalance(...)', function () {
       .returns(ethers.constants.AddressZero);
 
     await expect(
-      jbProjectPayer.addToBalance(
+      jbProjectPayer.addToBalanceOf(
         PROJECT_ID,
         ethToken,
         AMOUNT,
         DECIMALS,
-        MEMO
+        MEMO,
+        METADATA
       )
     ).to.be.revertedWith(errors.TERMINAL_NOT_FOUND);
   });
@@ -157,13 +162,14 @@ describe('JBETHERC20ProjectPayer::addToBalance(...)', function () {
     await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(10);
 
     await expect(
-      jbProjectPayer.addToBalance(
-          PROJECT_ID,
-          ethToken,
-          AMOUNT,
-          DECIMALS,
-          MEMO
-        )
+      jbProjectPayer.addToBalanceOf(
+        PROJECT_ID,
+        ethToken,
+        AMOUNT,
+        DECIMALS,
+        MEMO,
+        METADATA
+      )
     ).to.be.revertedWith(errors.INCORRECT_DECIMAL_AMOUNT);
   });
 
@@ -171,12 +177,13 @@ describe('JBETHERC20ProjectPayer::addToBalance(...)', function () {
     const { jbProjectPayer, mockToken } = await setup();
 
     await expect(
-      jbProjectPayer.addToBalance(
+      jbProjectPayer.addToBalanceOf(
         PROJECT_ID,
         mockToken.address,
         AMOUNT,
         DECIMALS,
         MEMO,
+        METADATA,
         {
           value: AMOUNT,
         },

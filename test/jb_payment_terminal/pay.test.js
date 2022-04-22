@@ -17,7 +17,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
   const PROJECT_ID = 1;
   const MEMO = 'Memo Test';
   const ADJUSTED_MEMO = 'test test memo';
-  const METADATA = ethers.utils.randomBytes(32);
+  const METADATA = '0x69';
   const FUNDING_CYCLE_NUMBER = 1;
   const ADJUSTED_WEIGHT = 10;
   const MIN_TOKEN_REQUESTED = 90;
@@ -204,6 +204,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         ETH_TO_PAY,
         TOKEN_RECEIVED,
         ADJUSTED_MEMO,
+        METADATA,
         caller.address,
       );
   });
@@ -331,6 +332,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         ETH_TO_PAY,
         TOKEN_RECEIVED,
         ADJUSTED_MEMO,
+        METADATA,
         caller.address,
       );
   });
