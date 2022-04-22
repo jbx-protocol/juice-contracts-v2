@@ -12,6 +12,10 @@ import './structs/JBFundingCycle.sol';
   @dev
   Adheres to -
   IJBReconfigurationBufferBallot: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
+
+  @dev
+  Inherits from -
+  ERC165: Introspection on interface adherance. 
 */
 contract JBReconfigurationBufferBallot is IJBReconfigurationBufferBallot, ERC165 {
   //*********************************************************************//
@@ -47,7 +51,7 @@ contract JBReconfigurationBufferBallot is IJBReconfigurationBufferBallot, ERC165
   mapping(uint256 => mapping(uint256 => JBBallotState)) public override finalState;
 
   //*********************************************************************//
-  // ------------------------- external views -------------------------- //
+  // -------------------------- public views --------------------------- //
   //*********************************************************************//
 
   /**
@@ -79,9 +83,17 @@ contract JBReconfigurationBufferBallot is IJBReconfigurationBufferBallot, ERC165
   }
 
   /**
-    @dev See {IERC165-supportsInterface}.
+    @notice
+    Indicates if this contract adheres to the specified interface.
+
+    @dev 
+    See {IERC165-supportsInterface}.
+
+    @param _interfaceId The ID of the interface to check for adherance to.
+
+    @return A flag indicating if this contract adheres to the specified interface.
   */
-  function supportsInterface(bytes4 interfaceId)
+  function supportsInterface(bytes4 _interfaceId)
     public
     view
     virtual
@@ -89,9 +101,9 @@ contract JBReconfigurationBufferBallot is IJBReconfigurationBufferBallot, ERC165
     returns (bool)
   {
     return
-      interfaceId == type(IJBReconfigurationBufferBallot).interfaceId ||
-      interfaceId == type(IJBFundingCycleBallot).interfaceId ||
-      super.supportsInterface(interfaceId);
+      _interfaceId == type(IJBReconfigurationBufferBallot).interfaceId ||
+      _interfaceId == type(IJBFundingCycleBallot).interfaceId ||
+      super.supportsInterface(_interfaceId);
   }
 
   //*********************************************************************//

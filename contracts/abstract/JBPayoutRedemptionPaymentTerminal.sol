@@ -227,10 +227,20 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     return _heldFeesOf[_projectId];
   }
 
+  //*********************************************************************//
+  // -------------------------- public views --------------------------- //
+  //*********************************************************************//
+
   /**
-    @dev See {IERC165-supportsInterface}.
+    @notice
+    Indicates if this contract adheres to the specified interface.
+
+    @dev 
+    See {IERC165-supportsInterface}.
+
+    @param _interfaceId The ID of the interface to check for adherance to.
   */
-  function supportsInterface(bytes4 interfaceId)
+  function supportsInterface(bytes4 _interfaceId)
     public
     view
     virtual
@@ -238,12 +248,12 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     returns (bool)
   {
     return
-      interfaceId == type(IJBPayoutRedemptionPaymentTerminal).interfaceId ||
-      interfaceId == type(IJBPayoutTerminal).interfaceId ||
-      interfaceId == type(IJBAllowanceTerminal).interfaceId ||
-      interfaceId == type(IJBRedemptionTerminal).interfaceId ||
-      interfaceId == type(IJBOperatable).interfaceId ||
-      super.supportsInterface(interfaceId);
+      _interfaceId == type(IJBPayoutRedemptionPaymentTerminal).interfaceId ||
+      _interfaceId == type(IJBPayoutTerminal).interfaceId ||
+      _interfaceId == type(IJBAllowanceTerminal).interfaceId ||
+      _interfaceId == type(IJBRedemptionTerminal).interfaceId ||
+      _interfaceId == type(IJBOperatable).interfaceId ||
+      super.supportsInterface(_interfaceId);
   }
 
   //*********************************************************************//

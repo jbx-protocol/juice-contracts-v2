@@ -55,7 +55,7 @@ contract JBProjects is IJBProjects, JBOperatable, ERC721Votes, Ownable {
   IJBTokenUriResolver public override tokenUriResolver;
 
   //*********************************************************************//
-  // ------------------------- external views -------------------------- //
+  // -------------------------- public views --------------------------- //
   //*********************************************************************//
 
   /**
@@ -75,9 +75,15 @@ contract JBProjects is IJBProjects, JBOperatable, ERC721Votes, Ownable {
   }
 
   /**
-    @dev See {IERC165-supportsInterface}.
+    @notice
+    Indicates if this contract adheres to the specified interface.
+
+    @dev 
+    See {IERC165-supportsInterface}.
+
+    @param _interfaceId The ID of the interface to check for adherance to.
   */
-  function supportsInterface(bytes4 interfaceId)
+  function supportsInterface(bytes4 _interfaceId)
     public
     view
     virtual
@@ -85,9 +91,9 @@ contract JBProjects is IJBProjects, JBOperatable, ERC721Votes, Ownable {
     returns (bool)
   {
     return
-      interfaceId == type(IJBProjects).interfaceId ||
-      interfaceId == type(IJBOperatable).interfaceId ||
-      super.supportsInterface(interfaceId);
+      _interfaceId == type(IJBProjects).interfaceId ||
+      _interfaceId == type(IJBOperatable).interfaceId ||
+      super.supportsInterface(_interfaceId);
   }
 
   //*********************************************************************//
