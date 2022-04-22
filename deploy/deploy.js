@@ -215,6 +215,74 @@ module.exports = async ({ deployments, getChainId }) => {
   // If needed, deploy the protocol project
   if ((await jbProjects.connect(deployer).count()) == 0) {
 
+    console.log('Adding reserved token splits with current beneficiaries (as of deployment)');
+
+    // let beneficiaries =
+    //     [
+    //       'jango.eth',
+    //       'peri.eth',  
+    //       'zeugh.eth',
+    //       'atomicmieos.eth',
+    //       'sagekellyn.eth',
+    //       'johnnyd.eth',
+    //       'DrGorilla.eth',
+    //       'filipv.eth',
+    //       'twodam.eth',
+    //       '0xstvg.eth',
+    //       'aeolian.eth',
+    //       'zom-bae.eth',
+    //       '0x5d95baEBB8412AD827287240A5c281E3bB30d27E',
+    //       '0x111040F27f05E2017e32B9ac6d1e9593E4E19A2a',
+    //       '0x1DD2091f250876Ba87B6fE17e6ca925e1B1c0CF0'
+    //     ]
+    let beneficiaries =
+        [
+          '0x823b92d6a4b2aed4b15675c7917c9f922ea8adad',
+          '0x63a2368f4b509438ca90186cb1c15156713d5834',  
+          '0xf7253a0e87e39d2cd6365919d4a3d56d431d0041',
+          '0xe7879a2D05dBA966Fcca34EE9C3F99eEe7eDEFd1',
+          '0x90eda5165e5e1633e0bdb6307cdecae564b10ff7',
+          '0xf0fe43a75ff248fd2e75d33fa1ebde71c6d1abad',
+          '0x6860f1a0cf179ed93abd3739c7f6c8961a4eea3c',
+          '0x30670d81e487c80b9edc54370e6eaf943b6eab39',
+          '0xca6ed3fdc8162304d7f1fcfc9ca3a81632d5e5b0',
+          '0x28c173b8f20488eef1b0f48df8453a2f59c38337',
+          '0xe16a238d207b9ac8b419c7a866b0de013c73357b',
+          '0x34724d71ce674fcd4d06e60dd1baa88c14d36b75',
+          '0x5d95baEBB8412AD827287240A5c281E3bB30d27E',
+          '0x111040F27f05E2017e32B9ac6d1e9593E4E19A2a',
+          '0x1DD2091f250876Ba87B6fE17e6ca925e1B1c0CF0'
+        ]
+
+    let splits = [];
+  
+    beneficiaries.map( (beneficiary) => {
+      splits.push({
+        preferClaimed: false,
+        preferAddToBalance: false,
+        percent: ( (1000000000 - 400000000) / beneficiaries.length), // 40% for JBDao
+        projectId: 0,
+        beneficiary: beneficiary,
+        lockedUntil: 0,
+        allocator: ethers.constants.AddressZero
+      })
+    });
+  
+    splits.push({
+      preferClaimed: false,
+      preferAddToBalance: false,
+      percent: 400000000, // 40% for JBDao
+      projectId: 0,
+      beneficiary: '0xaf28bcb48c40dbc86f52d459a6562f658fc94b1e', //'dao.juicebox.eth'
+      lockedUntil: 0,
+      allocator: ethers.constants.AddressZero
+    })
+  
+    let groupedSplits = {
+      group: 0,
+      splits: splits
+    }
+
     console.log('Deploying protocol project...');
 
     await jbControllerContract.connect(deployer).launchProjectFor(
@@ -229,7 +297,7 @@ module.exports = async ({ deployments, getChainId }) => {
       /*fundingCycleData*/
       [
         /*duration*/ ethers.BigNumber.from(1209600),
-        /*weight*/ ethers.BigNumber.from(0x17BB5CDA677ADDD3DA00),
+        /*weight*/ ethers.BigNumber.from('112070661021759343680000'),
         /*discountRate*/ ethers.BigNumber.from(100000000),
         /*ballot*/ JB3DayReconfigurationBufferBallot.address,
       ],
@@ -258,7 +326,7 @@ module.exports = async ({ deployments, getChainId }) => {
 
       /*mustStartAtOrAfter*/ ethers.BigNumber.from(protocolProjectStartsAtOrAfter),
 
-      /*groupedSplits*/[],
+      /*groupedSplits*/[groupedSplits],
 
       /*fundAccessConstraints*/[],
 
