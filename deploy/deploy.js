@@ -217,25 +217,29 @@ module.exports = async ({ deployments, getChainId }) => {
 
     console.log('Adding reserved token splits with current beneficiaries (as of deployment)');
 
-    // let beneficiaries =
-    //     [
-    //       'jango.eth',
-    //       'peri.eth',  
-    //       'zeugh.eth',
-    //       'atomicmieos.eth',
-    //       'sagekellyn.eth',
-    //       'johnnyd.eth',
-    //       'DrGorilla.eth',
-    //       'filipv.eth',
-    //       'twodam.eth',
-    //       '0xstvg.eth',
-    //       'aeolian.eth',
-    //       'zom-bae.eth',
-    //       '0x5d95baEBB8412AD827287240A5c281E3bB30d27E',
-    //       '0x111040F27f05E2017e32B9ac6d1e9593E4E19A2a',
-    //       '0x1DD2091f250876Ba87B6fE17e6ca925e1B1c0CF0'
-    //     ]
-    let beneficiaries =
+    let beneficiaries = [];
+
+    if(chainId == 1) {
+      beneficiaries =
+        [
+          'jango.eth',
+          'peri.eth',  
+          'zeugh.eth',
+          'atomicmieos.eth',
+          'sagekellyn.eth',
+          'johnnyd.eth',
+          'DrGorilla.eth',
+          'filipv.eth',
+          'twodam.eth',
+          '0xstvg.eth',
+          'aeolian.eth',
+          'zom-bae.eth',
+          '0x5d95baEBB8412AD827287240A5c281E3bB30d27E',
+          '0x111040F27f05E2017e32B9ac6d1e9593E4E19A2a',
+          '0x1DD2091f250876Ba87B6fE17e6ca925e1B1c0CF0'
+        ]
+    } else {
+      beneficiaries =
         [
           '0x823b92d6a4b2aed4b15675c7917c9f922ea8adad',
           '0x63a2368f4b509438ca90186cb1c15156713d5834',  
@@ -253,6 +257,7 @@ module.exports = async ({ deployments, getChainId }) => {
           '0x111040F27f05E2017e32B9ac6d1e9593E4E19A2a',
           '0x1DD2091f250876Ba87B6fE17e6ca925e1B1c0CF0'
         ]
+    }
 
     let splits = [];
   
@@ -273,7 +278,7 @@ module.exports = async ({ deployments, getChainId }) => {
       preferAddToBalance: false,
       percent: 400000000, // 40% for JBDao
       projectId: 0,
-      beneficiary: '0xaf28bcb48c40dbc86f52d459a6562f658fc94b1e', //'dao.juicebox.eth'
+      beneficiary: chainId == 1 ? 'dao.juicebox.eth' : '0xaf28bcb48c40dbc86f52d459a6562f658fc94b1e',
       lockedUntil: 0,
       allocator: ethers.constants.AddressZero
     })
