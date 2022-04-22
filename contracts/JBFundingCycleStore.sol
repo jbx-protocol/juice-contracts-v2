@@ -5,13 +5,6 @@ import '@paulrberg/contracts/math/PRBMath.sol';
 import './abstract/JBControllerUtility.sol';
 import './libraries/JBConstants.sol';
 
-//*********************************************************************//
-// --------------------------- custom errors ------------------------- //
-//*********************************************************************//
-error INVALID_DISCOUNT_RATE();
-error INVALID_DURATION();
-error INVALID_WEIGHT();
-
 /** 
   @notice 
   Manages funding cycle configurations and scheduling.
@@ -25,6 +18,13 @@ error INVALID_WEIGHT();
   JBControllerUtility: Includes convenience functionality for checking if the message sender is the current controller of the project whose data is being manipulated.
 */
 contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
+  //*********************************************************************//
+  // --------------------------- custom errors ------------------------- //
+  //*********************************************************************//
+  error INVALID_DISCOUNT_RATE();
+  error INVALID_DURATION();
+  error INVALID_WEIGHT();
+
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//

@@ -18,20 +18,6 @@ import './../structs/JBTokenAmount.sol';
 import './JBOperatable.sol';
 import './JBSingleTokenPaymentTerminal.sol';
 
-//*********************************************************************//
-// --------------------------- custom errors ------------------------- //
-//*********************************************************************//
-error FEE_TOO_HIGH();
-error INADEQUATE_DISTRIBUTION_AMOUNT();
-error INADEQUATE_RECLAIM_AMOUNT();
-error INADEQUATE_TOKEN_COUNT();
-error NO_MSG_VALUE_ALLOWED();
-error PAY_TO_ZERO_ADDRESS();
-error PROJECT_TERMINAL_MISMATCH();
-error REDEEM_TO_ZERO_ADDRESS();
-error TERMINAL_IN_SPLIT_ZERO_ADDRESS();
-error TERMINAL_TOKENS_INCOMPATIBLE();
-
 /**
   @notice
   Generic terminal managing all inflows and outflows of funds into the protocol ecosystem.
@@ -59,6 +45,20 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
+
+  //*********************************************************************//
+  // --------------------------- custom errors ------------------------- //
+  //*********************************************************************//
+  error FEE_TOO_HIGH();
+  error INADEQUATE_DISTRIBUTION_AMOUNT();
+  error INADEQUATE_RECLAIM_AMOUNT();
+  error INADEQUATE_TOKEN_COUNT();
+  error NO_MSG_VALUE_ALLOWED();
+  error PAY_TO_ZERO_ADDRESS();
+  error PROJECT_TERMINAL_MISMATCH();
+  error REDEEM_TO_ZERO_ADDRESS();
+  error TERMINAL_IN_SPLIT_ZERO_ADDRESS();
+  error TERMINAL_TOKENS_INCOMPATIBLE();
 
   //*********************************************************************//
   // ---------------------------- modifiers ---------------------------- //

@@ -7,20 +7,6 @@ import './interfaces/IJBTokenStore.sol';
 import './libraries/JBOperations.sol';
 import './JBToken.sol';
 
-//*********************************************************************//
-// --------------------------- custom errors ------------------------- //
-//*********************************************************************//
-error CANT_REMOVE_TOKEN_IF_ITS_REQUIRED();
-error EMPTY_NAME();
-error EMPTY_SYMBOL();
-error INSUFFICIENT_FUNDS();
-error INSUFFICIENT_UNCLAIMED_TOKENS();
-error PROJECT_ALREADY_HAS_TOKEN();
-error RECIPIENT_ZERO_ADDRESS();
-error TOKEN_ALREADY_IN_USE();
-error TOKEN_NOT_FOUND();
-error TOKENS_MUST_HAVE_18_DECIMALS();
-
 /**
   @notice
   Manage token minting, burning, and account balances.
@@ -45,6 +31,20 @@ error TOKENS_MUST_HAVE_18_DECIMALS();
   JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
+  //*********************************************************************//
+  // --------------------------- custom errors ------------------------- //
+  //*********************************************************************//
+  error CANT_REMOVE_TOKEN_IF_ITS_REQUIRED();
+  error EMPTY_NAME();
+  error EMPTY_SYMBOL();
+  error INSUFFICIENT_FUNDS();
+  error INSUFFICIENT_UNCLAIMED_TOKENS();
+  error PROJECT_ALREADY_HAS_TOKEN();
+  error RECIPIENT_ZERO_ADDRESS();
+  error TOKEN_ALREADY_IN_USE();
+  error TOKEN_NOT_FOUND();
+  error TOKENS_MUST_HAVE_18_DECIMALS();
+
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//

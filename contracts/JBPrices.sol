@@ -5,12 +5,6 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './interfaces/IJBPrices.sol';
 
-//*********************************************************************//
-// --------------------------- custom errors ------------------------- //
-//*********************************************************************//
-error PRICE_FEED_ALREADY_EXISTS();
-error PRICE_FEED_NOT_FOUND();
-
 /** 
   @notice 
   Manages and normalizes price feeds.
@@ -24,6 +18,12 @@ error PRICE_FEED_NOT_FOUND();
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBPrices is IJBPrices, Ownable {
+  //*********************************************************************//
+  // --------------------------- custom errors ------------------------- //
+  //*********************************************************************//
+  error PRICE_FEED_ALREADY_EXISTS();
+  error PRICE_FEED_NOT_FOUND();
+
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
