@@ -8,7 +8,7 @@ import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.s
 import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/abstract/JBPayoutRedemptionPaymentTerminal.sol/JBPayoutRedemptionPaymentTerminal.json';
 import { impersonateAccount, packFundingCycleMetadata } from '../helpers/utils';
 
 describe('JBDirectory::setTerminalsOf(...)', function () {
@@ -79,7 +79,7 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowSetTerminals: true})
+      metadata: packFundingCycleMetadata({ allowSetTerminals: true })
     });
 
     return {
@@ -88,7 +88,7 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
       deployer,
       addrs,
       jbDirectory,
-      timestamp, 
+      timestamp,
       terminal1,
       terminal2,
       terminal3,
@@ -171,7 +171,7 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
 
     await terminal3.mock.token.returns(ADDRESS_TOKEN_3);
     await terminal3.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3).returns(true);
-    
+
     expect(
       await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, ADDRESS_TOKEN_3, terminal3.address),
     )
@@ -244,7 +244,7 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowSetTerminals: false})
+      metadata: packFundingCycleMetadata({ allowSetTerminals: false })
     });
 
     // Give the caller permission to add terminals.
@@ -253,7 +253,7 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
       .returns(true);
 
     await expect(jbDirectory.connect(await impersonateAccount(controller.address)).setTerminalsOf(PROJECT_ID, [terminal1.address]))
-    .to.not.be.reverted;
+      .to.not.be.reverted;
   });
 
   it('Cannot add if caller has permission but is not the controller and funding cycle prohibits it', async function () {
@@ -269,7 +269,7 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowSetTerminals: false})
+      metadata: packFundingCycleMetadata({ allowSetTerminals: false })
     });
 
     // Give the caller permission to add terminals.
@@ -278,7 +278,7 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
       .returns(true);
 
     await expect(jbDirectory.connect(caller).setTerminalsOf(PROJECT_ID, [terminal1.address]))
-    .to.be.revertedWith(errors.SET_TERMINALS_NOT_ALLOWED);
+      .to.be.revertedWith(errors.SET_TERMINALS_NOT_ALLOWED);
   });
 
   it("Can't add with duplicates", async function () {

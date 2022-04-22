@@ -5,6 +5,7 @@ import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBController.sol';
+import './interfaces/IJBMigratable.sol';
 import './interfaces/IJBOperatorStore.sol';
 import './interfaces/IJBPaymentTerminal.sol';
 import './interfaces/IJBProjects.sol';
@@ -13,41 +14,42 @@ import './libraries/JBFundingCycleMetadataResolver.sol';
 import './libraries/JBOperations.sol';
 import './libraries/JBSplitsGroups.sol';
 
-//*********************************************************************//
-// --------------------------- custom errors ------------------------- //
-//*********************************************************************//
-error BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE();
-error CANT_MIGRATE_TO_CURRENT_CONTROLLER();
-error CHANGE_TOKEN_NOT_ALLOWED();
-error FUNDING_CYCLE_ALREADY_LAUNCHED();
-error INVALID_BALLOT_REDEMPTION_RATE();
-error INVALID_DISTRIBUTION_LIMIT();
-error INVALID_DISTRIBUTION_LIMIT_CURRENCY();
-error INVALID_OVERFLOW_ALLOWANCE();
-error INVALID_OVERFLOW_ALLOWANCE_CURRENCY();
-error INVALID_REDEMPTION_RATE();
-error INVALID_RESERVED_RATE();
-error MIGRATION_NOT_ALLOWED();
-error MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE();
-error NO_BURNABLE_TOKENS();
-error NOT_CURRENT_CONTROLLER();
-error ZERO_TOKENS_TO_MINT();
-
 /**
   @notice
   Stitches together funding cycles and community tokens, making sure all activity is accounted for and correct.
 
   @dev
-  Adheres to:
-  IJBController - general interface for the generic controller methods in this contract that interacts with funding cycles and tokens according to the protocol's rules.
+  Adheres to -
+  IJBController: General interface for the generic controller methods in this contract that interacts with funding cycles and tokens according to the protocol's rules.
+  IJBMigratable: Allows migrating to this contract, with a hook called to prepare for the migration.
 
   @dev
-  Inherits from:
-  JBOperatable - several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
+  Inherits from -
+  JBOperatable: Several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
 */
-contract JBController is IJBController, JBOperatable, ERC165 {
+contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
+
+  //*********************************************************************//
+  // --------------------------- custom errors ------------------------- //
+  //*********************************************************************//
+  error BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE();
+  error CANT_MIGRATE_TO_CURRENT_CONTROLLER();
+  error CHANGE_TOKEN_NOT_ALLOWED();
+  error FUNDING_CYCLE_ALREADY_LAUNCHED();
+  error INVALID_BALLOT_REDEMPTION_RATE();
+  error INVALID_DISTRIBUTION_LIMIT();
+  error INVALID_DISTRIBUTION_LIMIT_CURRENCY();
+  error INVALID_OVERFLOW_ALLOWANCE();
+  error INVALID_OVERFLOW_ALLOWANCE_CURRENCY();
+  error INVALID_REDEMPTION_RATE();
+  error INVALID_RESERVED_RATE();
+  error MIGRATION_NOT_ALLOWED();
+  error MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE();
+  error NO_BURNABLE_TOKENS();
+  error NOT_CURRENT_CONTROLLER();
+  error ZERO_TOKENS_TO_MINT();
 
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
@@ -317,6 +319,7 @@ contract JBController is IJBController, JBOperatable, ERC165 {
   {
     return
       interfaceId == type(IJBController).interfaceId ||
+      interfaceId == type(IJBMigratable).interfaceId ||
       interfaceId == type(IJBOperatable).interfaceId ||
       super.supportsInterface(interfaceId);
   }

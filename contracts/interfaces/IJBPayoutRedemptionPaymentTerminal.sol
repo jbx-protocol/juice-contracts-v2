@@ -3,17 +3,26 @@ pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import './../structs/JBFee.sol';
+import './IJBAllowanceTerminal.sol';
 import './IJBDirectory.sol';
 import './IJBFeeGauge.sol';
+import './IJBPayoutTerminal.sol';
 import './IJBProjects.sol';
 import './IJBPayDelegate.sol';
+import './IJBPaymentTerminal.sol';
 import './IJBPrices.sol';
 import './IJBRedemptionDelegate.sol';
+import './IJBRedemptionTerminal.sol';
 import './IJBSingleTokenPaymentTerminal.sol';
 import './IJBSingleTokenPaymentTerminalStore.sol';
 import './IJBSplitsStore.sol';
 
-interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
+interface IJBPayoutRedemptionPaymentTerminal is
+  IJBPaymentTerminal,
+  IJBPayoutTerminal,
+  IJBAllowanceTerminal,
+  IJBRedemptionTerminal
+{
   event AddToBalance(
     uint256 indexed projectId,
     uint256 amount,
@@ -150,33 +159,6 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
   function feeGauge() external view returns (IJBFeeGauge);
 
   function isFeelessTerminal(IJBPaymentTerminal _terminal) external view returns (bool);
-
-  function redeemTokensOf(
-    address _holder,
-    uint256 _projectId,
-    uint256 _count,
-    uint256 _minReturnedTokens,
-    address payable _beneficiary,
-    string calldata _memo,
-    bytes calldata _metadata
-  ) external returns (uint256 reclaimAmount);
-
-  function distributePayoutsOf(
-    uint256 _projectId,
-    uint256 _amount,
-    uint256 _currency,
-    uint256 _minReturnedTokens,
-    string calldata _memo
-  ) external returns (uint256 netLeftoverDistributionAmount);
-
-  function useAllowanceOf(
-    uint256 _projectId,
-    uint256 _amount,
-    uint256 _currency,
-    uint256 _minReturnedTokens,
-    address payable _beneficiary,
-    string calldata _memo
-  ) external returns (uint256 netDistributedAmount);
 
   function migrate(uint256 _projectId, IJBPaymentTerminal _to) external returns (uint256 balance);
 

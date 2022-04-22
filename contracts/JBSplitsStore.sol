@@ -7,28 +7,28 @@ import './interfaces/IJBSplitsStore.sol';
 import './libraries/JBConstants.sol';
 import './libraries/JBOperations.sol';
 
-//*********************************************************************//
-// --------------------------- custom errors ------------------------- //
-//*********************************************************************//
-error INVALID_LOCKED_UNTIL();
-error INVALID_PROJECT_ID();
-error INVALID_SPLIT_PERCENT();
-error INVALID_TOTAL_PERCENT();
-error PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();
-
 /**
   @notice
   Stores splits for each project.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBSplitsStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
-  Inherits from:
+  Inherits from -
   JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBSplitsStore is IJBSplitsStore, JBOperatable {
+  //*********************************************************************//
+  // --------------------------- custom errors ------------------------- //
+  //*********************************************************************//
+  error INVALID_LOCKED_UNTIL();
+  error INVALID_PROJECT_ID();
+  error INVALID_SPLIT_PERCENT();
+  error INVALID_TOTAL_PERCENT();
+  error PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();
+
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//

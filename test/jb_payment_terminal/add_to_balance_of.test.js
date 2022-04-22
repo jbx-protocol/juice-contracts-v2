@@ -209,7 +209,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
 
     await jbEthPaymentTerminal
       .connect(caller)
-      .distributePayoutsOf(PROJECT_ID, AMOUNT, ETH_PAYOUT_INDEX, MIN_TOKEN_REQUESTED, MEMO);
+      .distributePayoutsOf(PROJECT_ID, AMOUNT, ETH_PAYOUT_INDEX, ethers.constants.AddressZero, MIN_TOKEN_REQUESTED, MEMO);
 
     let heldFee = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
 
@@ -289,7 +289,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
 
     await jbEthPaymentTerminal
       .connect(caller)
-      .distributePayoutsOf(PROJECT_ID, AMOUNT, ETH_PAYOUT_INDEX, MIN_TOKEN_REQUESTED, MEMO);
+      .distributePayoutsOf(PROJECT_ID, AMOUNT, ETH_PAYOUT_INDEX, ethers.constants.AddressZero, MIN_TOKEN_REQUESTED, MEMO);
 
     // Add 1 and refund 1
     await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor.withArgs(PROJECT_ID, 1 + 1).returns();
@@ -347,11 +347,11 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
 
     await jbEthPaymentTerminal
       .connect(caller)
-      .distributePayoutsOf(PROJECT_ID, AMOUNT.div(2), ETH_PAYOUT_INDEX, MIN_TOKEN_REQUESTED, MEMO);
+      .distributePayoutsOf(PROJECT_ID, AMOUNT.div(2), ETH_PAYOUT_INDEX, ethers.constants.AddressZero, MIN_TOKEN_REQUESTED, MEMO);
 
     await jbEthPaymentTerminal
       .connect(caller)
-      .distributePayoutsOf(PROJECT_ID, AMOUNT.div(2), ETH_PAYOUT_INDEX, MIN_TOKEN_REQUESTED, MEMO);
+      .distributePayoutsOf(PROJECT_ID, AMOUNT.div(2), ETH_PAYOUT_INDEX, ethers.constants.AddressZero, MIN_TOKEN_REQUESTED, MEMO);
 
     let heldFee = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
 
@@ -422,11 +422,11 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
 
     await jbEthPaymentTerminal
       .connect(caller)
-      .distributePayoutsOf(PROJECT_ID, AMOUNT, ETH_PAYOUT_INDEX, MIN_TOKEN_REQUESTED, MEMO);
+      .distributePayoutsOf(PROJECT_ID, AMOUNT, ETH_PAYOUT_INDEX, ethers.constants.AddressZero, MIN_TOKEN_REQUESTED, MEMO);
 
     await jbEthPaymentTerminal
       .connect(caller)
-      .distributePayoutsOf(PROJECT_ID, AMOUNT, ETH_PAYOUT_INDEX, MIN_TOKEN_REQUESTED, MEMO);
+      .distributePayoutsOf(PROJECT_ID, AMOUNT, ETH_PAYOUT_INDEX, ethers.constants.AddressZero, MIN_TOKEN_REQUESTED, MEMO);
 
     let heldFee = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
 
@@ -488,7 +488,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
 
     await jbEthPaymentTerminal
       .connect(caller)
-      .distributePayoutsOf(PROJECT_ID, AMOUNT, ETH_PAYOUT_INDEX, MIN_TOKEN_REQUESTED, MEMO);
+      .distributePayoutsOf(PROJECT_ID, AMOUNT, ETH_PAYOUT_INDEX, ethers.constants.AddressZero, MIN_TOKEN_REQUESTED, MEMO);
 
     // Only one held fee
     let heldFeeBefore = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);

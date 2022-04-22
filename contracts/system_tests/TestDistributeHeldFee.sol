@@ -144,10 +144,9 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
       _projectId,
       payAmountInWei,
       jbLibraries().ETH(),
-      /*min out*/
-      0,
-      /*LFG*/
-      'lfg'
+      address(0), //token (unused)
+      /*min out*/0,
+      /*LFG*/'lfg'
     );
 
     // verify: should have held the fee

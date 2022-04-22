@@ -219,6 +219,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -318,6 +319,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -434,6 +436,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -535,6 +538,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -626,6 +630,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -716,6 +721,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -813,6 +819,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -908,6 +915,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -1009,6 +1017,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -1108,6 +1117,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -1217,6 +1227,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -1348,6 +1359,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -1461,6 +1473,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -1574,6 +1587,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -1657,6 +1671,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -1771,6 +1786,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -1859,6 +1875,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -1929,6 +1946,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -2024,6 +2042,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -2140,6 +2159,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -2278,6 +2298,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -2380,6 +2401,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -2483,6 +2505,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -2567,6 +2590,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
         MIN_TOKEN_REQUESTED,
         MEMO,
       );
@@ -2639,7 +2663,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
 
     let tx = await jbEthPaymentTerminal
       .connect(caller)
-      .distributePayoutsOf(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, ETH_PAYOUT_INDEX, 0, MEMO);
+      .distributePayoutsOf(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, ETH_PAYOUT_INDEX, ethers.constants.AddressZero, 0, MEMO);
 
     await Promise.all(
       splits.map(async (split) => {
@@ -2720,7 +2744,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
 
     let tx = await jbErc20PaymentTerminal
       .connect(caller)
-      .distributePayoutsOf(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, ETH_PAYOUT_INDEX, AMOUNT_TO_DISTRIBUTE, MEMO);
+      .distributePayoutsOf(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, ETH_PAYOUT_INDEX, ethers.constants.AddressZero, AMOUNT_TO_DISTRIBUTE, MEMO);
 
     await Promise.all(
       splits.map(async (split) => {
@@ -2798,6 +2822,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
           PROJECT_ID,
           AMOUNT_TO_DISTRIBUTE,
           ETH_PAYOUT_INDEX,
+          ethers.constants.AddressZero,
           MIN_TOKEN_REQUESTED,
           MEMO,
         ),
@@ -2832,6 +2857,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
           PROJECT_ID,
           AMOUNT_TO_DISTRIBUTE,
           ETH_PAYOUT_INDEX,
+          ethers.constants.AddressZero,
           AMOUNT_DISTRIBUTED + 1,
           MEMO,
         ),

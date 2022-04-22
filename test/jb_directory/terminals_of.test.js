@@ -7,18 +7,18 @@ import { packFundingCycleMetadata } from '../helpers/utils';
 import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/abstract/JBPayoutRedemptionPaymentTerminal.sol/JBPayoutRedemptionPaymentTerminal.json';
 
 describe('JBDirectory::terminalsOf(...)', function () {
   const PROJECT_ID = 13;
 
   async function setup() {
     let [deployer, projectOwner, ...addrs] = await ethers.getSigners();
-    
+
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);
     const timestamp = block.timestamp;
-  
+
     let mockJbFundingCycleStore = await deployMockContract(deployer, jbFundingCycleStore.abi);
     let mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
     let mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
@@ -45,7 +45,7 @@ describe('JBDirectory::terminalsOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowSetTerminals: true})
+      metadata: packFundingCycleMetadata({ allowSetTerminals: true })
     });
 
     // Add a few terminals

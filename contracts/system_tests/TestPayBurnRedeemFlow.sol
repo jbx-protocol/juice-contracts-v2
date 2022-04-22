@@ -165,6 +165,8 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
       _projectId,
       /* _tokenCount */
       redeemTokenAmount,
+      /* token (unused) */
+      address(0),
       /* _minReturnedWei */
       0,
       /* _beneficiary */

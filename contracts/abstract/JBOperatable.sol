@@ -3,20 +3,20 @@ pragma solidity 0.8.6;
 
 import './../interfaces/IJBOperatable.sol';
 
-//*********************************************************************//
-// --------------------------- custom errors -------------------------- //
-//*********************************************************************//
-error UNAUTHORIZED();
-
 /** 
   @notice
   Modifiers to allow access to functions based on the message sender's operator status.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBOperatable: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 */
 abstract contract JBOperatable is IJBOperatable {
+  //*********************************************************************//
+  // --------------------------- custom errors -------------------------- //
+  //*********************************************************************//
+  error UNAUTHORIZED();
+
   //*********************************************************************//
   // ---------------------------- modifiers ---------------------------- //
   //*********************************************************************//
