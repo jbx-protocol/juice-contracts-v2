@@ -481,6 +481,7 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
         holder.address,
         PROJECT_ID,
         /* tokenCount */ AMOUNT,
+        ethers.constants.AddressZero,
         /* minReturnedTokens */ AMOUNT,
         /* beneficiary */ ethers.constants.AddressZero, // Beneficiary address is 0
         MEMO,
