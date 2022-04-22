@@ -125,7 +125,7 @@ describe('JBPayoutRedemptionPaymentTerminal::supportsInterface(...)', function (
     ).to.equal(true);
   });
 
-  it('Supports IJBPayoutRedemptionPaymentTerminal', async function () {
+  it.skip('Supports IJBPayoutRedemptionPaymentTerminal', async function () {
     const { jbEthPaymentTerminal, jbErc20PaymentTerminal } = await setup();
     expect(
       await jbEthPaymentTerminal.supportsInterface(interfaceSignatures.IJBPayoutRedemptionPaymentTerminal)
