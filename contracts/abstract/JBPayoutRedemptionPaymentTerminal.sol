@@ -642,6 +642,33 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   }
 
   //*********************************************************************//
+  // ---------------------- internal transactions ---------------------- //
+  //*********************************************************************//
+
+  /** 
+    @notice
+    Transfers tokens.
+
+    @param _from The address from which the transfer should originate.
+    @param _to The address to which the transfer should go.
+    @param _amount The amount of the transfer, as a fixed point number with the same number of decimals as this terminal.
+  */
+  function _transferFrom(
+    address _from,
+    address payable _to,
+    uint256 _amount
+  ) internal virtual;
+
+  /** 
+    @notice
+    Logic to be triggered before transferring tokens from this terminal.
+
+    @param _to The address to which the transfer is going.
+    @param _amount The amount of the transfer, as a fixed point number with the same number of decimals as this terminal.
+  */
+  function _beforeTransferTo(address _to, uint256 _amount) internal virtual;
+
+  //*********************************************************************//
   // --------------------- private helper functions -------------------- //
   //*********************************************************************//
 
@@ -1386,27 +1413,4 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // If the fee discount is greater than the max, nullify the discount.
     if (feeDiscount > JBConstants.MAX_FEE_DISCOUNT) feeDiscount = 0;
   }
-
-  /** 
-    @notice
-    Transfers tokens.
-
-    @param _from The address from which the transfer should originate.
-    @param _to The address to which the transfer should go.
-    @param _amount The amount of the transfer, as a fixed point number with the same number of decimals as this terminal.
-  */
-  function _transferFrom(
-    address _from,
-    address payable _to,
-    uint256 _amount
-  ) internal virtual;
-
-  /** 
-    @notice
-    Logic to be triggered before transferring tokens from this terminal.
-
-    @param _to The address to which the transfer is going.
-    @param _amount The amount of the transfer, as a fixed point number with the same number of decimals as this terminal.
-  */
-  function _beforeTransferTo(address _to, uint256 _amount) internal virtual;
 }
