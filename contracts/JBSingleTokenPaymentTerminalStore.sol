@@ -10,20 +10,6 @@ import './libraries/JBCurrencies.sol';
 import './libraries/JBFixedPointNumber.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 
-//*********************************************************************//
-// --------------------------- custom errors ------------------------- //
-//*********************************************************************//
-error CURRENCY_MISMATCH();
-error DISTRIBUTION_AMOUNT_LIMIT_REACHED();
-error FUNDING_CYCLE_PAYMENT_PAUSED();
-error FUNDING_CYCLE_DISTRIBUTION_PAUSED();
-error FUNDING_CYCLE_REDEEM_PAUSED();
-error INADEQUATE_CONTROLLER_ALLOWANCE();
-error INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
-error INSUFFICIENT_TOKENS();
-error INVALID_FUNDING_CYCLE();
-error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
-
 /**
   @notice
   Manages all bookkeeping for inflows and outflows of funds from any ISingleTokenPaymentTerminal.
@@ -33,12 +19,26 @@ error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
   IJBSingleTokenPaymentTerminalStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
-  Inherits from:
+  Inherits from -
   ReentrancyGuard: Contract module that helps prevent reentrant calls to a function.
 */
 contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore, ReentrancyGuard {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
+
+  //*********************************************************************//
+  // --------------------------- custom errors ------------------------- //
+  //*********************************************************************//
+  error CURRENCY_MISMATCH();
+  error DISTRIBUTION_AMOUNT_LIMIT_REACHED();
+  error FUNDING_CYCLE_PAYMENT_PAUSED();
+  error FUNDING_CYCLE_DISTRIBUTION_PAUSED();
+  error FUNDING_CYCLE_REDEEM_PAUSED();
+  error INADEQUATE_CONTROLLER_ALLOWANCE();
+  error INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
+  error INSUFFICIENT_TOKENS();
+  error INVALID_FUNDING_CYCLE();
+  error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
 
   //*********************************************************************//
   // --------------------------- public constants ---------------------- //
@@ -437,10 +437,14 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
 
       // Another scoped section prevents stack too deep. `_token`, `_decimals`, and `_currency` only used within scope.
       {
-        // Get references to the terminal's info.
-        (address _token, uint256 _decimals, uint256 _currency) = IJBSingleTokenPaymentTerminal(
-          msg.sender
-        ).info();
+        // Get a reference to the terminal's tokens.
+        address _token = IJBSingleTokenPaymentTerminal(msg.sender).token();
+
+        // Get a reference to the terminal's decimals.
+        uint256 _decimals = IJBSingleTokenPaymentTerminal(msg.sender).decimals();
+
+        // Get areference to the terminal's currency.
+        uint256 _currency = IJBSingleTokenPaymentTerminal(msg.sender).currency();
 
         // Get the amount of current overflow.
         // Use the local overflow if the funding cycle specifies that it should be used. Otherwise, use the project's total overflow across all of its terminals.

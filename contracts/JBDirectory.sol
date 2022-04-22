@@ -7,31 +7,31 @@ import './interfaces/IJBDirectory.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 import './libraries/JBOperations.sol';
 
-//*********************************************************************//
-// --------------------------- custom errors ------------------------- //
-//*********************************************************************//
-error DUPLICATE_TERMINALS();
-error INVALID_PROJECT_ID_IN_DIRECTORY();
-error SET_CONTROLLER_NOT_ALLOWED();
-error SET_TERMINALS_NOT_ALLOWED();
-error TOKEN_NOT_ACCEPTED();
-
 /**
   @notice
   Keeps a reference of which terminal contracts each project is currently accepting funds through, and which controller contract is managing each project's tokens and funding cycles.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBDirectory: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
-  Inherits from:
+  Inherits from -
   JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
+
+  //*********************************************************************//
+  // --------------------------- custom errors ------------------------- //
+  //*********************************************************************//
+  error DUPLICATE_TERMINALS();
+  error INVALID_PROJECT_ID_IN_DIRECTORY();
+  error SET_CONTROLLER_NOT_ALLOWED();
+  error SET_TERMINALS_NOT_ALLOWED();
+  error TOKEN_NOT_ACCEPTED();
 
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //

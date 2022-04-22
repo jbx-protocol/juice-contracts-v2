@@ -12,7 +12,7 @@ import jBFundingCycleStore from '../../artifacts/contracts/interfaces/IJBFunding
 import jbFundingCycleDataSource from '../../artifacts/contracts/interfaces/IJBFundingCycleDataSource.sol/IJBFundingCycleDataSource.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/abstract/JBPayoutRedemptionPaymentTerminal.sol/JBPayoutRedemptionPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
 describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function () {
@@ -132,7 +132,9 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
       .returns(0);
     /* End of mocks for _reclaimableOverflowOf private method */
 
-    await mockJbTerminal.mock.info.returns(token, 18, CURRENCY);
+    await mockJbTerminal.mock.token.returns(token);
+    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.currency.returns(CURRENCY);
 
     // Add to balance beforehand to have sufficient overflow
     const startingBalance = AMOUNT.mul(ethers.BigNumber.from(2));
@@ -218,7 +220,9 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
       .returns(0);
     /* End of mocks for _reclaimableOverflowOf private method */
 
-    await mockJbTerminal.mock.info.returns(token, 18, CURRENCY);
+    await mockJbTerminal.mock.token.returns(token);
+    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.currency.returns(CURRENCY);
 
     // Add to balance beforehand to have sufficient overflow
     const startingBalance = AMOUNT.mul(ethers.BigNumber.from(2));
@@ -301,7 +305,9 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
 
     /* End of mocks for _claimableOverflowOf private method */
 
-    await mockJbTerminal.mock.info.returns(token, 18, CURRENCY);
+    await mockJbTerminal.mock.token.returns(token);
+    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.currency.returns(CURRENCY);
 
     // No balance.
     const startingBalance = 0;
@@ -379,7 +385,9 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
       .returns(0);
     /* End of mocks for _reclaimableOverflowOf private method */
 
-    await mockJbTerminal.mock.info.returns(token, 18, CURRENCY);
+    await mockJbTerminal.mock.token.returns(token);
+    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.currency.returns(CURRENCY);
 
     // No balance
     const startingBalance = 0;
@@ -466,12 +474,12 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
         /*tokenCount*/ AMOUNT,
         /*totalSupply*/ AMOUNT,
         /*overflow*/ AMOUNT,
-          [
-            token,
-            AMOUNT,
+        [
+          token,
+          AMOUNT,
             /*decimals*/ _FIXED_POINT_MAX_FIDELITY,
-            CURRENCY
-          ],
+          CURRENCY
+        ],
         false,
         redemptionRate,
         ballotRedemptionRate,
@@ -486,7 +494,9 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
       .withArgs(PROJECT_ID, timestamp, mockJbTerminalSigner.address, token)
       .returns(AMOUNT, CURRENCY_ETH);
 
-    await mockJbTerminal.mock.info.returns(token, 18, CURRENCY);
+    await mockJbTerminal.mock.token.returns(token);
+    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.currency.returns(CURRENCY);
 
     // Add to balance beforehand to have sufficient overflow
     await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
@@ -554,7 +564,9 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
       metadata: packedMetadata,
     });
 
-    await mockJbTerminal.mock.info.returns(token, 18, CURRENCY);
+    await mockJbTerminal.mock.token.returns(token);
+    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.currency.returns(CURRENCY);
 
     // Record redemption
     await expect(
@@ -628,12 +640,12 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
         /*tokenCount*/ AMOUNT.add(1),
         /*totalSupply*/ AMOUNT,
         /*overflow*/ 0,
-          [
-            token,
+        [
+          token,
             /*reclaim amount*/0,
             /*decimals*/ _FIXED_POINT_MAX_FIDELITY,
-            CURRENCY
-          ],
+          CURRENCY
+        ],
         false,
         redemptionRate,
         ballotRedemptionRate,
@@ -641,8 +653,10 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
         METADATA,
       ])
       .returns(AMOUNT, newMemo, delegate.address);
-    
-    await mockJbTerminal.mock.info.returns(token, 18, CURRENCY);
+
+    await mockJbTerminal.mock.token.returns(token);
+    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.currency.returns(CURRENCY);
 
     // Note: The store has 0 balance because we haven't added anything to it
     // Record redemption
@@ -717,12 +731,12 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
         /*tokenCount*/ AMOUNT,
         /*totalSupply*/ AMOUNT,
         /*overflow*/ 0,
-          [
-            token,
+        [
+          token,
             /*reclaim amount*/0,
             /*decimals*/ _FIXED_POINT_MAX_FIDELITY,
-            CURRENCY
-          ],
+          CURRENCY
+        ],
         false,
         redemptionRate,
         ballotRedemptionRate,
@@ -731,7 +745,9 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
       ])
       .returns(AMOUNT, newMemo, delegate.address);
 
-    await mockJbTerminal.mock.info.returns(token, 18, CURRENCY);
+    await mockJbTerminal.mock.token.returns(token);
+    await mockJbTerminal.mock.decimals.returns(18);
+    await mockJbTerminal.mock.currency.returns(CURRENCY);
 
     // Note: The store has 0 balance because we haven't added anything to it
     // Record redemption

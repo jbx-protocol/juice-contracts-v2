@@ -209,6 +209,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
       projectId,
       5 * 10**18, // amt in ETH (overflow allowance currency is in ETH)
       jbLibraries().USD(), // Currency -> (fake price is 10)
+      address(0), //token (unused)
       1, // Min wei out
       payable(msg.sender), // Beneficiary
       'MEMO'
@@ -232,6 +233,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
       projectId,
       10 * 10**18,
       jbLibraries().ETH(), // Currency
+      address(0), //token (unused)
       0, // Min wei out
       'Foundry payment' // Memo
     );
@@ -257,6 +259,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
       caller,
       projectId,
       100_000,
+      address(0), //token (unused)
       0,
       payable(caller),
       'gimme my money back',

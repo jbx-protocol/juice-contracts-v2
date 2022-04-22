@@ -9,13 +9,4 @@ interface IJBSingleTokenPaymentTerminal is IJBPaymentTerminal {
   function currency() external view returns (uint256);
 
   function decimals() external view returns (uint256);
-
-  function info()
-    external
-    view
-    returns (
-      address,
-      uint256,
-      uint256
-    );
 }

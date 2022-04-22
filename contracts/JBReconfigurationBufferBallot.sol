@@ -10,7 +10,7 @@ import './structs/JBFundingCycle.sol';
   Manages approving funding cycle reconfigurations automatically after a buffer period.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBReconfigurationBufferBallot: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 */
 contract JBReconfigurationBufferBallot is IJBReconfigurationBufferBallot, ERC165 {

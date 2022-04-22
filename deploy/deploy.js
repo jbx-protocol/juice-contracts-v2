@@ -28,7 +28,7 @@ module.exports = async ({ deployments, getChainId }) => {
     case '1':
       multisigAddress = '0xAF28bcB48C40dBC86f52D459A6562F658fc94B1e';
       chainlinkV2UsdEthPriceFeed = '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419';
-      protocolProjectStartsAtOrAfter = 1650136773;
+      protocolProjectStartsAtOrAfter = 1650741573;
       break;
     // rinkeby
     case '4':
@@ -228,12 +228,8 @@ module.exports = async ({ deployments, getChainId }) => {
 
       /*fundingCycleData*/
       [
-        /*duration*/ ethers.BigNumber.from(604800),
-        /*weight*/ ethers.BigNumber.from(2)
-          .pow(10)
-          .mul(ethers.BigNumber.from(3).pow(33))
-          .mul(ethers.BigNumber.from(5).pow(5))
-          .mul(7),
+        /*duration*/ ethers.BigNumber.from(1209600),
+        /*weight*/ ethers.BigNumber.from(0x17BB5CDA677ADDD3DA00),
         /*discountRate*/ ethers.BigNumber.from(100000000),
         /*ballot*/ JB3DayReconfigurationBufferBallot.address,
       ],

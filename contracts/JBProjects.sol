@@ -15,13 +15,13 @@ import './libraries/JBOperations.sol';
   Projects are represented as ERC-721's.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBProjects: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
-  Inherits from:
+  Inherits from -
   JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
-  ERC721Votes:  A checkpointable standard definition for non-fungible tokens (NFTs).
+  ERC721Votes: A checkpointable standard definition for non-fungible tokens (NFTs).
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBProjects is IJBProjects, JBOperatable, ERC721Votes, Ownable {

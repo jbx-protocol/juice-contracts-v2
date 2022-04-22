@@ -9,7 +9,7 @@ import './abstract/JBPayoutRedemptionPaymentTerminal.sol';
   Manages all inflows and outflows of ETH funds into the protocol ecosystem.
 
   @dev
-  Inherits from:
+  Inherits from -
   JBPayoutRedemptionPaymentTerminal: Generic terminal managing all inflows and outflows of funds into the protocol ecosystem.
 */
 contract JBETHPaymentTerminal is JBPayoutRedemptionPaymentTerminal {

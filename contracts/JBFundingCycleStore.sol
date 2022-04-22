@@ -5,26 +5,26 @@ import '@paulrberg/contracts/math/PRBMath.sol';
 import './abstract/JBControllerUtility.sol';
 import './libraries/JBConstants.sol';
 
-//*********************************************************************//
-// --------------------------- custom errors ------------------------- //
-//*********************************************************************//
-error INVALID_DISCOUNT_RATE();
-error INVALID_DURATION();
-error INVALID_WEIGHT();
-
 /** 
   @notice 
   Manages funding cycle configurations and scheduling.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBTokenStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
-  Inherits from:
+  Inherits from -
   JBControllerUtility: Includes convenience functionality for checking if the message sender is the current controller of the project whose data is being manipulated.
 */
 contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
+  //*********************************************************************//
+  // --------------------------- custom errors ------------------------- //
+  //*********************************************************************//
+  error INVALID_DISCOUNT_RATE();
+  error INVALID_DURATION();
+  error INVALID_WEIGHT();
+
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//

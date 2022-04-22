@@ -9,7 +9,7 @@ import './../interfaces/IJBSingleTokenPaymentTerminal.sol';
   Generic terminal managing all inflows of funds into the protocol ecosystem for one token.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBSingleTokenPaymentTerminals: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 */
 abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal, ERC165 {
@@ -73,27 +73,6 @@ abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal,
   */
   function currencyForToken(address) external view override returns (uint256) {
     return currency;
-  }
-
-  /** 
-    @notice
-    The token, decimals, and currency that should be used.
-
-    @return token The terminal's token.
-    @return decimals The number of decimals the token fixed point amounts are expected to have.
-    @return currency The currency to use when resolving price feeds for this terminal.
-  */
-  function info()
-    external
-    view
-    override
-    returns (
-      address,
-      uint256,
-      uint256
-    )
-  {
-    return (token, decimals, currency);
   }
 
   /**

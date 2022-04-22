@@ -10,7 +10,7 @@ import jbController from '../../artifacts/contracts/interfaces/IJBController.sol
 import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/abstract/JBPayoutRedemptionPaymentTerminal.sol/JBPayoutRedemptionPaymentTerminal.json';
 
 describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
   const PROJECT_ID = 13;
@@ -58,7 +58,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowSetTerminals: true})
+      metadata: packFundingCycleMetadata({ allowSetTerminals: true })
     });
 
     await mockJbProjects.mock.count.returns(PROJECT_ID);
@@ -142,7 +142,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowSetTerminals: false})
+      metadata: packFundingCycleMetadata({ allowSetTerminals: false })
     });
 
     let mockToken = ethers.Wallet.createRandom().address;
@@ -159,7 +159,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
       )
       .returns(true);
 
-    await expect(jbDirectory.connect(await impersonateAccount(controller.address)).setPrimaryTerminalOf(PROJECT_ID, mockToken,terminal1.address)).to
+    await expect(jbDirectory.connect(await impersonateAccount(controller.address)).setPrimaryTerminalOf(PROJECT_ID, mockToken, terminal1.address)).to
       .be.not.reverted;
   });
 
@@ -176,7 +176,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowSetTerminals: false})
+      metadata: packFundingCycleMetadata({ allowSetTerminals: false })
     });
 
     let mockToken = ethers.Wallet.createRandom().address;
@@ -211,7 +211,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowSetTerminals: false})
+      metadata: packFundingCycleMetadata({ allowSetTerminals: false })
     });
 
     let mockToken = ethers.Wallet.createRandom().address;
