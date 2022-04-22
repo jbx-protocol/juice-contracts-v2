@@ -20,8 +20,8 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
   const PROJECT_ID = 2;
   const OTHER_PROJECT_ID = 3;
 
-  const AMOUNT_TO_DISTRIBUTE =1100000000000;
-  const AMOUNT_DISTRIBUTED =  1000000000000;
+  const AMOUNT_TO_DISTRIBUTE = 1100000000000;
+  const AMOUNT_DISTRIBUTED = 1000000000000;
 
   const DEFAULT_FEE = 25000000; // 2.5%
   const FEE_DISCOUNT = 500000000; // 50%
@@ -1719,7 +1719,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       DEFAULT_FEE - Math.floor((DEFAULT_FEE * FEE_DISCOUNT) / MAX_FEE_DISCOUNT);
 
     const FEE_AMOUNT =
-    AMOUNT_DISTRIBUTED - Math.floor((AMOUNT_DISTRIBUTED * MAX_FEE) / (DISCOUNTED_FEE + MAX_FEE));
+      AMOUNT_DISTRIBUTED - Math.floor((AMOUNT_DISTRIBUTED * MAX_FEE) / (DISCOUNTED_FEE + MAX_FEE));
 
     const AMOUNT_MINUS_FEES = AMOUNT_DISTRIBUTED - FEE_AMOUNT;
 

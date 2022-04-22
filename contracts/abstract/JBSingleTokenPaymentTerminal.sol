@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import './../interfaces/IJBSingleTokenPaymentTerminal.sol';
 
 /**
@@ -11,7 +12,7 @@ import './../interfaces/IJBSingleTokenPaymentTerminal.sol';
   Adheres to:
   IJBSingleTokenPaymentTerminals: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 */
-abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal {
+abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal, ERC165 {
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
@@ -93,6 +94,22 @@ abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal 
     )
   {
     return (token, decimals, currency);
+  }
+
+  /**
+    @dev See {IERC165-supportsInterface}.
+  */
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(ERC165, IERC165)
+    returns (bool)
+  {
+    return
+      interfaceId == type(IJBPaymentTerminal).interfaceId ||
+      interfaceId == type(IJBSingleTokenPaymentTerminal).interfaceId ||
+      super.supportsInterface(interfaceId);
   }
 
   //*********************************************************************//

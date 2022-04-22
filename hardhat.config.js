@@ -29,6 +29,9 @@ const infuraId = process.env.INFURA_ID;
 module.exports = {
   defaultNetwork,
   networks: {
+    hardhat: {
+      allowUnlimitedContractSize: true,
+    },
     localhost: {
       url: 'http://localhost:8545',
       blockGasLimit: 0x1fffffffffffff,
@@ -148,15 +151,15 @@ task("deploy-ballot", "Deploy a buffer ballot of a given duration").addParam("du
     const JBFundingCycleStoreDeployed = await get('JBFundingCycleStore')
 
     const JB3DayReconfigurationBufferBallot = await deploy(
-      'JBReconfigurationBufferBallot', 
-      { 
+      'JBReconfigurationBufferBallot',
+      {
         from: deployer.address,
         log: true,
         args: [taskArgs.duration, JBFundingCycleStoreDeployed.address]
       }
     );
 
-    console.log('Buffer ballot deployed at '+JB3DayReconfigurationBufferBallot.address);
+    console.log('Buffer ballot deployed at ' + JB3DayReconfigurationBufferBallot.address);
 
   } catch (error) {
     console.log(error);

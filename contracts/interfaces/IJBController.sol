@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 import './../structs/JBFundAccessConstraints.sol';
 import './../structs/JBFundingCycleData.sol';
 import './../structs/JBFundingCycleMetadata.sol';
@@ -14,7 +15,7 @@ import './IJBSplitsStore.sol';
 import './IJBToken.sol';
 import './IJBTokenStore.sol';
 
-interface IJBController is IJBMigratable {
+interface IJBController is IJBMigratable, IERC165 {
   event LaunchProject(uint256 configuration, uint256 projectId, string memo, address caller);
 
   event LaunchFundingCycles(uint256 configuration, uint256 projectId, string memo, address caller);

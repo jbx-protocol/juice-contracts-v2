@@ -112,7 +112,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordDistributionFor(...)', functi
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_USD);
-    
+
     await mockJbTerminal.mock.currency.returns(CURRENCY_USD);
 
     // Pre-checks
@@ -291,7 +291,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordDistributionFor(...)', functi
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_USD);
-    
+
     await mockJbTerminal.mock.currency.returns(CURRENCY_ETH);
 
     // Record the distributions
@@ -340,7 +340,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordDistributionFor(...)', functi
     await mockJbController.mock.distributionLimitOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(smallDistributionLimit, CURRENCY_ETH); // Set intentionally small distribution limit
-    
+
     await mockJbTerminal.mock.currency.returns(CURRENCY_ETH);
 
     // Record the distributions

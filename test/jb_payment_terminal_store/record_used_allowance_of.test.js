@@ -180,9 +180,9 @@ describe('JBSingleTokenPaymentTerminalStore::recordUsedAllowanceOf(...)', functi
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_USD);
-    
+
     await mockJbTerminal.mock.currency.returns(CURRENCY_USD);
-    
+
     // Pre-checks
     expect(
       await JBSingleTokenPaymentTerminalStore.usedOverflowAllowanceOf(
@@ -341,7 +341,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordUsedAllowanceOf(...)', functi
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(smallTotalAllowance, CURRENCY_USD); // Set the controller's overflowAllowance to something small
-    
+
     await mockJbTerminal.mock.currency.returns(CURRENCY_USD);
 
     // Record the used allowance
@@ -501,7 +501,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordUsedAllowanceOf(...)', functi
       .withArgs(CURRENCY_USD, CURRENCY_ETH, _FIXED_POINT_MAX_FIDELITY)
       .returns(usdToEthPrice);
 
-    await mockJbTerminal.mock.currency.returns(CURRENCY_USD);  
+    await mockJbTerminal.mock.currency.returns(CURRENCY_USD);
 
     // Record the used allowance
     await expect(
