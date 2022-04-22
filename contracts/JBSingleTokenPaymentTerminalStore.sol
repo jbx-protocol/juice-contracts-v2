@@ -41,7 +41,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
   error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
 
   //*********************************************************************//
-  // --------------------------- public constants ---------------------- //
+  // -------------------------- private constants ---------------------- //
   //*********************************************************************//
 
   /**
@@ -428,7 +428,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     // The current funding cycle must not be paused.
     if (fundingCycle.redeemPaused()) revert FUNDING_CYCLE_REDEEM_PAUSED();
 
-    // Scoped section prevents stack too deep. `_currentOverflow`, `_totalSupply`, and `_data` only used within scope.
+    // Scoped section prevents stack too deep. `_reclaimedTokenAmount`, `_currentOverflow`, and `_totalSupply` only used within scope.
     {
       // Get a reference to the reclaimed token amount struct, the current overflow, and the total token supply.
       JBTokenAmount memory _reclaimedTokenAmount;

@@ -25,16 +25,6 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
 
   /** 
     @notice
-    The number of decimals included in the fixed point accounting of this token.
-
-    @return The number of decimals.
-  */
-  function decimals() public view override(ERC20, IJBToken) returns (uint8) {
-    return super.decimals();
-  }
-
-  /** 
-    @notice
     The total supply of this ERC20.
 
     ignored: _projectId the ID of the project to which the token belongs. This is ignored.
@@ -56,6 +46,20 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
   */
   function balanceOf(address _account, uint256) external view override returns (uint256) {
     return super.balanceOf(_account);
+  }
+
+  //*********************************************************************//
+  // -------------------------- public views --------------------------- //
+  //*********************************************************************//
+
+  /** 
+    @notice
+    The number of decimals included in the fixed point accounting of this token.
+
+    @return The number of decimals.
+  */
+  function decimals() public view override(ERC20, IJBToken) returns (uint8) {
+    return super.decimals();
   }
 
   //*********************************************************************//
