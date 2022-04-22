@@ -239,6 +239,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   {
     return
       interfaceId == type(IJBPayoutRedemptionPaymentTerminal).interfaceId ||
+      interfaceId == type(IJBPayoutTerminal).interfaceId ||
+      interfaceId == type(IJBAllowanceTerminal).interfaceId ||
+      interfaceId == type(IJBRedemptionTerminal).interfaceId ||
       interfaceId == type(IJBOperatable).interfaceId ||
       super.supportsInterface(interfaceId);
   }
@@ -414,84 +417,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _minReturnedTokens,
     string calldata _memo
   ) external virtual override returns (uint256 netLeftoverDistributionAmount) {
-    // Record the distribution.
-    (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordDistributionFor(
-      _projectId,
-      _amount,
-      _currency
-    );
-
-    // The amount being distributed must be at least as much as was expected.
-    if (_distributedAmount < _minReturnedTokens) revert INADEQUATE_DISTRIBUTION_AMOUNT();
-
-    // Get a reference to the project owner, which will receive tokens from paying the platform fee
-    // and receive any extra distributable funds not allocated to payout splits.
-    address payable _projectOwner = payable(projects.ownerOf(_projectId));
-
-    // Define variables that will be needed outside the scoped section below.
-    // Keep a reference to the fee amount that was paid.
-    uint256 _fee;
-
-    // Scoped section prevents stack too deep. `_feeDiscount`, `_feeEligibleDistributionAmount`, and `_leftoverDistributionAmount` only used within scope.
-    {
-      // Get the amount of discount that should be applied to any fees taken.
-      // If the fee is zero, set the discount to 100% for convinience.
-      uint256 _feeDiscount = fee == 0
-        ? JBConstants.MAX_FEE_DISCOUNT
-        : _currentFeeDiscount(_projectId);
-
-      // The amount distributed that is eligible for incurring fees.
-      uint256 _feeEligibleDistributionAmount;
-
-      // The amount leftover after distributing to the splits.
-      uint256 _leftoverDistributionAmount;
-
-      // Payout to splits and get a reference to the leftover transfer amount after all splits have been paid.
-      // Also get a reference to the amount that was distributed to splits from which fees should be taken.
-      (_leftoverDistributionAmount, _feeEligibleDistributionAmount) = _distributeToPayoutSplitsOf(
-        _projectId,
-        _fundingCycle.configuration,
-        payoutSplitsGroup,
-        _distributedAmount,
-        _feeDiscount
-      );
-
-      // Leftover distribution amount is also eligible for a fee since the funds are going out of the ecosystem to _beneficiary.
-      _feeEligibleDistributionAmount += _leftoverDistributionAmount;
-
-      // Take the fee.
-      _fee = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT || _feeEligibleDistributionAmount == 0
-        ? 0
-        : _takeFeeFrom(
-          _projectId,
-          _fundingCycle,
-          _feeEligibleDistributionAmount,
-          _projectOwner,
-          _feeDiscount
-        );
-
-      // Get a reference to how much to distribute to the project owner, which is the leftover amount minus any fees.
-      netLeftoverDistributionAmount = _leftoverDistributionAmount == 0
-        ? 0
-        : _leftoverDistributionAmount - _feeAmount(_leftoverDistributionAmount, fee, _feeDiscount);
-
-      // Transfer any remaining balance to the project owner.
-      if (netLeftoverDistributionAmount > 0)
-        _transferFrom(address(this), _projectOwner, netLeftoverDistributionAmount);
-    }
-
-    emit DistributePayouts(
-      _fundingCycle.configuration,
-      _fundingCycle.number,
-      _projectId,
-      _projectOwner,
-      _amount,
-      _distributedAmount,
-      _fee,
-      netLeftoverDistributionAmount,
-      _memo,
-      msg.sender
-    );
+    return _distributePayoutsOf(_projectId, _amount, _currency, _minReturnedTokens, _memo);
   }
 
   /**
@@ -529,54 +455,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.USE_ALLOWANCE)
     returns (uint256 netDistributedAmount)
   {
-    // Record the use of the allowance.
-    (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordUsedAllowanceOf(
-      _projectId,
-      _amount,
-      _currency
-    );
-
-    // The amount being withdrawn must be at least as much as was expected.
-    if (_distributedAmount < _minReturnedTokens) revert INADEQUATE_DISTRIBUTION_AMOUNT();
-
-    // Scoped section prevents stack too deep. `_fee`, `_projectOwner`, `_feeDiscount`, and `_netAmount` only used within scope.
-    {
-      // Keep a reference to the fee amount that was paid.
-      uint256 _fee;
-
-      // Get a reference to the project owner, which will receive tokens from paying the platform fee.
-      address _projectOwner = projects.ownerOf(_projectId);
-
-      // Get the amount of discount that should be applied to any fees taken.
-      // If the fee is zero, set the discount to 100% for convinience.
-      uint256 _feeDiscount = fee == 0
-        ? JBConstants.MAX_FEE_DISCOUNT
-        : _currentFeeDiscount(_projectId);
-
-      // Take a fee from the `_distributedAmount`, if needed.
-      _fee = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
-        ? 0
-        : _takeFeeFrom(_projectId, _fundingCycle, _distributedAmount, _projectOwner, _feeDiscount);
-
-      // The net amount is the withdrawn amount without the fee.
-      netDistributedAmount = _distributedAmount - _fee;
-
-      // Transfer any remaining balance to the beneficiary.
-      if (netDistributedAmount > 0)
-        _transferFrom(address(this), _beneficiary, netDistributedAmount);
-    }
-
-    emit UseAllowance(
-      _fundingCycle.configuration,
-      _fundingCycle.number,
-      _projectId,
-      _beneficiary,
-      _amount,
-      _distributedAmount,
-      netDistributedAmount,
-      _memo,
-      msg.sender
-    );
+    return _useAllowanceOf(_projectId, _amount, _currency, _minReturnedTokens, _beneficiary, _memo);
   }
 
   /**
@@ -844,6 +723,191 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       reclaimAmount,
       _memo,
       _metadata,
+      msg.sender
+    );
+  }
+
+  /**
+    @notice
+    Distributes payouts for a project with the distribution limit of its current funding cycle.
+
+    @dev
+    Payouts are sent to the preprogrammed splits. Any leftover is sent to the project's owner.
+
+    @dev
+    Anyone can distribute payouts on a project's behalf. The project can preconfigure a wildcard split that is used to send funds to msg.sender. This can be used to incentivize calling this function.
+
+    @dev
+    All funds distributed outside of this contract or any feeless terminals incure the protocol fee.
+
+    @param _projectId The ID of the project having its payouts distributed.
+    @param _amount The amount of terminal tokens to distribute, as a fixed point number with same number of decimals as this terminal.
+    @param _currency The expected currency of the amount being distributed. Must match the project's current funding cycle's distribution limit currency.
+    @param _minReturnedTokens The minimum number of terminal tokens that the `_amount` should be valued at in terms of this terminal's currency, as a fixed point number with the same number of decimals as this terminal.
+    @param _memo A memo to pass along to the emitted event.
+
+    @return netLeftoverDistributionAmount The amount that was sent to the project owner, as a fixed point number with the same amount of decimals as this terminal.
+  */
+  function _distributePayoutsOf(
+    uint256 _projectId,
+    uint256 _amount,
+    uint256 _currency,
+    uint256 _minReturnedTokens,
+    string calldata _memo
+  ) private returns (uint256 netLeftoverDistributionAmount) {
+    // Record the distribution.
+    (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordDistributionFor(
+      _projectId,
+      _amount,
+      _currency
+    );
+
+    // The amount being distributed must be at least as much as was expected.
+    if (_distributedAmount < _minReturnedTokens) revert INADEQUATE_DISTRIBUTION_AMOUNT();
+
+    // Get a reference to the project owner, which will receive tokens from paying the platform fee
+    // and receive any extra distributable funds not allocated to payout splits.
+    address payable _projectOwner = payable(projects.ownerOf(_projectId));
+
+    // Define variables that will be needed outside the scoped section below.
+    // Keep a reference to the fee amount that was paid.
+    uint256 _fee;
+
+    // Scoped section prevents stack too deep. `_feeDiscount`, `_feeEligibleDistributionAmount`, and `_leftoverDistributionAmount` only used within scope.
+    {
+      // Get the amount of discount that should be applied to any fees taken.
+      // If the fee is zero, set the discount to 100% for convinience.
+      uint256 _feeDiscount = fee == 0
+        ? JBConstants.MAX_FEE_DISCOUNT
+        : _currentFeeDiscount(_projectId);
+
+      // The amount distributed that is eligible for incurring fees.
+      uint256 _feeEligibleDistributionAmount;
+
+      // The amount leftover after distributing to the splits.
+      uint256 _leftoverDistributionAmount;
+
+      // Payout to splits and get a reference to the leftover transfer amount after all splits have been paid.
+      // Also get a reference to the amount that was distributed to splits from which fees should be taken.
+      (_leftoverDistributionAmount, _feeEligibleDistributionAmount) = _distributeToPayoutSplitsOf(
+        _projectId,
+        _fundingCycle.configuration,
+        payoutSplitsGroup,
+        _distributedAmount,
+        _feeDiscount
+      );
+
+      // Leftover distribution amount is also eligible for a fee since the funds are going out of the ecosystem to _beneficiary.
+      _feeEligibleDistributionAmount += _leftoverDistributionAmount;
+
+      // Take the fee.
+      _fee = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT || _feeEligibleDistributionAmount == 0
+        ? 0
+        : _takeFeeFrom(
+          _projectId,
+          _fundingCycle,
+          _feeEligibleDistributionAmount,
+          _projectOwner,
+          _feeDiscount
+        );
+
+      // Get a reference to how much to distribute to the project owner, which is the leftover amount minus any fees.
+      netLeftoverDistributionAmount = _leftoverDistributionAmount == 0
+        ? 0
+        : _leftoverDistributionAmount - _feeAmount(_leftoverDistributionAmount, fee, _feeDiscount);
+
+      // Transfer any remaining balance to the project owner.
+      if (netLeftoverDistributionAmount > 0)
+        _transferFrom(address(this), _projectOwner, netLeftoverDistributionAmount);
+    }
+
+    emit DistributePayouts(
+      _fundingCycle.configuration,
+      _fundingCycle.number,
+      _projectId,
+      _projectOwner,
+      _amount,
+      _distributedAmount,
+      _fee,
+      netLeftoverDistributionAmount,
+      _memo,
+      msg.sender
+    );
+  }
+
+  /**
+    @notice
+    Allows a project to send funds from its overflow up to the preconfigured allowance.
+
+    @dev
+    Only a project's owner or a designated operator can use its allowance.
+
+    @dev
+    Incurs the protocol fee.
+
+    @param _projectId The ID of the project to use the allowance of.
+    @param _amount The amount of terminal tokens to use from this project's current allowance, as a fixed point number with the same amount of decimals as this terminal.
+    @param _currency The expected currency of the amount being distributed. Must match the project's current funding cycle's overflow allowance currency.
+    @param _minReturnedTokens The minimum number of tokens that the `_amount` should be valued at in terms of this terminal's currency, as a fixed point number with 18 decimals.
+    @param _beneficiary The address to send the funds to.
+    @param _memo A memo to pass along to the emitted event.
+
+    @return netDistributedAmount The amount of tokens that was distributed to the beneficiary, as a fixed point number with the same amount of decimals as the terminal.
+  */
+  function _useAllowanceOf(
+    uint256 _projectId,
+    uint256 _amount,
+    uint256 _currency,
+    uint256 _minReturnedTokens,
+    address payable _beneficiary,
+    string memory _memo
+  ) private returns (uint256 netDistributedAmount) {
+    // Record the use of the allowance.
+    (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordUsedAllowanceOf(
+      _projectId,
+      _amount,
+      _currency
+    );
+
+    // The amount being withdrawn must be at least as much as was expected.
+    if (_distributedAmount < _minReturnedTokens) revert INADEQUATE_DISTRIBUTION_AMOUNT();
+
+    // Scoped section prevents stack too deep. `_fee`, `_projectOwner`, `_feeDiscount`, and `_netAmount` only used within scope.
+    {
+      // Keep a reference to the fee amount that was paid.
+      uint256 _fee;
+
+      // Get a reference to the project owner, which will receive tokens from paying the platform fee.
+      address _projectOwner = projects.ownerOf(_projectId);
+
+      // Get the amount of discount that should be applied to any fees taken.
+      // If the fee is zero, set the discount to 100% for convinience.
+      uint256 _feeDiscount = fee == 0
+        ? JBConstants.MAX_FEE_DISCOUNT
+        : _currentFeeDiscount(_projectId);
+
+      // Take a fee from the `_distributedAmount`, if needed.
+      _fee = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
+        ? 0
+        : _takeFeeFrom(_projectId, _fundingCycle, _distributedAmount, _projectOwner, _feeDiscount);
+
+      // The net amount is the withdrawn amount without the fee.
+      netDistributedAmount = _distributedAmount - _fee;
+
+      // Transfer any remaining balance to the beneficiary.
+      if (netDistributedAmount > 0)
+        _transferFrom(address(this), _beneficiary, netDistributedAmount);
+    }
+
+    emit UseAllowance(
+      _fundingCycle.configuration,
+      _fundingCycle.number,
+      _projectId,
+      _beneficiary,
+      _amount,
+      _distributedAmount,
+      netDistributedAmount,
+      _memo,
       msg.sender
     );
   }

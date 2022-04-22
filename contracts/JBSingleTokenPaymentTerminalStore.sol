@@ -437,10 +437,14 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
 
       // Another scoped section prevents stack too deep. `_token`, `_decimals`, and `_currency` only used within scope.
       {
-        // Get references to the terminal's info.
-        (address _token, uint256 _decimals, uint256 _currency) = IJBSingleTokenPaymentTerminal(
-          msg.sender
-        ).info();
+        // Get a reference to the terminal's tokens.
+        address _token = IJBSingleTokenPaymentTerminal(msg.sender).token();
+
+        // Get a reference to the terminal's decimals.
+        uint256 _decimals = IJBSingleTokenPaymentTerminal(msg.sender).decimals();
+
+        // Get areference to the terminal's currency.
+        uint256 _currency = IJBSingleTokenPaymentTerminal(msg.sender).currency();
 
         // Get the amount of current overflow.
         // Use the local overflow if the funding cycle specifies that it should be used. Otherwise, use the project's total overflow across all of its terminals.

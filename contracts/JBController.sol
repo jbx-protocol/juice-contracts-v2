@@ -319,6 +319,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
   {
     return
       interfaceId == type(IJBController).interfaceId ||
+      interfaceId == type(IJBMigratable).interfaceId ||
       interfaceId == type(IJBOperatable).interfaceId ||
       super.supportsInterface(interfaceId);
   }
