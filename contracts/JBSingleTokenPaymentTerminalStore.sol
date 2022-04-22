@@ -10,20 +10,6 @@ import './libraries/JBCurrencies.sol';
 import './libraries/JBFixedPointNumber.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 
-//*********************************************************************//
-// --------------------------- custom errors ------------------------- //
-//*********************************************************************//
-error CURRENCY_MISMATCH();
-error DISTRIBUTION_AMOUNT_LIMIT_REACHED();
-error FUNDING_CYCLE_PAYMENT_PAUSED();
-error FUNDING_CYCLE_DISTRIBUTION_PAUSED();
-error FUNDING_CYCLE_REDEEM_PAUSED();
-error INADEQUATE_CONTROLLER_ALLOWANCE();
-error INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
-error INSUFFICIENT_TOKENS();
-error INVALID_FUNDING_CYCLE();
-error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
-
 /**
   @notice
   Manages all bookkeeping for inflows and outflows of funds from any ISingleTokenPaymentTerminal.
@@ -39,6 +25,20 @@ error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
 contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore, ReentrancyGuard {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
+
+  //*********************************************************************//
+  // --------------------------- custom errors ------------------------- //
+  //*********************************************************************//
+  error CURRENCY_MISMATCH();
+  error DISTRIBUTION_AMOUNT_LIMIT_REACHED();
+  error FUNDING_CYCLE_PAYMENT_PAUSED();
+  error FUNDING_CYCLE_DISTRIBUTION_PAUSED();
+  error FUNDING_CYCLE_REDEEM_PAUSED();
+  error INADEQUATE_CONTROLLER_ALLOWANCE();
+  error INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
+  error INSUFFICIENT_TOKENS();
+  error INVALID_FUNDING_CYCLE();
+  error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
 
   //*********************************************************************//
   // --------------------------- public constants ---------------------- //

@@ -7,13 +7,6 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import './interfaces/IJBProjectPayer.sol';
 import './libraries/JBTokens.sol';
 
-//*********************************************************************//
-// -------------------------- custom errors -------------------------- //
-//*********************************************************************//
-error INCORRECT_DECIMAL_AMOUNT();
-error NO_MSG_VALUE_ALLOWED();
-error TERMINAL_NOT_FOUND();
-
 /** 
   @notice 
   Sends ETH or ERC20's to a project treasury as it receives direct payments or has it's functions called.
@@ -30,6 +23,13 @@ error TERMINAL_NOT_FOUND();
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable, ERC165 {
+  //*********************************************************************//
+  // -------------------------- custom errors -------------------------- //
+  //*********************************************************************//
+  error INCORRECT_DECIMAL_AMOUNT();
+  error NO_MSG_VALUE_ALLOWED();
+  error TERMINAL_NOT_FOUND();
+
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//

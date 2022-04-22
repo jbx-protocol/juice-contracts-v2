@@ -3,11 +3,6 @@ pragma solidity 0.8.6;
 
 import './interfaces/IJBOperatorStore.sol';
 
-//*********************************************************************//
-// --------------------------- custom errors ------------------------- //
-//*********************************************************************//
-error PERMISSION_INDEX_OUT_OF_BOUNDS();
-
 /** 
   @notice
   Stores operator permissions for all addresses. Addresses can give permissions to any other address to take specific indexed actions on their behalf.
@@ -17,6 +12,11 @@ error PERMISSION_INDEX_OUT_OF_BOUNDS();
   IJBOperatorStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 */
 contract JBOperatorStore is IJBOperatorStore {
+  //*********************************************************************//
+  // --------------------------- custom errors ------------------------- //
+  //*********************************************************************//
+  error PERMISSION_INDEX_OUT_OF_BOUNDS();
+
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
