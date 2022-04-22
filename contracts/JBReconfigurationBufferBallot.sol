@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import './interfaces/IJBReconfigurationBufferBallot.sol';
 import './structs/JBFundingCycle.sol';
 
@@ -12,7 +13,7 @@ import './structs/JBFundingCycle.sol';
   Adheres to -
   IJBReconfigurationBufferBallot: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 */
-contract JBReconfigurationBufferBallot is IJBReconfigurationBufferBallot {
+contract JBReconfigurationBufferBallot is IJBReconfigurationBufferBallot, ERC165 {
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
@@ -75,6 +76,22 @@ contract JBReconfigurationBufferBallot is IJBReconfigurationBufferBallot {
 
     // The ballot is otherwise approved.
     return JBBallotState.Approved;
+  }
+
+  /**
+    @dev See {IERC165-supportsInterface}.
+  */
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(ERC165, IERC165)
+    returns (bool)
+  {
+    return
+      interfaceId == type(IJBReconfigurationBufferBallot).interfaceId ||
+      interfaceId == type(IJBFundingCycleBallot).interfaceId ||
+      super.supportsInterface(interfaceId);
   }
 
   //*********************************************************************//
