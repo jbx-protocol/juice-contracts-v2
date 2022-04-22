@@ -111,6 +111,11 @@ interface IJBController is IERC165 {
     view
     returns (uint256);
 
+  function getFundingCycleOf(uint256 _projectId, uint256 _configuration)
+    external
+    view
+    returns (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata);
+
   function latestConfiguredFundingCycleOf(uint256 _projectId)
     external
     view

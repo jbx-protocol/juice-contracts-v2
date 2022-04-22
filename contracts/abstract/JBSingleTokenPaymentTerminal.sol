@@ -75,10 +75,20 @@ abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal,
     return currency;
   }
 
+  //*********************************************************************//
+  // -------------------------- public views --------------------------- //
+  //*********************************************************************//
+
   /**
-    @dev See {IERC165-supportsInterface}.
+    @notice
+    Indicates if this contract adheres to the specified interface.
+
+    @dev 
+    See {IERC165-supportsInterface}.
+
+    @param _interfaceId The ID of the interface to check for adherance to.
   */
-  function supportsInterface(bytes4 interfaceId)
+  function supportsInterface(bytes4 _interfaceId)
     public
     view
     virtual
@@ -86,9 +96,9 @@ abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal,
     returns (bool)
   {
     return
-      interfaceId == type(IJBPaymentTerminal).interfaceId ||
-      interfaceId == type(IJBSingleTokenPaymentTerminal).interfaceId ||
-      super.supportsInterface(interfaceId);
+      _interfaceId == type(IJBPaymentTerminal).interfaceId ||
+      _interfaceId == type(IJBSingleTokenPaymentTerminal).interfaceId ||
+      super.supportsInterface(_interfaceId);
   }
 
   //*********************************************************************//

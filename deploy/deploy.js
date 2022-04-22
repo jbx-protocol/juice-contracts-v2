@@ -302,7 +302,11 @@ module.exports = async ({ deployments, getChainId }) => {
       /*fundingCycleData*/
       [
         /*duration*/ ethers.BigNumber.from(1209600),
+<<<<<<< fix/deploy-2
         /*weight*/ ethers.BigNumber.from('112070661021759343680000'),
+=======
+        /*weight*/ ethers.BigNumber.from(0),
+>>>>>>> main
         /*discountRate*/ ethers.BigNumber.from(100000000),
         /*ballot*/ JB3DayReconfigurationBufferBallot.address,
       ],

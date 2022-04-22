@@ -26,6 +26,7 @@ import './libraries/JBSplitsGroups.sol';
   @dev
   Inherits from -
   JBOperatable: Several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
+  ERC165: Introspection on interface adherance. 
 */
 contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
   // A library that parses the packed funding cycle metadata into a more friendly format.
@@ -247,6 +248,25 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
 
   /** 
     @notice
+    A project's funding cycle for the specified configuration along with its metadata.
+
+    @param _projectId The ID of the project to which the funding cycle belongs.
+  
+    @return fundingCycle The funding cycle.
+    @return metadata The funding cycle's metadata.
+  */
+  function getFundingCycleOf(uint256 _projectId, uint256 _configuration)
+    external
+    view
+    override
+    returns (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata)
+  {
+    fundingCycle = fundingCycleStore.get(_projectId, _configuration);
+    metadata = fundingCycle.expandMetadata();
+  }
+
+  /** 
+    @notice
     A project's latest configured funding cycle along with its metadata and the ballot state of the configuration.
 
     @param _projectId The ID of the project to which the funding cycle belongs.
@@ -307,10 +327,20 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     metadata = fundingCycle.expandMetadata();
   }
 
+  //*********************************************************************//
+  // -------------------------- public views --------------------------- //
+  //*********************************************************************//
+
   /**
-    @dev See {IERC165-supportsInterface}.
+    @notice
+    Indicates if this contract adheres to the specified interface.
+
+    @dev 
+    See {IERC165-supportsInterface}.
+
+    @param _interfaceId The ID of the interface to check for adherance to.
   */
-  function supportsInterface(bytes4 interfaceId)
+  function supportsInterface(bytes4 _interfaceId)
     public
     view
     virtual
@@ -318,10 +348,10 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     returns (bool)
   {
     return
-      interfaceId == type(IJBController).interfaceId ||
-      interfaceId == type(IJBMigratable).interfaceId ||
-      interfaceId == type(IJBOperatable).interfaceId ||
-      super.supportsInterface(interfaceId);
+      _interfaceId == type(IJBController).interfaceId ||
+      _interfaceId == type(IJBMigratable).interfaceId ||
+      _interfaceId == type(IJBOperatable).interfaceId ||
+      super.supportsInterface(_interfaceId);
   }
 
   //*********************************************************************//

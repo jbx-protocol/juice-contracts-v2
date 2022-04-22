@@ -21,6 +21,7 @@ import './libraries/JBTokens.sol';
   @dev
   Inherits from -
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
+  ERC165: Introspection on interface adherance. 
 */
 contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable, ERC165 {
   //*********************************************************************//
@@ -81,20 +82,27 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable, ERC165 {
   bool public override defaultPreferAddToBalance;
 
   //*********************************************************************//
-  // ------------------------- external views -------------------------- //
+  // ------------------------- public views -------------------------- //
   //*********************************************************************//
 
   /**
-    @dev See {IERC165-supportsInterface}.
+    @notice
+    Indicates if this contract adheres to the specified interface.
+
+    @dev 
+    See {IERC165-supportsInterface}.
+
+    @param _interfaceId The ID of the interface to check for adherance to.
   */
-  function supportsInterface(bytes4 interfaceId)
+  function supportsInterface(bytes4 _interfaceId)
     public
     view
     virtual
     override(ERC165, IERC165)
     returns (bool)
   {
-    return interfaceId == type(IJBProjectPayer).interfaceId || super.supportsInterface(interfaceId);
+    return
+      _interfaceId == type(IJBProjectPayer).interfaceId || super.supportsInterface(_interfaceId);
   }
 
   //*********************************************************************//

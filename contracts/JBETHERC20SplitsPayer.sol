@@ -59,20 +59,29 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
   uint256 public override defaultSplitsGroup;
 
   //*********************************************************************//
-  // ------------------------- external views -------------------------- //
+  // -------------------------- public views --------------------------- //
   //*********************************************************************//
 
   /**
-    @dev See {IERC165-supportsInterface}.
+    @notice
+    Indicates if this contract adheres to the specified interface.
+
+    @dev 
+    See {IERC165-supportsInterface}.
+
+    @param _interfaceId The ID of the interface to check for adherance to.
+
+    @return A flag indicating if this contract adheres to the specified interface.
   */
-  function supportsInterface(bytes4 interfaceId)
+  function supportsInterface(bytes4 _interfaceId)
     public
     view
     virtual
     override(JBETHERC20ProjectPayer, IERC165)
     returns (bool)
   {
-    return interfaceId == type(IJBSplitsPayer).interfaceId || super.supportsInterface(interfaceId);
+    return
+      _interfaceId == type(IJBSplitsPayer).interfaceId || super.supportsInterface(_interfaceId);
   }
 
   //*********************************************************************//
