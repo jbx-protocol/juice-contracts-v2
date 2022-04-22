@@ -284,7 +284,7 @@ module.exports = async ({ deployments, getChainId }) => {
     })
   
     let groupedSplits = {
-      group: 0,
+      group: 2,
       splits: splits
     }
 
