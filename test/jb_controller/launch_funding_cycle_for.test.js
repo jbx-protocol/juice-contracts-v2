@@ -429,36 +429,6 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
     await expect(tx).to.be.revertedWith(errors.INVALID_BALLOT_REDEMPTION_RATE);
   });
 
-  it(`Can't be called for a non-existant project`, async function () {
-    const {
-      jbController,
-      projectOwner,
-      fundingCycleData,
-      fundingCycleMetadata,
-      splits,
-      mockJbTerminal1,
-      mockJbTerminal2,
-    } = await setup();
-    const groupedSplits = [{ group: 1, splits }];
-    const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
-    const fundAccessConstraints = makeFundingAccessConstraints({ terminals });
-
-    let tx = jbController
-      .connect(projectOwner)
-      .callStatic.launchFundingCyclesFor(
-        NONEXISTANT_PROJECT,
-        fundingCycleData,
-        fundingCycleMetadata.unpacked,
-        PROJECT_START,
-        groupedSplits,
-        fundAccessConstraints,
-        terminals,
-        MEMO,
-      );
-
-    await expect(tx).to.be.reverted;
-  });
-
   it(`Can't be called for a project by a non-owner`, async function () {
     const {
       jbController,

@@ -11,7 +11,7 @@ import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/I
 import jBFundingCycleStore from '../../artifacts/contracts/interfaces/IJBFundingCycleStore.sol/IJBFundingCycleStore.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/abstract/JBPayoutRedemptionPaymentTerminal.sol/JBPayoutRedemptionPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
 describe('JBSingleTokenPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
@@ -101,8 +101,6 @@ describe('JBSingleTokenPaymentTerminalStore::recordUsedAllowanceOf(...)', functi
       CURRENCY_USD, // terminal currency
     } = await setup();
 
-    const usdToEthPrice = ethers.BigNumber.from(3500);
-
     // Add to balance beforehand, in USD
     await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordAddedBalanceFor(
       PROJECT_ID,
@@ -117,6 +115,8 @@ describe('JBSingleTokenPaymentTerminalStore::recordUsedAllowanceOf(...)', functi
     await mockJbController.mock.overflowAllowanceOf
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_USD);
+
+    await mockJbTerminal.mock.currency.returns(CURRENCY_USD);
 
     // Pre-checks
     expect(
@@ -134,8 +134,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordUsedAllowanceOf(...)', functi
     await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
       PROJECT_ID,
       AMOUNT,
-      /*currency of amount*/ CURRENCY_USD,
-      /*currency of the balance*/ CURRENCY_USD,
+      CURRENCY_USD,
     );
 
     // Post-checks
@@ -182,6 +181,8 @@ describe('JBSingleTokenPaymentTerminalStore::recordUsedAllowanceOf(...)', functi
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_USD);
 
+    await mockJbTerminal.mock.currency.returns(CURRENCY_USD);
+
     // Pre-checks
     expect(
       await JBSingleTokenPaymentTerminalStore.usedOverflowAllowanceOf(
@@ -198,8 +199,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordUsedAllowanceOf(...)', functi
     await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
       PROJECT_ID,
       AMOUNT - distributionLimit,
-      /*currency of amount*/ CURRENCY_USD,
-      /*currency of the balance*/ CURRENCY_USD,
+      CURRENCY_USD,
     );
 
     // Post-checks
@@ -255,6 +255,8 @@ describe('JBSingleTokenPaymentTerminalStore::recordUsedAllowanceOf(...)', functi
       .withArgs(CURRENCY_ETH, CURRENCY_USD, _FIXED_POINT_MAX_FIDELITY)
       .returns(ethToUsdPrice);
 
+    await mockJbTerminal.mock.currency.returns(CURRENCY_USD);
+
     // Pre-checks
     expect(
       await JBSingleTokenPaymentTerminalStore.usedOverflowAllowanceOf(
@@ -271,12 +273,10 @@ describe('JBSingleTokenPaymentTerminalStore::recordUsedAllowanceOf(...)', functi
     await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
       PROJECT_ID,
       amountToUse,
-      /*currency of amount*/ CURRENCY_ETH,
-      /*currency of the balance*/ CURRENCY_USD,
+      CURRENCY_ETH,
     );
 
     // Post-checks
-
     expect(
       await JBSingleTokenPaymentTerminalStore.usedOverflowAllowanceOf(
         mockJbTerminalSigner.address,
@@ -308,12 +308,13 @@ describe('JBSingleTokenPaymentTerminalStore::recordUsedAllowanceOf(...)', functi
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_USD);
 
+    await mockJbTerminal.mock.currency.returns(CURRENCY_ETH);
+
     // Record the used allowance
     await expect(
       JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
         PROJECT_ID,
         AMOUNT,
-        CURRENCY_ETH,
         CURRENCY_ETH,
       ),
     ).to.be.revertedWith(errors.CURRENCY_MISMATCH);
@@ -341,12 +342,13 @@ describe('JBSingleTokenPaymentTerminalStore::recordUsedAllowanceOf(...)', functi
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(smallTotalAllowance, CURRENCY_USD); // Set the controller's overflowAllowance to something small
 
+    await mockJbTerminal.mock.currency.returns(CURRENCY_USD);
+
     // Record the used allowance
     await expect(
       JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
         PROJECT_ID,
         AMOUNT,
-        CURRENCY_USD,
         CURRENCY_USD,
       ),
     ).to.be.revertedWith(errors.INADEQUATE_CONTROLLER_ALLOWANCE);
@@ -373,12 +375,13 @@ describe('JBSingleTokenPaymentTerminalStore::recordUsedAllowanceOf(...)', functi
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(0, CURRENCY_USD); // Set the controller's overflowAllowance to something small
 
+    await mockJbTerminal.mock.currency.returns(CURRENCY_USD);
+
     // Record the used allowance
     await expect(
       JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
         PROJECT_ID,
-        AMOUNT,
-        CURRENCY_USD,
+        0,
         CURRENCY_USD,
       ),
     ).to.be.revertedWith(errors.INADEQUATE_CONTROLLER_ALLOWANCE);
@@ -404,13 +407,14 @@ describe('JBSingleTokenPaymentTerminalStore::recordUsedAllowanceOf(...)', functi
       .withArgs(PROJECT_ID, timestamp, mockJbTerminal.address, token)
       .returns(AMOUNT, CURRENCY_USD);
 
+    await mockJbTerminal.mock.currency.returns(CURRENCY_USD);
+
     // Note: We didn't add an initial balance to the store
     // Record the used allowance
     await expect(
       JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
         PROJECT_ID,
         AMOUNT,
-        CURRENCY_USD,
         CURRENCY_USD,
       ),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
@@ -450,13 +454,14 @@ describe('JBSingleTokenPaymentTerminalStore::recordUsedAllowanceOf(...)', functi
       .withArgs(CURRENCY_ETH, CURRENCY_USD, _FIXED_POINT_MAX_FIDELITY)
       .returns(ethers.BigNumber.from(1));
 
+    await mockJbTerminal.mock.currency.returns(CURRENCY_USD);
+
     // Record the used allowance
     await expect(
       JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
         PROJECT_ID,
         AMOUNT,
         CURRENCY_ETH,
-        CURRENCY_USD,
       ),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);
   });
@@ -496,12 +501,13 @@ describe('JBSingleTokenPaymentTerminalStore::recordUsedAllowanceOf(...)', functi
       .withArgs(CURRENCY_USD, CURRENCY_ETH, _FIXED_POINT_MAX_FIDELITY)
       .returns(usdToEthPrice);
 
+    await mockJbTerminal.mock.currency.returns(CURRENCY_USD);
+
     // Record the used allowance
     await expect(
       JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordUsedAllowanceOf(
         PROJECT_ID,
         AMOUNT,
-        CURRENCY_USD,
         CURRENCY_USD,
       ),
     ).to.be.revertedWith(errors.INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE);

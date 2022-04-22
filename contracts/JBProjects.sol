@@ -15,13 +15,13 @@ import './libraries/JBOperations.sol';
   Projects are represented as ERC-721's.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBProjects: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
-  Inherits from:
+  Inherits from -
   JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
-  ERC721Votes:  A checkpointable standard definition for non-fungible tokens (NFTs).
+  ERC721Votes: A checkpointable standard definition for non-fungible tokens (NFTs).
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBProjects is IJBProjects, JBOperatable, ERC721Votes, Ownable {
@@ -55,7 +55,7 @@ contract JBProjects is IJBProjects, JBOperatable, ERC721Votes, Ownable {
   IJBTokenUriResolver public override tokenUriResolver;
 
   //*********************************************************************//
-  // ------------------------- external views -------------------------- //
+  // -------------------------- public views --------------------------- //
   //*********************************************************************//
 
   /**
@@ -72,6 +72,28 @@ contract JBProjects is IJBProjects, JBOperatable, ERC721Votes, Ownable {
 
     // Return the resolved URI.
     return tokenUriResolver.getUri(_projectId);
+  }
+
+  /**
+    @notice
+    Indicates if this contract adheres to the specified interface.
+
+    @dev 
+    See {IERC165-supportsInterface}.
+
+    @param _interfaceId The ID of the interface to check for adherance to.
+  */
+  function supportsInterface(bytes4 _interfaceId)
+    public
+    view
+    virtual
+    override(IERC165, ERC721)
+    returns (bool)
+  {
+    return
+      _interfaceId == type(IJBProjects).interfaceId ||
+      _interfaceId == type(IJBOperatable).interfaceId ||
+      super.supportsInterface(_interfaceId);
   }
 
   //*********************************************************************//

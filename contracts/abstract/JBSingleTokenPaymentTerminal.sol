@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import './../interfaces/IJBSingleTokenPaymentTerminal.sol';
 
 /**
@@ -8,10 +9,10 @@ import './../interfaces/IJBSingleTokenPaymentTerminal.sol';
   Generic terminal managing all inflows of funds into the protocol ecosystem for one token.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBSingleTokenPaymentTerminals: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 */
-abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal {
+abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal, ERC165 {
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
@@ -72,6 +73,32 @@ abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal 
   */
   function currencyForToken(address) external view override returns (uint256) {
     return currency;
+  }
+
+  //*********************************************************************//
+  // -------------------------- public views --------------------------- //
+  //*********************************************************************//
+
+  /**
+    @notice
+    Indicates if this contract adheres to the specified interface.
+
+    @dev 
+    See {IERC165-supportsInterface}.
+
+    @param _interfaceId The ID of the interface to check for adherance to.
+  */
+  function supportsInterface(bytes4 _interfaceId)
+    public
+    view
+    virtual
+    override(ERC165, IERC165)
+    returns (bool)
+  {
+    return
+      _interfaceId == type(IJBPaymentTerminal).interfaceId ||
+      _interfaceId == type(IJBSingleTokenPaymentTerminal).interfaceId ||
+      super.supportsInterface(_interfaceId);
   }
 
   //*********************************************************************//

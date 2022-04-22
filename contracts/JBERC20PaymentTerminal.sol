@@ -9,11 +9,11 @@ import './abstract/JBPayoutRedemptionPaymentTerminal.sol';
   Manages the inflows and outflows of an ERC-20 token.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBProjectPayer:  General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
-  Inherits from:
+  Inherits from -
   JBPayoutRedemptionPaymentTerminal: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBERC20PaymentTerminal is JBPayoutRedemptionPaymentTerminal {
@@ -21,6 +21,19 @@ contract JBERC20PaymentTerminal is JBPayoutRedemptionPaymentTerminal {
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
 
+  /**
+    @param _token The token that this terminal manages.
+    @param _currency The currency that this terminal's token adheres to for price feeds.
+    @param _baseWeightCurrency The currency to base token issuance on.
+    @param _payoutSplitsGroup The group that denotes payout splits from this terminal in the splits store.
+    @param _operatorStore A contract storing operator assignments.
+    @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
+    @param _directory A contract storing directories of terminals and controllers for each project.
+    @param _splitsStore A contract that stores splits for each project.
+    @param _prices A contract that exposes price feeds.
+    @param _store A contract that stores the terminal's data.
+    @param _owner The address that will own this contract.
+  */
   constructor(
     IERC20Metadata _token,
     uint256 _currency,

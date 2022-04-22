@@ -17,8 +17,7 @@ module.exports = async ({ deployments, getChainId }) => {
   let baseDeployArgs = {
     from: deployer.address,
     log: true,
-    // On mainnet, we will not redeploy contracts if they have already been deployed.
-    skipIfAlreadyDeployed: chainId === '1',
+    skipIfAlreadyDeployed: true,
   };
   let protocolProjectStartsAtOrAfter;
 
@@ -29,7 +28,7 @@ module.exports = async ({ deployments, getChainId }) => {
     case '1':
       multisigAddress = '0xAF28bcB48C40dBC86f52D459A6562F658fc94B1e';
       chainlinkV2UsdEthPriceFeed = '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419';
-      protocolProjectStartsAtOrAfter = 1650136773;
+      protocolProjectStartsAtOrAfter = 1650741573;
       break;
     // rinkeby
     case '4':
@@ -216,6 +215,81 @@ module.exports = async ({ deployments, getChainId }) => {
   // If needed, deploy the protocol project
   if ((await jbProjects.connect(deployer).count()) == 0) {
 
+    console.log('Adding reserved token splits with current beneficiaries (as of deployment)');
+
+    let beneficiaries = [];
+
+    if(chainId == 1) {
+      beneficiaries =
+        [
+          'sagekellyn.eth',
+          'mieos.eth',
+          'natasha-pankina.eth',
+          'zeugh.eth',
+          'burtula.eth',
+          'tankbottoms.eth',
+          'jasonz.eth',
+          'zom-bae.eth',
+          'johnnyd.eth',
+          'drgorilla.eth',
+          'filipv.eth',
+          'twodam.eth',
+          '0xstvg.eth',
+          'aeolian.eth',
+          'peri.eth',
+          'jango.eth'
+        ]
+    } else {
+      beneficiaries =
+        [
+          '0x90eda5165e5e1633e0bdb6307cdecae564b10ff7',
+          '0xe7879a2d05dba966fcca34ee9c3f99eee7edefd1',
+          '0x1dd2091f250876ba87b6fe17e6ca925e1b1c0cf0',
+          '0xf7253a0e87e39d2cd6365919d4a3d56d431d0041',
+          '0x111040f27f05e2017e32b9ac6d1e9593e4e19a2a',
+          '0x5d95baebb8412ad827287240a5c281e3bb30d27e',
+          '0xd551b861414b7a2836e4b4615b8155c4b1ecc067',
+          '0x34724d71ce674fcd4d06e60dd1baa88c14d36b75',
+          '0xf0fe43a75ff248fd2e75d33fa1ebde71c6d1abad',
+          '0x6860f1a0cf179ed93abd3739c7f6c8961a4eea3c',
+          '0x30670d81e487c80b9edc54370e6eaf943b6eab39',
+          '0xca6ed3fdc8162304d7f1fcfc9ca3a81632d5e5b0',
+          '0x28c173b8f20488eef1b0f48df8453a2f59c38337',
+          '0xe16a238d207b9ac8b419c7a866b0de013c73357b',
+          '0x63a2368f4b509438ca90186cb1c15156713d5834',
+          '0x823b92d6a4b2aed4b15675c7917c9f922ea8adad'
+        ]
+    }
+
+    let splits = [];
+  
+    beneficiaries.map( (beneficiary) => {
+      splits.push({
+        preferClaimed: false,
+        preferAddToBalance: false,
+        percent: ( (1000000000 - 400000000) / beneficiaries.length), // 40% for JBDao
+        projectId: 0,
+        beneficiary: beneficiary,
+        lockedUntil: 0,
+        allocator: ethers.constants.AddressZero
+      })
+    });
+  
+    splits.push({
+      preferClaimed: false,
+      preferAddToBalance: false,
+      percent: 400000000, // 40% for JBDao
+      projectId: 0,
+      beneficiary: chainId == 1 ? 'dao.juicebox.eth' : '0xaf28bcb48c40dbc86f52d459a6562f658fc94b1e',
+      lockedUntil: 0,
+      allocator: ethers.constants.AddressZero
+    })
+  
+    let groupedSplits = {
+      group: 2,
+      splits: splits
+    }
+
     console.log('Deploying protocol project...');
 
     await jbControllerContract.connect(deployer).launchProjectFor(
@@ -229,12 +303,8 @@ module.exports = async ({ deployments, getChainId }) => {
 
       /*fundingCycleData*/
       [
-        /*duration*/ ethers.BigNumber.from(604800),
-        /*weight*/ ethers.BigNumber.from(2)
-          .pow(10)
-          .mul(ethers.BigNumber.from(3).pow(33))
-          .mul(ethers.BigNumber.from(5).pow(5))
-          .mul(7),
+        /*duration*/ ethers.BigNumber.from(1209600),
+        /*weight*/ ethers.BigNumber.from('112070661021759343680000'),
         /*discountRate*/ ethers.BigNumber.from(100000000),
         /*ballot*/ JB3DayReconfigurationBufferBallot.address,
       ],
@@ -263,7 +333,7 @@ module.exports = async ({ deployments, getChainId }) => {
 
       /*mustStartAtOrAfter*/ ethers.BigNumber.from(protocolProjectStartsAtOrAfter),
 
-      /*groupedSplits*/[],
+      /*groupedSplits*/[groupedSplits],
 
       /*fundAccessConstraints*/[],
 

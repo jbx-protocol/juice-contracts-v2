@@ -168,7 +168,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     } = await setup();
 
     await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
-      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH, CURRENCY_ETH)
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH)
       .returns(fundingCycle, AMOUNT);
 
     // Give terminal sufficient ETH
@@ -185,6 +185,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         CURRENCY_ETH,
+        ethers.constants.AddressZero,
         /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO,
@@ -225,7 +226,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     } = await setup();
 
     await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
-      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH, CURRENCY_ETH)
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH)
       .returns(fundingCycle, 0);
 
     // Set fee to zero
@@ -237,6 +238,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         PROJECT_ID,
         /* amount */ AMOUNT_TO_DISTRIBUTE,
         CURRENCY_ETH,
+        ethers.constants.AddressZero,
         /* minReturnedTokens */ 0,
         beneficiary.address,
         MEMO,
@@ -258,7 +260,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     } = await setup();
 
     await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
-      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH, CURRENCY_ETH)
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH)
       .returns(fundingCycle, AMOUNT);
 
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
@@ -295,6 +297,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         CURRENCY_ETH,
+        ethers.constants.AddressZero,
         /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO,
@@ -347,7 +350,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     await mockJbFeeGauge.mock.currentDiscountFor.withArgs(PROJECT_ID).returns(FEE_DISCOUNT);
 
     await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
-      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH, CURRENCY_ETH)
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH)
       .returns(fundingCycle, AMOUNT);
 
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
@@ -386,6 +389,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         CURRENCY_ETH,
+        ethers.constants.AddressZero,
         /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO,
@@ -432,7 +436,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     await mockJbFeeGauge.mock.currentDiscountFor.withArgs(PROJECT_ID).reverts();
 
     await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
-      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH, CURRENCY_ETH)
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH)
       .returns(fundingCycle, AMOUNT);
 
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
@@ -471,6 +475,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         CURRENCY_ETH,
+        ethers.constants.AddressZero,
         /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO,
@@ -517,7 +522,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     await mockJbFeeGauge.mock.currentDiscountFor.withArgs(PROJECT_ID).returns(MAX_FEE_DISCOUNT + 1);
 
     await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
-      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH, CURRENCY_ETH)
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH)
       .returns(fundingCycle, AMOUNT);
 
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
@@ -556,6 +561,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         CURRENCY_ETH,
+        ethers.constants.AddressZero,
         /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO,
@@ -610,7 +616,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     };
 
     await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
-      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH, CURRENCY_ETH)
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH)
       .returns(newFundingCycle, AMOUNT);
 
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
@@ -640,15 +646,25 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
 
     // Use allowance and hold fee
-    await jbEthPaymentTerminal
+    expect(await jbEthPaymentTerminal
       .connect(projectOwner)
       .useAllowanceOf(
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         CURRENCY_ETH,
+        ethers.constants.AddressZero,
         /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO,
+      )
+    ).to.emit(jbEthPaymentTerminal, 'HoldFee')
+      .withArgs(
+        PROJECT_ID,
+        AMOUNT,
+        DEFAULT_FEE,
+        0, // discount fee
+        projectOwner.address,
+        projectOwner.address
       );
 
     // Should be holding fees in the contract
@@ -659,20 +675,14 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     // Process held fees
     const tx = await jbEthPaymentTerminal.connect(projectOwner).processFees(PROJECT_ID);
 
-    expect(await tx).to.emit(jbEthPaymentTerminal, 'ProcessFees');
-    /** @dev Chai matchers can't seem to match these args. */
-    // .withArgs(
-    //   PROJECT_ID,
-    //   [
-    //     [
-    //       ethers.BigNumber.from(AMOUNT),
-    //       DEFAULT_FEE,
-    //       projectOwner.address,
-    //       '',
-    //     ],
-    //   ],
-    //   projectOwner.address,
-    // );
+    expect(await tx).to.emit(jbEthPaymentTerminal, 'ProcessFee')
+      .withArgs(
+        PROJECT_ID,
+        ethers.BigNumber.from(AMOUNT).sub(ethers.BigNumber.from(AMOUNT).mul(MAX_FEE).div(ethers.BigNumber.from(MAX_FEE).add(DEFAULT_FEE))),
+        true,
+        projectOwner.address,
+        projectOwner.address,
+      );
 
     // Held fees shoudn't exist after being processed
     expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([]);
@@ -706,7 +716,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     };
 
     await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
-      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH, CURRENCY_ETH)
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH)
       .returns(newFundingCycle, AMOUNT);
 
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
@@ -736,15 +746,25 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
 
     // Use allowance and hold fee
-    await jbEthPaymentTerminal
+    expect(await jbEthPaymentTerminal
       .connect(projectOwner)
       .useAllowanceOf(
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         CURRENCY_ETH,
+        ethers.constants.AddressZero,
         /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO,
+      )
+    ).to.emit(jbEthPaymentTerminal, 'HoldFee')
+      .withArgs(
+        PROJECT_ID,
+        AMOUNT,
+        DEFAULT_FEE,
+        0, // discount fee
+        projectOwner.address,
+        projectOwner.address
       );
 
     // Should be holding fees in the contract
@@ -759,20 +779,14 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     // Process held fees
     const tx = await jbEthPaymentTerminal.connect(caller).processFees(PROJECT_ID);
 
-    expect(await tx).to.emit(jbEthPaymentTerminal, 'ProcessFees');
-    /** @dev Chai matchers can't seem to match these args even though I've inspected the data inside to be exactly the same. */
-    // .withArgs(
-    //   PROJECT_ID,
-    //   [
-    //     [
-    //       ethers.BigNumber.from(AMOUNT),
-    //       DEFAULT_FEE,
-    //       projectOwner.address,
-    //       '',
-    //     ],
-    //   ],
-    //   projectOwner.address,
-    // );
+    expect(await tx).to.emit(jbEthPaymentTerminal, 'ProcessFee')
+      .withArgs(
+        PROJECT_ID,
+        ethers.BigNumber.from(AMOUNT).sub(ethers.BigNumber.from(AMOUNT).mul(MAX_FEE).div(ethers.BigNumber.from(MAX_FEE).add(DEFAULT_FEE))),
+        true,
+        projectOwner.address,
+        caller.address,
+      );
 
     // Held fees shoudn't exist after being processed
     expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([]);
@@ -806,7 +820,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     };
 
     await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
-      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH, CURRENCY_ETH)
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH)
       .returns(newFundingCycle, AMOUNT);
 
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
@@ -836,15 +850,25 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
 
     // Use allowance and hold fee
-    await jbEthPaymentTerminal
+    expect(await jbEthPaymentTerminal
       .connect(projectOwner)
       .useAllowanceOf(
         PROJECT_ID,
         AMOUNT_TO_DISTRIBUTE,
         CURRENCY_ETH,
+        ethers.constants.AddressZero,
         /* minReturnedTokens */ AMOUNT,
         beneficiary.address,
         MEMO,
+      )
+    ).to.emit(jbEthPaymentTerminal, 'HoldFee')
+      .withArgs(
+        PROJECT_ID,
+        AMOUNT,
+        DEFAULT_FEE,
+        0, // discount fee
+        projectOwner.address,
+        projectOwner.address
       );
 
     // Should be holding fees in the contract
@@ -877,6 +901,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
           PROJECT_ID,
           AMOUNT_TO_DISTRIBUTE,
           CURRENCY_ETH,
+          ethers.constants.AddressZero,
           /* minReturnedTokens */ AMOUNT,
           beneficiary.address,
           MEMO,
@@ -895,7 +920,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     } = await setup();
 
     await mockJBPaymentTerminalStore.mock.recordUsedAllowanceOf
-      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH, CURRENCY_ETH)
+      .withArgs(PROJECT_ID, /* amount */ AMOUNT_TO_DISTRIBUTE, CURRENCY_ETH)
       .returns(fundingCycle, 0);
 
     // Set fee to zero
@@ -908,6 +933,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
           PROJECT_ID,
           /* amount */ AMOUNT_TO_DISTRIBUTE,
           CURRENCY_ETH,
+          ethers.constants.AddressZero,
           /* minReturnedTokens */ 1,
           beneficiary.address,
           MEMO,

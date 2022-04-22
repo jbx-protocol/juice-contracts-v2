@@ -9,7 +9,7 @@ import './JBETHERC20SplitsPayer.sol';
   Deploys splits payer contracts.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBETHERC20SplitsPayerDeployer:  General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 */
 contract JBETHERC20SplitsPayerDeployer is IJBETHERC20SplitsPayerDeployer {

@@ -9,7 +9,7 @@ import './abstract/JBPayoutRedemptionPaymentTerminal.sol';
   Manages all inflows and outflows of ETH funds into the protocol ecosystem.
 
   @dev
-  Inherits from:
+  Inherits from -
   JBPayoutRedemptionPaymentTerminal: Generic terminal managing all inflows and outflows of funds into the protocol ecosystem.
 */
 contract JBETHPaymentTerminal is JBPayoutRedemptionPaymentTerminal {
@@ -17,6 +17,16 @@ contract JBETHPaymentTerminal is JBPayoutRedemptionPaymentTerminal {
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
 
+  /**
+    @param _baseWeightCurrency The currency to base token issuance on.
+    @param _operatorStore A contract storing operator assignments.
+    @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
+    @param _directory A contract storing directories of terminals and controllers for each project.
+    @param _splitsStore A contract that stores splits for each project.
+    @param _prices A contract that exposes price feeds.
+    @param _store A contract that stores the terminal's data.
+    @param _owner The address that will own this contract.
+  */
   constructor(
     uint256 _baseWeightCurrency,
     IJBOperatorStore _operatorStore,

@@ -10,7 +10,7 @@ import './libraries/JBFixedPointNumber.sol';
   A generalized price feed for the Chainlink AggregatorV3Interface.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBPriceFeed: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 */
 contract JBChainlinkV3PriceFeed is IJBPriceFeed {

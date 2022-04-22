@@ -7,20 +7,6 @@ import './interfaces/IJBTokenStore.sol';
 import './libraries/JBOperations.sol';
 import './JBToken.sol';
 
-//*********************************************************************//
-// --------------------------- custom errors ------------------------- //
-//*********************************************************************//
-error CANT_REMOVE_TOKEN_IF_ITS_REQUIRED();
-error EMPTY_NAME();
-error EMPTY_SYMBOL();
-error INSUFFICIENT_FUNDS();
-error INSUFFICIENT_UNCLAIMED_TOKENS();
-error PROJECT_ALREADY_HAS_TOKEN();
-error RECIPIENT_ZERO_ADDRESS();
-error TOKEN_ALREADY_IN_USE();
-error TOKEN_NOT_FOUND();
-error TOKENS_MUST_HAVE_18_DECIMALS();
-
 /**
   @notice
   Manage token minting, burning, and account balances.
@@ -36,22 +22,36 @@ error TOKENS_MUST_HAVE_18_DECIMALS();
   Each project can bring their own token if they prefer, and swap between tokens at any time.
   
   @dev
-  Adheres to:
+  Adheres to -
   IJBTokenStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
-  Inherits from:
+  Inherits from -
   JBControllerUtility: Includes convenience functionality for checking if the message sender is the current controller of the project whose data is being manipulated.
   JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
+  //*********************************************************************//
+  // --------------------------- custom errors ------------------------- //
+  //*********************************************************************//
+  error CANT_REMOVE_TOKEN_IF_ITS_REQUIRED();
+  error EMPTY_NAME();
+  error EMPTY_SYMBOL();
+  error INSUFFICIENT_FUNDS();
+  error INSUFFICIENT_UNCLAIMED_TOKENS();
+  error PROJECT_ALREADY_HAS_TOKEN();
+  error RECIPIENT_ZERO_ADDRESS();
+  error TOKEN_ALREADY_IN_USE();
+  error TOKEN_NOT_FOUND();
+  error TOKENS_MUST_HAVE_18_DECIMALS();
+
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
 
   /**
     @notice
-    The Projects contract which mints ERC-721's that represent project ownership and transfers.
+    Mints ERC-721's that represent project ownership and transfers.
   */
   IJBProjects public immutable override projects;
 
@@ -263,7 +263,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
 
     // If there's a current token and a new owner was provided, transfer ownership of the old token to the new owner.
     if (_newOwner != address(0) && oldToken != IJBToken(address(0)))
-      oldToken.transferOwnership(_newOwner);
+      oldToken.transferOwnership(_projectId, _newOwner);
 
     emit Change(_projectId, _token, oldToken, _newOwner, msg.sender);
   }

@@ -2,29 +2,43 @@
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
-
-import './IJBProjects.sol';
+import './../structs/JBFee.sol';
+import './IJBAllowanceTerminal.sol';
 import './IJBDirectory.sol';
-import './IJBSplitsStore.sol';
-import './IJBFundingCycleStore.sol';
+import './IJBFeeGauge.sol';
+import './IJBPayoutTerminal.sol';
+import './IJBProjects.sol';
 import './IJBPayDelegate.sol';
-import './IJBTokenStore.sol';
+import './IJBPaymentTerminal.sol';
 import './IJBPrices.sol';
 import './IJBRedemptionDelegate.sol';
-import './IJBFeeGauge.sol';
+import './IJBRedemptionTerminal.sol';
 import './IJBSingleTokenPaymentTerminal.sol';
 import './IJBSingleTokenPaymentTerminalStore.sol';
+import './IJBSplitsStore.sol';
 
-import './../structs/JBFee.sol';
+interface IJBPayoutRedemptionPaymentTerminal is
+  IJBPaymentTerminal,
+  IJBPayoutTerminal,
+  IJBAllowanceTerminal,
+  IJBRedemptionTerminal
+{
+  event AddToBalance(
+    uint256 indexed projectId,
+    uint256 amount,
+    uint256 refundedFees,
+    string memo,
+    bytes metadata,
+    address caller
+  );
 
-interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
-  event AddToBalance(uint256 indexed projectId, uint256 amount, string memo, address caller);
   event Migrate(
     uint256 indexed projectId,
     IJBPaymentTerminal indexed to,
     uint256 amount,
     address caller
   );
+
   event DistributePayouts(
     uint256 indexed fundingCycleConfiguration,
     uint256 indexed fundingCycleNumber,
@@ -49,7 +63,32 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
     string memo,
     address caller
   );
-  event ProcessFees(uint256 indexed projectId, JBFee[] fees, address caller);
+
+  event HoldFee(
+    uint256 indexed projectId,
+    uint256 indexed amount,
+    uint256 indexed fee,
+    uint256 feeDiscount,
+    address beneficiary,
+    address caller
+  );
+
+  event ProcessFee(
+    uint256 indexed projectId,
+    uint256 indexed amount,
+    bool indexed wasHeld,
+    address beneficiary,
+    address caller
+  );
+
+  event RefundHeldFees(
+    uint256 indexed projectId,
+    uint256 indexed amount,
+    uint256 indexed refundedFees,
+    uint256 leftoverAmount,
+    address caller
+  );
+
   event Pay(
     uint256 indexed fundingCycleConfiguration,
     uint256 indexed fundingCycleNumber,
@@ -59,9 +98,12 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
     uint256 amount,
     uint256 beneficiaryTokenCount,
     string memo,
+    bytes metadata,
     address caller
   );
+
   event DelegateDidPay(IJBPayDelegate indexed delegate, JBDidPayData data, address caller);
+
   event RedeemTokens(
     uint256 indexed fundingCycleConfiguration,
     uint256 indexed fundingCycleNumber,
@@ -71,6 +113,7 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
     uint256 tokenCount,
     uint256 reclaimedAmount,
     string memo,
+    bytes metadata,
     address caller
   );
 
@@ -116,33 +159,6 @@ interface IJBPayoutRedemptionPaymentTerminal is IJBSingleTokenPaymentTerminal {
   function feeGauge() external view returns (IJBFeeGauge);
 
   function isFeelessTerminal(IJBPaymentTerminal _terminal) external view returns (bool);
-
-  function redeemTokensOf(
-    address _holder,
-    uint256 _projectId,
-    uint256 _count,
-    uint256 _minReturnedTokens,
-    address payable _beneficiary,
-    string calldata _memo,
-    bytes calldata _metadata
-  ) external returns (uint256 reclaimAmount);
-
-  function distributePayoutsOf(
-    uint256 _projectId,
-    uint256 _amount,
-    uint256 _currency,
-    uint256 _minReturnedTokens,
-    string calldata _memo
-  ) external returns (uint256 netLeftoverDistributionAmount);
-
-  function useAllowanceOf(
-    uint256 _projectId,
-    uint256 _amount,
-    uint256 _currency,
-    uint256 _minReturnedTokens,
-    address payable _beneficiary,
-    string calldata _memo
-  ) external returns (uint256 netDistributedAmount);
 
   function migrate(uint256 _projectId, IJBPaymentTerminal _to) external returns (uint256 balance);
 

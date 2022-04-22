@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import './interfaces/IJBReconfigurationBufferBallot.sol';
 import './structs/JBFundingCycle.sol';
 
@@ -9,10 +10,14 @@ import './structs/JBFundingCycle.sol';
   Manages approving funding cycle reconfigurations automatically after a buffer period.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBReconfigurationBufferBallot: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
+
+  @dev
+  Inherits from -
+  ERC165: Introspection on interface adherance. 
 */
-contract JBReconfigurationBufferBallot is IJBReconfigurationBufferBallot {
+contract JBReconfigurationBufferBallot is IJBReconfigurationBufferBallot, ERC165 {
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
@@ -46,7 +51,7 @@ contract JBReconfigurationBufferBallot is IJBReconfigurationBufferBallot {
   mapping(uint256 => mapping(uint256 => JBBallotState)) public override finalState;
 
   //*********************************************************************//
-  // ------------------------- external views -------------------------- //
+  // -------------------------- public views --------------------------- //
   //*********************************************************************//
 
   /**
@@ -75,6 +80,30 @@ contract JBReconfigurationBufferBallot is IJBReconfigurationBufferBallot {
 
     // The ballot is otherwise approved.
     return JBBallotState.Approved;
+  }
+
+  /**
+    @notice
+    Indicates if this contract adheres to the specified interface.
+
+    @dev 
+    See {IERC165-supportsInterface}.
+
+    @param _interfaceId The ID of the interface to check for adherance to.
+
+    @return A flag indicating if this contract adheres to the specified interface.
+  */
+  function supportsInterface(bytes4 _interfaceId)
+    public
+    view
+    virtual
+    override(ERC165, IERC165)
+    returns (bool)
+  {
+    return
+      _interfaceId == type(IJBReconfigurationBufferBallot).interfaceId ||
+      _interfaceId == type(IJBFundingCycleBallot).interfaceId ||
+      super.supportsInterface(_interfaceId);
   }
 
   //*********************************************************************//

@@ -116,6 +116,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
       projectId,
       5 * 10**18,
       1, // Currency
+      address(0), //token (unused)
       0, // Min wei out
       payable(msg.sender), // Beneficiary
       'MEMO'
@@ -132,6 +133,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
       projectId,
       10 * 10**18,
       1, // Currency
+      address(0), //token (unused)
       0, // Min wei out
       'Foundry payment' // Memo
     );
@@ -150,6 +152,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
       msg.sender,
       projectId,
       senderBalance,
+      address(0), //token (unused)
       0,
       payable(msg.sender),
       'gimme my money back',
@@ -161,8 +164,8 @@ contract TestERC20Terminal is TestBaseWorkflow {
   }
 
   function testFuzzedAllowanceERC20(
-    uint248 ALLOWANCE,
-    uint248 TARGET,
+    uint232 ALLOWANCE,
+    uint232 TARGET,
     uint96 BALANCE
   ) public {
     evm.assume(jbToken().totalSupply() >= BALANCE);
@@ -227,6 +230,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
       projectId,
       ALLOWANCE,
       1, // Currency
+      address(0), //token (unused)
       0, // Min wei out
       payable(msg.sender), // Beneficiary
       'MEMO'
@@ -252,6 +256,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
       projectId,
       TARGET,
       1, // Currency
+      address(0), //token (unused)
       0, // Min wei out
       'Foundry payment' // Memo
     );
@@ -271,6 +276,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
       msg.sender,
       projectId,
       senderBalance,
+      address(0), //token (unused)
       0,
       payable(msg.sender),
       'gimme my token back',

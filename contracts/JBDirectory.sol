@@ -2,37 +2,36 @@
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
-
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBDirectory.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 import './libraries/JBOperations.sol';
-
-//*********************************************************************//
-// --------------------------- custom errors ------------------------- //
-//*********************************************************************//
-error INVALID_PROJECT_ID_IN_DIRECTORY();
-error DUPLICATE_TERMINALS();
-error SET_CONTROLLER_NOT_ALLOWED();
-error SET_TERMINALS_NOT_ALLOWED();
-error TOKEN_NOT_ACCEPTED();
 
 /**
   @notice
   Keeps a reference of which terminal contracts each project is currently accepting funds through, and which controller contract is managing each project's tokens and funding cycles.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBDirectory: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
-  Inherits from:
+  Inherits from -
   JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
+
+  //*********************************************************************//
+  // --------------------------- custom errors ------------------------- //
+  //*********************************************************************//
+  error DUPLICATE_TERMINALS();
+  error INVALID_PROJECT_ID_IN_DIRECTORY();
+  error SET_CONTROLLER_NOT_ALLOWED();
+  error SET_TERMINALS_NOT_ALLOWED();
+  error TOKEN_NOT_ACCEPTED();
 
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
@@ -61,7 +60,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
   /**
     @notice
-    The Projects contract which mints ERC-721's that represent project ownership and transfers.
+    Mints ERC-721's that represent project ownership and transfers.
   */
   IJBProjects public immutable override projects;
 
@@ -81,7 +80,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     _projectId The ID of the project to get the controller of.
   */
-  mapping(uint256 => IJBController) public override controllerOf;
+  mapping(uint256 => address) public override controllerOf;
 
   /**
     @notice
@@ -114,26 +113,6 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
   /**
     @notice
-    Whether or not a specified terminal is a terminal of the specified project.
-
-    @param _projectId The ID of the project to check within.
-    @param _terminal The address of the terminal to check for.
-
-    @return A flag indicating whether or not the specified terminal is a terminal of the specified project.
-  */
-  function isTerminalOf(uint256 _projectId, IJBPaymentTerminal _terminal)
-    public
-    view
-    override
-    returns (bool)
-  {
-    for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++)
-      if (_terminalsOf[_projectId][_i] == _terminal) return true;
-    return false;
-  }
-
-  /**
-    @notice
     The primary terminal that is managing funds for a project for a specified token.
 
     @dev
@@ -145,7 +124,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @return The primary terminal for the project for the specified token.
   */
   function primaryTerminalOf(uint256 _projectId, address _token)
-    public
+    external
     view
     override
     returns (IJBPaymentTerminal)
@@ -164,6 +143,30 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     // Not found.
     return IJBPaymentTerminal(address(0));
+  }
+
+  //*********************************************************************//
+  // -------------------------- public views --------------------------- //
+  //*********************************************************************//
+
+  /**
+    @notice
+    Whether or not a specified terminal is a terminal of the specified project.
+
+    @param _projectId The ID of the project to check within.
+    @param _terminal The address of the terminal to check for.
+
+    @return A flag indicating whether or not the specified terminal is a terminal of the specified project.
+  */
+  function isTerminalOf(uint256 _projectId, IJBPaymentTerminal _terminal)
+    public
+    view
+    override
+    returns (bool)
+  {
+    for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++)
+      if (_terminalsOf[_projectId][_i] == _terminal) return true;
+    return false;
   }
 
   //*********************************************************************//
@@ -205,7 +208,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @param _projectId The ID of the project to set a new controller for.
     @param _controller The new controller to set.
   */
-  function setControllerOf(uint256 _projectId, IJBController _controller)
+  function setControllerOf(uint256 _projectId, address _controller)
     external
     override
     requirePermissionAllowingOverride(
@@ -213,8 +216,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
       _projectId,
       JBOperations.SET_CONTROLLER,
       (msg.sender == address(controllerOf[_projectId]) ||
-        (isAllowedToSetFirstController[msg.sender] &&
-          controllerOf[_projectId] == IJBController(address(0))))
+        (isAllowedToSetFirstController[msg.sender] && controllerOf[_projectId] == address(0)))
     )
   {
     // The project must exist.
@@ -226,7 +228,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     // Setting controller is allowed if called from the current controller, or if the project doesn't have a current controller, or if the project's funding cycle allows setting the controller. Revert otherwise.
     if (
       msg.sender != address(controllerOf[_projectId]) &&
-      controllerOf[_projectId] != IJBController(address(0)) &&
+      controllerOf[_projectId] != address(0) &&
       !_fundingCycle.setControllerAllowed()
     ) revert SET_CONTROLLER_NOT_ALLOWED();
 

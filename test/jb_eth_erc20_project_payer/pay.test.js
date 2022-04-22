@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import jbTerminal from '../../artifacts/contracts/interfaces/IJBPayoutRedemptionPaymentTerminal.sol/IJBPayoutRedemptionPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/abstract/JBPayoutRedemptionPaymentTerminal.sol/JBPayoutRedemptionPaymentTerminal.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import errors from '../helpers/errors.json';
 
@@ -13,7 +13,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
   const INITIAL_BENEFICIARY = ethers.Wallet.createRandom().address;
   const INITIAL_PREFER_CLAIMED_TOKENS = false;
   const INITIAL_MEMO = 'hello world';
-  const INITIAL_METADATA = [0x1];
+  const INITIAL_METADATA = '0x69';
   const INITIAL_PREFER_ADD_TO_BALANCE = false;
   const PROJECT_ID = 7;
   const AMOUNT = ethers.utils.parseEther('1.0');
@@ -21,7 +21,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
   const PREFER_CLAIMED_TOKENS = true;
   const MIN_RETURNED_TOKENS = 1;
   const MEMO = 'hi world';
-  const METADATA = [0x2];
+  const METADATA = '0x42';
   const DECIMALS = 1;
   let ethToken;
 
@@ -209,16 +209,18 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
         AMOUNT,
         ethToken,
         MEMO,
+        METADATA
       )
       .returns();
 
     await expect(
-      jbProjectPayer.addToBalance(
+      jbProjectPayer.addToBalanceOf(
         PROJECT_ID,
         ethToken,
         AMOUNT,
         DECIMALS,
         MEMO,
+        METADATA,
         {
           value: AMOUNT,
         },
@@ -241,6 +243,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
         AMOUNT,
         mockJbToken.address,
         MEMO,
+        METADATA
       )
       .returns();
 
@@ -254,12 +257,13 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
     await expect(
       jbProjectPayer
         .connect(payer)
-        .addToBalance(
+        .addToBalanceOf(
           PROJECT_ID,
           mockJbToken.address,
           AMOUNT,
           9,
           MEMO,
+          METADATA
         ),
     ).to.not.be.reverted;
   });
@@ -374,6 +378,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
         AMOUNT,
         ethToken,
         INITIAL_MEMO,
+        INITIAL_METADATA
       )
       .returns();
 
@@ -417,7 +422,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
       .withArgs(PROJECT_ID, ethToken)
       .returns(mockJbTerminal.address);
 
-      await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(10);
+    await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(10);
 
 
     await expect(

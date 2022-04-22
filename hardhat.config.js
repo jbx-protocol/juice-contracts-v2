@@ -29,6 +29,9 @@ const infuraId = process.env.INFURA_ID;
 module.exports = {
   defaultNetwork,
   networks: {
+    hardhat: {
+      allowUnlimitedContractSize: true,
+    },
     localhost: {
       url: 'http://localhost:8545',
       blockGasLimit: 0x1fffffffffffff,
@@ -62,7 +65,7 @@ module.exports = {
       optimizer: {
         enabled: true,
         // https://docs.soliditylang.org/en/v0.8.10/internals/optimizer.html#:~:text=Optimizer%20Parameter%20Runs,-The%20number%20of&text=A%20%E2%80%9Cruns%E2%80%9D%20parameter%20of%20%E2%80%9C,is%202**32%2D1%20.
-        runs: 100000000,
+        runs: 1000000,
       },
     },
   },
@@ -138,3 +141,27 @@ task('compile:one', 'Compiles a single contract in isolation')
       quiet: true,
     });
   });
+
+task("deploy-ballot", "Deploy a buffer ballot of a given duration").addParam("duration", "Set the ballot duration (in seconds)").setAction(async (taskArgs, hre) => {
+  try {
+    const { get, deploy } = deployments;
+    const [deployer] = await hre.ethers.getSigners();
+
+    // Take the previously deployed
+    const JBFundingCycleStoreDeployed = await get('JBFundingCycleStore')
+
+    const JB3DayReconfigurationBufferBallot = await deploy(
+      'JBReconfigurationBufferBallot',
+      {
+        from: deployer.address,
+        log: true,
+        args: [taskArgs.duration, JBFundingCycleStoreDeployed.address]
+      }
+    );
+
+    console.log('Buffer ballot deployed at ' + JB3DayReconfigurationBufferBallot.address);
+
+  } catch (error) {
+    console.log(error);
+  }
+})

@@ -144,10 +144,9 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
       _projectId,
       payAmountInWei,
       jbLibraries().ETH(),
-      /*min out*/
-      0,
-      /*LFG*/
-      'lfg'
+      address(0), //token (unused)
+      /*min out*/0,
+      /*LFG*/'lfg'
     );
 
     // verify: should have held the fee
@@ -170,7 +169,9 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
       _projectId,
       payAmountInWei,
       address(0),
-      'thanks for all the fish'
+      'thanks for all the fish',
+      /* _delegateMetadata */
+      new bytes(0)
     );
 
     // verify: project should get the fee back (plus the addToBalance amount)

@@ -4,27 +4,26 @@ pragma solidity 0.8.6;
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './interfaces/IJBPrices.sol';
-import './libraries/JBCurrencies.sol';
-
-//*********************************************************************//
-// --------------------------- custom errors ------------------------- //
-//*********************************************************************//
-error PRICE_FEED_ALREADY_EXISTS();
-error PRICE_FEED_NOT_FOUND();
 
 /** 
   @notice 
   Manages and normalizes price feeds.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBPrices: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
-  Inherits from:
+  Inherits from -
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBPrices is IJBPrices, Ownable {
+  //*********************************************************************//
+  // --------------------------- custom errors ------------------------- //
+  //*********************************************************************//
+  error PRICE_FEED_ALREADY_EXISTS();
+  error PRICE_FEED_NOT_FOUND();
+
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//

@@ -2,31 +2,29 @@
 pragma solidity 0.8.6;
 
 import '@paulrberg/contracts/math/PRBMath.sol';
-
 import './abstract/JBControllerUtility.sol';
-import './interfaces/IJBFundingCycleStore.sol';
 import './libraries/JBConstants.sol';
-
-//*********************************************************************//
-// --------------------------- custom errors ------------------------- //
-//*********************************************************************//
-error INVALID_DISCOUNT_RATE();
-error INVALID_DURATION();
-error INVALID_WEIGHT();
 
 /** 
   @notice 
   Manages funding cycle configurations and scheduling.
 
   @dev
-  Adheres to:
+  Adheres to -
   IJBTokenStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
-  Inherits from:
+  Inherits from -
   JBControllerUtility: Includes convenience functionality for checking if the message sender is the current controller of the project whose data is being manipulated.
 */
 contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
+  //*********************************************************************//
+  // --------------------------- custom errors ------------------------- //
+  //*********************************************************************//
+  error INVALID_DISCOUNT_RATE();
+  error INVALID_DURATION();
+  error INVALID_WEIGHT();
+
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//
@@ -90,6 +88,36 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     returns (JBFundingCycle memory fundingCycle)
   {
     return _getStructFor(_projectId, _configuration);
+  }
+
+  /**
+    @notice 
+    The latest funding cycle to be configured for the specified project, and its current ballot state.
+
+    @param _projectId The ID of the project to get the latest configured funding cycle of.
+
+    @return fundingCycle The project's queued funding cycle.
+    @return ballotState The state of the ballot for the reconfiguration.
+  */
+  function latestConfiguredOf(uint256 _projectId)
+    external
+    view
+    override
+    returns (JBFundingCycle memory fundingCycle, JBBallotState ballotState)
+  {
+    // Get a reference to the latest funding cycle configuration.
+    uint256 _fundingCycleConfiguration = latestConfigurationOf[_projectId];
+
+    // Resolve the funding cycle for the latest configuration.
+    fundingCycle = _getStructFor(_projectId, _fundingCycleConfiguration);
+
+    // Resolve the ballot state.
+    ballotState = _ballotStateOf(
+      _projectId,
+      fundingCycle.configuration,
+      fundingCycle.start,
+      fundingCycle.basedOn
+    );
   }
 
   /**
@@ -605,48 +633,6 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
       );
   }
 
-  /**
-    @notice 
-    Unpack a funding cycle's packed stored values into an easy-to-work-with funding cycle struct.
-
-    @param _projectId The ID of the project to which the funding cycle belongs.
-    @param _configuration The funding cycle configuration to get the full struct for.
-
-    @return fundingCycle A funding cycle struct.
-  */
-  function _getStructFor(uint256 _projectId, uint256 _configuration)
-    private
-    view
-    returns (JBFundingCycle memory fundingCycle)
-  {
-    // Return an empty funding cycle if the configuration specified is 0.
-    if (_configuration == 0) return fundingCycle;
-
-    fundingCycle.configuration = _configuration;
-
-    uint256 _packedIntrinsicProperties = _packedIntrinsicPropertiesOf[_projectId][_configuration];
-
-    // weight in bits 0-87 bits.
-    fundingCycle.weight = uint256(uint88(_packedIntrinsicProperties));
-    // basedOn in bits 88-143 bits.
-    fundingCycle.basedOn = uint256(uint56(_packedIntrinsicProperties >> 88));
-    // start in bits 144-199 bits.
-    fundingCycle.start = uint256(uint56(_packedIntrinsicProperties >> 144));
-    // number in bits 200-255 bits.
-    fundingCycle.number = uint256(uint56(_packedIntrinsicProperties >> 200));
-
-    uint256 _packedUserProperties = _packedUserPropertiesOf[_projectId][_configuration];
-
-    // ballot in bits 0-159 bits.
-    fundingCycle.ballot = IJBFundingCycleBallot(address(uint160(_packedUserProperties)));
-    // duration in bits 160-223 bits.
-    fundingCycle.duration = uint256(uint64(_packedUserProperties >> 160));
-    // discountRate in bits 224-255 bits.
-    fundingCycle.discountRate = uint256(uint32(_packedUserProperties >> 224));
-
-    fundingCycle.metadata = _metadataOf[_projectId][_configuration];
-  }
-
   /** 
     @notice 
     The date that is the nearest multiple of the specified funding cycle's duration from its end.
@@ -810,5 +796,47 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     else if (_ballotFundingCycle.ballot.duration() >= block.timestamp - _configuration)
       return JBBallotState.Active;
     else return _ballotFundingCycle.ballot.stateOf(_projectId, _configuration, _start);
+  }
+
+  /**
+    @notice 
+    Unpack a funding cycle's packed stored values into an easy-to-work-with funding cycle struct.
+
+    @param _projectId The ID of the project to which the funding cycle belongs.
+    @param _configuration The funding cycle configuration to get the full struct for.
+
+    @return fundingCycle A funding cycle struct.
+  */
+  function _getStructFor(uint256 _projectId, uint256 _configuration)
+    private
+    view
+    returns (JBFundingCycle memory fundingCycle)
+  {
+    // Return an empty funding cycle if the configuration specified is 0.
+    if (_configuration == 0) return fundingCycle;
+
+    fundingCycle.configuration = _configuration;
+
+    uint256 _packedIntrinsicProperties = _packedIntrinsicPropertiesOf[_projectId][_configuration];
+
+    // weight in bits 0-87 bits.
+    fundingCycle.weight = uint256(uint88(_packedIntrinsicProperties));
+    // basedOn in bits 88-143 bits.
+    fundingCycle.basedOn = uint256(uint56(_packedIntrinsicProperties >> 88));
+    // start in bits 144-199 bits.
+    fundingCycle.start = uint256(uint56(_packedIntrinsicProperties >> 144));
+    // number in bits 200-255 bits.
+    fundingCycle.number = uint256(uint56(_packedIntrinsicProperties >> 200));
+
+    uint256 _packedUserProperties = _packedUserPropertiesOf[_projectId][_configuration];
+
+    // ballot in bits 0-159 bits.
+    fundingCycle.ballot = IJBFundingCycleBallot(address(uint160(_packedUserProperties)));
+    // duration in bits 160-223 bits.
+    fundingCycle.duration = uint256(uint64(_packedUserProperties >> 160));
+    // discountRate in bits 224-255 bits.
+    fundingCycle.discountRate = uint256(uint32(_packedUserProperties >> 224));
+
+    fundingCycle.metadata = _metadataOf[_projectId][_configuration];
   }
 }

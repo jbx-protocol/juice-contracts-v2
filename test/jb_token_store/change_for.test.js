@@ -139,6 +139,40 @@ describe('JBTokenStore::changeFor(...)', function () {
       );
   });
 
+  it('Should not change project of the previous token if it was the address(0), and emit event if caller is controller', async function () {
+    const { newOwner, controller, mockJbDirectory, jbTokenStore } = await setup();
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Issue the initial token and grab a reference to it.
+    await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
+    const initialTokenAddr = await jbTokenStore.connect(controller).tokenOf(PROJECT_ID);
+    const initialToken = new Contract(initialTokenAddr, jbToken.abi);
+
+    // Change to a new token at address(0)
+    let newToken = ethers.constants.AddressZero;
+    let changeTx = await jbTokenStore
+      .connect(controller)
+      .changeFor(PROJECT_ID, newToken, newOwner.address);
+
+    expect(await jbTokenStore.projectOf(newToken)).to.equal(ethers.constants.AddressZero);
+
+    // The ownership of the initial token should be changed.
+    expect(await initialToken.connect(controller).owner()).to.equal(newOwner.address);
+
+    // Change to a new token
+    newToken = await deployJbToken(NEW_TOKEN_NAME, NEW_TOKEN_SYMBOL);
+    changeTx = await jbTokenStore
+      .connect(controller)
+      .changeFor(PROJECT_ID, newToken.address, newOwner.address);
+
+    await expect(changeTx)
+      .to.emit(jbTokenStore, 'Change')
+      .withArgs(PROJECT_ID, newToken.address, ethers.constants.AddressZero, newOwner.address, controller.address);
+    
+    expect(await jbTokenStore.projectOf(ethers.constants.AddressZero)).to.equal(0);
+  });
+
   it(`Can't change tokens if caller does not have permission`, async function () {
     const { controller, mockJbDirectory, jbTokenStore } = await setup();
 
