@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/jbx-protocol/juice-contracts-v2"
   },
-  "version": "1.0.0",
+  "version": "2.0.0",
   "license": "MIT",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
