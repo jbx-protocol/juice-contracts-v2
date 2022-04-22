@@ -41,7 +41,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
   error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
 
   //*********************************************************************//
-  // --------------------------- public constants ---------------------- //
+  // -------------------------- private constants ---------------------- //
   //*********************************************************************//
 
   /**

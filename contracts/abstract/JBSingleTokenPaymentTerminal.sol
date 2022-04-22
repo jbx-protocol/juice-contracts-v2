@@ -75,6 +75,10 @@ abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal,
     return currency;
   }
 
+  //*********************************************************************//
+  // -------------------------- public views --------------------------- //
+  //*********************************************************************//
+
   /**
     @notice
     Indicates if this contract adheres to the specified interface.
