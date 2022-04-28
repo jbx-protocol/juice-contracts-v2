@@ -1266,6 +1266,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           _bundledAmount,
           beneficiaryTokenCount,
           _beneficiary,
+          _minReturnedTokens,
+          _preferClaimedTokens,
           _memo,
           _metadata
         );

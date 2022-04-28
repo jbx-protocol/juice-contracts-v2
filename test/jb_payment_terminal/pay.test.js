@@ -279,6 +279,8 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         },
         projectTokenCount: TOKEN_RECEIVED,
         beneficiary: beneficiary.address,
+        minReturnedTokens: MIN_TOKEN_REQUESTED,
+        preferClaimedTokens: PREFER_CLAIMED_TOKENS,
         memo: ADJUSTED_MEMO,
         metadata: METADATA,
       })

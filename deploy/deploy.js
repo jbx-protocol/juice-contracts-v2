@@ -287,6 +287,11 @@ module.exports = async ({ deployments, getChainId }) => {
 
       /*fundingCycleMetadata*/
       [
+        /*global*/
+        [
+          /*allowSetTerminals*/ false,
+          /*allowSetController*/ false,
+        ],
         /*reservedRate*/ ethers.BigNumber.from(5000),
         /*redemptionRate*/ ethers.BigNumber.from(9500),
         /*ballotRedemptionRate*/ ethers.BigNumber.from(9500),
@@ -298,8 +303,6 @@ module.exports = async ({ deployments, getChainId }) => {
         /*allowChangeToken*/ false,
         /*allowTerminalMigration*/ false,
         /*allowControllerMigration*/ false,
-        /*allowSetTerminals*/ false,
-        /*allowSetController*/ false,
         /*holdFees*/ false,
         /*useTotalOverflowForRedemptions*/ false,
         /*useDataSourceForPay*/ false,

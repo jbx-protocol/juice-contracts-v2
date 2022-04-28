@@ -45,7 +45,7 @@ describe('JBDirectory::terminalsOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowSetTerminals: true })
+      metadata: packFundingCycleMetadata({ global: { allowSetTerminals: true } })
     });
 
     // Add a few terminals
