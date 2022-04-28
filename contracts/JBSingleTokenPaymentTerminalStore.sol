@@ -352,7 +352,9 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
         _memo,
         _metadata
       );
-      (_weight, memo, delegate) = fundingCycle.dataSource().payParams(_data);
+      (_weight, memo, delegate) = IJBFundingCycleDataSource(fundingCycle.dataSource()).payParams(
+        _data
+      );
     }
     // Otherwise use the funding cycle's weight
     else {
@@ -496,7 +498,8 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
           _memo,
           _metadata
         );
-        (reclaimAmount, memo, delegate) = fundingCycle.dataSource().redeemParams(_data);
+        (reclaimAmount, memo, delegate) = IJBFundingCycleDataSource(fundingCycle.dataSource())
+          .redeemParams(_data);
       } else {
         memo = _memo;
       }

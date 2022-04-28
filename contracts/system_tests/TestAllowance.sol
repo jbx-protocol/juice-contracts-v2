@@ -38,6 +38,7 @@ contract TestAllowance is TestBaseWorkflow {
     });
 
     _metadata = JBFundingCycleMetadata({
+      global: JBGlobalFundingCycleMetadata({allowSetTerminals: false, allowSetController: false}),
       reservedRate: 5000, //50%
       redemptionRate: 5000, //50%
       ballotRedemptionRate: 0,
@@ -49,13 +50,11 @@ contract TestAllowance is TestBaseWorkflow {
       allowChangeToken: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
-      allowSetTerminals: false,
-      allowSetController: false,
       holdFees: false,
       useTotalOverflowForRedemptions: false,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
-      dataSource: IJBFundingCycleDataSource(address(0))
+      dataSource: address(0)
     });
 
     _terminals.push(jbETHPaymentTerminal());
@@ -218,8 +217,7 @@ contract TestAllowance is TestBaseWorkflow {
     if (ALLOWANCE == 0) {
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_CONTROLLER_ALLOWANCE()'));
       willRevert = true;
-    }
-    else if (TARGET >= BALANCE || ALLOWANCE > (BALANCE - TARGET)) {
+    } else if (TARGET >= BALANCE || ALLOWANCE > (BALANCE - TARGET)) {
       // Too much to withdraw or no overflow ?
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
       willRevert = true;
@@ -235,8 +233,7 @@ contract TestAllowance is TestBaseWorkflow {
     );
 
     if (
-      !willRevert && // if allowance ==0 or not enough overflow (target>=balance, allowance > overflow)
-      BALANCE != 0 // there is something to transfer
+      !willRevert && BALANCE != 0 // if allowance ==0 or not enough overflow (target>=balance, allowance > overflow) // there is something to transfer
     )
       assertEq(
         (_beneficiary).balance,
