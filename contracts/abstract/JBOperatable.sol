@@ -3,8 +3,6 @@ pragma solidity 0.8.6;
 
 import './../interfaces/IJBOperatable.sol';
 
-import 'hardhat/console.sol';
-
 /** 
   @notice
   Modifiers to allow access to functions based on the message sender's operator status.
