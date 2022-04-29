@@ -1146,9 +1146,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _feeDiscount
   ) private returns (uint256 feeAmount) {
     feeAmount = _feeAmount(_amount, fee, _feeDiscount);
+
     if (_fundingCycle.shouldHoldFees()) {
       // Store the held fee.
       _heldFeesOf[_projectId].push(JBFee(_amount, uint32(fee), uint32(_feeDiscount), _beneficiary));
+
       emit HoldFee(_projectId, _amount, fee, _feeDiscount, _beneficiary, msg.sender);
     } else {
       // Process the fee.
@@ -1266,7 +1268,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           _bundledAmount,
           beneficiaryTokenCount,
           _beneficiary,
-          _minReturnedTokens,
           _preferClaimedTokens,
           _memo,
           _metadata
