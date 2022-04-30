@@ -688,11 +688,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     @param _projectId The ID of the project to which the funds being added belong.
     @param _amount The amount of terminal tokens added, as a fixed point number with the same amount of decimals as its relative terminal.
   */
-  function recordAddedBalanceFor(uint256 _projectId, uint256 _amount)
-    external
-    override
-    nonReentrant
-  {
+  function recordAddedBalanceFor(uint256 _projectId, uint256 _amount) external override {
     // Increment the balance.
     balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
       balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] +
