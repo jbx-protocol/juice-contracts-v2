@@ -401,7 +401,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     @param _metadata Metadata specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
     @param _mustStartAtOrAfter The time before which the configured funding cycle cannot start.
     @param _groupedSplits An array of splits to set for any number of groups. 
-    @param _fundAccessConstraints An array containing amounts that a project can use from its treasury for each payment terminal. Amounts are fixed point numbers using the same number of decimals as the accompanying terminal.
+    @param _fundAccessConstraints An array containing amounts that a project can use from its treasury for each payment terminal. Amounts are fixed point numbers using the same number of decimals as the accompanying terminal. The `_distributionLimit` and `_overflowAllowance` parameters must fit in a `uint232`.
     @param _terminals Payment terminals to add for the project.
     @param _memo A memo to pass along to the emitted event.
 
@@ -455,7 +455,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     @param _metadata Metadata specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
     @param _mustStartAtOrAfter The time before which the configured funding cycle cannot start.
     @param _groupedSplits An array of splits to set for any number of groups. 
-    @param _fundAccessConstraints An array containing amounts that a project can use from its treasury for each payment terminal. Amounts are fixed point numbers using the same number of decimals as the accompanying terminal.
+    @param _fundAccessConstraints An array containing amounts that a project can use from its treasury for each payment terminal. Amounts are fixed point numbers using the same number of decimals as the accompanying terminal. The `_distributionLimit` and `_overflowAllowance` parameters must fit in a `uint232`.
     @param _terminals Payment terminals to add for the project.
     @param _memo A memo to pass along to the emitted event.
 
@@ -512,7 +512,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     @param _metadata Metadata specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
     @param _mustStartAtOrAfter The time before which the configured funding cycle cannot start.
     @param _groupedSplits An array of splits to set for any number of groups. 
-    @param _fundAccessConstraints An array containing amounts that a project can use from its treasury for each payment terminal. Amounts are fixed point numbers using the same number of decimals as the accompanying terminal.
+    @param _fundAccessConstraints An array containing amounts that a project can use from its treasury for each payment terminal. Amounts are fixed point numbers using the same number of decimals as the accompanying terminal. The `_distributionLimit` and `_overflowAllowance` parameters must fit in a `uint232`.
     @param _memo A memo to pass along to the emitted event.
 
     @return configuration The configuration of the funding cycle that was successfully reconfigured.
