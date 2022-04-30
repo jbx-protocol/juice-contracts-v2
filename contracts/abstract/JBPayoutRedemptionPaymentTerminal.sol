@@ -309,7 +309,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     @param _projectId The ID of the project being paid.
     @param _amount The amount of terminal tokens being received, as a fixed point number with the same amount of decimals as this terminal. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
-    ignored: _token The token being paid. This terminal ignores this property since it only manages one token. 
+    @param _token The token being paid. This terminal ignores this property since it only manages one token. 
     @param _beneficiary The address to mint tokens for and pass along to the funding cycle's delegate.
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with the same amount of decimals as this terminal.
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
@@ -321,13 +321,15 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   function pay(
     uint256 _projectId,
     uint256 _amount,
-    address,
+    address _token,
     address _beneficiary,
     uint256 _minReturnedTokens,
     bool _preferClaimedTokens,
     string calldata _memo,
     bytes calldata _metadata
   ) external payable virtual override isTerminalOf(_projectId) returns (uint256) {
+    _token; // Prevents unused var compiler and natspec complaints.
+
     // ETH shouldn't be sent if this terminal's token isn't ETH.
     if (token != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
@@ -361,7 +363,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _holder The account to redeem tokens for.
     @param _projectId The ID of the project to which the tokens being redeemed belong.
     @param _tokenCount The number of project tokens to redeem, as a fixed point number with 18 decimals.
-    ignored: _token The token being reclaimed. This terminal ignores this property since it only manages one token. 
+    @param _token The token being reclaimed. This terminal ignores this property since it only manages one token. 
     @param _minReturnedTokens The minimum amount of terminal tokens expected in return, as a fixed point number with the same amount of decimals as the terminal.
     @param _beneficiary The address to send the terminal tokens to.
     @param _memo A memo to pass along to the emitted event.
@@ -373,7 +375,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     address _holder,
     uint256 _projectId,
     uint256 _tokenCount,
-    address,
+    address _token,
     uint256 _minReturnedTokens,
     address payable _beneficiary,
     string memory _memo,
@@ -385,6 +387,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     requirePermission(_holder, _projectId, JBOperations.REDEEM)
     returns (uint256 reclaimAmount)
   {
+    _token; // Prevents unused var compiler and natspec complaints.
     return
       _redeemTokensOf(
         _holder,
@@ -413,7 +416,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _projectId The ID of the project having its payouts distributed.
     @param _amount The amount of terminal tokens to distribute, as a fixed point number with same number of decimals as this terminal.
     @param _currency The expected currency of the amount being distributed. Must match the project's current funding cycle's distribution limit currency.
-    ignored: _token The token being distributed. This terminal ignores this property since it only manages one token. 
+    @param _token The token being distributed. This terminal ignores this property since it only manages one token. 
     @param _minReturnedTokens The minimum number of terminal tokens that the `_amount` should be valued at in terms of this terminal's currency, as a fixed point number with the same number of decimals as this terminal.
     @param _memo A memo to pass along to the emitted event.
 
@@ -423,10 +426,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _projectId,
     uint256 _amount,
     uint256 _currency,
-    address,
+    address _token,
     uint256 _minReturnedTokens,
     string calldata _memo
   ) external virtual override returns (uint256 netLeftoverDistributionAmount) {
+    _token; // Prevents unused var compiler and natspec complaints.
     return _distributePayoutsOf(_projectId, _amount, _currency, _minReturnedTokens, _memo);
   }
 
@@ -443,7 +447,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _projectId The ID of the project to use the allowance of.
     @param _amount The amount of terminal tokens to use from this project's current allowance, as a fixed point number with the same amount of decimals as this terminal.
     @param _currency The expected currency of the amount being distributed. Must match the project's current funding cycle's overflow allowance currency.
-    ignored: _token The token being distributed. This terminal ignores this property since it only manages one token. 
+    @param _token The token being distributed. This terminal ignores this property since it only manages one token. 
     @param _minReturnedTokens The minimum number of tokens that the `_amount` should be valued at in terms of this terminal's currency, as a fixed point number with 18 decimals.
     @param _beneficiary The address to send the funds to.
     @param _memo A memo to pass along to the emitted event.
@@ -454,7 +458,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _projectId,
     uint256 _amount,
     uint256 _currency,
-    address,
+    address _token,
     uint256 _minReturnedTokens,
     address payable _beneficiary,
     string memory _memo
@@ -465,6 +469,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.USE_ALLOWANCE)
     returns (uint256 netDistributedAmount)
   {
+    _token; // Prevents unused var compiler and natspec complaints.
     return _useAllowanceOf(_projectId, _amount, _currency, _minReturnedTokens, _beneficiary, _memo);
   }
 
@@ -514,17 +519,19 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     @param _projectId The ID of the project to which the funds received belong.
     @param _amount The amount of tokens to add, as a fixed point number with the same number of decimals as this terminal. If this is an ETH terminal, this is ignored and msg.value is used instead.
-    ignored: _token The token being paid. This terminal ignores this property since it only manages one currency. 
+    @param _token The token being paid. This terminal ignores this property since it only manages one currency. 
     @param _memo A memo to pass along to the emitted event.
     @param _metadata Extra data to pass along to the emitted event.
   */
   function addToBalanceOf(
     uint256 _projectId,
     uint256 _amount,
-    address,
+    address _token,
     string calldata _memo,
     bytes calldata _metadata
   ) external payable virtual override isTerminalOf(_projectId) {
+    _token; // Prevents unused var compiler and natspec complaints.
+
     // If this terminal's token isn't ETH, make sure no msg.value was sent, then transfer the tokens in from msg.sender.
     if (token != JBTokens.ETH) {
       // Amount must be greater than 0.

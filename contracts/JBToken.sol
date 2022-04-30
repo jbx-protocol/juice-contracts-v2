@@ -27,11 +27,12 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     @notice
     The total supply of this ERC20.
 
-    ignored: _projectId the ID of the project to which the token belongs. This is ignored.
+    @param _projectId the ID of the project to which the token belongs. This is ignored.
 
     @return The total supply of this ERC20, as a fixed point number.
   */
-  function totalSupply(uint256) external view override returns (uint256) {
+  function totalSupply(uint256 _projectId) external view override returns (uint256) {
+    _projectId; // Prevents unused var compiler and natspec complaints.
     return super.totalSupply();
   }
 
@@ -40,11 +41,18 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     An account's balance of this ERC20.
 
     @param _account The account to get a balance of.
-    ignored: _projectId is the ID of the project to which the token belongs. This is ignored.
+    @param _projectId is the ID of the project to which the token belongs. This is ignored.
 
     @return The balance of the `_account` of this ERC20, as a fixed point number with 18 decimals.
   */
-  function balanceOf(address _account, uint256) external view override returns (uint256) {
+  function balanceOf(address _account, uint256 _projectId)
+    external
+    view
+    override
+    returns (uint256)
+  {
+    _account; // Prevents unused var compiler and natspec complaints.
+    _projectId; // Prevents unused var compiler and natspec complaints.
     return super.balanceOf(_account);
   }
 
@@ -89,15 +97,16 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     @dev
     Only the owner of this contract cant mint more of it.
 
-    ignored: _projectId The ID of the project to which the token belongs. This is ignored.
+    @param _projectId The ID of the project to which the token belongs. This is ignored.
     @param _account The account to mint the tokens for.
     @param _amount The amount of tokens to mint, as a fixed point number with 18 decimals.
   */
   function mint(
-    uint256,
+    uint256 _projectId,
     address _account,
     uint256 _amount
   ) external override onlyOwner {
+    _projectId; // Prevents unused var compiler and natspec complaints.
     return _mint(_account, _amount);
   }
 
@@ -108,15 +117,16 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     @dev
     Only the owner of this contract cant burn some of its supply.
 
-    ignored: _projectId The ID of the project to which the token belongs. This is ignored.
+    @param _projectId The ID of the project to which the token belongs. This is ignored.
     @param _account The account to burn tokens from.
     @param _amount The amount of tokens to burn, as a fixed point number with 18 decimals.
   */
   function burn(
-    uint256,
+    uint256 _projectId,
     address _account,
     uint256 _amount
   ) external override onlyOwner {
+    _projectId; // Prevents unused var compiler and natspec complaints.
     return _burn(_account, _amount);
   }
 
@@ -124,15 +134,16 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     @notice
     Approves an account to spend tokens on the `msg.sender`s behalf.
 
-    ignored: _projectId the ID of the project to which the token belongs. This is ignored.
+    @param _projectId the ID of the project to which the token belongs. This is ignored.
     @param _spender The address that will be spending tokens on the `msg.sender`s behalf.
     @param _amount The amount the `_spender` is allowed to spend.
   */
   function approve(
-    uint256,
+    uint256 _projectId,
     address _spender,
     uint256 _amount
   ) external override {
+    _projectId; // Prevents unused var compiler and natspec complaints.
     approve(_spender, _amount);
   }
 
@@ -140,15 +151,16 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     @notice
     Transfer tokens to an account.
     
-    ignored: _projectId The ID of the project to which the token belongs. This is ignored.
+    @param _projectId The ID of the project to which the token belongs. This is ignored.
     @param _to The destination address.
     @param _amount The amount of the transfer, as a fixed point number with 18 decimals.
   */
   function transfer(
-    uint256,
+    uint256 _projectId,
     address _to,
     uint256 _amount
   ) external override {
+    _projectId; // Prevents unused var compiler and natspec complaints.
     transfer(_to, _amount);
   }
 
@@ -156,17 +168,18 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     @notice
     Transfer tokens between accounts.
 
-    ignored: _projectId The ID of the project to which the token belongs. This is ignored.
+    @param _projectId The ID of the project to which the token belongs. This is ignored.
     @param _from The originating address.
     @param _to The destination address.
     @param _amount The amount of the transfer, as a fixed point number with 18 decimals.
   */
   function transferFrom(
-    uint256,
+    uint256 _projectId,
     address _from,
     address _to,
     uint256 _amount
   ) external override {
+    _projectId; // Prevents unused var compiler and natspec complaints.
     transferFrom(_from, _to, _amount);
   }
 
@@ -181,10 +194,16 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     @dev
     Only the owner of this contract can transfer it.
 
-    ignored: _projectId The ID of the project to which the token belongs. This is ignored.
+    @param _projectId The ID of the project to which the token belongs. This is ignored.
     @param _newOwner The new owner.
   */
-  function transferOwnership(uint256, address _newOwner) public virtual override onlyOwner {
+  function transferOwnership(uint256 _projectId, address _newOwner)
+    public
+    virtual
+    override
+    onlyOwner
+  {
+    _projectId; // Prevents unused var compiler and natspec complaints.
     return super.transferOwnership(_newOwner);
   }
 }
