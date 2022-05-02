@@ -136,7 +136,7 @@ interface IJBPayoutRedemptionPaymentTerminal is
 
   event SetFeeGauge(IJBFeeGauge indexed feeGauge, address caller);
 
-  event SetFeelessAddress(address indexed contract, bool indexed flag, address caller);
+  event SetFeelessAddress(address indexed _contract, bool indexed flag, address caller);
 
   function projects() external view returns (IJBProjects);
 
