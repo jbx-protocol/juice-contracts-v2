@@ -347,6 +347,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
         _payer,
         _amount,
         _projectId,
+        fundingCycle.configuration,
         fundingCycle.weight,
         fundingCycle.reservedRate(),
         _memo,

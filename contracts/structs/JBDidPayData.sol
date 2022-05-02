@@ -6,6 +6,7 @@ import './JBTokenAmount.sol';
 /** 
   @member payer The address from which the payment originated.
   @member projectId The ID of the project for which the payment was made.
+  @member configuration The configuratino of the funding cycle during which the payment is being made.
   @member amount The amount of the payment. Includes the token being paid, the value, the number of decimals included, and the currency of the amount.
   @member projectTokenCount The number of project tokens minted for the beneficiary.
   @member beneficiary The address to which the tokens were minted.
@@ -16,6 +17,7 @@ import './JBTokenAmount.sol';
 struct JBDidPayData {
   address payer;
   uint256 projectId;
+  uint256 configuration;
   JBTokenAmount amount;
   uint256 projectTokenCount;
   address beneficiary;

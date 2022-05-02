@@ -617,7 +617,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     @param _beneficiary The account that the tokens are being minted for.
     @param _memo A memo to pass along to the emitted event.
     @param _preferClaimedTokens A flag indicating whether a project's attached token contract should be minted if they have been issued.
-    @param _useReservedRate Whether to use the current funding cycle's reserved rate in the mint calculation.
+    @param _reservedRate The reserved rate to use in the mint calculation.
 
     @return beneficiaryTokenCount The amount of tokens minted for the beneficiary.
   */
@@ -627,7 +627,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     address _beneficiary,
     string calldata _memo,
     bool _preferClaimedTokens,
-    bool _useReservedRate
+    uint256 _reservedRate
   )
     external
     virtual
@@ -643,9 +643,8 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     // There should be tokens to mint.
     if (_tokenCount == 0) revert ZERO_TOKENS_TO_MINT();
 
-    // Define variables that will be needed outside scoped section below.
-    // Keep a reference to the reserved rate to use
-    uint256 _reservedRate;
+    // The reserved rate should be within the max value.
+    if (_reservedRate <= JBConstants.MAX_RESERVED_RATE) revert INVALID_RESERVED_RATE();
 
     // Scoped section prevents stack too deep. `_fundingCycle` only used within scope.
     {
@@ -657,9 +656,6 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
         !_fundingCycle.mintingAllowed() &&
         !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))
       ) revert MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE();
-
-      // Determine the reserved rate to use.
-      _reservedRate = _useReservedRate ? _fundingCycle.reservedRate() : 0;
     }
 
     if (_reservedRate == JBConstants.MAX_RESERVED_RATE)

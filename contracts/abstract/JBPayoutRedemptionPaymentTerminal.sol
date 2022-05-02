@@ -1262,7 +1262,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           _beneficiary,
           '',
           _preferClaimedTokens,
-          true
+          _fundingCycle.reservedRate()
         );
 
       // The token count for the beneficiary must be greater than or equal to the minimum expected.
@@ -1273,6 +1273,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         JBDidPayData memory _data = JBDidPayData(
           _payer,
           _projectId,
+          _fundingCycle.configuration,
           _bundledAmount,
           beneficiaryTokenCount,
           _beneficiary,
