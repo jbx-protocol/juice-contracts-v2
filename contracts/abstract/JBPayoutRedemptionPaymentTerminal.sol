@@ -1262,7 +1262,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           _beneficiary,
           '',
           _preferClaimedTokens,
-          _fundingCycle.reservedRate()
+          true
         );
 
       // The token count for the beneficiary must be greater than or equal to the minimum expected.

@@ -186,7 +186,7 @@ interface IJBController is IERC165 {
     address _beneficiary,
     string calldata _memo,
     bool _preferClaimedTokens,
-    uint256 _reservedRate
+    bool _useReservedRate
   ) external returns (uint256 beneficiaryTokenCount);
 
   function burnTokensOf(

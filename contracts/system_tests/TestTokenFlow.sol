@@ -109,7 +109,7 @@ contract TestTokenFlow is TestBaseWorkflow {
       _beneficiary,
       'Mint memo',
       mintPreferClaimed,
-      _reservedRate
+      true /*use reserved rate*/
     );
 
     // total token balance should be half of token count due to 50% reserved rate
@@ -151,10 +151,24 @@ contract TestTokenFlow is TestBaseWorkflow {
     address _beneficiary = address(1234);
 
     // mint claimed tokens to beneficiary addr
-    _controller.mintTokensOf(_projectId, type(uint224).max, _beneficiary, 'Mint memo', true, 0);
+    _controller.mintTokensOf(
+      _projectId,
+      type(uint224).max,
+      _beneficiary,
+      'Mint memo',
+      true,
+      false /*use reserved rate*/
+    );
 
     // mint unclaimed tokens to beneficiary addr
-    _controller.mintTokensOf(_projectId, type(uint256).max, _beneficiary, 'Mint memo', false, 0);
+    _controller.mintTokensOf(
+      _projectId,
+      type(uint256).max,
+      _beneficiary,
+      'Mint memo',
+      false,
+      false
+    );
 
     // try to claim the unclaimed tokens
     evm.stopPrank();
@@ -181,7 +195,14 @@ contract TestTokenFlow is TestBaseWorkflow {
     address _beneficiary = address(1234);
 
     // mint unclaimed tokens to beneficiary addr
-    _controller.mintTokensOf(_projectId, type(uint256).max, _beneficiary, 'Mint memo', false, 0);
+    _controller.mintTokensOf(
+      _projectId,
+      type(uint256).max,
+      _beneficiary,
+      'Mint memo',
+      false,
+      false
+    );
 
     // create a new IJBToken and change it's owner to the tokenStore
     IJBToken _newToken = new JBToken('NewTestName', 'NewTestSymbol');
