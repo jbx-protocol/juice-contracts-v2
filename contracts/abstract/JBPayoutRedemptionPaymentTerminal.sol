@@ -178,7 +178,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     _contract The contract that can be paid toward.
   */
-  mapping(address => bool) public override isFeelessContract;
+  mapping(address => bool) public override isFeelessAddress;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -544,7 +544,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     else _amount = msg.value;
 
     // Add to balance while only refunding held fees if the funds aren't originating from a feeless terminal.
-    _addToBalanceOf(_projectId, _amount, !isFeelessContract[msg.sender], _memo, _metadata);
+    _addToBalanceOf(_projectId, _amount, !isFeelessAddress[msg.sender], _memo, _metadata);
   }
 
   /**
@@ -637,11 +637,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _contract The contract that can be paid towards while still bypassing fees.
     @param _flag A flag indicating whether the terminal should be feeless or not.
   */
-  function setFeelessContract(address _contract, bool _flag) external virtual override onlyOwner {
+  function setFeelessAddress(address _contract, bool _flag) external virtual override onlyOwner {
     // Set the flag value.
-    isFeelessContract[_contract] = _flag;
+    isFeelessAddress[_contract] = _flag;
 
-    emit SetFeelessContract(_contract, _flag, msg.sender);
+    emit SetFeelessAddress(_contract, _flag, msg.sender);
   }
 
   //*********************************************************************//
@@ -818,7 +818,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     {
       // Get the amount of discount that should be applied to any fees taken.
       // If the fee is zero or if the fee is being used by a contract that doesn't incur fees, set the discount to 100% for convinience.
-      uint256 _feeDiscount = fee == 0 || isFeelessContract[msg.sender]
+      uint256 _feeDiscount = fee == 0 || isFeelessAddress[msg.sender]
         ? JBConstants.MAX_FEE_DISCOUNT
         : _currentFeeDiscount(_projectId);
 
@@ -923,7 +923,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
       // Get the amount of discount that should be applied to any fees taken.
       // If the fee is zero or if the fee is being used by a contract that doesn't incur fees, set the discount to 100% for convinience.
-      uint256 _feeDiscount = fee == 0 || isFeelessContract[msg.sender]
+      uint256 _feeDiscount = fee == 0 || isFeelessAddress[msg.sender]
         ? JBConstants.MAX_FEE_DISCOUNT
         : _currentFeeDiscount(_projectId);
 
@@ -999,7 +999,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         // If there's an allocator set, transfer to its `allocate` function.
         if (_split.allocator != IJBSplitAllocator(address(0))) {
           // If the split allocator is set as feeless, this distribution is not eligible for a fee.
-          if (isFeelessContract[address(_split.allocator)])
+          if (isFeelessAddress[address(_split.allocator)])
             _netPayoutAmount = _payoutAmount;
             // This distribution is eligible for a fee since the funds are leaving this contract and the allocator isn't listed as feeless.
           else {
@@ -1062,7 +1062,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
               );
           } else {
             // If the terminal is set as feeless, this distribution is not eligible for a fee.
-            if (isFeelessContract[address(_terminal)])
+            if (isFeelessAddress[address(_terminal)])
               _netPayoutAmount = _payoutAmount;
               // This distribution is eligible for a fee since the funds are leaving this contract and the terminal isn't listed as feeless.
             else {

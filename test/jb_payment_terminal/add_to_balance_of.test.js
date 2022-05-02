@@ -265,7 +265,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
 
     await jbEthPaymentTerminal
       .connect(terminalOwner)
-      .setFeelessContract(caller.address, true);
+      .setFeelessAddress(caller.address, true);
 
     let discountedFee =
       ethers.BigNumber.from(heldFee[0].fee)

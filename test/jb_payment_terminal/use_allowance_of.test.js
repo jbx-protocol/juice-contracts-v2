@@ -236,7 +236,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     const initialBeneficiaryBalance = await ethers.provider.getBalance(beneficiary.address);
 
     // Set recipient as feeless
-    await jbEthPaymentTerminal.connect(terminalOwner).setFeelessContract(projectOwner.address, true);
+    await jbEthPaymentTerminal.connect(terminalOwner).setFeelessAddress(projectOwner.address, true);
 
     const tx = await jbEthPaymentTerminal
       .connect(projectOwner)

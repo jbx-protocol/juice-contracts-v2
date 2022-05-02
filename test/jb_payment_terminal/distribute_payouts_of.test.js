@@ -713,7 +713,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
 
     await jbEthPaymentTerminal
       .connect(terminalOwner)
-      .setFeelessContract(mockJbEthPaymentTerminal.address, true);
+      .setFeelessAddress(mockJbEthPaymentTerminal.address, true);
 
     let tx = await jbEthPaymentTerminal
       .connect(caller)
@@ -811,7 +811,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
 
     await jbEthPaymentTerminal
       .connect(terminalOwner)
-      .setFeelessContract(mockJbEthPaymentTerminal.address, true);
+      .setFeelessAddress(mockJbEthPaymentTerminal.address, true);
 
     let tx = await jbEthPaymentTerminal
       .connect(caller)
@@ -907,7 +907,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
 
     await jbEthPaymentTerminal
       .connect(terminalOwner)
-      .setFeelessContract(mockJbEthPaymentTerminal.address, true);
+      .setFeelessAddress(mockJbEthPaymentTerminal.address, true);
 
     let tx = await jbEthPaymentTerminal
       .connect(caller)
@@ -1861,7 +1861,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE, CURRENCY)
       .returns(fundingCycle, AMOUNT_DISTRIBUTED);
 
-    await jbEthPaymentTerminal.connect(terminalOwner).setFeelessContract(mockJbAllocator.address, true);
+    await jbEthPaymentTerminal.connect(terminalOwner).setFeelessAddress(mockJbAllocator.address, true);
 
     //await mockJbFeeGauge.mock.currentDiscountFor.withArgs(PROJECT_ID).returns(FEE_DISCOUNT);
 
