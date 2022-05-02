@@ -655,12 +655,9 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
       );
 
       // If the message sender is not a terminal or a datasource, the current funding cycle must allow minting.
-      if (
-        !_fundingCycle.mintingAllowed()
-        && (
-          !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))
-          && msg.sender != address(_fundingCycle.dataSource())
-        )
+      if ( !_fundingCycle.mintingAllowed()
+        && !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))
+        && msg.sender != address(_fundingCycle.dataSource())
       ) revert MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE();
 
       // Determine the reserved rate to use.
