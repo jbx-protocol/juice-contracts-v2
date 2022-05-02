@@ -647,18 +647,20 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
       JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
       // Minting limited to: project owner, authorized callers, project terminal and current funding cycle data source
-      if(
-        msg.sender != projects.ownerOf(_projectId)
-        && msg.sender != address(_fundingCycle.dataSource())
-        && !operatorStore.hasPermission(msg.sender, projects.ownerOf(_projectId), _projectId, JBOperations.MINT)
-        && !operatorStore.hasPermission(msg.sender, projects.ownerOf(_projectId), 0, JBOperations.MINT)
-        && !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))
-      ) revert UNAUTHORIZED();
+      _requirePermissionAllowingOverride(
+        projects.ownerOf(_projectId),
+        _projectId,
+        JBOperations.MINT,
+        directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender)) || msg.sender == address(_fundingCycle.dataSource())
+      );
 
-      // If the message sender is not a terminal, the current funding cycle must allow minting.
+      // If the message sender is not a terminal or a datasource, the current funding cycle must allow minting.
       if (
-        !_fundingCycle.mintingAllowed() &&
-        !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))
+        !_fundingCycle.mintingAllowed()
+        && (
+          !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))
+          && msg.sender != address(_fundingCycle.dataSource())
+        )
       ) revert MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE();
 
       // Determine the reserved rate to use.

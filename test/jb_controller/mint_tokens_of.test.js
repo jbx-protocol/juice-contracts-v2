@@ -241,7 +241,7 @@ describe('JBController::mintTokensOf(...)', function () {
       .returns(false);
 
     await mockJbDirectory.mock.isTerminalOf
-      .withArgs(PROJECT_ID, terminalSigner.address)
+      .withArgs(PROJECT_ID, mockDatasource.address)
       .returns(false);
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
@@ -334,7 +334,7 @@ describe('JBController::mintTokensOf(...)', function () {
     ).to.be.revertedWith(errors.ZERO_TOKENS_TO_MINT);
   });
 
-  it(`Can't mint token if funding cycle is paused and caller is not a terminal delegate`, async function () {
+  it(`Can't mint token if funding cycle is paused and caller is not a terminal delegate or a datasource`, async function () {
     const { projectOwner, beneficiary, jbController, mockJbFundingCycleStore, timestamp } =
       await setup();
 
