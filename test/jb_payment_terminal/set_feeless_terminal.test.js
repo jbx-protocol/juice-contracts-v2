@@ -68,7 +68,7 @@ describe('JBPayoutRedemptionPaymentTerminal::setFeelessAddress(...)', function (
         .connect(terminalOwner)
         .setFeelessAddress(mockJbEthPaymentTerminal.address, true),
     )
-      .to.emit(jbEthPaymentTerminal, 'setFeelessAddress')
+      .to.emit(jbEthPaymentTerminal, 'SetFeelessAddress')
       .withArgs(mockJbEthPaymentTerminal.address, true, terminalOwner.address);
 
     expect(await jbEthPaymentTerminal.isFeelessAddress(mockJbEthPaymentTerminal.address)).to.be
@@ -87,7 +87,7 @@ describe('JBPayoutRedemptionPaymentTerminal::setFeelessAddress(...)', function (
         .connect(terminalOwner)
         .setFeelessAddress(mockJbEthPaymentTerminal.address, false),
     )
-      .to.emit(jbEthPaymentTerminal, 'setFeelessAddress')
+      .to.emit(jbEthPaymentTerminal, 'SetFeelessAddress')
       .withArgs(mockJbEthPaymentTerminal.address, false, terminalOwner.address);
 
     expect(await jbEthPaymentTerminal.isFeelessAddress(mockJbEthPaymentTerminal.address)).to.be
