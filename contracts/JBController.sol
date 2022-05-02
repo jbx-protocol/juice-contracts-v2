@@ -632,12 +632,6 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     external
     virtual
     override
-    requirePermissionAllowingOverride(
-      projects.ownerOf(_projectId),
-      _projectId,
-      JBOperations.MINT,
-      directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))
-    )
     returns (uint256 beneficiaryTokenCount)
   {
     // There should be tokens to mint.
@@ -651,6 +645,15 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     {
       // Get a reference to the project's current funding cycle.
       JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
+
+      // Minting limited to: project owner, authorized callers, project terminal and current funding cycle data source
+      if(
+        msg.sender != projects.ownerOf(_projectId)
+        && msg.sender != address(_fundingCycle.dataSource())
+        && !operatorStore.hasPermission(msg.sender, projects.ownerOf(_projectId), _projectId, JBOperations.MINT)
+        && !operatorStore.hasPermission(msg.sender, projects.ownerOf(_projectId), 0, JBOperations.MINT)
+        && !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))
+      ) revert UNAUTHORIZED();
 
       // If the message sender is not a terminal, the current funding cycle must allow minting.
       if (
