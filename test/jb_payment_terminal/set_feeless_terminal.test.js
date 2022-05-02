@@ -11,7 +11,7 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 
-describe('JBPayoutRedemptionPaymentTerminal::setFeelessTerminal(...)', function () {
+describe('JBPayoutRedemptionPaymentTerminal::setFeelessAddress(...)', function () {
   async function setup() {
     let [deployer, terminalOwner, caller] = await ethers.getSigners();
 
@@ -66,12 +66,12 @@ describe('JBPayoutRedemptionPaymentTerminal::setFeelessTerminal(...)', function 
     expect(
       await jbEthPaymentTerminal
         .connect(terminalOwner)
-        .setFeelessTerminal(mockJbEthPaymentTerminal.address, true),
+        .setFeelessAddress(mockJbEthPaymentTerminal.address, true),
     )
-      .to.emit(jbEthPaymentTerminal, 'SetFeelessTerminal')
+      .to.emit(jbEthPaymentTerminal, 'SetFeelessAddress')
       .withArgs(mockJbEthPaymentTerminal.address, true, terminalOwner.address);
 
-    expect(await jbEthPaymentTerminal.isFeelessTerminal(mockJbEthPaymentTerminal.address)).to.be
+    expect(await jbEthPaymentTerminal.isFeelessAddress(mockJbEthPaymentTerminal.address)).to.be
       .true;
   });
 
@@ -80,17 +80,17 @@ describe('JBPayoutRedemptionPaymentTerminal::setFeelessTerminal(...)', function 
 
     await jbEthPaymentTerminal
       .connect(terminalOwner)
-      .setFeelessTerminal(mockJbEthPaymentTerminal.address, true);
+      .setFeelessAddress(mockJbEthPaymentTerminal.address, true);
 
     expect(
       await jbEthPaymentTerminal
         .connect(terminalOwner)
-        .setFeelessTerminal(mockJbEthPaymentTerminal.address, false),
+        .setFeelessAddress(mockJbEthPaymentTerminal.address, false),
     )
-      .to.emit(jbEthPaymentTerminal, 'SetFeelessTerminal')
+      .to.emit(jbEthPaymentTerminal, 'SetFeelessAddress')
       .withArgs(mockJbEthPaymentTerminal.address, false, terminalOwner.address);
 
-    expect(await jbEthPaymentTerminal.isFeelessTerminal(mockJbEthPaymentTerminal.address)).to.be
+    expect(await jbEthPaymentTerminal.isFeelessAddress(mockJbEthPaymentTerminal.address)).to.be
       .false;
   });
 
@@ -99,7 +99,7 @@ describe('JBPayoutRedemptionPaymentTerminal::setFeelessTerminal(...)', function 
     await expect(
       jbEthPaymentTerminal
         .connect(caller)
-        .setFeelessTerminal(mockJbEthPaymentTerminal.address, true),
+        .setFeelessAddress(mockJbEthPaymentTerminal.address, true),
     ).to.be.revertedWith('Ownable: caller is not the owner');
   });
 });

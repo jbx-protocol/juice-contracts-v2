@@ -119,6 +119,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         ],
         PROJECT_ID,
         CURRENCY_ETH,
+        beneficiary.address,
         MEMO,
         METADATA,
       )
@@ -245,6 +246,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         ],
         PROJECT_ID,
         CURRENCY_ETH,
+        beneficiary.address,
         MEMO,
         METADATA,
       )
@@ -271,6 +273,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         // JBDidPayData obj
         payer: caller.address,
         projectId: PROJECT_ID,
+        currentFundingCycleConfiguration: timestamp,
         amount: {
           token: '0x000000000000000000000000000000000000eeee',
           value: ETH_TO_PAY,
@@ -384,6 +387,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         ],
         PROJECT_ID,
         CURRENCY_ETH,
+        beneficiary.address,
         MEMO,
         METADATA,
       )
@@ -456,6 +460,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         [/*token*/ tokenAddress, /*amount paid*/ ETH_TO_PAY, /*decimal*/ DECIMALS, CURRENCY_ETH],
         PROJECT_ID,
         CURRENCY_ETH,
+        beneficiary.address,
         MEMO,
         METADATA,
       )
@@ -567,6 +572,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         ],
         PROJECT_ID,
         CURRENCY_ETH,
+        beneficiary.address,
         MEMO,
         METADATA,
       )

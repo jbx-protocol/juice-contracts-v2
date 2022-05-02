@@ -136,7 +136,7 @@ interface IJBPayoutRedemptionPaymentTerminal is
 
   event SetFeeGauge(IJBFeeGauge indexed feeGauge, address caller);
 
-  event SetFeelessTerminal(IJBPaymentTerminal indexed terminal, bool indexed flag, address caller);
+  event SetFeelessAddress(address indexed addrs, bool indexed flag, address caller);
 
   function projects() external view returns (IJBProjects);
 
@@ -158,7 +158,7 @@ interface IJBPayoutRedemptionPaymentTerminal is
 
   function feeGauge() external view returns (IJBFeeGauge);
 
-  function isFeelessTerminal(IJBPaymentTerminal _terminal) external view returns (bool);
+  function isFeelessAddress(address _contract) external view returns (bool);
 
   function migrate(uint256 _projectId, IJBPaymentTerminal _to) external returns (uint256 balance);
 
@@ -168,5 +168,5 @@ interface IJBPayoutRedemptionPaymentTerminal is
 
   function setFeeGauge(IJBFeeGauge _feeGauge) external;
 
-  function setFeelessTerminal(IJBPaymentTerminal _terminal, bool _flag) external;
+  function setFeelessAddress(address _contract, bool _flag) external;
 }

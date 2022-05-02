@@ -174,11 +174,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
   /**
     @notice
-    Terminals that can be paid towards from this terminal without incurring a fee.
+    Contracts that can be paid towards from this terminal without incurring a fee.
 
-    _terminal The terminal that can be paid toward.
+    _contract The contract that can be paid toward.
   */
-  mapping(IJBPaymentTerminal => bool) public override isFeelessTerminal;
+  mapping(address => bool) public override isFeelessAddress;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -310,7 +310,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _projectId The ID of the project being paid.
     @param _amount The amount of terminal tokens being received, as a fixed point number with the same amount of decimals as this terminal. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
     @param _token The token being paid. This terminal ignores this property since it only manages one token. 
-    @param _beneficiary The address to mint tokens for and pass along to the funding cycle's delegate.
+    @param _beneficiary The address to mint tokens for and pass along to the funding cycle's data source and delegate.
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with the same amount of decimals as this terminal.
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
@@ -543,7 +543,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // If the terminal's token is ETH, override `_amount` with msg.value.
     else _amount = msg.value;
 
-    _addToBalanceOf(_projectId, _amount, _memo, _metadata);
+    // Add to balance while only refunding held fees if the funds aren't originating from a feeless terminal.
+    _addToBalanceOf(_projectId, _amount, !isFeelessAddress[msg.sender], _memo, _metadata);
   }
 
   /**
@@ -628,24 +629,19 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
   /**
     @notice
-    Sets whether projects operating on this terminal can pay projects operating on the specified terminal without incurring a fee.
+    Sets whether projects operating on this terminal can pay towards the specified contract without incurring a fee.
 
     @dev
-    Only the owner of this contract can set terminal's as feeless.
+    Only the owner of this contract can set contracs as feeless.
 
-    @param _terminal The terminal that can be paid towards while still bypassing fees.
+    @param _contract The contract that can be paid towards while still bypassing fees.
     @param _flag A flag indicating whether the terminal should be feeless or not.
   */
-  function setFeelessTerminal(IJBPaymentTerminal _terminal, bool _flag)
-    external
-    virtual
-    override
-    onlyOwner
-  {
+  function setFeelessAddress(address _contract, bool _flag) external virtual override onlyOwner {
     // Set the flag value.
-    isFeelessTerminal[_terminal] = _flag;
+    isFeelessAddress[_contract] = _flag;
 
-    emit SetFeelessTerminal(_terminal, _flag, msg.sender);
+    emit SetFeelessAddress(_contract, _flag, msg.sender);
   }
 
   //*********************************************************************//
@@ -743,6 +739,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         JBDidRedeemData memory _data = JBDidRedeemData(
           _holder,
           _projectId,
+          _fundingCycle.configuration,
           _tokenCount,
           JBTokenAmount(token, reclaimAmount, decimals, currency),
           _beneficiary,
@@ -820,8 +817,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Scoped section prevents stack too deep. `_feeDiscount`, `_feeEligibleDistributionAmount`, and `_leftoverDistributionAmount` only used within scope.
     {
       // Get the amount of discount that should be applied to any fees taken.
-      // If the fee is zero, set the discount to 100% for convinience.
-      uint256 _feeDiscount = fee == 0
+      // If the fee is zero or if the fee is being used by a contract that doesn't incur fees, set the discount to 100% for convinience.
+      uint256 _feeDiscount = fee == 0 || isFeelessAddress[msg.sender]
         ? JBConstants.MAX_FEE_DISCOUNT
         : _currentFeeDiscount(_projectId);
 
@@ -925,8 +922,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       address _projectOwner = projects.ownerOf(_projectId);
 
       // Get the amount of discount that should be applied to any fees taken.
-      // If the fee is zero, set the discount to 100% for convinience.
-      uint256 _feeDiscount = fee == 0
+      // If the fee is zero or if the fee is being used by a contract that doesn't incur fees, set the discount to 100% for convinience.
+      uint256 _feeDiscount = fee == 0 || isFeelessAddress[msg.sender]
         ? JBConstants.MAX_FEE_DISCOUNT
         : _currentFeeDiscount(_projectId);
 
@@ -1001,12 +998,17 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         // Transfer tokens to the split.
         // If there's an allocator set, transfer to its `allocate` function.
         if (_split.allocator != IJBSplitAllocator(address(0))) {
-          _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
-            ? _payoutAmount
-            : _payoutAmount - _feeAmount(_payoutAmount, fee, _feeDiscount);
+          // If the split allocator is set as feeless, this distribution is not eligible for a fee.
+          if (isFeelessAddress[address(_split.allocator)])
+            _netPayoutAmount = _payoutAmount;
+            // This distribution is eligible for a fee since the funds are leaving this contract and the allocator isn't listed as feeless.
+          else {
+            _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
+              ? _payoutAmount
+              : _payoutAmount - _feeAmount(_payoutAmount, fee, _feeDiscount);
 
-          // This distribution is eligible for a fee since the funds are leaving the ecosystem.
-          feeEligibleDistributionAmount += _payoutAmount;
+            feeEligibleDistributionAmount += _payoutAmount;
+          }
 
           // Trigger any inherited pre-transfer logic.
           _beforeTransferTo(address(_split.allocator), _netPayoutAmount);
@@ -1046,7 +1048,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
             // Add to balance if prefered.
             if (_split.preferAddToBalance)
-              _addToBalanceOf(_split.projectId, _netPayoutAmount, '', _projectMetadata);
+              _addToBalanceOf(_split.projectId, _netPayoutAmount, false, '', _projectMetadata);
             else
               _pay(
                 _netPayoutAmount,
@@ -1060,7 +1062,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
               );
           } else {
             // If the terminal is set as feeless, this distribution is not eligible for a fee.
-            if (isFeelessTerminal[_terminal])
+            if (isFeelessAddress[address(_terminal)])
               _netPayoutAmount = _payoutAmount;
               // This distribution is eligible for a fee since the funds are leaving this contract and the terminal isn't listed as feeless.
             else {
@@ -1209,7 +1211,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _amount The amount of terminal tokens being received, as a fixed point number with the same amount of decimals as this terminal. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
     @param _payer The address making the payment.
     @param _projectId The ID of the project being paid.
-    @param _beneficiary The address to mint tokens for and pass along to the funding cycle's delegate.
+    @param _beneficiary The address to mint tokens for and pass along to the funding cycle's data source and delegate.
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with the same amount of decimals as this terminal.
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
@@ -1248,6 +1250,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         _bundledAmount,
         _projectId,
         baseWeightCurrency,
+        _beneficiary,
         _memo,
         _metadata
       );
@@ -1272,6 +1275,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         JBDidPayData memory _data = JBDidPayData(
           _payer,
           _projectId,
+          _fundingCycle.configuration,
           _bundledAmount,
           beneficiaryTokenCount,
           _beneficiary,
@@ -1305,17 +1309,19 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     @param _projectId The ID of the project to which the funds received belong.
     @param _amount The amount of tokens to add, as a fixed point number with the same number of decimals as this terminal. If this is an ETH terminal, this is ignored and msg.value is used instead.
+    @param _shouldRefundHeldFees A flag indicating if held fees should be refunded based on the amount being added.
     @param _memo A memo to pass along to the emitted event.
     @param _metadata Extra data to pass along to the emitted event.
   */
   function _addToBalanceOf(
     uint256 _projectId,
     uint256 _amount,
+    bool _shouldRefundHeldFees,
     string memory _memo,
     bytes memory _metadata
   ) private {
     // Refund any held fees to make sure the project doesn't pay double for funds going in and out of the protocol.
-    uint256 _refundedFees = _refundHeldFees(_projectId, _amount);
+    uint256 _refundedFees = _shouldRefundHeldFees ? _refundHeldFees(_projectId, _amount) : 0;
 
     // Record the added funds with any refunded fees.
     store.recordAddedBalanceFor(_projectId, _amount + _refundedFees);
