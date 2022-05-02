@@ -271,6 +271,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         // JBDidPayData obj
         payer: caller.address,
         projectId: PROJECT_ID,
+        currentFundingCycleConfiguration: timestamp,
         amount: {
           token: '0x000000000000000000000000000000000000eeee',
           value: ETH_TO_PAY,

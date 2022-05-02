@@ -237,6 +237,60 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
 
     expect(await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID)).to.eql([]);
   });
+  it('Should add to the project balance and not refund held fee if the sender is set as feeless, and emit event', async function () {
+    const {
+      caller,
+      terminalOwner,
+      beneficiaryOne,
+      beneficiaryTwo,
+      jbEthPaymentTerminal,
+      timestamp,
+      mockJbSplitsStore,
+      mockJBPaymentTerminalStore,
+    } = await setup();
+    const splits = makeSplits({
+      count: 2,
+      beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
+    });
+
+    await mockJbSplitsStore.mock.splitsOf
+      .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
+      .returns(splits);
+
+    await jbEthPaymentTerminal
+      .connect(caller)
+      .distributePayoutsOf(PROJECT_ID, AMOUNT, ETH_PAYOUT_INDEX, ethers.constants.AddressZero, MIN_TOKEN_REQUESTED, MEMO);
+
+    let heldFee = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
+
+    await jbEthPaymentTerminal
+      .connect(terminalOwner)
+      .setFeelessContract(caller.address, true);
+
+    let discountedFee =
+      ethers.BigNumber.from(heldFee[0].fee)
+        .sub(
+          ethers.BigNumber.from(heldFee[0].fee)
+            .mul(ethers.BigNumber.from(heldFee[0].feeDiscount))
+            .div(MAX_FEE_DISCOUNT)
+        );
+
+    let feeNetAmount = ethers.BigNumber.from(heldFee[0].amount).sub(ethers.BigNumber.from(heldFee[0].amount).mul(MAX_FEE).div(discountedFee.add(MAX_FEE)));
+    await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor.withArgs(PROJECT_ID, AMOUNT.add(feeNetAmount)).returns();
+
+    expect(
+      await jbEthPaymentTerminal
+        .connect(caller)
+        .addToBalanceOf(PROJECT_ID, AMOUNT, ETH_ADDRESS, MEMO, METADATA, { value: AMOUNT }),
+    )
+      .to.emit(jbEthPaymentTerminal, 'AddToBalance')
+      .withArgs(PROJECT_ID, AMOUNT, 0/*refunded fee*/, MEMO, METADATA, caller.address)
+      .and.to.not.emit(jbEthPaymentTerminal, 'RefundHeldFees')
+
+    let heldFeeAfter = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
+    
+    expect(heldFeeAfter[0]).to.eql(heldFee[0]);
+  });
   it('Should work with eth terminal with non msg.value amount sent', async function () {
     const { caller, jbEthPaymentTerminal, mockJBPaymentTerminalStore, fundingCycle } =
       await setup();

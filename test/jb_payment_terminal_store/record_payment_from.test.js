@@ -212,6 +212,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function (
         amount: ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
         decimal: _FIXED_POINT_MAX_FIDELITY,
         projectId: PROJECT_ID,
+        currentFundingCycleConfiguration: timestamp,
         weight: WEIGHT,
         reservedRate: reservedRate,
         beneficiary: beneficiary.address,

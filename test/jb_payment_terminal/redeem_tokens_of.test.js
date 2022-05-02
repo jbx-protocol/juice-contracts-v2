@@ -298,6 +298,7 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
         // JBDidRedeemData obj
         holder: holder.address,
         projectId: PROJECT_ID,
+        currentFundingCycleConfiguration: timestamp,
         projectTokenCount: AMOUNT,
         reclaimedAmount: {
           token: tokenAddress,
