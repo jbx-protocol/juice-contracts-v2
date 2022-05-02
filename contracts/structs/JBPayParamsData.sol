@@ -9,6 +9,7 @@ import './JBTokenAmount.sol';
   @member payer The address from which the payment originated.
   @member amount The amount of the payment. Includes the token being paid, the value, the number of decimals included, and the currency of the amount.
   @member projectId The ID of the project being paid.
+  @member beneficiary The specified address that should be the beneficiary of anything that results from the payment.
   @member currentFundingCycleConfiguration The configuration of the funding cycle during which the payment is being made.
   @member weight The weight of the funding cycle during which the payment is being made.
   @member reservedRate The reserved rate of the funding cycle during which the payment is being made.
@@ -20,6 +21,7 @@ struct JBPayParamsData {
   address payer;
   JBTokenAmount amount;
   uint256 projectId;
+  address benenficiary;
   uint256 currentFundingCycleConfiguration;
   uint256 weight;
   uint256 reservedRate;
