@@ -301,6 +301,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     @param _amount The amount of tokens being paid. Includes the token being paid, the value, the number of decimals included, and the currency of the amount.
     @param _projectId The ID of the project being paid.
     @param _baseWeightCurrency The currency to base token issuance on.
+    @param _beneficiary The specified address that should be the beneficiary of anything that results from the payment.
     @param _memo A memo to pass along to the emitted event, and passed along to the funding cycle's data source.
     @param _metadata Bytes to send along to the data source, if one is provided.
 
@@ -314,8 +315,9 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     JBTokenAmount calldata _amount,
     uint256 _projectId,
     uint256 _baseWeightCurrency,
+    address _beneficiary,
     string calldata _memo,
-    bytes calldata _metadata
+    bytes memory _metadata
   )
     external
     override
@@ -347,6 +349,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
         _payer,
         _amount,
         _projectId,
+        _beneficiary,
         fundingCycle.configuration,
         fundingCycle.weight,
         fundingCycle.reservedRate(),

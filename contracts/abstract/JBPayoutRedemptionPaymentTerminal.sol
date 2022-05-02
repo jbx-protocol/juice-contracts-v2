@@ -310,7 +310,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _projectId The ID of the project being paid.
     @param _amount The amount of terminal tokens being received, as a fixed point number with the same amount of decimals as this terminal. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
     @param _token The token being paid. This terminal ignores this property since it only manages one token. 
-    @param _beneficiary The address to mint tokens for and pass along to the funding cycle's delegate.
+    @param _beneficiary The address to mint tokens for and pass along to the funding cycle's data source and delegate.
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with the same amount of decimals as this terminal.
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
@@ -1211,7 +1211,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _amount The amount of terminal tokens being received, as a fixed point number with the same amount of decimals as this terminal. If this terminal's token is ETH, this is ignored and msg.value is used in its place.
     @param _payer The address making the payment.
     @param _projectId The ID of the project being paid.
-    @param _beneficiary The address to mint tokens for and pass along to the funding cycle's delegate.
+    @param _beneficiary The address to mint tokens for and pass along to the funding cycle's data source and delegate.
     @param _minReturnedTokens The minimum number of project tokens expected in return, as a fixed point number with the same amount of decimals as this terminal.
     @param _preferClaimedTokens A flag indicating whether the request prefers to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract. Leaving them unclaimed saves gas.
     @param _memo A memo to pass along to the emitted event, and passed along the the funding cycle's data source and delegate.  A data source can alter the memo before emitting in the event and forwarding to the delegate.
@@ -1250,6 +1250,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         _bundledAmount,
         _projectId,
         baseWeightCurrency,
+        _beneficiary,
         _memo,
         _metadata
       );
