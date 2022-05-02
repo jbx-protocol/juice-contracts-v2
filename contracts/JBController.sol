@@ -644,7 +644,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     if (_tokenCount == 0) revert ZERO_TOKENS_TO_MINT();
 
     // The reserved rate should be within the max value.
-    if (_reservedRate <= JBConstants.MAX_RESERVED_RATE) revert INVALID_RESERVED_RATE();
+    if (_reservedRate > JBConstants.MAX_RESERVED_RATE) revert INVALID_RESERVED_RATE();
 
     // Scoped section prevents stack too deep. `_fundingCycle` only used within scope.
     {
