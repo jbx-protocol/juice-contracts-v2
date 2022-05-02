@@ -21,7 +21,7 @@ struct JBPayParamsData {
   address payer;
   JBTokenAmount amount;
   uint256 projectId;
-  address benenficiary;
+  address beneficiary;
   uint256 currentFundingCycleConfiguration;
   uint256 weight;
   uint256 reservedRate;
