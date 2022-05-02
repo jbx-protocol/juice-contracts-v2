@@ -306,6 +306,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             ],
             split.projectId,
             CURRENCY,
+            split.beneficiary,
             '',
             ethers.utils.hexZeroPad(ethers.utils.hexlify(PROJECT_ID), 32)
           )
@@ -423,6 +424,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             ],
             split.projectId,
             CURRENCY,
+            split.beneficiary,
             '',
             ethers.utils.hexZeroPad(ethers.utils.hexlify(PROJECT_ID), 32),
           )
@@ -1194,6 +1196,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         ],
         PLATFORM_PROJECT_ID,
         /*CURRENCY*/ CURRENCY,
+        projectOwner.address,
         '',
         '0x',
       )
@@ -1214,6 +1217,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             ],
             split.projectId,
             CURRENCY,
+            split.beneficiary,
             '',
             '0x',
           )
@@ -2493,6 +2497,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             ],
             split.projectId,
             CURRENCY,
+            split.beneficiary,
             '',
             ethers.utils.hexZeroPad(ethers.utils.hexlify(PROJECT_ID), 32),
           )
