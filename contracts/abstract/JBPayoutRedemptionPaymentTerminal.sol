@@ -739,6 +739,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         JBDidRedeemData memory _data = JBDidRedeemData(
           _holder,
           _projectId,
+          _fundingCycle.configuration,
           _tokenCount,
           JBTokenAmount(token, reclaimAmount, decimals, currency),
           _beneficiary,

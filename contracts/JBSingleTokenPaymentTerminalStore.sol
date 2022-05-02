@@ -489,6 +489,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
           IJBSingleTokenPaymentTerminal(msg.sender),
           _holder,
           _projectId,
+          fundingCycle.configuration,
           _tokenCount,
           _totalSupply,
           _currentOverflow,
