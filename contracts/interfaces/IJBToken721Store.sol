@@ -18,6 +18,7 @@ interface IJBToken721Store {
     address indexed holder,
     uint256 indexed projectId,
     uint256 tokenId,
+    uint256 amount,
     bool tokensWereClaimed,
     bool preferClaimedTokens,
     address caller
@@ -27,11 +28,20 @@ interface IJBToken721Store {
     address indexed holder,
     uint256 indexed projectId,
     uint256 tokenId,
+    uint256 amount,
+    uint256 initialUnclaimedBalance,
+    uint256 initialClaimedBalance,
     bool preferClaimedTokens,
     address caller
   );
 
-  event Claim(address indexed holder, uint256 indexed projectId, uint256 tokenId, address caller);
+  event Claim(
+    address indexed holder,
+    uint256 indexed projectId,
+    uint256 unclaimedBalance,
+    uint256 amount,
+    address caller
+  );
 
   event ShouldRequireClaim(uint256 indexed projectId, bool indexed flag, address caller);
 
@@ -57,10 +67,7 @@ interface IJBToken721Store {
 
   function projects() external view returns (IJBProjects);
 
-  function unclaimedTokensOf(address _holder, uint256 _projectId)
-    external
-    view
-    returns (uint256[] memory _result);
+  function unclaimedBalanceOf(address _holder, uint256 _projectId) external view returns (uint256);
 
   function unclaimedTotalSupplyOf(uint256 _projectId) external view returns (uint256);
 
@@ -87,6 +94,7 @@ interface IJBToken721Store {
     address _holder,
     uint256 _projectId,
     uint256 _tokenId,
+    uint256 _amount,
     bool _preferClaimedTokens
   ) external;
 

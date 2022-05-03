@@ -44,6 +44,8 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
   error RECIPIENT_ZERO_ADDRESS();
   error TOKEN_ALREADY_IN_USE();
   error TOKEN_NOT_FOUND();
+  error INVALID_BURN_REQUEST();
+  error INCORRECT_OWNER();
 
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
@@ -175,17 +177,18 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
 
   /**
     @notice
-    Issues a project's ERC-20 tokens that'll be used when claiming tokens.
+    Issues a project's ERC721 tokens that'll be used when claiming tokens.
 
     @dev
-    Deploys a project's ERC-20 token contract.
+    Deploys a project's ERC721 token contract.
 
     @dev
     Only a project's current controller can issue its token.
 
     @param _projectId The ID of the project being issued tokens.
-    @param _name The ERC-20's name.
-    @param _symbol The ERC-20's symbol.
+    @param _name The ERC721 name.
+    @param _symbol The ERC721 symbol.
+    @param _baseUri The ERC721 base URI.
 
     @return token The token that was issued.
   */
@@ -196,16 +199,24 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
     string calldata _baseUri
   ) external override onlyController(_projectId) returns (IJBToken721 token) {
     // There must be a name.
-    if (bytes(_name).length == 0) revert EMPTY_NAME();
+    if (bytes(_name).length == 0) {
+      revert EMPTY_NAME();
+    }
 
     // There must be a symbol.
-    if (bytes(_symbol).length == 0) revert EMPTY_SYMBOL();
+    if (bytes(_symbol).length == 0) {
+      revert EMPTY_SYMBOL();
+    }
 
     // There must be a symbol.
-    if (bytes(_baseUri).length == 0) revert EMPTY_BASE_URI();
+    if (bytes(_baseUri).length == 0) {
+      revert EMPTY_BASE_URI();
+    }
 
     // The project shouldn't already have a token.
-    if (tokenOf[_projectId] != IJBToken721(address(0))) revert PROJECT_ALREADY_HAS_TOKEN();
+    if (tokenOf[_projectId] != IJBToken721(address(0))) {
+      revert PROJECT_ALREADY_HAS_TOKEN();
+    }
 
     // Deploy the token contract.
     token = new JBToken721(_name, _symbol, _baseUri);
@@ -277,7 +288,6 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
 
     @param _holder The address receiving the new tokens.
     @param _projectId The ID of the project to which the tokens belong.
-    @param _amount The amount of tokens to mint.
     @param _preferClaimedTokens A flag indicating whether there's a preference for minted tokens to be claimed automatically into the `_holder`s wallet if the project currently has a token contract attached.
   */
   function mintFor(
@@ -292,16 +302,25 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
     bool _shouldClaimTokens = (requireClaimFor[_projectId] || _preferClaimedTokens) &&
       _token != IJBToken721(address(0));
 
-    if (_shouldClaimTokens)
+    uint256 tokenId;
+    if (_shouldClaimTokens) {
       // If tokens should be claimed, mint tokens into the holder's wallet.
-      _token.mint(_projectId, _holder);
-    else {
+      tokenId = _token.mint(_projectId, _holder);
+    } else {
       // Otherwise, add the tokens to the unclaimed balance and total supply.
-      unclaimedBalanceOf[_holder][_projectId] = unclaimedBalanceOf[_holder][_projectId] + _amount;
-      unclaimedTotalSupplyOf[_projectId] = unclaimedTotalSupplyOf[_projectId] + _amount;
+      unclaimedBalanceOf[_holder][_projectId] = unclaimedBalanceOf[_holder][_projectId] + 1;
+      unclaimedTotalSupplyOf[_projectId] = unclaimedTotalSupplyOf[_projectId] + 1;
     }
 
-    emit Mint(_holder, _projectId, _tokenId, _shouldClaimTokens, _preferClaimedTokens, msg.sender);
+    emit Mint(
+      _holder,
+      _projectId,
+      tokenId,
+      1,
+      _shouldClaimTokens,
+      _preferClaimedTokens,
+      msg.sender
+    );
   }
 
   /**
@@ -313,67 +332,65 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
 
     @param _holder The address that owns the tokens being burned.
     @param _projectId The ID of the project to which the burned tokens belong.
-    @param _amount The amount of tokens to burn.
+    @param _tokenId The amount of tokens to burn.
     @param _preferClaimedTokens A flag indicating whether there's a preference for tokens to burned from the `_holder`s wallet if the project currently has a token contract attached.
   */
   function burnFrom(
     address _holder,
     uint256 _projectId,
     uint256 _tokenId,
+    uint256 _amount,
     bool _preferClaimedTokens
   ) external override onlyController(_projectId) {
+    if (!_preferClaimedTokens && _amount == 0) {
+      revert INVALID_BURN_REQUEST();
+    }
+
     // Get a reference to the project's current token.
     IJBToken721 _token = tokenOf[_projectId];
 
-    // Get a reference to the amount of unclaimed project tokens the holder has.
+    // Get current unclaimed token balance
     uint256 _unclaimedBalance = unclaimedBalanceOf[_holder][_projectId];
 
-    // Get a reference to the amount of the project's current token the holder has in their wallet.
-    uint256 _claimedBalance = _token == IJBToken721(address(0))
-      ? 0
-      : _token.balanceOf(_holder, _projectId);
+    // Get currently owned token balance
+    uint256 _claimedBalance = _token == IJBToken721(address(0)) ? 0 : _token.ownerBalance(_holder);
 
-    // There must be adequate tokens to burn across the holder's claimed and unclaimed balance.
-    if (_amount > _claimedBalance + _unclaimedBalance) revert INSUFFICIENT_FUNDS();
+    if (_preferClaimedTokens) {
+      if (!_token.isOwner(_holder, _tokenId)) {
+        revert INCORRECT_OWNER();
+      }
 
-    // The amount of tokens to burn.
-    uint256 _claimedTokensToBurn;
+      _token.burn(_projectId, _holder, _tokenId);
 
-    // If there's no balance, redeem no tokens.
-    if (_claimedBalance == 0)
-      _claimedTokensToBurn = 0;
-      // If prefer converted, redeem tokens before redeeming unclaimed tokens.
-    else if (_preferClaimedTokens)
-      _claimedTokensToBurn = _claimedBalance < _amount ? _claimedBalance : _amount;
-      // Otherwise, redeem unclaimed tokens before claimed tokens.
-    else _claimedTokensToBurn = _unclaimedBalance < _amount ? _amount - _unclaimedBalance : 0;
+      emit Burn(
+        _holder,
+        _projectId,
+        _tokenId,
+        _amount,
+        _unclaimedBalance,
+        _claimedBalance,
+        _preferClaimedTokens,
+        msg.sender
+      );
+    } else {
+      // There must be sufficient unclaimed balance to remove
+      if (_amount > _unclaimedBalance) {
+        revert INSUFFICIENT_FUNDS();
+      }
 
-    // The amount of unclaimed tokens to redeem.
-    uint256 _unclaimedTokensToBurn = _amount - _claimedTokensToBurn;
+      unclaimedBalanceOf[_holder][_projectId] -= _amount;
 
-    // Subtract the tokens from the unclaimed balance and total supply.
-    if (_unclaimedTokensToBurn > 0) {
-      // Reduce the holders balance and the total supply.
-      unclaimedBalanceOf[_holder][_projectId] =
-        unclaimedBalanceOf[_holder][_projectId] -
-        _unclaimedTokensToBurn;
-      unclaimedTotalSupplyOf[_projectId] =
-        unclaimedTotalSupplyOf[_projectId] -
-        _unclaimedTokensToBurn;
+      emit Burn(
+        _holder,
+        _projectId,
+        _tokenId,
+        _amount,
+        _unclaimedBalance,
+        _claimedBalance,
+        _preferClaimedTokens,
+        msg.sender
+      );
     }
-
-    // Burn the claimed tokens.
-    if (_claimedTokensToBurn > 0) _token.burn(_projectId, _holder, _claimedTokensToBurn);
-
-    emit Burn(
-      _holder,
-      _projectId,
-      _tokenId,
-      _unclaimedBalance,
-      _claimedBalance,
-      _preferClaimedTokens,
-      msg.sender
-    );
   }
 
   /**
@@ -395,13 +412,17 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
     IJBToken721 _token = tokenOf[_projectId];
 
     // The project must have a token contract attached.
-    if (_token == IJBToken721(address(0))) revert TOKEN_NOT_FOUND();
+    if (_token == IJBToken721(address(0))) {
+      revert TOKEN_NOT_FOUND();
+    }
 
     // Get a reference to the amount of unclaimed project tokens the holder has.
     uint256 _unclaimedBalance = unclaimedBalanceOf[_holder][_projectId];
 
     // There must be enough unclaimed tokens to claim.
-    if (_unclaimedBalance < _amount) revert INSUFFICIENT_UNCLAIMED_TOKENS();
+    if (_unclaimedBalance < _amount) {
+      revert INSUFFICIENT_UNCLAIMED_TOKENS();
+    }
 
     // Subtract the claim amount from the holder's unclaimed project token balance.
     unclaimedBalanceOf[_holder][_projectId] = unclaimedBalanceOf[_holder][_projectId] - _amount;
@@ -409,8 +430,12 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
     // Subtract the claim amount from the project's unclaimed total supply.
     unclaimedTotalSupplyOf[_projectId] = unclaimedTotalSupplyOf[_projectId] - _amount;
 
-    // Mint the equivalent amount of the project's token for the holder.
-    _token.mint(_projectId, _holder, _amount);
+    // Mint the request number of tokens
+    for (uint256 i = 0; i < _amount; i++) {
+      uint256 tokenId = _token.mint(_projectId, _holder);
+
+      emit Mint(_holder, _projectId, tokenId, 1, true, false, msg.sender);
+    }
 
     emit Claim(_holder, _projectId, _unclaimedBalance, _amount, msg.sender);
   }
@@ -431,7 +456,7 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
     address _holder,
     uint256 _projectId,
     address _recipient,
-    uint256 _tokenId
+    uint256 _amount
   ) external override requirePermission(_holder, _projectId, JBOperations.TRANSFER) {
     // Can't transfer to the zero address.
     if (_recipient == address(0)) revert RECIPIENT_ZERO_ADDRESS();

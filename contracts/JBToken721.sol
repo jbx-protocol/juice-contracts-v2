@@ -175,6 +175,18 @@ contract JBToken721 is ERC721, IJBToken721, Ownable {
     super.transferFrom(_from, _to, _id);
   }
 
+  function ownerBalance(address _account) external view override returns (uint256) {
+    if (_account == address(0)) {
+      revert INVALID_ADDRESS();
+    }
+
+    return balanceOf[_account];
+  }
+
+  function isOwner(address _account, uint256 _id) external view override returns (bool) {
+    return ownerOf[_id] == _account;
+  }
+
   //*********************************************************************//
   // ------------------------ public transactions ---------------------- //
   //*********************************************************************//
