@@ -58,7 +58,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowSetTerminals: true })
+      metadata: packFundingCycleMetadata({ global: { allowSetTerminals: true } })
     });
 
     await mockJbProjects.mock.count.returns(PROJECT_ID);
@@ -142,7 +142,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowSetTerminals: false })
+      metadata: packFundingCycleMetadata({ global: { allowSetTerminals: false } })
     });
 
     let mockToken = ethers.Wallet.createRandom().address;
@@ -176,7 +176,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowSetTerminals: false })
+      metadata: packFundingCycleMetadata({ global: { allowSetTerminals: false } })
     });
 
     let mockToken = ethers.Wallet.createRandom().address;
@@ -211,7 +211,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowSetTerminals: false })
+      metadata: packFundingCycleMetadata({ global: { allowSetTerminals: false } })
     });
 
     let mockToken = ethers.Wallet.createRandom().address;

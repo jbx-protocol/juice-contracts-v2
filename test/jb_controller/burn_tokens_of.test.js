@@ -108,7 +108,7 @@ describe('JBController::burnTokenOf(...)', function () {
         holder.address,
         MEMO,
         PREFERED_CLAIMED_TOKEN,
-        RESERVED_RATE,
+        true
       );
 
     return {

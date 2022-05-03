@@ -132,6 +132,10 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
     dataSource = ethers.constants.AddressZero,
   } = {}) {
     const unpackedMetadata = {
+      global: {
+        allowSetTerminals,
+        allowSetController
+      },
       reservedRate,
       redemptionRate,
       ballotRedemptionRate,
@@ -143,8 +147,6 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
       allowChangeToken,
       allowTerminalMigration,
       allowControllerMigration,
-      allowSetTerminals,
-      allowSetController,
       holdFees,
       useTotalOverflowForRedemptions,
       useDataSourceForPay,

@@ -79,7 +79,7 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowSetTerminals: true })
+      metadata: packFundingCycleMetadata({ global: { allowSetTerminals: true } })
     });
 
     return {
@@ -244,7 +244,7 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowSetTerminals: false })
+      metadata: packFundingCycleMetadata({ global: { allowSetTerminals: false } })
     });
 
     // Give the caller permission to add terminals.
@@ -269,7 +269,7 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowSetTerminals: false })
+      metadata: packFundingCycleMetadata({ global: { allowSetTerminals: false } })
     });
 
     // Give the caller permission to add terminals.
