@@ -37,7 +37,7 @@ describe('JBProjects::setTokenUriResolver(...)', function () {
   it(`Can't set the tokenUri resolver if caller is not the contract owner`, async function () {
     const { caller, jbProjects, mockJbTokenUriResolver } = await setup();
 
-    await expect(jbProjects.connect(caller).setTokenUriResolver(mockJbTokenUriResolver.address))
-      .to.be.reverted;
+    await expect(jbProjects.connect(caller).setTokenUriResolver(mockJbTokenUriResolver.address)).to
+      .be.reverted;
   });
 });

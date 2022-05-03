@@ -227,8 +227,16 @@ describe('JBController::mintTokensOf(...)', function () {
   });
 
   it(`Should mint token if caller is the current funding cycle's datasource of the corresponding project`, async function () {
-    const { projectOwner, beneficiary, mockDatasource, jbController, mockJbFundingCycleStore, mockJbOperatorStore, mockJbDirectory, timestamp } =
-      await setup();
+    const {
+      projectOwner,
+      beneficiary,
+      mockDatasource,
+      jbController,
+      mockJbFundingCycleStore,
+      mockJbOperatorStore,
+      mockJbDirectory,
+      timestamp,
+    } = await setup();
     const terminal = await deployMockContract(projectOwner, jbTerminal.abi);
     const terminalSigner = await impersonateAccount(terminal.address);
 
@@ -254,7 +262,11 @@ describe('JBController::mintTokensOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowMinting: 1, reservedRate: RESERVED_RATE, dataSource: mockDatasource.address }),
+      metadata: packFundingCycleMetadata({
+        allowMinting: 1,
+        reservedRate: RESERVED_RATE,
+        dataSource: mockDatasource.address,
+      }),
     });
 
     await expect(
@@ -313,8 +325,7 @@ describe('JBController::mintTokensOf(...)', function () {
           /*_preferClaimedTokens=*/ true,
           /* _useReservedRate=*/ true,
         ),
-    )
-      .to.be.revertedWith(errors.UNAUTHORIZED);
+    ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 
   it(`Can't mint 0 token`, async function () {

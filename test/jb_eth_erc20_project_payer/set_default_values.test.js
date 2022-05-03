@@ -63,7 +63,14 @@ describe('JBETHERC20ProjectPayer::setDefaultValues(...)', function () {
 
     const setDefaultsTx = await jbProjectPayer
       .connect(owner)
-      .setDefaultValues(PROJECT_ID, BENEFICIARY, PREFER_CLAIMED_TOKENS, MEMO, METADATA, PREFER_ADD_TO_BALANCE);
+      .setDefaultValues(
+        PROJECT_ID,
+        BENEFICIARY,
+        PREFER_CLAIMED_TOKENS,
+        MEMO,
+        METADATA,
+        PREFER_ADD_TO_BALANCE,
+      );
 
     expect(await jbProjectPayer.defaultProjectId()).to.equal(PROJECT_ID);
     expect(await jbProjectPayer.defaultBeneficiary()).to.equal(BENEFICIARY);
@@ -102,13 +109,24 @@ describe('JBETHERC20ProjectPayer::setDefaultValues(...)', function () {
 
     const setDefaultsTx = await jbProjectPayer
       .connect(owner)
-      .setDefaultValues(INITIAL_PROJECT_ID, INITIAL_BENEFICIARY, INITIAL_PREFER_CLAIMED_TOKENS, INITIAL_MEMO, INITIAL_METADATA, INITIAL_PREFER_ADD_TO_BALANCE);
+      .setDefaultValues(
+        INITIAL_PROJECT_ID,
+        INITIAL_BENEFICIARY,
+        INITIAL_PREFER_CLAIMED_TOKENS,
+        INITIAL_MEMO,
+        INITIAL_METADATA,
+        INITIAL_PREFER_ADD_TO_BALANCE,
+      );
 
     expect(await jbProjectPayer.defaultProjectId()).to.equal(INITIAL_PROJECT_ID);
     expect(await jbProjectPayer.defaultBeneficiary()).to.equal(INITIAL_BENEFICIARY);
-    expect(await jbProjectPayer.defaultPreferClaimedTokens()).to.equal(INITIAL_PREFER_CLAIMED_TOKENS);
+    expect(await jbProjectPayer.defaultPreferClaimedTokens()).to.equal(
+      INITIAL_PREFER_CLAIMED_TOKENS,
+    );
     expect(await jbProjectPayer.defaultMemo()).to.equal(INITIAL_MEMO);
-    expect(await jbProjectPayer.defaultMetadata()).to.equal(ethers.BigNumber.from(INITIAL_METADATA));
+    expect(await jbProjectPayer.defaultMetadata()).to.equal(
+      ethers.BigNumber.from(INITIAL_METADATA),
+    );
     expect(await jbProjectPayer.defaultPreferAddToBalance()).to.equal(
       INITIAL_PREFER_ADD_TO_BALANCE,
     );
@@ -132,7 +150,14 @@ describe('JBETHERC20ProjectPayer::setDefaultValues(...)', function () {
     await expect(
       jbProjectPayer
         .connect(addrs[0])
-        .setDefaultValues(PROJECT_ID, BENEFICIARY, PREFER_CLAIMED_TOKENS, MEMO, METADATA, PREFER_ADD_TO_BALANCE),
+        .setDefaultValues(
+          PROJECT_ID,
+          BENEFICIARY,
+          PREFER_CLAIMED_TOKENS,
+          MEMO,
+          METADATA,
+          PREFER_ADD_TO_BALANCE,
+        ),
     ).to.be.revertedWith('Ownable: caller is not the owner');
   });
 });

@@ -299,7 +299,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
         PREFERED_CLAIMED_TOKEN,
       )
       .returns();
-    
+
     await mockJbTokenStore.mock.tokenOf.withArgs(PROJECT_ID).returns(mockJbToken.address);
 
     await Promise.all(
