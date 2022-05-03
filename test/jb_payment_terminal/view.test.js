@@ -25,8 +25,7 @@ describe('JBPayoutRedemptionPaymentTerminal::getters', function () {
   });
 
   async function setup() {
-    let [deployer, terminalOwner] =
-      await ethers.getSigners();
+    let [deployer, terminalOwner] = await ethers.getSigners();
 
     const SPLITS_GROUP = 1;
 
@@ -94,48 +93,32 @@ describe('JBPayoutRedemptionPaymentTerminal::getters', function () {
       jbEthPaymentTerminal,
       JBERC20PaymentTerminal,
       NON_ETH_TOKEN,
-      DECIMALS
+      DECIMALS,
     };
   }
 
-  it("Should return true if the terminal accepts a token", async function () {
+  it('Should return true if the terminal accepts a token', async function () {
     const { JBERC20PaymentTerminal, jbEthPaymentTerminal, NON_ETH_TOKEN } = await setup();
-    expect(
-      await JBERC20PaymentTerminal.acceptsToken(NON_ETH_TOKEN)
-    ).to.be.true;
+    expect(await JBERC20PaymentTerminal.acceptsToken(NON_ETH_TOKEN)).to.be.true;
 
-    expect(
-      await JBERC20PaymentTerminal.acceptsToken(ETH_ADDRESS)
-    ).to.be.false;
+    expect(await JBERC20PaymentTerminal.acceptsToken(ETH_ADDRESS)).to.be.false;
 
-    expect(
-      await jbEthPaymentTerminal.acceptsToken(ETH_ADDRESS)
-    ).to.be.true;
+    expect(await jbEthPaymentTerminal.acceptsToken(ETH_ADDRESS)).to.be.true;
 
-    expect(
-      await jbEthPaymentTerminal.acceptsToken(NON_ETH_TOKEN)
-    ).to.be.false;
+    expect(await jbEthPaymentTerminal.acceptsToken(NON_ETH_TOKEN)).to.be.false;
   });
 
-  it("Should return the decimals for the token", async function () {
+  it('Should return the decimals for the token', async function () {
     const { JBERC20PaymentTerminal, jbEthPaymentTerminal, NON_ETH_TOKEN, DECIMALS } = await setup();
-    expect(
-      await JBERC20PaymentTerminal.decimalsForToken(NON_ETH_TOKEN)
-    ).to.equal(DECIMALS);
+    expect(await JBERC20PaymentTerminal.decimalsForToken(NON_ETH_TOKEN)).to.equal(DECIMALS);
 
-    expect(
-      await jbEthPaymentTerminal.decimalsForToken(ETH_ADDRESS)
-    ).to.equal(18);
+    expect(await jbEthPaymentTerminal.decimalsForToken(ETH_ADDRESS)).to.equal(18);
   });
 
-  it("Should return the currency for the token", async function () {
+  it('Should return the currency for the token', async function () {
     const { JBERC20PaymentTerminal, jbEthPaymentTerminal, NON_ETH_TOKEN } = await setup();
-    expect(
-      await JBERC20PaymentTerminal.currencyForToken(NON_ETH_TOKEN)
-    ).to.equal(CURRENCY_ETH);
+    expect(await JBERC20PaymentTerminal.currencyForToken(NON_ETH_TOKEN)).to.equal(CURRENCY_ETH);
 
-    expect(
-      await jbEthPaymentTerminal.currencyForToken(ETH_ADDRESS)
-    ).to.equal(CURRENCY_ETH);
+    expect(await jbEthPaymentTerminal.currencyForToken(ETH_ADDRESS)).to.equal(CURRENCY_ETH);
   });
 });

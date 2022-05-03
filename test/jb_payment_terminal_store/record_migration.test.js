@@ -30,7 +30,9 @@ describe('JBSingleTokenPaymentTerminalStore::recordMigration(...)', function () 
     const mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
     const mockJbTokenStore = await deployMockContract(deployer, jbTokenStore.abi);
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBSingleTokenPaymentTerminalStore');
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
+      'JBSingleTokenPaymentTerminalStore',
+    );
     const JBSingleTokenPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
@@ -55,8 +57,12 @@ describe('JBSingleTokenPaymentTerminalStore::recordMigration(...)', function () 
   }
 
   it('Should record migration with mockJbTerminal access', async function () {
-    const { mockJbTerminalSigner, mockJbFundingCycleStore, JBSingleTokenPaymentTerminalStore, timestamp } =
-      await setup();
+    const {
+      mockJbTerminalSigner,
+      mockJbFundingCycleStore,
+      JBSingleTokenPaymentTerminalStore,
+      timestamp,
+    } = await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       number: 1,
@@ -77,7 +83,9 @@ describe('JBSingleTokenPaymentTerminalStore::recordMigration(...)', function () 
     );
 
     // "Record migration"
-    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordMigration(PROJECT_ID);
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordMigration(
+      PROJECT_ID,
+    );
 
     // Current balance should be set to 0
     expect(
@@ -86,8 +94,12 @@ describe('JBSingleTokenPaymentTerminalStore::recordMigration(...)', function () 
   });
 
   it(`Can't record migration with allowTerminalMigration flag disabled`, async function () {
-    const { mockJbTerminalSigner, mockJbFundingCycleStore, JBSingleTokenPaymentTerminalStore, timestamp } =
-      await setup();
+    const {
+      mockJbTerminalSigner,
+      mockJbFundingCycleStore,
+      JBSingleTokenPaymentTerminalStore,
+      timestamp,
+    } = await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       number: 1,

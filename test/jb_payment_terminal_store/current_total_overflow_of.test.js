@@ -40,7 +40,9 @@ describe('JBSingleTokenPaymentTerminalStore::currentTotalOverflowOf(...)', funct
     const CURRENCY_ETH = await jbCurrencies.ETH();
     const CURRENCY_USD = await jbCurrencies.USD();
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBSingleTokenPaymentTerminalStore');
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
+      'JBSingleTokenPaymentTerminalStore',
+    );
     const JBSingleTokenPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
@@ -99,7 +101,11 @@ describe('JBSingleTokenPaymentTerminalStore::currentTotalOverflowOf(...)', funct
 
     // Get total overflow across both terminals, in same currency; should equal sum of the overflows
     expect(
-      await JBSingleTokenPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, DECIMAL, CURRENCY_ETH),
+      await JBSingleTokenPaymentTerminalStore.currentTotalOverflowOf(
+        PROJECT_ID,
+        DECIMAL,
+        CURRENCY_ETH,
+      ),
     ).to.equal(ETH_OVERFLOW_A.add(ETH_OVERFLOW_B));
   });
 
@@ -137,7 +143,11 @@ describe('JBSingleTokenPaymentTerminalStore::currentTotalOverflowOf(...)', funct
 
     // Get total overflow across both terminals, in same currency; should equal sum of the overflows
     expect(
-      await JBSingleTokenPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, NON_18_DECIMAL, CURRENCY_ETH),
+      await JBSingleTokenPaymentTerminalStore.currentTotalOverflowOf(
+        PROJECT_ID,
+        NON_18_DECIMAL,
+        CURRENCY_ETH,
+      ),
     ).to.equal(ETH_OVERFLOW_A.add(ETH_OVERFLOW_B).div(10 ** (DECIMAL - NON_18_DECIMAL)));
   });
 
@@ -179,7 +189,11 @@ describe('JBSingleTokenPaymentTerminalStore::currentTotalOverflowOf(...)', funct
 
     // Get total overflow across both terminals, in a different currency; should equal to the sum of the overflow / price
     expect(
-      await JBSingleTokenPaymentTerminalStore.currentTotalOverflowOf(PROJECT_ID, DECIMAL, CURRENCY_USD),
+      await JBSingleTokenPaymentTerminalStore.currentTotalOverflowOf(
+        PROJECT_ID,
+        DECIMAL,
+        CURRENCY_USD,
+      ),
     ).to.equal(ETH_OVERFLOW_A.add(ETH_OVERFLOW_B).mul(ethers.utils.parseEther('1')).div(PRICE));
   });
 });
