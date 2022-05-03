@@ -19,7 +19,7 @@ describe('JBETHERC20SplitsPayer::setDefaultSplits()', function () {
 
   const NEW_SPLITS_PROJECT_ID = 69;
   const NEW_SPLITS_DOMAIN = 420;
-  const NEW_SPLITS_GROUP = 69420;  
+  const NEW_SPLITS_GROUP = 69420;
 
   async function setup() {
     let [deployer, owner, caller, ...addrs] = await ethers.getSigners();
@@ -34,7 +34,7 @@ describe('JBETHERC20SplitsPayer::setDefaultSplits()', function () {
       DEFAULT_SPLITS_PROJECT_ID,
       DEFAULT_SPLITS_DOMAIN,
       DEFAULT_SPLITS_GROUP,
-      mockJbSplitsStore.address, 
+      mockJbSplitsStore.address,
       DEFAULT_PROJECT_ID,
       DEFAULT_BENEFICIARY,
       DEFAULT_PREFER_CLAIMED_TOKENS,
@@ -42,14 +42,14 @@ describe('JBETHERC20SplitsPayer::setDefaultSplits()', function () {
       DEFAULT_METADATA,
       PREFER_ADD_TO_BALANCE,
       owner.address,
-      );
-      
+    );
+
     return {
       deployer,
       caller,
       owner,
       addrs,
-      jbSplitsPayer
+      jbSplitsPayer,
     };
   }
 
@@ -59,13 +59,11 @@ describe('JBETHERC20SplitsPayer::setDefaultSplits()', function () {
     await expect(
       jbSplitsPayer
         .connect(owner)
-        .setDefaultSplits(
-          NEW_SPLITS_PROJECT_ID,
-          NEW_SPLITS_DOMAIN,
-          NEW_SPLITS_GROUP
-        )
-    ).to.emit(jbSplitsPayer, 'SetDefaultSplits').withArgs(NEW_SPLITS_PROJECT_ID, NEW_SPLITS_DOMAIN, NEW_SPLITS_GROUP, owner.address);
-    
+        .setDefaultSplits(NEW_SPLITS_PROJECT_ID, NEW_SPLITS_DOMAIN, NEW_SPLITS_GROUP),
+    )
+      .to.emit(jbSplitsPayer, 'SetDefaultSplits')
+      .withArgs(NEW_SPLITS_PROJECT_ID, NEW_SPLITS_DOMAIN, NEW_SPLITS_GROUP, owner.address);
+
     expect(await jbSplitsPayer.defaultSplitsProjectId()).to.equal(NEW_SPLITS_PROJECT_ID);
     expect(await jbSplitsPayer.defaultSplitsDomain()).to.equal(NEW_SPLITS_DOMAIN);
     expect(await jbSplitsPayer.defaultSplitsGroup()).to.equal(NEW_SPLITS_GROUP);
@@ -77,13 +75,16 @@ describe('JBETHERC20SplitsPayer::setDefaultSplits()', function () {
     await expect(
       jbSplitsPayer
         .connect(owner)
-        .setDefaultSplits(
-          DEFAULT_SPLITS_PROJECT_ID,
-          DEFAULT_SPLITS_DOMAIN,
-          DEFAULT_SPLITS_GROUP
-        )
-    ).to.emit(jbSplitsPayer, 'SetDefaultSplits').withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP, owner.address);
-    
+        .setDefaultSplits(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP),
+    )
+      .to.emit(jbSplitsPayer, 'SetDefaultSplits')
+      .withArgs(
+        DEFAULT_SPLITS_PROJECT_ID,
+        DEFAULT_SPLITS_DOMAIN,
+        DEFAULT_SPLITS_GROUP,
+        owner.address,
+      );
+
     expect(await jbSplitsPayer.defaultSplitsProjectId()).to.equal(DEFAULT_SPLITS_PROJECT_ID);
     expect(await jbSplitsPayer.defaultSplitsDomain()).to.equal(DEFAULT_SPLITS_DOMAIN);
     expect(await jbSplitsPayer.defaultSplitsGroup()).to.equal(DEFAULT_SPLITS_GROUP);
@@ -95,12 +96,7 @@ describe('JBETHERC20SplitsPayer::setDefaultSplits()', function () {
     await expect(
       jbSplitsPayer
         .connect(caller)
-        .setDefaultSplits(
-          DEFAULT_SPLITS_PROJECT_ID,
-          DEFAULT_SPLITS_DOMAIN,
-          DEFAULT_SPLITS_GROUP
-        )
+        .setDefaultSplits(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP),
     ).to.be.revertedWith('Ownable: caller is not the owner');
   });
- 
 });

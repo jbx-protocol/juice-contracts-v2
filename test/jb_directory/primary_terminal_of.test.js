@@ -45,7 +45,7 @@ describe('JBDirectory::primaryTerminalOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ global: { allowSetTerminals: true } })
+      metadata: packFundingCycleMetadata({ global: { allowSetTerminals: true } }),
     });
 
     // Add a few terminals
@@ -64,7 +64,9 @@ describe('JBDirectory::primaryTerminalOf(...)', function () {
     await terminal1.mock.token.returns(token);
     await terminal1.mock.acceptsToken.withArgs(token).returns(true);
 
-    await jbDirectory.connect(projectOwner).setPrimaryTerminalOf(PROJECT_ID, token, terminal1.address);
+    await jbDirectory
+      .connect(projectOwner)
+      .setPrimaryTerminalOf(PROJECT_ID, token, terminal1.address);
 
     expect(await jbDirectory.connect(projectOwner).primaryTerminalOf(PROJECT_ID, token)).to.equal(
       terminal1.address,

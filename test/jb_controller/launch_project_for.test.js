@@ -137,7 +137,7 @@ describe('JBController::launchProjectFor(...)', function () {
     const unpackedMetadata = {
       global: {
         allowSetTerminal,
-        allowSetController
+        allowSetController,
       },
       reservedRate,
       redemptionRate,

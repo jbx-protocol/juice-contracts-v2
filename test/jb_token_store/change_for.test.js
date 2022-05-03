@@ -168,8 +168,14 @@ describe('JBTokenStore::changeFor(...)', function () {
 
     await expect(changeTx)
       .to.emit(jbTokenStore, 'Change')
-      .withArgs(PROJECT_ID, newToken.address, ethers.constants.AddressZero, newOwner.address, controller.address);
-    
+      .withArgs(
+        PROJECT_ID,
+        newToken.address,
+        ethers.constants.AddressZero,
+        newOwner.address,
+        controller.address,
+      );
+
     expect(await jbTokenStore.projectOf(ethers.constants.AddressZero)).to.equal(0);
   });
 
@@ -211,7 +217,7 @@ describe('JBTokenStore::changeFor(...)', function () {
   });
 
   it(`Can't change the project's token if its being used by another project`, async function () {
-    const { controller, mockJbDirectory, jbTokenStore, } = await setup();
+    const { controller, mockJbDirectory, jbTokenStore } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
     // Issue the initial token and grab a reference to it.
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);

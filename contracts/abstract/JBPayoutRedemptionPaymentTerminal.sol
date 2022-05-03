@@ -174,9 +174,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
   /**
     @notice
-    Contracts that can be paid towards from this terminal without incurring a fee.
+    Addresses that can be paid towards from this terminal without incurring a fee.
 
-    _contract The contract that can be paid toward.
+    _address The address that can be paid toward.
   */
   mapping(address => bool) public override isFeelessAddress;
 
@@ -388,6 +388,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     returns (uint256 reclaimAmount)
   {
     _token; // Prevents unused var compiler and natspec complaints.
+
     return
       _redeemTokensOf(
         _holder,
@@ -431,6 +432,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     string calldata _memo
   ) external virtual override returns (uint256 netLeftoverDistributionAmount) {
     _token; // Prevents unused var compiler and natspec complaints.
+
     return _distributePayoutsOf(_projectId, _amount, _currency, _minReturnedTokens, _memo);
   }
 
@@ -470,6 +472,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     returns (uint256 netDistributedAmount)
   {
     _token; // Prevents unused var compiler and natspec complaints.
+
     return _useAllowanceOf(_projectId, _amount, _currency, _minReturnedTokens, _beneficiary, _memo);
   }
 
@@ -629,19 +632,19 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
   /**
     @notice
-    Sets whether projects operating on this terminal can pay towards the specified contract without incurring a fee.
+    Sets whether projects operating on this terminal can pay towards the specified address without incurring a fee.
 
     @dev
-    Only the owner of this contract can set contracs as feeless.
+    Only the owner of this contract can set addresses as feeless.
 
-    @param _contract The contract that can be paid towards while still bypassing fees.
+    @param _address The address that can be paid towards while still bypassing fees.
     @param _flag A flag indicating whether the terminal should be feeless or not.
   */
-  function setFeelessAddress(address _contract, bool _flag) external virtual override onlyOwner {
+  function setFeelessAddress(address _address, bool _flag) external virtual override onlyOwner {
     // Set the flag value.
-    isFeelessAddress[_contract] = _flag;
+    isFeelessAddress[_address] = _flag;
 
-    emit SetFeelessAddress(_contract, _flag, msg.sender);
+    emit SetFeelessAddress(_address, _flag, msg.sender);
   }
 
   //*********************************************************************//
@@ -817,7 +820,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Scoped section prevents stack too deep. `_feeDiscount`, `_feeEligibleDistributionAmount`, and `_leftoverDistributionAmount` only used within scope.
     {
       // Get the amount of discount that should be applied to any fees taken.
-      // If the fee is zero or if the fee is being used by a contract that doesn't incur fees, set the discount to 100% for convinience.
+      // If the fee is zero or if the fee is being used by an address that doesn't incur fees, set the discount to 100% for convinience.
       uint256 _feeDiscount = fee == 0 || isFeelessAddress[msg.sender]
         ? JBConstants.MAX_FEE_DISCOUNT
         : _currentFeeDiscount(_projectId);
@@ -922,7 +925,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       address _projectOwner = projects.ownerOf(_projectId);
 
       // Get the amount of discount that should be applied to any fees taken.
-      // If the fee is zero or if the fee is being used by a contract that doesn't incur fees, set the discount to 100% for convinience.
+      // If the fee is zero or if the fee is being used by an address that doesn't incur fees, set the discount to 100% for convinience.
       uint256 _feeDiscount = fee == 0 || isFeelessAddress[msg.sender]
         ? JBConstants.MAX_FEE_DISCOUNT
         : _currentFeeDiscount(_projectId);
@@ -1007,6 +1010,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
               ? _payoutAmount
               : _payoutAmount - _feeAmount(_payoutAmount, fee, _feeDiscount);
 
+            // This distribution is eligible for a fee since the funds are leaving the ecosystem.
             feeEligibleDistributionAmount += _payoutAmount;
           }
 

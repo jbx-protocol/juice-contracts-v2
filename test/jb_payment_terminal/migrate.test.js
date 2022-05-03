@@ -147,7 +147,7 @@ describe('JBPayoutRedemptionPaymentTerminal::migrate(...)', function () {
       mockJBPaymentTerminalStore,
       mockJbOperatorStore,
       mockJbToken,
-      TOKEN_ETH
+      TOKEN_ETH,
     };
   }
 
@@ -213,11 +213,8 @@ describe('JBPayoutRedemptionPaymentTerminal::migrate(...)', function () {
       .returns(false);
 
     await expect(
-      jbEthPaymentTerminal
-        .connect(caller)
-        .migrate(PROJECT_ID, mockJbEthPaymentTerminal.address),
-    )
-      .to.be.revertedWith(errors.UNAUTHORIZED);
+      jbEthPaymentTerminal.connect(caller).migrate(PROJECT_ID, mockJbEthPaymentTerminal.address),
+    ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 
   it('Should migrate non-eth terminal', async function () {
@@ -253,7 +250,8 @@ describe('JBPayoutRedemptionPaymentTerminal::migrate(...)', function () {
   });
 
   it("Can't migrate to a terminal which doesn't accept token", async function () {
-    const { TOKEN_ETH, projectOwner, jbEthPaymentTerminal, mockJbEthPaymentTerminal } = await setup();
+    const { TOKEN_ETH, projectOwner, jbEthPaymentTerminal, mockJbEthPaymentTerminal } =
+      await setup();
 
     await mockJbEthPaymentTerminal.mock.acceptsToken.withArgs(TOKEN_ETH).returns(false);
 

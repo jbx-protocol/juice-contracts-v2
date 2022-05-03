@@ -204,27 +204,13 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
     await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(18);
 
     await mockJbTerminal.mock.addToBalanceOf
-      .withArgs(
-        PROJECT_ID,
-        AMOUNT,
-        ethToken,
-        MEMO,
-        METADATA
-      )
+      .withArgs(PROJECT_ID, AMOUNT, ethToken, MEMO, METADATA)
       .returns();
 
     await expect(
-      jbProjectPayer.addToBalanceOf(
-        PROJECT_ID,
-        ethToken,
-        AMOUNT,
-        DECIMALS,
-        MEMO,
-        METADATA,
-        {
-          value: AMOUNT,
-        },
-      ),
+      jbProjectPayer.addToBalanceOf(PROJECT_ID, ethToken, AMOUNT, DECIMALS, MEMO, METADATA, {
+        value: AMOUNT,
+      }),
     ).to.not.be.reverted;
   });
 
@@ -238,13 +224,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
       .returns(mockJbTerminal.address);
 
     await mockJbTerminal.mock.addToBalanceOf
-      .withArgs(
-        PROJECT_ID,
-        AMOUNT,
-        mockJbToken.address,
-        MEMO,
-        METADATA
-      )
+      .withArgs(PROJECT_ID, AMOUNT, mockJbToken.address, MEMO, METADATA)
       .returns();
 
     const payer = addrs[0];
@@ -257,14 +237,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
     await expect(
       jbProjectPayer
         .connect(payer)
-        .addToBalanceOf(
-          PROJECT_ID,
-          mockJbToken.address,
-          AMOUNT,
-          9,
-          MEMO,
-          METADATA
-        ),
+        .addToBalanceOf(PROJECT_ID, mockJbToken.address, AMOUNT, 9, MEMO, METADATA),
     ).to.not.be.reverted;
   });
 
@@ -315,16 +288,14 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
 
     // Set the default beneficiary to the zero address.
 
-    await jbProjectPayer
-      .connect(owner)
-      .setDefaultValues(
-        INITIAL_PROJECT_ID,
-        ethers.constants.AddressZero,
-        INITIAL_PREFER_CLAIMED_TOKENS,
-        INITIAL_MEMO,
-        INITIAL_METADATA,
-        false // prefer add to balance
-      );
+    await jbProjectPayer.connect(owner).setDefaultValues(
+      INITIAL_PROJECT_ID,
+      ethers.constants.AddressZero,
+      INITIAL_PREFER_CLAIMED_TOKENS,
+      INITIAL_MEMO,
+      INITIAL_METADATA,
+      false, // prefer add to balance
+    );
 
     await mockJbTerminal.mock.pay
       .withArgs(
@@ -361,25 +332,17 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
 
     // Set the default beneficiary to the zero address.
 
-    await jbProjectPayer
-      .connect(owner)
-      .setDefaultValues(
-        INITIAL_PROJECT_ID,
-        ethers.constants.AddressZero,
-        INITIAL_PREFER_CLAIMED_TOKENS,
-        INITIAL_MEMO,
-        INITIAL_METADATA,
-        true // prefer add to balance
-      );
+    await jbProjectPayer.connect(owner).setDefaultValues(
+      INITIAL_PROJECT_ID,
+      ethers.constants.AddressZero,
+      INITIAL_PREFER_CLAIMED_TOKENS,
+      INITIAL_MEMO,
+      INITIAL_METADATA,
+      true, // prefer add to balance
+    );
 
     await mockJbTerminal.mock.addToBalanceOf
-      .withArgs(
-        INITIAL_PROJECT_ID,
-        AMOUNT,
-        ethToken,
-        INITIAL_MEMO,
-        INITIAL_METADATA
-      )
+      .withArgs(INITIAL_PROJECT_ID, AMOUNT, ethToken, INITIAL_MEMO, INITIAL_METADATA)
       .returns();
 
     await expect(
@@ -423,7 +386,6 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
       .returns(mockJbTerminal.address);
 
     await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(10);
-
 
     await expect(
       jbProjectPayer.pay(

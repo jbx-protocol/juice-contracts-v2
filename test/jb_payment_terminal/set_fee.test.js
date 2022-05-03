@@ -75,7 +75,8 @@ describe('JBPayoutRedemptionPaymentTerminal::setFee(...)', function () {
 
   it("Can't set fee if caller is not owner", async function () {
     const { jbEthPaymentTerminal, caller } = await setup();
-    await expect(jbEthPaymentTerminal.connect(caller).setFee(40_000_000))
-      .to.be.revertedWith('Ownable: caller is not the owner');
+    await expect(jbEthPaymentTerminal.connect(caller).setFee(40_000_000)).to.be.revertedWith(
+      'Ownable: caller is not the owner',
+    );
   });
 });

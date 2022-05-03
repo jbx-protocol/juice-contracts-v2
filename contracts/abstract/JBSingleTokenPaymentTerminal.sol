@@ -61,6 +61,7 @@ abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal,
   */
   function decimalsForToken(address _token) external view override returns (uint256) {
     _token; // Prevents unused var compiler and natspec complaints.
+
     return decimals;
   }
 
@@ -74,6 +75,7 @@ abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal,
   */
   function currencyForToken(address _token) external view override returns (uint256) {
     _token; // Prevents unused var compiler and natspec complaints.
+
     return currency;
   }
 

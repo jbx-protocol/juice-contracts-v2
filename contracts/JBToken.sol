@@ -33,6 +33,7 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
   */
   function totalSupply(uint256 _projectId) external view override returns (uint256) {
     _projectId; // Prevents unused var compiler and natspec complaints.
+
     return super.totalSupply();
   }
 
@@ -53,6 +54,7 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
   {
     _account; // Prevents unused var compiler and natspec complaints.
     _projectId; // Prevents unused var compiler and natspec complaints.
+
     return super.balanceOf(_account);
   }
 
@@ -107,6 +109,7 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     uint256 _amount
   ) external override onlyOwner {
     _projectId; // Prevents unused var compiler and natspec complaints.
+
     return _mint(_account, _amount);
   }
 
@@ -127,6 +130,7 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     uint256 _amount
   ) external override onlyOwner {
     _projectId; // Prevents unused var compiler and natspec complaints.
+
     return _burn(_account, _amount);
   }
 
@@ -144,6 +148,7 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     uint256 _amount
   ) external override {
     _projectId; // Prevents unused var compiler and natspec complaints.
+
     approve(_spender, _amount);
   }
 
@@ -161,6 +166,7 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     uint256 _amount
   ) external override {
     _projectId; // Prevents unused var compiler and natspec complaints.
+
     transfer(_to, _amount);
   }
 
@@ -180,6 +186,7 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     uint256 _amount
   ) external override {
     _projectId; // Prevents unused var compiler and natspec complaints.
+
     transferFrom(_from, _to, _amount);
   }
 
@@ -204,6 +211,7 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     onlyOwner
   {
     _projectId; // Prevents unused var compiler and natspec complaints.
+
     return super.transferOwnership(_newOwner);
   }
 }

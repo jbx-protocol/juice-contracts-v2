@@ -41,7 +41,9 @@ describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function (
     const mockJbController = await deployMockContract(deployer, jbController.abi);
     const mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBSingleTokenPaymentTerminalStore');
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
+      'JBSingleTokenPaymentTerminalStore',
+    );
     const JBSingleTokenPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
@@ -215,6 +217,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function (
         decimal: _FIXED_POINT_MAX_FIDELITY,
         projectId: PROJECT_ID,
         currentFundingCycleConfiguration: timestamp,
+        beneficiary,
         weight: WEIGHT,
         reservedRate: reservedRate,
         beneficiary: beneficiary.address,
@@ -389,8 +392,8 @@ describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function (
         payer: payer.address,
         amount: ['0x1230000000000000000000000000000000000000', 0, 18, CURRENCY],
         projectId: PROJECT_ID,
-        beneficiary: beneficiary.address,
         currentFundingCycleConfiguration: timestamp,
+        beneficiary: beneficiary.address,
         weight: WEIGHT,
         reservedRate: reservedRate,
         memo: memo,
@@ -415,17 +418,15 @@ describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function (
       METADATA,
     );
 
-    await JBSingleTokenPaymentTerminalStore.connect(
-      mockJbTerminalSigner,
-      ).recordPaymentFrom(
-        /* payer */ payer.address,
-        ['0x1230000000000000000000000000000000000000', 0, 18, CURRENCY],
-        /* projectId */ PROJECT_ID,
-        BASE_CURRENCY,
-        beneficiary.address,
-        /* memo */ memo,
-        METADATA,
-      );
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
+      /* payer */ payer.address,
+      ['0x1230000000000000000000000000000000000000', 0, 18, CURRENCY],
+      /* projectId */ PROJECT_ID,
+      BASE_CURRENCY,
+      beneficiary.address,
+      /* memo */ memo,
+      METADATA,
+    );
 
     // Recorded balance should not have changed
     expect(

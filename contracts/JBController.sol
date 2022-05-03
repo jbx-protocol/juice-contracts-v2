@@ -610,7 +610,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     Mint new token supply into an account, and optionally reserve a supply to be distributed according to the project's current funding cycle configuration.
 
     @dev
-    Only a project's owner, a designated operator, or one of its terminals can mint its tokens.
+    Only a project's owner, a designated operator, one of its terminals, or the current data source can mint its tokens.
 
     @param _projectId The ID of the project to which the tokens being minted belong.
     @param _tokenCount The amount of tokens to mint in total, counting however many should be reserved.
@@ -628,12 +628,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     string calldata _memo,
     bool _preferClaimedTokens,
     bool _useReservedRate
-  )
-    external
-    virtual
-    override
-    returns (uint256 beneficiaryTokenCount)
-  {
+  ) external virtual override returns (uint256 beneficiaryTokenCount) {
     // There should be tokens to mint.
     if (_tokenCount == 0) revert ZERO_TOKENS_TO_MINT();
 
@@ -651,13 +646,15 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
         projects.ownerOf(_projectId),
         _projectId,
         JBOperations.MINT,
-        directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender)) || msg.sender == address(_fundingCycle.dataSource())
+        directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender)) ||
+          msg.sender == address(_fundingCycle.dataSource())
       );
 
       // If the message sender is not a terminal or a datasource, the current funding cycle must allow minting.
-      if ( !_fundingCycle.mintingAllowed()
-        && !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))
-        && msg.sender != address(_fundingCycle.dataSource())
+      if (
+        !_fundingCycle.mintingAllowed() &&
+        !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender)) &&
+        msg.sender != address(_fundingCycle.dataSource())
       ) revert MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE();
 
       // Determine the reserved rate to use.
