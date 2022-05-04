@@ -74,6 +74,7 @@ contract JBETHPaymentTerminal is JBPayoutRedemptionPaymentTerminal {
     uint256 _amount
   ) internal override {
     _from; // Prevents unused var compiler and natspec complaints.
+
     Address.sendValue(_to, _amount);
   }
 
