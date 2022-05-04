@@ -3,6 +3,8 @@ pragma solidity 0.8.6;
 
 import './IJBProjects.sol';
 import './IJBToken721.sol';
+import './IJBToken721UriResolver.sol';
+import './IJBTokenContractUriResolver.sol';
 
 interface IJBToken721Store {
   event Issue(
@@ -81,7 +83,9 @@ interface IJBToken721Store {
     uint256 _projectId,
     string calldata _name,
     string calldata _symbol,
-    string calldata _baseUri
+    string calldata _baseUri,
+    IJBToken721UriResolver _tokenUriResolverAddress,
+    IJBTokenContractUriResolver _contractUriResolverAddress
   ) external returns (IJBToken721 token);
 
   function changeFor(

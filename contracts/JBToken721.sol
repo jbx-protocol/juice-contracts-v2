@@ -2,7 +2,11 @@
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/utils/Strings.sol';
+
 import './interfaces/IJBToken721.sol';
+import './interfaces/IJBTokenContractUriResolver.sol';
+import './interfaces/IJBToken721UriResolver.sol';
 import './external/ERC721Rari.sol';
 
 /**
@@ -19,11 +23,14 @@ import './external/ERC721Rari.sol';
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBToken721 is ERC721Rari, IJBToken721, Ownable {
+  using Strings for uint256;
+
   //*********************************************************************//
   // --------------------------- custom errors ------------------------- //
   //*********************************************************************//
   error INCORRECT_OWNER();
   error INVALID_ADDRESS();
+  error INVALID_TOKEN();
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -47,12 +54,26 @@ contract JBToken721 is ERC721Rari, IJBToken721, Ownable {
 
   /**
     @notice
-    Returns the base URI for the asset.
-
-    ignored: _id Token id is ignored
+    Returns the full URI for the asset.
   */
-  function tokenURI(uint256) public view override returns (string memory) {
-    return _baseUri;
+  function tokenURI(uint256 tokenId) public view override returns (string memory) {
+    if (ownerOf[tokenId] == address(0)) {
+      revert INVALID_TOKEN();
+    }
+
+    if (address(_tokenUriResolver) != address(0)) {
+      return _tokenUriResolver.tokenURI(tokenId);
+    }
+
+    return bytes(_baseUri).length > 0 ? string(abi.encodePacked(_baseUri, tokenId.toString())) : '';
+  }
+
+  function contractURI() public view override returns (string memory contractUri) {
+    contractUri = '';
+
+    if (address(_contractUriResolver) != address(0)) {
+      return _contractUriResolver.contractURI();
+    }
   }
 
   //*********************************************************************//
@@ -62,6 +83,8 @@ contract JBToken721 is ERC721Rari, IJBToken721, Ownable {
   uint256 private _nextTokenId;
   uint256 private _supply;
   string private _baseUri;
+  IJBToken721UriResolver private _tokenUriResolver;
+  IJBTokenContractUriResolver private _contractUriResolver;
 
   /**
     @param _name The name of the token.
@@ -71,9 +94,13 @@ contract JBToken721 is ERC721Rari, IJBToken721, Ownable {
   constructor(
     string memory _name,
     string memory _symbol,
-    string memory _uri
+    string memory _uri,
+    IJBToken721UriResolver _tokenUriResolverAddress,
+    IJBTokenContractUriResolver _contractUriResolverAddress
   ) ERC721Rari(_name, _symbol) {
     _baseUri = _uri;
+    _tokenUriResolver = _tokenUriResolverAddress;
+    _contractUriResolver = _contractUriResolverAddress;
   }
 
   //*********************************************************************//
