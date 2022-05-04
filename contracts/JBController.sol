@@ -9,6 +9,7 @@ import './interfaces/IJBMigratable.sol';
 import './interfaces/IJBOperatorStore.sol';
 import './interfaces/IJBPaymentTerminal.sol';
 import './interfaces/IJBProjects.sol';
+import './interfaces/IJBToken721Store.sol';
 import './libraries/JBConstants.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 import './libraries/JBOperations.sol';
@@ -121,6 +122,12 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     The contract that manages token minting and burning.
   */
   IJBTokenStore public immutable override tokenStore;
+
+  /**
+    @notice
+    The contract that manages NFT distribution.
+  */
+  IJBToken721Store public immutable override token721Store;
 
   /**
     @notice
@@ -364,6 +371,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     @param _directory A contract storing directories of terminals and controllers for each project.
     @param _fundingCycleStore A contract storing all funding cycle configurations.
     @param _tokenStore A contract that manages token minting and burning.
+    @param _token721Store A contract that manages NFT distribution.
     @param _splitsStore A contract that stores splits for each project.
   */
   constructor(
@@ -372,12 +380,14 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     IJBDirectory _directory,
     IJBFundingCycleStore _fundingCycleStore,
     IJBTokenStore _tokenStore,
+    IJBToken721Store _token721Store,
     IJBSplitsStore _splitsStore
   ) JBOperatable(_operatorStore) {
     projects = _projects;
     directory = _directory;
     fundingCycleStore = _fundingCycleStore;
     tokenStore = _tokenStore;
+    token721Store = _token721Store;
     splitsStore = _splitsStore;
   }
 

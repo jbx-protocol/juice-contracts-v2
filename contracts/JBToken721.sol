@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import '@rari-capital/solmate/src/tokens/ERC721.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './interfaces/IJBToken721.sol';
+import './external/ERC721Rari.sol';
 
 /**
   @notice
@@ -18,7 +18,7 @@ import './interfaces/IJBToken721.sol';
   ERC721: Rari Capital implementation.
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
-contract JBToken721 is ERC721, IJBToken721, Ownable {
+contract JBToken721 is ERC721Rari, IJBToken721, Ownable {
   //*********************************************************************//
   // --------------------------- custom errors ------------------------- //
   //*********************************************************************//
@@ -72,7 +72,7 @@ contract JBToken721 is ERC721, IJBToken721, Ownable {
     string memory _name,
     string memory _symbol,
     string memory _uri
-  ) ERC721(_name, _symbol) {
+  ) ERC721Rari(_name, _symbol) {
     _baseUri = _uri;
   }
 

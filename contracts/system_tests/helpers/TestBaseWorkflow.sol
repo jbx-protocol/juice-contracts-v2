@@ -16,6 +16,7 @@ import '../../JBProjects.sol';
 import '../../JBSplitsStore.sol';
 import '../../JBToken.sol';
 import '../../JBTokenStore.sol';
+import '../../JBToken721Store.sol';
 
 import '../../structs/JBDidPayData.sol';
 import '../../structs/JBDidRedeemData.sol';
@@ -68,6 +69,8 @@ contract TestBaseWorkflow is DSTest {
   JBToken private _jbToken;
   // JBTokenStore
   JBTokenStore private _jbTokenStore;
+  // JBToken721Store
+  JBToken721Store private _jbToken721Store;
   // JBSplitsStore
   JBSplitsStore private _jbSplitsStore;
   // JBController
@@ -117,6 +120,10 @@ contract TestBaseWorkflow is DSTest {
     return _jbTokenStore;
   }
 
+  function jbToken721Store() internal view returns (JBToken721Store) {
+    return _jbToken721Store;
+  }
+
   function jbSplitsStore() internal view returns (JBSplitsStore) {
     return _jbSplitsStore;
   }
@@ -150,6 +157,7 @@ contract TestBaseWorkflow is DSTest {
   //*********************************************************************//
 
   // Deploys and initializes contracts for testing.
+  /* solhint-disable comprehensive-interface */
   function setUp() public virtual {
     // Labels
     evm.label(_multisig, 'projectOwner');
@@ -181,6 +189,10 @@ contract TestBaseWorkflow is DSTest {
     _jbTokenStore = new JBTokenStore(_jbOperatorStore, _jbProjects, _jbDirectory);
     evm.label(address(_jbTokenStore), 'JBTokenStore');
 
+    // JBToken721Store
+    _jbToken721Store = new JBToken721Store(_jbOperatorStore, _jbProjects, _jbDirectory);
+    evm.label(address(_jbTokenStore), 'JBToken721Store');
+
     // JBSplitsStore
     _jbSplitsStore = new JBSplitsStore(_jbOperatorStore, _jbProjects, _jbDirectory);
     evm.label(address(_jbSplitsStore), 'JBSplitsStore');
@@ -192,6 +204,7 @@ contract TestBaseWorkflow is DSTest {
       _jbDirectory,
       _jbFundingCycleStore,
       _jbTokenStore,
+      _jbToken721Store,
       _jbSplitsStore
     );
     evm.label(address(_jbController), 'JBController');
@@ -245,6 +258,8 @@ contract TestBaseWorkflow is DSTest {
     );
     evm.label(address(_jbERC20PaymentTerminal), 'JBERC20PaymentTerminal');
   }
+
+  /* solhint-enable comprehensive-interface */
 
   //https://ethereum.stackexchange.com/questions/24248/how-to-calculate-an-ethereum-contracts-address-during-its-creation-using-the-so
   function addressFrom(address _origin, uint256 _nonce) internal pure returns (address _address) {

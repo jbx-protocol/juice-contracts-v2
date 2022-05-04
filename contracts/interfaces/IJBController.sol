@@ -14,6 +14,7 @@ import './IJBPaymentTerminal.sol';
 import './IJBSplitsStore.sol';
 import './IJBToken.sol';
 import './IJBTokenStore.sol';
+import './IJBToken721Store.sol';
 
 interface IJBController is IERC165 {
   event LaunchProject(uint256 configuration, uint256 projectId, string memo, address caller);
@@ -82,6 +83,8 @@ interface IJBController is IERC165 {
   function fundingCycleStore() external view returns (IJBFundingCycleStore);
 
   function tokenStore() external view returns (IJBTokenStore);
+
+  function token721Store() external view returns (IJBToken721Store);
 
   function splitsStore() external view returns (IJBSplitsStore);
 
