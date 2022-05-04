@@ -2,7 +2,7 @@
 pragma solidity 0.8.6;
 
 interface IJBToken721 {
-  function totalSupply(uint256 _projectId) external view returns (uint256);
+  function totalSupply(uint256) external view returns (uint256);
 
   function mint(uint256 _projectId, address _account) external returns (uint256);
 
@@ -38,4 +38,6 @@ interface IJBToken721 {
   function isOwner(address _account, uint256 _id) external view returns (bool);
 
   function contractURI() external view returns (string memory);
+
+  function owner() external view returns (address);
 }

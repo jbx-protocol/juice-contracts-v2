@@ -48,6 +48,9 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
   error TOKEN_NOT_FOUND();
   error INVALID_BURN_REQUEST();
   error INCORRECT_OWNER();
+  error INVALID_ADDRESS();
+  error ALREADY_REGISTRED();
+  error NOT_REGISTRED();
 
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
@@ -69,7 +72,7 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
 
     _projectId The ID of the project to which the token belongs.
   */
-  mapping(uint256 => IJBToken721) public override tokenOf;
+  mapping(uint256 => mapping(IJBToken721 => bool)) public override tokenOf;
 
   /**
     @notice
@@ -79,54 +82,36 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
   */
   mapping(IJBToken721 => uint256) public override projectOf;
 
-  /**
-    @notice
-    The total supply of unclaimed tokens for each project.
-
-    _projectId The ID of the project to which the token belongs.
-  */
-  mapping(uint256 => uint256) public override unclaimedTotalSupplyOf;
-
-  /**
-    @notice
-    Each holder's balance of unclaimed tokens for each project.
-
-    _holder The holder of balance.
-    _projectId The ID of the project to which the token belongs.
-  */
-  mapping(address => mapping(uint256 => uint256)) public override unclaimedBalanceOf;
-
-  /**
-    @notice
-    A flag indicating if tokens are required to be issued as claimed for a particular project.
-
-    _projectId The ID of the project to which the requirement applies.
-  */
-  mapping(uint256 => bool) public override requireClaimFor;
-
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
   //*********************************************************************//
 
   /**
     @notice
-    The total supply of tokens for each project, including claimed and unclaimed tokens.
+    The total supply of a given token for the specified project
 
     @param _projectId The ID of the project to get the total token supply of.
+    @param _token Token address to query.
 
     @return totalSupply The total supply of the project's tokens.
   */
-  function totalSupplyOf(uint256 _projectId) external view override returns (uint256 totalSupply) {
-    // Get a reference to the total supply of the project's unclaimed tokens.
-    totalSupply = unclaimedTotalSupplyOf[_projectId];
-
-    // Get a reference to the project's current token.
-    IJBToken721 _token = tokenOf[_projectId];
-
-    // If the project has a current token, add it's total supply to the total.
-    if (_token != JBToken721(address(0))) {
-      totalSupply = totalSupply + _token.totalSupply(_projectId);
+  function totalSupplyOf(uint256 _projectId, IJBToken721 _token)
+    external
+    view
+    override
+    returns (uint256 totalSupply)
+  {
+    // Non-0 address
+    if (address(_token) == address(0)) {
+      revert INVALID_ADDRESS();
     }
+
+    // Ensure ownership
+    if (projectOf[_token] != _projectId) {
+      revert INCORRECT_OWNER();
+    }
+
+    totalSupply = _token.totalSupply(_projectId);
   }
 
   /**
@@ -135,25 +120,26 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
 
     @param _holder The token holder to get a balance for.
     @param _projectId The project to get the `_holder`s balance of.
+    @param _token Token to query.
 
     @return balance The project token balance of the `_holder
   */
-  function balanceOf(address _holder, uint256 _projectId)
-    external
-    view
-    override
-    returns (uint256 balance)
-  {
-    // Get a reference to the holder's unclaimed balance for the project.
-    balance = unclaimedBalanceOf[_holder][_projectId];
-
-    // Get a reference to the project's current token.
-    IJBToken721 _token = tokenOf[_projectId];
-
-    // If the project has a current token, add the holder's balance to the total.
-    if (_token != IJBToken721(address(0))) {
-      // balance = balance + _token.balanceOf[_holder]; // TODO: rari erc721 implements balance of as a map, not a function
+  function balanceOf(
+    address _holder,
+    uint256 _projectId,
+    IJBToken721 _token
+  ) external view override returns (uint256 balance) {
+    // Non-0 address
+    if (address(_token) == address(0)) {
+      revert INVALID_ADDRESS();
     }
+
+    // Ensure ownership
+    if (projectOf[_token] != _projectId) {
+      revert INCORRECT_OWNER();
+    }
+
+    balance = _token.ownerBalance(_holder);
   }
 
   //*********************************************************************//
@@ -217,11 +203,6 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
       revert EMPTY_BASE_URI();
     }
 
-    // The project shouldn't already have a token.
-    if (tokenOf[_projectId] != IJBToken721(address(0))) {
-      revert PROJECT_ALREADY_HAS_TOKEN();
-    }
-
     // Deploy the token contract.
     token = new JBToken721(
       _name,
@@ -232,7 +213,7 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
     );
 
     // Store the token contract.
-    tokenOf[_projectId] = token;
+    tokenOf[_projectId][token] = true;
 
     // Store the project for the token.
     projectOf[token] = _projectId;
@@ -242,51 +223,82 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
 
   /**
     @notice
-    Swap the current project's token for another, and transfer ownership of the current token to another address if needed.
+    Registers a compatible ERC721 token to a project.
 
     @dev
-    Only a project's current controller can change its token.
+    Only a project's current controller can issue its token.
 
-    @dev
-    This contract must have access to all of the token's `IJBToken` interface functions.
-
-    @dev
-    Can't change to a token that's currently being used by another project.
-
-    @dev
-    Changing to the zero address will remove the current token without adding a new one.
-
-    @param _projectId The ID of the project to which the changed token belongs.
-    @param _token The new token. Send an empty address to remove the project's current token without adding a new one, if claiming tokens isn't currency required by the project
-    @param _newOwner An address to transfer the current token's ownership to. This is optional, but it cannot be done later.
-
-    @return oldToken The token that was removed as the project's token.
+    @param _projectId The ID of the project.
+    @param _token Exiting NFT address.
   */
-  function changeFor(
-    uint256 _projectId,
-    IJBToken721 _token,
-    address _newOwner
-  ) external override onlyController(_projectId) returns (IJBToken721 oldToken) {
-    // Can't change to a token already in use.
-    if (projectOf[_token] != 0) revert TOKEN_ALREADY_IN_USE();
+  function RegisterFor(uint256 _projectId, IJBToken721 _token)
+    external
+    override
+    onlyController(_projectId)
+  {
+    // Non-0 address
+    if (address(_token) == address(0)) {
+      revert INVALID_ADDRESS();
+    }
 
-    // Get a reference to the current token for the project.
-    oldToken = tokenOf[_projectId];
+    // The project shouldn't already have this token.
+    if (tokenOf[_projectId][_token] != false) {
+      revert PROJECT_ALREADY_HAS_TOKEN();
+    }
 
-    // Store the new token.
-    tokenOf[_projectId] = _token;
+    // Prevent cross-project token sharing
+    if (projectOf[_token] != 0) {
+      revert ALREADY_REGISTRED();
+    }
 
-    // Store the project for the new token if the new token isn't the zero address.
-    if (_token != IJBToken721(address(0))) projectOf[_token] = _projectId;
+    // TODO: should probably check NFT contract owner to ensure mint can happen, but that's not a given, must be IJBToken721 instead of IERC721 then
 
-    // Reset the project for the old token if it isn't the zero address.
-    if (oldToken != IJBToken721(address(0))) projectOf[oldToken] = 0;
+    // Store the token contract.
+    tokenOf[_projectId][_token] = true;
 
-    // If there's a current token and a new owner was provided, transfer ownership of the old token to the new owner.
-    if (_newOwner != address(0) && oldToken != IJBToken721(address(0)))
-      oldToken.transferOwnership(_projectId, _newOwner);
+    // Store the project for the token.
+    projectOf[_token] = _projectId;
 
-    emit Change(_projectId, _token, oldToken, _newOwner, msg.sender);
+    emit Register(_projectId, _token, msg.sender);
+  }
+
+  /**
+    @notice
+    Unregisters a token from a project.
+
+    @dev
+    Only a project's current controller can perform the action.
+
+    @param _projectId The ID of the project.
+    @param _token Existing NFT address.
+  */
+  function DeregisterFor(uint256 _projectId, IJBToken721 _token)
+    external
+    override
+    onlyController(_projectId)
+  {
+    // Non-0 address
+    if (address(_token) == address(0)) {
+      revert INVALID_ADDRESS();
+    }
+
+    // The project should already have this token.
+    if (tokenOf[_projectId][_token] != true) {
+      revert NOT_REGISTRED();
+    }
+
+    // Ensure project association
+    if (projectOf[_token] != _projectId) {
+      revert INCORRECT_OWNER();
+    }
+
+    // Store the token contract.
+    tokenOf[_projectId][_token] = false;
+
+    // Store the project for the token.
+    projectOf[_token] = 0;
+
+    emit Deregister(_projectId, _token, msg.sender);
   }
 
   /**
@@ -298,39 +310,21 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
 
     @param _holder The address receiving the new tokens.
     @param _projectId The ID of the project to which the tokens belong.
-    @param _preferClaimedTokens A flag indicating whether there's a preference for minted tokens to be claimed automatically into the `_holder`s wallet if the project currently has a token contract attached.
+    @param _token Token to mint against.
   */
   function mintFor(
     address _holder,
     uint256 _projectId,
-    bool _preferClaimedTokens
+    IJBToken721 _token
   ) external override onlyController(_projectId) {
-    // Get a reference to the project's current token.
-    IJBToken721 _token = tokenOf[_projectId];
-
-    // Save a reference to whether there exists a token and the caller prefers these claimed tokens or the project requires it.
-    bool _shouldClaimTokens = (requireClaimFor[_projectId] || _preferClaimedTokens) &&
-      _token != IJBToken721(address(0));
-
-    uint256 tokenId;
-    if (_shouldClaimTokens) {
-      // If tokens should be claimed, mint tokens into the holder's wallet.
-      tokenId = _token.mint(_projectId, _holder);
-    } else {
-      // Otherwise, add the tokens to the unclaimed balance and total supply.
-      unclaimedBalanceOf[_holder][_projectId] = unclaimedBalanceOf[_holder][_projectId] + 1;
-      unclaimedTotalSupplyOf[_projectId] = unclaimedTotalSupplyOf[_projectId] + 1;
+    // Ensure project registration
+    if (projectOf[_token] != _projectId) {
+      revert INCORRECT_OWNER();
     }
 
-    emit Mint(
-      _holder,
-      _projectId,
-      tokenId,
-      1,
-      _shouldClaimTokens,
-      _preferClaimedTokens,
-      msg.sender
-    );
+    uint256 tokenId = _token.mint(_projectId, _holder);
+
+    emit Mint(_holder, _projectId, _token, tokenId, 1, msg.sender);
   }
 
   /**
@@ -340,178 +334,28 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
     @dev
     Only a project's current controller can burn its tokens.
 
-    @param _holder The address that owns the tokens being burned.
     @param _projectId The ID of the project to which the burned tokens belong.
-    @param _tokenId The amount of tokens to burn.
-    @param _preferClaimedTokens A flag indicating whether there's a preference for tokens to burned from the `_holder`s wallet if the project currently has a token contract attached.
+    @param _token NFT to burn token from.
+    @param _holder The address that owns the tokens being burned.
   */
   function burnFrom(
-    address _holder,
     uint256 _projectId,
-    uint256 _tokenId,
-    uint256 _amount,
-    bool _preferClaimedTokens
+    IJBToken721 _token,
+    address _holder,
+    uint256 _tokenId
   ) external override onlyController(_projectId) {
-    if (!_preferClaimedTokens && _amount == 0) {
+    // Ensure project registration
+    if (projectOf[_token] != _projectId) {
+      revert INCORRECT_OWNER();
+    }
+
+    // Ensure token ownership
+    if (_token.isOwner(_holder, _tokenId)) {
       revert INVALID_BURN_REQUEST();
     }
 
-    // Get a reference to the project's current token.
-    IJBToken721 _token = tokenOf[_projectId];
+    _token.burn(_projectId, _holder, _tokenId);
 
-    // Get current unclaimed token balance
-    uint256 _unclaimedBalance = unclaimedBalanceOf[_holder][_projectId];
-
-    // Get currently owned token balance
-    uint256 _claimedBalance = _token == IJBToken721(address(0)) ? 0 : _token.ownerBalance(_holder);
-
-    if (_preferClaimedTokens) {
-      if (!_token.isOwner(_holder, _tokenId)) {
-        revert INCORRECT_OWNER();
-      }
-
-      _token.burn(_projectId, _holder, _tokenId);
-
-      emit Burn(
-        _holder,
-        _projectId,
-        _tokenId,
-        _amount,
-        _unclaimedBalance,
-        _claimedBalance,
-        _preferClaimedTokens,
-        msg.sender
-      );
-    } else {
-      // There must be sufficient unclaimed balance to remove
-      if (_amount > _unclaimedBalance) {
-        revert INSUFFICIENT_FUNDS();
-      }
-
-      unclaimedBalanceOf[_holder][_projectId] -= _amount;
-
-      emit Burn(
-        _holder,
-        _projectId,
-        _tokenId,
-        _amount,
-        _unclaimedBalance,
-        _claimedBalance,
-        _preferClaimedTokens,
-        msg.sender
-      );
-    }
-  }
-
-  /**
-    @notice
-    Claims internally accounted for tokens into a holder's wallet.
-
-    @dev
-    Only a token holder or an operator specified by the token holder can claim its unclaimed tokens.
-
-    @param _holder The owner of the tokens being claimed.
-    @param _projectId The ID of the project whose tokens are being claimed.
-  */
-  function claimFor(
-    address _holder,
-    uint256 _projectId,
-    uint256 _amount
-  ) external override requirePermission(_holder, _projectId, JBOperations.CLAIM) {
-    // Get a reference to the project's current token.
-    IJBToken721 _token = tokenOf[_projectId];
-
-    // The project must have a token contract attached.
-    if (_token == IJBToken721(address(0))) {
-      revert TOKEN_NOT_FOUND();
-    }
-
-    // Get a reference to the amount of unclaimed project tokens the holder has.
-    uint256 _unclaimedBalance = unclaimedBalanceOf[_holder][_projectId];
-
-    // There must be enough unclaimed tokens to claim.
-    if (_unclaimedBalance < _amount) {
-      revert INSUFFICIENT_UNCLAIMED_TOKENS();
-    }
-
-    // Subtract the claim amount from the holder's unclaimed project token balance.
-    unclaimedBalanceOf[_holder][_projectId] = unclaimedBalanceOf[_holder][_projectId] - _amount;
-
-    // Subtract the claim amount from the project's unclaimed total supply.
-    unclaimedTotalSupplyOf[_projectId] = unclaimedTotalSupplyOf[_projectId] - _amount;
-
-    // Mint the request number of tokens
-    for (uint256 i = 0; i < _amount; i++) {
-      uint256 tokenId = _token.mint(_projectId, _holder);
-
-      emit Mint(_holder, _projectId, tokenId, 1, true, false, msg.sender);
-    }
-
-    emit Claim(_holder, _projectId, _unclaimedBalance, _amount, msg.sender);
-  }
-
-  /**
-    @notice
-    Allows a holder to transfer unclaimed tokens to another account.
-
-    @dev
-    Only a token holder or an operator can transfer its unclaimed tokens.
-
-    @param _holder The address to transfer tokens from.
-    @param _projectId The ID of the project whose tokens are being transferred.
-    @param _recipient The recipient of the tokens.
-    @param _amount The amount of tokens to transfer.
-  */
-  function transferFrom(
-    address _holder,
-    uint256 _projectId,
-    address _recipient,
-    uint256 _amount
-  ) external override requirePermission(_holder, _projectId, JBOperations.TRANSFER) {
-    // Can't transfer to the zero address.
-    if (_recipient == address(0)) revert RECIPIENT_ZERO_ADDRESS();
-
-    // Get a reference to the holder's unclaimed project token balance.
-    uint256 _unclaimedBalance = unclaimedBalanceOf[_holder][_projectId];
-
-    // The holder must have enough unclaimed tokens to transfer.
-    if (_amount > _unclaimedBalance) revert INSUFFICIENT_UNCLAIMED_TOKENS();
-
-    // Subtract from the holder's unclaimed token balance.
-    unclaimedBalanceOf[_holder][_projectId] = unclaimedBalanceOf[_holder][_projectId] - _amount;
-
-    // Add the unclaimed project tokens to the recipient's balance.
-    unclaimedBalanceOf[_recipient][_projectId] =
-      unclaimedBalanceOf[_recipient][_projectId] +
-      _amount;
-
-    emit Transfer(_holder, _projectId, _recipient, _amount, msg.sender);
-  }
-
-  /**
-    @notice
-    Allows a project to force all future mints of its tokens to be claimed into the holder's wallet, or revoke the flag if it's already set.
-
-    @dev
-    Only a token holder or an operator can require claimed token.
-
-    @param _projectId The ID of the project being affected.
-    @param _flag A flag indicating whether or not claiming should be required.
-  */
-  function shouldRequireClaimingFor(uint256 _projectId, bool _flag)
-    external
-    override
-    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.REQUIRE_CLAIM)
-  {
-    // Get a reference to the project's current token.
-    IJBToken721 _token = tokenOf[_projectId];
-
-    // The project must have a token contract attached.
-    if (_token == IJBToken721(address(0))) revert TOKEN_NOT_FOUND();
-
-    // Store the flag.
-    requireClaimFor[_projectId] = _flag;
-
-    emit ShouldRequireClaim(_projectId, _flag, msg.sender);
+    emit Burn(_holder, _projectId, _token, _tokenId, msg.sender);
   }
 }

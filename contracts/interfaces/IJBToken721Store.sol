@@ -16,42 +16,24 @@ interface IJBToken721Store {
     address caller
   );
 
+  event Register(uint256 indexed projectId, IJBToken721 indexed token, address caller);
+
+  event Deregister(uint256 indexed projectId, IJBToken721 indexed token, address caller);
+
   event Mint(
     address indexed holder,
     uint256 indexed projectId,
+    IJBToken721 _token,
     uint256 tokenId,
     uint256 amount,
-    bool tokensWereClaimed,
-    bool preferClaimedTokens,
     address caller
   );
 
   event Burn(
     address indexed holder,
     uint256 indexed projectId,
+    IJBToken721 _token,
     uint256 tokenId,
-    uint256 amount,
-    uint256 initialUnclaimedBalance,
-    uint256 initialClaimedBalance,
-    bool preferClaimedTokens,
-    address caller
-  );
-
-  event Claim(
-    address indexed holder,
-    uint256 indexed projectId,
-    uint256 unclaimedBalance,
-    uint256 amount,
-    address caller
-  );
-
-  event ShouldRequireClaim(uint256 indexed projectId, bool indexed flag, address caller);
-
-  event Change(
-    uint256 indexed projectId,
-    IJBToken721 indexed newToken,
-    IJBToken721 indexed oldToken,
-    address owner,
     address caller
   );
 
@@ -63,21 +45,19 @@ interface IJBToken721Store {
     address caller
   );
 
-  function tokenOf(uint256 _projectId) external view returns (IJBToken721);
+  function tokenOf(uint256, IJBToken721) external view returns (bool);
 
-  function projectOf(IJBToken721 _token) external view returns (uint256);
+  function projectOf(IJBToken721) external view returns (uint256);
 
   function projects() external view returns (IJBProjects);
 
-  function unclaimedBalanceOf(address _holder, uint256 _projectId) external view returns (uint256);
+  function totalSupplyOf(uint256 _projectId, IJBToken721 _token) external view returns (uint256);
 
-  function unclaimedTotalSupplyOf(uint256 _projectId) external view returns (uint256);
-
-  function totalSupplyOf(uint256 _projectId) external view returns (uint256);
-
-  function balanceOf(address _holder, uint256 _projectId) external view returns (uint256 _result);
-
-  function requireClaimFor(uint256 _projectId) external view returns (bool);
+  function balanceOf(
+    address _holder,
+    uint256 _projectId,
+    IJBToken721 _token
+  ) external view returns (uint256 _result);
 
   function issueFor(
     uint256 _projectId,
@@ -88,38 +68,20 @@ interface IJBToken721Store {
     IJBTokenContractUriResolver _contractUriResolverAddress
   ) external returns (IJBToken721 token);
 
-  function changeFor(
-    uint256 _projectId,
-    IJBToken721 _token,
-    address _newOwner
-  ) external returns (IJBToken721 oldToken);
+  function RegisterFor(uint256 _projectId, IJBToken721 _token) external;
+
+  function DeregisterFor(uint256 _projectId, IJBToken721 _token) external;
 
   function burnFrom(
-    address _holder,
     uint256 _projectId,
-    uint256 _tokenId,
-    uint256 _amount,
-    bool _preferClaimedTokens
+    IJBToken721 _token,
+    address _holder,
+    uint256 _tokenId
   ) external;
 
   function mintFor(
     address _holder,
     uint256 _projectId,
-    bool _preferClaimedTokens
-  ) external;
-
-  function shouldRequireClaimingFor(uint256 _projectId, bool _flag) external;
-
-  function claimFor(
-    address _holder,
-    uint256 _projectId,
-    uint256 _tokenId
-  ) external;
-
-  function transferFrom(
-    address _holder,
-    uint256 _projectId,
-    address _recipient,
-    uint256 _tokenId
+    IJBToken721 _token
   ) external;
 }

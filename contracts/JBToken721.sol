@@ -202,6 +202,10 @@ contract JBToken721 is ERC721Rari, IJBToken721, Ownable {
     transferFrom(_from, _to, _id);
   }
 
+  /**
+    @notice
+    Returns the number of tokens held by the given address.
+   */
   function ownerBalance(address _account) external view override returns (uint256) {
     if (_account == address(0)) {
       revert INVALID_ADDRESS();
@@ -210,8 +214,16 @@ contract JBToken721 is ERC721Rari, IJBToken721, Ownable {
     return balanceOf[_account];
   }
 
+  /**
+    @notice
+    Confirms that the given address owns the provided token.
+   */
   function isOwner(address _account, uint256 _id) external view override returns (bool) {
     return ownerOf[_id] == _account;
+  }
+
+  function owner() public view override(IJBToken721, Ownable) returns (address) {
+    return super.owner();
   }
 
   //*********************************************************************//
