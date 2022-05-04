@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
+
 /** 
   @notice 
   Explains how to mint NFTs (721 or 1155) based on contribution amount.
@@ -29,6 +31,7 @@ struct JBNFTTranche {
   uint256 contributionRangeStart;
   uint256 contributionRangeEnd;
   uint256 contributionCurrency;
+  IERC721 token;
   uint256[] tokenIds;
   uint256[] amounts;
 }
