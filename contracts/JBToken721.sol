@@ -92,7 +92,7 @@ contract JBToken721 is ERC721Rari, IJBToken721, Ownable {
   */
   function mint(uint256, address _account) external override onlyOwner returns (uint256) {
     uint256 tokenId = _nextTokenId;
-    super._mint(_account, tokenId);
+    _mint(_account, tokenId);
 
     _supply += 1;
     _nextTokenId += 1;
@@ -120,7 +120,7 @@ contract JBToken721 is ERC721Rari, IJBToken721, Ownable {
       revert INCORRECT_OWNER();
     }
 
-    super._burn(_id);
+    _burn(_id);
 
     _supply -= 1;
   }
@@ -138,7 +138,7 @@ contract JBToken721 is ERC721Rari, IJBToken721, Ownable {
     address _spender,
     uint256 _id
   ) external override {
-    super.approve(_spender, _id);
+    approve(_spender, _id);
   }
 
   /**
@@ -154,7 +154,7 @@ contract JBToken721 is ERC721Rari, IJBToken721, Ownable {
     address _to,
     uint256 _id
   ) external override {
-    super.transferFrom(msg.sender, _to, _id);
+    transferFrom(msg.sender, _to, _id);
   }
 
   /**
@@ -172,7 +172,7 @@ contract JBToken721 is ERC721Rari, IJBToken721, Ownable {
     address _to,
     uint256 _id
   ) external override {
-    super.transferFrom(_from, _to, _id);
+    transferFrom(_from, _to, _id);
   }
 
   function ownerBalance(address _account) external view override returns (uint256) {
@@ -202,6 +202,6 @@ contract JBToken721 is ERC721Rari, IJBToken721, Ownable {
     @param _newOwner The new owner.
   */
   function transferOwnership(uint256, address _newOwner) public override onlyOwner {
-    return super.transferOwnership(_newOwner);
+    return transferOwnership(_newOwner);
   }
 }
