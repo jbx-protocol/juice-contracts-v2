@@ -36,4 +36,6 @@ interface IJBToken721 {
   function ownerBalance(address _account) external view returns (uint256);
 
   function isOwner(address _account, uint256 _id) external view returns (bool);
+
+  function contractURI() external view returns (string memory);
 }
