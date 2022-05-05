@@ -70,10 +70,12 @@ contract JBNFTRewardDataSourceDelegate is
       IJBRedemptionDelegate delegate
     )
   {
-    return (0, '', IJBRedemptionDelegate(address(this)));
+    return (0, '', IJBRedemptionDelegate(address(0)));
   }
 
   function didPay(JBDidPayData calldata _data) external override {
+    // if (msg.sender != address(jbTerminal.store())) revert unAuth();
+
     if (_distributedSupply == _maxSupply) {
       return;
     }
