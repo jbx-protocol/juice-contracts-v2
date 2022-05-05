@@ -8,6 +8,7 @@ remappings = [
     '@juicebox=contracts/',
     '@openzeppelin=node_modules/@openzeppelin/',
     '@paulrberg=node_modules/@paulrberg/',
+    '@rari-capital=node_modules/@rari-capital/',
     'ds-test/=lib/ds-test/src/',
     'forge-std/=lib/forge-std/src/',
     'prb-math=node_modules/prb-math/',
