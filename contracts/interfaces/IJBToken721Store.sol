@@ -4,7 +4,6 @@ pragma solidity 0.8.6;
 import './IJBProjects.sol';
 import './IJBToken721.sol';
 import './IJBToken721UriResolver.sol';
-import './IJBTokenContractUriResolver.sol';
 
 interface IJBToken721Store {
   event Issue(
