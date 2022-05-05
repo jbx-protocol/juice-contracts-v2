@@ -26,6 +26,7 @@ import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
   @member contributionCurrency Currency of the contribution, should match existing constants from JBTokens.
   @member tokenIds List of token ids to distribute, relevant for ERC1155 contracts, ignored for ERC721.
   @member amounts List of token id amounts to distribute, relevant for ERC1155; for ERC721 should contain a single item.
+  @member mintCap Max number of tokens that can be minted for this tranche.
 */
 struct JBNFTTranche {
   uint256 contributionRangeStart;
@@ -34,4 +35,5 @@ struct JBNFTTranche {
   IERC721 token;
   uint256[] tokenIds;
   uint256[] amounts;
+  uint256 mintCap;
 }
