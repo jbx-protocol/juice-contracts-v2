@@ -6,7 +6,6 @@ import './abstract/JBOperatable.sol';
 import './interfaces/IJBToken721Store.sol';
 import './interfaces/IJBToken721.sol';
 import './interfaces/IJBToken721UriResolver.sol';
-import './interfaces/IJBTokenContractUriResolver.sol';
 import './libraries/JBOperations.sol';
 import './JBToken721.sol';
 
@@ -186,7 +185,7 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
     string calldata _symbol,
     string calldata _baseUri,
     IJBToken721UriResolver _tokenUriResolverAddress,
-    IJBTokenContractUriResolver _contractUriResolverAddress
+    string calldata _contractUri
   ) external override onlyController(_projectId) returns (IJBToken721 token) {
     // There must be a name.
     if (bytes(_name).length == 0) {
@@ -204,13 +203,7 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
     }
 
     // Deploy the token contract.
-    token = new JBToken721(
-      _name,
-      _symbol,
-      _baseUri,
-      _tokenUriResolverAddress,
-      _contractUriResolverAddress
-    );
+    token = new JBToken721(_name, _symbol, _baseUri, _tokenUriResolverAddress, _contractUri);
 
     // Store the token contract.
     tokenOf[_projectId][token] = true;

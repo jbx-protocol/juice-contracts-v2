@@ -6,7 +6,6 @@ import '@openzeppelin/contracts/utils/Strings.sol';
 import '@rari-capital/solmate/src/tokens/ERC721.sol' as ERC721Rari;
 
 import './interfaces/IJBToken721.sol';
-import './interfaces/IJBTokenContractUriResolver.sol';
 import './interfaces/IJBToken721UriResolver.sol';
 
 /**
@@ -69,11 +68,7 @@ contract JBToken721 is ERC721Rari.ERC721, IJBToken721, Ownable {
   }
 
   function contractURI() public view override returns (string memory contractUri) {
-    contractUri = '';
-
-    if (address(_contractUriResolver) != address(0)) {
-      return _contractUriResolver.contractURI();
-    }
+    contractUri = _contractUri;
   }
 
   //*********************************************************************//
@@ -84,7 +79,7 @@ contract JBToken721 is ERC721Rari.ERC721, IJBToken721, Ownable {
   uint256 private _supply;
   string private _baseUri;
   IJBToken721UriResolver private _tokenUriResolver;
-  IJBTokenContractUriResolver private _contractUriResolver;
+  string private _contractUri;
 
   /**
     @param _name The name of the token.
@@ -96,11 +91,11 @@ contract JBToken721 is ERC721Rari.ERC721, IJBToken721, Ownable {
     string memory _symbol,
     string memory _uri,
     IJBToken721UriResolver _tokenUriResolverAddress,
-    IJBTokenContractUriResolver _contractUriResolverAddress
+    string memory _contractMetadataUri
   ) ERC721Rari.ERC721(_name, _symbol) {
     _baseUri = _uri;
     _tokenUriResolver = _tokenUriResolverAddress;
-    _contractUriResolver = _contractUriResolverAddress;
+    _contractUri = _contractMetadataUri;
   }
 
   //*********************************************************************//

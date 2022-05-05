@@ -23,7 +23,7 @@ interface IJBToken721Store {
   event Mint(
     address indexed holder,
     uint256 indexed projectId,
-    IJBToken721 _token,
+    IJBToken721 token,
     uint256 tokenId,
     uint256 amount,
     address caller
@@ -32,7 +32,7 @@ interface IJBToken721Store {
   event Burn(
     address indexed holder,
     uint256 indexed projectId,
-    IJBToken721 _token,
+    IJBToken721 token,
     uint256 tokenId,
     address caller
   );
@@ -65,7 +65,7 @@ interface IJBToken721Store {
     string calldata _symbol,
     string calldata _baseUri,
     IJBToken721UriResolver _tokenUriResolverAddress,
-    IJBTokenContractUriResolver _contractUriResolverAddress
+    string calldata _contractUri
   ) external returns (IJBToken721 token);
 
   function RegisterFor(uint256 _projectId, IJBToken721 _token) external;
