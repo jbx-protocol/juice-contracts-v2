@@ -25,6 +25,7 @@
         "@nomiclabs/hardhat-etherscan": "^2.1.4",
         "@openzeppelin/contracts": "^4.5.0-rc.0",
         "@paulrberg/contracts": "^3.4.0",
+        "@rari-capital/solmate": "^6.2.0",
         "dotenv": "^10.0.0",
         "esm": "^3.2.25",
         "glob": "^7.2.0",
