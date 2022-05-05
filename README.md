@@ -31,7 +31,7 @@ End-to-end tests have been written in Solidity, using Foundry.
 
 To get set up:
 
-1. Install [Foundry](https://github.com/gakonst/foundry).
+1. Install [Foundry](https://github.com/gakonst/foundry). This step may require extra bits like `libusb`, have `brew`, or similar, ready.
 
 ```bash
 curl -L https://foundry.paradigm.xyz | sh
@@ -43,13 +43,19 @@ curl -L https://foundry.paradigm.xyz | sh
 git submodule update --init
 ```
 
-3. Run tests:
+3. Update foundry to get the baseline install:
+
+```bash
+foundryup
+```
+
+4. Run tests:
 
 ```bash
 forge test
 ```
 
-4. Update Foundry periodically:
+5. Update Foundry periodically:
 
 ```bash
 foundryup
