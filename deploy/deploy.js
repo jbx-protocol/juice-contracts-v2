@@ -28,7 +28,7 @@ module.exports = async ({ deployments, getChainId }) => {
     case '1':
       multisigAddress = '0xAF28bcB48C40dBC86f52D459A6562F658fc94B1e';
       chainlinkV2UsdEthPriceFeed = '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419';
-      protocolProjectStartsAtOrAfter = 1650741573;
+      protocolProjectStartsAtOrAfter = 1651951173;
       break;
     // rinkeby
     case '4':
