@@ -159,7 +159,7 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
     const unpackedMetadata = {
       global: {
         allowSetTerminals,
-        allowSetControllers
+        allowSetControllers,
       },
       reservedRate,
       redemptionRate,

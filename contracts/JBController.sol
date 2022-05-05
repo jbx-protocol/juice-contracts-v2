@@ -628,12 +628,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     string calldata _memo,
     bool _preferClaimedTokens,
     bool _useReservedRate
-  )
-    external
-    virtual
-    override
-    returns (uint256 beneficiaryTokenCount)
-  {
+  ) external virtual override returns (uint256 beneficiaryTokenCount) {
     // There should be tokens to mint.
     if (_tokenCount == 0) revert ZERO_TOKENS_TO_MINT();
 
@@ -651,13 +646,15 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
         projects.ownerOf(_projectId),
         _projectId,
         JBOperations.MINT,
-        directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender)) || msg.sender == address(_fundingCycle.dataSource())
+        directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender)) ||
+          msg.sender == address(_fundingCycle.dataSource())
       );
 
       // If the message sender is not a terminal or a datasource, the current funding cycle must allow minting.
-      if ( !_fundingCycle.mintingAllowed()
-        && !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))
-        && msg.sender != address(_fundingCycle.dataSource())
+      if (
+        !_fundingCycle.mintingAllowed() &&
+        !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender)) &&
+        msg.sender != address(_fundingCycle.dataSource())
       ) revert MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE();
 
       // Determine the reserved rate to use.

@@ -639,7 +639,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         /* _beneficiary */ beneficiary.address,
         /* _amount */ AMOUNT_TO_DISTRIBUTE,
         /* _distributedAmount */ AMOUNT,
-        /* _netDistributedAmount */  AMOUNT_MINUS_FEES,
+        /* _netDistributedAmount */ AMOUNT_MINUS_FEES,
         MEMO,
         /* msg.sender */ projectOwner.address,
       );
@@ -710,25 +710,27 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
 
     // Use allowance and hold fee
-    expect(await jbEthPaymentTerminal
-      .connect(projectOwner)
-      .useAllowanceOf(
-        PROJECT_ID,
-        AMOUNT_TO_DISTRIBUTE,
-        CURRENCY_ETH,
-        ethers.constants.AddressZero,
-        /* minReturnedTokens */ AMOUNT,
-        beneficiary.address,
-        MEMO,
-      )
-    ).to.emit(jbEthPaymentTerminal, 'HoldFee')
+    expect(
+      await jbEthPaymentTerminal
+        .connect(projectOwner)
+        .useAllowanceOf(
+          PROJECT_ID,
+          AMOUNT_TO_DISTRIBUTE,
+          CURRENCY_ETH,
+          ethers.constants.AddressZero,
+          /* minReturnedTokens */ AMOUNT,
+          beneficiary.address,
+          MEMO,
+        ),
+    )
+      .to.emit(jbEthPaymentTerminal, 'HoldFee')
       .withArgs(
         PROJECT_ID,
         AMOUNT,
         DEFAULT_FEE,
         0, // discount fee
         projectOwner.address,
-        projectOwner.address
+        projectOwner.address,
       );
 
     // Should be holding fees in the contract
@@ -739,10 +741,15 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     // Process held fees
     const tx = await jbEthPaymentTerminal.connect(projectOwner).processFees(PROJECT_ID);
 
-    expect(await tx).to.emit(jbEthPaymentTerminal, 'ProcessFee')
+    expect(await tx)
+      .to.emit(jbEthPaymentTerminal, 'ProcessFee')
       .withArgs(
         PROJECT_ID,
-        ethers.BigNumber.from(AMOUNT).sub(ethers.BigNumber.from(AMOUNT).mul(MAX_FEE).div(ethers.BigNumber.from(MAX_FEE).add(DEFAULT_FEE))),
+        ethers.BigNumber.from(AMOUNT).sub(
+          ethers.BigNumber.from(AMOUNT)
+            .mul(MAX_FEE)
+            .div(ethers.BigNumber.from(MAX_FEE).add(DEFAULT_FEE)),
+        ),
         true,
         projectOwner.address,
         projectOwner.address,
@@ -811,25 +818,27 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
 
     // Use allowance and hold fee
-    expect(await jbEthPaymentTerminal
-      .connect(projectOwner)
-      .useAllowanceOf(
-        PROJECT_ID,
-        AMOUNT_TO_DISTRIBUTE,
-        CURRENCY_ETH,
-        ethers.constants.AddressZero,
-        /* minReturnedTokens */ AMOUNT,
-        beneficiary.address,
-        MEMO,
-      )
-    ).to.emit(jbEthPaymentTerminal, 'HoldFee')
+    expect(
+      await jbEthPaymentTerminal
+        .connect(projectOwner)
+        .useAllowanceOf(
+          PROJECT_ID,
+          AMOUNT_TO_DISTRIBUTE,
+          CURRENCY_ETH,
+          ethers.constants.AddressZero,
+          /* minReturnedTokens */ AMOUNT,
+          beneficiary.address,
+          MEMO,
+        ),
+    )
+      .to.emit(jbEthPaymentTerminal, 'HoldFee')
       .withArgs(
         PROJECT_ID,
         AMOUNT,
         DEFAULT_FEE,
         0, // discount fee
         projectOwner.address,
-        projectOwner.address
+        projectOwner.address,
       );
 
     // Should be holding fees in the contract
@@ -844,10 +853,15 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     // Process held fees
     const tx = await jbEthPaymentTerminal.connect(caller).processFees(PROJECT_ID);
 
-    expect(await tx).to.emit(jbEthPaymentTerminal, 'ProcessFee')
+    expect(await tx)
+      .to.emit(jbEthPaymentTerminal, 'ProcessFee')
       .withArgs(
         PROJECT_ID,
-        ethers.BigNumber.from(AMOUNT).sub(ethers.BigNumber.from(AMOUNT).mul(MAX_FEE).div(ethers.BigNumber.from(MAX_FEE).add(DEFAULT_FEE))),
+        ethers.BigNumber.from(AMOUNT).sub(
+          ethers.BigNumber.from(AMOUNT)
+            .mul(MAX_FEE)
+            .div(ethers.BigNumber.from(MAX_FEE).add(DEFAULT_FEE)),
+        ),
         true,
         projectOwner.address,
         caller.address,
@@ -916,25 +930,27 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     await jbEthPaymentTerminal.connect(terminalOwner).setFee(DEFAULT_FEE);
 
     // Use allowance and hold fee
-    expect(await jbEthPaymentTerminal
-      .connect(projectOwner)
-      .useAllowanceOf(
-        PROJECT_ID,
-        AMOUNT_TO_DISTRIBUTE,
-        CURRENCY_ETH,
-        ethers.constants.AddressZero,
-        /* minReturnedTokens */ AMOUNT,
-        beneficiary.address,
-        MEMO,
-      )
-    ).to.emit(jbEthPaymentTerminal, 'HoldFee')
+    expect(
+      await jbEthPaymentTerminal
+        .connect(projectOwner)
+        .useAllowanceOf(
+          PROJECT_ID,
+          AMOUNT_TO_DISTRIBUTE,
+          CURRENCY_ETH,
+          ethers.constants.AddressZero,
+          /* minReturnedTokens */ AMOUNT,
+          beneficiary.address,
+          MEMO,
+        ),
+    )
+      .to.emit(jbEthPaymentTerminal, 'HoldFee')
       .withArgs(
         PROJECT_ID,
         AMOUNT,
         DEFAULT_FEE,
         0, // discount fee
         projectOwner.address,
-        projectOwner.address
+        projectOwner.address,
       );
 
     // Should be holding fees in the contract
@@ -950,8 +966,9 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
       .withArgs(caller.address, projectOwner.address, 0, PROCESS_FEES_PERMISSION_INDEX)
       .returns(false);
 
-    await expect(jbEthPaymentTerminal.connect(caller).processFees(PROJECT_ID))
-      .to.be.revertedWith(errors.UNAUTHORIZED);
+    await expect(jbEthPaymentTerminal.connect(caller).processFees(PROJECT_ID)).to.be.revertedWith(
+      errors.UNAUTHORIZED,
+    );
   });
 
   it(`Can't send funds from overflow without project access`, async function () {

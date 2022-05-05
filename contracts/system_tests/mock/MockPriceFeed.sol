@@ -3,7 +3,6 @@ pragma solidity 0.8.6;
 
 import '../../interfaces/IJBPriceFeed.sol';
 
-
 contract MockPriceFeed is IJBPriceFeed {
   uint256 public fakePrice;
 
@@ -11,7 +10,7 @@ contract MockPriceFeed is IJBPriceFeed {
     fakePrice = _fakePrice;
   }
 
-  function currentPrice(uint256 _decimals) external view override returns(uint256 _quote) {
+  function currentPrice(uint256 _decimals) external view override returns (uint256 _quote) {
     return (fakePrice * _decimals);
   }
 }
