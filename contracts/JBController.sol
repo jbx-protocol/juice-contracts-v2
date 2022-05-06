@@ -411,7 +411,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     @param _metadata Metadata specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
     @param _mustStartAtOrAfter The time before which the configured funding cycle cannot start.
     @param _groupedSplits An array of splits to set for any number of groups. 
-    @param _fundAccessConstraints An array containing amounts that a project can use from its treasury for each payment terminal. Amounts are fixed point numbers using the same number of decimals as the accompanying terminal.
+    @param _fundAccessConstraints An array containing amounts that a project can use from its treasury for each payment terminal. Amounts are fixed point numbers using the same number of decimals as the accompanying terminal. The `_distributionLimit` and `_overflowAllowance` parameters must fit in a `uint232`.
     @param _terminals Payment terminals to add for the project.
     @param _memo A memo to pass along to the emitted event.
 
@@ -465,7 +465,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     @param _metadata Metadata specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
     @param _mustStartAtOrAfter The time before which the configured funding cycle cannot start.
     @param _groupedSplits An array of splits to set for any number of groups. 
-    @param _fundAccessConstraints An array containing amounts that a project can use from its treasury for each payment terminal. Amounts are fixed point numbers using the same number of decimals as the accompanying terminal.
+    @param _fundAccessConstraints An array containing amounts that a project can use from its treasury for each payment terminal. Amounts are fixed point numbers using the same number of decimals as the accompanying terminal. The `_distributionLimit` and `_overflowAllowance` parameters must fit in a `uint232`.
     @param _terminals Payment terminals to add for the project.
     @param _memo A memo to pass along to the emitted event.
 
@@ -523,7 +523,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     @param _metadata Metadata specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
     @param _mustStartAtOrAfter The time before which the configured funding cycle cannot start.
     @param _groupedSplits An array of splits to set for any number of groups. 
-    @param _fundAccessConstraints An array containing amounts that a project can use from its treasury for each payment terminal. Amounts are fixed point numbers using the same number of decimals as the accompanying terminal.
+    @param _fundAccessConstraints An array containing amounts that a project can use from its treasury for each payment terminal. Amounts are fixed point numbers using the same number of decimals as the accompanying terminal. The `_distributionLimit` and `_overflowAllowance` parameters must fit in a `uint232`.
     @param _memo A memo to pass along to the emitted event.
 
     @return configuration The configuration of the funding cycle that was successfully reconfigured.
@@ -665,7 +665,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     Mint new token supply into an account, and optionally reserve a supply to be distributed according to the project's current funding cycle configuration.
 
     @dev
-    Only a project's owner, a designated operator, or one of its terminals can mint its tokens.
+    Only a project's owner, a designated operator, one of its terminals, or the current data source can mint its tokens.
 
     @param _projectId The ID of the project to which the tokens being minted belong.
     @param _tokenCount The amount of tokens to mint in total, counting however many should be reserved.
@@ -683,18 +683,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     string calldata _memo,
     bool _preferClaimedTokens,
     bool _useReservedRate
-  )
-    external
-    virtual
-    override
-    requirePermissionAllowingOverride(
-      projects.ownerOf(_projectId),
-      _projectId,
-      JBOperations.MINT,
-      directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))
-    )
-    returns (uint256 beneficiaryTokenCount)
-  {
+  ) external virtual override returns (uint256 beneficiaryTokenCount) {
     // There should be tokens to mint.
     if (_tokenCount == 0) revert ZERO_TOKENS_TO_MINT();
 
@@ -707,10 +696,20 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
       // Get a reference to the project's current funding cycle.
       JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-      // If the message sender is not a terminal, the current funding cycle must allow minting.
+      // Minting limited to: project owner, authorized callers, project terminal and current funding cycle data source
+      _requirePermissionAllowingOverride(
+        projects.ownerOf(_projectId),
+        _projectId,
+        JBOperations.MINT,
+        directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender)) ||
+          msg.sender == address(_fundingCycle.dataSource())
+      );
+
+      // If the message sender is not a terminal or a datasource, the current funding cycle must allow minting.
       if (
         !_fundingCycle.mintingAllowed() &&
-        !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))
+        !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender)) &&
+        msg.sender != address(_fundingCycle.dataSource())
       ) revert MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE();
 
       // Determine the reserved rate to use.

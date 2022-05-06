@@ -148,6 +148,8 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
     allowChangeToken = false,
     allowTerminalMigration = false,
     allowControllerMigration = false,
+    allowSetTerminals = false,
+    allowSetControllers = false,
     holdFees = false,
     useTotalOverflowForRedemptions = false,
     useDataSourceForPay = false,
@@ -155,6 +157,10 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
     dataSource = ethers.constants.AddressZero,
   } = {}) {
     const unpackedMetadata = {
+      global: {
+        allowSetTerminals,
+        allowSetControllers,
+      },
       reservedRate,
       redemptionRate,
       ballotRedemptionRate,

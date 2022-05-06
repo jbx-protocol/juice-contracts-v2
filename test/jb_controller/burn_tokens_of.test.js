@@ -102,14 +102,7 @@ describe('JBController::burnTokenOf(...)', function () {
 
     await jbController
       .connect(projectOwner)
-      .mintTokensOf(
-        PROJECT_ID,
-        TOTAL_SUPPLY,
-        holder.address,
-        MEMO,
-        PREFERED_CLAIMED_TOKEN,
-        RESERVED_RATE,
-      );
+      .mintTokensOf(PROJECT_ID, TOTAL_SUPPLY, holder.address, MEMO, PREFERED_CLAIMED_TOKEN, true);
 
     return {
       projectOwner,
@@ -189,8 +182,7 @@ describe('JBController::burnTokenOf(...)', function () {
       jbController
         .connect(caller)
         .burnTokensOf(holder.address, PROJECT_ID, AMOUNT_TO_BURN, MEMO, PREFERED_CLAIMED_TOKEN),
-    )
-      .to.be.revertedWith(errors.UNAUTHORIZED);
+    ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 
   it(`Should burn token if caller is a terminal of the corresponding project`, async function () {

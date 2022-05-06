@@ -42,7 +42,9 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
     const jbCurrencies = await jbCurrenciesFactory.deploy();
     const CURRENCY_ETH = await jbCurrencies.ETH();
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBSingleTokenPaymentTerminalStore');
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
+      'JBSingleTokenPaymentTerminalStore',
+    );
     const JBSingleTokenPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
@@ -184,7 +186,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
     const packedMetadata = packFundingCycleMetadata({
       pauseRedeem: 0,
       reservedRate: reservedRate,
-      useTotalOverflowForRedemptions: true
+      useTotalOverflowForRedemptions: true,
     });
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
@@ -203,7 +205,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
     await mockJbDirectory.mock.terminalsOf.withArgs(PROJECT_ID).returns([mockJbTerminal.address]);
-    await mockJbTerminal.mock.currentEthOverflowOf.withArgs(PROJECT_ID).returns(AMOUNT)
+    await mockJbTerminal.mock.currentEthOverflowOf.withArgs(PROJECT_ID).returns(AMOUNT);
 
     /* Mocks for _reclaimableOverflowOf private method */
     await mockJbController.mock.distributionLimitOf
@@ -471,15 +473,11 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
         mockJbTerminalSigner.address,
         holder.address,
         PROJECT_ID,
+        timestamp,
         /*tokenCount*/ AMOUNT,
         /*totalSupply*/ AMOUNT,
         /*overflow*/ AMOUNT,
-        [
-          token,
-          AMOUNT,
-            /*decimals*/ _FIXED_POINT_MAX_FIDELITY,
-          CURRENCY
-        ],
+        [token, AMOUNT, /*decimals*/ _FIXED_POINT_MAX_FIDELITY, CURRENCY],
         false,
         redemptionRate,
         ballotRedemptionRate,
@@ -610,7 +608,9 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
     });
     const delegate = addrs[0];
 
-    await mockJbTokenStore.mock.balanceOf.withArgs(holder.address, PROJECT_ID).returns(AMOUNT.add(1));
+    await mockJbTokenStore.mock.balanceOf
+      .withArgs(holder.address, PROJECT_ID)
+      .returns(AMOUNT.add(1));
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
     await mockJbController.mock.totalOutstandingTokensOf
@@ -637,15 +637,11 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
         mockJbTerminalSigner.address,
         holder.address,
         PROJECT_ID,
+        timestamp,
         /*tokenCount*/ AMOUNT.add(1),
         /*totalSupply*/ AMOUNT,
         /*overflow*/ 0,
-        [
-          token,
-            /*reclaim amount*/0,
-            /*decimals*/ _FIXED_POINT_MAX_FIDELITY,
-          CURRENCY
-        ],
+        [token, /*reclaim amount*/ 0, /*decimals*/ _FIXED_POINT_MAX_FIDELITY, CURRENCY],
         false,
         redemptionRate,
         ballotRedemptionRate,
@@ -728,15 +724,11 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
         mockJbTerminalSigner.address,
         holder.address,
         PROJECT_ID,
+        timestamp,
         /*tokenCount*/ AMOUNT,
         /*totalSupply*/ AMOUNT,
         /*overflow*/ 0,
-        [
-          token,
-            /*reclaim amount*/0,
-            /*decimals*/ _FIXED_POINT_MAX_FIDELITY,
-          CURRENCY
-        ],
+        [token, /*reclaim amount*/ 0, /*decimals*/ _FIXED_POINT_MAX_FIDELITY, CURRENCY],
         false,
         redemptionRate,
         ballotRedemptionRate,

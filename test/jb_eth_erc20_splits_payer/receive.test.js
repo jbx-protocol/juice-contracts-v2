@@ -45,7 +45,8 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
   });
 
   async function setup() {
-    let [deployer, owner, caller, beneficiaryOne, beneficiaryTwo, beneficiaryThree, ...addrs] = await ethers.getSigners();
+    let [deployer, owner, caller, beneficiaryOne, beneficiaryTwo, beneficiaryThree, ...addrs] =
+      await ethers.getSigners();
 
     let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
     let mockJbSplitsStore = await deployMockContract(deployer, jbSplitsStore.abi);
@@ -83,7 +84,7 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
       mockJbTerminal,
       mockJbSplitsStore,
       jbSplitsPayer,
-      jbSplitsPayerFactory
+      jbSplitsPayerFactory,
     };
   }
 
@@ -99,20 +100,18 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
       .returns(splits);
 
     await Promise.all(
-      splits.map(async split => {
+      splits.map(async (split) => {
         await mockJbAllocator.mock.allocate
-          .withArgs(
-            {
-              token: ethToken,
-              amount: AMOUNT.mul(split.percent).div(maxSplitsPercent),
-              decimals: 18,
-              projectId: DEFAULT_PROJECT_ID,
-              group: 0,
-              split: split
-            }
-          )
+          .withArgs({
+            token: ethToken,
+            amount: AMOUNT.mul(split.percent).div(maxSplitsPercent),
+            decimals: 18,
+            projectId: DEFAULT_PROJECT_ID,
+            group: 0,
+            split: split,
+          })
           .returns();
-      })
+      }),
     );
 
     let tx = await caller.sendTransaction({ to: jbSplitsPayer.address, value: AMOUNT });
@@ -120,7 +119,8 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
   });
 
   it(`Should send fund towards project terminal if project ID is set in split and add to balance if it is prefered`, async function () {
-    const { caller, jbSplitsPayer, mockJbSplitsStore, mockJbDirectory, mockJbTerminal } = await setup();
+    const { caller, jbSplitsPayer, mockJbSplitsStore, mockJbDirectory, mockJbTerminal } =
+      await setup();
 
     let splits = makeSplits({ projectId: PROJECT_ID, preferAddToBalance: true });
 
@@ -131,17 +131,17 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
     await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(18);
 
     await Promise.all(
-      splits.map(async split => {
+      splits.map(async (split) => {
         await mockJbTerminal.mock.addToBalanceOf
           .withArgs(
             split.projectId,
             AMOUNT.mul(split.percent).div(maxSplitsPercent),
             ethToken,
             DEFAULT_MEMO,
-            DEFAULT_METADATA
+            DEFAULT_METADATA,
           )
           .returns();
-      })
+      }),
     );
 
     await mockJbSplitsStore.mock.splitsOf
@@ -153,8 +153,20 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
   });
 
   it(`Should send fund towards project terminal if project ID is set in split, using pay with beneficiaries set in splits`, async function () {
-    const { caller, beneficiaryOne, beneficiaryTwo, jbSplitsPayer, mockJbSplitsStore, mockJbDirectory, mockJbTerminal } = await setup();
-    let splits = makeSplits({ count: 2, projectId: PROJECT_ID, beneficiary: [beneficiaryOne.address, beneficiaryTwo.address] });
+    const {
+      caller,
+      beneficiaryOne,
+      beneficiaryTwo,
+      jbSplitsPayer,
+      mockJbSplitsStore,
+      mockJbDirectory,
+      mockJbTerminal,
+    } = await setup();
+    let splits = makeSplits({
+      count: 2,
+      projectId: PROJECT_ID,
+      beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
+    });
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(PROJECT_ID, ethToken)
@@ -163,20 +175,20 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
     await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(18);
 
     await Promise.all(
-      splits.map(async split => {
+      splits.map(async (split) => {
         await mockJbTerminal.mock.pay
           .withArgs(
             split.projectId,
             AMOUNT.mul(split.percent).div(maxSplitsPercent),
             ethToken,
             split.beneficiary,
-            0, /*hardcoded*/
+            0 /*hardcoded*/,
             split.preferClaimed,
             DEFAULT_MEMO,
-            DEFAULT_METADATA
+            DEFAULT_METADATA,
           )
           .returns(0); // Not used
-      })
+      }),
     );
 
     await mockJbSplitsStore.mock.splitsOf
@@ -188,7 +200,8 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
   });
 
   it(`Should send fund towards project terminal if project ID is set in split, using pay with the caller as beneficiary is none is set in splits`, async function () {
-    const { caller, jbSplitsPayer, mockJbSplitsStore, mockJbDirectory, mockJbTerminal } = await setup();
+    const { caller, jbSplitsPayer, mockJbSplitsStore, mockJbDirectory, mockJbTerminal } =
+      await setup();
 
     let splits = makeSplits({ projectId: PROJECT_ID });
 
@@ -199,20 +212,20 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
     await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(18);
 
     await Promise.all(
-      splits.map(async split => {
+      splits.map(async (split) => {
         await mockJbTerminal.mock.pay
           .withArgs(
             split.projectId,
             AMOUNT.mul(split.percent).div(maxSplitsPercent),
             ethToken,
             caller.address,
-            0, /*hardcoded*/
+            0 /*hardcoded*/,
             split.preferClaimed,
             DEFAULT_MEMO,
-            DEFAULT_METADATA
+            DEFAULT_METADATA,
           )
           .returns(0); // Not used
-      })
+      }),
     );
 
     await mockJbSplitsStore.mock.splitsOf
@@ -224,17 +237,27 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
   });
 
   it(`Should send fund directly to a beneficiary set in split, if no allocator or project ID is set in splits`, async function () {
-    const { caller, beneficiaryOne, beneficiaryTwo, jbSplitsPayer, mockJbSplitsStore } = await setup();
+    const { caller, beneficiaryOne, beneficiaryTwo, jbSplitsPayer, mockJbSplitsStore } =
+      await setup();
 
-    let splits = makeSplits({ count: 2, beneficiary: [beneficiaryOne.address, beneficiaryTwo.address] });
+    let splits = makeSplits({
+      count: 2,
+      beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
+    });
 
     await mockJbSplitsStore.mock.splitsOf
       .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
       .returns(splits);
 
     let tx = await caller.sendTransaction({ to: jbSplitsPayer.address, value: AMOUNT });
-    await expect(tx).to.changeEtherBalance(beneficiaryOne, AMOUNT.mul(splits[0].percent).div(maxSplitsPercent));
-    await expect(tx).to.changeEtherBalance(beneficiaryTwo, AMOUNT.mul(splits[0].percent).div(maxSplitsPercent));
+    await expect(tx).to.changeEtherBalance(
+      beneficiaryOne,
+      AMOUNT.mul(splits[0].percent).div(maxSplitsPercent),
+    );
+    await expect(tx).to.changeEtherBalance(
+      beneficiaryTwo,
+      AMOUNT.mul(splits[0].percent).div(maxSplitsPercent),
+    );
   });
 
   it(`Should send fund directly to the caller, if no allocator, project ID or beneficiary is set`, async function () {
@@ -251,10 +274,23 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
   });
 
   it(`Should send eth leftover to project id if set, using pay`, async function () {
-    const { caller, jbSplitsPayer, mockJbDirectory, mockJbSplitsStore, mockJbTerminal, beneficiaryOne, beneficiaryTwo, beneficiaryThree } = await setup();
+    const {
+      caller,
+      jbSplitsPayer,
+      mockJbDirectory,
+      mockJbSplitsStore,
+      mockJbTerminal,
+      beneficiaryOne,
+      beneficiaryTwo,
+      beneficiaryThree,
+    } = await setup();
 
     // 50% to beneficiaries
-    let splits = makeSplits({ count: 2, beneficiary: [beneficiaryOne.address, beneficiaryTwo.address], percent: maxSplitsPercent.div('4') });
+    let splits = makeSplits({
+      count: 2,
+      beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
+      percent: maxSplitsPercent.div('4'),
+    });
 
     await mockJbSplitsStore.mock.splitsOf
       .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
@@ -275,18 +311,34 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
         0,
         DEFAULT_PREFER_CLAIMED_TOKENS,
         DEFAULT_MEMO,
-        DEFAULT_METADATA
+        DEFAULT_METADATA,
       )
       .returns(0); // Not used
 
     let tx = await caller.sendTransaction({ to: jbSplitsPayer.address, value: AMOUNT });
-    await expect(tx).to.changeEtherBalance(beneficiaryOne, AMOUNT.mul(splits[0].percent).div(maxSplitsPercent));
-    await expect(tx).to.changeEtherBalance(beneficiaryTwo, AMOUNT.mul(splits[0].percent).div(maxSplitsPercent));
+    await expect(tx).to.changeEtherBalance(
+      beneficiaryOne,
+      AMOUNT.mul(splits[0].percent).div(maxSplitsPercent),
+    );
+    await expect(tx).to.changeEtherBalance(
+      beneficiaryTwo,
+      AMOUNT.mul(splits[0].percent).div(maxSplitsPercent),
+    );
     await expect(tx).to.changeEtherBalance(mockJbTerminal, AMOUNT.div(2));
   });
 
   it(`Should send eth leftover to project id if set, using addToBalance`, async function () {
-    const { caller, owner, jbSplitsPayerFactory, mockJbDirectory, mockJbSplitsStore, mockJbTerminal, beneficiaryOne, beneficiaryTwo, beneficiaryThree } = await setup();
+    const {
+      caller,
+      owner,
+      jbSplitsPayerFactory,
+      mockJbDirectory,
+      mockJbSplitsStore,
+      mockJbTerminal,
+      beneficiaryOne,
+      beneficiaryTwo,
+      beneficiaryThree,
+    } = await setup();
 
     let jbSplitsPayerPreferAddToBalance = await jbSplitsPayerFactory.deploy(
       DEFAULT_SPLITS_PROJECT_ID,
@@ -303,7 +355,11 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
     );
 
     // 50% to beneficiaries
-    let splits = makeSplits({ count: 2, beneficiary: [beneficiaryOne.address, beneficiaryTwo.address], percent: maxSplitsPercent.div('4') });
+    let splits = makeSplits({
+      count: 2,
+      beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
+      percent: maxSplitsPercent.div('4'),
+    });
 
     await mockJbSplitsStore.mock.splitsOf
       .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
@@ -316,23 +372,35 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
       .returns(mockJbTerminal.address);
 
     await mockJbTerminal.mock.addToBalanceOf
-      .withArgs(
-        DEFAULT_PROJECT_ID,
-        AMOUNT.div('2'),
-        ethToken,
-        DEFAULT_MEMO,
-        DEFAULT_METADATA
-      )
+      .withArgs(DEFAULT_PROJECT_ID, AMOUNT.div('2'), ethToken, DEFAULT_MEMO, DEFAULT_METADATA)
       .returns();
 
-    let tx = await caller.sendTransaction({ to: jbSplitsPayerPreferAddToBalance.address, value: AMOUNT });
-    await expect(tx).to.changeEtherBalance(beneficiaryOne, AMOUNT.mul(splits[0].percent).div(maxSplitsPercent));
-    await expect(tx).to.changeEtherBalance(beneficiaryTwo, AMOUNT.mul(splits[0].percent).div(maxSplitsPercent));
+    let tx = await caller.sendTransaction({
+      to: jbSplitsPayerPreferAddToBalance.address,
+      value: AMOUNT,
+    });
+    await expect(tx).to.changeEtherBalance(
+      beneficiaryOne,
+      AMOUNT.mul(splits[0].percent).div(maxSplitsPercent),
+    );
+    await expect(tx).to.changeEtherBalance(
+      beneficiaryTwo,
+      AMOUNT.mul(splits[0].percent).div(maxSplitsPercent),
+    );
     await expect(tx).to.changeEtherBalance(mockJbTerminal, AMOUNT.div(2));
   });
 
   it(`Should send eth leftover to beneficiary if no project id set`, async function () {
-    const { caller, owner, jbSplitsPayerFactory, mockJbSplitsStore, mockJbTerminal, beneficiaryOne, beneficiaryTwo, beneficiaryThree } = await setup();
+    const {
+      caller,
+      owner,
+      jbSplitsPayerFactory,
+      mockJbSplitsStore,
+      mockJbTerminal,
+      beneficiaryOne,
+      beneficiaryTwo,
+      beneficiaryThree,
+    } = await setup();
 
     let jbSplitsPayer = await jbSplitsPayerFactory.deploy(
       DEFAULT_SPLITS_PROJECT_ID,
@@ -348,7 +416,11 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
       owner.address,
     );
     // 50% to beneficiaries
-    let splits = makeSplits({ count: 2, beneficiary: [beneficiaryOne.address, beneficiaryTwo.address], percent: maxSplitsPercent.div('4') });
+    let splits = makeSplits({
+      count: 2,
+      beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
+      percent: maxSplitsPercent.div('4'),
+    });
 
     await mockJbSplitsStore.mock.splitsOf
       .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
@@ -365,7 +437,7 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
         MEMO,
-        METADATA
+        METADATA,
       )
       .returns(0); // Not used
 
@@ -374,7 +446,16 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
   });
 
   it(`Should send eth leftover to the caller if no project id nor beneficiary is set`, async function () {
-    const { caller, owner, jbSplitsPayerFactory, mockJbSplitsStore, mockJbTerminal, beneficiaryOne, beneficiaryTwo, beneficiaryThree } = await setup();
+    const {
+      caller,
+      owner,
+      jbSplitsPayerFactory,
+      mockJbSplitsStore,
+      mockJbTerminal,
+      beneficiaryOne,
+      beneficiaryTwo,
+      beneficiaryThree,
+    } = await setup();
 
     let jbSplitsPayer = await jbSplitsPayerFactory.deploy(
       DEFAULT_SPLITS_PROJECT_ID,
@@ -390,7 +471,11 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
       owner.address,
     );
     // 50% to beneficiaries
-    let splits = makeSplits({ count: 2, beneficiary: [beneficiaryOne.address, beneficiaryTwo.address], percent: maxSplitsPercent.div('4') });
+    let splits = makeSplits({
+      count: 2,
+      beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
+      percent: maxSplitsPercent.div('4'),
+    });
 
     await mockJbSplitsStore.mock.splitsOf
       .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
@@ -407,7 +492,7 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
         MEMO,
-        METADATA
+        METADATA,
       )
       .returns(0); // Not used
 

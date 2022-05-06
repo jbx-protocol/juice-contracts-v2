@@ -38,14 +38,14 @@ module.exports = {
     },
     rinkeby: {
       url: 'https://rinkeby.infura.io/v3/' + infuraId,
-      gasPrice: 50000000000,
+      gasPrice: 40000000000,
       accounts: {
         mnemonic: mnemonic(),
       },
     },
     mainnet: {
       url: 'https://mainnet.infura.io/v3/' + infuraId,
-      gasPrice: 50000000000,
+      gasPrice: 40000000000,
       accounts: {
         mnemonic: mnemonic(),
       },
@@ -142,26 +142,24 @@ task('compile:one', 'Compiles a single contract in isolation')
     });
   });
 
-task("deploy-ballot", "Deploy a buffer ballot of a given duration").addParam("duration", "Set the ballot duration (in seconds)").setAction(async (taskArgs, hre) => {
-  try {
-    const { get, deploy } = deployments;
-    const [deployer] = await hre.ethers.getSigners();
+task('deploy-ballot', 'Deploy a buffer ballot of a given duration')
+  .addParam('duration', 'Set the ballot duration (in seconds)')
+  .setAction(async (taskArgs, hre) => {
+    try {
+      const { get, deploy } = deployments;
+      const [deployer] = await hre.ethers.getSigners();
 
-    // Take the previously deployed
-    const JBFundingCycleStoreDeployed = await get('JBFundingCycleStore')
+      // Take the previously deployed
+      const JBFundingCycleStoreDeployed = await get('JBFundingCycleStore');
 
-    const JB3DayReconfigurationBufferBallot = await deploy(
-      'JBReconfigurationBufferBallot',
-      {
+      const JB3DayReconfigurationBufferBallot = await deploy('JBReconfigurationBufferBallot', {
         from: deployer.address,
         log: true,
-        args: [taskArgs.duration, JBFundingCycleStoreDeployed.address]
-      }
-    );
+        args: [taskArgs.duration, JBFundingCycleStoreDeployed.address],
+      });
 
-    console.log('Buffer ballot deployed at ' + JB3DayReconfigurationBufferBallot.address);
-
-  } catch (error) {
-    console.log(error);
-  }
-})
+      console.log('Buffer ballot deployed at ' + JB3DayReconfigurationBufferBallot.address);
+    } catch (error) {
+      console.log(error);
+    }
+  });

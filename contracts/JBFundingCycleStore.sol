@@ -25,6 +25,7 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
   error INVALID_DISCOUNT_RATE();
   error INVALID_DURATION();
   error INVALID_WEIGHT();
+  error NO_SAME_BLOCK_RECONFIGURATION();
 
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
@@ -385,15 +386,15 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
       _currentConfiguration = latestConfigurationOf[_projectId];
 
     // Get a reference to the funding cycle.
-    JBFundingCycle memory _fundingCycle = _getStructFor(_projectId, _currentConfiguration);
+    JBFundingCycle memory _baseFundingCycle = _getStructFor(_projectId, _currentConfiguration);
 
-    if (!_isApproved(_projectId, _fundingCycle))
+    if (!_isApproved(_projectId, _baseFundingCycle))
       // If it hasn't been approved, set the ID to be the funding cycle it's based on,
       // which carries the latest approved configuration.
-      _currentConfiguration = _getStructFor(_projectId, _currentConfiguration).basedOn;
+      _baseFundingCycle = _getStructFor(_projectId, _baseFundingCycle.basedOn);
 
-    // Determine the funding cycle to use as the base.
-    JBFundingCycle memory _baseFundingCycle = _getStructFor(_projectId, _currentConfiguration);
+    // The configuration can't be the same as the base configuration.
+    if (_baseFundingCycle.configuration == _configuration) revert NO_SAME_BLOCK_RECONFIGURATION();
 
     // The time after the ballot of the provided funding cycle has expired.
     // If the provided funding cycle has no ballot, return the current timestamp.

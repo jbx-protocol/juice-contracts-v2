@@ -61,6 +61,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     });
 
     _metadata = JBFundingCycleMetadata({
+      global: JBGlobalFundingCycleMetadata({allowSetTerminals: false, allowSetController: false}),
       reservedRate: 5000, //50%
       redemptionRate: 10000, //100%
       ballotRedemptionRate: 0,
@@ -72,13 +73,11 @@ contract TestMultipleTerminals is TestBaseWorkflow {
       allowChangeToken: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
-      allowSetTerminals: false,
-      allowSetController: false,
       holdFees: false,
       useTotalOverflowForRedemptions: true,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
-      dataSource: IJBFundingCycleDataSource(address(0))
+      dataSource: address(0)
     });
 
     ERC20terminal = new JBERC20PaymentTerminal(

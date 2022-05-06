@@ -27,6 +27,7 @@ contract TestLaunchProject is TestBaseWorkflow {
     });
 
     _metadata = JBFundingCycleMetadata({
+      global: JBGlobalFundingCycleMetadata({allowSetTerminals: false, allowSetController: false}),
       reservedRate: 5000, //50%
       redemptionRate: 5000, //50%
       ballotRedemptionRate: 0,
@@ -38,13 +39,11 @@ contract TestLaunchProject is TestBaseWorkflow {
       allowChangeToken: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
-      allowSetTerminals: false,
-      allowSetController: false,
       holdFees: false,
       useTotalOverflowForRedemptions: false,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
-      dataSource: IJBFundingCycleDataSource(address(0))
+      dataSource: address(0)
     });
   }
 

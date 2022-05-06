@@ -301,6 +301,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     @param _amount The amount of tokens being paid. Includes the token being paid, the value, the number of decimals included, and the currency of the amount.
     @param _projectId The ID of the project being paid.
     @param _baseWeightCurrency The currency to base token issuance on.
+    @param _beneficiary The specified address that should be the beneficiary of anything that results from the payment.
     @param _memo A memo to pass along to the emitted event, and passed along to the funding cycle's data source.
     @param _metadata Bytes to send along to the data source, if one is provided.
 
@@ -314,8 +315,9 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     JBTokenAmount calldata _amount,
     uint256 _projectId,
     uint256 _baseWeightCurrency,
+    address _beneficiary,
     string calldata _memo,
-    bytes calldata _metadata
+    bytes memory _metadata
   )
     external
     override
@@ -347,12 +349,16 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
         _payer,
         _amount,
         _projectId,
+        fundingCycle.configuration,
+        _beneficiary,
         fundingCycle.weight,
         fundingCycle.reservedRate(),
         _memo,
         _metadata
       );
-      (_weight, memo, delegate) = fundingCycle.dataSource().payParams(_data);
+      (_weight, memo, delegate) = IJBFundingCycleDataSource(fundingCycle.dataSource()).payParams(
+        _data
+      );
     }
     // Otherwise use the funding cycle's weight
     else {
@@ -486,6 +492,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
           IJBSingleTokenPaymentTerminal(msg.sender),
           _holder,
           _projectId,
+          fundingCycle.configuration,
           _tokenCount,
           _totalSupply,
           _currentOverflow,
@@ -496,7 +503,8 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
           _memo,
           _metadata
         );
-        (reclaimAmount, memo, delegate) = fundingCycle.dataSource().redeemParams(_data);
+        (reclaimAmount, memo, delegate) = IJBFundingCycleDataSource(fundingCycle.dataSource())
+          .redeemParams(_data);
       } else {
         memo = _memo;
       }
@@ -685,11 +693,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     @param _projectId The ID of the project to which the funds being added belong.
     @param _amount The amount of terminal tokens added, as a fixed point number with the same amount of decimals as its relative terminal.
   */
-  function recordAddedBalanceFor(uint256 _projectId, uint256 _amount)
-    external
-    override
-    nonReentrant
-  {
+  function recordAddedBalanceFor(uint256 _projectId, uint256 _amount) external override {
     // Increment the balance.
     balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
       balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] +

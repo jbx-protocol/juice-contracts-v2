@@ -40,6 +40,7 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
     });
 
     _metadata = JBFundingCycleMetadata({
+      global: JBGlobalFundingCycleMetadata({allowSetTerminals: false, allowSetController: false}),
       reservedRate: 0,
       redemptionRate: 10000, //100%
       ballotRedemptionRate: 0,
@@ -51,13 +52,11 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
       allowChangeToken: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
-      allowSetTerminals: false,
-      allowSetController: false,
       holdFees: true,
       useTotalOverflowForRedemptions: false,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
-      dataSource: IJBFundingCycleDataSource(address(0))
+      dataSource: address(0)
     });
 
     _terminals.push(_terminal);
@@ -145,8 +144,10 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
       payAmountInWei,
       jbLibraries().ETH(),
       address(0), //token (unused)
-      /*min out*/0,
-      /*LFG*/'lfg'
+      /*min out*/
+      0,
+      /*LFG*/
+      'lfg'
     );
 
     // verify: should have held the fee
