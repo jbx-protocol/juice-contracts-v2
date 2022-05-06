@@ -79,6 +79,7 @@ contract TestNFTRewardsFlow is TestBaseWorkflow {
       ''
     );
 
+    evm.prank(_projectOwner);
     _nft = _controller.issueToken721For(
       _projectId,
       'NFT',
