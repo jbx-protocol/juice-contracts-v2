@@ -130,6 +130,7 @@ contract TestNFTRewardsFlow is TestBaseWorkflow {
       dataSource: _jbNFTRewardDataSourceDelegate
     });
 
+    evm.prank(_projectOwner);
     _controller.reconfigureFundingCyclesOf(
       _projectId,
       _fundingCycleData,
