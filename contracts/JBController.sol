@@ -380,8 +380,8 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     IJBDirectory _directory,
     IJBFundingCycleStore _fundingCycleStore,
     IJBTokenStore _tokenStore,
-    IJBToken721Store _token721Store,
-    IJBSplitsStore _splitsStore
+    IJBSplitsStore _splitsStore,
+    IJBToken721Store _token721Store
   ) JBOperatable(_operatorStore) {
     projects = _projects;
     directory = _directory;
@@ -488,8 +488,9 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     returns (uint256 configuration)
   {
     // If there is a previous configuration, reconfigureFundingCyclesOf should be called instead
-    if (fundingCycleStore.latestConfigurationOf(_projectId) > 0)
+    if (fundingCycleStore.latestConfigurationOf(_projectId) > 0) {
       revert FUNDING_CYCLE_ALREADY_LAUNCHED();
+    }
 
     // Set this contract as the project's controller in the directory.
     directory.setControllerOf(_projectId, address(this));
@@ -586,6 +587,46 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
 
   /**
     @notice
+    Deploys an ERC721 token for contribution rewards for a given project.
+
+    @dev
+    Only a project's owner or operator can issue its token.
+
+    @param _projectId The ID of the project being issued tokens.
+    @param _name Token name
+    @param _symbol Token symbol.
+    @param _baseUri Base URI.
+    @param _tokenUriResolverAddress Optional token URI resolver. If not probided, base URI will be used.
+    @param _contractUri Contract metadata URI
+  */
+  function issueToken721For(
+    uint256 _projectId,
+    string calldata _name,
+    string calldata _symbol,
+    string calldata _baseUri,
+    IJBToken721UriResolver _tokenUriResolverAddress,
+    string calldata _contractUri
+  )
+    external
+    virtual
+    override
+    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.ISSUE)
+    returns (IJBToken721 token)
+  {
+    // Issue the token in the store.
+    return
+      token721Store.issueFor(
+        _projectId,
+        _name,
+        _symbol,
+        _baseUri,
+        _tokenUriResolverAddress,
+        _contractUri
+      );
+  }
+
+  /**
+    @notice
     Swap the current project's token that is minted and burned for another, and transfer ownership of the current token to another address if needed.
 
     @dev
@@ -614,6 +655,10 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     // Change the token in the store.
     tokenStore.changeFor(_projectId, _token, _newOwner);
   }
+
+  // TODO: changeToken721Of();
+  // TODO: addToken721Of();
+  // TODO: removeToken721Of();
 
   /**
     @notice
@@ -708,6 +753,56 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
 
   /**
     @notice
+    Mint new NFT to the beneficiary account if configured as such by the funding cycle data source
+
+    @dev
+    Only a project's owner, a designated operator, or one of its terminals can mint its tokens.
+
+    @param _projectId The ID of the project to which the tokens being minted belong.
+    @param _token The NFT contract to mint against.
+    @param _beneficiary The account that the tokens are being minted for.
+    @param _memo A memo to pass along to the emitted event.
+
+    @return tokenId The NFT id of the newly minted token
+  */
+  function mintTokens721Of(
+    uint256 _projectId,
+    IJBToken721 _token,
+    address _beneficiary,
+    string calldata _memo
+  )
+    external
+    virtual
+    override
+    requirePermissionAllowingOverride(
+      projects.ownerOf(_projectId),
+      _projectId,
+      JBOperations.MINT,
+      directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender)) ||
+        address(fundingCycleStore.currentOf(_projectId).expandMetadata().dataSource) == msg.sender
+    )
+    returns (uint256 tokenId)
+  {
+    // Scoped section prevents stack too deep. `_fundingCycle` only used within scope.
+    {
+      // Get a reference to the project's current funding cycle.
+      JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
+
+      // If the message sender is not a terminal, the current funding cycle must allow minting.
+      if (
+        !_fundingCycle.mintingAllowed() &&
+        !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))
+      ) revert MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE();
+    }
+
+    // Mint the NFT.
+    tokenId = token721Store.mintFor(_beneficiary, _projectId, _token);
+
+    emit MintTokens721(_beneficiary, _projectId, _token, tokenId, _memo, msg.sender);
+  }
+
+  /**
+    @notice
     Burns a token holder's supply.
 
     @dev
@@ -758,6 +853,8 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
 
     emit BurnTokens(_holder, _projectId, _tokenCount, _memo, msg.sender);
   }
+
+  // TODO: burnTokens721Of();
 
   /**
     @notice
