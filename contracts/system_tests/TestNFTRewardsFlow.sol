@@ -43,6 +43,7 @@ contract TestNFTRewardsFlow is TestBaseWorkflow {
     });
 
     _fundingCycleMetadata = JBFundingCycleMetadata({
+      global: JBGlobalFundingCycleMetadata({allowSetTerminals: false, allowSetController: false}),
       reservedRate: _reservedRate,
       redemptionRate: 5000, //50%
       ballotRedemptionRate: 0,
@@ -54,13 +55,11 @@ contract TestNFTRewardsFlow is TestBaseWorkflow {
       allowChangeToken: true,
       allowTerminalMigration: false,
       allowControllerMigration: false,
-      allowSetTerminals: false,
-      allowSetController: false,
       holdFees: false,
       useTotalOverflowForRedemptions: false,
-      useDataSourceForPay: false,
+      useDataSourceForPay: true,
       useDataSourceForRedeem: false,
-      dataSource: JBNFTRewardDataSourceDelegate(address(0))
+      dataSource: address(0)
     });
 
     _projectOwner = multisig();
@@ -110,6 +109,7 @@ contract TestNFTRewardsFlow is TestBaseWorkflow {
     });
 
     _fundingCycleMetadata = JBFundingCycleMetadata({
+      global: JBGlobalFundingCycleMetadata({allowSetTerminals: false, allowSetController: false}),
       reservedRate: _reservedRate,
       redemptionRate: 5000, //50%
       ballotRedemptionRate: 0,
@@ -121,13 +121,11 @@ contract TestNFTRewardsFlow is TestBaseWorkflow {
       allowChangeToken: true,
       allowTerminalMigration: false,
       allowControllerMigration: false,
-      allowSetTerminals: false,
-      allowSetController: false,
       holdFees: false,
       useTotalOverflowForRedemptions: false,
       useDataSourceForPay: true,
       useDataSourceForRedeem: false,
-      dataSource: _jbNFTRewardDataSourceDelegate
+      dataSource: address(_jbNFTRewardDataSourceDelegate)
     });
 
     evm.prank(_projectOwner);
