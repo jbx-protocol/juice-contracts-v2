@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import './interfaces/IJBController.sol';
 import './interfaces/IJBFundingCycleDataSource.sol';
 import './interfaces/IJBPayDelegate.sol';
 import './interfaces/IJBRedemptionDelegate.sol';
 import './interfaces/IJBToken721.sol';
-import './interfaces/IJBToken721Store.sol';
+
 import './structs/JBDidPayData.sol';
 import './structs/JBDidRedeemData.sol';
 import './structs/JBTokenAmount.sol';
@@ -20,7 +21,7 @@ contract JBNFTRewardDataSourceDelegate is
   //*********************************************************************//
 
   uint256 private _projectId;
-  IJBToken721Store private _tokenStore;
+  IJBController private _controller;
   IJBToken721 private _token;
   JBTokenAmount private _minContribution;
   uint256 private _maxSupply;
@@ -28,20 +29,20 @@ contract JBNFTRewardDataSourceDelegate is
 
   /**
     @param projectId JBX project id this reward is associated with.
-    @param tokenStore ERC721 token store that manages the reward NFT contract.
+    @param controller JBC controller.
     @param token ERC721 token to be used as the reward
     @param maxSupply Total number of reward tokens to distribute
     @param minContribution Minumum contribution amout to be eligible for this reward.
   */
   constructor(
     uint256 projectId,
-    IJBToken721Store tokenStore,
+    IJBController controller,
     IJBToken721 token,
     uint256 maxSupply,
     JBTokenAmount memory minContribution
   ) {
     _projectId = projectId;
-    _tokenStore = tokenStore;
+    _controller = controller;
     _token = token;
     _maxSupply = maxSupply;
     _minContribution = minContribution;
@@ -74,7 +75,7 @@ contract JBNFTRewardDataSourceDelegate is
   }
 
   function didPay(JBDidPayData calldata _data) external override {
-    // if (msg.sender != address(jbTerminal.store())) revert unAuth();
+    // NOTE: JBToken721Store has onlyController(_projectId) on mintFor which will revert for incorrect sender.
 
     if (_distributedSupply == _maxSupply) {
       return;
@@ -84,7 +85,7 @@ contract JBNFTRewardDataSourceDelegate is
       _data.amount.value >= _minContribution.value &&
       _data.amount.currency == _minContribution.currency
     ) {
-      _tokenStore.mintFor(_data.payer, _projectId, _token);
+      _controller.mintTokens721Of(_projectId, _token, _data.beneficiary, '');
     }
   }
 
