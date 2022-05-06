@@ -3,7 +3,7 @@ pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Strings.sol';
-import '@rari-capital/solmate/src/tokens/ERC721.sol' as ERC721Rari;
+import {ERC721 as ERC721Rari} from '@rari-capital/solmate/src/tokens/ERC721.sol';
 
 import './interfaces/IJBToken721.sol';
 import './interfaces/IJBToken721UriResolver.sol';
@@ -21,7 +21,7 @@ import './interfaces/IJBToken721UriResolver.sol';
   ERC721: Rari Capital implementation.
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
-contract JBToken721 is ERC721Rari.ERC721, IJBToken721, Ownable {
+contract JBToken721 is ERC721Rari, IJBToken721, Ownable {
   using Strings for uint256;
 
   //*********************************************************************//
@@ -92,7 +92,7 @@ contract JBToken721 is ERC721Rari.ERC721, IJBToken721, Ownable {
     string memory _uri,
     IJBToken721UriResolver _tokenUriResolverAddress,
     string memory _contractMetadataUri
-  ) ERC721Rari.ERC721(_name, _symbol) {
+  ) ERC721Rari(_name, _symbol) {
     _baseUri = _uri;
     _tokenUriResolver = _tokenUriResolverAddress;
     _contractUri = _contractMetadataUri;
