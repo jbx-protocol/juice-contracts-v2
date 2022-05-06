@@ -82,5 +82,5 @@ interface IJBToken721Store {
     address _holder,
     uint256 _projectId,
     IJBToken721 _token
-  ) external;
+  ) external returns (uint256);
 }

@@ -309,13 +309,13 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
     address _holder,
     uint256 _projectId,
     IJBToken721 _token
-  ) external override onlyController(_projectId) {
+  ) external override onlyController(_projectId) returns (uint256 tokenId) {
     // Ensure project registration
     if (projectOf[_token] != _projectId) {
       revert INCORRECT_OWNER();
     }
 
-    uint256 tokenId = _token.mint(_projectId, _holder);
+    tokenId = _token.mint(_projectId, _holder);
 
     emit Mint(_holder, _projectId, _token, tokenId, 1, msg.sender);
   }
