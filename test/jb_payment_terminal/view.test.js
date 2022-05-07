@@ -99,13 +99,13 @@ describe('JBPayoutRedemptionPaymentTerminal::getters', function () {
 
   it('Should return true if the terminal accepts a token', async function () {
     const { JBERC20PaymentTerminal, jbEthPaymentTerminal, NON_ETH_TOKEN } = await setup();
-    expect(await JBERC20PaymentTerminal.acceptsToken(NON_ETH_TOKEN, /*projectId*/0)).to.be.true;
+    expect(await JBERC20PaymentTerminal.acceptsToken(NON_ETH_TOKEN, /*projectId*/ 0)).to.be.true;
 
-    expect(await JBERC20PaymentTerminal.acceptsToken(ETH_ADDRESS, /*projectId*/0)).to.be.false;
+    expect(await JBERC20PaymentTerminal.acceptsToken(ETH_ADDRESS, /*projectId*/ 0)).to.be.false;
 
-    expect(await jbEthPaymentTerminal.acceptsToken(ETH_ADDRESS, /*projectId*/0)).to.be.true;
+    expect(await jbEthPaymentTerminal.acceptsToken(ETH_ADDRESS, /*projectId*/ 0)).to.be.true;
 
-    expect(await jbEthPaymentTerminal.acceptsToken(NON_ETH_TOKEN, /*projectId*/0)).to.be.false;
+    expect(await jbEthPaymentTerminal.acceptsToken(NON_ETH_TOKEN, /*projectId*/ 0)).to.be.false;
   });
 
   it('Should return the decimals for the token', async function () {
