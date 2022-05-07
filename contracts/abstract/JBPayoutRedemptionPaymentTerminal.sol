@@ -496,7 +496,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     returns (uint256 balance)
   {
     // The terminal being migrated to must accept the same token as this terminal.
-    if (!_to.acceptsToken(token)) revert TERMINAL_TOKENS_INCOMPATIBLE();
+    if (!_to.acceptsToken(token, _projectId)) revert TERMINAL_TOKENS_INCOMPATIBLE();
 
     // Record the migration in the store.
     balance = store.recordMigration(_projectId);
