@@ -77,7 +77,7 @@ A few notes:
 
 - Hardhat doesn't support [esm](https://nodejs.org/api/esm.html) yet, hence running manually with node.
 - We are currently using a forked version of [solidity-coverage](https://www.npmjs.com/package/solidity-coverage) that includes optimizer settings. Ideally we will move to the maintained version after this is fixed on their end.
-- Juicebox V2 codebase being quite large, Solidity Coverage might run out of memory if you modify/add parts to it. Please check [Solidity-coverage FAQ](https://github.com/sc-forks/solidity-coverage/blob/master/docs/faq.md) in order to address the issue.
+- Juicebox V2 codebase being quite large, Solidity Coverage might run out of memory if you modify/add parts to it. Please check [Solidity-coverage FAQ](https://github.com/sc-forks/solidity-coverage/blob/master/docs/faq.md) in order to address the issue. Current requirement is at least 8GB RAM defined as `export NODE_OPTIONS=--max-old-space-size=8192`.
 
 ## Deploy
 
