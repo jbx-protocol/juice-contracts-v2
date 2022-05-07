@@ -4,7 +4,6 @@ pragma solidity 0.8.6;
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './abstract/JBControllerUtility.sol';
 import './libraries/JBConstants.sol';
-import './structs/JBNFTTranche.sol';
 
 /** 
   @notice 
@@ -621,8 +620,6 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     // Derive what the number should be.
     uint256 _number = _deriveNumberFrom(_baseFundingCycle, _start);
 
-    JBNFTTranche[] memory _nftRewards;
-
     return
       JBFundingCycle(
         _number,
@@ -633,8 +630,7 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
         _deriveWeightFrom(_baseFundingCycle, _start),
         _baseFundingCycle.discountRate,
         _baseFundingCycle.ballot,
-        _baseFundingCycle.metadata,
-        _nftRewards
+        _baseFundingCycle.metadata
       );
   }
 
