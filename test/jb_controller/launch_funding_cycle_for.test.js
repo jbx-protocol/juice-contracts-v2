@@ -12,6 +12,7 @@ import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
+import jbToken721Store from '../../artifacts/contracts/JBToken721Store.sol/JBToken721Store.json';
 
 describe('JBController::launchFundingCyclesFor(...)', function () {
   const EXISTING_PROJECT = 1;
@@ -52,6 +53,7 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
       mockJbTerminal1,
       mockJbTerminal2,
       mockJbTokenStore,
+      mockJbToken721Store,
     ] = await Promise.all([
       deployMockContract(deployer, JbController.abi),
       deployMockContract(deployer, jbDirectory.abi),
@@ -62,6 +64,7 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
       deployMockContract(deployer, jbTerminal.abi),
       deployMockContract(deployer, jbTerminal.abi),
       deployMockContract(deployer, jbTokenStore.abi),
+      deployMockContract(deployer, jbToken721Store.abi),
     ]);
 
     let jbControllerFactory = await ethers.getContractFactory('JBController');
@@ -72,6 +75,7 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
       mockJbFundingCycleStore.address,
       mockJbTokenStore.address,
       mockJbSplitsStore.address,
+      mockJbToken721Store.address
     );
 
     await mockJbProjects.mock.createFor
