@@ -52,11 +52,11 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
 
     const tokenTerminal1 = ethers.Wallet.createRandom().address;
     await terminal1.mock.token.returns(tokenTerminal1);
-    await terminal1.mock.acceptsToken.withArgs(tokenTerminal1).returns(true);
+    await terminal1.mock.acceptsToken.withArgs(tokenTerminal1, PROJECT_ID).returns(true);
 
     const tokenTerminal2 = ethers.Wallet.createRandom().address;
     await terminal2.mock.token.returns(tokenTerminal2);
-    await terminal2.mock.acceptsToken.withArgs(tokenTerminal2).returns(true);
+    await terminal2.mock.acceptsToken.withArgs(tokenTerminal2, PROJECT_ID).returns(true);
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
     await mockJbOperatorStore.mock.hasPermission
@@ -114,7 +114,7 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
     const terminals = [terminal1.address, terminal2.address];
 
     await terminal3.mock.token.returns(ADDRESS_TOKEN_3);
-    await terminal3.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3).returns(true);
+    await terminal3.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3, PROJECT_ID).returns(true);
 
     expect(
       await jbDirectory
@@ -130,8 +130,8 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
     );
     //.withArgs(PROJECT_ID, terminals, projectOwner.address);
 
-    await terminal1.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3).returns(false);
-    await terminal2.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3).returns(true);
+    await terminal1.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3, PROJECT_ID).returns(false);
+    await terminal2.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3, PROJECT_ID).returns(true);
 
     expect(await jbDirectory.primaryTerminalOf(PROJECT_ID, ADDRESS_TOKEN_3)).to.equal(
       terminal2.address,
@@ -144,7 +144,7 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
     const terminals = [terminal1.address, terminal2.address];
 
     await terminal3.mock.token.returns(ADDRESS_TOKEN_3);
-    await terminal3.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3).returns(true);
+    await terminal3.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3, PROJECT_ID).returns(true);
 
     expect(
       await jbDirectory
@@ -160,8 +160,8 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
     );
     //.withArgs(PROJECT_ID, terminals, projectOwner.address);
 
-    await terminal1.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3).returns(false);
-    await terminal2.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3).returns(false);
+    await terminal1.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3, PROJECT_ID).returns(false);
+    await terminal2.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3, PROJECT_ID).returns(false);
 
     expect(await jbDirectory.primaryTerminalOf(PROJECT_ID, ADDRESS_TOKEN_3)).to.equal(
       ethers.constants.AddressZero,
@@ -174,7 +174,7 @@ describe('JBDirectory::setTerminalsOf(...)', function () {
     const terminals = [terminal1.address, terminal2.address, terminal3.address];
 
     await terminal3.mock.token.returns(ADDRESS_TOKEN_3);
-    await terminal3.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3).returns(true);
+    await terminal3.mock.acceptsToken.withArgs(ADDRESS_TOKEN_3, PROJECT_ID).returns(true);
 
     expect(
       await jbDirectory

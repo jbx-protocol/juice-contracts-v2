@@ -138,7 +138,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     // Return the first terminal which accepts the specified token.
     for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++) {
       IJBPaymentTerminal _terminal = _terminalsOf[_projectId][_i];
-      if (_terminal.acceptsToken(_token)) return _terminal;
+      if (_terminal.acceptsToken(_token, _projectId)) return _terminal;
     }
 
     // Not found.
@@ -304,7 +304,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.SET_PRIMARY_TERMINAL)
   {
     // Can't set the primary terminal for a token if it doesn't accept the token.
-    if (!_terminal.acceptsToken(_token)) revert TOKEN_NOT_ACCEPTED();
+    if (!_terminal.acceptsToken(_token, _projectId)) revert TOKEN_NOT_ACCEPTED();
 
     // Add the terminal to the project if it hasn't been already.
     _addTerminalIfNeeded(_projectId, _terminal);
