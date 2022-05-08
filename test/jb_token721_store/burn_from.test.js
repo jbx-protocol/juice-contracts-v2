@@ -46,7 +46,7 @@ describe('jbToken721Store::burnFrom(...)', function () {
 
     const tx = await jbToken721Store
       .connect(controller)
-      .issueFor(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, '0x0000000000000000000000000000000000000000', NFT_URI);
+      .issueFor(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, ethers.constants.AddressZero, NFT_URI);
     const r = await tx.wait();
     const tokenAddr = r.logs[0].address;
 

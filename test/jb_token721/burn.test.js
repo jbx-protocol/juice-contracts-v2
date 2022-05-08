@@ -8,8 +8,7 @@ describe('JBToken721::burn(...)', function () {
   const NFT_URI = 'ipfs://';
 
   async function setup() {
-    const [deployer, ...addrs] = await ethers.getSigners();
-    const tokenHolder = addrs[1];
+    const [deployer, tokenHolder] = await ethers.getSigners();
 
     const jbToken721Factory = await ethers.getContractFactory('JBToken721');
     const jbToken721 = await jbToken721Factory.deploy(NFT_NAME, NFT_SYMBOL, NFT_URI, ethers.constants.AddressZero, NFT_URI);

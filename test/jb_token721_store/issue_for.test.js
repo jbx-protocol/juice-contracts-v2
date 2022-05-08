@@ -43,7 +43,7 @@ describe('JBToken721Store::issueFor(...)', function () {
 
     const tx = await jbToken721Store
       .connect(controller)
-      .issueFor(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, '0x0000000000000000000000000000000000000000', NFT_URI);
+      .issueFor(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, ethers.constants.AddressZero, NFT_URI);
     const r = await tx.wait();
     const tokenAddr = r.logs[0].address;
 
@@ -68,7 +68,7 @@ describe('JBToken721Store::issueFor(...)', function () {
 
     const name = '';
     await expect(
-      jbToken721Store.connect(controller).issueFor(PROJECT_ID, name, NFT_SYMBOL, NFT_URI, '0x0000000000000000000000000000000000000000', 'ipfs://'),
+      jbToken721Store.connect(controller).issueFor(PROJECT_ID, name, NFT_SYMBOL, NFT_URI, ethers.constants.AddressZero, 'ipfs://'),
     ).to.be.revertedWith(errors.EMPTY_NAME);
   });
 
@@ -79,7 +79,7 @@ describe('JBToken721Store::issueFor(...)', function () {
 
     const symbol = '';
     await expect(
-      jbToken721Store.connect(controller).issueFor(PROJECT_ID, NFT_NAME, symbol, NFT_URI, '0x0000000000000000000000000000000000000000', 'ipfs://'),
+      jbToken721Store.connect(controller).issueFor(PROJECT_ID, NFT_NAME, symbol, NFT_URI, ethers.constants.AddressZero, 'ipfs://'),
     ).to.be.revertedWith(errors.EMPTY_SYMBOL);
   });
 
@@ -89,10 +89,10 @@ describe('JBToken721Store::issueFor(...)', function () {
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     // First issuance should succeed; second should fail.
-    await expect(jbToken721Store.connect(controller).issueFor(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, '0x0000000000000000000000000000000000000000', 'ipfs://')).to
+    await expect(jbToken721Store.connect(controller).issueFor(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, ethers.constants.AddressZero, 'ipfs://')).to
       .not.be.reverted;
     await expect(
-      jbToken721Store.connect(controller).issueFor(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, '0x0000000000000000000000000000000000000000', 'ipfs://'),
+      jbToken721Store.connect(controller).issueFor(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, ethers.constants.AddressZero, 'ipfs://'),
     ).to.be.revertedWith(errors.PROJECT_ALREADY_HAS_TOKEN);
   });
 
@@ -105,7 +105,7 @@ describe('JBToken721Store::issueFor(...)', function () {
       .returns(ethers.Wallet.createRandom().address);
 
     await expect(
-      jbToken721Store.connect(controller).issueFor(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, '0x0000000000000000000000000000000000000000', 'ipfs://'),
+      jbToken721Store.connect(controller).issueFor(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, ethers.constants.AddressZero, 'ipfs://'),
     ).to.be.revertedWith(errors.CONTROLLER_UNAUTHORIZED);
   });
 });
