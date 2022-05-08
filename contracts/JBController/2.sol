@@ -661,9 +661,19 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
       // Determine the reserved rate to use.
       _reservedRate = _useReservedRateOption == JBUseReservedRateOption.No
         ? 0
-        : _useReservedRateOption == JBUseReservedRateOption.Yes
-        ? _fundingCycle.reservedRate()
-        : JBConstants.MAX_RESERVED_RATE;
+        : _fundingCycle.reservedRate();
+
+      // Assume the tokens being added will be distributed according to the current funding cycle's reserved rate.
+      if (_useReservedRateOption == JBUseReservedRateOption.Only)
+        _tokenCount = PRBMath.mulDiv(
+          _tokenCount,
+          1E18,
+          PRBMath.mulDiv(
+            JBConstants.MAX_RESERVED_RATE,
+            1E18,
+            (JBConstants.MAX_RESERVED_RATE - _reservedRate)
+          ) - 1E18
+        );
     }
 
     if (_reservedRate == JBConstants.MAX_RESERVED_RATE)
