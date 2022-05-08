@@ -15,26 +15,15 @@ interface IJBToken721Store {
     address caller
   );
 
-  event Register(uint256 indexed projectId, IJBToken721 indexed token, address caller);
-
-  event Deregister(uint256 indexed projectId, IJBToken721 indexed token, address caller);
-
   event Mint(
     address indexed holder,
     uint256 indexed projectId,
-    IJBToken721 token,
     uint256 tokenId,
     uint256 amount,
     address caller
   );
 
-  event Burn(
-    address indexed holder,
-    uint256 indexed projectId,
-    IJBToken721 token,
-    uint256 tokenId,
-    address caller
-  );
+  event Burn(address indexed holder, uint256 indexed projectId, uint256 tokenId, address caller);
 
   event Transfer(
     address indexed holder,
@@ -44,19 +33,15 @@ interface IJBToken721Store {
     address caller
   );
 
-  function tokenOf(uint256, IJBToken721) external view returns (bool);
+  function tokenOf(uint256) external view returns (IJBToken721);
 
   function projectOf(IJBToken721) external view returns (uint256);
 
   function projects() external view returns (IJBProjects);
 
-  function totalSupplyOf(uint256 _projectId, IJBToken721 _token) external view returns (uint256);
+  function totalSupplyOf(uint256 _projectId) external view returns (uint256);
 
-  function balanceOf(
-    address _holder,
-    uint256 _projectId,
-    IJBToken721 _token
-  ) external view returns (uint256 _result);
+  function balanceOf(address _holder, uint256 _projectId) external view returns (uint256 _result);
 
   function issueFor(
     uint256 _projectId,
@@ -67,20 +52,11 @@ interface IJBToken721Store {
     string calldata _contractUri
   ) external returns (IJBToken721 token);
 
-  function RegisterFor(uint256 _projectId, IJBToken721 _token) external;
-
-  function DeregisterFor(uint256 _projectId, IJBToken721 _token) external;
-
   function burnFrom(
-    uint256 _projectId,
-    IJBToken721 _token,
     address _holder,
+    uint256 _projectId,
     uint256 _tokenId
   ) external;
 
-  function mintFor(
-    address _holder,
-    uint256 _projectId,
-    IJBToken721 _token
-  ) external returns (uint256);
+  function mintFor(address _holder, uint256 _projectId) external returns (uint256);
 }

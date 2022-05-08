@@ -758,7 +758,6 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     Only a project's owner, a designated operator, or one of its terminals can mint its tokens.
 
     @param _projectId The ID of the project to which the tokens being minted belong.
-    @param _token The NFT contract to mint against.
     @param _beneficiary The account that the tokens are being minted for.
     @param _memo A memo to pass along to the emitted event.
 
@@ -766,7 +765,6 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
   */
   function mintTokens721Of(
     uint256 _projectId,
-    IJBToken721 _token,
     address _beneficiary,
     string calldata _memo
   )
@@ -795,9 +793,9 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     }
 
     // Mint the NFT.
-    tokenId = token721Store.mintFor(_beneficiary, _projectId, _token);
+    tokenId = token721Store.mintFor(_beneficiary, _projectId);
 
-    emit MintTokens721(_beneficiary, _projectId, _token, tokenId, _memo, msg.sender);
+    emit MintTokens721(_beneficiary, _projectId, tokenId, _memo, msg.sender);
   }
 
   /**

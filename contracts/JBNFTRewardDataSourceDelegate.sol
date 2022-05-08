@@ -85,7 +85,7 @@ contract JBNFTRewardDataSourceDelegate is
       _data.amount.value >= _minContribution.value &&
       _data.amount.currency == _minContribution.currency
     ) {
-      _controller.mintTokens721Of(_projectId, _token, _data.beneficiary, '');
+      _controller.mintTokens721Of(_projectId, _data.beneficiary, '');
     }
   }
 

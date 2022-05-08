@@ -46,10 +46,7 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
   error TOKEN_ALREADY_IN_USE();
   error TOKEN_NOT_FOUND();
   error INVALID_BURN_REQUEST();
-  error INCORRECT_OWNER();
   error INVALID_ADDRESS();
-  error ALREADY_REGISTRED();
-  error NOT_REGISTRED();
 
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
@@ -71,7 +68,7 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
 
     _projectId The ID of the project to which the token belongs.
   */
-  mapping(uint256 => mapping(IJBToken721 => bool)) public override tokenOf;
+  mapping(uint256 => IJBToken721) public override tokenOf;
 
   /**
     @notice
@@ -90,24 +87,15 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
     The total supply of a given token for the specified project
 
     @param _projectId The ID of the project to get the total token supply of.
-    @param _token Token address to query.
 
     @return totalSupply The total supply of the project's tokens.
   */
-  function totalSupplyOf(uint256 _projectId, IJBToken721 _token)
-    external
-    view
-    override
-    returns (uint256 totalSupply)
-  {
+  function totalSupplyOf(uint256 _projectId) external view override returns (uint256 totalSupply) {
+    IJBToken721 _token = tokenOf[_projectId];
+
     // Non-0 address
     if (address(_token) == address(0)) {
       revert INVALID_ADDRESS();
-    }
-
-    // Ensure ownership
-    if (projectOf[_token] != _projectId) {
-      revert INCORRECT_OWNER();
     }
 
     totalSupply = _token.totalSupply(_projectId);
@@ -119,23 +107,20 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
 
     @param _holder The token holder to get a balance for.
     @param _projectId The project to get the `_holder`s balance of.
-    @param _token Token to query.
 
     @return balance The project token balance of the `_holder
   */
-  function balanceOf(
-    address _holder,
-    uint256 _projectId,
-    IJBToken721 _token
-  ) external view override returns (uint256 balance) {
+  function balanceOf(address _holder, uint256 _projectId)
+    external
+    view
+    override
+    returns (uint256 balance)
+  {
+    IJBToken721 _token = tokenOf[_projectId];
+
     // Non-0 address
     if (address(_token) == address(0)) {
       revert INVALID_ADDRESS();
-    }
-
-    // Ensure ownership
-    if (projectOf[_token] != _projectId) {
-      revert INCORRECT_OWNER();
     }
 
     balance = _token.ownerBalance(_holder);
@@ -187,6 +172,10 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
     IJBToken721UriResolver _tokenUriResolverAddress,
     string calldata _contractUri
   ) external override onlyController(_projectId) returns (IJBToken721 token) {
+    if (tokenOf[_projectId] != IJBToken721(address(0))) {
+      revert PROJECT_ALREADY_HAS_TOKEN();
+    }
+
     // There must be a name.
     if (bytes(_name).length == 0) {
       revert EMPTY_NAME();
@@ -206,92 +195,12 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
     token = new JBToken721(_name, _symbol, _baseUri, _tokenUriResolverAddress, _contractUri);
 
     // Store the token contract.
-    tokenOf[_projectId][token] = true;
+    tokenOf[_projectId] = token;
 
     // Store the project for the token.
     projectOf[token] = _projectId;
 
     emit Issue(_projectId, token, _name, _symbol, _baseUri, msg.sender);
-  }
-
-  /**
-    @notice
-    Registers a compatible ERC721 token to a project.
-
-    @dev
-    Only a project's current controller can issue its token.
-
-    @param _projectId The ID of the project.
-    @param _token Exiting NFT address.
-  */
-  function RegisterFor(uint256 _projectId, IJBToken721 _token)
-    external
-    override
-    onlyController(_projectId)
-  {
-    // Non-0 address
-    if (address(_token) == address(0)) {
-      revert INVALID_ADDRESS();
-    }
-
-    // The project shouldn't already have this token.
-    if (tokenOf[_projectId][_token] != false) {
-      revert PROJECT_ALREADY_HAS_TOKEN();
-    }
-
-    // Prevent cross-project token sharing
-    if (projectOf[_token] != 0) {
-      revert ALREADY_REGISTRED();
-    }
-
-    // TODO: should probably check NFT contract owner to ensure mint can happen, but that's not a given, must be IJBToken721 instead of IERC721 then
-
-    // Store the token contract.
-    tokenOf[_projectId][_token] = true;
-
-    // Store the project for the token.
-    projectOf[_token] = _projectId;
-
-    emit Register(_projectId, _token, msg.sender);
-  }
-
-  /**
-    @notice
-    Unregisters a token from a project.
-
-    @dev
-    Only a project's current controller can perform the action.
-
-    @param _projectId The ID of the project.
-    @param _token Existing NFT address.
-  */
-  function DeregisterFor(uint256 _projectId, IJBToken721 _token)
-    external
-    override
-    onlyController(_projectId)
-  {
-    // Non-0 address
-    if (address(_token) == address(0)) {
-      revert INVALID_ADDRESS();
-    }
-
-    // The project should already have this token.
-    if (tokenOf[_projectId][_token] != true) {
-      revert NOT_REGISTRED();
-    }
-
-    // Ensure project association
-    if (projectOf[_token] != _projectId) {
-      revert INCORRECT_OWNER();
-    }
-
-    // Store the token contract.
-    tokenOf[_projectId][_token] = false;
-
-    // Store the project for the token.
-    projectOf[_token] = 0;
-
-    emit Deregister(_projectId, _token, msg.sender);
   }
 
   /**
@@ -303,21 +212,18 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
 
     @param _holder The address receiving the new tokens.
     @param _projectId The ID of the project to which the tokens belong.
-    @param _token Token to mint against.
   */
-  function mintFor(
-    address _holder,
-    uint256 _projectId,
-    IJBToken721 _token
-  ) external override onlyController(_projectId) returns (uint256 tokenId) {
-    // Ensure project registration
-    if (projectOf[_token] != _projectId) {
-      revert INCORRECT_OWNER();
-    }
+  function mintFor(address _holder, uint256 _projectId)
+    external
+    override
+    onlyController(_projectId)
+    returns (uint256 tokenId)
+  {
+    IJBToken721 _token = tokenOf[_projectId];
 
     tokenId = _token.mint(_projectId, _holder);
 
-    emit Mint(_holder, _projectId, _token, tokenId, 1, msg.sender);
+    emit Mint(_holder, _projectId, tokenId, 1, msg.sender);
   }
 
   /**
@@ -328,27 +234,28 @@ contract JBToken721Store is IJBToken721Store, JBControllerUtility, JBOperatable 
     Only a project's current controller can burn its tokens.
 
     @param _projectId The ID of the project to which the burned tokens belong.
-    @param _token NFT to burn token from.
     @param _holder The address that owns the tokens being burned.
+    @param _tokenId Token ID to burn.
   */
   function burnFrom(
-    uint256 _projectId,
-    IJBToken721 _token,
     address _holder,
+    uint256 _projectId,
     uint256 _tokenId
   ) external override onlyController(_projectId) {
-    // Ensure project registration
-    if (projectOf[_token] != _projectId) {
-      revert INCORRECT_OWNER();
+    IJBToken721 _token = tokenOf[_projectId];
+
+    // Non-0 address
+    if (address(_token) == address(0)) {
+      revert INVALID_ADDRESS();
     }
 
     // Ensure token ownership
-    if (_token.isOwner(_holder, _tokenId)) {
+    if (!_token.isOwner(_holder, _tokenId)) {
       revert INVALID_BURN_REQUEST();
     }
 
     _token.burn(_projectId, _holder, _tokenId);
 
-    emit Burn(_holder, _projectId, _token, _tokenId, msg.sender);
+    emit Burn(_holder, _projectId, _tokenId, msg.sender);
   }
 }

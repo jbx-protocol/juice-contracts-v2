@@ -69,7 +69,6 @@ interface IJBController is IERC165 {
   event MintTokens721(
     address indexed beneficiary,
     uint256 indexed projectId,
-    IJBToken721 token,
     uint256 tokenId,
     string memo,
     address caller
@@ -212,7 +211,6 @@ interface IJBController is IERC165 {
 
   function mintTokens721Of(
     uint256 _projectId,
-    IJBToken721 _token,
     address _beneficiary,
     string calldata _memo
   ) external returns (uint256);
