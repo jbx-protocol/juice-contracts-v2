@@ -676,7 +676,10 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
         );
     }
 
-    if (_reservedRate == JBConstants.MAX_RESERVED_RATE)
+    if (
+      _reservedRate == JBConstants.MAX_RESERVED_RATE ||
+      _useReservedRateOption == JBUseReservedRateOption.Only
+    )
       // Subtract the total token count from the tracker so the reserved token amount can be minted later.
       _processedTokenTrackerOf[_projectId] =
         _processedTokenTrackerOf[_projectId] -
@@ -706,6 +709,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
       beneficiaryTokenCount,
       _memo,
       _reservedRate,
+      _useReservedRateOption,
       msg.sender
     );
   }

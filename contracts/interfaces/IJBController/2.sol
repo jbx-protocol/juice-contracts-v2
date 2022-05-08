@@ -63,6 +63,7 @@ interface IJBController is IERC165 {
     uint256 beneficiaryTokenCount,
     string memo,
     uint256 reservedRate,
+    JBUseReservedRateOption useReservedRateOption,
     address caller
   );
 
