@@ -111,8 +111,10 @@ controller.reservedTokenBalanceOf(_projectId, _reservedRate);
       if(_option == JBUseReservedRateOption.Only) {
         assertEq(_tokenStore.balanceOf(_beneficiary, _projectId), 0);
         
+
+        // to fix: should be the part to make _reserved + nonReserved = 100%, and not nonReserved*rate as in:
         uint256 _reservedToken = _reservedRate > 0
-          ? _amount * jbLibraries().MAX_RESERVED_RATE() / (jbLibraries().MAX_RESERVED_RATE() + _reservedRate)
+          ? _amount * _reservedRate / jbLibraries().MAX_RESERVED_RATE()
           : 0;
 
         assertEq(controller.reservedTokenBalanceOf(_projectId, _reservedRate), _reservedToken);
