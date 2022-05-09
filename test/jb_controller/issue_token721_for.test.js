@@ -71,12 +71,12 @@ describe('JBController::issueTokenFor(...)', function () {
       .returns(mockJbToken.address);
 
     await mockJbToken721Store.mock.issueFor
-      .withArgs(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, '0x0000000000000000000000000000000000000000', 'ipfs://')
+      .withArgs(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, ethers.constants.AddressZero, 'ipfs://')
       .returns(mockJbToken721.address);
 
-    // await mockJbDirectory.mock.controllerOf
-    //   .withArgs(PROJECT_ID)
-    //   .returns(projectOwner.address);
+    await mockJbDirectory.mock.controllerOf
+      .withArgs(PROJECT_ID)
+      .returns(projectOwner.address);
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
@@ -96,7 +96,7 @@ describe('JBController::issueTokenFor(...)', function () {
     const { projectOwner, jbController, mockJbToken721 } = await setup();
     let returnedAddress = await jbController
       .connect(projectOwner)
-      .callStatic.issueToken721For(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, '0x0000000000000000000000000000000000000000', 'ipfs://');
+      .callStatic.issueToken721For(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, ethers.constants.AddressZero, 'ipfs://');
     expect(returnedAddress).to.equal(mockJbToken721.address);
   });
 
@@ -110,11 +110,11 @@ describe('JBController::issueTokenFor(...)', function () {
 
     let returnedAddress = await jbController
       .connect(caller)
-      .callStatic.issueToken721For(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, '0x0000000000000000000000000000000000000000', 'ipfs://');
+      .callStatic.issueToken721For(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, ethers.constants.AddressZero, 'ipfs://');
     expect(returnedAddress).to.equal(mockJbToken721.address);
   });
 
-  it(`Can't deploy an ERC-20 token contract if caller is not authorized`, async function () {
+  it(`Can't deploy an ERC-721 token contract if caller is not authorized`, async function () {
     const { addrs, projectOwner, jbController, mockJbOperatorStore } = await setup();
     let caller = addrs[0];
 
@@ -127,7 +127,7 @@ describe('JBController::issueTokenFor(...)', function () {
       .returns(false);
 
     await expect(
-      jbController.connect(caller).callStatic.issueToken721For(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, '0x0000000000000000000000000000000000000000', 'ipfs://'),
+      jbController.connect(caller).callStatic.issueToken721For(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, ethers.constants.AddressZero, 'ipfs://'),
     ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 });
