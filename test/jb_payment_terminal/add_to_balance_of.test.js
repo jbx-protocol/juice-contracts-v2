@@ -6,8 +6,8 @@ import { makeSplits, packFundingCycleMetadata, setBalance } from '../helpers/uti
 import errors from '../helpers/errors.json';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import JBEthPaymentTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
-import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
+import JBEthPaymentTerminal from '../../artifacts/contracts/JBETHPaymentTerminal/1.sol/JBETHPaymentTerminal.json';
+import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore/1.sol/JBSingleTokenPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
@@ -74,9 +74,9 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
       deployMockContract(deployer, jbToken.abi),
     ]);
 
-    let jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
+    let jbTerminalFactory = await ethers.getContractFactory('contracts/JBETHPaymentTerminal/1.sol:JBETHPaymentTerminal', deployer);
     let jbErc20TerminalFactory = await ethers.getContractFactory(
-      'JBERC20PaymentTerminal',
+      'contracts/JBERC20PaymentTerminal/1.sol:JBERC20PaymentTerminal',
       deployer,
     );
     const NON_ETH_TOKEN = mockJbToken.address;

@@ -6,7 +6,7 @@ import errors from '../helpers/errors.json';
 import { packFundingCycleMetadata, setBalance } from '../helpers/utils.js';
 
 import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
-import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
+import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore/1.sol/JBSingleTokenPaymentTerminalStore.json';
 import jbFeeGauge from '../../artifacts/contracts/interfaces/IJBFeeGauge.sol/IJBFeeGauge.json';
 import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorStore.sol/IJBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
@@ -70,7 +70,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     const jbCurrencies = await jbCurrenciesFactory.deploy();
     const CURRENCY_ETH = await jbCurrencies.ETH();
 
-    const jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
+    const jbTerminalFactory = await ethers.getContractFactory('contracts/JBETHPaymentTerminal/1.sol:JBETHPaymentTerminal', deployer);
 
     const jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
