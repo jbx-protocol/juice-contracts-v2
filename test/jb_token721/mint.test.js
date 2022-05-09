@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
+import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 describe('JBToken721::mint(...)', function () {
   const PROJECT_ID = 10;
@@ -31,6 +32,13 @@ describe('JBToken721::mint(...)', function () {
 
     const supply = await jbToken721.totalSupply(PROJECT_ID);
     expect(supply).to.equal(numTokens);
+
+    const tokenUri = await jbToken721.tokenURI(tokenId);
+    expect(tokenUri).to.equal(NFT_URI + tokenId);
+
+    await jbToken721.connect(addr).transfer(PROJECT_ID, addrs[2].address, tokenId);
+    const newBalance = await jbToken721.ownerBalance(addrs[2].address);
+    expect(newBalance).to.equal(numTokens);
   });
 
   it(`Can't mint tokens if caller isn't owner`, async function () {
@@ -46,5 +54,16 @@ describe('JBToken721::mint(...)', function () {
 
     await expect(jbToken721.mint(PROJECT_ID, ethers.constants.AddressZero))
       .to.be.revertedWith('INVALID_RECIPIENT');
+  });
+
+  it(`Test views`, async function () {
+    const { jbToken721 } = await setup();
+
+    const contractUri = await jbToken721.contractURI();
+    expect(contractUri).to.equal(NFT_URI);
+
+    await expect(jbToken721.tokenURI(0)).to.be.revertedWith('INVALID_ADDRESS()');
+
+    await expect(jbToken721.ownerBalance(ethers.constants.AddressZero)).to.be.revertedWith('INVALID_ADDRESS()');
   });
 });

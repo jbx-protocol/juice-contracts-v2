@@ -83,6 +83,17 @@ describe('JBToken721Store::issueFor(...)', function () {
     ).to.be.revertedWith(errors.EMPTY_SYMBOL);
   });
 
+  it(`Can't issue tokens if uri is empty`, async function () {
+    const { controller, mockJbDirectory, jbToken721Store } = await setup();
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    const uri = '';
+    await expect(
+      jbToken721Store.connect(controller).issueFor(PROJECT_ID, NFT_NAME, NFT_SYMBOL, uri, ethers.constants.AddressZero, 'ipfs://'),
+    ).to.be.revertedWith('EMPTY_BASE_URI()');
+  });
+
   it(`Can't issue tokens if already issued`, async function () {
     const { controller, mockJbDirectory, jbToken721Store } = await setup();
 
@@ -107,5 +118,16 @@ describe('JBToken721Store::issueFor(...)', function () {
     await expect(
       jbToken721Store.connect(controller).issueFor(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, ethers.constants.AddressZero, 'ipfs://'),
     ).to.be.revertedWith(errors.CONTROLLER_UNAUTHORIZED);
+  });
+
+  it(`Test view failures`, async function () {
+    const { controller, mockJbDirectory, jbToken721Store } = await setup();
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID + 1).returns(controller.address);
+
+    await expect(jbToken721Store.connect(controller).balanceOf(ethers.Wallet.createRandom().address, PROJECT_ID + 1))
+      .to.be.revertedWith('INVALID_ADDRESS()');
+    await expect(jbToken721Store.connect(controller).totalSupplyOf(PROJECT_ID + 1))
+      .to.be.revertedWith('INVALID_ADDRESS()');
   });
 });

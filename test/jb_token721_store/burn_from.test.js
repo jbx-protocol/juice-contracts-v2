@@ -4,7 +4,7 @@ import { Contract } from 'ethers';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
+import jbOperatorStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbToken721 from '../../artifacts/contracts/JBToken721.sol/JBToken721.json';
 import errors from '../helpers/errors.json';
@@ -18,16 +18,12 @@ describe('jbToken721Store::burnFrom(...)', function () {
   async function setup() {
     const [deployer, controller, newHolder] = await ethers.getSigners();
 
-    const mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
+    const mockJbOperatorStore = await deployMockContract(deployer, jbOperatorStore.abi);
     const mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
     const mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
 
     const jbToken721StoreFactory = await ethers.getContractFactory('JBToken721Store');
-    const jbToken721Store = await jbToken721StoreFactory.deploy(
-      mockJbOperatorStore.address,
-      mockJbProjects.address,
-      mockJbDirectory.address,
-    );
+    const jbToken721Store = await jbToken721StoreFactory.deploy(mockJbOperatorStore.address, mockJbProjects.address, mockJbDirectory.address);
 
     return {
       controller,
@@ -39,7 +35,7 @@ describe('jbToken721Store::burnFrom(...)', function () {
 
   /* Happy path tests with controller access */
 
-  it('Should burn only claimed tokens and emit event', async function () {
+  it('Burn minted tokens, emit event', async function () {
     const { controller, newHolder, mockJbDirectory, jbToken721Store } = await setup();
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
@@ -78,11 +74,29 @@ describe('jbToken721Store::burnFrom(...)', function () {
     const { controller, newHolder, mockJbDirectory, jbToken721Store } = await setup();
 
     // Return a random controller address.
-    await mockJbDirectory.mock.controllerOf
-      .withArgs(PROJECT_ID)
-      .returns(ethers.Wallet.createRandom().address);
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(ethers.Wallet.createRandom().address);
 
     await expect(jbToken721Store.connect(controller).burnFrom(newHolder.address, PROJECT_ID, 0))
       .to.be.revertedWith(errors.CONTROLLER_UNAUTHORIZED);
+  });
+
+  it(`Can't burn tokens from non-owner`, async function () {
+    const { controller, newHolder, mockJbDirectory, jbToken721Store } = await setup();
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+    await jbToken721Store.connect(controller).issueFor(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, ethers.constants.AddressZero, NFT_URI);
+    await jbToken721Store.connect(controller).mintFor(newHolder.address, PROJECT_ID);
+
+    await expect(jbToken721Store.connect(controller).burnFrom(ethers.Wallet.createRandom().address, PROJECT_ID, 0))
+      .to.be.revertedWith('INVALID_BURN_REQUEST()');
+  });
+
+  it(`Can't burn tokens from project w/o NFTs`, async function () {
+    const { controller, mockJbDirectory, jbToken721Store } = await setup();
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID + 1).returns(controller.address);
+
+    await expect(jbToken721Store.connect(controller).burnFrom(ethers.Wallet.createRandom().address, PROJECT_ID + 1, 0))
+      .to.be.revertedWith('INVALID_ADDRESS()');
   });
 });
