@@ -274,7 +274,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _store A contract that stores the terminal's data.
     @param _owner The address that will own this contract.
   */
-  constructor(
+  constructor( // payable constructor save the gas used to check msg.value==0
     address _token,
     uint256 _decimals,
     uint256 _currency,
@@ -287,7 +287,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     IJBPrices _prices,
     IJBSingleTokenPaymentTerminalStore _store,
     address _owner
-  ) JBSingleTokenPaymentTerminal(_token, _decimals, _currency) JBOperatable(_operatorStore) {
+  ) payable JBSingleTokenPaymentTerminal(_token, _decimals, _currency) JBOperatable(_operatorStore) {
     baseWeightCurrency = _baseWeightCurrency;
     payoutSplitsGroup = _payoutSplitsGroup;
     projects = _projects;
@@ -576,7 +576,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Delete the held fees.
     delete _heldFeesOf[_projectId];
 
-    // Store length in stack
+    // Push array length in stack
     uint256 _heldFeeLength = _heldFees.length;
 
     // Process each fee.
@@ -849,7 +849,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       );
 
       // Leftover distribution amount is also eligible for a fee since the funds are going out of the ecosystem to _beneficiary.
-      _feeEligibleDistributionAmount += _leftoverDistributionAmount;
+      unchecked {
+        _feeEligibleDistributionAmount += _leftoverDistributionAmount;
+      }
 
       // Take the fee.
       _fee = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT || _feeEligibleDistributionAmount == 0
@@ -863,9 +865,12 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         );
 
       // Get a reference to how much to distribute to the project owner, which is the leftover amount minus any fees.
-      netLeftoverDistributionAmount = _leftoverDistributionAmount == 0
-        ? 0
-        : _leftoverDistributionAmount - _feeAmount(_leftoverDistributionAmount, fee, _feeDiscount);
+      
+      unchecked {
+        netLeftoverDistributionAmount = _leftoverDistributionAmount == 0
+          ? 0
+          : _leftoverDistributionAmount - _feeAmount(_leftoverDistributionAmount, fee, _feeDiscount);
+      }
 
       // Transfer any remaining balance to the project owner.
       if (netLeftoverDistributionAmount > 0)
@@ -942,8 +947,10 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         ? 0
         : _takeFeeFrom(_projectId, _fundingCycle, _distributedAmount, _projectOwner, _feeDiscount);
 
-      // The net amount is the withdrawn amount without the fee.
-      netDistributedAmount = _distributedAmount - _fee;
+      unchecked {
+        // The net amount is the withdrawn amount without the fee.
+        netDistributedAmount = _distributedAmount - _fee;
+      }
 
       // Transfer any remaining balance to the beneficiary.
       if (netDistributedAmount > 0)
@@ -1013,9 +1020,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             _netPayoutAmount = _payoutAmount;
             // This distribution is eligible for a fee since the funds are leaving this contract and the allocator isn't listed as feeless.
           else {
-            _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
-              ? _payoutAmount
-              : _payoutAmount - _feeAmount(_payoutAmount, fee, _feeDiscount);
+            unchecked {
+              _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
+                ? _payoutAmount
+                : _payoutAmount - _feeAmount(_payoutAmount, fee, _feeDiscount);
+            }
 
             // This distribution is eligible for a fee since the funds are leaving the ecosystem.
             feeEligibleDistributionAmount += _payoutAmount;
@@ -1077,9 +1086,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
               _netPayoutAmount = _payoutAmount;
               // This distribution is eligible for a fee since the funds are leaving this contract and the terminal isn't listed as feeless.
             else {
-              _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
-                ? _payoutAmount
-                : _payoutAmount - _feeAmount(_payoutAmount, fee, _feeDiscount);
+              unchecked {
+                _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
+                  ? _payoutAmount
+                  : _payoutAmount - _feeAmount(_payoutAmount, fee, _feeDiscount);
+              }
 
               feeEligibleDistributionAmount += _payoutAmount;
             }
@@ -1116,9 +1127,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
               );
           }
         } else {
-          _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
-            ? _payoutAmount
-            : _payoutAmount - _feeAmount(_payoutAmount, fee, _feeDiscount);
+          unchecked {
+            _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
+              ? _payoutAmount
+              : _payoutAmount - _feeAmount(_payoutAmount, fee, _feeDiscount);
+          }
 
           // This distribution is eligible for a fee since the funds are leaving the ecosystem.
           feeEligibleDistributionAmount += _payoutAmount;
@@ -1132,7 +1145,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         }
 
         // Subtract from the amount to be sent to the beneficiary.
-        leftoverAmount = leftoverAmount - _payoutAmount;
+        unchecked {
+          leftoverAmount = leftoverAmount - _payoutAmount;
+        }
       }
 
       emit DistributeToPayoutSplit(
@@ -1373,12 +1388,14 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     for (uint256 _i = 0; _i < _heldFeesLength;) {
       if (leftoverAmount == 0) _heldFeesOf[_projectId].push(_heldFees[_i]);
       else if (leftoverAmount >= _heldFees[_i].amount) {
-        leftoverAmount = leftoverAmount - _heldFees[_i].amount;
-        refundedFees += _feeAmount(
-          _heldFees[_i].amount,
-          _heldFees[_i].fee,
-          _heldFees[_i].feeDiscount
-        );
+        unchecked {
+          leftoverAmount = leftoverAmount - _heldFees[_i].amount;
+          refundedFees += _feeAmount(
+            _heldFees[_i].amount,
+            _heldFees[_i].fee,
+            _heldFees[_i].feeDiscount
+          );
+        }
       } else {
         _heldFeesOf[_projectId].push(
           JBFee(
@@ -1388,7 +1405,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
             _heldFees[_i].beneficiary
           )
         );
-        refundedFees += _feeAmount(leftoverAmount, _heldFees[_i].fee, _heldFees[_i].feeDiscount);
+        unchecked {
+          refundedFees += _feeAmount(leftoverAmount, _heldFees[_i].fee, _heldFees[_i].feeDiscount);
+        }
         leftoverAmount = 0;
       }
 
