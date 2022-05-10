@@ -3,16 +3,16 @@ pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
-import './abstract/JBOperatable.sol';
-import './interfaces/IJBController.sol';
-import './interfaces/IJBMigratable.sol';
-import './interfaces/IJBOperatorStore.sol';
-import './interfaces/IJBPaymentTerminal.sol';
-import './interfaces/IJBProjects.sol';
-import './libraries/JBConstants.sol';
-import './libraries/JBFundingCycleMetadataResolver.sol';
-import './libraries/JBOperations.sol';
-import './libraries/JBSplitsGroups.sol';
+import './../abstract/JBOperatable.sol';
+import './../interfaces/IJBController/1.sol';
+import './../interfaces/IJBMigratable.sol';
+import './../interfaces/IJBOperatorStore.sol';
+import './../interfaces/IJBPaymentTerminal.sol';
+import './../interfaces/IJBProjects.sol';
+import './../libraries/JBConstants.sol';
+import './../libraries/JBFundingCycleMetadataResolver.sol';
+import './../libraries/JBOperations.sol';
+import './../libraries/JBSplitsGroups.sol';
 
 /**
   @notice

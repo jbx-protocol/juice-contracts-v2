@@ -4,8 +4,8 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { packFundingCycleMetadata } from '../helpers/utils.js';
 import errors from '../helpers/errors.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
-import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
+import jbController from '../../artifacts/contracts/interfaces/IJBController/1.sol/IJBController.json';
+import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore/1.sol/JBSingleTokenPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
@@ -61,9 +61,12 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
     const mockJbToken = await deployMockContract(deployer, jbToken.abi);
     const NON_ETH_TOKEN = mockJbToken.address;
 
-    let jbEthTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
+    let jbEthTerminalFactory = await ethers.getContractFactory(
+      'contracts/JBETHPaymentTerminal/1.sol:JBETHPaymentTerminal',
+      deployer,
+    );
     let jbErc20TerminalFactory = await ethers.getContractFactory(
-      'JBERC20PaymentTerminal',
+      'contracts/JBERC20PaymentTerminal/1.sol:JBERC20PaymentTerminal',
       deployer,
     );
 
