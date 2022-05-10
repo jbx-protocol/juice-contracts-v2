@@ -6,7 +6,7 @@ import '@paulrberg/contracts/math/PRBMathUD60x18.sol';
 
 import './helpers/TestBaseWorkflow_2.sol';
 
-contract TestDistributeHeldFee is TestBaseWorkflow_2 {
+contract TestDistributeHeldFee_2 is TestBaseWorkflow_2 {
   JBController private _controller;
   JBETHPaymentTerminal private _terminal;
   JBTokenStore private _tokenStore;
