@@ -16,7 +16,7 @@ import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStor
 describe('JBController::mintTokensOf(...)', function () {
   const PROJECT_ID = 1;
   const MEMO = 'Test Memo';
-  const AMOUNT_TO_MINT = 20000;
+  const AMOUNT_TO_MINT = 200000000;
   const RESERVED_RATE = 5000; // 50%
   const AMOUNT_TO_RECEIVE = AMOUNT_TO_MINT - (AMOUNT_TO_MINT * RESERVED_RATE) / 10000;
   const [NO_RESERVE_RATE, USE_FUNDING_CYCLE, USE_ONLY_RESERVE_RATE] = [0, 1, 2];
@@ -566,6 +566,124 @@ describe('JBController::mintTokensOf(...)', function () {
     let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, 5000);
 
     expect(newReservedTokenBalance).to.equal(previousReservedTokenBalance.add(AMOUNT_TO_MINT));
+  });
+
+  it(`Should add the minted amount to the reserved tokens if _useReservedRateOption is set to reserved token only with a max reserved rate`, async function () {
+    const {
+      projectOwner,
+      beneficiary,
+      jbController,
+      mockJbFundingCycleStore,
+      mockJbTokenStore,
+      timestamp,
+    } = await setup();
+
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      // mock JBFundingCycle obj
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: 0,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({ reservedRate: 10000, allowMinting: 1 }),
+    });
+
+    await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(0);
+
+    let previousReservedTokenBalance = await jbController.reservedTokenBalanceOf(
+      PROJECT_ID,
+      /*reservedRate=*/ 10000,
+    );
+
+    await expect(
+      jbController
+        .connect(projectOwner)
+        .mintTokensOf(
+          PROJECT_ID,
+          AMOUNT_TO_MINT,
+          beneficiary.address,
+          MEMO,
+          /*_preferClaimedTokens=*/ true,
+          /* _useReservedRateOption=*/ USE_ONLY_RESERVE_RATE,
+        ),
+    )
+      .to.emit(jbController, 'MintTokens')
+      .withArgs(
+        beneficiary.address,
+        PROJECT_ID,
+        AMOUNT_TO_MINT,
+        0,
+        MEMO,
+        10000,
+        USE_ONLY_RESERVE_RATE,
+        projectOwner.address,
+      );
+
+    let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, 10000);
+
+    expect(newReservedTokenBalance).to.equal(previousReservedTokenBalance.add(AMOUNT_TO_MINT));
+  });
+
+  it(`Should add the minted amount to the reserved tokens if _useReservedRateOption is set to reserved token only with a reserved rate of 0`, async function () {
+    const {
+      projectOwner,
+      beneficiary,
+      jbController,
+      mockJbFundingCycleStore,
+      mockJbTokenStore,
+      timestamp,
+    } = await setup();
+
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      // mock JBFundingCycle obj
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: 0,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({ reservedRate: 0, allowMinting: 1 }),
+    });
+
+    await mockJbTokenStore.mock.totalSupplyOf.withArgs(PROJECT_ID).returns(0);
+
+    let previousReservedTokenBalance = await jbController.reservedTokenBalanceOf(
+      PROJECT_ID,
+      /*reservedRate=*/ 0,
+    );
+
+    await expect(
+      jbController
+        .connect(projectOwner)
+        .mintTokensOf(
+          PROJECT_ID,
+          AMOUNT_TO_MINT,
+          beneficiary.address,
+          MEMO,
+          /*_preferClaimedTokens=*/ true,
+          /* _useReservedRateOption=*/ USE_ONLY_RESERVE_RATE,
+        ),
+    )
+      .to.emit(jbController, 'MintTokens')
+      .withArgs(
+        beneficiary.address,
+        PROJECT_ID,
+        AMOUNT_TO_MINT,
+        0,
+        MEMO,
+        0,
+        USE_ONLY_RESERVE_RATE,
+        projectOwner.address,
+      );
+
+    let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(PROJECT_ID, 0);
+
+    expect(newReservedTokenBalance).to.equal(previousReservedTokenBalance.add(0));
   });
 
   it('Should not use a reserved rate even if one is specified if the `_useReservedRateOption` arg is false', async function () {
