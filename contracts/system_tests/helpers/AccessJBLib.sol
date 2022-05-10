@@ -35,7 +35,7 @@ contract AccessJBLib {
   }
 
   function SPLITS_TOTAL_PERCENT() external pure returns (uint256) {
-    return JBConstants.MAX_RESERVED_RATE;
+    return JBConstants.SPLITS_TOTAL_PERCENT;
   }
 
   function MAX_FEE_DISCOUNT() external pure returns (uint256) {
