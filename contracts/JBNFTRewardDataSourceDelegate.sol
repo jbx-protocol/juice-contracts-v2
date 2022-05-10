@@ -20,11 +20,40 @@ contract JBNFTRewardDataSourceDelegate is
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
 
+  /**
+    @notice
+    Project id of the project this configuration is associated with.
+  */
   uint256 private _projectId;
+
+  /**
+    @notice
+    Parent controller.
+  */
   IJBController private _controller;
+
+  /**
+    @notice
+    NFT contract to mint against
+  */
   IJBToken721 private _token;
+
+  /**
+    @notice
+    Minimum contribution amount to trigger NFT distribution, denominated in some currency defined as part of this object.
+  */
   JBTokenAmount private _minContribution;
+
+  /**
+    @notice
+    NFT mint cap as part of this configuration.
+  */
   uint256 private _maxSupply;
+
+  /**
+    @notice
+    Amount of NFTs minted thus far.
+  */
   uint256 private _distributedSupply;
 
   /**
@@ -32,7 +61,7 @@ contract JBNFTRewardDataSourceDelegate is
     @param controller JBC controller.
     @param token ERC721 token to be used as the reward
     @param maxSupply Total number of reward tokens to distribute
-    @param minContribution Minumum contribution amout to be eligible for this reward.
+    @param minContribution Minimum contribution amount to be eligible for this reward.
   */
   constructor(
     uint256 projectId,
@@ -86,6 +115,7 @@ contract JBNFTRewardDataSourceDelegate is
       _data.amount.currency == _minContribution.currency
     ) {
       _controller.mintTokens721Of(_projectId, _data.beneficiary, _data.memo);
+      _distributedSupply++;
     }
   }
 
