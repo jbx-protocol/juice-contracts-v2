@@ -34,6 +34,7 @@ describe('JBNFTRewardDataSourceDelegate::didPay(...)', function () {
   const FUNDING_CYCLE_NUMBER = 0;
   const TOKEN_RECEIVED = 100;
   const ADJUSTED_MEMO = 'test test memo';
+  let ethToken;
 
   async function setup() {
     let [deployer, projectOwner, beneficiary, ...addrs] = await ethers.getSigners();
@@ -52,7 +53,6 @@ describe('JBNFTRewardDataSourceDelegate::didPay(...)', function () {
       mockJbTokenStore,
       mockJbToken721,
       mockJbToken721Store,
-
       mockJbPrices,
       mockJBPaymentTerminalStore
     ] = await Promise.all([
@@ -94,7 +94,7 @@ describe('JBNFTRewardDataSourceDelegate::didPay(...)', function () {
         projectOwner.address,
       );
 
-    let ethToken = await jbEthPaymentTerminal.token();
+    ethToken = await jbEthPaymentTerminal.token();
 
     let jbNFTRewardDataSourceFactory = await ethers.getContractFactory('JBNFTRewardDataSourceDelegate', deployer);
     let jbNFTRewardDataSource = await jbNFTRewardDataSourceFactory
@@ -103,7 +103,7 @@ describe('JBNFTRewardDataSourceDelegate::didPay(...)', function () {
         PROJECT_ID,
         jbController.address,
         mockJbToken721.address,
-        100,
+        1,
         { token: ethToken, value: 1, decimals: 18, currency: CURRENCY_ETH }
       );
 
@@ -165,11 +165,12 @@ describe('JBNFTRewardDataSourceDelegate::didPay(...)', function () {
       mockJbToken721,
       timestamp,
       jbEthPaymentTerminal,
-      ethToken
+      ethToken,
+      jbNFTRewardDataSource
     };
   }
 
-  it(`Should mint token if caller is project owner and funding cycle not paused`, async function () {
+  it(`Should mint token if meeting contribution parameters`, async function () {
     const { timestamp, jbEthPaymentTerminal, addrs } = await setup();
     const caller = addrs[0];
     const beneficiary = addrs[1];
@@ -202,6 +203,77 @@ describe('JBNFTRewardDataSourceDelegate::didPay(...)', function () {
         METADATA,
         caller.address
       );
+  });
 
+  it(`Should not mint token if exceeding max supply`, async function () {
+    const { jbEthPaymentTerminal, addrs } = await setup();
+    const caller = addrs[0];
+    const beneficiary = addrs[1];
+
+    await jbEthPaymentTerminal.connect(caller).pay(PROJECT_ID, ETH_TO_PAY, ethers.constants.AddressZero, beneficiary.address, MIN_TOKEN_REQUESTED, PREFER_CLAIMED_TOKENS, MEMO, METADATA, { value: ETH_TO_PAY });
+
+    expect(await jbEthPaymentTerminal.connect(caller).pay(PROJECT_ID, ETH_TO_PAY, ethers.constants.AddressZero, beneficiary.address, MIN_TOKEN_REQUESTED, PREFER_CLAIMED_TOKENS, MEMO, METADATA, { value: ETH_TO_PAY }))
+      .to.not.emit(jbEthPaymentTerminal, 'Pay')
+  });
+
+  it(`Tests for unsupported pay functions`, async function () {
+    const { jbNFTRewardDataSource, jbEthPaymentTerminal, addrs } = await setup();
+
+    await jbNFTRewardDataSource.payParams({
+      terminal: jbEthPaymentTerminal.address,
+      payer: addrs[0].address,
+      amount: { token: ethToken, value: 1, decimals: 18, currency: CURRENCY_ETH },
+      projectId: PROJECT_ID,
+      currentFundingCycleConfiguration: 0,
+      beneficiary: addrs[1].address,
+      weight: 0,
+      reservedRate: 0,
+      memo: '',
+      metadata: ethers.utils.toUtf8Bytes('')
+    });
+  });
+
+  it(`Tests for unsupported redeem functions`, async function () {
+    const { jbNFTRewardDataSource, jbEthPaymentTerminal, addrs } = await setup();
+
+    await jbNFTRewardDataSource.didRedeem({
+      holder: addrs[0].address,
+      projectId: PROJECT_ID,
+      currentFundingCycleConfiguration: 0,
+      projectTokenCount: 0,
+      reclaimedAmount: { token: ethToken, value: 1, decimals: 18, currency: CURRENCY_ETH },
+      beneficiary: addrs[0].address,
+      memo: '',
+      metadata: ethers.utils.toUtf8Bytes('')
+    });
+
+    await jbNFTRewardDataSource.redeemParams({
+      terminal: jbEthPaymentTerminal.address,
+      holder: addrs[0].address,
+      projectId: PROJECT_ID,
+      currentFundingCycleConfiguration: 0,
+      tokenCount: 0,
+      totalSupply: 0,
+      overflow: 0,
+      reclaimAmount: { token: ethToken, value: 1, decimals: 18, currency: CURRENCY_ETH },
+      useTotalOverflow: false,
+      redemptionRate: 0,
+      ballotRedemptionRate: 0,
+      memo: '',
+      metadata: ethers.utils.toUtf8Bytes('')
+    });
+  });
+
+  it(`Test supportsInterface()`, async function () {
+    const { jbNFTRewardDataSource } = await setup();
+
+    let match = await jbNFTRewardDataSource.supportsInterface(0x599064e9); // IJBFundingCycleDataSource
+    expect(match).to.equal(true);
+
+    match = await jbNFTRewardDataSource.supportsInterface(0x304b1eea); // IJBPayDelegate
+    expect(match).to.equal(true);
+
+    match = await jbNFTRewardDataSource.supportsInterface(0x2400e8f7); // IJBRedemptionDelegate
+    expect(match).to.equal(true);
   });
 });

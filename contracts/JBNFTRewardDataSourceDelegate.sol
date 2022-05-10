@@ -9,6 +9,7 @@ import './interfaces/IJBToken721.sol';
 
 import './structs/JBDidPayData.sol';
 import './structs/JBDidRedeemData.sol';
+import './structs/JBRedeemParamsData.sol';
 import './structs/JBTokenAmount.sol';
 
 contract JBNFTRewardDataSourceDelegate is
