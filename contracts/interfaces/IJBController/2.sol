@@ -2,7 +2,6 @@
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
-import './../../enums/JBUseReservedRateOption.sol';
 import './../../structs/JBFundAccessConstraints.sol';
 import './../../structs/JBFundingCycleData.sol';
 import './../../structs/JBFundingCycleMetadata.sol';
@@ -63,7 +62,6 @@ interface IJBController is IERC165 {
     uint256 beneficiaryTokenCount,
     string memo,
     uint256 reservedRate,
-    JBUseReservedRateOption useReservedRateOption,
     address caller
   );
 
@@ -188,7 +186,7 @@ interface IJBController is IERC165 {
     address _beneficiary,
     string calldata _memo,
     bool _preferClaimedTokens,
-    JBUseReservedRateOption _useReservedRateOption
+    bool _useReservedRate
   ) external returns (uint256 beneficiaryTokenCount);
 
   function burnTokensOf(
