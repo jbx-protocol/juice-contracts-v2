@@ -41,4 +41,4 @@ jobs:
           steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile --prefer-offline
       - name: Run unit tests
-        run: node --require esm ./node_modules/.bin/hardhat test --network hardhat --max_old_space_size=4096
+        run: node --max-old-space-size=4096 --require esm ./node_modules/.bin/hardhat test --network hardhat
