@@ -102,7 +102,7 @@ describe('JBController::burnTokenOf(...)', function () {
 
     await jbController
       .connect(projectOwner)
-      .mintTokensOf(PROJECT_ID, TOTAL_SUPPLY, holder.address, MEMO, PREFERED_CLAIMED_TOKEN, true);
+      .mintTokensOf(PROJECT_ID, TOTAL_SUPPLY, holder.address, MEMO, PREFERED_CLAIMED_TOKEN, 1/*use fc reserved rate*/);
 
     return {
       projectOwner,

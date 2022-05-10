@@ -116,7 +116,7 @@ describe('JBController::totalOutstandingTokensOf(...)', function () {
         ethers.constants.AddressZero,
         MEMO,
         PREFERED_CLAIMED_TOKEN,
-        /*useReservedRate*/ true,
+        /*useReservedRate*/ 1 //Yes,
       );
 
     expect(await jbController.totalOutstandingTokensOf(PROJECT_ID, RESERVED_RATE)).to.equal(
@@ -153,7 +153,7 @@ describe('JBController::totalOutstandingTokensOf(...)', function () {
         ethers.constants.AddressZero,
         MEMO,
         PREFERED_CLAIMED_TOKEN,
-        /*useReservedRate*/ true,
+        /*useReservedRate*/ 1 //Yes,
       );
 
     expect(await jbController.totalOutstandingTokensOf(PROJECT_ID, 5000)).to.equal(
@@ -190,7 +190,7 @@ describe('JBController::totalOutstandingTokensOf(...)', function () {
         ethers.constants.AddressZero,
         MEMO,
         PREFERED_CLAIMED_TOKEN,
-        /*useReservedRate*/ true,
+        /*useReservedRate*/ 1 //Yes,
       );
 
     expect(await jbController.totalOutstandingTokensOf(PROJECT_ID, 0)).to.equal(
