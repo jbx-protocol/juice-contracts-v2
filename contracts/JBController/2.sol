@@ -4,7 +4,7 @@ pragma solidity 0.8.6;
 import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './../abstract/JBOperatable.sol';
-import './../interfaces/IJBController/2.sol';
+import './../interfaces/IJBController/1.sol';
 import './../interfaces/IJBMigratable.sol';
 import './../interfaces/IJBOperatorStore.sol';
 import './../interfaces/IJBPaymentTerminal.sol';
@@ -51,7 +51,6 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
   error NO_BURNABLE_TOKENS();
   error NOT_CURRENT_CONTROLLER();
   error ZERO_TOKENS_TO_MINT();
-  error ZERO_TOKENS_TO_RESERVE();
 
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
@@ -618,7 +617,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     @param _beneficiary The account that the tokens are being minted for.
     @param _memo A memo to pass along to the emitted event.
     @param _preferClaimedTokens A flag indicating whether a project's attached token contract should be minted if they have been issued.
-    @param _useReservedRateOption Whether to use the current funding cycle's reserved rate in the mint calculation, not use a reserved rate at all, or only use reserved tokens.
+    @param _useReservedRate Whether to use the current funding cycle's reserved rate in the mint calculation.
 
     @return beneficiaryTokenCount The amount of tokens minted for the beneficiary.
   */
@@ -628,7 +627,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     address _beneficiary,
     string calldata _memo,
     bool _preferClaimedTokens,
-    JBUseReservedRateOption _useReservedRateOption
+    bool _useReservedRate
   ) external virtual override returns (uint256 beneficiaryTokenCount) {
     // There should be tokens to mint.
     if (_tokenCount == 0) revert ZERO_TOKENS_TO_MINT();
@@ -659,31 +658,11 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
       ) revert MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE();
 
       // Determine the reserved rate to use.
-      _reservedRate = _useReservedRateOption == JBUseReservedRateOption.No
-        ? 0
-        : _fundingCycle.reservedRate();
-
-      // Assume the tokens being added will be distributed according to the current funding cycle's reserved rate.
-      // If the current funding cycle rate is 0 or MAX_RESERVED_RATE, add the whole amount to the reserved balance.
-      if (_useReservedRateOption == JBUseReservedRateOption.Only
-          && _reservedRate < JBConstants.MAX_RESERVED_RATE
-          && _reservedRate > 0)
-
-            _tokenCount = PRBMath.mulDiv(
-              _tokenCount,
-              1E18,
-              PRBMath.mulDiv(
-                JBConstants.MAX_RESERVED_RATE,
-                1E18,
-                (JBConstants.MAX_RESERVED_RATE - _reservedRate)
-              ) - 1E18);
+      _reservedRate = _useReservedRate ? _fundingCycle.reservedRate() : 0;
     }
 
-    if (
-      _reservedRate == JBConstants.MAX_RESERVED_RATE ||
-      _useReservedRateOption == JBUseReservedRateOption.Only
-    )
-      // Subtract the total token count from the tracker so the reserved token amount can be minted later.
+    if (_reservedRate == JBConstants.MAX_RESERVED_RATE)
+      // Subtract the total weighted amount from the tracker so the full reserved token amount can be printed later.
       _processedTokenTrackerOf[_projectId] =
         _processedTokenTrackerOf[_projectId] -
         int256(_tokenCount);
@@ -712,7 +691,6 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
       beneficiaryTokenCount,
       _memo,
       _reservedRate,
-      _useReservedRateOption,
       msg.sender
     );
   }
