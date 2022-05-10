@@ -55,7 +55,9 @@ describe('JBController::burnTokenOf(...)', function () {
       deployMockContract(deployer, jbTokenStore.abi),
     ]);
 
-    let jbControllerFactory = await ethers.getContractFactory('contracts/JBController/1.sol:JBController');
+    let jbControllerFactory = await ethers.getContractFactory(
+      'contracts/JBController/1.sol:JBController',
+    );
     let jbController = await jbControllerFactory.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
@@ -102,7 +104,14 @@ describe('JBController::burnTokenOf(...)', function () {
 
     await jbController
       .connect(projectOwner)
-      .mintTokensOf(PROJECT_ID, TOTAL_SUPPLY, holder.address, MEMO, PREFERED_CLAIMED_TOKEN, true /*use fc reserved rate*/);
+      .mintTokensOf(
+        PROJECT_ID,
+        TOTAL_SUPPLY,
+        holder.address,
+        MEMO,
+        PREFERED_CLAIMED_TOKEN,
+        true /*use fc reserved rate*/,
+      );
 
     return {
       projectOwner,

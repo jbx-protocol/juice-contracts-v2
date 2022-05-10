@@ -49,7 +49,10 @@ describe('JBPayoutRedemptionPaymentTerminal::getters', function () {
       deployMockContract(deployer, jbToken.abi),
     ]);
 
-    let jbTerminalFactory = await ethers.getContractFactory('contracts/JBETHPaymentTerminal/1.sol:JBETHPaymentTerminal', deployer);
+    let jbTerminalFactory = await ethers.getContractFactory(
+      'contracts/JBETHPaymentTerminal/1.sol:JBETHPaymentTerminal',
+      deployer,
+    );
     let jbErc20TerminalFactory = await ethers.getContractFactory(
       'contracts/JBERC20PaymentTerminal/1.sol:JBERC20PaymentTerminal',
       deployer,

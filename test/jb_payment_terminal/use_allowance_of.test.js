@@ -70,7 +70,10 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     const jbCurrencies = await jbCurrenciesFactory.deploy();
     const CURRENCY_ETH = await jbCurrencies.ETH();
 
-    const jbTerminalFactory = await ethers.getContractFactory('contracts/JBETHPaymentTerminal/1.sol:JBETHPaymentTerminal', deployer);
+    const jbTerminalFactory = await ethers.getContractFactory(
+      'contracts/JBETHPaymentTerminal/1.sol:JBETHPaymentTerminal',
+      deployer,
+    );
 
     const jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)

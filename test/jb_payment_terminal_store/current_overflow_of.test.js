@@ -38,7 +38,9 @@ describe('JBSingleTokenPaymentTerminalStore::currentOverflowOf(...)', function (
 
     const token = ethers.Wallet.createRandom().address;
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('contracts/JBSingleTokenPaymentTerminalStore/1.sol:JBSingleTokenPaymentTerminalStore')
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
+      'contracts/JBSingleTokenPaymentTerminalStore/1.sol:JBSingleTokenPaymentTerminalStore',
+    );
     const JBSingleTokenPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,

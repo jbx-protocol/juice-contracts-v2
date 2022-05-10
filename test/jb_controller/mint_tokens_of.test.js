@@ -54,7 +54,9 @@ describe('JBController::mintTokensOf(...)', function () {
       deployMockContract(deployer, jbTokenStore.abi),
     ]);
 
-    let jbControllerFactory = await ethers.getContractFactory('contracts/JBController/1.sol:JBController');
+    let jbControllerFactory = await ethers.getContractFactory(
+      'contracts/JBController/1.sol:JBController',
+    );
     let jbController = await jbControllerFactory.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
@@ -116,7 +118,7 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           /*_preferClaimedTokens=*/ true,
-          /* _useReservedRate=*/ true
+          /* _useReservedRate=*/ true,
         ),
     )
       .to.emit(jbController, 'MintTokens')
@@ -157,7 +159,7 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           /*_preferClaimedTokens=*/ true,
-          /* _useReservedRate=*/ true
+          /* _useReservedRate=*/ true,
         ),
     )
       .to.emit(jbController, 'MintTokens')
@@ -205,7 +207,7 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           /*_preferClaimedTokens=*/ true,
-          /* _useReservedRate=*/ true
+          /* _useReservedRate=*/ true,
         ),
     )
       .to.emit(jbController, 'MintTokens')
@@ -278,7 +280,7 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           /*_preferClaimedTokens=*/ true,
-          /* _useReservedRate=*/ true
+          /* _useReservedRate=*/ true,
         ),
     )
       .to.emit(jbController, 'MintTokens')
@@ -323,7 +325,7 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           /*_preferClaimedTokens=*/ true,
-          /* _useReservedRate=*/ true
+          /* _useReservedRate=*/ true,
         ),
     ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
@@ -340,7 +342,7 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           /*_preferClaimedTokens=*/ true,
-          /* _useReservedRate=*/ true
+          /* _useReservedRate=*/ true,
         ),
     ).to.be.revertedWith(errors.ZERO_TOKENS_TO_MINT);
   });
@@ -371,7 +373,7 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           /*_preferClaimedTokens=*/ true,
-          /* _useReservedRate=*/ true
+          /* _useReservedRate=*/ true,
         ),
     ).to.be.revertedWith(errors.MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE);
   });
@@ -525,7 +527,7 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           /*_preferClaimedTokens=*/ true,
-          /* _useReservedRate=*/ false
+          /* _useReservedRate=*/ false,
         ),
     )
       .to.emit(jbController, 'MintTokens')
