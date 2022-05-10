@@ -5,9 +5,9 @@ import { setBalance } from '../helpers/utils';
 import errors from '../helpers/errors.json';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import JBEthPaymentTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
-import jbErc20PaymentTerminal from '../../artifacts/contracts/JBERC20PaymentTerminal.sol/JBERC20PaymentTerminal.json';
-import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
+import JBEthPaymentTerminal from '../../artifacts/contracts/JBETHPaymentTerminal/1.sol/JBETHPaymentTerminal.json';
+import jbErc20PaymentTerminal from '../../artifacts/contracts/JBERC20PaymentTerminal/1.sol/JBERC20PaymentTerminal.json';
+import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore/1.sol/JBSingleTokenPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
@@ -63,9 +63,12 @@ describe('JBPayoutRedemptionPaymentTerminal::migrate(...)', function () {
 
     const SPLITS_GROUP = 1;
 
-    let jbEthTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
+    let jbEthTerminalFactory = await ethers.getContractFactory(
+      'contracts/JBETHPaymentTerminal/1.sol:JBETHPaymentTerminal',
+      deployer,
+    );
     let jbErc20TerminalFactory = await ethers.getContractFactory(
-      'JBERC20PaymentTerminal',
+      'contracts/JBERC20PaymentTerminal/1.sol:JBERC20PaymentTerminal',
       deployer,
     );
 
@@ -114,10 +117,12 @@ describe('JBPayoutRedemptionPaymentTerminal::migrate(...)', function () {
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
     await mockJbEthPaymentTerminal.mock.token.returns(TOKEN_ETH);
-    await mockJbEthPaymentTerminal.mock.acceptsToken.withArgs(TOKEN_ETH).returns(true);
+    await mockJbEthPaymentTerminal.mock.acceptsToken.withArgs(TOKEN_ETH, PROJECT_ID).returns(true);
 
     await mockJBERC20PaymentTerminal.mock.token.returns(NON_ETH_TOKEN);
-    await mockJBERC20PaymentTerminal.mock.acceptsToken.withArgs(NON_ETH_TOKEN).returns(true);
+    await mockJBERC20PaymentTerminal.mock.acceptsToken
+      .withArgs(NON_ETH_TOKEN, PROJECT_ID)
+      .returns(true);
 
     // addToBalanceOf _amount is 0 if ETH terminal
     await mockJbEthPaymentTerminal.mock.addToBalanceOf
@@ -253,7 +258,7 @@ describe('JBPayoutRedemptionPaymentTerminal::migrate(...)', function () {
     const { TOKEN_ETH, projectOwner, jbEthPaymentTerminal, mockJbEthPaymentTerminal } =
       await setup();
 
-    await mockJbEthPaymentTerminal.mock.acceptsToken.withArgs(TOKEN_ETH).returns(false);
+    await mockJbEthPaymentTerminal.mock.acceptsToken.withArgs(TOKEN_ETH, PROJECT_ID).returns(false);
 
     await expect(
       jbEthPaymentTerminal

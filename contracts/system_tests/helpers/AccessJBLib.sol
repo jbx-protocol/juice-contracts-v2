@@ -22,7 +22,23 @@ contract AccessJBLib {
     return JBConstants.MAX_FEE;
   }
 
+  function MAX_RESERVED_RATE() external pure returns (uint256) {
+    return JBConstants.MAX_RESERVED_RATE;
+  }
+
+  function MAX_REDEMPTION_RATE() external pure returns (uint256) {
+    return JBConstants.MAX_REDEMPTION_RATE;
+  }
+
+  function MAX_DISCOUNT_RATE() external pure returns (uint256) {
+    return JBConstants.MAX_DISCOUNT_RATE;
+  }
+
   function SPLITS_TOTAL_PERCENT() external pure returns (uint256) {
     return JBConstants.SPLITS_TOTAL_PERCENT;
+  }
+
+  function MAX_FEE_DISCOUNT() external pure returns (uint256) {
+    return JBConstants.MAX_FEE_DISCOUNT;
   }
 }

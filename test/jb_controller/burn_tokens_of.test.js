@@ -9,7 +9,7 @@ import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.s
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
-import jbTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/JBETHPaymentTerminal/1.sol/JBETHPaymentTerminal.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
 import jbToken721Store from '../../artifacts/contracts/JBToken721Store.sol/JBToken721Store.json';
@@ -58,7 +58,9 @@ describe('JBController::burnTokenOf(...)', function () {
       deployMockContract(deployer, jbToken721Store.abi),
     ]);
 
-    let jbControllerFactory = await ethers.getContractFactory('JBController');
+    let jbControllerFactory = await ethers.getContractFactory(
+      'contracts/JBController/1.sol:JBController',
+    );
     let jbController = await jbControllerFactory.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
@@ -106,7 +108,14 @@ describe('JBController::burnTokenOf(...)', function () {
 
     await jbController
       .connect(projectOwner)
-      .mintTokensOf(PROJECT_ID, TOTAL_SUPPLY, holder.address, MEMO, PREFERED_CLAIMED_TOKEN, true);
+      .mintTokensOf(
+        PROJECT_ID,
+        TOTAL_SUPPLY,
+        holder.address,
+        MEMO,
+        PREFERED_CLAIMED_TOKEN,
+        true /*use fc reserved rate*/,
+      );
 
     return {
       projectOwner,

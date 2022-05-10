@@ -7,7 +7,7 @@ import { packFundingCycleMetadata } from '../helpers/utils';
 import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
-import jbTerminal from '../../artifacts/contracts/abstract/JBPayoutRedemptionPaymentTerminal.sol/JBPayoutRedemptionPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/abstract/JBPayoutRedemptionPaymentTerminal/1.sol/JBPayoutRedemptionPaymentTerminal.json';
 
 describe('JBDirectory::primaryTerminalOf(...)', function () {
   const PROJECT_ID = 13;
@@ -62,7 +62,7 @@ describe('JBDirectory::primaryTerminalOf(...)', function () {
     let token = ethers.Wallet.createRandom().address;
 
     await terminal1.mock.token.returns(token);
-    await terminal1.mock.acceptsToken.withArgs(token).returns(true);
+    await terminal1.mock.acceptsToken.withArgs(token, PROJECT_ID).returns(true);
 
     await jbDirectory
       .connect(projectOwner)
@@ -81,8 +81,8 @@ describe('JBDirectory::primaryTerminalOf(...)', function () {
     let token = ethers.Wallet.createRandom().address;
     await terminal2.mock.token.returns(token);
 
-    await terminal1.mock.acceptsToken.withArgs(token).returns(false);
-    await terminal2.mock.acceptsToken.withArgs(token).returns(true);
+    await terminal1.mock.acceptsToken.withArgs(token, PROJECT_ID).returns(false);
+    await terminal2.mock.acceptsToken.withArgs(token, PROJECT_ID).returns(true);
 
     expect(await jbDirectory.connect(projectOwner).primaryTerminalOf(PROJECT_ID, token)).to.equal(
       terminal2.address,

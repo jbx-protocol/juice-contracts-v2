@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './interfaces/IJBController.sol';
+import './interfaces/IJBController/1.sol';
 import './interfaces/IJBFundingCycleDataSource.sol';
 import './interfaces/IJBPayDelegate.sol';
 import './interfaces/IJBRedemptionDelegate.sol';

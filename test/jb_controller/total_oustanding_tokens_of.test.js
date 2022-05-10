@@ -61,7 +61,9 @@ describe('JBController::totalOutstandingTokensOf(...)', function () {
       deployMockContract(deployer, jbToken721Store.abi),
     ]);
 
-    let jbControllerFactory = await ethers.getContractFactory('JBController');
+    let jbControllerFactory = await ethers.getContractFactory(
+      'contracts/JBController/1.sol:JBController',
+    );
     let jbController = await jbControllerFactory.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,

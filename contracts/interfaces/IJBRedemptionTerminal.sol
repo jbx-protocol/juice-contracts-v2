@@ -5,7 +5,7 @@ interface IJBRedemptionTerminal {
   function redeemTokensOf(
     address _holder,
     uint256 _projectId,
-    uint256 _count,
+    uint256 _tokenCount,
     address _token,
     uint256 _minReturnedTokens,
     address payable _beneficiary,

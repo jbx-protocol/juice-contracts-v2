@@ -6,11 +6,11 @@ import { impersonateAccount, packFundingCycleMetadata } from '../helpers/utils';
 
 import errors from '../helpers/errors.json';
 
-import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
+import jbController from '../../artifacts/contracts/interfaces/IJBController/1.sol/IJBController.json';
 import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
-import jbTerminal from '../../artifacts/contracts/abstract/JBPayoutRedemptionPaymentTerminal.sol/JBPayoutRedemptionPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/abstract/JBPayoutRedemptionPaymentTerminal/1.sol/JBPayoutRedemptionPaymentTerminal.json';
 
 describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
   const PROJECT_ID = 13;
@@ -88,7 +88,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
 
     const terminal1TokenAddress = ethers.Wallet.createRandom().address;
     await terminal1.mock.token.returns(terminal1TokenAddress);
-    await terminal1.mock.acceptsToken.withArgs(terminal1TokenAddress).returns(true);
+    await terminal1.mock.acceptsToken.withArgs(terminal1TokenAddress, PROJECT_ID).returns(true);
 
     let tx = await jbDirectory
       .connect(projectOwner)
@@ -114,7 +114,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     let mockToken = ethers.Wallet.createRandom().address;
 
     await terminal1.mock.token.returns(mockToken);
-    await terminal1.mock.acceptsToken.withArgs(mockToken).returns(true);
+    await terminal1.mock.acceptsToken.withArgs(mockToken, PROJECT_ID).returns(true);
 
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(
@@ -158,7 +158,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
     let mockToken = ethers.Wallet.createRandom().address;
 
     await terminal1.mock.token.returns(mockToken);
-    await terminal1.mock.acceptsToken.withArgs(mockToken).returns(true);
+    await terminal1.mock.acceptsToken.withArgs(mockToken, PROJECT_ID).returns(true);
 
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(
@@ -202,7 +202,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
 
     let mockToken = ethers.Wallet.createRandom().address;
     await terminal1.mock.token.returns(mockToken);
-    await terminal1.mock.acceptsToken.withArgs(mockToken).returns(true);
+    await terminal1.mock.acceptsToken.withArgs(mockToken, PROJECT_ID).returns(true);
 
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(
@@ -249,7 +249,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
 
     let mockToken = ethers.Wallet.createRandom().address;
     await terminal1.mock.token.returns(mockToken);
-    await terminal1.mock.acceptsToken.withArgs(mockToken).returns(true);
+    await terminal1.mock.acceptsToken.withArgs(mockToken, PROJECT_ID).returns(true);
 
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(
@@ -273,7 +273,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
 
     let mockToken = ethers.Wallet.createRandom().address;
     await terminal1.mock.token.returns(mockToken);
-    await terminal1.mock.acceptsToken.withArgs(mockToken).returns(true);
+    await terminal1.mock.acceptsToken.withArgs(mockToken, PROJECT_ID).returns(true);
 
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(
@@ -294,10 +294,10 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
 
     let token = ethers.Wallet.createRandom().address;
     await terminal1.mock.token.returns(token);
-    await terminal1.mock.acceptsToken.withArgs(token).returns(true);
+    await terminal1.mock.acceptsToken.withArgs(token, PROJECT_ID).returns(true);
 
     await terminal2.mock.token.returns(token);
-    await terminal2.mock.acceptsToken.withArgs(token).returns(true);
+    await terminal2.mock.acceptsToken.withArgs(token, PROJECT_ID).returns(true);
 
     let terminals = [terminal1.address, terminal2.address];
     await jbDirectory.connect(projectOwner).setTerminalsOf(PROJECT_ID, terminals);
@@ -325,7 +325,7 @@ describe('JBDirectory::setPrimaryTerminalOf(...)', function () {
 
     const terminal1TokenAddress = ethers.Wallet.createRandom().address;
     await terminal1.mock.token.returns(terminal1TokenAddress);
-    await terminal1.mock.acceptsToken.withArgs(terminal1TokenAddress).returns(false);
+    await terminal1.mock.acceptsToken.withArgs(terminal1TokenAddress, PROJECT_ID).returns(false);
 
     await expect(
       jbDirectory

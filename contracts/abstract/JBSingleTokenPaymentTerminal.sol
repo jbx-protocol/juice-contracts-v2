@@ -44,10 +44,13 @@ abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal,
     A flag indicating if this terminal accepts the specified token.
 
     @param _token The token to check if this terminal accepts or not.
+    @param _projectId The project ID to check for token acceptance.
 
     @return The flag.
   */
-  function acceptsToken(address _token) external view override returns (bool) {
+  function acceptsToken(address _token, uint256 _projectId) external view override returns (bool) {
+    _projectId; // Prevents unused var compiler and natspec complaints.
+
     return _token == token;
   }
 

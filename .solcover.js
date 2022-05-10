@@ -6,6 +6,7 @@ module.exports = {
   skipFiles: [
     'system_tests/helpers/AccessJBLib.sol',
     'system_tests/helpers/hevm.sol',
+    'system_tests/helpers/JBToken721SampleUriResolver.sol',
     'system_tests/helpers/TestBaseWorkflow.sol',
     'system_tests/mock/MockPriceFeed.sol',
     'system_tests/TestAllowance.sol',

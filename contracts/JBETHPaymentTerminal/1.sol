@@ -1,31 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
-import './abstract/JBPayoutRedemptionPaymentTerminal.sol';
+import '@openzeppelin/contracts/utils/Address.sol';
+import './../abstract/JBPayoutRedemptionPaymentTerminal/1.sol';
 
-/** 
-  @notice 
-  Manages the inflows and outflows of an ERC-20 token.
-
-  @dev
-  Adheres to -
-  IJBProjectPayer:  General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
+/**
+  @notice
+  Manages all inflows and outflows of ETH funds into the protocol ecosystem.
 
   @dev
   Inherits from -
-  JBPayoutRedemptionPaymentTerminal: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
+  JBPayoutRedemptionPaymentTerminal: Generic terminal managing all inflows and outflows of funds into the protocol ecosystem.
 */
-contract JBERC20PaymentTerminal is JBPayoutRedemptionPaymentTerminal {
+contract JBETHPaymentTerminal is JBPayoutRedemptionPaymentTerminal {
   //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
 
   /**
-    @param _token The token that this terminal manages.
-    @param _currency The currency that this terminal's token adheres to for price feeds.
     @param _baseWeightCurrency The currency to base token issuance on.
-    @param _payoutSplitsGroup The group that denotes payout splits from this terminal in the splits store.
     @param _operatorStore A contract storing operator assignments.
     @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
     @param _directory A contract storing directories of terminals and controllers for each project.
@@ -35,10 +28,7 @@ contract JBERC20PaymentTerminal is JBPayoutRedemptionPaymentTerminal {
     @param _owner The address that will own this contract.
   */
   constructor(
-    IERC20Metadata _token,
-    uint256 _currency,
     uint256 _baseWeightCurrency,
-    uint256 _payoutSplitsGroup,
     IJBOperatorStore _operatorStore,
     IJBProjects _projects,
     IJBDirectory _directory,
@@ -48,11 +38,11 @@ contract JBERC20PaymentTerminal is JBPayoutRedemptionPaymentTerminal {
     address _owner
   )
     JBPayoutRedemptionPaymentTerminal(
-      address(_token),
-      _token.decimals(),
-      _currency,
+      JBTokens.ETH,
+      18, // 18 decimals.
+      JBCurrencies.ETH,
       _baseWeightCurrency,
-      _payoutSplitsGroup,
+      JBSplitsGroups.ETH_PAYOUT,
       _operatorStore,
       _projects,
       _directory,
@@ -83,9 +73,9 @@ contract JBERC20PaymentTerminal is JBPayoutRedemptionPaymentTerminal {
     address payable _to,
     uint256 _amount
   ) internal override {
-    _from == address(this)
-      ? IERC20(token).transfer(_to, _amount)
-      : IERC20(token).transferFrom(_from, _to, _amount);
+    _from; // Prevents unused var compiler and natspec complaints.
+
+    Address.sendValue(_to, _amount);
   }
 
   /** 
@@ -95,7 +85,8 @@ contract JBERC20PaymentTerminal is JBPayoutRedemptionPaymentTerminal {
     @param _to The address to which the transfer is going.
     @param _amount The amount of the transfer, as a fixed point number with the same number of decimals as this terminal.
   */
-  function _beforeTransferTo(address _to, uint256 _amount) internal override {
-    IERC20(token).approve(_to, _amount);
+  function _beforeTransferTo(address _to, uint256 _amount) internal pure override {
+    _to; // Prevents unused var compiler and natspec complaints.
+    _amount; // Prevents unused var compiler and natspec complaints.
   }
 }

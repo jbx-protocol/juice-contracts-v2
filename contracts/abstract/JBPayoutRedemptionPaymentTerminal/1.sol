@@ -5,18 +5,18 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
-import './../interfaces/IJBController.sol';
-import './../interfaces/IJBPayoutRedemptionPaymentTerminal.sol';
-import './../libraries/JBConstants.sol';
-import './../libraries/JBCurrencies.sol';
-import './../libraries/JBFixedPointNumber.sol';
-import './../libraries/JBFundingCycleMetadataResolver.sol';
-import './../libraries/JBOperations.sol';
-import './../libraries/JBSplitsGroups.sol';
-import './../libraries/JBTokens.sol';
-import './../structs/JBTokenAmount.sol';
-import './JBOperatable.sol';
-import './JBSingleTokenPaymentTerminal.sol';
+import './../../interfaces/IJBController/1.sol';
+import './../../interfaces/IJBPayoutRedemptionPaymentTerminal.sol';
+import './../../libraries/JBConstants.sol';
+import './../../libraries/JBCurrencies.sol';
+import './../../libraries/JBFixedPointNumber.sol';
+import './../../libraries/JBFundingCycleMetadataResolver.sol';
+import './../../libraries/JBOperations.sol';
+import './../../libraries/JBSplitsGroups.sol';
+import './../../libraries/JBTokens.sol';
+import './../../structs/JBTokenAmount.sol';
+import './../JBOperatable.sol';
+import './../JBSingleTokenPaymentTerminal.sol';
 
 /**
   @notice
@@ -496,7 +496,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     returns (uint256 balance)
   {
     // The terminal being migrated to must accept the same token as this terminal.
-    if (!_to.acceptsToken(token)) revert TERMINAL_TOKENS_INCOMPATIBLE();
+    if (!_to.acceptsToken(token, _projectId)) revert TERMINAL_TOKENS_INCOMPATIBLE();
 
     // Record the migration in the store.
     balance = store.recordMigration(_projectId);

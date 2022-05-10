@@ -6,8 +6,8 @@ import { makeSplits, packFundingCycleMetadata, setBalance } from '../helpers/uti
 import errors from '../helpers/errors.json';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import JBEthPaymentTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
-import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
+import JBEthPaymentTerminal from '../../artifacts/contracts/JBETHPaymentTerminal/1.sol/JBETHPaymentTerminal.json';
+import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore/1.sol/JBSingleTokenPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
@@ -49,9 +49,12 @@ describe('JBPayoutRedemptionPaymentTerminal::getters', function () {
       deployMockContract(deployer, jbToken.abi),
     ]);
 
-    let jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
+    let jbTerminalFactory = await ethers.getContractFactory(
+      'contracts/JBETHPaymentTerminal/1.sol:JBETHPaymentTerminal',
+      deployer,
+    );
     let jbErc20TerminalFactory = await ethers.getContractFactory(
-      'JBERC20PaymentTerminal',
+      'contracts/JBERC20PaymentTerminal/1.sol:JBERC20PaymentTerminal',
       deployer,
     );
     const NON_ETH_TOKEN = mockJbToken.address;
@@ -99,13 +102,13 @@ describe('JBPayoutRedemptionPaymentTerminal::getters', function () {
 
   it('Should return true if the terminal accepts a token', async function () {
     const { JBERC20PaymentTerminal, jbEthPaymentTerminal, NON_ETH_TOKEN } = await setup();
-    expect(await JBERC20PaymentTerminal.acceptsToken(NON_ETH_TOKEN)).to.be.true;
+    expect(await JBERC20PaymentTerminal.acceptsToken(NON_ETH_TOKEN, /*projectId*/ 0)).to.be.true;
 
-    expect(await JBERC20PaymentTerminal.acceptsToken(ETH_ADDRESS)).to.be.false;
+    expect(await JBERC20PaymentTerminal.acceptsToken(ETH_ADDRESS, /*projectId*/ 0)).to.be.false;
 
-    expect(await jbEthPaymentTerminal.acceptsToken(ETH_ADDRESS)).to.be.true;
+    expect(await jbEthPaymentTerminal.acceptsToken(ETH_ADDRESS, /*projectId*/ 0)).to.be.true;
 
-    expect(await jbEthPaymentTerminal.acceptsToken(NON_ETH_TOKEN)).to.be.false;
+    expect(await jbEthPaymentTerminal.acceptsToken(NON_ETH_TOKEN, /*projectId*/ 0)).to.be.false;
   });
 
   it('Should return the decimals for the token', async function () {

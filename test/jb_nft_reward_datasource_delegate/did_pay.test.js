@@ -15,7 +15,7 @@ import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStor
 import jbToken721 from '../../artifacts/contracts/JBToken721.sol/JBToken721.json';
 import jbToken721Store from '../../artifacts/contracts/JBToken721Store.sol/JBToken721Store.json';
 import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
-import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
+import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore/1.sol/JBSingleTokenPaymentTerminalStore.json';
 
 describe('JBNFTRewardDataSourceDelegate::didPay(...)', function () {
   const PROJECT_ID = 2;
@@ -69,7 +69,7 @@ describe('JBNFTRewardDataSourceDelegate::didPay(...)', function () {
       deployMockContract(deployer, jbPaymentTerminalStore.abi),
     ]);
 
-    let jbControllerFactory = await ethers.getContractFactory('JBController');
+    let jbControllerFactory = await ethers.getContractFactory('contracts/JBController/1.sol:JBController');
     let jbController = await jbControllerFactory.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
@@ -80,7 +80,7 @@ describe('JBNFTRewardDataSourceDelegate::didPay(...)', function () {
       mockJbToken721Store.address
     );
 
-    let jbEthTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
+    let jbEthTerminalFactory = await ethers.getContractFactory('contracts/JBETHPaymentTerminal/1.sol:JBETHPaymentTerminal', deployer);
     let jbEthPaymentTerminal = await jbEthTerminalFactory
       .connect(deployer)
       .deploy(
