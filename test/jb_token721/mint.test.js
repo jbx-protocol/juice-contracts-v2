@@ -2,6 +2,8 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
+import jbToken721SampleUriResolver from '../../artifacts/contracts/system_tests/helpers/JBToken721SampleUriResolver.sol/JBToken721SampleUriResolver.json';
+
 describe('JBToken721::mint(...)', function () {
   const PROJECT_ID = 10;
   const NFT_NAME = 'Reward NFT';
@@ -57,7 +59,7 @@ describe('JBToken721::mint(...)', function () {
   });
 
   it(`Test views`, async function () {
-    const { jbToken721 } = await setup();
+    const { deployer, jbToken721 } = await setup();
 
     const contractUri = await jbToken721.contractURI();
     expect(contractUri).to.equal(NFT_URI);
@@ -65,5 +67,12 @@ describe('JBToken721::mint(...)', function () {
     await expect(jbToken721.tokenURI(0)).to.be.revertedWith('INVALID_ADDRESS()');
 
     await expect(jbToken721.ownerBalance(ethers.constants.AddressZero)).to.be.revertedWith('INVALID_ADDRESS()');
+
+    const mockJbToken721SampleUriResolver = await deployMockContract(deployer, jbToken721SampleUriResolver.abi);
+    await mockJbToken721SampleUriResolver.mock.tokenURI.returns('ipfs://some_hash');
+    await expect(jbToken721.connect(deployer).setTokenUriResolver(mockJbToken721SampleUriResolver.address)).to.be.not.reverted;
+    await jbToken721.connect(deployer).mint(PROJECT_ID, ethers.Wallet.createRandom().address);
+    const newTokenUri = await jbToken721.tokenURI(0);
+    expect(newTokenUri).to.equal('ipfs://some_hash');
   });
 });

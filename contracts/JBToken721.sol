@@ -67,6 +67,10 @@ contract JBToken721 is ERC721Rari, IJBToken721, Ownable {
     return bytes(_baseUri).length > 0 ? string(abi.encodePacked(_baseUri, tokenId.toString())) : '';
   }
 
+  /**
+    @notice
+    Returns the contract metadata uri.
+  */
   function contractURI() public view override returns (string memory contractUri) {
     contractUri = _contractUri;
   }
@@ -75,16 +79,42 @@ contract JBToken721 is ERC721Rari, IJBToken721, Ownable {
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
 
+  /**
+    @notice
+    Next token id to be minted.
+  */
   uint256 private _nextTokenId;
+
+  /**
+    @notice
+    Current supply.
+  */
   uint256 private _supply;
+
+  /**
+    @notice
+    Token base uri.
+  */
   string private _baseUri;
+
+  /**
+    @notice
+    Custom token uri resolver, superceeds base uri.
+  */
   IJBToken721UriResolver private _tokenUriResolver;
+
+  /**
+    @notice
+    Contract opensea-style metadata uri.
+  */
   string private _contractUri;
 
   /**
     @param _name The name of the token.
     @param _symbol The symbol that the token should be represented by.
     @param _uri Token base URI.
+    @param _tokenUriResolverAddress Custom uri resolver.
+    @param _contractMetadataUri Contract metadata uri.
   */
   constructor(
     string memory _name,
@@ -104,10 +134,44 @@ contract JBToken721 is ERC721Rari, IJBToken721, Ownable {
 
   /**
     @notice
+    Owner-only function to set a contract metadata uri to contain opensea-style metadata.
+
+    @param _contractMetadataUri New metadata uri.
+  */
+  function setContractUri(string calldata _contractMetadataUri) external override onlyOwner {
+    _contractUri = _contractMetadataUri;
+  }
+
+  /**
+    @notice
+    Owner-only function to set a new token base uri.
+
+    @param _uri New base uri.
+  */
+  function setTokenUri(string calldata _uri) external override onlyOwner {
+    _baseUri = _uri;
+  }
+
+  /**
+    @notice
+    Owner-only function to set a token uri resolver. If set to address(0), value of baseUri will be used instead.
+
+    @param _tokenUriResolverAddress New uri resolver contract.
+  */
+  function setTokenUriResolver(IJBToken721UriResolver _tokenUriResolverAddress)
+    external
+    override
+    onlyOwner
+  {
+    _tokenUriResolver = _tokenUriResolverAddress;
+  }
+
+  /**
+    @notice
     Mints the next NFT id.
 
     @dev
-    Only the owner of this contract cant mint more of it.
+    Only the owner of this contract can mint more of it.
 
     ignored: _projectId The ID of the project to which the token belongs. This is ignored.
     @param _account The account to mint the tokens for.

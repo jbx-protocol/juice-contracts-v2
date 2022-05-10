@@ -1,8 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import './IJBToken721UriResolver.sol';
+
 interface IJBToken721 {
   function totalSupply(uint256) external view returns (uint256);
+
+  function setContractUri(string calldata _contractMetadataUri) external;
+
+  function setTokenUri(string calldata _contractMetadataUri) external;
+
+  function setTokenUriResolver(IJBToken721UriResolver _tokenUriResolverAddress) external;
 
   function mint(uint256 _projectId, address _account) external returns (uint256);
 
