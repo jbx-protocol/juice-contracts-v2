@@ -4,7 +4,7 @@ pragma solidity 0.8.6;
 import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './../abstract/JBOperatable.sol';
-import './../interfaces/IJBController/1.sol';
+import './../interfaces/IJBController/2.sol';
 import './../interfaces/IJBMigratable.sol';
 import './../interfaces/IJBOperatorStore.sol';
 import './../interfaces/IJBPaymentTerminal.sol';
