@@ -576,8 +576,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Delete the held fees.
     delete _heldFeesOf[_projectId];
 
+    // Store length in stack
+    uint256 _heldFeeLength = _heldFees.length;
+
     // Process each fee.
-    for (uint256 _i = 0; _i < _heldFees.length; _i++) {
+    for (uint256 _i = 0; _i < _heldFeeLength;) {
       // Get the fee amount.
       uint256 _amount = _feeAmount(
         _heldFees[_i].amount,
@@ -589,6 +592,10 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       _processFee(_amount, _heldFees[_i].beneficiary);
 
       emit ProcessFee(_projectId, _amount, true, _heldFees[_i].beneficiary, msg.sender);
+
+      unchecked {
+        ++_i;
+      }
     }
   }
 
@@ -983,7 +990,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     JBSplit[] memory _splits = splitsStore.splitsOf(_projectId, _domain, _group);
 
     // Transfer between all splits.
-    for (uint256 _i = 0; _i < _splits.length; _i++) {
+    for (uint256 _i = 0; _i < _splits.length;) {
       // Get a reference to the split being iterated on.
       JBSplit memory _split = _splits[_i];
 
@@ -1136,6 +1143,10 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         _netPayoutAmount,
         msg.sender
       );
+
+      unchecked {
+        ++_i;
+      }
     }
   }
 
@@ -1355,8 +1366,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Get a reference to the leftover amount once all fees have been settled.
     uint256 leftoverAmount = _amount;
 
+    // Push length in stack
+    uint256 _heldFeesLength = _heldFees.length;
+
     // Process each fee.
-    for (uint256 _i = 0; _i < _heldFees.length; _i++) {
+    for (uint256 _i = 0; _i < _heldFeesLength;) {
       if (leftoverAmount == 0) _heldFeesOf[_projectId].push(_heldFees[_i]);
       else if (leftoverAmount >= _heldFees[_i].amount) {
         leftoverAmount = leftoverAmount - _heldFees[_i].amount;
@@ -1376,6 +1390,10 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         );
         refundedFees += _feeAmount(leftoverAmount, _heldFees[_i].fee, _heldFees[_i].feeDiscount);
         leftoverAmount = 0;
+      }
+
+      unchecked {
+        ++_i;
       }
     }
 
