@@ -6,6 +6,10 @@ import './helpers/TestBaseWorkflow.sol';
 import '../structs/JBTokenAmount.sol';
 import '../libraries/JBCurrencies.sol';
 
+interface Vm {
+  function warp(uint256 x) external;
+}
+
 /// @notice This file tests JBToken related flows
 contract TestNFTRewardsFlow is TestBaseWorkflow {
   JBController private _controller;
@@ -28,6 +32,8 @@ contract TestNFTRewardsFlow is TestBaseWorkflow {
 
   function setUp() public override {
     super.setUp();
+
+    Vm vm = Vm(address(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D));
 
     _controller = jbController();
     _tokenStore = jbTokenStore();
@@ -127,6 +133,8 @@ contract TestNFTRewardsFlow is TestBaseWorkflow {
       useDataSourceForRedeem: false,
       dataSource: address(_jbNFTRewardDataSourceDelegate)
     });
+
+    vm.warp(block.timestamp + 10000);
 
     evm.prank(_projectOwner);
     _controller.reconfigureFundingCyclesOf(
