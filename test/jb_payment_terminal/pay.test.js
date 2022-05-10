@@ -176,7 +176,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         beneficiary.address,
         '',
         PREFER_CLAIMED_TOKENS,
-        /* useReservedRate */ 1 //Yes,
+        /* useReservedRate */ true,
       )
       .returns(TOKEN_RECEIVED);
 
@@ -231,7 +231,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         /* beneficiary */ beneficiary.address,
         '',
         PREFER_CLAIMED_TOKENS,
-        /* useReservedRate */ 1 //Yes,
+        /* useReservedRate */ true,
       )
       .returns(TOKEN_RECEIVED);
 
@@ -354,7 +354,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         /* beneficiary */ beneficiary.address,
         '',
         PREFER_CLAIMED_TOKENS,
-        /* useReservedRate */ 1 //Yes,
+        /* useReservedRate */ true,
       )
       .returns(TOKEN_RECEIVED);
 
@@ -445,7 +445,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         beneficiary.address,
         '',
         PREFER_CLAIMED_TOKENS,
-        /* useReservedRate */ 1 //Yes,
+        /* useReservedRate */ true,
       )
       .returns(TOKEN_RECEIVED);
 

@@ -94,7 +94,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
         ethers.constants.AddressZero,
         MEMO,
         PREFERED_CLAIMED_TOKEN,
-        /*useReservedRate*/ 1,
+        /*useReservedRate*/ true,
       );
 
     return {

@@ -116,7 +116,7 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           /*_preferClaimedTokens=*/ true,
-          /* _useReservedRate=*/ 1 //Yes
+          /* _useReservedRate=*/ true
         ),
     )
       .to.emit(jbController, 'MintTokens')
@@ -157,7 +157,7 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           /*_preferClaimedTokens=*/ true,
-          /* _useReservedRate=*/ 1 //Yes
+          /* _useReservedRate=*/ true
         ),
     )
       .to.emit(jbController, 'MintTokens')
@@ -205,7 +205,7 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           /*_preferClaimedTokens=*/ true,
-          /* _useReservedRate=*/ 1 //Yes
+          /* _useReservedRate=*/ true
         ),
     )
       .to.emit(jbController, 'MintTokens')
@@ -278,7 +278,7 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           /*_preferClaimedTokens=*/ true,
-          /* _useReservedRate=*/ 1 //Yes
+          /* _useReservedRate=*/ true
         ),
     )
       .to.emit(jbController, 'MintTokens')
@@ -323,7 +323,7 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           /*_preferClaimedTokens=*/ true,
-          /* _useReservedRate=*/ 1 //Yes
+          /* _useReservedRate=*/ true
         ),
     ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
@@ -340,7 +340,7 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           /*_preferClaimedTokens=*/ true,
-          /* _useReservedRate=*/ 1 //Yes
+          /* _useReservedRate=*/ true
         ),
     ).to.be.revertedWith(errors.ZERO_TOKENS_TO_MINT);
   });
@@ -371,7 +371,7 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           /*_preferClaimedTokens=*/ true,
-          /* _useReservedRate=*/ 1 //Yes
+          /* _useReservedRate=*/ true
         ),
     ).to.be.revertedWith(errors.MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE);
   });
@@ -423,7 +423,7 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           /*_preferClaimedTokens=*/ true,
-          /* _useReservedRate=*/ 1 //Yes,
+          /* _useReservedRate=*/ true,
         ),
     )
       .to.emit(jbController, 'MintTokens')
@@ -483,7 +483,7 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           /*_preferClaimedTokens=*/ true,
-          /* _useReservedRate=*/ 1 //Yes,
+          /* _useReservedRate=*/ true,
         ),
     )
       .to.emit(jbController, 'MintTokens')
@@ -525,7 +525,7 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           /*_preferClaimedTokens=*/ true,
-          /* _useReservedRate=*/ 0 //No ,
+          /* _useReservedRate=*/ false
         ),
     )
       .to.emit(jbController, 'MintTokens')
@@ -591,7 +591,7 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           /*_preferClaimedTokens=*/ true,
-          /* _useReservedRate=*/ 1 //Yes,
+          /* _useReservedRate=*/ true,
         ),
     )
       .to.emit(jbController, 'MintTokens')
