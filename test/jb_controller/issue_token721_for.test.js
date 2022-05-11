@@ -10,12 +10,16 @@ import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
+import jbToken721 from '../../artifacts/contracts/JBToken721.sol/JBToken721.json';
 import jbToken721Store from '../../artifacts/contracts/JBToken721Store.sol/JBToken721Store.json';
 
 describe('JBController::issueTokenFor(...)', function () {
   const PROJECT_ID = 1;
   const NAME = 'TestTokenDAO';
   const SYMBOL = 'TEST';
+  const NFT_NAME = 'Reward NFT';
+  const NFT_SYMBOL = 'RN';
+  const NFT_URI = 'ipfs://';
 
   let ISSUE_PERMISSION_INDEX;
 
@@ -37,6 +41,7 @@ describe('JBController::issueTokenFor(...)', function () {
       mockJbSplitsStore,
       mockJbToken,
       mockJbTokenStore,
+      mockJbToken721,
       mockJbToken721Store,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
@@ -46,12 +51,11 @@ describe('JBController::issueTokenFor(...)', function () {
       deployMockContract(deployer, jbSplitsStore.abi),
       deployMockContract(deployer, jbToken.abi),
       deployMockContract(deployer, jbTokenStore.abi),
+      deployMockContract(deployer, jbToken721.abi),
       deployMockContract(deployer, jbToken721Store.abi),
     ]);
 
-    let jbControllerFactory = await ethers.getContractFactory(
-      'contracts/JBController/1.sol:JBController',
-    );
+    let jbControllerFactory = await ethers.getContractFactory('contracts/JBController/1.sol:JBController');
     let jbController = await jbControllerFactory.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
@@ -66,6 +70,14 @@ describe('JBController::issueTokenFor(...)', function () {
       .withArgs(PROJECT_ID, NAME, SYMBOL)
       .returns(mockJbToken.address);
 
+    await mockJbToken721Store.mock.issueFor
+      .withArgs(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, ethers.constants.AddressZero, 'ipfs://')
+      .returns(mockJbToken721.address);
+
+    await mockJbDirectory.mock.controllerOf
+      .withArgs(PROJECT_ID)
+      .returns(projectOwner.address);
+
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
     return {
@@ -76,19 +88,20 @@ describe('JBController::issueTokenFor(...)', function () {
       mockJbTokenStore,
       mockJbToken,
       mockJbOperatorStore,
+      mockJbToken721,
     };
   }
 
-  it(`Should deploy an ERC-20 token contract if caller is project owner`, async function () {
-    const { projectOwner, jbController, mockJbToken } = await setup();
+  it(`Should deploy an ERC-721 token contract if caller is project owner`, async function () {
+    const { projectOwner, jbController, mockJbToken721 } = await setup();
     let returnedAddress = await jbController
       .connect(projectOwner)
-      .callStatic.issueTokenFor(PROJECT_ID, NAME, SYMBOL);
-    expect(returnedAddress).to.equal(mockJbToken.address);
+      .callStatic.issueToken721For(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, ethers.constants.AddressZero, 'ipfs://');
+    expect(returnedAddress).to.equal(mockJbToken721.address);
   });
 
-  it(`Should deploy an ERC-20 token contract if caller is authorized`, async function () {
-    const { addrs, projectOwner, jbController, mockJbToken, mockJbOperatorStore } = await setup();
+  it(`Should deploy an ERC-721 token contract if caller is authorized`, async function () {
+    const { addrs, projectOwner, jbController, mockJbToken721, mockJbOperatorStore } = await setup();
     let caller = addrs[0];
 
     await mockJbOperatorStore.mock.hasPermission
@@ -97,12 +110,12 @@ describe('JBController::issueTokenFor(...)', function () {
 
     let returnedAddress = await jbController
       .connect(caller)
-      .callStatic.issueTokenFor(PROJECT_ID, NAME, SYMBOL);
-    expect(returnedAddress).to.equal(mockJbToken.address);
+      .callStatic.issueToken721For(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, ethers.constants.AddressZero, 'ipfs://');
+    expect(returnedAddress).to.equal(mockJbToken721.address);
   });
 
-  it(`Can't deploy an ERC-20 token contract if caller is not authorized`, async function () {
-    const { addrs, projectOwner, jbController, mockJbToken, mockJbOperatorStore } = await setup();
+  it(`Can't deploy an ERC-721 token contract if caller is not authorized`, async function () {
+    const { addrs, projectOwner, jbController, mockJbOperatorStore } = await setup();
     let caller = addrs[0];
 
     await mockJbOperatorStore.mock.hasPermission
@@ -114,7 +127,7 @@ describe('JBController::issueTokenFor(...)', function () {
       .returns(false);
 
     await expect(
-      jbController.connect(caller).callStatic.issueTokenFor(PROJECT_ID, NAME, SYMBOL),
+      jbController.connect(caller).callStatic.issueToken721For(PROJECT_ID, NFT_NAME, NFT_SYMBOL, NFT_URI, ethers.constants.AddressZero, 'ipfs://'),
     ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 });

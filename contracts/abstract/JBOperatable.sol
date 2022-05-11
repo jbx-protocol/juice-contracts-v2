@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './../interfaces/IJBOperatable.sol';
+import '../interfaces/IJBOperatable.sol';
 
 /** 
   @notice

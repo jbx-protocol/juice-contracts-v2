@@ -11,6 +11,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
+import jbToken721Store from '../../artifacts/contracts/JBToken721Store.sol/JBToken721Store.json';
 
 describe('JBController::prepForMigrationOf(...)', function () {
   const PROJECT_ID = 1;
@@ -27,6 +28,7 @@ describe('JBController::prepForMigrationOf(...)', function () {
       mockJbProjects,
       mockJbSplitsStore,
       mockJbTokenStore,
+      mockJbToken721Store,
     ] = await Promise.all([
       deployMockContract(deployer, JbController.abi),
       deployMockContract(deployer, jbDirectory.abi),
@@ -35,6 +37,7 @@ describe('JBController::prepForMigrationOf(...)', function () {
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
       deployMockContract(deployer, jbTokenStore.abi),
+      deployMockContract(deployer, jbToken721Store.abi),
     ]);
 
     let jbControllerFactory = await ethers.getContractFactory(
@@ -47,6 +50,7 @@ describe('JBController::prepForMigrationOf(...)', function () {
       mockJbFundingCycleStore.address,
       mockJbTokenStore.address,
       mockJbSplitsStore.address,
+      mockJbToken721Store.address
     );
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);

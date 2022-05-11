@@ -31,7 +31,7 @@ End-to-end tests have been written in Solidity, using Foundry.
 
 To get set up:
 
-1. Install [Foundry](https://github.com/gakonst/foundry).
+1. Install [Foundry](https://github.com/gakonst/foundry). This step may require extra bits like `libusb`, have `brew`, or similar, ready.
 
 ```bash
 curl -L https://foundry.paradigm.xyz | sh
@@ -43,13 +43,19 @@ curl -L https://foundry.paradigm.xyz | sh
 git submodule update --init
 ```
 
-3. Run tests:
+3. Update foundry to get the baseline install:
+
+```bash
+foundryup
+```
+
+4. Run tests:
 
 ```bash
 forge test
 ```
 
-4. Update Foundry periodically:
+5. Update Foundry periodically:
 
 ```bash
 foundryup
@@ -71,7 +77,7 @@ A few notes:
 
 - Hardhat doesn't support [esm](https://nodejs.org/api/esm.html) yet, hence running manually with node.
 - We are currently using a forked version of [solidity-coverage](https://www.npmjs.com/package/solidity-coverage) that includes optimizer settings. Ideally we will move to the maintained version after this is fixed on their end.
-- Juicebox V2 codebase being quite large, Solidity Coverage might run out of memory if you modify/add parts to it. Please check [Solidity-coverage FAQ](https://github.com/sc-forks/solidity-coverage/blob/master/docs/faq.md) in order to address the issue.
+- Juicebox V2 codebase being quite large, Solidity Coverage might run out of memory if you modify/add parts to it. Please check [Solidity-coverage FAQ](https://github.com/sc-forks/solidity-coverage/blob/master/docs/faq.md) in order to address the issue. Current requirement is at least 8GB RAM defined as `export NODE_OPTIONS=--max-old-space-size=8192`.
 
 ## Deploy
 

@@ -14,6 +14,7 @@ import './../IJBPaymentTerminal.sol';
 import './../IJBSplitsStore.sol';
 import './../IJBToken.sol';
 import './../IJBTokenStore.sol';
+import './../IJBToken721Store.sol';
 
 interface IJBController is IERC165 {
   event LaunchProject(uint256 configuration, uint256 projectId, string memo, address caller);
@@ -65,6 +66,14 @@ interface IJBController is IERC165 {
     address caller
   );
 
+  event MintTokens721(
+    address indexed beneficiary,
+    uint256 indexed projectId,
+    uint256 tokenId,
+    string memo,
+    address caller
+  );
+
   event BurnTokens(
     address indexed holder,
     uint256 indexed projectId,
@@ -82,6 +91,8 @@ interface IJBController is IERC165 {
   function fundingCycleStore() external view returns (IJBFundingCycleStore);
 
   function tokenStore() external view returns (IJBTokenStore);
+
+  function token721Store() external view returns (IJBToken721Store);
 
   function splitsStore() external view returns (IJBSplitsStore);
 
@@ -172,7 +183,16 @@ interface IJBController is IERC165 {
     uint256 _projectId,
     string calldata _name,
     string calldata _symbol
-  ) external returns (IJBToken token);
+  ) external returns (IJBToken);
+
+  function issueToken721For(
+    uint256 _projectId,
+    string calldata _name,
+    string calldata _symbol,
+    string calldata _baseUri,
+    IJBToken721UriResolver _tokenUriResolverAddress,
+    string calldata _contractUri
+  ) external returns (IJBToken721);
 
   function changeTokenOf(
     uint256 _projectId,
@@ -188,6 +208,12 @@ interface IJBController is IERC165 {
     bool _preferClaimedTokens,
     bool _useReservedRate
   ) external returns (uint256 beneficiaryTokenCount);
+
+  function mintTokens721Of(
+    uint256 _projectId,
+    address _beneficiary,
+    string calldata _memo
+  ) external returns (uint256);
 
   function burnTokensOf(
     address _holder,

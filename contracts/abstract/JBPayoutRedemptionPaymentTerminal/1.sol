@@ -1260,7 +1260,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       );
 
       // Mint the tokens if needed.
-      if (_tokenCount > 0)
+      if (_tokenCount > 0) {
         // Set token count to be the number of tokens minted for the beneficiary instead of the total amount.
         beneficiaryTokenCount = IJBController(directory.controllerOf(_projectId)).mintTokensOf(
           _projectId,
@@ -1270,10 +1270,12 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           _preferClaimedTokens,
           true
         );
+      }
 
       // The token count for the beneficiary must be greater than or equal to the minimum expected.
-      if (beneficiaryTokenCount < _minReturnedTokens) revert INADEQUATE_TOKEN_COUNT();
-
+      if (beneficiaryTokenCount < _minReturnedTokens) {
+        revert INADEQUATE_TOKEN_COUNT();
+      }
       // If a delegate was returned by the data source, issue a callback to it.
       if (_delegate != IJBPayDelegate(address(0))) {
         JBDidPayData memory _data = JBDidPayData(
