@@ -18,6 +18,11 @@ contract JBNFTRewardDataSourceDelegate is
   IJBRedemptionDelegate
 {
   //*********************************************************************//
+  // --------------------------- custom errors ------------------------- //
+  //*********************************************************************//
+  error INVALID_PAYMENT_EVENT();
+
+  //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
 
@@ -105,7 +110,9 @@ contract JBNFTRewardDataSourceDelegate is
   }
 
   function didPay(JBDidPayData calldata _data) external override {
-    // NOTE: JBToken721Store has onlyController(_projectId) on mintFor which will revert for incorrect sender.
+    if (!_controller.directory().isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))) {
+      revert INVALID_PAYMENT_EVENT();
+    }
 
     if (_distributedSupply == _maxSupply) {
       return;

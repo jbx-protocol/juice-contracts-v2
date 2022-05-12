@@ -176,7 +176,13 @@ contract JBToken721 is ERC721Rari, IJBToken721, Ownable {
     ignored: _projectId The ID of the project to which the token belongs. This is ignored.
     @param _account The account to mint the tokens for.
   */
-  function mint(uint256, address _account) external override onlyOwner returns (uint256) {
+  function mint(uint256 _projectId, address _account)
+    external
+    override
+    onlyOwner
+    returns (uint256)
+  {
+    _projectId; // Will not change the bytecode, but solc and natspec happiness are now achieved
     uint256 tokenId = _nextTokenId;
     _mint(_account, tokenId);
 
