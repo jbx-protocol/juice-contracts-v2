@@ -767,23 +767,19 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     uint256 _projectId,
     address _beneficiary,
     string calldata _memo
-  )
-    external
-    virtual
-    override
-    requirePermissionAllowingOverride(
-      projects.ownerOf(_projectId),
-      _projectId,
-      JBOperations.MINT,
-      directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender)) ||
-        address(fundingCycleStore.currentOf(_projectId).expandMetadata().dataSource) == msg.sender
-    )
-    returns (uint256 tokenId)
-  {
+  ) external virtual override returns (uint256 tokenId) {
     // Scoped section prevents stack too deep. `_fundingCycle` only used within scope.
     {
       // Get a reference to the project's current funding cycle.
       JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
+
+      _requirePermissionAllowingOverride(
+        projects.ownerOf(_projectId),
+        _projectId,
+        JBOperations.MINT,
+        directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender)) ||
+          msg.sender == address(_fundingCycle.dataSource())
+      );
 
       // If the message sender is not a terminal, the current funding cycle must allow minting.
       if (
