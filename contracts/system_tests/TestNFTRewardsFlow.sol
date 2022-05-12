@@ -1,14 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './helpers/console.sol';
 import './helpers/TestBaseWorkflow.sol';
 import '../structs/JBTokenAmount.sol';
 import '../libraries/JBCurrencies.sol';
-
-interface Vm {
-  function warp(uint256 x) external;
-}
 
 /// @notice This file tests JBToken related flows
 contract TestNFTRewardsFlow is TestBaseWorkflow {
@@ -32,8 +27,6 @@ contract TestNFTRewardsFlow is TestBaseWorkflow {
 
   function setUp() public override {
     super.setUp();
-
-    Vm vm = Vm(address(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D));
 
     _controller = jbController();
     _tokenStore = jbTokenStore();
@@ -134,7 +127,7 @@ contract TestNFTRewardsFlow is TestBaseWorkflow {
       dataSource: address(_jbNFTRewardDataSourceDelegate)
     });
 
-    vm.warp(block.timestamp + 10000);
+    evm.warp(block.timestamp + 10000);
 
     evm.prank(_projectOwner);
     _controller.reconfigureFundingCyclesOf(
@@ -151,7 +144,7 @@ contract TestNFTRewardsFlow is TestBaseWorkflow {
   function testNFTRewardMint() public {
     _terminals[0].pay{value: 2 * 10**18}(
       _projectId,
-      1 * 10**18,
+      0,
       address(0),
       msg.sender,
       0,
