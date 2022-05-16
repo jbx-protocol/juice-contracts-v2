@@ -6,13 +6,13 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import errors from '../helpers/errors.json';
 import { packFundingCycleMetadata, impersonateAccount } from '../helpers/utils';
 
-import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
+import jbController from '../../artifacts/contracts/interfaces/IJBController/1.sol/IJBController.json';
 import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
 import jBFundingCycleStore from '../../artifacts/contracts/interfaces/IJBFundingCycleStore.sol/IJBFundingCycleStore.json';
 import jbFundingCycleDataSource from '../../artifacts/contracts/interfaces/IJBFundingCycleDataSource.sol/IJBFundingCycleDataSource.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
-import jbTerminal from '../../artifacts/contracts/abstract/JBPayoutRedemptionPaymentTerminal.sol/JBPayoutRedemptionPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/abstract/JBPayoutRedemptionPaymentTerminal/1.sol/JBPayoutRedemptionPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
 describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function () {
@@ -41,7 +41,9 @@ describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function (
     const mockJbController = await deployMockContract(deployer, jbController.abi);
     const mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBSingleTokenPaymentTerminalStore');
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
+      'contracts/JBSingleTokenPaymentTerminalStore/1.sol:JBSingleTokenPaymentTerminalStore',
+    );
     const JBSingleTokenPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,
@@ -112,6 +114,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function (
       ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
       PROJECT_ID,
       BASE_CURRENCY,
+      beneficiary.address,
       /* memo */ 'test',
       METADATA,
     );
@@ -157,6 +160,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function (
       ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
       PROJECT_ID,
       BASE_CURRENCY,
+      beneficiary.address,
       /* memo */ 'test',
       METADATA,
     );
@@ -212,6 +216,8 @@ describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function (
         amount: ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
         decimal: _FIXED_POINT_MAX_FIDELITY,
         projectId: PROJECT_ID,
+        currentFundingCycleConfiguration: timestamp,
+        beneficiary,
         weight: WEIGHT,
         reservedRate: reservedRate,
         beneficiary: beneficiary.address,
@@ -231,7 +237,8 @@ describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function (
       ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
       /* projectId */ PROJECT_ID,
       BASE_CURRENCY,
-      /* memo */ memo,
+      beneficiary.address,
+      /* memo */ 'test',
       METADATA,
     );
 
@@ -276,6 +283,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function (
       ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
       PROJECT_ID,
       BASE_CURRENCY,
+      beneficiary.address,
       /* memo */ 'test',
       METADATA,
     );
@@ -330,6 +338,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function (
       ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
       PROJECT_ID,
       otherBaseCurrency,
+      beneficiary.address,
       /* memo */ 'test',
       METADATA,
     );
@@ -382,11 +391,11 @@ describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function (
         terminal: mockJbTerminalSigner.address,
         payer: payer.address,
         amount: ['0x1230000000000000000000000000000000000000', 0, 18, CURRENCY],
-        decimal: _FIXED_POINT_MAX_FIDELITY,
         projectId: PROJECT_ID,
+        currentFundingCycleConfiguration: timestamp,
+        beneficiary: beneficiary.address,
         weight: WEIGHT,
         reservedRate: reservedRate,
-        beneficiary: beneficiary.address,
         memo: memo,
         metadata: METADATA,
       })
@@ -404,6 +413,17 @@ describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function (
       ['0x1230000000000000000000000000000000000000', 0, 18, CURRENCY],
       /* projectId */ PROJECT_ID,
       BASE_CURRENCY,
+      beneficiary.address,
+      /* memo */ memo,
+      METADATA,
+    );
+
+    await JBSingleTokenPaymentTerminalStore.connect(mockJbTerminalSigner).recordPaymentFrom(
+      /* payer */ payer.address,
+      ['0x1230000000000000000000000000000000000000', 0, 18, CURRENCY],
+      /* projectId */ PROJECT_ID,
+      BASE_CURRENCY,
+      beneficiary.address,
       /* memo */ memo,
       METADATA,
     );
@@ -447,6 +467,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function (
         ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
         PROJECT_ID,
         BASE_CURRENCY,
+        beneficiary.address,
         /* memo */ 'test',
         METADATA,
       ),
@@ -482,6 +503,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function (
         ['0x1230000000000000000000000000000000000000', AMOUNT, 18, CURRENCY],
         PROJECT_ID,
         BASE_CURRENCY,
+        beneficiary.address,
         /* memo */ 'test',
         METADATA,
       ),

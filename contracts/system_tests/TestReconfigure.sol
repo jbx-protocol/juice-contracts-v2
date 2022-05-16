@@ -52,6 +52,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
     });
 
     _metadata = JBFundingCycleMetadata({
+      global: JBGlobalFundingCycleMetadata({allowSetTerminals: false, allowSetController: false}),
       reservedRate: 5000,
       redemptionRate: 5000,
       ballotRedemptionRate: 0,
@@ -63,20 +64,17 @@ contract TestReconfigureProject is TestBaseWorkflow {
       allowChangeToken: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
-      allowSetTerminals: false,
-      allowSetController: false,
       holdFees: false,
       useTotalOverflowForRedemptions: false,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
-      dataSource: IJBFundingCycleDataSource(address(0))
+      dataSource: address(0)
     });
 
     _terminals = [jbETHPaymentTerminal()];
   }
 
   function testReconfigureProject() public {
-
     uint256 projectId = controller.launchProjectFor(
       multisig(),
       _projectMetadata,
@@ -92,10 +90,10 @@ contract TestReconfigureProject is TestBaseWorkflow {
     JBFundingCycle memory fundingCycle = jbFundingCycleStore().currentOf(projectId);
 
     assertEq(fundingCycle.number, 1); // ok
-    assertEq(fundingCycle.weight, _data.weight); 
+    assertEq(fundingCycle.weight, _data.weight);
     emit log_uint(fundingCycle.basedOn);
     emit log_uint(fundingCycle.configuration);
-  
+
     uint256 currentConfiguration = fundingCycle.configuration;
 
     evm.warp(block.timestamp + 1); // Avoid overwriting if same timestamp
@@ -119,7 +117,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
 
     // should be new funding cycle
     evm.warp(fundingCycle.start + fundingCycle.duration);
-    
+
     JBFundingCycle memory newFundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(newFundingCycle.number, 2);
     assertEq(newFundingCycle.weight, _data.weight);
@@ -151,18 +149,17 @@ contract TestReconfigureProject is TestBaseWorkflow {
     JBFundingCycle memory currentFundingCycle = initialFundingCycle;
     JBFundingCycle memory queuedFundingCycle = jbFundingCycleStore().queuedOf(projectId);
 
-    evm.warp(currentFundingCycle.start+1); // Avoid overwriting current fc while reconfiguring
+    evm.warp(currentFundingCycle.start + 1); // Avoid overwriting current fc while reconfiguring
 
-    for(uint i=0; i<4; i++) {
+    for (uint256 i = 0; i < 4; i++) {
       currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
 
-
-      if(FUZZED_BALLOT_DURATION + i * 1 days < currentFundingCycle.duration)
+      if (FUZZED_BALLOT_DURATION + i * 1 days < currentFundingCycle.duration)
         assertEq(currentFundingCycle.weight, initialFundingCycle.weight - i);
 
       _data = JBFundingCycleData({
         duration: 6 days,
-        weight: initialFundingCycle.weight - (i+1), // i+1 -> next funding cycle
+        weight: initialFundingCycle.weight - (i + 1), // i+1 -> next funding cycle
         discountRate: 0,
         ballot: _ballot
       });
@@ -183,19 +180,23 @@ contract TestReconfigureProject is TestBaseWorkflow {
 
       // While ballot is failed, queued is current rolled over
       assertEq(queuedFundingCycle.weight, currentFundingCycle.weight);
-      assertEq(queuedFundingCycle.number, currentFundingCycle.number+1);
+      assertEq(queuedFundingCycle.number, currentFundingCycle.number + 1);
 
       // Is the full ballot duration included in the funding cycle?
-      if(FUZZED_BALLOT_DURATION == 0 || currentFundingCycle.duration % (FUZZED_BALLOT_DURATION + i * 1 days) < currentFundingCycle.duration) {
+      if (
+        FUZZED_BALLOT_DURATION == 0 ||
+        currentFundingCycle.duration % (FUZZED_BALLOT_DURATION + i * 1 days) <
+        currentFundingCycle.duration
+      ) {
         assertEq(currentFundingCycle.weight, initialFundingCycle.weight - i);
-        
+
         // we shift forward the start of the ballot into the fc, one day at a time, from fc to fc
         evm.warp(currentFundingCycle.start + currentFundingCycle.duration + i * 1 days);
 
         // ballot should be in Approved state now, queued is the reconfiguration rolled over
         queuedFundingCycle = jbFundingCycleStore().queuedOf(projectId);
-        assertEq(queuedFundingCycle.weight, currentFundingCycle.weight-1);
-        assertEq(queuedFundingCycle.number, currentFundingCycle.number+2); 
+        assertEq(queuedFundingCycle.weight, currentFundingCycle.weight - 1);
+        assertEq(queuedFundingCycle.number, currentFundingCycle.number + 2);
       }
       // the ballot is accross two funding cycles
       else {
@@ -263,6 +264,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
       projectId,
       _dataWithoutBallot,
       JBFundingCycleMetadata({
+        global: JBGlobalFundingCycleMetadata({allowSetTerminals: false, allowSetController: false}),
         reservedRate: RESERVED_RATE,
         redemptionRate: REDEMPTION_RATE,
         ballotRedemptionRate: 0,
@@ -274,13 +276,11 @@ contract TestReconfigureProject is TestBaseWorkflow {
         allowChangeToken: false,
         allowTerminalMigration: false,
         allowControllerMigration: false,
-        allowSetTerminals: false,
-        allowSetController: false,
         holdFees: false,
         useTotalOverflowForRedemptions: false,
         useDataSourceForPay: false,
         useDataSourceForRedeem: false,
-        dataSource: IJBFundingCycleDataSource(address(0))
+        dataSource: address(0)
       }),
       0,
       _groupedSplits,

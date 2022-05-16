@@ -5,9 +5,9 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { setBalance } from '../helpers/utils';
 import errors from '../helpers/errors.json';
 
-import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
+import jbController from '../../artifacts/contracts/interfaces/IJBController/1.sol/IJBController.json';
 import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
-import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
+import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore/1.sol/JBSingleTokenPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorStore.sol/IJBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
@@ -61,7 +61,10 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
     const jbCurrencies = await jbCurrenciesFactory.deploy();
     CURRENCY_ETH = await jbCurrencies.ETH();
 
-    const jbTerminalFactory = await ethers.getContractFactory('JBETHPaymentTerminal', deployer);
+    const jbTerminalFactory = await ethers.getContractFactory(
+      'contracts/JBETHPaymentTerminal/1.sol:JBETHPaymentTerminal',
+      deployer,
+    );
 
     const jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
@@ -136,13 +139,7 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
 
     // Keep it simple and let 1 token exchange for 1 wei
     await mockJBPaymentTerminalStore.mock.recordRedemptionFor
-      .withArgs(
-        holder.address,
-        PROJECT_ID,
-        /* tokenCount */ AMOUNT,
-        MEMO,
-        METADATA,
-      )
+      .withArgs(holder.address, PROJECT_ID, /* tokenCount */ AMOUNT, MEMO, METADATA)
       .returns(
         fundingCycle,
         /* reclaimAmount */ RECLAIM_AMOUNT,
@@ -203,13 +200,7 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
 
     // Keep it simple and let 1 token exchange for 1 wei
     await mockJBPaymentTerminalStore.mock.recordRedemptionFor
-      .withArgs(
-        holder.address,
-        PROJECT_ID,
-        /* tokenCount */ 0,
-        MEMO,
-        METADATA,
-      )
+      .withArgs(holder.address, PROJECT_ID, /* tokenCount */ 0, MEMO, METADATA)
       .returns(
         fundingCycle,
         /* reclaimAmount */ RECLAIM_AMOUNT,
@@ -278,13 +269,7 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
 
     // Keep it simple and let 1 token exchange for 1 wei
     await mockJBPaymentTerminalStore.mock.recordRedemptionFor
-      .withArgs(
-        holder.address,
-        PROJECT_ID,
-        /* tokenCount */ AMOUNT,
-        MEMO,
-        METADATA,
-      )
+      .withArgs(holder.address, PROJECT_ID, /* tokenCount */ AMOUNT, MEMO, METADATA)
       .returns(
         fundingCycle,
         /* reclaimAmount */ RECLAIM_AMOUNT,
@@ -298,6 +283,7 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
         // JBDidRedeemData obj
         holder: holder.address,
         projectId: PROJECT_ID,
+        currentFundingCycleConfiguration: timestamp,
         projectTokenCount: AMOUNT,
         reclaimedAmount: {
           token: tokenAddress,
@@ -394,13 +380,7 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
 
     // Keep it simple and let 1 token exchange for 1 wei
     await mockJBPaymentTerminalStore.mock.recordRedemptionFor
-      .withArgs(
-        holder.address,
-        PROJECT_ID,
-        /* tokenCount */ AMOUNT,
-        MEMO,
-        METADATA,
-      )
+      .withArgs(holder.address, PROJECT_ID, /* tokenCount */ AMOUNT, MEMO, METADATA)
       .returns(
         fundingCycle,
         /* reclaimAmount */ 0,
@@ -508,13 +488,7 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
 
     // Keep it simple and let 1 token exchange for 1 wei
     await mockJBPaymentTerminalStore.mock.recordRedemptionFor
-      .withArgs(
-        holder.address,
-        PROJECT_ID,
-        /* tokenCount */ AMOUNT,
-        MEMO,
-        METADATA,
-      )
+      .withArgs(holder.address, PROJECT_ID, /* tokenCount */ AMOUNT, MEMO, METADATA)
       .returns(
         fundingCycle,
         /* reclaimAmount */ 0,

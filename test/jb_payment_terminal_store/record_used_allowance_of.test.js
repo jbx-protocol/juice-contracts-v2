@@ -6,12 +6,12 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import errors from '../helpers/errors.json';
 import { packFundingCycleMetadata, impersonateAccount } from '../helpers/utils';
 
-import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
+import jbController from '../../artifacts/contracts/interfaces/IJBController/1.sol/IJBController.json';
 import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
 import jBFundingCycleStore from '../../artifacts/contracts/interfaces/IJBFundingCycleStore.sol/IJBFundingCycleStore.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
-import jbTerminal from '../../artifacts/contracts/abstract/JBPayoutRedemptionPaymentTerminal.sol/JBPayoutRedemptionPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/abstract/JBPayoutRedemptionPaymentTerminal/1.sol/JBPayoutRedemptionPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
 describe('JBSingleTokenPaymentTerminalStore::recordUsedAllowanceOf(...)', function () {
@@ -37,7 +37,9 @@ describe('JBSingleTokenPaymentTerminalStore::recordUsedAllowanceOf(...)', functi
     const CURRENCY_USD = await jbCurrencies.USD();
     const _FIXED_POINT_MAX_FIDELITY = 18;
 
-    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory('JBSingleTokenPaymentTerminalStore');
+    const JBPaymentTerminalStoreFactory = await ethers.getContractFactory(
+      'contracts/JBSingleTokenPaymentTerminalStore/1.sol:JBSingleTokenPaymentTerminalStore',
+    );
     const JBSingleTokenPaymentTerminalStore = await JBPaymentTerminalStoreFactory.deploy(
       mockJbDirectory.address,
       mockJbFundingCycleStore.address,

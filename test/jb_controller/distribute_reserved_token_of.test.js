@@ -58,7 +58,9 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       deployMockContract(deployer, jbTokenStore.abi),
     ]);
 
-    let jbControllerFactory = await ethers.getContractFactory('JBController');
+    let jbControllerFactory = await ethers.getContractFactory(
+      'contracts/JBController/1.sol:JBController',
+    );
     let jbController = await jbControllerFactory.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
@@ -299,7 +301,7 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
         PREFERED_CLAIMED_TOKEN,
       )
       .returns();
-    
+
     await mockJbTokenStore.mock.tokenOf.withArgs(PROJECT_ID).returns(mockJbToken.address);
 
     await Promise.all(

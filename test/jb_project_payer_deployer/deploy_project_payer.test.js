@@ -18,7 +18,9 @@ describe('JBProjectPayerDeployer::deployProjectPayer(...)', function () {
 
     const mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
 
-    const jbProjectPayerDeployerFactory = await ethers.getContractFactory('JBETHERC20ProjectPayerDeployer');
+    const jbProjectPayerDeployerFactory = await ethers.getContractFactory(
+      'JBETHERC20ProjectPayerDeployer',
+    );
     const jbProjectPayerDeployer = await jbProjectPayerDeployerFactory.deploy();
 
     return {
@@ -32,7 +34,10 @@ describe('JBProjectPayerDeployer::deployProjectPayer(...)', function () {
     const { owner, mockJbDirectory, jbProjectPayerDeployer } = await setup();
 
     const currentNonce = await ethers.provider.getTransactionCount(jbProjectPayerDeployer.address);
-    const jbProjectPayerAddress = ethers.utils.getContractAddress({ from: jbProjectPayerDeployer.address, nonce: currentNonce });
+    const jbProjectPayerAddress = ethers.utils.getContractAddress({
+      from: jbProjectPayerDeployer.address,
+      nonce: currentNonce,
+    });
 
     const tx = await jbProjectPayerDeployer
       .connect(owner)
@@ -44,7 +49,7 @@ describe('JBProjectPayerDeployer::deployProjectPayer(...)', function () {
         INITIAL_METADATA,
         INITIAL_PREFER_ADD_TO_BALANCE,
         mockJbDirectory.address,
-        owner.address
+        owner.address,
       );
 
     await expect(tx)
@@ -59,7 +64,7 @@ describe('JBProjectPayerDeployer::deployProjectPayer(...)', function () {
         INITIAL_PREFER_ADD_TO_BALANCE,
         mockJbDirectory.address,
         owner.address,
-        owner.address
+        owner.address,
       );
   });
 });

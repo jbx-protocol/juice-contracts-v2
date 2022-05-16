@@ -4,7 +4,7 @@ pragma solidity 0.8.6;
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBDirectory.sol';
-import './libraries/JBFundingCycleMetadataResolver.sol';
+import './libraries/JBGlobalFundingCycleMetadataResolver.sol';
 import './libraries/JBOperations.sol';
 
 /**
@@ -22,7 +22,7 @@ import './libraries/JBOperations.sol';
 */
 contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   // A library that parses the packed funding cycle metadata into a friendlier format.
-  using JBFundingCycleMetadataResolver for JBFundingCycle;
+  using JBGlobalFundingCycleMetadataResolver for uint8;
 
   //*********************************************************************//
   // --------------------------- custom errors ------------------------- //
@@ -138,7 +138,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     // Return the first terminal which accepts the specified token.
     for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++) {
       IJBPaymentTerminal _terminal = _terminalsOf[_projectId][_i];
-      if (_terminal.acceptsToken(_token)) return _terminal;
+      if (_terminal.acceptsToken(_token, _projectId)) return _terminal;
     }
 
     // Not found.
@@ -229,7 +229,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     if (
       msg.sender != address(controllerOf[_projectId]) &&
       controllerOf[_projectId] != address(0) &&
-      !_fundingCycle.setControllerAllowed()
+      !uint8(_fundingCycle.metadata >> 8).setControllerAllowed()
     ) revert SET_CONTROLLER_NOT_ALLOWED();
 
     // Set the new controller.
@@ -262,8 +262,10 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Setting terminals must be allowed if not called from the current controller.
-    if (msg.sender != address(controllerOf[_projectId]) && !_fundingCycle.setTerminalsAllowed())
-      revert SET_TERMINALS_NOT_ALLOWED();
+    if (
+      msg.sender != address(controllerOf[_projectId]) &&
+      !uint8(_fundingCycle.metadata >> 8).setTerminalsAllowed()
+    ) revert SET_TERMINALS_NOT_ALLOWED();
 
     // Delete the stored terminals for the project.
     _terminalsOf[_projectId] = _terminals;
@@ -302,7 +304,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.SET_PRIMARY_TERMINAL)
   {
     // Can't set the primary terminal for a token if it doesn't accept the token.
-    if (!_terminal.acceptsToken(_token)) revert TOKEN_NOT_ACCEPTED();
+    if (!_terminal.acceptsToken(_token, _projectId)) revert TOKEN_NOT_ACCEPTED();
 
     // Add the terminal to the project if it hasn't been already.
     _addTerminalIfNeeded(_projectId, _terminal);
@@ -358,8 +360,10 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Setting terminals must be allowed if not called from the current controller.
-    if (msg.sender != address(controllerOf[_projectId]) && !_fundingCycle.setTerminalsAllowed())
-      revert SET_TERMINALS_NOT_ALLOWED();
+    if (
+      msg.sender != address(controllerOf[_projectId]) &&
+      !uint8(_fundingCycle.metadata >> 8).setTerminalsAllowed()
+    ) revert SET_TERMINALS_NOT_ALLOWED();
 
     // Add the new terminal.
     _terminalsOf[_projectId].push(_terminal);

@@ -46,13 +46,8 @@ describe('JBTokenStore::shouldRequireClaimingFor(...)', function () {
   }
 
   it('Should set flag and emit event if caller is project owner', async function () {
-    const {
-      controller,
-      projectOwner,
-      mockJbDirectory,
-      mockJbProjects,
-      jbTokenStore,
-    } = await setup();
+    const { controller, projectOwner, mockJbDirectory, mockJbProjects, jbTokenStore } =
+      await setup();
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);

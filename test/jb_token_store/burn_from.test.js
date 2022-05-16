@@ -180,7 +180,9 @@ describe('JBTokenStore::burnFrom(...)', function () {
       .burnFrom(newHolder.address, PROJECT_ID, burnAmt, /* preferClaimedTokens= */ false);
 
     expect(await jbTokenStore.unclaimedBalanceOf(newHolder.address, PROJECT_ID)).to.equal(1);
-    expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(MAX_TOKENS + BigInt(1));
+    expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(
+      MAX_TOKENS + BigInt(1),
+    );
     expect(await jbTokenStore.totalSupplyOf(PROJECT_ID)).to.equal(MAX_TOKENS + BigInt(1));
 
     await expect(burnFromTx)

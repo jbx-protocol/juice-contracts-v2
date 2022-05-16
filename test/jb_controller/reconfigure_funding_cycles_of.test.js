@@ -4,13 +4,13 @@ import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { makeSplits, packFundingCycleMetadata } from '../helpers/utils';
 import errors from '../helpers/errors.json';
 
-import JbController from '../../artifacts/contracts/JBController.sol/JBController.json';
+import JbController from '../../artifacts/contracts/JBController/1.sol/JBController.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
-import jbTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
+import jbTerminal from '../../artifacts/contracts/JBETHPaymentTerminal/1.sol/JBETHPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
 
 describe('JBController::reconfigureFundingCycleOf(...)', function () {
@@ -56,7 +56,9 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
       deployMockContract(deployer, jbTokenStore.abi),
     ]);
 
-    let jbControllerFactory = await ethers.getContractFactory('JBController');
+    let jbControllerFactory = await ethers.getContractFactory(
+      'contracts/JBController/1.sol:JBController',
+    );
     let jbController = await jbControllerFactory.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
@@ -132,6 +134,10 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
     dataSource = ethers.constants.AddressZero,
   } = {}) {
     const unpackedMetadata = {
+      global: {
+        allowSetTerminals,
+        allowSetController,
+      },
       reservedRate,
       redemptionRate,
       ballotRedemptionRate,
@@ -143,8 +149,6 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
       allowChangeToken,
       allowTerminalMigration,
       allowControllerMigration,
-      allowSetTerminals,
-      allowSetController,
       holdFees,
       useTotalOverflowForRedemptions,
       useDataSourceForPay,

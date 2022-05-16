@@ -6,7 +6,7 @@ import { impersonateAccount, packFundingCycleMetadata } from '../helpers/utils';
 
 import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
-import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
+import jbController from '../../artifacts/contracts/interfaces/IJBController/1.sol/IJBController.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import errors from '../helpers/errors.json';
 
@@ -39,7 +39,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
       mockJbProjects.address,
       mockJbFundingCycleStore.address,
       deployer.address,
-    );  
+    );
 
     let controller1 = await deployMockContract(projectOwner, jbController.abi);
     let controller2 = await deployMockContract(projectOwner, jbController.abi);
@@ -55,7 +55,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata()
+      metadata: packFundingCycleMetadata(),
     });
 
     return {
@@ -68,7 +68,7 @@ describe('JBDirectory::setControllerOf(...)', function () {
       mockJbOperatorStore,
       controller1,
       controller2,
-      timestamp
+      timestamp,
     };
   }
 
@@ -228,7 +228,15 @@ describe('JBDirectory::setControllerOf(...)', function () {
   });
 
   it('Cannot change controller if funding cycle prohibit it, if the caller is the current controller', async function () {
-    const { projectOwner, jbDirectory, mockJbFundingCycleStore, mockJbProjects, controller1, controller2, timestamp } = await setup();
+    const {
+      projectOwner,
+      jbDirectory,
+      mockJbFundingCycleStore,
+      mockJbProjects,
+      controller1,
+      controller2,
+      timestamp,
+    } = await setup();
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       number: 1,
@@ -239,16 +247,15 @@ describe('JBDirectory::setControllerOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowSetController: false})
+      metadata: packFundingCycleMetadata({ allowSetController: false }),
     });
 
     await mockJbProjects.mock.count.returns(PROJECT_ID);
 
     await jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller1.address);
 
-    await expect(jbDirectory
-      .connect(projectOwner)
-      .setControllerOf(PROJECT_ID, controller2.address)
+    await expect(
+      jbDirectory.connect(projectOwner).setControllerOf(PROJECT_ID, controller2.address),
     ).to.be.revertedWith(errors.SET_CONTROLLER_NOT_ALLOWED);
 
     let controller = await jbDirectory.connect(projectOwner).controllerOf(PROJECT_ID);

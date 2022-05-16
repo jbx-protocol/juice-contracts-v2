@@ -83,6 +83,8 @@ Then, to execute the `./deploy/deploy.js` script, run the following:
 npx hardhat deploy --network $network
 ```
 
+_You'll likely want to set the optimizer runs to 10000 in `./hardhat.config.js` before deploying to prevent contract size errors. The preset value of 1000000 is necessary for hardhat to run unit tests successfully. Bug about this opened [here](https://github.com/NomicFoundation/hardhat/issues/2657#issuecomment-1113890401).
+
 Contract artifacts will be outputted to `./deployments/$network/**` and should be checked in to the repo.
 
 ## Verification

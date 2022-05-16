@@ -204,10 +204,15 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
 
       uint256 _packedSplitParts1;
 
+      // prefer claimed in bit 0.
       if (_splits[_i].preferClaimed) _packedSplitParts1 = 1;
+      // prefer add to balance in bit 1.
       if (_splits[_i].preferAddToBalance) _packedSplitParts1 |= 1 << 1;
+      // percent in bits 2-33.
       _packedSplitParts1 |= _splits[_i].percent << 2;
+      // projectId in bits 32-89.
       _packedSplitParts1 |= _splits[_i].projectId << 34;
+      // beneficiary in bits 90-249.
       _packedSplitParts1 |= uint256(uint160(address(_splits[_i].beneficiary))) << 90;
 
       // Store the first spit part.
@@ -218,9 +223,14 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
         // Locked until should be within a uint48
         if (_splits[_i].lockedUntil > type(uint48).max) revert INVALID_LOCKED_UNTIL();
 
+        // lockedUntil in bits 0-47.
         uint256 _packedSplitParts2 = uint48(_splits[_i].lockedUntil);
+        // allocator in bits 48-207.
         _packedSplitParts2 |= uint256(uint160(address(_splits[_i].allocator))) << 48;
+
+        // Store the second split part.
         _packedSplitParts2Of[_projectId][_domain][_group][_i] = _packedSplitParts2;
+
         // Otherwise if there's a value stored in the indexed position, delete it.
       } else if (_packedSplitParts2Of[_projectId][_domain][_group][_i] > 0)
         delete _packedSplitParts2Of[_projectId][_domain][_group][_i];
@@ -265,10 +275,15 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
       // Populate the split struct.
       JBSplit memory _split;
 
+      // prefer claimed in bit 0.
       _split.preferClaimed = _packedSplitPart1 & 1 == 1;
+      // prefer add to balance in bit 1.
       _split.preferAddToBalance = (_packedSplitPart1 >> 1) & 1 == 1;
+      // percent in bits 2-33.
       _split.percent = uint256(uint32(_packedSplitPart1 >> 2));
+      // projectId in bits 32-89.
       _split.projectId = uint256(uint56(_packedSplitPart1 >> 34));
+      // beneficiary in bits 90-249.
       _split.beneficiary = payable(address(uint160(_packedSplitPart1 >> 90)));
 
       // Get a reference to the second packed data.
@@ -276,7 +291,9 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
 
       // If there's anything in it, unpack.
       if (_packedSplitPart2 > 0) {
+        // lockedUntil in bits 0-47.
         _split.lockedUntil = uint256(uint48(_packedSplitPart2));
+        // allocator in bits 48-207.
         _split.allocator = IJBSplitAllocator(address(uint160(_packedSplitPart2 >> 48)));
       }
 

@@ -35,6 +35,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
     });
 
     _metadata = JBFundingCycleMetadata({
+      global: JBGlobalFundingCycleMetadata({allowSetTerminals: false, allowSetController: false}),
       reservedRate: 5000, //50%
       redemptionRate: 5000, //50%
       ballotRedemptionRate: 0,
@@ -46,13 +47,11 @@ contract TestERC20Terminal is TestBaseWorkflow {
       allowChangeToken: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
-      allowSetTerminals: false,
-      allowSetController: false,
       holdFees: false,
       useTotalOverflowForRedemptions: false,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
-      dataSource: IJBFundingCycleDataSource(address(0))
+      dataSource: address(0)
     });
 
     _terminals.push(jbERC20PaymentTerminal());
@@ -218,13 +217,12 @@ contract TestERC20Terminal is TestBaseWorkflow {
     if (ALLOWANCE == 0) {
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_CONTROLLER_ALLOWANCE()'));
       willRevert = true;
-    }
-    else if (TARGET >= BALANCE || ALLOWANCE > (BALANCE - TARGET)) {
+    } else if (TARGET >= BALANCE || ALLOWANCE > (BALANCE - TARGET)) {
       // Too much to withdraw or no overflow ?
       evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
       willRevert = true;
     }
-    
+
     evm.prank(_projectOwner); // Prank only next call
     terminal.useAllowanceOf(
       projectId,
