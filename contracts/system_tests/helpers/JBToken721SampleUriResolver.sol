@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import '../../interfaces/IJBToken721.sol';
+import '../../interfaces/IJBToken721UriResolver.sol';
 
 /**
   @notice Sample implementation of IJBToken721UriResolver for tests.

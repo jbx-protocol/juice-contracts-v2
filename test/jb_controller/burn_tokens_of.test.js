@@ -12,7 +12,6 @@ import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsS
 import jbTerminal from '../../artifacts/contracts/JBETHPaymentTerminal/1.sol/JBETHPaymentTerminal.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
-import jbToken721Store from '../../artifacts/contracts/JBToken721Store.sol/JBToken721Store.json';
 
 describe('JBController::burnTokenOf(...)', function () {
   const PROJECT_ID = 1;
@@ -46,7 +45,6 @@ describe('JBController::burnTokenOf(...)', function () {
       mockJbSplitsStore,
       mockJbToken,
       mockJbTokenStore,
-      mockJbToken721Store,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
       deployMockContract(deployer, jbFundingCycleStore.abi),
@@ -55,7 +53,6 @@ describe('JBController::burnTokenOf(...)', function () {
       deployMockContract(deployer, jbSplitsStore.abi),
       deployMockContract(deployer, jbToken.abi),
       deployMockContract(deployer, jbTokenStore.abi),
-      deployMockContract(deployer, jbToken721Store.abi),
     ]);
 
     let jbControllerFactory = await ethers.getContractFactory(
@@ -68,7 +65,6 @@ describe('JBController::burnTokenOf(...)', function () {
       mockJbFundingCycleStore.address,
       mockJbTokenStore.address,
       mockJbSplitsStore.address,
-      mockJbToken721Store.address
     );
 
     await Promise.all([

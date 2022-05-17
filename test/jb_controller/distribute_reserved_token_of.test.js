@@ -11,7 +11,6 @@ import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
-import jbToken721Store from '../../artifacts/contracts/JBToken721Store.sol/JBToken721Store.json';
 
 describe('JBController::distributeReservedTokensOf(...)', function () {
   const PROJECT_ID = 1;
@@ -48,7 +47,6 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       mockSplitsStore,
       mockJbToken,
       mockJbTokenStore,
-      mockJbToken721Store,
     ] = await Promise.all([
       deployMockContract(deployer, jbAllocator.abi),
       deployMockContract(deployer, jbDirectory.abi),
@@ -58,7 +56,6 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       deployMockContract(deployer, jbSplitsStore.abi),
       deployMockContract(deployer, jbToken.abi),
       deployMockContract(deployer, jbTokenStore.abi),
-      deployMockContract(deployer, jbToken721Store.abi),
     ]);
 
     let jbControllerFactory = await ethers.getContractFactory(
@@ -71,7 +68,6 @@ describe('JBController::distributeReservedTokensOf(...)', function () {
       mockJbFundingCycleStore.address,
       mockJbTokenStore.address,
       mockSplitsStore.address,
-      mockJbToken721Store.address,
     );
 
     await Promise.all([

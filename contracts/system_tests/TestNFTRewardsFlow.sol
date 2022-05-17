@@ -5,11 +5,10 @@ import './helpers/TestBaseWorkflow.sol';
 import '../structs/JBTokenAmount.sol';
 import '../libraries/JBCurrencies.sol';
 
-/// @notice This file tests JBToken related flows
 contract TestNFTRewardsFlow is TestBaseWorkflow {
   JBController private _controller;
+  JBDirectory private _directory;
   JBTokenStore private _tokenStore;
-  JBToken721Store private _nftStore;
 
   JBProjectMetadata private _projectMetadata;
   JBFundingCycleData private _fundingCycleData;
@@ -21,16 +20,16 @@ contract TestNFTRewardsFlow is TestBaseWorkflow {
   uint256 private _projectId = 1;
   address private _projectOwner;
   uint256 private _reservedRate = 5000;
+  uint256 private _minEthContribution = 1 * 10**18;
 
   JBNFTRewardDataSourceDelegate private _jbNFTRewardDataSourceDelegate;
-  IJBToken721 private _nft;
 
   function setUp() public override {
     super.setUp();
 
     _controller = jbController();
+    _directory = jbDirectory();
     _tokenStore = jbTokenStore();
-    _nftStore = jbToken721Store();
 
     _projectMetadata = JBProjectMetadata({content: 'myIPFSHash', domain: 1});
 
@@ -78,26 +77,22 @@ contract TestNFTRewardsFlow is TestBaseWorkflow {
     );
 
     evm.prank(_projectOwner);
-    _nft = _controller.issueToken721For(
-      _projectId,
-      'NFT',
-      'N',
-      'ipfs://',
-      IJBToken721UriResolver(address(0)),
-      'ipfs://'
-    );
-
     _jbNFTRewardDataSourceDelegate = new JBNFTRewardDataSourceDelegate(
       _projectId,
-      _controller,
-      _nft,
+      _directory,
       100,
       JBTokenAmount({
         token: address(0),
-        value: 1 * 10**18,
+        value: _minEthContribution,
         decimals: 18,
         currency: JBCurrencies.ETH
-      })
+      }),
+      'Reward NFT',
+      'RN',
+      'ipfs://',
+      IJBToken721UriResolver(address(0)),
+      'ipfs://',
+      address(0)
     );
 
     _fundingCycleData = JBFundingCycleData({
@@ -141,8 +136,8 @@ contract TestNFTRewardsFlow is TestBaseWorkflow {
     );
   }
 
-  function testNFTRewardMint() public {
-    _terminals[0].pay{value: 2 * 10**18}(
+  function testNFTRewardMint(uint96 amount) public {
+    _terminals[0].pay{value: amount}(
       _projectId,
       0,
       address(0),
@@ -153,7 +148,24 @@ contract TestNFTRewardsFlow is TestBaseWorkflow {
       new bytes(0)
     );
 
-    require(_nft.ownerBalance(msg.sender) == 1);
-    require(_nft.isOwner(msg.sender, 0) == true);
+    if (amount > _minEthContribution) {
+      require(_jbNFTRewardDataSourceDelegate.ownerBalance(msg.sender) == 1);
+      require(_jbNFTRewardDataSourceDelegate.isOwner(msg.sender, 0) == true);
+    } else {
+      require(_jbNFTRewardDataSourceDelegate.ownerBalance(msg.sender) == 0);
+    }
+  }
+
+  function testAdminMint() public {
+    evm.prank(_projectOwner);
+    _jbNFTRewardDataSourceDelegate.mint(address(1));
+
+    require(_jbNFTRewardDataSourceDelegate.ownerBalance(address(1)) == 1);
+    require(_jbNFTRewardDataSourceDelegate.isOwner(address(1), 0) == true);
+  }
+
+  function testFailAdminMint() public {
+    evm.prank(address(1));
+    _jbNFTRewardDataSourceDelegate.mint(address(2));
   }
 }
