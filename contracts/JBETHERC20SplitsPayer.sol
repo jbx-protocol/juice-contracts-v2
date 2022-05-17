@@ -151,7 +151,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
       JBTokens.ETH,
       address(this).balance,
       18, // decimals.
-      msg.sender
+      defaultBeneficiary != address(0) ? defaultBeneficiary : msg.sender
     );
 
     // If there is no leftover amount, nothing left to pay.
@@ -268,7 +268,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
       _token,
       _amount,
       _decimals,
-      msg.sender
+      defaultBeneficiary != address(0) ? defaultBeneficiary : msg.sender
     );
 
     // Pay any leftover amount.
@@ -360,7 +360,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
       _token,
       _amount,
       _decimals,
-      msg.sender
+      defaultBeneficiary != address(0) ? defaultBeneficiary : msg.sender
     );
 
     // Distribute any leftover amount.
