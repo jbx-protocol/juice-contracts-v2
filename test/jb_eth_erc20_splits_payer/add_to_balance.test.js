@@ -570,6 +570,50 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
     );
   });
 
+  it(`Should send fund directly to the caller, if no allocator, project ID, beneficiary or default beneficiary is set,  and emit event`, async function () {
+    const { caller, jbSplitsPayerFactory, mockJbSplitsStore, owner } = await setup();
+
+    let splits = makeSplits();
+
+    let jbSplitsPayerWithoutDefaultBeneficiary = await jbSplitsPayerFactory.deploy(
+      DEFAULT_SPLITS_PROJECT_ID,
+      DEFAULT_SPLITS_DOMAIN,
+      DEFAULT_SPLITS_GROUP,
+      mockJbSplitsStore.address,
+      DEFAULT_PROJECT_ID,
+      ethers.constants.AddressZero,
+      DEFAULT_PREFER_CLAIMED_TOKENS,
+      DEFAULT_MEMO,
+      DEFAULT_METADATA,
+      PREFER_ADD_TO_BALANCE,
+      owner.address,
+    );
+
+    await mockJbSplitsStore.mock.splitsOf
+      .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
+      .returns(splits);
+
+    let tx = await jbSplitsPayerWithoutDefaultBeneficiary
+      .connect(caller)
+      .addToBalanceOf(PROJECT_ID, ethToken, AMOUNT, DECIMALS, MEMO, METADATA, {
+        value: AMOUNT,
+      });
+
+    await expect(tx).to.changeEtherBalance(caller, 0); // Send then receive the amount (gas is not taken into account)
+
+    await expect(tx).to.emit(jbSplitsPayerWithoutDefaultBeneficiary, 'AddToBalance').withArgs(
+      PROJECT_ID,
+      caller.address,
+      ethToken,
+      AMOUNT,
+      DECIMALS,
+      0, //leftover
+      MEMO,
+      METADATA,
+      caller.address,
+    );
+  });
+
   it(`Should send eth leftover to project id if set and emit event`, async function () {
     const {
       caller,

@@ -276,6 +276,33 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
     await expect(tx).to.changeEtherBalance(defaultBeneficiarySigner, AMOUNT);
   });
 
+  it(`Should send fund directly to the caller, if no allocator, project ID, beneficiary or default beneficiary is set`, async function () {
+    const { caller, jbSplitsPayerFactory, mockJbSplitsStore, owner } = await setup();
+
+    let jbSplitsPayerWithoutDefaultBeneficiary = await jbSplitsPayerFactory.deploy(
+      DEFAULT_SPLITS_PROJECT_ID,
+      DEFAULT_SPLITS_DOMAIN,
+      DEFAULT_SPLITS_GROUP,
+      mockJbSplitsStore.address,
+      DEFAULT_PROJECT_ID,
+      ethers.constants.AddressZero,
+      DEFAULT_PREFER_CLAIMED_TOKENS,
+      DEFAULT_MEMO,
+      DEFAULT_METADATA,
+      PREFER_ADD_TO_BALANCE,
+      owner.address,
+    );
+
+    let splits = makeSplits();
+
+    await mockJbSplitsStore.mock.splitsOf
+      .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
+      .returns(splits);
+
+    let tx = await caller.sendTransaction({ to: jbSplitsPayerWithoutDefaultBeneficiary.address, value: AMOUNT });
+    await expect(tx).to.changeEtherBalance(caller, 0); // -AMOUNT then +AMOUNT, gas is not taken into account
+  });
+
   it(`Should send eth leftover to project id if set, using pay`, async function () {
     const {
       caller,
