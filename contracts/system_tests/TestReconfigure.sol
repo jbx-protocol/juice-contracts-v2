@@ -124,6 +124,9 @@ contract TestReconfigureProject is TestBaseWorkflow {
   }
 
   function testMultipleReconfigurationOnRolledOver() public {
+    uint256 weightFirstReconfiguration = 1234 * 10**18;
+    uint256 weightSecondReconfiguration = 6969 * 10**18;
+
     uint256 projectId = controller.launchProjectFor(
       multisig(),
       _projectMetadata,
@@ -138,19 +141,22 @@ contract TestReconfigureProject is TestBaseWorkflow {
 
     JBFundingCycle memory fundingCycle = jbFundingCycleStore().currentOf(projectId);
 
+    // Initial funding cycle data
     assertEq(fundingCycle.number, 1);
     assertEq(fundingCycle.weight, _data.weight);
 
     uint256 currentConfiguration = fundingCycle.configuration;
 
-    evm.warp(block.timestamp + fundingCycle.duration); // FC N+1, rolled over
+    // Jump to FC+1, rolled over
+    evm.warp(block.timestamp + fundingCycle.duration); 
 
+    // First reconfiguration
     evm.prank(multisig());
     controller.reconfigureFundingCyclesOf(
       projectId,
       JBFundingCycleData({
         duration: 6 days,
-        weight: 6969 * 10**18,
+        weight: weightFirstReconfiguration,
         discountRate: 0,
         ballot: _ballot
       }), // 3days ballot
@@ -160,16 +166,16 @@ contract TestReconfigureProject is TestBaseWorkflow {
       _fundAccessConstraints,
       ''
     );
-    uint256 firstReconfig = block.timestamp;
 
     evm.warp(block.timestamp + 1); // Avoid overwrite
 
+    // Second reconfiguration (different configuration)
     evm.prank(multisig());
     controller.reconfigureFundingCyclesOf(
       projectId,
         JBFundingCycleData({
         duration: 6 days,
-        weight: 420 * 10**18,
+        weight: weightSecondReconfiguration,
         discountRate: 0,
         ballot: _ballot
       }), // 3days ballot
@@ -179,21 +185,22 @@ contract TestReconfigureProject is TestBaseWorkflow {
       _fundAccessConstraints,
       ''
     );
-    uint256 secondReconfig = block.timestamp;
+    uint256 secondReconfiguration = block.timestamp;
 
-    // Shouldn't have changed
+    // Shouldn't have changed, still in FC#2 rolled over
     fundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(fundingCycle.number, 2);
     assertEq(fundingCycle.configuration, currentConfiguration);
     assertEq(fundingCycle.weight, _data.weight);
 
-    // should be new funding cycle
+    // Jump to the next one
     evm.warp(fundingCycle.start + fundingCycle.duration);
 
+    // Second reconfiguration should be now the current one
     JBFundingCycle memory newFundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(newFundingCycle.number, 3);
-    assertEq(newFundingCycle.configuration, secondReconfig);
-    assertEq(newFundingCycle.weight, 420 * 10**18);
+    assertEq(newFundingCycle.configuration, secondReconfiguration);
+    assertEq(newFundingCycle.weight, weightSecondReconfiguration);
   }
 
   function testMultipleReconfigure(uint8 FUZZED_BALLOT_DURATION) public {
