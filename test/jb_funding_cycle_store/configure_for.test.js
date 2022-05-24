@@ -2335,7 +2335,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight.add(2),
     });
 
-    // Configure second funding cycle
+    // Configure third funding cycle
     const thirdConfigureForTx = await jbFundingCycleStore
       .connect(controller)
       .configureFor(
