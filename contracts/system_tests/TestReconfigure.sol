@@ -187,13 +187,21 @@ contract TestReconfigureProject is TestBaseWorkflow {
     );
     uint256 secondReconfiguration = block.timestamp;
 
-    // Shouldn't have changed, still in FC#2 rolled over
+    // Shouldn't have changed, still in FC#2, rolled over from FC#1
     fundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(fundingCycle.number, 2);
     assertEq(fundingCycle.configuration, currentConfiguration);
     assertEq(fundingCycle.weight, _data.weight);
 
-    // Jump to the next one
+    // Jump to after the ballot passed, but before the next FC
+    evm.warp(fundingCycle.start + fundingCycle.duration - 1);
+
+    // Queued should be the second reconfiguration
+    JBFundingCycle memory queuedFundingCycle = jbFundingCycleStore().queuedOf(projectId);
+    assertEq(queuedFundingCycle.number, 3);
+    assertEq(queuedFundingCycle.configuration, secondReconfiguration);
+    assertEq(queuedFundingCycle.weight, weightSecondReconfiguration);
+
     evm.warp(fundingCycle.start + fundingCycle.duration);
 
     // Second reconfiguration should be now the current one
