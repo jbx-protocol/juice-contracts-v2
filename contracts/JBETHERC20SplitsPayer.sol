@@ -150,7 +150,8 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
       defaultSplitsGroup,
       JBTokens.ETH,
       address(this).balance,
-      18 // decimals.
+      18, // decimals.
+      defaultBeneficiary != address(0) ? defaultBeneficiary : msg.sender
     );
 
     // If there is no leftover amount, nothing left to pay.
@@ -266,7 +267,8 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
       defaultSplitsGroup,
       _token,
       _amount,
-      _decimals
+      _decimals,
+      defaultBeneficiary != address(0) ? defaultBeneficiary : msg.sender
     );
 
     // Pay any leftover amount.
@@ -357,7 +359,8 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
       defaultSplitsGroup,
       _token,
       _amount,
-      _decimals
+      _decimals,
+      defaultBeneficiary != address(0) ? defaultBeneficiary : msg.sender
     );
 
     // Distribute any leftover amount.
@@ -413,6 +416,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
     @param _token The token the amonut being split is in.
     @param _amount The amount of tokens being split, as a fixed point number. If the `_token` is ETH, this is ignored and msg.value is used in its place.
     @param _decimals The number of decimals in the `_amount` fixed point number. 
+    @param _defaultBeneficiary The address that will benefit from any non-specified beneficiaries in splits.
 
     @return leftoverAmount The amount leftover after all splits were paid.
   */
@@ -422,7 +426,8 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
     uint256 _splitsGroup,
     address _token,
     uint256 _amount,
-    uint256 _decimals
+    uint256 _decimals,
+    address _defaultBeneficiary
   ) internal virtual returns (uint256 leftoverAmount) {
     // Get a reference to the splits.
     JBSplit[] memory _splits = splitsStore.splitsOf(_splitsProjectId, _splitsDomain, _splitsGroup);
@@ -483,7 +488,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
               _token,
               _splitAmount,
               _decimals,
-              _split.beneficiary != address(0) ? _split.beneficiary : msg.sender,
+              _split.beneficiary != address(0) ? _split.beneficiary : _defaultBeneficiary,
               0,
               _split.preferClaimed,
               defaultMemo,
@@ -494,14 +499,14 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
           if (_token == JBTokens.ETH)
             Address.sendValue(
               // Get a reference to the address receiving the tokens. If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
-              _split.beneficiary != address(0) ? _split.beneficiary : payable(msg.sender),
+              _split.beneficiary != address(0) ? _split.beneficiary : payable(_defaultBeneficiary),
               _splitAmount
             );
             // Or, transfer the ERC20.
           else {
             IERC20(_token).transfer(
               // Get a reference to the address receiving the tokens. If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
-              _split.beneficiary != address(0) ? _split.beneficiary : msg.sender,
+              _split.beneficiary != address(0) ? _split.beneficiary : _defaultBeneficiary,
               _splitAmount
             );
           }
