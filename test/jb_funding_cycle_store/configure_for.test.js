@@ -2255,6 +2255,139 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     });
   });
 
+  it('Should configure subsequent cycle during a rolled over funding cycle overriding an already-proposed configuration', async function () {
+    const { controller, mockJbDirectory, jbFundingCycleStore, addrs } = await setup();
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    const firstFundingCycleData = createFundingCycleData();
+
+    // Configure first funding cycle
+    const firstConfigureForTx = await jbFundingCycleStore
+      .connect(controller)
+      .configureFor(
+        PROJECT_ID,
+        firstFundingCycleData,
+        RANDOM_FUNDING_CYCLE_METADATA_1,
+        FUNDING_CYCLE_CAN_START_ASAP,
+      );
+
+    // The timestamp the first configuration was made during.
+    const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
+
+    const expectedFirstFundingCycle = {
+      number: ethers.BigNumber.from(1),
+      configuration: firstConfigurationTimestamp,
+      basedOn: ethers.BigNumber.from(0),
+      start: firstConfigurationTimestamp,
+      duration: firstFundingCycleData.duration,
+      weight: firstFundingCycleData.weight,
+      discountRate: firstFundingCycleData.discountRate,
+      ballot: firstFundingCycleData.ballot,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_1,
+    };
+
+    //fast forward to within the second cycle, which should have rolled over from the first.
+    //keep 10 seconds before the end of the cycle so make all necessary checks before the cycle ends.
+    await fastForward(firstConfigureForTx.blockNumber, firstFundingCycleData.duration.mul(2).sub(10));
+
+    const secondFundingCycleData = createFundingCycleData({
+      duration: firstFundingCycleData.duration.add(1),
+      discountRate: firstFundingCycleData.discountRate.add(1),
+      weight: firstFundingCycleData.weight.add(1),
+    });
+
+    // Configure second funding cycle
+    const secondConfigureForTx = await jbFundingCycleStore
+      .connect(controller)
+      .configureFor(
+        PROJECT_ID,
+        secondFundingCycleData,
+        RANDOM_FUNDING_CYCLE_METADATA_2,
+        FUNDING_CYCLE_CAN_START_ASAP,
+      );
+
+    // The timestamp the second configuration was made during.
+    const secondConfigurationTimestamp = await getTimestamp(secondConfigureForTx.blockNumber);
+
+    const expectedSecondFundingCycle = {
+      number: ethers.BigNumber.from(3), // third cycle
+      configuration: secondConfigurationTimestamp,
+      basedOn: firstConfigurationTimestamp, // based on the first cycle
+      start: firstConfigurationTimestamp.add(firstFundingCycleData.duration.mul(2)), // starts at the end of the second cycle
+      duration: secondFundingCycleData.duration,
+      weight: secondFundingCycleData.weight,
+      discountRate: secondFundingCycleData.discountRate,
+      ballot: secondFundingCycleData.ballot,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_2,
+    };
+
+    await expect(secondConfigureForTx)
+      .to.emit(jbFundingCycleStore, `Init`)
+      .withArgs(secondConfigurationTimestamp, PROJECT_ID, /*basedOn=*/ firstConfigurationTimestamp);
+
+    //fast forward to within the cycle.
+    //keep 5 seconds before the end of the cycle so make all necessary checks before the cycle ends.
+    await fastForward(firstConfigureForTx.blockNumber, firstFundingCycleData.duration.mul(2).sub(5));
+
+    const thirdFundingCycleData = createFundingCycleData({
+      duration: firstFundingCycleData.duration.add(2),
+      discountRate: firstFundingCycleData.discountRate.add(2),
+      weight: firstFundingCycleData.weight.add(2),
+    });
+
+    // Configure second funding cycle
+    const thirdConfigureForTx = await jbFundingCycleStore
+      .connect(controller)
+      .configureFor(
+        PROJECT_ID,
+        thirdFundingCycleData,
+        RANDOM_FUNDING_CYCLE_METADATA_2,
+        FUNDING_CYCLE_CAN_START_ASAP,
+      );
+
+    // The timestamp the second configuration was made during.
+    const thirdConfigurationTimestamp = await getTimestamp(thirdConfigureForTx.blockNumber);
+
+    const expectedThirdFundingCycle = {
+      number: ethers.BigNumber.from(3), // third cycle still
+      configuration: thirdConfigurationTimestamp,
+      basedOn: firstConfigurationTimestamp, // based on the first cycle
+      start: firstConfigurationTimestamp.add(firstFundingCycleData.duration.mul(2)), // starts at the end of the first cycle
+      duration: thirdFundingCycleData.duration,
+      weight: thirdFundingCycleData.weight,
+      discountRate: thirdFundingCycleData.discountRate,
+      ballot: thirdFundingCycleData.ballot,
+      metadata: RANDOM_FUNDING_CYCLE_METADATA_2,
+    };
+
+    await expect(thirdConfigureForTx)
+      .to.emit(jbFundingCycleStore, `Init`)
+      .withArgs(thirdConfigurationTimestamp, PROJECT_ID, /*basedOn=*/ firstConfigurationTimestamp);
+
+    expect(
+      cleanFundingCycle(await jbFundingCycleStore.get(PROJECT_ID, secondConfigurationTimestamp)),
+    ).to.eql(expectedSecondFundingCycle);
+
+    expect(
+      cleanFundingCycle(await jbFundingCycleStore.get(PROJECT_ID, thirdConfigurationTimestamp)),
+    ).to.eql(expectedThirdFundingCycle);
+
+    let [latestFundingCycle, ballotState] = await jbFundingCycleStore.latestConfiguredOf(
+      PROJECT_ID,
+    );
+    expect(cleanFundingCycle(latestFundingCycle)).to.eql(expectedThirdFundingCycle);
+    expect(ballotState).to.deep.eql(1);
+    expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql({
+      ...expectedFirstFundingCycle,
+      number: expectedFirstFundingCycle.number.add(1), // next number
+      start: expectedFirstFundingCycle.start.add(expectedFirstFundingCycle.duration), // starts at the end of the first cycle
+    });
+    expect(cleanFundingCycle(await jbFundingCycleStore.queuedOf(PROJECT_ID))).to.eql(
+      expectedThirdFundingCycle,
+    );
+  });
+
+
   it("Can't configure if caller is not project's controller", async function () {
     const { controller, mockJbDirectory, jbFundingCycleStore, addrs } = await setup();
     const [nonController] = addrs;
