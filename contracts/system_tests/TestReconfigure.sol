@@ -123,6 +123,79 @@ contract TestReconfigureProject is TestBaseWorkflow {
     assertEq(newFundingCycle.weight, _data.weight);
   }
 
+  function testMultipleReconfigurationOnRolledOver() public {
+    uint256 projectId = controller.launchProjectFor(
+      multisig(),
+      _projectMetadata,
+      _data,
+      _metadata,
+      0, // Start asap
+      _groupedSplits,
+      _fundAccessConstraints,
+      _terminals,
+      ''
+    );
+
+    JBFundingCycle memory fundingCycle = jbFundingCycleStore().currentOf(projectId);
+
+    assertEq(fundingCycle.number, 1);
+    assertEq(fundingCycle.weight, _data.weight);
+
+    uint256 currentConfiguration = fundingCycle.configuration;
+
+    evm.warp(block.timestamp + fundingCycle.duration); // FC N+1, rolled over
+
+    evm.prank(multisig());
+    controller.reconfigureFundingCyclesOf(
+      projectId,
+      JBFundingCycleData({
+        duration: 6 days,
+        weight: 6969 * 10**18,
+        discountRate: 0,
+        ballot: _ballot
+      }), // 3days ballot
+      _metadata,
+      0, // Start asap
+      _groupedSplits,
+      _fundAccessConstraints,
+      ''
+    );
+    uint256 firstReconfig = block.timestamp;
+
+    evm.warp(block.timestamp + 1); // Avoid overwrite
+
+    evm.prank(multisig());
+    controller.reconfigureFundingCyclesOf(
+      projectId,
+        JBFundingCycleData({
+        duration: 6 days,
+        weight: 420 * 10**18,
+        discountRate: 0,
+        ballot: _ballot
+      }), // 3days ballot
+      _metadata,
+      0, // Start asap
+      _groupedSplits,
+      _fundAccessConstraints,
+      ''
+    );
+    uint256 secondReconfig = block.timestamp;
+
+    // Shouldn't have changed
+    fundingCycle = jbFundingCycleStore().currentOf(projectId);
+    assertEq(fundingCycle.number, 2);
+    assertEq(fundingCycle.configuration, currentConfiguration);
+    assertEq(fundingCycle.weight, _data.weight);
+
+    // should be new funding cycle
+    evm.warp(fundingCycle.start + fundingCycle.duration);
+
+    JBFundingCycle memory newFundingCycle = jbFundingCycleStore().currentOf(projectId);
+    assertEq(newFundingCycle.number, 3);
+    assertEq(newFundingCycle.configuration, secondReconfig);
+    assertEq(newFundingCycle.weight, 420 * 10**18);
+  }
+
   function testMultipleReconfigure(uint8 FUZZED_BALLOT_DURATION) public {
     _ballot = new JBReconfigurationBufferBallot(FUZZED_BALLOT_DURATION, jbFundingCycleStore());
 
