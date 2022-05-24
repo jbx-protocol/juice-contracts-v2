@@ -195,7 +195,13 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     @return The current amount of ETH overflow that project has in this terminal, as a fixed point number with 18 decimals.
   */
-  function currentEthOverflowOf(uint256 _projectId) external view override returns (uint256) {
+  function currentEthOverflowOf(uint256 _projectId)
+    external
+    view
+    virtual
+    override
+    returns (uint256)
+  {
     // Get this terminal's current overflow.
     uint256 _overflow = store.currentOverflowOf(this, _projectId);
 
