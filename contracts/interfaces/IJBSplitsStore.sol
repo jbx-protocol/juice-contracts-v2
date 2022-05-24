@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import './../structs/JBGroupedSplits.sol';
 import './../structs/JBSplit.sol';
 import './IJBDirectory.sol';
 import './IJBProjects.sol';
@@ -27,7 +28,6 @@ interface IJBSplitsStore {
   function set(
     uint256 _projectId,
     uint256 _domain,
-    uint256 _group,
-    JBSplit[] memory _splits
+    JBGroupedSplits[] memory _groupedSplits
   ) external;
 }
