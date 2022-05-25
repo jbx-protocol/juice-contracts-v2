@@ -31,7 +31,7 @@ describe('JBSplitsStore::set(...)', function () {
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
-    let jbSplitsStoreFact = await ethers.getContractFactory('JBSplitsStore');
+    let jbSplitsStoreFact = await ethers.getContractFactory('contracts/JBSplitsStore/2.sol:JBSplitsStore');
     let jbSplitsStore = await jbSplitsStoreFact.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
@@ -39,6 +39,7 @@ describe('JBSplitsStore::set(...)', function () {
     );
 
     let splits = makeSplits(addrs[0].address);
+    let groupedSplits = [{ group:GROUP, splits }];
 
     return {
       deployer,
@@ -46,6 +47,7 @@ describe('JBSplitsStore::set(...)', function () {
       addrs,
       jbSplitsStore,
       splits,
+      groupedSplits,
       mockJbOperatorStore,
       mockJbProjects,
       mockJbDirectory,
@@ -85,13 +87,13 @@ describe('JBSplitsStore::set(...)', function () {
   }
 
   it('Should set splits with beneficiaries and emit events if project owner', async function () {
-    const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore, mockJbDirectory } =
+    const { projectOwner, addrs, jbSplitsStore, splits, groupedSplits, mockJbOperatorStore, mockJbDirectory } =
       await setup();
 
     await mockJbOperatorStore.mock.hasPermission.returns(false);
     await mockJbDirectory.mock.controllerOf.returns(addrs[0].address);
 
-    const tx = await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits);
+    const tx = await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, groupedSplits);
 
     // Expect one event per split
     await Promise.all(
@@ -121,7 +123,9 @@ describe('JBSplitsStore::set(...)', function () {
       allocator: addrs[5].address,
     }));
 
-    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, newSplits);
+    const newGroupedSplits = [{group: GROUP, splits: newSplits}];
+
+    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, newGroupedSplits);
 
     let splitsStored = cleanSplits(await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP));
     expect(splitsStored).to.eql(newSplits);
@@ -140,21 +144,24 @@ describe('JBSplitsStore::set(...)', function () {
       allocator: addrs[5].address,
     }));
 
-    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, newSplits);
+    const newGroupedSplits = [{group: GROUP, splits: newSplits}];
+
+    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, newGroupedSplits);
 
     let splitsStored = cleanSplits(await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP));
     expect(splitsStored).to.eql(newSplits);
   });
 
   it('Should set new splits when overwriting existing splits with the same ID/Domain/Group', async function () {
-    const { projectOwner, addrs, jbSplitsStore, splits } = await setup();
+    const { projectOwner, addrs, jbSplitsStore, groupedSplits } = await setup();
 
-    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits);
+    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, groupedSplits);
 
     let newBeneficiary = addrs[5].address;
     let newSplits = makeSplits(newBeneficiary);
+    let newGroupedSplits = [{ group: GROUP, splits: newSplits }];
 
-    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, newSplits);
+    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, newGroupedSplits);
 
     let splitsStored = cleanSplits(await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP));
     expect(splitsStored).to.eql(newSplits);
@@ -168,41 +175,46 @@ describe('JBSplitsStore::set(...)', function () {
 
     // Set one locked split
     splits[1].allocator = addrs[4].address;
+    let groupedSplits = [{ group: GROUP, splits: splits }];
 
-    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits);
+    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, groupedSplits);
 
     // Set one locked split
     splits[1].allocator = ethers.constants.AddressZero;
-    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits);
+    groupedSplits = [{ group: GROUP, splits }];
+
+    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, groupedSplits);
 
     let splitsStored = cleanSplits(await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP));
     expect(splitsStored).to.eql(splits);
   });
 
   it("Can't set new splits without including a preexisting locked one", async function () {
-    const { projectOwner, addrs, jbSplitsStore, splits } = await setup();
+    const { projectOwner, addrs, jbSplitsStore, splits, groupedSplits } = await setup();
 
     // Set one locked split
     splits[1].lockedUntil = await daysFromNow(1);
-    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits);
+    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, groupedSplits);
 
     // New splits without the previous locked one
     let newBeneficiary = addrs[5].address;
     let newSplits = makeSplits(newBeneficiary);
 
+    const newGroupedSplits = [{group: GROUP, splits: newSplits}];
+
     await expect(
-      jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, newSplits),
+      jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, newGroupedSplits),
     ).to.be.revertedWith(errors.PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED);
   });
 
   it('Should set new splits with extension of a preexisting locked one', async function () {
-    const { projectOwner, addrs, jbSplitsStore, splits } = await setup();
+    const { projectOwner, addrs, jbSplitsStore, splits, groupedSplits } = await setup();
 
     let lockDate = await daysFromNow(1);
 
     // Set one locked split
     splits[1].lockedUntil = lockDate;
-    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits);
+    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, groupedSplits);
 
     // Try to set new ones, with lock extension of one day
     let newLockDate = daysFromDate(lockDate, 1);
@@ -211,67 +223,69 @@ describe('JBSplitsStore::set(...)', function () {
     newSplits[1].lockedUntil = newLockDate;
     newSplits[1].beneficiary = addrs[0].address;
 
-    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, newSplits);
+    const newGroupedSplits = [{group: GROUP, splits: newSplits}];
+
+    await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, newGroupedSplits);
 
     let splitsStored = await jbSplitsStore.splitsOf(PROJECT_ID, DOMAIN, GROUP);
     expect(splitsStored[1].lockedUntil).to.equal(newLockDate);
   });
 
   it("Can't set splits when a split has a percent of 0", async function () {
-    const { projectOwner, jbSplitsStore, splits } = await setup();
+    const { projectOwner, jbSplitsStore, splits, groupedSplits } = await setup();
 
     // Set one 0% split
     splits[1].percent = 0;
 
     await expect(
-      jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits),
+      jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, groupedSplits),
     ).to.be.revertedWith(errors.INVALID_SPLIT_PERCENT);
   });
 
   it("Can't set splits if the sum of the percents is greather than 1000000000", async function () {
-    const { projectOwner, jbSplitsStore, splits } = await setup();
+    const { projectOwner, jbSplitsStore, splits, groupedSplits } = await setup();
 
     // Set sum at 1000000001
     splits[0].percent += 1;
 
     await expect(
-      jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits),
+      jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, groupedSplits),
     ).to.be.revertedWith(errors.INVALID_TOTAL_PERCENT);
   });
 
   it("Can't set splits if the projectId is greater than 2^56", async function () {
-    const { projectOwner, jbSplitsStore, splits } = await setup();
+    const { projectOwner, jbSplitsStore, splits, groupedSplits } = await setup();
 
     splits[0].projectId = ethers.BigNumber.from(2).pow(56);
 
     await expect(
-      jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits),
+      jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, groupedSplits),
     ).to.be.revertedWith(errors.INVALID_PROJECT_ID);
   });
 
   it("Can't set splits if the lockedUntil is greater than 2^48", async function () {
-    const { projectOwner, jbSplitsStore, splits } = await setup();
+    const { projectOwner, jbSplitsStore, splits, groupedSplits } = await setup();
 
     splits[0].lockedUntil = ethers.BigNumber.from(2).pow(48);
 
     await expect(
-      jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, GROUP, splits),
+      jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, groupedSplits),
     ).to.be.revertedWith(errors.INVALID_LOCKED_UNTIL);
   });
 
   it('Should set splits if controller', async function () {
-    const { addrs, jbSplitsStore, splits, mockJbDirectory } = await setup();
+    const { addrs, jbSplitsStore, groupedSplits, mockJbDirectory } = await setup();
 
     let caller = addrs[0];
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(caller.address);
 
-    await expect(jbSplitsStore.connect(caller).set(PROJECT_ID, DOMAIN, GROUP, splits)).to.be.not
+    await expect(jbSplitsStore.connect(caller).set(PROJECT_ID, DOMAIN, groupedSplits)).to.be.not
       .reverted;
   });
 
   it('Should set splits if not the project owner but has permission', async function () {
-    const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore } = await setup();
+    const { projectOwner, addrs, jbSplitsStore, groupedSplits, mockJbOperatorStore } = await setup();
 
     let caller = addrs[0];
 
@@ -279,12 +293,12 @@ describe('JBSplitsStore::set(...)', function () {
       .withArgs(caller.address, projectOwner.address, PROJECT_ID, SET_SPLITS_PERMISSION_INDEX)
       .returns(true);
 
-    await expect(jbSplitsStore.connect(caller).set(PROJECT_ID, DOMAIN, GROUP, splits)).to.be.not
+    await expect(jbSplitsStore.connect(caller).set(PROJECT_ID, DOMAIN, groupedSplits)).to.be.not
       .reverted;
   });
 
   it("Can't set splits if not project owner and doesn't have permission", async function () {
-    const { projectOwner, addrs, jbSplitsStore, splits, mockJbOperatorStore } = await setup();
+    const { projectOwner, addrs, jbSplitsStore, groupedSplits, mockJbOperatorStore } = await setup();
 
     let caller = addrs[1];
 
@@ -297,7 +311,7 @@ describe('JBSplitsStore::set(...)', function () {
       .returns(false);
 
     await expect(
-      jbSplitsStore.connect(caller).set(PROJECT_ID, DOMAIN, GROUP, splits),
+      jbSplitsStore.connect(caller).set(PROJECT_ID, DOMAIN, groupedSplits),
     ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 });

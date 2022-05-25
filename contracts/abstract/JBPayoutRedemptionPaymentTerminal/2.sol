@@ -6,7 +6,7 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './../../interfaces/IJBController/2.sol';
-import './../../interfaces/IJBPayoutRedemptionPaymentTerminal.sol';
+import './../../interfaces/IJBPayoutRedemptionPaymentTerminal/2.sol';
 import './../../libraries/JBConstants.sol';
 import './../../libraries/JBCurrencies.sol';
 import './../../libraries/JBFixedPointNumber.sol';
@@ -74,7 +74,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   }
 
   //*********************************************************************//
-  // --------------------- private stored constants -------------------- //
+  // --------------------- internal stored constants ------------------- //
   //*********************************************************************//
 
   /**
@@ -84,16 +84,16 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @dev
     Out of MAX_FEE (50_000_000 / 1_000_000_000).
   */
-  uint256 private constant _FEE_CAP = 50_000_000;
+  uint256 internal constant _FEE_CAP = 50_000_000;
 
   /**
     @notice
     The protocol project ID is 1, as it should be the first project launched during the deployment process.
   */
-  uint256 private constant _PROTOCOL_PROJECT_ID = 1;
+  uint256 internal constant _PROTOCOL_PROJECT_ID = 1;
 
   //*********************************************************************//
-  // --------------------- private stored properties ------------------- //
+  // --------------------- internal stored properties ------------------ //
   //*********************************************************************//
 
   /**
@@ -102,7 +102,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     _projectId The ID of the project for which fees are being held.
   */
-  mapping(uint256 => JBFee[]) private _heldFeesOf;
+  mapping(uint256 => JBFee[]) internal _heldFeesOf;
 
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
@@ -195,7 +195,13 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     @return The current amount of ETH overflow that project has in this terminal, as a fixed point number with 18 decimals.
   */
-  function currentEthOverflowOf(uint256 _projectId) external view override returns (uint256) {
+  function currentEthOverflowOf(uint256 _projectId)
+    external
+    view
+    virtual
+    override
+    returns (uint256)
+  {
     // Get this terminal's current overflow.
     uint256 _overflow = store.currentOverflowOf(this, _projectId);
 
@@ -274,7 +280,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _store A contract that stores the terminal's data.
     @param _owner The address that will own this contract.
   */
-  constructor( // payable constructor save the gas used to check msg.value==0
+  constructor(
+    // payable constructor save the gas used to check msg.value==0
     address _token,
     uint256 _decimals,
     uint256 _currency,
@@ -287,7 +294,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     IJBPrices _prices,
     IJBSingleTokenPaymentTerminalStore _store,
     address _owner
-  ) payable JBSingleTokenPaymentTerminal(_token, _decimals, _currency) JBOperatable(_operatorStore) {
+  )
+    payable
+    JBSingleTokenPaymentTerminal(_token, _decimals, _currency)
+    JBOperatable(_operatorStore)
+  {
     baseWeightCurrency = _baseWeightCurrency;
     payoutSplitsGroup = _payoutSplitsGroup;
     projects = _projects;
@@ -580,7 +591,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _heldFeeLength = _heldFees.length;
 
     // Process each fee.
-    for (uint256 _i = 0; _i < _heldFeeLength;) {
+    for (uint256 _i = 0; _i < _heldFeeLength; ) {
       // Get the fee amount.
       uint256 _amount = _feeAmount(
         _heldFees[_i].amount,
@@ -681,10 +692,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   */
   function _beforeTransferTo(address _to, uint256 _amount) internal virtual;
 
-  //*********************************************************************//
-  // --------------------- private helper functions -------------------- //
-  //*********************************************************************//
-
   /**
     @notice
     Holders can redeem their tokens to claim the project's overflowed tokens, or to trigger rules determined by the project's current funding cycle's data source.
@@ -710,7 +717,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     address payable _beneficiary,
     string memory _memo,
     bytes memory _metadata
-  ) private returns (uint256 reclaimAmount) {
+  ) internal returns (uint256 reclaimAmount) {
     // Can't send reclaimed funds to the zero address.
     if (_beneficiary == address(0)) revert REDEEM_TO_ZERO_ADDRESS();
 
@@ -805,7 +812,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _currency,
     uint256 _minReturnedTokens,
     string calldata _memo
-  ) private returns (uint256 netLeftoverDistributionAmount) {
+  ) internal returns (uint256 netLeftoverDistributionAmount) {
     // Record the distribution.
     (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordDistributionFor(
       _projectId,
@@ -865,11 +872,12 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         );
 
       // Get a reference to how much to distribute to the project owner, which is the leftover amount minus any fees.
-      
+
       unchecked {
         netLeftoverDistributionAmount = _leftoverDistributionAmount == 0
           ? 0
-          : _leftoverDistributionAmount - _feeAmount(_leftoverDistributionAmount, fee, _feeDiscount);
+          : _leftoverDistributionAmount -
+            _feeAmount(_leftoverDistributionAmount, fee, _feeDiscount);
       }
 
       // Transfer any remaining balance to the project owner.
@@ -917,7 +925,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _minReturnedTokens,
     address payable _beneficiary,
     string memory _memo
-  ) private returns (uint256 netDistributedAmount) {
+  ) internal returns (uint256 netDistributedAmount) {
     // Record the use of the allowance.
     (JBFundingCycle memory _fundingCycle, uint256 _distributedAmount) = store.recordUsedAllowanceOf(
       _projectId,
@@ -989,7 +997,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _group,
     uint256 _amount,
     uint256 _feeDiscount
-  ) private returns (uint256 leftoverAmount, uint256 feeEligibleDistributionAmount) {
+  ) internal returns (uint256 leftoverAmount, uint256 feeEligibleDistributionAmount) {
     // Set the leftover amount to the initial amount.
     leftoverAmount = _amount;
 
@@ -997,7 +1005,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     JBSplit[] memory _splits = splitsStore.splitsOf(_projectId, _domain, _group);
 
     // Transfer between all splits.
-    for (uint256 _i = 0; _i < _splits.length;) {
+    for (uint256 _i = 0; _i < _splits.length; ) {
       // Get a reference to the split being iterated on.
       JBSplit memory _split = _splits[_i];
 
@@ -1183,7 +1191,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _amount,
     address _beneficiary,
     uint256 _feeDiscount
-  ) private returns (uint256 feeAmount) {
+  ) internal returns (uint256 feeAmount) {
     feeAmount = _feeAmount(_amount, fee, _feeDiscount);
 
     if (_fundingCycle.shouldHoldFees()) {
@@ -1206,7 +1214,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _amount The fee amount, as a floating point number with 18 decimals.
     @param _beneficiary The address to mint the platform's tokens for.
   */
-  function _processFee(uint256 _amount, address _beneficiary) private {
+  function _processFee(uint256 _amount, address _beneficiary) internal {
     // Get the terminal for the protocol project.
     IJBPaymentTerminal _terminal = directory.primaryTerminalOf(_PROTOCOL_PROJECT_ID, token);
 
@@ -1258,7 +1266,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     bool _preferClaimedTokens,
     string memory _memo,
     bytes memory _metadata
-  ) private returns (uint256 beneficiaryTokenCount) {
+  ) internal returns (uint256 beneficiaryTokenCount) {
     // Cant send tokens to the zero address.
     if (_beneficiary == address(0)) revert PAY_TO_ZERO_ADDRESS();
 
@@ -1349,7 +1357,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     bool _shouldRefundHeldFees,
     string memory _memo,
     bytes memory _metadata
-  ) private {
+  ) internal {
     // Refund any held fees to make sure the project doesn't pay double for funds going in and out of the protocol.
     uint256 _refundedFees = _shouldRefundHeldFees ? _refundHeldFees(_projectId, _amount) : 0;
 
@@ -1369,7 +1377,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @return refundedFees How much fees were refunded, as a fixed point number with the same number of decimals as this terminal
   */
   function _refundHeldFees(uint256 _projectId, uint256 _amount)
-    private
+    internal
     returns (uint256 refundedFees)
   {
     // Get a reference to the project's held fees.
@@ -1385,7 +1393,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _heldFeesLength = _heldFees.length;
 
     // Process each fee.
-    for (uint256 _i = 0; _i < _heldFeesLength;) {
+    for (uint256 _i = 0; _i < _heldFeesLength; ) {
       if (leftoverAmount == 0) _heldFeesOf[_projectId].push(_heldFees[_i]);
       else if (leftoverAmount >= _heldFees[_i].amount) {
         unchecked {
@@ -1433,7 +1441,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _amount,
     uint256 _fee,
     uint256 _feeDiscount
-  ) private pure returns (uint256) {
+  ) internal pure returns (uint256) {
     // Calculate the discounted fee.
     uint256 _discountedFee = _fee -
       PRBMath.mulDiv(_fee, _feeDiscount, JBConstants.MAX_FEE_DISCOUNT);
@@ -1451,7 +1459,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     
     @return feeDiscount The fee discount, which should be interpreted as a percentage out MAX_FEE_DISCOUNT.
   */
-  function _currentFeeDiscount(uint256 _projectId) private view returns (uint256 feeDiscount) {
+  function _currentFeeDiscount(uint256 _projectId) internal view returns (uint256 feeDiscount) {
     // Can't take a fee if the protocol project doesn't have a terminal that accepts the token.
     if (directory.primaryTerminalOf(_PROTOCOL_PROJECT_ID, token) == IJBPaymentTerminal(address(0)))
       return JBConstants.MAX_FEE_DISCOUNT;

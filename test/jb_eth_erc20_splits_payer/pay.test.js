@@ -8,7 +8,7 @@ import errors from '../helpers/errors.json';
 import ierc20 from '../../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
 import jbAllocator from '../../artifacts/contracts/interfaces/IJBSplitAllocator.sol/IJBSplitAllocator.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
+import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore/2.sol/JBSplitsStore.json';
 import jbTerminal from '../../artifacts/contracts/abstract/JBPayoutRedemptionPaymentTerminal/1.sol/JBPayoutRedemptionPaymentTerminal.json';
 
 describe('JBETHERC20SplitsPayer::pay(...)', function () {
@@ -57,7 +57,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     let mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
     let mockToken = await deployMockContract(deployer, ierc20.abi);
 
-    let jbSplitsPayerFactory = await ethers.getContractFactory('JBETHERC20SplitsPayer');
+    let jbSplitsPayerFactory = await ethers.getContractFactory('contracts/JBETHERC20SplitsPayer/2.sol:JBETHERC20SplitsPayer');
 
     await mockJbSplitsStore.mock.directory.returns(mockJbDirectory.address);
 

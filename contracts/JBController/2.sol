@@ -53,7 +53,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
   error ZERO_TOKENS_TO_MINT();
 
   //*********************************************************************//
-  // --------------------- private stored properties ------------------- //
+  // --------------------- internal stored properties ------------------ //
   //*********************************************************************//
 
   /**
@@ -62,7 +62,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
 
     _projectId The ID of the project to get the tracker of.
   */
-  mapping(uint256 => int256) private _processedTokenTrackerOf;
+  mapping(uint256 => int256) internal _processedTokenTrackerOf;
 
   /**
     @notice
@@ -80,7 +80,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     _token The token for which distributions are being limited.
   */
   mapping(uint256 => mapping(uint256 => mapping(IJBPaymentTerminal => mapping(address => uint256))))
-    private _packedDistributionLimitDataOf;
+    internal _packedDistributionLimitDataOf;
 
   /**
     @notice
@@ -98,7 +98,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     _token The token for which overflow is being allowed.
   */
   mapping(uint256 => mapping(uint256 => mapping(IJBPaymentTerminal => mapping(address => uint256))))
-    private _packedOverflowAllowanceDataOf;
+    internal _packedOverflowAllowanceDataOf;
 
   //*********************************************************************//
   // --------------- public immutable stored properties ---------------- //
@@ -826,7 +826,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
   }
 
   //*********************************************************************//
-  // --------------------- private helper functions -------------------- //
+  // ------------------------ internal functions ----------------------- //
   //*********************************************************************//
 
   /**
@@ -839,7 +839,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     @return tokenCount The amount of minted reserved tokens.
   */
   function _distributeReservedTokensOf(uint256 _projectId, string memory _memo)
-    private
+    internal
     returns (uint256 tokenCount)
   {
     // Get the current funding cycle to read the reserved rate from.
@@ -902,7 +902,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     uint256 _domain,
     uint256 _group,
     uint256 _amount
-  ) private returns (uint256 leftoverAmount) {
+  ) internal returns (uint256 leftoverAmount) {
     // Set the leftover amount to the initial amount.
     leftoverAmount = _amount;
 
@@ -987,7 +987,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints
-  ) private returns (uint256) {
+  ) internal returns (uint256) {
     // Make sure the provided reserved rate is valid.
     if (_metadata.reservedRate > JBConstants.MAX_RESERVED_RATE) revert INVALID_RESERVED_RATE();
 
@@ -1007,15 +1007,8 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
       _mustStartAtOrAfter
     );
 
-    for (uint256 _i; _i < _groupedSplits.length; _i++)
-      // Set splits for the current group being iterated on if there are any.
-      if (_groupedSplits[_i].splits.length > 0)
-        splitsStore.set(
-          _projectId,
-          _fundingCycle.configuration,
-          _groupedSplits[_i].group,
-          _groupedSplits[_i].splits
-        );
+    // Set splits for the group.
+    splitsStore.set(_projectId, _fundingCycle.configuration, _groupedSplits);
 
     // Set distribution limits if there are any.
     for (uint256 _i; _i < _fundAccessConstraints.length; _i++) {
@@ -1077,7 +1070,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     int256 _processedTokenTracker,
     uint256 _reservedRate,
     uint256 _totalEligibleTokens
-  ) private pure returns (uint256) {
+  ) internal pure returns (uint256) {
     // Get a reference to the amount of tokens that are unprocessed.
     uint256 _unprocessedTokenBalanceOf = _processedTokenTracker >= 0
       ? _totalEligibleTokens - uint256(_processedTokenTracker)

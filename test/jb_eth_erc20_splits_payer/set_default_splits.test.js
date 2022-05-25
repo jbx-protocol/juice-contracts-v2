@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
+import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore/2.sol/JBSplitsStore.json';
 
 describe('JBETHERC20SplitsPayer::setDefaultSplits()', function () {
   const DEFAULT_PROJECT_ID = 2;
@@ -26,7 +26,7 @@ describe('JBETHERC20SplitsPayer::setDefaultSplits()', function () {
 
     let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
     let mockJbSplitsStore = await deployMockContract(deployer, jbSplitsStore.abi);
-    let jbSplitsPayerFactory = await ethers.getContractFactory('JBETHERC20SplitsPayer');
+    let jbSplitsPayerFactory = await ethers.getContractFactory('contracts/JBETHERC20SplitsPayer/2.sol:JBETHERC20SplitsPayer');
 
     await mockJbSplitsStore.mock.directory.returns(mockJbDirectory.address);
 

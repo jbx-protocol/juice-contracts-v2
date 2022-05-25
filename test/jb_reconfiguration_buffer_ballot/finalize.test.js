@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
-import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
+import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore/1.sol/JBFundingCycleStore.json';
 
 describe('JBReconfigurationBufferBallot::finalize(...)', function () {
   const DURATION = 3000;

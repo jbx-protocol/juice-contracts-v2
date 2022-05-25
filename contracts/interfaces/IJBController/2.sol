@@ -11,7 +11,7 @@ import './../IJBDirectory.sol';
 import './../IJBFundingCycleStore.sol';
 import './../IJBMigratable.sol';
 import './../IJBPaymentTerminal.sol';
-import './../IJBSplitsStore.sol';
+import './../IJBSplitsStore/2.sol';
 import './../IJBToken.sol';
 import './../IJBTokenStore.sol';
 
