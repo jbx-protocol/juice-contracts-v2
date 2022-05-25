@@ -38,14 +38,14 @@ module.exports = {
     },
     rinkeby: {
       url: 'https://rinkeby.infura.io/v3/' + infuraId,
-      gasPrice: 40000000000,
+      gasPrice: 30000000000,
       accounts: {
         mnemonic: mnemonic(),
       },
     },
     mainnet: {
       url: 'https://mainnet.infura.io/v3/' + infuraId,
-      gasPrice: 40000000000,
+      gasPrice: 30000000000,
       accounts: {
         mnemonic: mnemonic(),
       },
@@ -65,7 +65,7 @@ module.exports = {
       optimizer: {
         enabled: true,
         // https://docs.soliditylang.org/en/v0.8.10/internals/optimizer.html#:~:text=Optimizer%20Parameter%20Runs,-The%20number%20of&text=A%20%E2%80%9Cruns%E2%80%9D%20parameter%20of%20%E2%80%9C,is%202**32%2D1%20.
-        runs: 1000000,
+        runs: 10000,
       },
     },
   },
