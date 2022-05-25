@@ -6,7 +6,7 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './../../interfaces/IJBController/1.sol';
-import './../../interfaces/IJBPayoutRedemptionPaymentTerminal.sol';
+import './../../interfaces/IJBPayoutRedemptionPaymentTerminal/1.sol';
 import './../../libraries/JBConstants.sol';
 import './../../libraries/JBCurrencies.sol';
 import './../../libraries/JBFixedPointNumber.sol';

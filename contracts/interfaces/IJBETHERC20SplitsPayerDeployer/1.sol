@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './IJBSplitsPayer.sol';
-import './IJBSplitsStore.sol';
+import './../IJBSplitsPayer/1.sol';
+import './../IJBSplitsStore/1.sol';
 
 interface IJBETHERC20SplitsPayerDeployer {
   event DeploySplitsPayer(

@@ -2,8 +2,8 @@
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
-import './../structs/JBSplit.sol';
-import './IJBSplitsStore.sol';
+import './../../structs/JBSplit.sol';
+import './../IJBSplitsStore/2.sol';
 
 interface IJBSplitsPayer is IERC165 {
   event SetDefaultSplits(

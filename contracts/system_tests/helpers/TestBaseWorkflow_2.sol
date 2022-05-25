@@ -9,11 +9,11 @@ import '../../JBDirectory.sol';
 import '../../JBETHPaymentTerminal/2.sol';
 import '../../JBERC20PaymentTerminal/2.sol';
 import '../../JBSingleTokenPaymentTerminalStore/2.sol';
-import '../../JBFundingCycleStore.sol';
+import '../../JBFundingCycleStore/2.sol';
 import '../../JBOperatorStore.sol';
 import '../../JBPrices.sol';
 import '../../JBProjects.sol';
-import '../../JBSplitsStore.sol';
+import '../../JBSplitsStore/2.sol';
 import '../../JBToken.sol';
 import '../../JBTokenStore.sol';
 

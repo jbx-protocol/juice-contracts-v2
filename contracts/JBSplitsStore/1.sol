@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './abstract/JBOperatable.sol';
-import './interfaces/IJBDirectory.sol';
-import './interfaces/IJBSplitsStore.sol';
-import './libraries/JBConstants.sol';
-import './libraries/JBOperations.sol';
+import './../abstract/JBOperatable.sol';
+import './../interfaces/IJBDirectory.sol';
+import './../interfaces/IJBSplitsStore/1.sol';
+import './../libraries/JBConstants.sol';
+import './../libraries/JBOperations.sol';
 
 /**
   @notice
@@ -142,12 +142,14 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
 
     @param _projectId The ID of the project for which splits are being added.
     @param _domain An identifier within which the splits should be considered active.
-    @param _groupedSplits An array of splits to set for any number of groups. 
+    @param _group An identifier between of splits being set. All splits within this _group must add up to within 100%.
+    @param _splits The splits to set.
   */
   function set(
     uint256 _projectId,
     uint256 _domain,
-    JBGroupedSplits[] calldata _groupedSplits
+    uint256 _group,
+    JBSplit[] memory _splits
   )
     external
     override
@@ -158,48 +160,6 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
       address(directory.controllerOf(_projectId)) == msg.sender
     )
   {
-    // Push array length in stack
-    uint256 _groupedSplitsLength = _groupedSplits.length;
-
-    // Set each grouped splits.
-    for (uint256 _i = 0; _i < _groupedSplitsLength; ) {
-      // Get a reference to the grouped split being iterated on.
-      JBGroupedSplits memory _groupedSplit = _groupedSplits[_i];
-
-      // Set the splits for the group.
-      _set(_projectId, _domain, _groupedSplit.group, _groupedSplit.splits);
-
-      unchecked {
-        ++_i;
-      }
-    }
-  }
-
-  //*********************************************************************//
-  // --------------------- private helper functions -------------------- //
-  //*********************************************************************//
-
-  /** 
-    @notice 
-    Sets a project's splits.
-
-    @dev
-    Only the owner or operator of a project, or the current controller contract of the project, can set its splits.
-
-    @dev
-    The new splits must include any currently set splits that are locked.
-
-    @param _projectId The ID of the project for which splits are being added.
-    @param _domain An identifier within which the splits should be considered active.
-    @param _group An identifier between of splits being set. All splits within this _group must add up to within 100%.
-    @param _splits The splits to set.
-  */
-  function _set(
-    uint256 _projectId,
-    uint256 _domain,
-    uint256 _group,
-    JBSplit[] memory _splits
-  ) internal {
     // Get a reference to the project's current splits.
     JBSplit[] memory _currentSplits = _getStructsFor(_projectId, _domain, _group);
 
@@ -281,6 +241,10 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     // Set the new length of the splits.
     _splitCountOf[_projectId][_domain][_group] = _splits.length;
   }
+
+  //*********************************************************************//
+  // --------------------- private helper functions -------------------- //
+  //*********************************************************************//
 
   /**
     @notice 

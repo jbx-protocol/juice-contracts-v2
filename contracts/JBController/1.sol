@@ -1007,8 +1007,15 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
       _mustStartAtOrAfter
     );
 
-    // Set splits for the group.
-    splitsStore.set(_projectId, _fundingCycle.configuration, _groupedSplits);
+    for (uint256 _i; _i < _groupedSplits.length; _i++)
+      // Set splits for the current group being iterated on if there are any.
+      if (_groupedSplits[_i].splits.length > 0)
+        splitsStore.set(
+          _projectId,
+          _fundingCycle.configuration,
+          _groupedSplits[_i].group,
+          _groupedSplits[_i].splits
+        );
 
     // Set distribution limits if there are any.
     for (uint256 _i; _i < _fundAccessConstraints.length; _i++) {

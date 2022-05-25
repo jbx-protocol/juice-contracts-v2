@@ -2,8 +2,8 @@
 pragma solidity 0.8.6;
 
 import '@paulrberg/contracts/math/PRBMath.sol';
-import './abstract/JBControllerUtility.sol';
-import './libraries/JBConstants.sol';
+import './../abstract/JBControllerUtility.sol';
+import './../libraries/JBConstants.sol';
 
 /** 
   @notice 
