@@ -36,7 +36,7 @@ module.exports = async ({ deployments, getChainId }) => {
       break;
   }
 
-  console.log({ multisigAddress, protocolProjectStartsAtOrAfter });
+  console.log({ multisigAddress });
 
   // Deploy a new JBETHERC20SplitsPayerDeployer contract.
   await deploy('JBETHERC20SplitsPayerDeployer', {
@@ -123,8 +123,18 @@ module.exports = async ({ deployments, getChainId }) => {
     args: [JBDirectory.address, JBFundingCycleStore.address, JBPrices.address],
   });
 
+  // Deploy the currencies library.
+  const JBCurrencies = await deploy('JBCurrencies', {
+    ...baseDeployArgs,
+    args: [],
+  });
+
   // Get references to contract that will have transactions triggered.
   const jbDirectoryContract = new ethers.Contract(JBDirectory.address, JBDirectory.abi);
+  const jbCurrenciesLibrary = new ethers.Contract(JBCurrencies.address, JBCurrencies.abi);
+
+  // Get a reference to USD and ETH currency indexes.
+  const ETH = await jbCurrenciesLibrary.connect(deployer).ETH();
 
   // Deploy a JBETHPaymentTerminal contract.
   await deploy('JBETHPaymentTerminal', {
