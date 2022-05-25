@@ -8,6 +8,8 @@ const { ethers } = require('hardhat');
  * npx hardhat deploy --network rinkeby
  */
 module.exports = async ({ deployments, getChainId }) => {
+  console.log("Deploying 1");
+
   const { deploy } = deployments;
   const [deployer] = await ethers.getSigners();
 
@@ -327,3 +329,5 @@ module.exports = async ({ deployments, getChainId }) => {
 
   console.log('Done');
 };
+
+module.exports.tags = ['1'];

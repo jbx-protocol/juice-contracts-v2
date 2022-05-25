@@ -8,6 +8,8 @@ const { ethers } = require('hardhat');
  * npx hardhat deploy --network rinkeby
  */
 module.exports = async ({ deployments, getChainId }) => {
+  console.log("Deploying 2");
+
   const { deploy } = deployments;
   const [deployer] = await ethers.getSigners();
 
@@ -39,7 +41,7 @@ module.exports = async ({ deployments, getChainId }) => {
   console.log({ multisigAddress });
 
   // Deploy a new JBETHERC20SplitsPayerDeployer contract.
-  await deploy('JBETHERC20SplitsPayerDeployer', {
+  await deploy('JBETHERC20SplitsPayerDeployer_2', {
     ...baseDeployArgs,
     contract: "contracts/JBETHERC20SplitsPayerDeployer/2.sol:JBETHERC20SplitsPayerDeployer",
     args: [],
@@ -72,8 +74,9 @@ module.exports = async ({ deployments, getChainId }) => {
   });
 
   // Deploy a JBDirectory.
-  const JBDirectory = await deploy('JBDirectory', {
+  const JBDirectory = await deploy('JBDirectory_2', {
     ...baseDeployArgs,
+    contract: "contracts/JBDirectory.sol:JBDirectory",
     args: [
       JBOperatorStore.address,
       JBProjects.address,
@@ -83,27 +86,42 @@ module.exports = async ({ deployments, getChainId }) => {
   });
 
   // Deploy a JBFundingCycleStore.
-  const JBFundingCycleStore = await deploy('JBFundingCycleStore', {
+  const JBFundingCycleStore = await deploy('JBFundingCycleStore_2', {
     ...baseDeployArgs,
     contract: "contracts/JBFundingCycleStore/2.sol:JBFundingCycleStore",
     args: [JBDirectory.address],
   });
 
-  // Deploy a JBTokenStore.
-  const JBTokenStore = await deploy('JBTokenStore', {
+  // Deploy a JB3DayReconfigurationBufferBallot.
+  await deploy('JB3DayReconfigurationBufferBallot', {
     ...baseDeployArgs,
+    contract: "contracts/JBReconfigurationBufferBallot.sol:JBReconfigurationBufferBallot",
+    args: [259200, JBFundingCycleStore.address],
+  });
+
+  // Deploy a JB7DayReconfigurationBufferBallot.
+  await deploy('JB7DayReconfigurationBufferBallot', {
+    ...baseDeployArgs,
+    contract: "contracts/JBReconfigurationBufferBallot.sol:JBReconfigurationBufferBallot",
+    args: [604800, JBFundingCycleStore.address],
+  });
+
+  // Deploy a JBTokenStore.
+  const JBTokenStore = await deploy('JBTokenStore_2', {
+    ...baseDeployArgs,
+    contract: "contracts/JBTokenStore.sol:JBTokenStore",
     args: [JBOperatorStore.address, JBProjects.address, JBDirectory.address],
   });
 
   // Deploy a JBSplitStore.
-  const JBSplitStore = await deploy('JBSplitsStore', {
+  const JBSplitStore = await deploy('JBSplitsStore_2', {
     ...baseDeployArgs,
     contract: "contracts/JBSplitsStore/2.sol:JBSplitsStore",
     args: [JBOperatorStore.address, JBProjects.address, JBDirectory.address],
   });
 
   // Deploy a JBController contract.
-  const JBController = await deploy('JBController', {
+  const JBController = await deploy('JBController_2', {
     ...baseDeployArgs,
     contract: "contracts/JBController/2.sol:JBController",
     args: [
@@ -117,13 +135,13 @@ module.exports = async ({ deployments, getChainId }) => {
   });
 
   // Deploy a JBSingleTokenPaymentTerminalStore contract.
-  const JBSingleTokenPaymentTerminalStore = await deploy('JBSingleTokenPaymentTerminalStore', {
+  const JBSingleTokenPaymentTerminalStore = await deploy('JBSingleTokenPaymentTerminalStore_2', {
     ...baseDeployArgs,
     contract: "contracts/JBSingleTokenPaymentTerminalStore/2.sol:JBSingleTokenPaymentTerminalStore",
     args: [JBDirectory.address, JBFundingCycleStore.address, JBPrices.address],
   });
 
-  // Deploy the currencies library.
+  // Reuse the currencies library.
   const JBCurrencies = await deploy('JBCurrencies', {
     ...baseDeployArgs,
     args: [],
@@ -137,7 +155,7 @@ module.exports = async ({ deployments, getChainId }) => {
   const ETH = await jbCurrenciesLibrary.connect(deployer).ETH();
 
   // Deploy a JBETHPaymentTerminal contract.
-  await deploy('JBETHPaymentTerminal', {
+  await deploy('JBETHPaymentTerminal_2', {
     ...baseDeployArgs,
     contract: "contracts/JBETHPaymentTerminal/2.sol:JBETHPaymentTerminal",
     args: [
@@ -172,3 +190,6 @@ module.exports = async ({ deployments, getChainId }) => {
 
   console.log('Done');
 };
+
+module.exports.tags = ['2'];
+module.exports.dependencies = ['1']; 
