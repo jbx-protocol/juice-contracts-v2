@@ -40,13 +40,6 @@ module.exports = async ({ deployments, getChainId }) => {
 
   console.log({ multisigAddress });
 
-  // Deploy a new JBETHERC20SplitsPayerDeployer contract.
-  await deploy('JBETHERC20SplitsPayerDeployer_2', {
-    ...baseDeployArgs,
-    contract: "contracts/JBETHERC20SplitsPayerDeployer/2.sol:JBETHERC20SplitsPayerDeployer",
-    args: [],
-  });
-
   // Reuse the JBOperatorStore contract.
   const JBOperatorStore = await deploy('JBOperatorStore', {
     ...baseDeployArgs,
@@ -63,6 +56,13 @@ module.exports = async ({ deployments, getChainId }) => {
   const JBProjects = await deploy('JBProjects', {
     ...baseDeployArgs,
     args: [JBOperatorStore.address],
+  });
+
+  // Deploy a new JBETHERC20SplitsPayerDeployer contract.
+  await deploy('JBETHERC20SplitsPayerDeployer_2', {
+    ...baseDeployArgs,
+    contract: "contracts/JBETHERC20SplitsPayerDeployer/2.sol:JBETHERC20SplitsPayerDeployer",
+    args: [],
   });
 
   // Get the future address of JBFundingCycleStore
