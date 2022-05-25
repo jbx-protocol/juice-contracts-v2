@@ -89,10 +89,8 @@ describe('JBController::launchProjectFor(...)', function () {
         ),
       );
 
-    const groupedSplits = [{ group: 1, splits }];
-
     await mockJbSplitsStore.mock.set
-      .withArgs(PROJECT_ID, /*configuration=*/ timestamp, groupedSplits)
+      .withArgs(PROJECT_ID, /*configuration=*/ timestamp, /*group=*/ 1, splits)
       .returns();
 
     const token = ethers.Wallet.createRandom().address;
