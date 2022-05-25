@@ -8,7 +8,7 @@ import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPayme
 import jbFeeGauge from '../../artifacts/contracts/interfaces/IJBFeeGauge.sol/IJBFeeGauge.json';
 import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorStore.sol/IJBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
-import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
+import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore/2.sol/IJBSplitsStore.json';
 import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 
 describe('JBPayoutRedemptionPaymentTerminal::setFeeGauge(...)', function () {

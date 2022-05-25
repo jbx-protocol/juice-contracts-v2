@@ -6,10 +6,10 @@ import errors from '../helpers/errors.json';
 
 import JbController from '../../artifacts/contracts/JBController/1.sol/JBController.json';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
+import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore/1.sol/JBFundingCycleStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
-import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
+import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore/1.sol/JBSplitsStore.json';
 import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
 
 describe('JBController::migrate(...)', function () {

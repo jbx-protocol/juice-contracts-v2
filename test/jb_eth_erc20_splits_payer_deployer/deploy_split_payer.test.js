@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
+import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore/1.sol/JBSplitsStore.json';
 
 describe('JBSplitsPayerDeployer::deploySplitsPayer(...)', function () {
   const DEFAULT_PROJECT_ID = 2;
