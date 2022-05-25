@@ -13,7 +13,7 @@ import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsS
 import jbTerminal from '../../artifacts/contracts/JBETHPaymentTerminal/1.sol/JBETHPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/JBTokenStore.sol/JBTokenStore.json';
 
-describe('JBController::launchProjectFor(...)', function () {
+describe('JBController_2::launchProjectFor(...)', function () {
   const PROJECT_ID = 1;
   const METADATA_CID = '';
   const METADATA_DOMAIN = 1234;
@@ -53,7 +53,7 @@ describe('JBController::launchProjectFor(...)', function () {
     ]);
 
     let jbControllerFactory = await ethers.getContractFactory(
-      'contracts/JBController/1.sol:JBController',
+      'contracts/JBController/2.sol:JBController',
     );
     let jbController = await jbControllerFactory.deploy(
       mockJbOperatorStore.address,

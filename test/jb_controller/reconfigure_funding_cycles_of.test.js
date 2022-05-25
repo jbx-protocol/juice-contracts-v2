@@ -89,8 +89,10 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
         ),
       );
 
+    const groupedSplits = [{ group: 1, splits }];
+    
     await mockJbSplitsStore.mock.set
-      .withArgs(PROJECT_ID, /*configuration=*/ timestamp, /*group=*/ 1, splits)
+      .withArgs(PROJECT_ID, /*configuration=*/ timestamp, groupedSplits)
       .returns();
 
     return {
@@ -106,6 +108,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
       mockJbFundingCycleStore,
       mockJbTerminal1,
       mockJbTerminal2,
+      mockJbSplitsStore,
       timestamp,
       fundingCycleData,
       fundingCycleMetadata,
@@ -441,10 +444,17 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
       fundingCycleMetadata,
       mockJbTerminal1,
       mockJbTerminal2,
+      mockJbSplitsStore
     } = await setup();
 
     const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
     const fundAccessConstraints = makeFundingAccessConstraints({ terminals });
+
+    const groupedSplits = [];
+
+    await mockJbSplitsStore.mock.set
+    .withArgs(PROJECT_ID, /*configuration=*/ timestamp, groupedSplits)
+    .returns();
 
     expect(
       await jbController
@@ -454,7 +464,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
           fundingCycleData,
           fundingCycleMetadata.unpacked,
           PROJECT_START,
-          [],
+          groupedSplits,
           fundAccessConstraints,
           MEMO,
         ),
@@ -503,6 +513,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
       fundingCycleMetadata,
       mockJbTerminal1,
       mockJbTerminal2,
+      mockJbSplitsStore
     } = await setup();
 
     const groupedSplits = [{ group: 1, splits: [] }];
@@ -513,6 +524,10 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
       overflowAllowance: 0,
       currency: 0,
     });
+
+    await mockJbSplitsStore.mock.set
+    .withArgs(PROJECT_ID, /*configuration=*/ timestamp, groupedSplits)
+    .returns();
 
     expect(
       await jbController

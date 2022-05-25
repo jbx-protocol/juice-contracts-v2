@@ -113,8 +113,10 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
 
     await mockJbFundingCycleStore.mock.latestConfigurationOf.withArgs(LAUNCHED_PROJECT).returns(1);
 
+    const groupedSplits = [{ group: 1, splits }];
+
     await mockJbSplitsStore.mock.set
-      .withArgs(EXISTING_PROJECT, /*configuration=*/ timestamp, /*group=*/ 1, splits)
+      .withArgs(EXISTING_PROJECT, /*configuration=*/ timestamp, groupedSplits)
       .returns();
 
     return {
