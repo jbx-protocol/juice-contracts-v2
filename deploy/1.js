@@ -104,18 +104,6 @@ module.exports = async ({ deployments, getChainId }) => {
     args: [JBDirectory.address],
   });
 
-  // Deploy a JB3DayReconfigurationBufferBallot.
-  const JB3DayReconfigurationBufferBallot = await deploy('JBReconfigurationBufferBallot', {
-    ...baseDeployArgs,
-    args: [259200, JBFundingCycleStore.address],
-  });
-
-  // Deploy a JB7DayReconfigurationBufferBallot.
-  await deploy('JBReconfigurationBufferBallot', {
-    ...baseDeployArgs,
-    args: [604800, JBFundingCycleStore.address],
-  });
-
   // Deploy a JBTokenStore.
   const JBTokenStore = await deploy('JBTokenStore', {
     ...baseDeployArgs,
@@ -273,6 +261,18 @@ module.exports = async ({ deployments, getChainId }) => {
       group: 2,
       splits: splits,
     };
+
+    // Deploy a JB3DayReconfigurationBufferBallot.
+    const JB3DayReconfigurationBufferBallot = await deploy('JBReconfigurationBufferBallot', {
+      ...baseDeployArgs,
+      args: [259200, JBFundingCycleStore.address],
+    });
+
+    // Deploy a JB7DayReconfigurationBufferBallot.
+    await deploy('JBReconfigurationBufferBallot', {
+      ...baseDeployArgs,
+      args: [604800, JBFundingCycleStore.address],
+    });
 
     console.log('Deploying protocol project...');
 

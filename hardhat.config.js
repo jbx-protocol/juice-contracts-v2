@@ -38,14 +38,14 @@ module.exports = {
     },
     rinkeby: {
       url: 'https://rinkeby.infura.io/v3/' + infuraId,
-      gasPrice: 40000000000,
+      gasPrice: 30000000000,
       accounts: {
         mnemonic: mnemonic(),
       },
     },
     mainnet: {
       url: 'https://mainnet.infura.io/v3/' + infuraId,
-      gasPrice: 40000000000,
+      gasPrice: 30000000000,
       accounts: {
         mnemonic: mnemonic(),
       },
