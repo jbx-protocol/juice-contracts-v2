@@ -15,7 +15,7 @@ import './../IJBRedemptionDelegate.sol';
 import './../IJBRedemptionTerminal.sol';
 import './../IJBSingleTokenPaymentTerminal.sol';
 import './../IJBSingleTokenPaymentTerminalStore.sol';
-import './../IJBSplitsStore/1.sol';
+import './../IJBSplitsStore/2.sol';
 
 interface IJBPayoutRedemptionPaymentTerminal is
   IJBPaymentTerminal,

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import './helpers/TestBaseWorkflow.sol';
+import './helpers/TestBaseWorkflow_2.sol';
 import '../JBReconfigurationBufferBallot.sol';
-import '../JBETHERC20SplitsPayer/1.sol';
+import '../JBETHERC20SplitsPayer/2.sol';
 
-contract TestEIP165 is TestBaseWorkflow {
+contract TestEIP165 is TestBaseWorkflow_2 {
   bytes4 constant notSupportedInterface = 0xffffffff;
 
   uint256 constant projectId = 2;
