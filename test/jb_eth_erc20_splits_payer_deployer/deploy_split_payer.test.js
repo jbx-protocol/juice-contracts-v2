@@ -23,7 +23,7 @@ describe('JBSplitsPayerDeployer::deploySplitsPayer(...)', function () {
     let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
     let mockJbSplitsStore = await deployMockContract(deployer, jbSplitsStore.abi);
     let jbSplitsPayerDeployerFactory = await ethers.getContractFactory(
-      'JBETHERC20SplitsPayerDeployer',
+      'contracts/JBETHERC20SplitsPayerDeployer/1.sol:JBETHERC20SplitsPayerDeployer',
     );
     let jbSplitsPayerDeployer = await jbSplitsPayerDeployerFactory.deploy();
 

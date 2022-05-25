@@ -26,7 +26,7 @@ describe('JBETHERC20SplitsPayer::setDefaultSplits()', function () {
 
     let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
     let mockJbSplitsStore = await deployMockContract(deployer, jbSplitsStore.abi);
-    let jbSplitsPayerFactory = await ethers.getContractFactory('JBETHERC20SplitsPayer');
+    let jbSplitsPayerFactory = await ethers.getContractFactory('contracts/JBETHERC20SplitsPayer/2.sol:JBETHERC20SplitsPayer');
 
     await mockJbSplitsStore.mock.directory.returns(mockJbDirectory.address);
 

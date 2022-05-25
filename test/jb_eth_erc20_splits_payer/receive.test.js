@@ -55,7 +55,7 @@ describe('JBETHERC20SplitsPayer::receive()', function () {
     let mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
     let mockToken = await deployMockContract(deployer, ierc20.abi);
 
-    let jbSplitsPayerFactory = await ethers.getContractFactory('JBETHERC20SplitsPayer');
+    let jbSplitsPayerFactory = await ethers.getContractFactory('contracts/JBETHERC20SplitsPayer/2.sol:JBETHERC20SplitsPayer');
 
     await mockJbSplitsStore.mock.directory.returns(mockJbDirectory.address);
 

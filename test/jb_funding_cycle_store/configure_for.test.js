@@ -50,7 +50,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     const mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
     const mockBallot = await deployMockContract(deployer, ijbFundingCycleBallot.abi);
 
-    const jbFundingCycleStoreFactory = await ethers.getContractFactory('JBFundingCycleStore');
+    const jbFundingCycleStoreFactory = await ethers.getContractFactory('contracts/JBFundingCycleStore/2.sol:JBFundingCycleStore');
     const jbFundingCycleStore = await jbFundingCycleStoreFactory.deploy(mockJbDirectory.address);
 
     return {
