@@ -31,7 +31,7 @@ describe('JBSplitsStore::set(...)', function () {
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
-    let jbSplitsStoreFact = await ethers.getContractFactory('JBSplitsStore');
+    let jbSplitsStoreFact = await ethers.getContractFactory('contracts/JBSplitsStore/2.sol:JBSplitsStore');
     let jbSplitsStore = await jbSplitsStoreFact.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
