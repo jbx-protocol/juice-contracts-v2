@@ -146,6 +146,7 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
               split.allocator,
             ],
             AMOUNT.mul(split.percent).div(maxSplitsPercent),
+            DEFAULT_BENEFICIARY,
             caller.address,
           );
       }),
@@ -233,6 +234,7 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
               split.allocator,
             ],
             AMOUNT.mul(split.percent).div(maxSplitsPercent),
+            DEFAULT_BENEFICIARY,
             caller.address,
           );
       }),
@@ -307,6 +309,7 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
               split.allocator,
             ],
             AMOUNT.mul(split.percent).div(maxSplitsPercent),
+            DEFAULT_BENEFICIARY,
             caller.address,
           );
       }),
@@ -394,6 +397,7 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
               split.allocator,
             ],
             AMOUNT.mul(split.percent).div(maxSplitsPercent),
+            DEFAULT_BENEFICIARY,
             caller.address,
           );
       }),
@@ -471,6 +475,7 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
               split.allocator,
             ],
             AMOUNT.mul(split.percent).div(maxSplitsPercent),
+            DEFAULT_BENEFICIARY,
             caller.address,
           );
       }),
@@ -534,6 +539,7 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
               split.allocator,
             ],
             AMOUNT.mul(split.percent).div(maxSplitsPercent),
+            DEFAULT_BENEFICIARY,
             caller.address,
           );
       }),
