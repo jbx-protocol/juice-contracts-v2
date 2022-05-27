@@ -4,16 +4,16 @@ pragma solidity 0.8.6;
 import './hevm.sol';
 import '../../../lib/ds-test/src/test.sol';
 
-import '../../JBController/1.sol';
+import '../../JBController.sol';
 import '../../JBDirectory.sol';
-import '../../JBETHPaymentTerminal/1.sol';
-import '../../JBERC20PaymentTerminal/1.sol';
-import '../../JBSingleTokenPaymentTerminalStore/1.sol';
-import '../../JBFundingCycleStore/1.sol';
+import '../../JBETHPaymentTerminal.sol';
+import '../../JBERC20PaymentTerminal.sol';
+import '../../JBSingleTokenPaymentTerminalStore.sol';
+import '../../JBFundingCycleStore.sol';
 import '../../JBOperatorStore.sol';
 import '../../JBPrices.sol';
 import '../../JBProjects.sol';
-import '../../JBSplitsStore/1.sol';
+import '../../JBSplitsStore.sol';
 import '../../JBToken.sol';
 import '../../JBTokenStore.sol';
 

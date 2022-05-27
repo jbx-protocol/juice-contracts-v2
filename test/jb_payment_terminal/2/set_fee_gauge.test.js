@@ -4,11 +4,11 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
-import jbPaymentTerminalStore from '../../../artifacts/contracts/JBSingleTokenPaymentTerminalStore/2.sol/JBSingleTokenPaymentTerminalStore.json';
+import jbPaymentTerminalStore from '../../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
 import jbFeeGauge from '../../../artifacts/contracts/interfaces/IJBFeeGauge.sol/IJBFeeGauge.json';
 import jbOperatoreStore from '../../../artifacts/contracts/interfaces/IJBOperatorStore.sol/IJBOperatorStore.json';
 import jbProjects from '../../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
-import jbSplitsStore from '../../../artifacts/contracts/interfaces/IJBSplitsStore/2.sol/IJBSplitsStore.json';
+import jbSplitsStore from '../../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
 import jbPrices from '../../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 
 describe('JBPayoutRedemptionPaymentTerminal::setFeeGauge(...)', function () {
@@ -38,7 +38,7 @@ describe('JBPayoutRedemptionPaymentTerminal::setFeeGauge(...)', function () {
     const CURRENCY_ETH = await jbCurrencies.ETH();
 
     let jbTerminalFactory = await ethers.getContractFactory(
-      'contracts/JBETHPaymentTerminal/2.sol:JBETHPaymentTerminal',
+      'contracts/JBETHPaymentTerminal.sol:JBETHPaymentTerminal',
       deployer,
     );
 

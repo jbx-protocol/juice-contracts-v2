@@ -3,8 +3,8 @@ import { ethers } from 'hardhat';
 import errors from '../helpers/errors.json';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
-import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore/1.sol/JBFundingCycleStore.json';
-import jbController from '../../artifacts/contracts/interfaces/IJBController/1.sol/IJBController.json';
+import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
+import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 

@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore/1.sol/JBSplitsStore.json';
+import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 
 describe('JBSplitsPayerDeployer::deploySplitsPayer(...)', function () {
   const DEFAULT_PROJECT_ID = 2;
@@ -23,7 +23,7 @@ describe('JBSplitsPayerDeployer::deploySplitsPayer(...)', function () {
     let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
     let mockJbSplitsStore = await deployMockContract(deployer, jbSplitsStore.abi);
     let jbSplitsPayerDeployerFactory = await ethers.getContractFactory(
-      'contracts/JBETHERC20SplitsPayerDeployer/1.sol:JBETHERC20SplitsPayerDeployer',
+      'contracts/JBETHERC20SplitsPayerDeployer.sol:JBETHERC20SplitsPayerDeployer',
     );
     let jbSplitsPayerDeployer = await jbSplitsPayerDeployerFactory.deploy();
 

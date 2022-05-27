@@ -4,11 +4,11 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
-import JBEthPaymentTerminal from '../../../artifacts/contracts/JBETHPaymentTerminal/1.sol/JBETHPaymentTerminal.json';
-import jbPaymentTerminalStore from '../../../artifacts/contracts/JBSingleTokenPaymentTerminalStore/1.sol/JBSingleTokenPaymentTerminalStore.json';
+import JBEthPaymentTerminal from '../../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
+import jbPaymentTerminalStore from '../../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
 import jbOperatoreStore from '../../../artifacts/contracts/interfaces/IJBOperatorStore.sol/IJBOperatorStore.json';
 import jbProjects from '../../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
-import jbSplitsStore from '../../../artifacts/contracts/interfaces/IJBSplitsStore/1.sol/IJBSplitsStore.json';
+import jbSplitsStore from '../../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
 import jbPrices from '../../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 
 describe('JBPayoutRedemptionPaymentTerminal::setFeelessAddress(...)', function () {
@@ -38,7 +38,7 @@ describe('JBPayoutRedemptionPaymentTerminal::setFeelessAddress(...)', function (
     const CURRENCY_ETH = await jbCurrencies.ETH();
 
     let jbTerminalFactory = await ethers.getContractFactory(
-      'contracts/JBETHPaymentTerminal/1.sol:JBETHPaymentTerminal',
+      'contracts/JBETHPaymentTerminal.sol:JBETHPaymentTerminal',
       deployer,
     );
 
