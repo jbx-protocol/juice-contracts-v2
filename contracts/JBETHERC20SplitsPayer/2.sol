@@ -522,6 +522,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
         _splitsGroup,
         _split,
         _splitAmount,
+        _defaultBeneficiary,
         msg.sender
       );
     }

@@ -184,9 +184,6 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     Sets a project's splits.
 
     @dev
-    Only the owner or operator of a project, or the current controller contract of the project, can set its splits.
-
-    @dev
     The new splits must include any currently set splits that are locked.
 
     @param _projectId The ID of the project for which splits are being added.

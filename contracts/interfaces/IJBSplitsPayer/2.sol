@@ -44,6 +44,7 @@ interface IJBSplitsPayer is IERC165 {
     uint256 indexed group,
     JBSplit split,
     uint256 amount,
+    address defaultBeneficiary,
     address caller
   );
 
