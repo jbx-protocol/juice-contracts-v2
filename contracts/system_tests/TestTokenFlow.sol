@@ -79,6 +79,8 @@ contract TestTokenFlow is TestBaseWorkflow {
     bool mintPreferClaimed,
     bool burnPreferClaimed
   ) public {
+    // Might overflow in processed token tracker if burn amount >= max int256 (ie (2**256)/2 -1 )
+    evm.assume(burnAmount < (2**256)/2);
     // calls will originate from projectOwner addr
     evm.startPrank(_projectOwner);
 
