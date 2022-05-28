@@ -190,6 +190,14 @@ module.exports = async ({ deployments, getChainId }) => {
   if ((await jbDirectoryContract.connect(deployer).owner()) != multisigAddress)
     await jbDirectoryContract.connect(deployer).transferOwnership(multisigAddress);
 
+  // Deploy a JBETHERC20SplitsPayerDeployer contract.
+  await deploy('JBETHERC20SplitsPayerDeployer', {
+    ...baseDeployArgs,
+    skipIfAlreadyDeployed: false,
+    contract: "contracts/JBETHERC20SplitsPayerDeployer.sol:JBETHERC20SplitsPayerDeployer",
+    args: [],
+  });
+
   console.log('Done');
 };
 
