@@ -6,12 +6,12 @@ import errors from '../../helpers/errors.json';
 
 import jbAllocator from '../../../artifacts/contracts/interfaces/IJBSplitAllocator.sol/IJBSplitAllocator.json';
 import jbDirectory from '../../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import JBETHPaymentTerminal from '../../../artifacts/contracts/JBETHPaymentTerminal/1.sol/JBETHPaymentTerminal.json';
-import jbPaymentTerminalStore from '../../../artifacts/contracts/JBSingleTokenPaymentTerminalStore/1.sol/JBSingleTokenPaymentTerminalStore.json';
+import JBETHPaymentTerminal from '../../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
+import jbPaymentTerminalStore from '../../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
 import jbFeeGauge from '../../../artifacts/contracts/interfaces/IJBFeeGauge.sol/IJBFeeGauge.json';
 import jbOperatoreStore from '../../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../../artifacts/contracts/JBProjects.sol/JBProjects.json';
-import jbSplitsStore from '../../../artifacts/contracts/JBSplitsStore/1.sol/JBSplitsStore.json';
+import jbSplitsStore from '../../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 import jbPrices from '../../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 import IERC20Metadata from '../../../artifacts/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol/IERC20Metadata.json';
 
@@ -111,11 +111,11 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
     const CURRENCY_USD = await jbCurrencies.USD();
 
     let jbEthTerminalFactory = await ethers.getContractFactory(
-      'contracts/JBETHPaymentTerminal/1.sol:JBETHPaymentTerminal',
+      'contracts/JBETHPaymentTerminal.sol:JBETHPaymentTerminal',
       deployer,
     );
     let jbErc20TerminalFactory = await ethers.getContractFactory(
-      'contracts/JBERC20PaymentTerminal/1.sol:JBERC20PaymentTerminal',
+      'contracts/JBERC20PaymentTerminal.sol:JBERC20PaymentTerminal',
       deployer,
     );
 

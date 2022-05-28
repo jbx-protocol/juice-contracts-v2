@@ -31,7 +31,7 @@ describe('JBSplitsStore::set(...)', function () {
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
-    let jbSplitsStoreFact = await ethers.getContractFactory('contracts/JBSplitsStore/2.sol:JBSplitsStore');
+    let jbSplitsStoreFact = await ethers.getContractFactory('contracts/JBSplitsStore.sol:JBSplitsStore');
     let jbSplitsStore = await jbSplitsStoreFact.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
@@ -39,7 +39,7 @@ describe('JBSplitsStore::set(...)', function () {
     );
 
     let splits = makeSplits(addrs[0].address);
-    let groupedSplits = [{ group:GROUP, splits }];
+    let groupedSplits = [{ group: GROUP, splits }];
 
     return {
       deployer,
@@ -123,7 +123,7 @@ describe('JBSplitsStore::set(...)', function () {
       allocator: addrs[5].address,
     }));
 
-    const newGroupedSplits = [{group: GROUP, splits: newSplits}];
+    const newGroupedSplits = [{ group: GROUP, splits: newSplits }];
 
     await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, newGroupedSplits);
 
@@ -144,7 +144,7 @@ describe('JBSplitsStore::set(...)', function () {
       allocator: addrs[5].address,
     }));
 
-    const newGroupedSplits = [{group: GROUP, splits: newSplits}];
+    const newGroupedSplits = [{ group: GROUP, splits: newSplits }];
 
     await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, newGroupedSplits);
 
@@ -200,7 +200,7 @@ describe('JBSplitsStore::set(...)', function () {
     let newBeneficiary = addrs[5].address;
     let newSplits = makeSplits(newBeneficiary);
 
-    const newGroupedSplits = [{group: GROUP, splits: newSplits}];
+    const newGroupedSplits = [{ group: GROUP, splits: newSplits }];
 
     await expect(
       jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, newGroupedSplits),
@@ -223,7 +223,7 @@ describe('JBSplitsStore::set(...)', function () {
     newSplits[1].lockedUntil = newLockDate;
     newSplits[1].beneficiary = addrs[0].address;
 
-    const newGroupedSplits = [{group: GROUP, splits: newSplits}];
+    const newGroupedSplits = [{ group: GROUP, splits: newSplits }];
 
     await jbSplitsStore.connect(projectOwner).set(PROJECT_ID, DOMAIN, newGroupedSplits);
 
