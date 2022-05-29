@@ -498,7 +498,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
           // Transfer the ETH.
           if (_token == JBTokens.ETH)
             Address.sendValue(
-              // Get a reference to the address receiving the tokens. If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
+              // Get a reference to the address receiving the tokens. If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to _defaultBeneficiary.
               _split.beneficiary != address(0) ? _split.beneficiary : payable(_defaultBeneficiary),
               _splitAmount
             );
