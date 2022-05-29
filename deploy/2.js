@@ -125,6 +125,14 @@ module.exports = async ({ deployments, getChainId }) => {
     args: [JBOperatorStore.address, JBProjects.address, JBDirectory.address],
   });
 
+  // Deploy a JBETHERC20SplitsPayerDeployer contract.
+  await deploy('JBETHERC20SplitsPayerDeployer', {
+    ...baseDeployArgs,
+    skipIfAlreadyDeployed: false,
+    contract: "contracts/JBETHERC20SplitsPayerDeployer.sol:JBETHERC20SplitsPayerDeployer",
+    args: [],
+  });
+
   // Deploy a JBController contract.
   const JBController = await deploy('JBController', {
     ...baseDeployArgs,
@@ -189,14 +197,6 @@ module.exports = async ({ deployments, getChainId }) => {
   // If needed, transfer the ownership of the JBDirectory contract to the multisig.
   if ((await jbDirectoryContract.connect(deployer).owner()) != multisigAddress)
     await jbDirectoryContract.connect(deployer).transferOwnership(multisigAddress);
-
-  // Deploy a JBETHERC20SplitsPayerDeployer contract.
-  await deploy('JBETHERC20SplitsPayerDeployer', {
-    ...baseDeployArgs,
-    skipIfAlreadyDeployed: false,
-    contract: "contracts/JBETHERC20SplitsPayerDeployer.sol:JBETHERC20SplitsPayerDeployer",
-    args: [],
-  });
 
   console.log('Done');
 };
