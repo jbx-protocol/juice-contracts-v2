@@ -2387,7 +2387,6 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     );
   });
 
-
   it("Can't configure if caller is not project's controller", async function () {
     const { controller, mockJbDirectory, jbFundingCycleStore, addrs } = await setup();
     const [nonController] = addrs;
@@ -2412,6 +2411,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
         .configureFor(PROJECT_ID, fundingCycleData, 0, FUNDING_CYCLE_CAN_START_ASAP),
     ).to.be.revertedWith(errors.INVALID_DURATION);
   });
+
   it(`Can't configure if funding cycle discount rate is above 100%`, async function () {
     const { controller, mockJbDirectory, jbFundingCycleStore } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
@@ -2438,5 +2438,57 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
         .connect(controller)
         .configureFor(PROJECT_ID, fundingCycleData, 0, FUNDING_CYCLE_CAN_START_ASAP),
     ).to.be.revertedWith(errors.INVALID_WEIGHT);
+  });
+
+  it(`Can't configure if ballot is not a contract`, async function () {
+    const { controller, mockJbDirectory, jbFundingCycleStore } = await setup();
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Zero duration.
+    const fundingCycleData = createFundingCycleData({
+      ballot: ethers.Wallet.createRandom().address,
+    });
+
+    await expect(
+      jbFundingCycleStore
+        .connect(controller)
+        .configureFor(PROJECT_ID, fundingCycleData, 0, FUNDING_CYCLE_CAN_START_ASAP),
+    ).to.be.revertedWith(errors.INVALID_BALLOT);
+  });
+
+  it(`Can't configure if ballot has not the valid interface`, async function () {
+    const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore } = await setup();
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Zero duration.
+    const fundingCycleData = createFundingCycleData({
+      ballot: mockBallot.address,
+    });
+
+    await mockBallot.mock.supportsInterface.returns(false);
+
+    await expect(
+      jbFundingCycleStore
+        .connect(controller)
+        .configureFor(PROJECT_ID, fundingCycleData, 0, FUNDING_CYCLE_CAN_START_ASAP),
+    ).to.be.revertedWith(errors.INVALID_BALLOT);
+  });
+
+  it(`Can't configure if ballot is not IERC165 compliant`, async function () {
+    const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore } = await setup();
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Zero duration.
+    const fundingCycleData = createFundingCycleData({
+      ballot: mockBallot.address,
+    });
+
+    await mockBallot.mock.supportsInterface.reverts;
+
+    await expect(
+      jbFundingCycleStore
+        .connect(controller)
+        .configureFor(PROJECT_ID, fundingCycleData, 0, FUNDING_CYCLE_CAN_START_ASAP),
+    ).to.be.revertedWith(errors.INVALID_BALLOT);
   });
 });
