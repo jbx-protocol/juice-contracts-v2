@@ -49,6 +49,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
 
     const mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
     const mockBallot = await deployMockContract(deployer, ijbFundingCycleBallot.abi);
+    await mockBallot.mock.supportsInterface.returns(true);
 
     const jbFundingCycleStoreFactory = await ethers.getContractFactory('contracts/JBFundingCycleStore.sol:JBFundingCycleStore');
     const jbFundingCycleStore = await jbFundingCycleStoreFactory.deploy(mockJbDirectory.address);
@@ -59,6 +60,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
       jbFundingCycleStore,
       mockBallot,
       addrs,
+      deployer
     };
   }
 
@@ -318,7 +320,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
   });
 
   it('Should configure subsequent cycle during a funding cycle', async function () {
-    const { controller, mockJbDirectory, jbFundingCycleStore, addrs } = await setup();
+    const { controller, mockJbDirectory, jbFundingCycleStore, mockBallot } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     const firstFundingCycleData = createFundingCycleData();
@@ -349,7 +351,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     };
 
     const secondFundingCycleData = createFundingCycleData({
-      ballot: addrs[0].address,
+      ballot: mockBallot.address,
       duration: firstFundingCycleData.duration.add(1),
       discountRate: firstFundingCycleData.discountRate.add(1),
       weight: firstFundingCycleData.weight.add(1),
@@ -604,7 +606,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
   });
 
   it('Should configure subsequent cycle during a rolled over funding cycle', async function () {
-    const { controller, mockJbDirectory, jbFundingCycleStore, addrs } = await setup();
+    const { controller, mockJbDirectory, jbFundingCycleStore, mockBallot } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     const firstFundingCycleData = createFundingCycleData();
@@ -635,7 +637,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     };
 
     const secondFundingCycleData = createFundingCycleData({
-      ballot: addrs[0].address,
+      ballot: mockBallot.address,
       duration: firstFundingCycleData.duration.add(1),
       discountRate: firstFundingCycleData.discountRate.add(1),
       weight: firstFundingCycleData.weight.add(1),
@@ -700,7 +702,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
   });
 
   it('Should configure subsequent cycle during a rolled over funding cycle with approved ballot', async function () {
-    const { controller, mockJbDirectory, jbFundingCycleStore, mockBallot, addrs } = await setup();
+    const { controller, mockJbDirectory, jbFundingCycleStore, mockBallot } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     const firstFundingCycleData = createFundingCycleData({ ballot: mockBallot.address });
@@ -731,7 +733,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     };
 
     const secondFundingCycleData = createFundingCycleData({
-      ballot: addrs[0].address,
+      ballot: ethers.constants.AddressZero,
       duration: firstFundingCycleData.duration.add(1),
       discountRate: firstFundingCycleData.discountRate.add(1),
       weight: firstFundingCycleData.weight.add(1),
@@ -811,7 +813,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     // Increase timeout because this test will need a long for loop iteration.
     this.timeout(20000);
 
-    const { controller, mockJbDirectory, jbFundingCycleStore, addrs } = await setup();
+    const { controller, mockJbDirectory, jbFundingCycleStore, mockBallot } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     const discountRate = 0.005; // Use a discount rate of 0.5%
@@ -835,7 +837,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
 
     const secondFundingCycleData = createFundingCycleData({
-      ballot: addrs[0].address,
+      ballot: mockBallot.address,
       duration: firstFundingCycleData.duration.add(1),
       discountRate: firstFundingCycleData.discountRate.add(1),
       weight: ethers.BigNumber.from(0), //inherit weight.
@@ -893,7 +895,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
   });
 
   it('Should ignore failed configuration and roll over current configuration', async function () {
-    const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore, addrs } = await setup();
+    const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     const firstFundingCycleData = createFundingCycleData({ ballot: mockBallot.address });
@@ -927,7 +929,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     };
 
     const failedFundingCycleData = createFundingCycleData({
-      ballot: addrs[0].address,
+      ballot: mockBallot.address,
       duration: firstFundingCycleData.duration.add(1),
       discountRate: firstFundingCycleData.discountRate.add(1),
       weight: firstFundingCycleData.weight.add(1),
@@ -1126,7 +1128,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
   });
 
   it('Should configure subsequent cycle during a rolled over funding cycle with a failed one in between', async function () {
-    const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore, addrs } = await setup();
+    const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     const firstFundingCycleData = createFundingCycleData({ ballot: mockBallot.address });
@@ -1160,7 +1162,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     };
 
     const secondFundingCycleData = createFundingCycleData({
-      ballot: addrs[0].address,
+      ballot: mockBallot.address,
       duration: firstFundingCycleData.duration.add(1),
       discountRate: firstFundingCycleData.discountRate.add(1),
       weight: firstFundingCycleData.weight.add(1),
@@ -1250,7 +1252,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
   });
 
   it('Should configure subsequent cycle during a rolled over funding cycle that overwrote a failed one', async function () {
-    const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore, addrs } = await setup();
+    const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     const firstFundingCycleData = createFundingCycleData({ ballot: mockBallot.address });
@@ -1284,7 +1286,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     };
 
     const secondFundingCycleData = createFundingCycleData({
-      ballot: addrs[0].address,
+      ballot: mockBallot.address,
       duration: firstFundingCycleData.duration.add(1),
       discountRate: firstFundingCycleData.discountRate.add(1),
       weight: firstFundingCycleData.weight.add(1),
@@ -1580,7 +1582,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     };
 
     const secondFundingCycleData = createFundingCycleData({
-      ballot: addrs[0].address,
+      ballot: mockBallot.address,
       duration: firstFundingCycleData.duration.add(1),
       discountRate: firstFundingCycleData.discountRate.add(1),
       weight: firstFundingCycleData.weight.add(1),
@@ -1675,7 +1677,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     };
 
     const secondFundingCycleData = createFundingCycleData({
-      ballot: addrs[0].address,
+      ballot: mockBallot.address,
       duration: firstFundingCycleData.duration.add(1),
       discountRate: firstFundingCycleData.discountRate.add(1),
       weight: firstFundingCycleData.weight.add(1),
@@ -1753,7 +1755,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     };
 
     const secondFundingCycleData = createFundingCycleData({
-      ballot: addrs[0].address,
+      ballot: mockBallot.address,
       duration: firstFundingCycleData.duration.add(1),
       discountRate: firstFundingCycleData.discountRate.add(1),
       weight: firstFundingCycleData.weight.add(1),
@@ -1849,7 +1851,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
   });
 
   it('Should overwrite a pending reconfiguration', async function () {
-    const { controller, mockJbDirectory, jbFundingCycleStore, addrs } = await setup();
+    const { controller, mockJbDirectory, jbFundingCycleStore, mockBallot } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     const firstFundingCycleData = createFundingCycleData();
@@ -1891,7 +1893,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
       .withArgs(secondConfigurationTimestamp, PROJECT_ID, /*basedOn=*/ firstConfigurationTimestamp);
 
     const thirdFundingCycleData = createFundingCycleData({
-      ballot: addrs[1].address,
+      ballot: mockBallot.address,
       duration: secondFundingCycleData.duration.add(1),
       discountRate: secondFundingCycleData.discountRate.add(1),
       weight: secondFundingCycleData.weight.add(1),
@@ -2444,7 +2446,6 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     const { controller, mockJbDirectory, jbFundingCycleStore } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
-    // Zero duration.
     const fundingCycleData = createFundingCycleData({
       ballot: ethers.Wallet.createRandom().address,
     });
@@ -2460,7 +2461,6 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
-    // Zero duration.
     const fundingCycleData = createFundingCycleData({
       ballot: mockBallot.address,
     });
@@ -2475,15 +2475,16 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
   });
 
   it(`Can't configure if ballot is not IERC165 compliant`, async function () {
-    const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore } = await setup();
+    const { controller, deployer, mockJbDirectory, jbFundingCycleStore } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+    
+    const mockBallotNew = await deployMockContract(deployer, ijbFundingCycleBallot.abi);
 
-    // Zero duration.
     const fundingCycleData = createFundingCycleData({
-      ballot: mockBallot.address,
+      ballot: mockBallotNew.address,
     });
 
-    await mockBallot.mock.supportsInterface.reverts;
+    await mockBallotNew.mock.supportsInterface.reverts;
 
     await expect(
       jbFundingCycleStore
