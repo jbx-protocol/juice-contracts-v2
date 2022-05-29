@@ -434,4 +434,39 @@ contract TestReconfigureProject is TestBaseWorkflow {
         )
       );
   }
+
+  function testLaunchProjectWrongBallot() public {
+    uint256 projectId = controller.launchProjectFor(
+      multisig(),
+      _projectMetadata,
+      _data,
+      _metadata,
+      0, // Start asap
+      _groupedSplits,
+      _fundAccessConstraints,
+      _terminals,
+      ''
+    );
+
+    JBFundingCycleData memory _dataNew = JBFundingCycleData({
+      duration: 6 days,
+      weight: 12345 * 10**18,
+      discountRate: 0,
+      ballot: IJBFundingCycleBallot(address(6969)) // Wrong ballot address
+    });
+
+    evm.warp(block.timestamp + 1); // Avoid overwriting if same timestamp
+
+    evm.prank(multisig());
+    evm.expectRevert(abi.encodeWithSignature('INVALID_BALLOT()'));
+    controller.reconfigureFundingCyclesOf(
+      projectId,
+      _dataNew, // wrong ballot
+      _metadata,
+      0, // Start asap
+      _groupedSplits,
+      _fundAccessConstraints,
+      ''
+    );
+  }
 }

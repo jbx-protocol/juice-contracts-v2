@@ -24,6 +24,7 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
   error INVALID_DISCOUNT_RATE();
   error INVALID_DURATION();
   error INVALID_WEIGHT();
+  error INVALID_BALLOT();
   error NO_SAME_BLOCK_RECONFIGURATION();
 
   //*********************************************************************//
@@ -309,6 +310,23 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
 
     // Weight must fit into a uint88.
     if (_data.weight > type(uint88).max) revert INVALID_WEIGHT();
+
+    // Ballot should be a valid contract, supporting the correct interface
+    if(_data.ballot != IJBFundingCycleBallot(address(0))) {
+
+      address _ballot = address(_data.ballot);
+      uint32 _size;
+      assembly {
+        _size := extcodesize(_ballot) // No contract at the address ?
+      }
+      if (_size == 0) revert INVALID_BALLOT();
+
+      try _data.ballot.supportsInterface(type(IJBFundingCycleBallot).interfaceId) returns (bool _supports) {
+        if(!_supports) revert INVALID_BALLOT(); // Contract exists at the address but with the wrong interface
+      } catch {
+        revert INVALID_BALLOT(); // No ERC165 support
+      }
+    }
 
     // The configuration timestamp is now.
     uint256 _configuration = block.timestamp;
