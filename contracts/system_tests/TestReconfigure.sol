@@ -346,4 +346,76 @@ contract TestReconfigureProject is TestBaseWorkflow {
         )
       );
   }
+
+
+  function testLaunchProjectWrongBallot() public {
+    uint256 projectId = controller.launchProjectFor(
+      multisig(),
+      _projectMetadata,
+      _data,
+      _metadata,
+      0, // Start asap
+      _groupedSplits,
+      _fundAccessConstraints,
+      _terminals,
+      ''
+    );
+
+    JBFundingCycleData memory _dataNew = JBFundingCycleData({
+      duration: 6 days,
+      weight: 12345 * 10**18,
+      discountRate: 0,
+      ballot: IJBFundingCycleBallot(address(6969)) // Wrong ballot address
+    });
+
+    uint256 currentConfiguration = block.timestamp;
+
+    evm.warp(block.timestamp + 1); // Avoid overwriting if same timestamp
+
+    evm.prank(multisig());
+    controller.reconfigureFundingCyclesOf(
+      projectId,
+      _dataNew, // wrong ballot
+      _metadata,
+      0, // Start asap
+      _groupedSplits,
+      _fundAccessConstraints,
+      ''
+    );
+
+    // Shouldn't have changed
+    JBFundingCycle memory fundingCycle = jbFundingCycleStore().currentOf(projectId);
+    assertEq(fundingCycle.number, 1);
+    assertEq(fundingCycle.configuration, currentConfiguration);
+    assertEq(fundingCycle.weight, _data.weight);
+
+    // should be new funding cycle
+    evm.warp(fundingCycle.start + fundingCycle.duration);
+
+    JBFundingCycle memory newFundingCycle = jbFundingCycleStore().currentOf(projectId);
+    assertEq(newFundingCycle.number, 2);
+    assertEq(newFundingCycle.weight, _dataNew.weight);
+
+    evm.prank(multisig());
+    controller.reconfigureFundingCyclesOf(
+      projectId,
+      _data, // 3days ballot
+      _metadata,
+      0, // Start asap
+      _groupedSplits,
+      _fundAccessConstraints,
+      ''
+    );
+
+    // Shouldn't have changed
+    fundingCycle = jbFundingCycleStore().currentOf(projectId);
+    assertEq(fundingCycle.number, 2);
+    assertEq(fundingCycle.weight, _dataNew.weight);
+
+    evm.warp(newFundingCycle.start + newFundingCycle.duration);
+
+    newFundingCycle = jbFundingCycleStore().currentOf(projectId);
+    assertEq(newFundingCycle.number, 3);
+    assertEq(newFundingCycle.weight, _data.weight);
+  }
 }
