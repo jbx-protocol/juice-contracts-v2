@@ -123,94 +123,6 @@ contract TestReconfigureProject is TestBaseWorkflow {
     assertEq(newFundingCycle.weight, _data.weight);
   }
 
-  function testMultipleReconfigurationOnRolledOver() public {
-    uint256 weightFirstReconfiguration = 1234 * 10**18;
-    uint256 weightSecondReconfiguration = 6969 * 10**18;
-
-    uint256 projectId = controller.launchProjectFor(
-      multisig(),
-      _projectMetadata,
-      _data,
-      _metadata,
-      0, // Start asap
-      _groupedSplits,
-      _fundAccessConstraints,
-      _terminals,
-      ''
-    );
-
-    JBFundingCycle memory fundingCycle = jbFundingCycleStore().currentOf(projectId);
-
-    // Initial funding cycle data
-    assertEq(fundingCycle.number, 1);
-    assertEq(fundingCycle.weight, _data.weight);
-
-    uint256 currentConfiguration = fundingCycle.configuration;
-
-    // Jump to FC+1, rolled over
-    evm.warp(block.timestamp + fundingCycle.duration); 
-
-    // First reconfiguration
-    evm.prank(multisig());
-    controller.reconfigureFundingCyclesOf(
-      projectId,
-      JBFundingCycleData({
-        duration: 6 days,
-        weight: weightFirstReconfiguration,
-        discountRate: 0,
-        ballot: _ballot
-      }), // 3days ballot
-      _metadata,
-      0, // Start asap
-      _groupedSplits,
-      _fundAccessConstraints,
-      ''
-    );
-
-    evm.warp(block.timestamp + 1); // Avoid overwrite
-
-    // Second reconfiguration (different configuration)
-    evm.prank(multisig());
-    controller.reconfigureFundingCyclesOf(
-      projectId,
-        JBFundingCycleData({
-        duration: 6 days,
-        weight: weightSecondReconfiguration,
-        discountRate: 0,
-        ballot: _ballot
-      }), // 3days ballot
-      _metadata,
-      0, // Start asap
-      _groupedSplits,
-      _fundAccessConstraints,
-      ''
-    );
-    uint256 secondReconfiguration = block.timestamp;
-
-    // Shouldn't have changed, still in FC#2, rolled over from FC#1
-    fundingCycle = jbFundingCycleStore().currentOf(projectId);
-    assertEq(fundingCycle.number, 2);
-    assertEq(fundingCycle.configuration, currentConfiguration);
-    assertEq(fundingCycle.weight, _data.weight);
-
-    // Jump to after the ballot passed, but before the next FC
-    evm.warp(fundingCycle.start + fundingCycle.duration - 1);
-
-    // Queued should be the second reconfiguration
-    JBFundingCycle memory queuedFundingCycle = jbFundingCycleStore().queuedOf(projectId);
-    assertEq(queuedFundingCycle.number, 3);
-    assertEq(queuedFundingCycle.configuration, secondReconfiguration);
-    assertEq(queuedFundingCycle.weight, weightSecondReconfiguration);
-
-    evm.warp(fundingCycle.start + fundingCycle.duration);
-
-    // Second reconfiguration should be now the current one
-    JBFundingCycle memory newFundingCycle = jbFundingCycleStore().currentOf(projectId);
-    assertEq(newFundingCycle.number, 3);
-    assertEq(newFundingCycle.configuration, secondReconfiguration);
-    assertEq(newFundingCycle.weight, weightSecondReconfiguration);
-  }
-
   function testMultipleReconfigure(uint8 FUZZED_BALLOT_DURATION) public {
     _ballot = new JBReconfigurationBufferBallot(FUZZED_BALLOT_DURATION, jbFundingCycleStore());
 
@@ -433,5 +345,41 @@ contract TestReconfigureProject is TestBaseWorkflow {
           10000
         )
       );
+  }
+
+
+  function testLaunchProjectWrongBallot() public {
+    uint256 projectId = controller.launchProjectFor(
+      multisig(),
+      _projectMetadata,
+      _data,
+      _metadata,
+      0, // Start asap
+      _groupedSplits,
+      _fundAccessConstraints,
+      _terminals,
+      ''
+    );
+
+    JBFundingCycleData memory _dataNew = JBFundingCycleData({
+      duration: 6 days,
+      weight: 12345 * 10**18,
+      discountRate: 0,
+      ballot: IJBFundingCycleBallot(address(6969)) // Wrong ballot address
+    });
+
+    evm.warp(block.timestamp + 1); // Avoid overwriting if same timestamp
+
+    evm.prank(multisig());
+    evm.expectRevert(abi.encodeWithSignature('INVALID_BALLOT()'));
+    controller.reconfigureFundingCyclesOf(
+      projectId,
+      _dataNew, // wrong ballot
+      _metadata,
+      0, // Start asap
+      _groupedSplits,
+      _fundAccessConstraints,
+      ''
+    );
   }
 }
