@@ -31,6 +31,9 @@ module.exports = {
   networks: {
     hardhat: {
       allowUnlimitedContractSize: true,
+      forking: {
+        url: 'https://mainnet.infura.io/v3/' + infuraId,
+      }
     },
     localhost: {
       url: 'http://localhost:8545',
