@@ -6,7 +6,8 @@ import './interfaces/IJBPaymentTerminal.sol';
 contract Multipay {
     IJBPaymentTerminal public immutable jbTerminal;
 
-    uint256[] public _gasRefund = [28, 26, 24, 23, 22, 21, 19, 13, 11, 10, 4, 1];
+    //uint256[] public _gasRefund = [28, 26, 24, 23, 22, 21, 19, 13, 11, 10, 4, 1];
+    uint256[] public _gasRefund = [26, 4];
 
     constructor(IJBPaymentTerminal _jbTerminal) {
         jbTerminal = _jbTerminal;

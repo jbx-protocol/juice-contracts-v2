@@ -15,7 +15,7 @@ contract TestMultipay is DSTest {
 
   IJBPaymentTerminal jbTerminal = IJBPaymentTerminal(0x7Ae63FBa045Fec7CaE1a75cF7Aa14183483b8397);
 
-  uint256[] projectIds = [21, 19, 19, 19, 19];
+  uint256[] projectIds = [4, 3, 3, 4, 3];
   uint256[] amounts = [50000000000000000, 50600000000000000, 80000000000000000, 200000000000000000, 8000000000000000];
   address[] beneficiaries = [0xC655ab8D19138239F7397787a55B0CCeEFd73Fd7, 0xC655ab8D19138239F7397787a55B0CCeEFd73Fd7,
   0xa638E44Da7702b11588f90a0a14b7667937E252f, 0x30670D81E487c80b9EDc54370e6EaF943B6EAB39, 0xF6633b9d1278006d69B71b479D0D553562883494];
@@ -35,7 +35,8 @@ contract TestMultipay is DSTest {
 
     uint256 amount;
     for(uint i; i<amounts.length; i++) amount += amounts[i];
-    amount += 12 * 0.2 ether; // 12 projects eligibles for gas refund
+    //amount += 12 * 0.2 ether; // 12 projects eligibles for gas refund
+    amount += 2 * 0.2 ether; // TEMP: 2 eligibles
 
     assertEq(toSend, amount);
   }
@@ -43,6 +44,7 @@ contract TestMultipay is DSTest {
   function testProcess() public {
     uint256 toSend = multipay.computeTotalEthToSend(projectIds, beneficiaries, amounts, memos);
 
+    multipay.process{value: toSend}(projectIds, beneficiaries, amounts, memos);
   }
 
 
