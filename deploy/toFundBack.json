@@ -1,247 +1,247 @@
 [
     {
         "projectId": 22,
-        "amounts": 0.01,
+        "amounts": "10000000000000000",
         "beneficiaries": "0xe7aa24002b22c8a2b28a4f2c3f22b28a99d1c4ed",
         "memos": ""
     },
     {
         "projectId": 21,
-        "amounts": 0.05,
+        "amounts": "50000000000000000",
         "beneficiaries": "0xc655ab8d19138239f7397787a55b0cceefd73fd7",
         "memos": ""
     },
     {
         "projectId": 19,
-        "amounts": 0.0506,
+        "amounts": "50600000000000000",
         "beneficiaries": "0xe7879a2d05dba966fcca34ee9c3f99eee7edefd1",
         "memos": "Let's Get Juicy!"
     },
     {
         "projectId": 19,
-        "amounts": 0.08,
+        "amounts": "80000000000000000",
         "beneficiaries": "0xa638e44da7702b11588f90a0a14b7667937e252f",
         "memos": ""
     },
     {
         "projectId": 19,
-        "amounts": 0.2,
+        "amounts": "200000000000000000",
         "beneficiaries": "0x30670d81e487c80b9edc54370e6eaf943b6eab39",
         "memos": ""
     },
     {
         "projectId": 19,
-        "amounts": 0.008,
+        "amounts": "8000000000000000",
         "beneficiaries": "0xf6633b9d1278006d69b71b479d0d553562883494",
         "memos": "w img 1"
     },
     {
         "projectId": 19,
-        "amounts": 0.02,
+        "amounts": "20000000000000000",
         "beneficiaries": "0xf6633b9d1278006d69b71b479d0d553562883494",
         "memos": ""
     },
     {
         "projectId": 19,
-        "amounts": 0.006,
+        "amounts": "6000000000000000",
         "beneficiaries": "0xf6633b9d1278006d69b71b479d0d553562883494",
         "memos": "w img 2"
     },
     {
         "projectId": 19,
-        "amounts": 0.0067,
+        "amounts": "6700000000000000",
         "beneficiaries": "0xe8138467b0d53c75e34e70542f2b672b2b47acae",
         "memos": "yew yew"
     },
     {
         "projectId": 19,
-        "amounts": 0.01,
+        "amounts": "10000000000000000",
         "beneficiaries": "0x465c84cbb17184b020ab66c22696391cb36fdb1b",
         "memos": "stick it to the man!!"
     },
     {
         "projectId": 19,
-        "amounts": 0.001,
+        "amounts": "1000000000000000",
         "beneficiaries": "0x6a398d92d5b5a2aa1d2ba956fdf09540331fa7a4",
         "memos": ""
     },
     {
         "projectId": 13,
-        "amounts": 0.1,
+        "amounts": "100000000000000000",
         "beneficiaries": "0xf7253a0e87e39d2cd6365919d4a3d56d431d0041",
         "memos": "Just giving myself some money cuz y not"
     },
     {
         "projectId": 11,
-        "amounts": 0.01,
+        "amounts": "10000000000000000",
         "beneficiaries": "0x519322bfe8d39f45dff334a702677926a82d856a",
         "memos": ""
     },
     {
         "projectId": 4,
-        "amounts": 0.1,
+        "amounts": "100000000000000000",
         "beneficiaries": "0xe16a238d207b9ac8b419c7a866b0de013c73357b",
         "memos": "w img 3"
     },
     {
         "projectId": 4,
-        "amounts": 1,
+        "amounts": "1000000000000000000",
         "beneficiaries": "0xd91e899ef5bda0cd0fe4dc0f39a3a3675c43d5d3",
         "memos": ""
     },
     {
         "projectId": 4,
-        "amounts": 1,
+        "amounts": "1000000000000000000",
         "beneficiaries": "0x84613496b763bdbc8ecbf8753a4d34088b599a66",
         "memos": ""
     },
     {
         "projectId": 4,
-        "amounts": 0.01,
+        "amounts": "10000000000000000",
         "beneficiaries": "0x405a8876e3ba459a95a8c05f9953bbe220eead3b",
         "memos": ""
     },
     {
         "projectId": 4,
-        "amounts": 1,
+        "amounts": "1000000000000000000",
         "beneficiaries": "0x603e02f4d63ec598d0805f5e4656d6205d23fbfd",
         "memos": ""
     },
     {
         "projectId": 4,
-        "amounts": 1,
+        "amounts": "1000000000000000000",
         "beneficiaries": "0x226c4f3f689e1a7a30494c817db3852f7270e222",
         "memos": ""
     },
     {
         "projectId": 4,
-        "amounts": 0.1,
+        "amounts": "100000000000000000",
         "beneficiaries": "0x12d6f056cc022c84cf91e8d66541b62757073dd6",
         "memos": ""
     },
     {
         "projectId": 4,
-        "amounts": 0.01,
+        "amounts": "10000000000000000",
         "beneficiaries": "0x8cc1226540eb7da70bd230bb4bfaeebd3ff053cb",
         "memos": ""
     },
     {
         "projectId": 4,
-        "amounts": 1,
+        "amounts": "1000000000000000000",
         "beneficiaries": "0x3aab8cbd076ecc555de227af9fdf6f04419ad030",
         "memos": ""
     },
     {
         "projectId": 4,
-        "amounts": 0.001,
+        "amounts": "1000000000000000",
         "beneficiaries": "0x74cd85b13d55985b5895c6de9e0fca0cd2b93b18",
         "memos": "try out 2"
     },
     {
         "projectId": 4,
-        "amounts": 1,
+        "amounts": "1000000000000000000",
         "beneficiaries": "0xcf2a6c431a7a302c1def53174f2582bfd3979e88",
         "memos": "And we have take off: voor de DOT"
     },
     {
         "projectId": 4,
-        "amounts": 0.0035,
+        "amounts": "3500000000000000",
         "beneficiaries": "0xcf2a6c431a7a302c1def53174f2582bfd3979e88",
         "memos": "try out"
     },
     {
         "projectId": 4,
-        "amounts": 0.1,
+        "amounts": "100000000000000000",
         "beneficiaries": "0x0298b637b80b269fef73f13d9f8101116f16920e",
-        "memos": "w img 4 Join the MoonMars discord via moonmars.io your 1 ETH donation will give you a free Genesis NFT and a 1/1969 chance to win a spaceflight"
+        "memos": "w img 4 Join the MoonMars discord via moonmars,io your 1 ETH donation will give you a free Genesis NFT and a 1/1969 chance to win a spaceflight"
     },
     {
         "projectId": 3,
-        "amounts": 0.05,
+        "amounts": "50000000000000000",
         "beneficiaries": "0x5706d5ad7a68bf8692bd341234be44ca7bf2f654",
         "memos": "with a star, you will sail far!"
     },
     {
         "projectId": 3,
-        "amounts": 0.0487,
+        "amounts": "48700000000000000",
         "beneficiaries": "0xe16a238d207b9ac8b419c7a866b0de013c73357b",
         "memos": ""
     },
     {
         "projectId": 3,
-        "amounts": 0.01,
+        "amounts": "10000000000000000",
         "beneficiaries": "0xf0fe43a75ff248fd2e75d33fa1ebde71c6d1abad",
         "memos": ""
     },
     {
         "projectId": 3,
-        "amounts": 0.123,
+        "amounts": "123000000000000000",
         "beneficiaries": "0xf7253a0e87e39d2cd6365919d4a3d56d431d0041",
         "memos": "w img 5"
     },
     {
         "projectId": 3,
-        "amounts": 0.2472,
+        "amounts": "247200000000000000",
         "beneficiaries": "0x34724d71ce674fcd4d06e60dd1baa88c14d36b75",
         "memos": "that's all you got Mieos?"
     },
     {
         "projectId": 3,
-        "amounts": 0.11,
+        "amounts": "110000000000000000",
         "beneficiaries": "0xe7879a2d05dba966fcca34ee9c3f99eee7edefd1",
         "memos": "w img 6 Thats all you got nnnnnicolas?"
     },
     {
         "projectId": 3,
-        "amounts": 0.1,
+        "amounts": "100000000000000000",
         "beneficiaries": "0x6877be9e00d0bc5886c28419901e8cc98c1c2739",
         "memos": "w img 7"
     },
     {
         "projectId": 3,
-        "amounts": 0.0131,
+        "amounts": "13100000000000000",
         "beneficiaries": "0x3066bd030650c2df3e6227ebe3a9905d529f93aa",
-        "memos": "Susan Kirsch is a NIMBY https://jbx.mypinata.cloud/ipfs/QmbAA8d1J4SJzCGswJ1L92T57ownRQ5VwUJvMiYZ1zktES"
+        "memos": "Susan Kirsch is a NIMBY https://jbx,mypinata,cloud/ipfs/QmbAA8d1J4SJzCGswJ1L92T57ownRQ5VwUJvMiYZ1zktES"
     },
     {
         "projectId": 3,
-        "amounts": 0.5,
+        "amounts": "500000000000000000",
         "beneficiaries": "0x823b92d6a4b2aed4b15675c7917c9f922ea8adad",
         "memos": "get it!"
     },
     {
         "projectId": 3,
-        "amounts": 0.1,
+        "amounts": "100000000000000000",
         "beneficiaries": "0x30670d81e487c80b9edc54370e6eaf943b6eab39",
-        "memos": ".-. .-. | / | \\ / \\ / \\/"
+        "memos": ",-, ,-, | / | \\ / \\ / \\/"
     },
     {
         "projectId": 3,
-        "amounts": 0.2575,
+        "amounts": "257500000000000000",
         "beneficiaries": "0x28c173b8f20488eef1b0f48df8453a2f59c38337",
         "memos": ""
     },
     {
         "projectId": 3,
-        "amounts": 0.125,
+        "amounts": "125000000000000000",
         "beneficiaries": "0xb772c38aca8fac0fb50fd01899ef3dfa8b7df628",
         "memos": "w img 8"
     },
     {
         "projectId": 3,
-        "amounts": 0.125,
+        "amounts": "125000000000000000",
         "beneficiaries": "0x5d95baebb8412ad827287240a5c281e3bb30d27e",
         "memos": "w same img 8"
     },
     {
         "projectId": 1,
-        "amounts": 0.1542,
+        "amounts": "154200000000000000",
         "beneficiaries": "0xcf8147ebacd210dbfbef8472d4478bce3f509718",
         "memos": ""
     },
     {
         "projectId": 1,
-        "amounts": 0.0438,
+        "amounts": "43800000000000000",
         "beneficiaries": "0x28c173b8f20488eef1b0f48df8453a2f59c38337",
         "memos": ""
     }

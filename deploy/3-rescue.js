@@ -42,10 +42,12 @@ module.exports = async ({ deployments, getChainId }) => {
 
   console.log({ multisigAddress });
 
-  const multipay = await deploy('Multipay', {
+  const multipayDeployment = await deploy('Multipay', {
     ...baseDeployArgs,
     args: [JBTerminal.address],
   });
+
+  const multipay = new ethers.Contract(multipayDeployment.address, multipayDeployment.abi);
 
   let projectId = [];
   let amounts = [];
@@ -59,16 +61,16 @@ module.exports = async ({ deployments, getChainId }) => {
     memos[i] = toFundBack[i].memos;
   }
 
-  const ethToSend = await multipay.computeTotalEthToSend(
+  const ethToSend = await multipay.connect(deployer).computeTotalEthToSend(
     projectId,
     beneficiaries,
     amounts,
     memos
   );
 
-  console.log('about to send '+ethToSend+'wei');
+  console.log('about to send '+ethToSend/10**18+'eth');
 
-  await multipay.process(
+  await multipay.connect(deployer).process(
     projectId,
     beneficiaries,
     amounts,
@@ -80,4 +82,4 @@ module.exports = async ({ deployments, getChainId }) => {
 };
 
 module.exports.tags = ['3'];
-module.exports.dependencies = ['1']; 
+//module.exports.dependencies = ['1']; 
