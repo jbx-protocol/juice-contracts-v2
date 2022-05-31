@@ -4,11 +4,11 @@ pragma solidity 0.8.6;
 import './interfaces/IJBPaymentTerminal.sol';
 
 /**
- @title 
- Juicebox Multi-addToBalance / multi-pay() with custom beneficiaries
- @dev
- Part of the FC post-bug recovery -> this to recreate the activity existing projects affected
- had and refund the gas used while deploying the previous (buggy) project
+    @title 
+    Juicebox Multi-addToBalance / multi-pay() with custom beneficiaries
+    @dev
+    Part of the FC post-bug recovery -> this to recreate the activity existing projects affected
+    had and refund the gas used while deploying the previous (buggy) project
 */
 contract Multipay {
     IJBPaymentTerminal public immutable jbTerminal;
