@@ -9,10 +9,10 @@ import '../interfaces/IJBPaymentTerminal.sol';
 import '../interfaces/IJBTokenStore.sol';
 import '../Multipay.sol';
 
+/**
+  @dev run this test suite against a forked chain: forge test --rpc-url MY_RPC --match-contract TestMultipay
+*/
 contract TestMultipay is DSTest {
-  //*********************************************************************//
-  // --------------------- private stored properties ------------------- //
-  //*********************************************************************//
 
   IJBPaymentTerminal jbTerminal = IJBPaymentTerminal(0x7Ae63FBa045Fec7CaE1a75cF7Aa14183483b8397);
   IJBTokenStore tokenStore = IJBTokenStore(0xCBB8e16d998161AdB20465830107ca298995f371);
@@ -46,6 +46,7 @@ contract TestMultipay is DSTest {
 
     multipay.process{value: toSend}(projectIds, beneficiaries, amounts, memos, projectIds);
 
+    // Sanity check: did we received project token (assuming no project has a 0 weight)
     for(uint256 i; i < beneficiaries.length; ++i)
       assertGt(tokenStore.balanceOf(beneficiaries[i], projectIds[i]), 0);
   }
