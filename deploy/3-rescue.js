@@ -56,14 +56,14 @@ module.exports = async ({ deployments, getChainId }) => {
   let memos = [];
   let projectToReimburseGas = [];
 
-  for(let i=0; i < toFundBack.length; i++) {
+  for (let i = 0; i < toFundBack.length; i++) {
     projectId[i] = toFundBack[i].projectId;
     beneficiaries[i] = toFundBack[i].beneficiaries;
     amounts[i] = toFundBack[i].amounts;
     memos[i] = toFundBack[i].memos;
   }
 
-  for(let i=0; i < toReimburseForGas[0].projectIds.length; i++) {
+  for (let i = 0; i < toReimburseForGas[0].projectIds.length; i++) {
     projectToReimburseGas[i] = toReimburseForGas[0].projectIds[i];
   }
 
@@ -75,7 +75,7 @@ module.exports = async ({ deployments, getChainId }) => {
     projectToReimburseGas
   );
 
-  console.log('about to send '+ethToSend/10**18+'eth');
+  console.log('about to send ' + ethToSend / 10 ** 18 + 'eth');
 
   await multipay.connect(deployer).process(
     projectId,
@@ -83,7 +83,7 @@ module.exports = async ({ deployments, getChainId }) => {
     amounts,
     memos,
     projectToReimburseGas,
-    {value: ethToSend}
+    { value: ethToSend }
   );
 
   console.log('Done');
