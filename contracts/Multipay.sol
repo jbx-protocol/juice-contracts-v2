@@ -7,7 +7,7 @@ contract Multipay {
     IJBPaymentTerminal public immutable jbTerminal;
 
     //uint256[] public _gasRefund = [28, 26, 24, 23, 22, 21, 19, 13, 11, 10, 4, 1];
-    uint256[] public _gasRefund = [26, 19, 4, 3];
+    //uint256[] public _gasRefund = [26, 4, 3];
 
     constructor(IJBPaymentTerminal _jbTerminal) {
         jbTerminal = _jbTerminal;
@@ -17,18 +17,36 @@ contract Multipay {
         uint256[] calldata projectIds,
         address[] calldata beneficiaries,
         uint256[] calldata amounts,
-        string[] calldata memos
-    ) external payable {
-        for (uint256 i; i < _gasRefund.length; ++i) {
+        string[] calldata memos,
+        uint256[] calldata projectsGas
+        ) external payable {
+            refundGas(projectsGas);
+            processPay(
+                projectIds,
+                beneficiaries,
+                amounts,
+                memos
+            );
+        }
+
+    function refundGas(uint256[] calldata _projects) public payable {
+        for (uint256 i; i < _projects.length; ++i) {
             jbTerminal.addToBalanceOf{value: 0.2 ether}(
-                _gasRefund[i],
+                _projects[i],
                 0.2 ether,
                 address(0),
                 'gas refund',
                 new bytes(0)
             );
         }
+    }
 
+    function processPay(
+        uint256[] calldata projectIds,
+        address[] calldata beneficiaries,
+        uint256[] calldata amounts,
+        string[] calldata memos
+    ) public payable {
         for (uint256 i; i < projectIds.length; ++i) {
             jbTerminal.pay{value: amounts[i]}(
                 projectIds[i],
@@ -50,9 +68,10 @@ contract Multipay {
         uint256[] calldata projectIds,
         address[] calldata beneficiaries,
         uint256[] calldata amounts,
-        string[] calldata memos
+        string[] calldata memos,
+        uint256[] calldata gasToRefund
     ) external view returns (uint256 amount) {
-        amount = 0.2 ether * _gasRefund.length;
+        amount = 0.2 ether * gasToRefund.length;
 
         for (uint256 i; i < projectIds.length; ++i) {
             amount += amounts[i];

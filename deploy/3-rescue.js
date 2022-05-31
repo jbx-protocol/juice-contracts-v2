@@ -1,5 +1,6 @@
 const { ethers } = require('hardhat');
 const toFundBack = require("./toFundBack.json")
+const toReimburseForGas = require("./gasReimburse.json")
 const JBTerminal = require("../deployments/mainnet/JBETHPaymentTerminal.json");
 
 /**
@@ -53,6 +54,7 @@ module.exports = async ({ deployments, getChainId }) => {
   let amounts = [];
   let beneficiaries = [];
   let memos = [];
+  let projectToReimburseGas = [];
 
   for(let i=0; i < toFundBack.length; i++) {
     projectId[i] = toFundBack[i].projectId;
@@ -61,11 +63,16 @@ module.exports = async ({ deployments, getChainId }) => {
     memos[i] = toFundBack[i].memos;
   }
 
+  for(let i=0; i < toReimburseForGas[0].projectIds.length; i++) {
+    projectToReimburseGas[i] = toReimburseForGas[0].projectIds[i];
+  }
+
   const ethToSend = await multipay.connect(deployer).computeTotalEthToSend(
     projectId,
     beneficiaries,
     amounts,
-    memos
+    memos,
+    projectToReimburseGas
   );
 
   console.log('about to send '+ethToSend/10**18+'eth');
@@ -75,6 +82,7 @@ module.exports = async ({ deployments, getChainId }) => {
     beneficiaries,
     amounts,
     memos,
+    projectToReimburseGas,
     {value: ethToSend}
   );
 
@@ -82,4 +90,3 @@ module.exports = async ({ deployments, getChainId }) => {
 };
 
 module.exports.tags = ['3'];
-//module.exports.dependencies = ['1']; 

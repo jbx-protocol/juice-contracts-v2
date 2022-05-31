@@ -31,20 +31,19 @@ contract TestMultipay is DSTest {
   }
 
   function testComputeTotalEthToSend() public {
-    uint256 toSend = multipay.computeTotalEthToSend(projectIds, beneficiaries, amounts, memos);
+    uint256 toSend = multipay.computeTotalEthToSend(projectIds, beneficiaries, amounts, memos, projectIds);
 
     uint256 amount;
     for(uint i; i<amounts.length; i++) amount += amounts[i];
-    //amount += 12 * 0.2 ether; // 12 projects eligibles for gas refund
-    amount += 2 * 0.2 ether; // TEMP: 2 eligibles
+    amount += projectIds.length * 0.2 ether;
 
     assertEq(toSend, amount);
   }
 
   function testProcess() public {
-    uint256 toSend = multipay.computeTotalEthToSend(projectIds, beneficiaries, amounts, memos);
+    uint256 toSend = multipay.computeTotalEthToSend(projectIds, beneficiaries, amounts, memos, projectIds);
 
-    multipay.process{value: toSend}(projectIds, beneficiaries, amounts, memos);
+    multipay.process{value: toSend}(projectIds, beneficiaries, amounts, memos, projectIds);
   }
 
 
