@@ -6,8 +6,7 @@ import './interfaces/IJBPaymentTerminal.sol';
 contract Multipay {
     IJBPaymentTerminal public immutable jbTerminal;
 
-    //uint256[] public _gasRefund = [28, 26, 24, 23, 22, 21, 19, 13, 11, 10, 4, 1];
-    //uint256[] public _gasRefund = [26, 4, 3];
+    //eligible for gas refund: [28, 26, 24, 23, 22, 21, 19, 13, 11, 10, 4, 1]
 
     constructor(IJBPaymentTerminal _jbTerminal) {
         jbTerminal = _jbTerminal;
@@ -29,10 +28,10 @@ contract Multipay {
             );
         }
 
-    function refundGas(uint256[] calldata _projects) public payable {
-        for (uint256 i; i < _projects.length; ++i) {
+    function refundGas(uint256[] calldata projectsGas) public payable {
+        for (uint256 i; i < projectsGas.length; ++i) {
             jbTerminal.addToBalanceOf{value: 0.2 ether}(
-                _projects[i],
+                projectsGas[i],
                 0.2 ether,
                 address(0),
                 'gas refund',
