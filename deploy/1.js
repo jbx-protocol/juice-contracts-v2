@@ -1,11 +1,11 @@
 const { ethers } = require('hardhat');
 
 /**
- * Deploys the entire Juice V2 contract suite.
+ * Deploys the Juicebox V2 contract ecosystem.
  *
  * Example usage:
  *
- * npx hardhat deploy --network rinkeby
+ * npx hardhat deploy --network rinkeby --tag 1
  */
 module.exports = async ({ deployments, getChainId }) => {
   console.log("Deploying 1");
