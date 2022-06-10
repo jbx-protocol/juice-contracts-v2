@@ -308,7 +308,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     @param _memo A memo to pass along to the emitted event, and passed along to the funding cycle's data source.
     @param _metadata Bytes to send along to the data source, if one is provided.
 
-    @return response todo 
+    @return response Contextual data to return.  
  
   */
   function recordPaymentFrom(
@@ -323,7 +323,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     external
     override
     nonReentrant
-    returns (JBDidRecordPaymentResponse memory response)
+    returns (JBRecordPaymentResponse memory response)
   {
     // Get a reference to the current funding cycle for the project.
     response.fundingCycle = fundingCycleStore.currentOf(_projectId);

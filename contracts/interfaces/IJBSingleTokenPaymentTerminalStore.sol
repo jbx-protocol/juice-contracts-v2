@@ -70,7 +70,7 @@ interface IJBSingleTokenPaymentTerminalStore {
     bytes calldata _metadata
   )
     external
-    returns (JBDidRecordPaymentResponse memory response);
+    returns (JBRecordPaymentResponse memory response);
 
   function recordRedemptionFor(
     address _holder,

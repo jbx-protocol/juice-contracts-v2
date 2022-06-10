@@ -1272,7 +1272,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     // Define variables that will be needed outside the scoped section below.
     // Keep a reference to the response from recording the payment.
-    JBDidRecordPaymentResponse memory _response;
+    JBRecordPaymentResponse memory _response;
 
     // Scoped section prevents stack too deep. `_delegate` and `_tokenCount` only used within scope.
     {
