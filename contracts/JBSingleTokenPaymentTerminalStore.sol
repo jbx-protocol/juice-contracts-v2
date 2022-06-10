@@ -29,7 +29,9 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
   //*********************************************************************//
   // --------------------------- custom errors ------------------------- //
   //*********************************************************************//
+  error INVALID_AMOUNT_TO_SEND_DELEGATE();
   error CURRENCY_MISMATCH();
+  error DELEGATE_NOT_SPECIFIED();
   error DISTRIBUTION_AMOUNT_LIMIT_REACHED();
   error FUNDING_CYCLE_PAYMENT_PAUSED();
   error FUNDING_CYCLE_DISTRIBUTION_PAUSED();
@@ -287,6 +289,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
   // ---------------------- external transactions ---------------------- //
   //*********************************************************************//
 
+
   /**
     @notice
     Records newly contributed tokens to a project.
@@ -305,10 +308,8 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     @param _memo A memo to pass along to the emitted event, and passed along to the funding cycle's data source.
     @param _metadata Bytes to send along to the data source, if one is provided.
 
-    @return fundingCycle The project's funding cycle during which payment was made.
-    @return tokenCount The number of project tokens that were minted, as a fixed point number with 18 decimals.
-    @return delegate A delegate contract to use for subsequent calls.
-    @return memo A memo that should be passed along to the emitted event.
+    @return response todo 
+ 
   */
   function recordPaymentFrom(
     address _payer,
@@ -322,60 +323,61 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     external
     override
     nonReentrant
-    returns (
-      JBFundingCycle memory fundingCycle,
-      uint256 tokenCount,
-      IJBPayDelegate delegate,
-      string memory memo
-    )
+    returns (JBDidRecordPaymentResponse memory response)
   {
     // Get a reference to the current funding cycle for the project.
-    fundingCycle = fundingCycleStore.currentOf(_projectId);
+    response.fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // The project must have a funding cycle configured.
-    if (fundingCycle.number == 0) revert INVALID_FUNDING_CYCLE();
+    if (response.fundingCycle.number == 0) revert INVALID_FUNDING_CYCLE();
 
     // Must not be paused.
-    if (fundingCycle.payPaused()) revert FUNDING_CYCLE_PAYMENT_PAUSED();
+    if (response.fundingCycle.payPaused()) revert FUNDING_CYCLE_PAYMENT_PAUSED();
 
     // The weight according to which new token supply is to be minted, as a fixed point number with 18 decimals.
     uint256 _weight;
 
     // If the funding cycle has configured a data source, use it to derive a weight and memo.
-    if (fundingCycle.useDataSourceForPay()) {
+    if (response.fundingCycle.useDataSourceForPay()) {
       // Create the params that'll be sent to the data source.
       JBPayParamsData memory _data = JBPayParamsData(
         IJBSingleTokenPaymentTerminal(msg.sender),
         _payer,
         _amount,
         _projectId,
-        fundingCycle.configuration,
+        response.fundingCycle.configuration,
         _beneficiary,
-        fundingCycle.weight,
-        fundingCycle.reservedRate(),
+        response.fundingCycle.weight,
+        response.fundingCycle.reservedRate(),
         _memo,
         _metadata
       );
-      (_weight, memo, delegate) = IJBFundingCycleDataSource(fundingCycle.dataSource()).payParams(
+      (_weight, response.memo, response.delegate, response.delegatedAmount) = IJBFundingCycleDataSource(response.fundingCycle.dataSource()).payParams(
         _data
       );
+      
+      // Can't delegate an amount if there's no delegate.
+      if (response.delegatedAmount > 0 && response.delegate == IJBPayDelegate(address(0))) revert DELEGATE_NOT_SPECIFIED();
+
+      // Can't delegate more than was paid.
+      if (response.delegatedAmount > _amount.value) revert INVALID_AMOUNT_TO_SEND_DELEGATE();
     }
     // Otherwise use the funding cycle's weight
     else {
-      _weight = fundingCycle.weight;
-      memo = _memo;
+      _weight = response.fundingCycle.weight;
+      response.memo = _memo;
     }
-
+    
     // If there's no amount being recorded, there's nothing left to do.
-    if (_amount.value == 0) return (fundingCycle, 0, delegate, memo);
+    if (_amount.value == 0) return response;
 
-    // Add the amount to the token balance of the project.
+    // Add the amount to the token balance of the project. Don't add the amount that will be delegated.
     balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
       balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] +
-      _amount.value;
+      _amount.value - response.delegatedAmount;
 
     // If there's no weight, token count must be 0 so there's nothing left to do.
-    if (_weight == 0) return (fundingCycle, 0, delegate, memo);
+    if (_weight == 0) return response;
 
     // Get a reference to the number of decimals in the amount. (prevents stack too deep).
     uint256 _decimals = _amount.decimals;
@@ -387,7 +389,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
       : prices.priceFor(_amount.currency, _baseWeightCurrency, _decimals);
 
     // Find the number of tokens to mint, as a fixed point number with as many decimals as `weight` has.
-    tokenCount = PRBMath.mulDiv(_amount.value, _weight, _weightRatio);
+    response.tokenCount = PRBMath.mulDiv(_amount.value, _weight, _weightRatio);
   }
 
   /**

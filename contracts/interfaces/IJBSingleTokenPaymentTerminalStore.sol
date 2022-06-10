@@ -3,6 +3,7 @@ pragma solidity 0.8.6;
 
 import './../structs/JBFundingCycle.sol';
 import './../structs/JBTokenAmount.sol';
+import './../structs/JBRecordPaymentResponse.sol';
 import './IJBDirectory.sol';
 import './IJBFundingCycleStore.sol';
 import './IJBPayDelegate.sol';
@@ -69,12 +70,7 @@ interface IJBSingleTokenPaymentTerminalStore {
     bytes calldata _metadata
   )
     external
-    returns (
-      JBFundingCycle memory fundingCycle,
-      uint256 tokenCount,
-      IJBPayDelegate delegate,
-      string memory memo
-    );
+    returns (JBDidRecordPaymentResponse memory response);
 
   function recordRedemptionFor(
     address _holder,

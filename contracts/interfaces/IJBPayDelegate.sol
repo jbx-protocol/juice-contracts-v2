@@ -5,5 +5,5 @@ import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 import './../structs/JBDidPayData.sol';
 
 interface IJBPayDelegate is IERC165 {
-  function didPay(JBDidPayData calldata _data) external;
+  function didPay(JBDidPayData calldata _data) payable external;
 }
