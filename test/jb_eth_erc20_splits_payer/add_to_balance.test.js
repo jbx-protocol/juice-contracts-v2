@@ -133,9 +133,6 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
         await expect(tx)
           .to.emit(jbSplitsPayer, 'DistributeToSplit')
           .withArgs(
-            DEFAULT_SPLITS_PROJECT_ID,
-            DEFAULT_SPLITS_DOMAIN,
-            DEFAULT_SPLITS_GROUP,
             [
               split.preferClaimed,
               split.preferAddToBalance,
@@ -150,6 +147,13 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
             caller.address,
           );
       }),
+    );
+
+    await expect(tx).to.emit(jbSplitsPayer, 'DistributeToSplitGroup').withArgs(
+      DEFAULT_SPLITS_PROJECT_ID,
+      DEFAULT_SPLITS_DOMAIN,
+      DEFAULT_SPLITS_GROUP,
+      caller.address,
     );
 
     await expect(tx).to.emit(jbSplitsPayer, 'AddToBalance').withArgs(
@@ -221,9 +225,6 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
         await expect(tx)
           .to.emit(jbSplitsPayer, 'DistributeToSplit')
           .withArgs(
-            DEFAULT_SPLITS_PROJECT_ID,
-            DEFAULT_SPLITS_DOMAIN,
-            DEFAULT_SPLITS_GROUP,
             [
               split.preferClaimed,
               split.preferAddToBalance,
@@ -238,6 +239,13 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
             caller.address,
           );
       }),
+    );
+
+    await expect(tx).to.emit(jbSplitsPayer, 'DistributeToSplitGroup').withArgs(
+      DEFAULT_SPLITS_PROJECT_ID,
+      DEFAULT_SPLITS_DOMAIN,
+      DEFAULT_SPLITS_GROUP,
+      caller.address,
     );
   });
 
@@ -296,9 +304,6 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
         await expect(tx)
           .to.emit(jbSplitsPayer, 'DistributeToSplit')
           .withArgs(
-            DEFAULT_SPLITS_PROJECT_ID,
-            DEFAULT_SPLITS_DOMAIN,
-            DEFAULT_SPLITS_GROUP,
             [
               split.preferClaimed,
               split.preferAddToBalance,
@@ -313,6 +318,13 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
             caller.address,
           );
       }),
+    );
+
+    await expect(tx).to.emit(jbSplitsPayer, 'DistributeToSplitGroup').withArgs(
+      DEFAULT_SPLITS_PROJECT_ID,
+      DEFAULT_SPLITS_DOMAIN,
+      DEFAULT_SPLITS_GROUP,
+      caller.address,
     );
   });
 
@@ -384,9 +396,6 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
         await expect(tx)
           .to.emit(jbSplitsPayer, 'DistributeToSplit')
           .withArgs(
-            DEFAULT_SPLITS_PROJECT_ID,
-            DEFAULT_SPLITS_DOMAIN,
-            DEFAULT_SPLITS_GROUP,
             [
               split.preferClaimed,
               split.preferAddToBalance,
@@ -401,6 +410,13 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
             caller.address,
           );
       }),
+    );
+
+    await expect(tx).to.emit(jbSplitsPayer, 'DistributeToSplitGroup').withArgs(
+      DEFAULT_SPLITS_PROJECT_ID,
+      DEFAULT_SPLITS_DOMAIN,
+      DEFAULT_SPLITS_GROUP,
+      caller.address,
     );
   });
 
@@ -462,9 +478,6 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
         await expect(tx)
           .to.emit(jbSplitsPayer, 'DistributeToSplit')
           .withArgs(
-            DEFAULT_SPLITS_PROJECT_ID,
-            DEFAULT_SPLITS_DOMAIN,
-            DEFAULT_SPLITS_GROUP,
             [
               split.preferClaimed,
               split.preferAddToBalance,
@@ -479,6 +492,13 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
             caller.address,
           );
       }),
+    );
+
+    await expect(tx).to.emit(jbSplitsPayer, 'DistributeToSplitGroup').withArgs(
+      DEFAULT_SPLITS_PROJECT_ID,
+      DEFAULT_SPLITS_DOMAIN,
+      DEFAULT_SPLITS_GROUP,
+      caller.address,
     );
   });
 
@@ -526,9 +546,6 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
         await expect(tx)
           .to.emit(jbSplitsPayer, 'DistributeToSplit')
           .withArgs(
-            DEFAULT_SPLITS_PROJECT_ID,
-            DEFAULT_SPLITS_DOMAIN,
-            DEFAULT_SPLITS_GROUP,
             [
               split.preferClaimed,
               split.preferAddToBalance,
@@ -543,6 +560,13 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
             caller.address,
           );
       }),
+    );
+
+    await expect(tx).to.emit(jbSplitsPayer, 'DistributeToSplitGroup').withArgs(
+      DEFAULT_SPLITS_PROJECT_ID,
+      DEFAULT_SPLITS_DOMAIN,
+      DEFAULT_SPLITS_GROUP,
+      caller.address,
     );
   });
 
