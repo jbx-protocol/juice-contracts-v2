@@ -91,8 +91,6 @@ contract TestReconfigureProject is TestBaseWorkflow {
 
     assertEq(fundingCycle.number, 1); // ok
     assertEq(fundingCycle.weight, _data.weight);
-    emit log_uint(fundingCycle.basedOn);
-    emit log_uint(fundingCycle.configuration);
 
     uint256 currentConfiguration = fundingCycle.configuration;
 
@@ -501,8 +499,6 @@ contract TestReconfigureProject is TestBaseWorkflow {
 
     assertEq(fundingCycle.number, 1); // ok
     assertEq(fundingCycle.weight, _data.weight);
-    emit log_uint(fundingCycle.basedOn);
-    emit log_uint(fundingCycle.configuration);
 
     uint256 currentConfiguration = fundingCycle.configuration;
 
@@ -538,5 +534,62 @@ contract TestReconfigureProject is TestBaseWorkflow {
     newFundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(newFundingCycle.number, fundingCycle.number + (3 days / 5 minutes) + 1);
     assertEq(newFundingCycle.weight, _dataReconfiguration.weight);
+  }
+
+  function testReconfigureWithoutBallot() public {
+    _data = JBFundingCycleData({
+      duration: 5 minutes,
+      weight: 10000 * 10**18,
+      discountRate: 0,
+      ballot: IJBFundingCycleBallot(address(0))
+    });
+
+    _dataReconfiguration = JBFundingCycleData({
+      duration: 6 days,
+      weight: 69 * 10**18,
+      discountRate: 0,
+      ballot: IJBFundingCycleBallot(address(0))
+    });
+
+    uint256 projectId = controller.launchProjectFor(
+      multisig(),
+      _projectMetadata,
+      _data,
+      _metadata,
+      0, // Start asap
+      _groupedSplits,
+      _fundAccessConstraints,
+      _terminals,
+      ''
+    );
+
+    JBFundingCycle memory fundingCycle = jbFundingCycleStore().currentOf(projectId);
+
+    assertEq(fundingCycle.number, 1);
+    assertEq(fundingCycle.weight, _data.weight);
+
+    evm.warp(block.timestamp + 10); // Avoid overwriting if same timestamp
+
+    evm.prank(multisig());
+    controller.reconfigureFundingCyclesOf(
+      projectId,
+      _dataReconfiguration,
+      _metadata,
+      0, // Start asap
+      _groupedSplits,
+      _fundAccessConstraints,
+      ''
+    );
+    // Should not have changed
+    fundingCycle = jbFundingCycleStore().currentOf(projectId);
+    assertEq(fundingCycle.number, 1);
+    assertEq(fundingCycle.weight, _data.weight);
+
+    // Should have changed
+    evm.warp(fundingCycle.start + fundingCycle.duration); // Avoid overwriting if same timestamp
+    fundingCycle = jbFundingCycleStore().currentOf(projectId);
+    assertEq(fundingCycle.number, 2);
+    assertEq(fundingCycle.weight, _dataReconfiguration.weight);
+
   }
 }
