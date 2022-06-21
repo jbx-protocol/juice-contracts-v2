@@ -585,8 +585,8 @@ contract TestReconfigureProject is TestBaseWorkflow {
     assertEq(fundingCycle.number, 1);
     assertEq(fundingCycle.weight, _data.weight);
 
-    // Should have changed
-    evm.warp(fundingCycle.start + fundingCycle.duration); // Avoid overwriting if same timestamp
+    // Should have changed after the current funding cycle is over
+    evm.warp(fundingCycle.start + fundingCycle.duration);
     fundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(fundingCycle.number, 2);
     assertEq(fundingCycle.weight, _dataReconfiguration.weight);
