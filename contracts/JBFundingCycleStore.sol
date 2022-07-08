@@ -312,8 +312,7 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     if (_data.weight > type(uint88).max) revert INVALID_WEIGHT();
 
     // Ballot should be a valid contract, supporting the correct interface
-    if(_data.ballot != IJBFundingCycleBallot(address(0))) {
-
+    if (_data.ballot != IJBFundingCycleBallot(address(0))) {
       address _ballot = address(_data.ballot);
       uint32 _size;
       assembly {
@@ -321,8 +320,10 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
       }
       if (_size == 0) revert INVALID_BALLOT();
 
-      try _data.ballot.supportsInterface(type(IJBFundingCycleBallot).interfaceId) returns (bool _supports) {
-        if(!_supports) revert INVALID_BALLOT(); // Contract exists at the address but with the wrong interface
+      try _data.ballot.supportsInterface(type(IJBFundingCycleBallot).interfaceId) returns (
+        bool _supports
+      ) {
+        if (!_supports) revert INVALID_BALLOT(); // Contract exists at the address but with the wrong interface
       } catch {
         revert INVALID_BALLOT(); // No ERC165 support
       }

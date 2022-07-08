@@ -16,7 +16,7 @@ import './../structs/JBDidRedeemData.sol';
   IERC165 for adequate interface integration
 */
 interface IJBRedemptionDelegate is IERC165 {
-    /**
+  /**
     @notice
     This function is called by JBPaymentTerminal.redeemTokensOf(..), after the execution of its logic
 

@@ -21,7 +21,7 @@ import './IJBRedemptionDelegate.sol';
   IERC165 for adequate interface integration
 */
 interface IJBFundingCycleDataSource is IERC165 {
-    /**
+  /**
     @notice
     The datasource implementation for JBPaymentTerminal.pay(..)
 
