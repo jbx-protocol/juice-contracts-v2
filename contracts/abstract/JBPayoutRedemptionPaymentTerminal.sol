@@ -1278,7 +1278,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     {
       // Bundle the amount info into a JBTokenAmount struct.
       JBTokenAmount memory _bundledAmount = JBTokenAmount(token, _amount, decimals, currency);
-     
+
       // Record the payment.
       _response = store.recordPaymentFrom(
         _payer,
@@ -1306,7 +1306,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       if (beneficiaryTokenCount < _minReturnedTokens) revert INADEQUATE_TOKEN_COUNT();
 
       // If a delegate was returned by the data source, issue a callback to it.
-      if (_response.delegate != IJBPayDelegate(address(0))) {
+      if (_response.delegates.length > 0) {
         JBDidPayData memory _data = JBDidPayData(
           _payer,
           _projectId,
@@ -1319,15 +1319,30 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           _metadata
         );
 
-        // Trigger any inherited pre-transfer logic.
-        _beforeTransferTo(address(_response.delegate), _response.delegatedAmount);
+        // Get a reference to the numbe of delegates.
+        uint256 _numDelegates = _response.delegates.length;
 
-        // If this terminal's token is ETH, send it in msg.value.
-        uint256 _payableValue = token == JBTokens.ETH ? _response.delegatedAmount : 0;
+        for (uint256 _i = 0; _i < _numDelegates; ) {
+          // Get a reference to the delegate being iterated on.
+          IJBPayDelegate _delegate = _response.delegates[_i];
 
-        _response.delegate.didPay{value: _payableValue}(_data);
+          // Get a reference to the amount to delegate.
+          uint256 _delegatedAmount = _response.delegatedAmounts[_i];
 
-        emit DelegateDidPay(_response.delegate, _data, _response.delegatedAmount, msg.sender);
+          // Trigger any inherited pre-transfer logic.
+          _beforeTransferTo(address(_delegate), _delegatedAmount);
+
+          // If this terminal's token is ETH, send it in msg.value.
+          uint256 _payableValue = token == JBTokens.ETH ? _delegatedAmount : 0;
+
+          _delegate.didPay{value: _payableValue}(_data);
+
+          emit DelegateDidPay(_delegate, _data, _delegatedAmount, msg.sender);
+
+          unchecked {
+            ++_i;
+          }
+        }
       }
     }
 

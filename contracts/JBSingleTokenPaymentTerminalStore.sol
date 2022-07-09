@@ -289,7 +289,6 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
   // ---------------------- external transactions ---------------------- //
   //*********************************************************************//
 
-
   /**
     @notice
     Records newly contributed tokens to a project.
@@ -319,12 +318,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     address _beneficiary,
     string calldata _memo,
     bytes memory _metadata
-  )
-    external
-    override
-    nonReentrant
-    returns (JBRecordPaymentResponse memory response)
-  {
+  ) external override nonReentrant returns (JBRecordPaymentResponse memory response) {
     // Get a reference to the current funding cycle for the project.
     response.fundingCycle = fundingCycleStore.currentOf(_projectId);
 
@@ -352,29 +346,49 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
         _memo,
         _metadata
       );
-      (_weight, response.memo, response.delegate, response.delegatedAmount) = IJBFundingCycleDataSource(response.fundingCycle.dataSource()).payParams(
-        _data
-      );
-      
-      // Can't delegate an amount if there's no delegate.
-      if (response.delegatedAmount > 0 && response.delegate == IJBPayDelegate(address(0))) revert DELEGATE_NOT_SPECIFIED();
+      (
+        _weight,
+        response.memo,
+        response.delegates,
+        response.delegatedAmounts
+      ) = IJBFundingCycleDataSource(response.fundingCycle.dataSource()).payParams(_data);
 
-      // Can't delegate more than was paid.
-      if (response.delegatedAmount > _amount.value) revert INVALID_AMOUNT_TO_SEND_DELEGATE();
+      // Can't delegate an amount if there's no delegate.
+      if (response.delegatedAmounts.length != response.delegates.length)
+        revert DELEGATE_NOT_SPECIFIED();
     }
     // Otherwise use the funding cycle's weight
     else {
       _weight = response.fundingCycle.weight;
       response.memo = _memo;
     }
-    
+
     // If there's no amount being recorded, there's nothing left to do.
     if (_amount.value == 0) return response;
 
-    // Add the amount to the token balance of the project. Don't add the amount that will be delegated.
-    balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
-      balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] +
-      _amount.value - response.delegatedAmount;
+    {
+      // A reference to the total amount that has been delegated.
+      uint256 _totalDelegatedAmount;
+
+      // Validate all delegated amounts.
+      for (uint256 _i; _i < response.delegatedAmounts.length; ) {
+        // Increment the total amount being delegated.
+        _totalDelegatedAmount = _totalDelegatedAmount + response.delegatedAmounts[_i];
+
+        // Can't delegate more than was paid.
+        if (_totalDelegatedAmount > _amount.value) revert INVALID_AMOUNT_TO_SEND_DELEGATE();
+
+        unchecked {
+          ++_i;
+        }
+      }
+
+      // Add the amount to the token balance of the project. Don't add the amount that will be delegated.
+      balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
+        balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] +
+        _amount.value -
+        _totalDelegatedAmount;
+    }
 
     // If there's no weight, token count must be 0 so there's nothing left to do.
     if (_weight == 0) return response;
