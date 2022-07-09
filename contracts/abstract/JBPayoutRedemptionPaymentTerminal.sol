@@ -725,12 +725,12 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Keep a reference to the funding cycle during which the redemption is being made.
     JBFundingCycle memory _fundingCycle;
 
-    // Scoped section prevents stack too deep. `_delegate` only used within scope.
+    // Scoped section prevents stack too deep. `_delegates` only used within scope.
     {
-      IJBRedemptionDelegate _delegate;
+      IJBRedemptionDelegate[] memory _delegates;
 
       // Record the redemption.
-      (_fundingCycle, reclaimAmount, _delegate, _memo) = store.recordRedemptionFor(
+      (_fundingCycle, reclaimAmount, _delegates, _memo) = store.recordRedemptionFor(
         _holder,
         _projectId,
         _tokenCount,
@@ -751,8 +751,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           false
         );
 
-      // If a delegate was returned by the data source, issue a callback to it.
-      if (_delegate != IJBRedemptionDelegate(address(0))) {
+      // If delegates were returned by the data source, issue a callback to it.
+      if (_delegates.length > 0) {
         JBDidRedeemData memory _data = JBDidRedeemData(
           _holder,
           _projectId,
@@ -763,8 +763,20 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           _memo,
           _metadata
         );
-        _delegate.didRedeem(_data);
-        emit DelegateDidRedeem(_delegate, _data, msg.sender);
+
+        uint256 _numDelegates = _delegates.length;
+
+        for (uint256 _i; _i < _numDelegates; ) {
+          // Get a reference to the delegate being iterated on.
+          IJBRedemptionDelegate _delegate = _delegates[_i];
+
+          _delegate.didRedeem(_data);
+
+          emit DelegateDidRedeem(_delegate, _data, msg.sender);
+          unchecked {
+            ++_i;
+          }
+        }
       }
     }
 

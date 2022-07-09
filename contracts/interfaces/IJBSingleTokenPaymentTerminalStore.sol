@@ -68,9 +68,7 @@ interface IJBSingleTokenPaymentTerminalStore {
     address _beneficiary,
     string calldata _memo,
     bytes calldata _metadata
-  )
-    external
-    returns (JBRecordPaymentResponse memory response);
+  ) external returns (JBRecordPaymentResponse memory response);
 
   function recordRedemptionFor(
     address _holder,
@@ -83,7 +81,7 @@ interface IJBSingleTokenPaymentTerminalStore {
     returns (
       JBFundingCycle memory fundingCycle,
       uint256 reclaimAmount,
-      IJBRedemptionDelegate delegate,
+      IJBRedemptionDelegate[] memory delegate,
       string memory memo
     );
 

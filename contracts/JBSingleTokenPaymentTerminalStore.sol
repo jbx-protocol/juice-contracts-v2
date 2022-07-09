@@ -424,7 +424,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
 
     @return fundingCycle The funding cycle during which the redemption was made.
     @return reclaimAmount The amount of terminal tokens reclaimed, as a fixed point number with 18 decimals.
-    @return delegate A delegate contract to use for subsequent calls.
+    @return delegates Delegate contracts to use for subsequent calls.
     @return memo A memo that should be passed along to the emitted event.
   */
   function recordRedemptionFor(
@@ -440,7 +440,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     returns (
       JBFundingCycle memory fundingCycle,
       uint256 reclaimAmount,
-      IJBRedemptionDelegate delegate,
+      IJBRedemptionDelegate[] memory delegates,
       string memory memo
     )
   {
@@ -519,7 +519,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
           _memo,
           _metadata
         );
-        (reclaimAmount, memo, delegate) = IJBFundingCycleDataSource(fundingCycle.dataSource())
+        (reclaimAmount, memo, delegates) = IJBFundingCycleDataSource(fundingCycle.dataSource())
           .redeemParams(_data);
       } else {
         memo = _memo;
