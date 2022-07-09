@@ -37,11 +37,11 @@ import './JBSingleTokenPaymentTerminal.sol';
   ReentrancyGuard: Contract module that helps prevent reentrant calls to a function.
 */
 abstract contract JBPayoutRedemptionPaymentTerminal is
-  IJBPayoutRedemptionPaymentTerminal,
   JBSingleTokenPaymentTerminal,
   JBOperatable,
   Ownable,
-  ReentrancyGuard
+  ReentrancyGuard,
+  IJBPayoutRedemptionPaymentTerminal
 {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
