@@ -16,7 +16,7 @@ import './libraries/JBSplitsGroups.sol';
 
 /**
   @notice
-  Stitches together funding cycles and community tokens, making sure all activity is accounted for and correct.
+  Stitches together funding cycles and project tokens, making sure all activity is accounted for and correct.
 
   @dev
   Adheres to -
