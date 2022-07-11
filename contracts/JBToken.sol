@@ -18,7 +18,7 @@ import './interfaces/IJBToken.sol';
   ERC20Permit: General token standard for fungible accounting. 
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
-contract JBToken is IJBToken, ERC20Permit, Ownable {
+contract JBToken is ERC20Permit, Ownable, IJBToken {
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
   //*********************************************************************//

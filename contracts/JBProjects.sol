@@ -24,7 +24,7 @@ import './libraries/JBOperations.sol';
   ERC721Votes: A checkpointable standard definition for non-fungible tokens (NFTs).
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
-contract JBProjects is IJBProjects, JBOperatable, ERC721Votes, Ownable {
+contract JBProjects is JBOperatable, ERC721Votes, Ownable, IJBProjects {
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
