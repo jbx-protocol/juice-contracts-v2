@@ -16,7 +16,7 @@ import './../interfaces/IJBSingleTokenPaymentTerminal.sol';
   Inherits from -
   ERC165: Introspection on interface adherance. 
 */
-abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal, ERC165 {
+abstract contract JBSingleTokenPaymentTerminal is ERC165, IJBSingleTokenPaymentTerminal {
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//

@@ -18,7 +18,7 @@ import './interfaces/IJBToken.sol';
   ERC20Votes: General token standard for fungible membership with snapshot capabilities sufficient to interact with standard governance contracts. 
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
-contract JBToken is IJBToken, ERC20Votes, Ownable {
+contract JBToken is ERC20Votes, Ownable, IJBToken {
   //*********************************************************************//
   // --------------------------- custom errors ------------------------- //
   //*********************************************************************//

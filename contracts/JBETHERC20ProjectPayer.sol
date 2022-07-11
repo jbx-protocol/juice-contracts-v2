@@ -24,7 +24,7 @@ import './libraries/JBTokens.sol';
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
   ERC165: Introspection on interface adherance. 
 */
-contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable, ERC165 {
+contract JBETHERC20ProjectPayer is Ownable, ERC165, IJBProjectPayer {
   using SafeERC20 for IERC20;
 
   //*********************************************************************//

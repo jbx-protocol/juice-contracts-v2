@@ -20,7 +20,7 @@ import './libraries/JBOperations.sol';
   JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
-contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
+contract JBDirectory is JBOperatable, Ownable, IJBDirectory {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 

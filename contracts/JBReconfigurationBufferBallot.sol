@@ -17,7 +17,7 @@ import './structs/JBFundingCycle.sol';
   Inherits from -
   ERC165: Introspection on interface adherance. 
 */
-contract JBReconfigurationBufferBallot is IJBFundingCycleBallot, ERC165 {
+contract JBReconfigurationBufferBallot is ERC165, IJBFundingCycleBallot {
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//

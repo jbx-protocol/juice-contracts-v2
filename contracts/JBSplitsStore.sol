@@ -19,7 +19,7 @@ import './libraries/JBOperations.sol';
   Inherits from -
   JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
-contract JBSplitsStore is IJBSplitsStore, JBOperatable {
+contract JBSplitsStore is JBOperatable, IJBSplitsStore {
   //*********************************************************************//
   // --------------------------- custom errors ------------------------- //
   //*********************************************************************//

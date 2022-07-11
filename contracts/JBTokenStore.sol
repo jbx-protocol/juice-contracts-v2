@@ -31,7 +31,7 @@ import './JBToken.sol';
   JBControllerUtility: Includes convenience functionality for checking if the message sender is the current controller of the project whose data is being manipulated.
   JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
-contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
+contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
