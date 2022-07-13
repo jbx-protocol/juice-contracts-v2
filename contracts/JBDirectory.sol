@@ -129,7 +129,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     override
     returns (IJBPaymentTerminal)
   {
-    // If a primary terminal for the token was specifically set and its one of the project's terminals, return it.
+    // If a primary terminal for the token was specifically set and it's one of the project's terminals, return it.
     if (
       _primaryTerminalOf[_projectId][_token] != IJBPaymentTerminal(address(0)) &&
       isTerminalOf(_projectId, _primaryTerminalOf[_projectId][_token])
@@ -267,7 +267,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
       !uint8(_fundingCycle.metadata >> 8).setTerminalsAllowed()
     ) revert SET_TERMINALS_NOT_ALLOWED();
 
-    // Delete the stored terminals for the project.
+    // Set the stored terminals for the project.
     _terminalsOf[_projectId] = _terminals;
 
     // Make sure duplicates were not added.

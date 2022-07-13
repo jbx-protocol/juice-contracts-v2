@@ -228,7 +228,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
       if (!_includesLocked) revert PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();
     }
 
-    // Add up all the percents to make sure they cumulative are under 100%.
+    // Add up all the percents to make sure they cumulatively are under 100%.
     uint256 _percentTotal = 0;
 
     for (uint256 _i = 0; _i < _splits.length; _i++) {
@@ -286,7 +286,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
 
   /**
     @notice 
-    Unpack splits' packed stored values into easy-to-work-with spit structs.
+    Unpack splits' packed stored values into easy-to-work-with split structs.
 
     @param _projectId The ID of the project to which the split belongs.
     @param _domain The identifier within which the returned splits should be considered active.

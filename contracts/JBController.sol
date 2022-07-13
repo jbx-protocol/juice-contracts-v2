@@ -647,7 +647,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
           msg.sender == address(_fundingCycle.dataSource())
       );
 
-      // If the message sender is not a terminal or a datasource, the current funding cycle must allow minting.
+      // If the message sender is a terminal or a datasource, the current funding cycle must allow minting.
       if (
         !_fundingCycle.mintingAllowed() &&
         !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender)) &&
@@ -728,7 +728,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
-    // If the message sender is not a terminal, the current funding cycle must not be paused.
+    // If the message sender is a terminal, the current funding cycle must not be paused.
     if (
       _fundingCycle.burnPaused() &&
       !directory.isTerminalOf(_projectId, IJBPaymentTerminal(msg.sender))

@@ -813,7 +813,7 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     );
 
     // If there is no ballot, the ID is auto approved.
-    // Otherwise if the ballot's duration hasn't passed, its still active.
+    // Otherwise if the ballot's duration hasn't passed, it's still active.
     // Otherwise, return the ballot's state.
     if (_ballotFundingCycle.ballot == IJBFundingCycleBallot(address(0)))
       return JBBallotState.Approved;

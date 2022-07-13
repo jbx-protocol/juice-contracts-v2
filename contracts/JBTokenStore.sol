@@ -143,7 +143,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     // Get a reference to the project's current token.
     IJBToken _token = tokenOf[_projectId];
 
-    // If the project has a current token, add it's total supply to the total.
+    // If the project has a current token, add its total supply to the total.
     if (_token != IJBToken(address(0))) totalSupply = totalSupply + _token.totalSupply(_projectId);
   }
 
