@@ -10,7 +10,7 @@ import ijbFundingCycleBallot from '../../artifacts/contracts/interfaces/IJBFundi
 import { BigNumber } from 'ethers';
 import errors from '../helpers/errors.json';
 
-describe.only('JBFundingCycleStore::configureFor(...)', function () {
+describe('JBFundingCycleStore::configureFor(...)', function () {
   const PROJECT_ID = 2;
 
   const EMPTY_FUNDING_CYCLE = {
@@ -2491,113 +2491,5 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
         .connect(controller)
         .configureFor(PROJECT_ID, fundingCycleData, 0, FUNDING_CYCLE_CAN_START_ASAP),
     ).to.be.revertedWith(errors.INVALID_BALLOT);
-  });
-
-  it.only('Should ignore failed configuration and roll over current configuration', async function () {
-    const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore } = await setup();
-    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
-
-    const firstFundingCycleData = createFundingCycleData({ ballot: mockBallot.address });
-
-    // Set the ballot to have a short duration.
-    await mockBallot.mock.duration.withArgs().returns(0);
-
-    // Configure first funding cycle
-    const firstConfigureForTx = await jbFundingCycleStore
-      .connect(controller)
-      .configureFor(
-        PROJECT_ID,
-        firstFundingCycleData,
-        RANDOM_FUNDING_CYCLE_METADATA_1,
-        FUNDING_CYCLE_CAN_START_ASAP,
-      );
-
-    // The timestamp the first configuration was made during.
-    const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
-
-    const expectedFirstFundingCycle = {
-      number: ethers.BigNumber.from(1),
-      configuration: firstConfigurationTimestamp,
-      basedOn: ethers.BigNumber.from(0),
-      start: firstConfigurationTimestamp,
-      duration: firstFundingCycleData.duration,
-      weight: firstFundingCycleData.weight,
-      discountRate: firstFundingCycleData.discountRate,
-      ballot: firstFundingCycleData.ballot,
-      metadata: RANDOM_FUNDING_CYCLE_METADATA_1,
-    };
-
-    const failedFundingCycleData = createFundingCycleData({
-      ballot: mockBallot.address,
-      duration: firstFundingCycleData.duration.add(1),
-      discountRate: firstFundingCycleData.discountRate.add(1),
-      weight: firstFundingCycleData.weight.add(1),
-    });
-
-    // The metadata value doesn't affect the test.
-    const failedFundingCycleMetadata = ethers.BigNumber.from(234);
-
-    // Overflow start time.
-    const overflowStartTime = BigNumber.from(2).pow(56).add(1);
-
-    // Configure failed funding cycle
-    const failedConfigureForTx = await jbFundingCycleStore
-      .connect(controller)
-      .configureFor(
-        PROJECT_ID,
-        failedFundingCycleData,
-        failedFundingCycleMetadata,
-        overflowStartTime
-      );
-
-    // The timestamp the second configuration was made during.
-    const failedConfigurationTimestamp = await getTimestamp(failedConfigureForTx.blockNumber);
-
-    const expectedFailedFundingCycle = {
-      number: ethers.BigNumber.from(2),
-      configuration: failedConfigurationTimestamp,
-      basedOn: firstConfigurationTimestamp,
-      start: expectedFirstFundingCycle.start.add(expectedFirstFundingCycle.duration),
-      duration: failedFundingCycleData.duration,
-      weight: failedFundingCycleData.weight,
-      discountRate: failedFundingCycleData.discountRate,
-      ballot: failedFundingCycleData.ballot,
-      metadata: failedFundingCycleMetadata,
-    };
-
-    // Mock the ballot on the failed funding cycle as failed.
-    await mockBallot.mock.stateOf
-      .withArgs(
-        PROJECT_ID,
-        failedConfigurationTimestamp,
-        firstConfigurationTimestamp.add(firstFundingCycleData.duration),
-      )
-      .returns(ballotStatus.FAILED);
-
-    // 5 cycles into the future.
-    const cycleDiff = ethers.BigNumber.from(5);
-    //keep 5 seconds before the end of the cycle so make all necessary checks before the cycle ends.
-    await fastForward(
-      firstConfigureForTx.blockNumber,
-      firstFundingCycleData.duration.mul(cycleDiff).sub(5),
-    );
-
-    let [latestFundingCycle, ballotState] = await jbFundingCycleStore.latestConfiguredOf(
-      PROJECT_ID,
-    );
-    expect(cleanFundingCycle(latestFundingCycle)).to.eql(expectedFailedFundingCycle);
-    // expect(ballotState).to.deep.eql(ballotStatus.FAILED);
-    // expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql({
-    //   ...expectedFirstFundingCycle,
-    //   number: expectedFirstFundingCycle.number.add(cycleDiff.sub(1)),
-    //   start: expectedFirstFundingCycle.start.add(
-    //     expectedFirstFundingCycle.duration.mul(cycleDiff.sub(1)),
-    //   ),
-    // });
-    // expect(cleanFundingCycle(await jbFundingCycleStore.queuedOf(PROJECT_ID))).to.eql({
-    //   ...expectedFirstFundingCycle,
-    //   number: expectedFirstFundingCycle.number.add(cycleDiff),
-    //   start: expectedFirstFundingCycle.start.add(expectedFirstFundingCycle.duration.mul(cycleDiff)),
-    // });
   });
 });
