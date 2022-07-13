@@ -38,6 +38,4 @@ interface IJBToken {
     address _to,
     uint256 _amount
   ) external;
-
-  function transferOwnership(uint256 _projectId, address _newOwner) external;
 }

@@ -14,7 +14,7 @@ import './../interfaces/IJBFundingCycleDataSource.sol';
   @member pauseRedeem A flag indicating if the redeem functionality should be paused during the funding cycle.
   @member pauseBurn A flag indicating if the burn functionality should be paused during the funding cycle.
   @member allowMinting A flag indicating if the mint functionality should be allowed during the funding cycle.
-  @member allowChangeToken A flag indicating if changing tokens should be allowed during this funding cycle.
+  @member allowSetToken A flag indicating if changing tokens should be allowed during this funding cycle.
   @member allowTerminalMigration A flag indicating if migrating terminals should be allowed during this funding cycle.
   @member allowControllerMigration A flag indicating if migrating controllers should be allowed during this funding cycle.
   @member holdFees A flag indicating if fees should be held during this funding cycle.
@@ -33,7 +33,7 @@ struct JBFundingCycleMetadata {
   bool pauseRedeem;
   bool pauseBurn;
   bool allowMinting;
-  bool allowChangeToken;
+  bool allowSetToken;
   bool allowTerminalMigration;
   bool allowControllerMigration;
   bool holdFees;

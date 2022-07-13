@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import './interfaces/IJBProjectPayer.sol';
 import './libraries/JBTokens.sol';
 
@@ -24,6 +25,8 @@ import './libraries/JBTokens.sol';
   ERC165: Introspection on interface adherance. 
 */
 contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable, ERC165 {
+  using SafeERC20 for IERC20;
+
   //*********************************************************************//
   // -------------------------- custom errors -------------------------- //
   //*********************************************************************//
@@ -267,8 +270,14 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable, ERC165 {
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
 
+      // Get a reference to the balance before receiving tokens.
+      uint256 _balanceBefore = IERC20(_token).balanceOf(address(this));
+
       // Transfer tokens to this contract from the msg sender.
-      IERC20(_token).transferFrom(msg.sender, address(this), _amount);
+      IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
+
+      // The amount should reflect the change in balance.
+      _amount = IERC20(_token).balanceOf(address(this)) - _balanceBefore;
     } else {
       // If ETH is being paid, set the amount to the message value, and decimals to 18.
       _amount = msg.value;
@@ -311,8 +320,14 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable, ERC165 {
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
 
+      // Get a reference to the balance before receiving tokens.
+      uint256 _balanceBefore = IERC20(_token).balanceOf(address(this));
+
       // Transfer tokens to this contract from the msg sender.
-      IERC20(_token).transferFrom(msg.sender, address(this), _amount);
+      IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
+
+      // The amount should reflect the change in balance.
+      _amount = IERC20(_token).balanceOf(address(this)) - _balanceBefore;
     } else {
       // If ETH is being paid, set the amount to the message value, and decimals to 18.
       _amount = msg.value;

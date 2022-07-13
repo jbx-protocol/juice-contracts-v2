@@ -174,11 +174,7 @@ interface IJBController is IERC165 {
     string calldata _symbol
   ) external returns (IJBToken token);
 
-  function changeTokenOf(
-    uint256 _projectId,
-    IJBToken _token,
-    address _newOwner
-  ) external;
+  function setTokenOf(uint256 _projectId, IJBToken _token) external;
 
   function mintTokensOf(
     uint256 _projectId,

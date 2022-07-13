@@ -215,9 +215,14 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
           _splits[_j].beneficiary == _currentSplits[_i].beneficiary &&
           _splits[_j].allocator == _currentSplits[_i].allocator &&
           _splits[_j].projectId == _currentSplits[_i].projectId &&
+          _splits[_j].preferClaimed == _currentSplits[_i].preferClaimed &&
+          _splits[_j].preferAddToBalance == _currentSplits[_j].preferAddToBalance &&
           // Allow lock extention.
           _splits[_j].lockedUntil >= _currentSplits[_i].lockedUntil
-        ) _includesLocked = true;
+        ) {
+          _includesLocked = true;
+          break;
+        }
       }
 
       if (!_includesLocked) revert PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();

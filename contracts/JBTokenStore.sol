@@ -34,16 +34,19 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
   //*********************************************************************//
   // --------------------------- custom errors ------------------------- //
   //*********************************************************************//
-  error CANT_REMOVE_TOKEN_IF_ITS_REQUIRED();
+  error ALREADY_SET();
   error EMPTY_NAME();
   error EMPTY_SYMBOL();
+  error EMPTY_TOKEN();
   error INSUFFICIENT_FUNDS();
   error INSUFFICIENT_UNCLAIMED_TOKENS();
+  error NOT_EMPTY();
   error PROJECT_ALREADY_HAS_TOKEN();
   error RECIPIENT_ZERO_ADDRESS();
   error TOKEN_ALREADY_IN_USE();
   error TOKEN_NOT_FOUND();
   error TOKENS_MUST_HAVE_18_DECIMALS();
+  error OVERFLOW_ALERT();
 
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
@@ -106,25 +109,6 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
 
   /**
     @notice
-    The total supply of tokens for each project, including claimed and unclaimed tokens.
-
-    @param _projectId The ID of the project to get the total token supply of.
-
-    @return totalSupply The total supply of the project's tokens.
-  */
-  function totalSupplyOf(uint256 _projectId) external view override returns (uint256 totalSupply) {
-    // Get a reference to the total supply of the project's unclaimed tokens.
-    totalSupply = unclaimedTotalSupplyOf[_projectId];
-
-    // Get a reference to the project's current token.
-    IJBToken _token = tokenOf[_projectId];
-
-    // If the project has a current token, add it's total supply to the total.
-    if (_token != IJBToken(address(0))) totalSupply = totalSupply + _token.totalSupply(_projectId);
-  }
-
-  /**
-    @notice
     The total balance of tokens a holder has for a specified project, including claimed and unclaimed tokens.
 
     @param _holder The token holder to get a balance for.
@@ -146,6 +130,29 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
 
     // If the project has a current token, add the holder's balance to the total.
     if (_token != IJBToken(address(0))) balance = balance + _token.balanceOf(_holder, _projectId);
+  }
+
+  //*********************************************************************//
+  // --------------------------- public views -------------------------- //
+  //*********************************************************************//
+
+  /**
+    @notice
+    The total supply of tokens for each project, including claimed and unclaimed tokens.
+
+    @param _projectId The ID of the project to get the total token supply of.
+
+    @return totalSupply The total supply of the project's tokens.
+  */
+  function totalSupplyOf(uint256 _projectId) public view override returns (uint256 totalSupply) {
+    // Get a reference to the total supply of the project's unclaimed tokens.
+    totalSupply = unclaimedTotalSupplyOf[_projectId];
+
+    // Get a reference to the project's current token.
+    IJBToken _token = tokenOf[_projectId];
+
+    // If the project has a current token, add it's total supply to the total.
+    if (_token != IJBToken(address(0))) totalSupply = totalSupply + _token.totalSupply(_projectId);
   }
 
   //*********************************************************************//
@@ -213,7 +220,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
 
   /**
     @notice
-    Swap the current project's token for another, and transfer ownership of the current token to another address if needed.
+    Set a project's token if not already set.
 
     @dev
     Only a project's current controller can change its token.
@@ -222,50 +229,38 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     This contract must have access to all of the token's `IJBToken` interface functions.
 
     @dev
-    Can't change to a token that's currently being used by another project.
+    Can't set a token that's currently being used by another project.
 
-    @dev
-    Changing to the zero address will remove the current token without adding a new one.
-
-    @param _projectId The ID of the project to which the changed token belongs.
-    @param _token The new token. Send an empty address to remove the project's current token without adding a new one, if claiming tokens isn't currency required by the project
-    @param _newOwner An address to transfer the current token's ownership to. This is optional, but it cannot be done later.
-
-    @return oldToken The token that was removed as the project's token.
+    @param _projectId The ID of the project to which the set token belongs.
+    @param _token The new token. 
   */
-  function changeFor(
-    uint256 _projectId,
-    IJBToken _token,
-    address _newOwner
-  ) external override onlyController(_projectId) returns (IJBToken oldToken) {
-    // Can't remove the project's token if the project requires claiming tokens.
-    if (_token == IJBToken(address(0)) && requireClaimFor[_projectId])
-      revert CANT_REMOVE_TOKEN_IF_ITS_REQUIRED();
+  function setFor(uint256 _projectId, IJBToken _token)
+    external
+    override
+    onlyController(_projectId)
+  {
+    // Can't set to the zero address.
+    if (_token == IJBToken(address(0))) revert EMPTY_TOKEN();
+
+    // Can't set a token with a pre-existing supply.
+    if (_token.totalSupply(_projectId) > 0) revert NOT_EMPTY();
+
+    // Can't set token if already set.
+    if (tokenOf[_projectId] != IJBToken(address(0))) revert ALREADY_SET();
 
     // Can't change to a token already in use.
     if (projectOf[_token] != 0) revert TOKEN_ALREADY_IN_USE();
 
     // Can't change to a token that doesn't use 18 decimals.
-    if (_token != IJBToken(address(0)) && _token.decimals() != 18)
-      revert TOKENS_MUST_HAVE_18_DECIMALS();
-
-    // Get a reference to the current token for the project.
-    oldToken = tokenOf[_projectId];
+    if (_token.decimals() != 18) revert TOKENS_MUST_HAVE_18_DECIMALS();
 
     // Store the new token.
     tokenOf[_projectId] = _token;
 
     // Store the project for the new token if the new token isn't the zero address.
-    if (_token != IJBToken(address(0))) projectOf[_token] = _projectId;
+    projectOf[_token] = _projectId;
 
-    // Reset the project for the old token if it isn't the zero address.
-    if (oldToken != IJBToken(address(0))) projectOf[oldToken] = 0;
-
-    // If there's a current token and a new owner was provided, transfer ownership of the old token to the new owner.
-    if (_newOwner != address(0) && oldToken != IJBToken(address(0)))
-      oldToken.transferOwnership(_projectId, _newOwner);
-
-    emit Change(_projectId, _token, oldToken, _newOwner, msg.sender);
+    emit Set(_projectId, _token, msg.sender);
   }
 
   /**
@@ -301,6 +296,9 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
       unclaimedBalanceOf[_holder][_projectId] = unclaimedBalanceOf[_holder][_projectId] + _amount;
       unclaimedTotalSupplyOf[_projectId] = unclaimedTotalSupplyOf[_projectId] + _amount;
     }
+
+    // The total supply can't exceed the maximum value storable in a int256.
+    if (totalSupplyOf(_projectId) > type(uint224).max) revert OVERFLOW_ALERT();
 
     emit Mint(_holder, _projectId, _amount, _shouldClaimTokens, _preferClaimedTokens, msg.sender);
   }

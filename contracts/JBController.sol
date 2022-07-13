@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
+import '@openzeppelin/contracts/utils/math/SafeCast.sol';
 import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './abstract/JBOperatable.sol';
@@ -37,7 +38,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
   //*********************************************************************//
   error BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE();
   error CANT_MIGRATE_TO_CURRENT_CONTROLLER();
-  error CHANGE_TOKEN_NOT_ALLOWED();
+  error SET_TOKEN_NOT_ALLOWED();
   error FUNDING_CYCLE_ALREADY_LAUNCHED();
   error INVALID_BALLOT_REDEMPTION_RATE();
   error INVALID_DISTRIBUTION_LIMIT();
@@ -50,6 +51,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
   error MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE();
   error NO_BURNABLE_TOKENS();
   error NOT_CURRENT_CONTROLLER();
+  error OVERFLOW_ALERT();
   error ZERO_TOKENS_TO_MINT();
 
   //*********************************************************************//
@@ -576,20 +578,15 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
 
   /**
     @notice
-    Swap the current project's token that is minted and burned for another, and transfer ownership of the current token to another address if needed.
+    Set the project's token that is minted and burned.
 
     @dev
-    Only a project's owner or operator can change its token.
+    Only a project's owner or operator can set its token.
 
-    @param _projectId The ID of the project to which the changed token belongs.
+    @param _projectId The ID of the project to which the set token belongs.
     @param _token The new token.
-    @param _newOwner An address to transfer the current token's ownership to. This is optional, but it cannot be done later.
   */
-  function changeTokenOf(
-    uint256 _projectId,
-    IJBToken _token,
-    address _newOwner
-  )
+  function setTokenOf(uint256 _projectId, IJBToken _token)
     external
     virtual
     override
@@ -599,10 +596,10 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // The current funding cycle must not be paused.
-    if (!_fundingCycle.changeTokenAllowed()) revert CHANGE_TOKEN_NOT_ALLOWED();
+    if (!_fundingCycle.setTokenAllowed()) revert SET_TOKEN_NOT_ALLOWED();
 
-    // Change the token in the store.
-    tokenStore.changeFor(_projectId, _token, _newOwner);
+    // Set the token in the store.
+    tokenStore.setFor(_projectId, _token);
   }
 
   /**
@@ -665,7 +662,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
       // Subtract the total weighted amount from the tracker so the full reserved token amount can be printed later.
       _processedTokenTrackerOf[_projectId] =
         _processedTokenTrackerOf[_projectId] -
-        int256(_tokenCount);
+        SafeCast.toInt256(_tokenCount);
     else {
       // The unreserved token count that will be minted for the beneficiary.
       beneficiaryTokenCount = PRBMath.mulDiv(
@@ -678,7 +675,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
         // If there's no reserved rate, increment the tracker with the newly minted tokens.
         _processedTokenTrackerOf[_projectId] =
           _processedTokenTrackerOf[_projectId] +
-          int256(beneficiaryTokenCount);
+          SafeCast.toInt256(beneficiaryTokenCount);
 
       // Mint the tokens.
       tokenStore.mintFor(_beneficiary, _projectId, beneficiaryTokenCount, _preferClaimedTokens);
@@ -740,7 +737,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     // Update the token tracker so that reserved tokens will still be correctly mintable.
     _processedTokenTrackerOf[_projectId] =
       _processedTokenTrackerOf[_projectId] -
-      int256(_tokenCount);
+      SafeCast.toInt256(_tokenCount);
 
     // Burn the tokens.
     tokenStore.burnFrom(_holder, _projectId, _tokenCount, _preferClaimedTokens);
@@ -782,7 +779,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
       revert CANT_MIGRATE_TO_CURRENT_CONTROLLER();
 
     // Set the tracker as the total supply.
-    _processedTokenTrackerOf[_projectId] = int256(tokenStore.totalSupplyOf(_projectId));
+    _processedTokenTrackerOf[_projectId] = SafeCast.toInt256(tokenStore.totalSupplyOf(_projectId));
 
     emit PrepMigration(_projectId, _from, msg.sender);
   }
@@ -813,8 +810,10 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     if (!_fundingCycle.controllerMigrationAllowed()) revert MIGRATION_NOT_ALLOWED();
 
     // All reserved tokens must be minted before migrating.
-    if (uint256(_processedTokenTrackerOf[_projectId]) != tokenStore.totalSupplyOf(_projectId))
-      _distributeReservedTokensOf(_projectId, '');
+    if (
+      _processedTokenTrackerOf[_projectId] < 0 ||
+      uint256(_processedTokenTrackerOf[_projectId]) != tokenStore.totalSupplyOf(_projectId)
+    ) _distributeReservedTokensOf(_projectId, '');
 
     // Make sure the new controller is prepped for the migration.
     _to.prepForMigrationOf(_projectId, address(this));
@@ -856,7 +855,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     );
 
     // Set the tracker to be the new total supply.
-    _processedTokenTrackerOf[_projectId] = int256(_totalTokens + tokenCount);
+    _processedTokenTrackerOf[_projectId] = SafeCast.toInt256(_totalTokens + tokenCount);
 
     // Get a reference to the project owner.
     address _owner = projects.ownerOf(_projectId);

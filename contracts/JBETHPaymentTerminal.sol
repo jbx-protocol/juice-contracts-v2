@@ -14,6 +14,20 @@ import './abstract/JBPayoutRedemptionPaymentTerminal.sol';
 */
 contract JBETHPaymentTerminal is JBPayoutRedemptionPaymentTerminal {
   //*********************************************************************//
+  // -------------------------- internal views ------------------------- //
+  //*********************************************************************//
+
+  /** 
+    @notice
+    Checks the balance of tokens in this contract.
+
+    @return The contract's balance.
+  */
+  function _balance() internal view override returns (uint256) {
+    return address(this).balance;
+  }
+
+  //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
 

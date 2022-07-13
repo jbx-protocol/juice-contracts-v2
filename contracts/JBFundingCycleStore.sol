@@ -21,10 +21,11 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
   //*********************************************************************//
   // --------------------------- custom errors ------------------------- //
   //*********************************************************************//
+  error INVALID_BALLOT();
   error INVALID_DISCOUNT_RATE();
   error INVALID_DURATION();
+  error INVALID_TIMEFRAME();
   error INVALID_WEIGHT();
-  error INVALID_BALLOT();
   error NO_SAME_BLOCK_RECONFIGURATION();
 
   //*********************************************************************//
@@ -302,8 +303,8 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     uint256 _metadata,
     uint256 _mustStartAtOrAfter
   ) external override onlyController(_projectId) returns (JBFundingCycle memory) {
-    // Duration must fit in a uint64.
-    if (_data.duration > type(uint64).max) revert INVALID_DURATION();
+    // Duration must fit in a uint32.
+    if (_data.duration > type(uint32).max) revert INVALID_DURATION();
 
     // Discount rate must be less than or equal to 100%.
     if (_data.discountRate > JBConstants.MAX_DISCOUNT_RATE) revert INVALID_DISCOUNT_RATE();
@@ -311,9 +312,11 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     // Weight must fit into a uint88.
     if (_data.weight > type(uint88).max) revert INVALID_WEIGHT();
 
-    // Ballot should be a valid contract, supporting the correct interface
-    if(_data.ballot != IJBFundingCycleBallot(address(0))) {
+    // Make sure the min start date fits in a uint56, and that the start date of an upcoming cycle also starts within the max.
+    if (_mustStartAtOrAfter + _data.duration > type(uint56).max) revert INVALID_TIMEFRAME();
 
+    // Ballot should be a valid contract, supporting the correct interface
+    if (_data.ballot != IJBFundingCycleBallot(address(0))) {
       address _ballot = address(_data.ballot);
       uint32 _size;
       assembly {
@@ -321,8 +324,10 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
       }
       if (_size == 0) revert INVALID_BALLOT();
 
-      try _data.ballot.supportsInterface(type(IJBFundingCycleBallot).interfaceId) returns (bool _supports) {
-        if(!_supports) revert INVALID_BALLOT(); // Contract exists at the address but with the wrong interface
+      try _data.ballot.supportsInterface(type(IJBFundingCycleBallot).interfaceId) returns (
+        bool _supports
+      ) {
+        if (!_supports) revert INVALID_BALLOT(); // Contract exists at the address but with the wrong interface
       } catch {
         revert INVALID_BALLOT(); // No ERC165 support
       }
@@ -852,7 +857,7 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     // ballot in bits 0-159 bits.
     fundingCycle.ballot = IJBFundingCycleBallot(address(uint160(_packedUserProperties)));
     // duration in bits 160-223 bits.
-    fundingCycle.duration = uint256(uint64(_packedUserProperties >> 160));
+    fundingCycle.duration = uint256(uint32(_packedUserProperties >> 160));
     // discountRate in bits 224-255 bits.
     fundingCycle.discountRate = uint256(uint32(_packedUserProperties >> 224));
 

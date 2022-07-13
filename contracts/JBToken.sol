@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.6;
 
-import '@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol';
+import '@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './interfaces/IJBToken.sol';
 
@@ -15,10 +15,10 @@ import './interfaces/IJBToken.sol';
 
   @dev
   Inherits from -
-  ERC20Permit: General token standard for fungible accounting. 
+  ERC20Votes: General token standard for fungible membership. 
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
-contract JBToken is IJBToken, ERC20Permit, Ownable {
+contract JBToken is IJBToken, ERC20Votes, Ownable {
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
   //*********************************************************************//
@@ -188,30 +188,5 @@ contract JBToken is IJBToken, ERC20Permit, Ownable {
     _projectId; // Prevents unused var compiler and natspec complaints.
 
     transferFrom(_from, _to, _amount);
-  }
-
-  //*********************************************************************//
-  // ------------------------ public transactions ---------------------- //
-  //*********************************************************************//
-
-  /** 
-    @notice
-    Transfer ownership of this contract to another address.
-
-    @dev
-    Only the owner of this contract can transfer it.
-
-    @param _projectId The ID of the project to which the token belongs. This is ignored.
-    @param _newOwner The new owner.
-  */
-  function transferOwnership(uint256 _projectId, address _newOwner)
-    public
-    virtual
-    override
-    onlyOwner
-  {
-    _projectId; // Prevents unused var compiler and natspec complaints.
-
-    return super.transferOwnership(_newOwner);
   }
 }

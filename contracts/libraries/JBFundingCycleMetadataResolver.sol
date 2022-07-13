@@ -54,7 +54,7 @@ library JBFundingCycleMetadataResolver {
     return ((_fundingCycle.metadata >> 76) & 1) == 1;
   }
 
-  function changeTokenAllowed(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
+  function setTokenAllowed(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
     return ((_fundingCycle.metadata >> 77) & 1) == 1;
   }
 
@@ -139,8 +139,8 @@ library JBFundingCycleMetadataResolver {
     if (_metadata.pauseBurn) packed |= 1 << 75;
     // allow minting in bit 76.
     if (_metadata.allowMinting) packed |= 1 << 76;
-    // allow change token in bit 77.
-    if (_metadata.allowChangeToken) packed |= 1 << 77;
+    // allow set token in bit 77.
+    if (_metadata.allowSetToken) packed |= 1 << 77;
     // allow terminal migration in bit 78.
     if (_metadata.allowTerminalMigration) packed |= 1 << 78;
     // allow controller migration in bit 79.
@@ -181,7 +181,7 @@ library JBFundingCycleMetadataResolver {
         redeemPaused(_fundingCycle),
         burnPaused(_fundingCycle),
         mintingAllowed(_fundingCycle),
-        changeTokenAllowed(_fundingCycle),
+        setTokenAllowed(_fundingCycle),
         terminalMigrationAllowed(_fundingCycle),
         controllerMigrationAllowed(_fundingCycle),
         shouldHoldFees(_fundingCycle),

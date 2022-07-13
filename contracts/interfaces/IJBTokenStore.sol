@@ -42,13 +42,7 @@ interface IJBTokenStore {
 
   event ShouldRequireClaim(uint256 indexed projectId, bool indexed flag, address caller);
 
-  event Change(
-    uint256 indexed projectId,
-    IJBToken indexed newToken,
-    IJBToken indexed oldToken,
-    address owner,
-    address caller
-  );
+  event Set(uint256 indexed projectId, IJBToken indexed newToken, address caller);
 
   event Transfer(
     address indexed holder,
@@ -80,11 +74,7 @@ interface IJBTokenStore {
     string calldata _symbol
   ) external returns (IJBToken token);
 
-  function changeFor(
-    uint256 _projectId,
-    IJBToken _token,
-    address _newOwner
-  ) external returns (IJBToken oldToken);
+  function setFor(uint256 _projectId, IJBToken _token) external;
 
   function burnFrom(
     address _holder,
