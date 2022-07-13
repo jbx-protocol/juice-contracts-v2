@@ -72,14 +72,6 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
 
   /**
     @notice
-    The ID of the project that each token belongs to.
-
-    _token The token to check the project association of.
-  */
-  mapping(IJBToken => uint256) public override projectOf;
-
-  /**
-    @notice
     The total supply of unclaimed tokens for each project.
 
     _projectId The ID of the project to which the token belongs.
@@ -207,13 +199,10 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     if (tokenOf[_projectId] != IJBToken(address(0))) revert PROJECT_ALREADY_HAS_TOKEN();
 
     // Deploy the token contract.
-    token = new JBToken(_name, _symbol);
+    token = new JBToken(_name, _symbol, _projectId);
 
     // Store the token contract.
     tokenOf[_projectId] = token;
-
-    // Store the project for the token.
-    projectOf[token] = _projectId;
 
     emit Issue(_projectId, token, _name, _symbol, msg.sender);
   }
@@ -248,17 +237,11 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     // Can't set token if already set.
     if (tokenOf[_projectId] != IJBToken(address(0))) revert ALREADY_SET();
 
-    // Can't change to a token already in use.
-    if (projectOf[_token] != 0) revert TOKEN_ALREADY_IN_USE();
-
     // Can't change to a token that doesn't use 18 decimals.
     if (_token.decimals() != 18) revert TOKENS_MUST_HAVE_18_DECIMALS();
 
     // Store the new token.
     tokenOf[_projectId] = _token;
-
-    // Store the project for the new token if the new token isn't the zero address.
-    projectOf[_token] = _projectId;
 
     emit Set(_projectId, _token, msg.sender);
   }

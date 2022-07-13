@@ -54,8 +54,6 @@ interface IJBTokenStore {
 
   function tokenOf(uint256 _projectId) external view returns (IJBToken);
 
-  function projectOf(IJBToken _token) external view returns (uint256);
-
   function projects() external view returns (IJBProjects);
 
   function unclaimedBalanceOf(address _holder, uint256 _projectId) external view returns (uint256);
