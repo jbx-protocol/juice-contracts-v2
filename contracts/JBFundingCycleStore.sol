@@ -324,13 +324,9 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
       }
       if (_size == 0) revert INVALID_BALLOT();
 
-      try _data.ballot.supportsInterface(type(IJBFundingCycleBallot).interfaceId) returns (
-        bool _supports
-      ) {
-        if (!_supports) revert INVALID_BALLOT(); // Contract exists at the address but with the wrong interface
-      } catch {
-        revert INVALID_BALLOT(); // No ERC165 support
-      }
+      // Make sure the ballot supports the expected interface.
+      if (!_data.ballot.supportsInterface(type(IJBFundingCycleBallot).interfaceId))
+        revert INVALID_BALLOT();
     }
 
     // The configuration timestamp is now.
