@@ -856,10 +856,10 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
 
     // ballot in bits 0-159 bits.
     fundingCycle.ballot = IJBFundingCycleBallot(address(uint160(_packedUserProperties)));
-    // duration in bits 160-223 bits.
+    // duration in bits 160-191 bits.
     fundingCycle.duration = uint256(uint32(_packedUserProperties >> 160));
-    // discountRate in bits 224-255 bits.
-    fundingCycle.discountRate = uint256(uint32(_packedUserProperties >> 224));
+    // discountRate in bits 192-223 bits.
+    fundingCycle.discountRate = uint256(uint32(_packedUserProperties >> 192));
 
     fundingCycle.metadata = _metadataOf[_projectId][_configuration];
   }
