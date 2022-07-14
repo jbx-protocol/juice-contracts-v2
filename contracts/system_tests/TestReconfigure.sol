@@ -28,7 +28,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
 
     _projectMetadata = JBProjectMetadata({content: 'myIPFSHash', domain: 1});
 
-    _ballot = new JBReconfigurationBufferBallot(BALLOT_DURATION, jbFundingCycleStore());
+    _ballot = new JBReconfigurationBufferBallot(BALLOT_DURATION);
 
     _data = JBFundingCycleData({
       duration: 6 days,
@@ -146,7 +146,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
     uint256 currentConfiguration = fundingCycle.configuration;
 
     // Jump to FC+1, rolled over
-    evm.warp(block.timestamp + fundingCycle.duration); 
+    evm.warp(block.timestamp + fundingCycle.duration);
 
     // First reconfiguration
     evm.prank(multisig());
@@ -171,7 +171,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
     evm.prank(multisig());
     controller.reconfigureFundingCyclesOf(
       projectId,
-        JBFundingCycleData({
+      JBFundingCycleData({
         duration: 6 days,
         weight: weightSecondReconfiguration,
         discountRate: 0,
@@ -210,7 +210,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
   }
 
   function testMultipleReconfigure(uint8 FUZZED_BALLOT_DURATION) public {
-    _ballot = new JBReconfigurationBufferBallot(FUZZED_BALLOT_DURATION, jbFundingCycleStore());
+    _ballot = new JBReconfigurationBufferBallot(FUZZED_BALLOT_DURATION);
 
     _data = JBFundingCycleData({
       duration: 6 days,
@@ -590,6 +590,5 @@ contract TestReconfigureProject is TestBaseWorkflow {
     fundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(fundingCycle.number, 2);
     assertEq(fundingCycle.weight, _dataReconfiguration.weight);
-
   }
 }
