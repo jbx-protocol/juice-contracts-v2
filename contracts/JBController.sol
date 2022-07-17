@@ -47,6 +47,7 @@ contract JBController is JBOperatable, ERC165, IJBController, IJBMigratable {
   error INVALID_OVERFLOW_ALLOWANCE_CURRENCY();
   error INVALID_REDEMPTION_RATE();
   error INVALID_RESERVED_RATE();
+  error INVALID_TIMEFRAME();
   error MIGRATION_NOT_ALLOWED();
   error MINT_NOT_ALLOWED_AND_NOT_TERMINAL_DELEGATE();
   error NO_BURNABLE_TOKENS();
@@ -1010,6 +1011,9 @@ contract JBController is JBOperatable, ERC165, IJBController, IJBMigratable {
     // Make sure the provided ballot redemption rate is valid.
     if (_metadata.ballotRedemptionRate > JBConstants.MAX_REDEMPTION_RATE)
       revert INVALID_BALLOT_REDEMPTION_RATE();
+
+    // Make sure the min start date fits in a uint56, and that the start date of an upcoming cycle also starts within the max.
+    if (_mustStartAtOrAfter + _data.duration > type(uint56).max) revert INVALID_TIMEFRAME();
 
     // Configure the funding cycle's properties.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.configureFor(
