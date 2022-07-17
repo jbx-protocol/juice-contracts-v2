@@ -166,7 +166,7 @@ contract TestTokenFlow is TestBaseWorkflow {
     // mint unclaimed tokens to beneficiary addr
     _controller.mintTokensOf(
       _projectId,
-      type(uint256).max,
+      type(uint248).max, // max size is uint248, uint256 does not fit as it has to allow for conversion to int
       _beneficiary,
       'Mint memo',
       false,
@@ -200,7 +200,7 @@ contract TestTokenFlow is TestBaseWorkflow {
     // mint unclaimed tokens to beneficiary addr
     _controller.mintTokensOf(
       _projectId,
-      type(uint256).max,
+      type(uint248).max,
       _beneficiary,
       'Mint memo',
       false,
@@ -223,9 +223,9 @@ contract TestTokenFlow is TestBaseWorkflow {
     assertEq(_newToken.balanceOf(_beneficiary, _projectId), type(uint224).max);
     assertEq(
       _tokenStore.unclaimedBalanceOf(_beneficiary, _projectId),
-      type(uint256).max - type(uint224).max
+      type(uint248).max - type(uint224).max
     );
-    assertEq(_tokenStore.unclaimedTotalSupplyOf(_projectId), type(uint256).max - type(uint224).max);
-    assertEq(_tokenStore.balanceOf(_beneficiary, _projectId), type(uint256).max);
+    assertEq(_tokenStore.unclaimedTotalSupplyOf(_projectId), type(uint248).max - type(uint224).max);
+    assertEq(_tokenStore.balanceOf(_beneficiary, _projectId), type(uint248).max);
   }
 }
