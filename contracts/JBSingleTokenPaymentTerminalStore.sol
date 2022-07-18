@@ -22,7 +22,7 @@ import './libraries/JBFundingCycleMetadataResolver.sol';
   Inherits from -
   ReentrancyGuard: Contract module that helps prevent reentrant calls to a function.
 */
-contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore, ReentrancyGuard {
+contract JBSingleTokenPaymentTerminalStore is ReentrancyGuard, IJBSingleTokenPaymentTerminalStore {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 

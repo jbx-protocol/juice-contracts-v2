@@ -17,7 +17,7 @@ import './libraries/JBConstants.sol';
   Inherits from -
   JBControllerUtility: Includes convenience functionality for checking if the message sender is the current controller of the project whose data is being manipulated.
 */
-contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
+contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
   //*********************************************************************//
   // --------------------------- custom errors ------------------------- //
   //*********************************************************************//
