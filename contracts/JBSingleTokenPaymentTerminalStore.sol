@@ -39,7 +39,6 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
   error INSUFFICIENT_TOKENS();
   error INVALID_FUNDING_CYCLE();
   error PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
-  error SPENT_BEFORE_MIGRATION();
 
   //*********************************************************************//
   // -------------------------- private constants ---------------------- //
@@ -723,18 +722,6 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
 
     // Migration must be allowed.
     if (!_fundingCycle.terminalMigrationAllowed()) revert PAYMENT_TERMINAL_MIGRATION_NOT_ALLOWED();
-
-    // Make sure no used funds have been recorded this funding cycle that could otherwise lead to double spending in the terminal being migrated to.
-    if (
-      usedDistributionLimitOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId][
-        _fundingCycle.number
-      ] >
-      0 ||
-      usedOverflowAllowanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId][
-        _fundingCycle.number
-      ] >
-      0
-    ) revert SPENT_BEFORE_MIGRATION();
 
     // Return the current balance.
     balance = balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId];
