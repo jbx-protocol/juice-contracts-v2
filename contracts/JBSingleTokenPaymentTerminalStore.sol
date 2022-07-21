@@ -356,11 +356,23 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
         _memo,
         _metadata
       );
-      (_weight, memo, delegate) = IJBFundingCycleDataSource(fundingCycle.dataSource()).payParams(
-        _data
-      );
+
+      // Try calling the datasource
+      try IJBFundingCycleDataSource(fundingCycle.dataSource()).payParams(_data) returns (
+        uint256 _datasourceWeight,
+        string memory _datasourceMemo,
+        IJBPayDelegate _delegate
+      ) {
+        _weight = _datasourceWeight;
+        memo = _datasourceMemo;
+        delegate = _delegate;
+      } catch {
+        // If call fails, use the funding cycle's weight
+        _weight = fundingCycle.weight;
+        memo = _memo;
+      }
     }
-    // Otherwise use the funding cycle's weight
+    // Use the funding cycle's weight if
     else {
       _weight = fundingCycle.weight;
       memo = _memo;
@@ -503,8 +515,20 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
           _memo,
           _metadata
         );
-        (reclaimAmount, memo, delegate) = IJBFundingCycleDataSource(fundingCycle.dataSource())
-          .redeemParams(_data);
+
+        // Try calling the datasource
+        try IJBFundingCycleDataSource(fundingCycle.dataSource()).redeemParams(_data) returns (
+          uint256 _reclaimAmount,
+          string memory _datasourceMemo,
+          IJBRedemptionDelegate _delegate
+        ) {
+          reclaimAmount = _reclaimAmount;
+          memo = _datasourceMemo;
+          delegate = _delegate;
+        } catch {
+          // If call fails, keep the original memo
+          memo = _memo;
+        }
       } else {
         memo = _memo;
       }
