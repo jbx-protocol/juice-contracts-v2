@@ -342,7 +342,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     uint256 _weight;
 
     // If the funding cycle has configured a data source, use it to derive a weight and memo.
-    if (fundingCycle.useDataSourceForPay()) {
+    if (fundingCycle.useDataSourceForPay() && fundingCycle.dataSource() != address(0)) {
       // Create the params that'll be sent to the data source.
       JBPayParamsData memory _data = JBPayParamsData(
         IJBSingleTokenPaymentTerminal(msg.sender),
@@ -357,22 +357,11 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
         _metadata
       );
 
-      // Try calling the datasource
-      try IJBFundingCycleDataSource(fundingCycle.dataSource()).payParams(_data) returns (
-        uint256 _datasourceWeight,
-        string memory _datasourceMemo,
-        IJBPayDelegate _delegate
-      ) {
-        _weight = _datasourceWeight;
-        memo = _datasourceMemo;
-        delegate = _delegate;
-      } catch {
-        // If call fails, use the funding cycle's weight
-        _weight = fundingCycle.weight;
-        memo = _memo;
-      }
+      (_weight, memo, delegate) = IJBFundingCycleDataSource(fundingCycle.dataSource()).payParams(
+        _data
+      );
     }
-    // Use the funding cycle's weight if
+    // Use the funding cycle's weight
     else {
       _weight = fundingCycle.weight;
       memo = _memo;
@@ -498,7 +487,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
       }
 
       // If the funding cycle has configured a data source, use it to derive a claim amount and memo.
-      if (fundingCycle.useDataSourceForRedeem()) {
+      if (fundingCycle.useDataSourceForRedeem() && fundingCycle.dataSource() != address(0)) {
         // Create the params that'll be sent to the data source.
         JBRedeemParamsData memory _data = JBRedeemParamsData(
           IJBSingleTokenPaymentTerminal(msg.sender),
@@ -516,19 +505,8 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
           _metadata
         );
 
-        // Try calling the datasource
-        try IJBFundingCycleDataSource(fundingCycle.dataSource()).redeemParams(_data) returns (
-          uint256 _reclaimAmount,
-          string memory _datasourceMemo,
-          IJBRedemptionDelegate _delegate
-        ) {
-          reclaimAmount = _reclaimAmount;
-          memo = _datasourceMemo;
-          delegate = _delegate;
-        } catch {
-          // If call fails, keep the original memo
-          memo = _memo;
-        }
+        (reclaimAmount, memo, delegate) = IJBFundingCycleDataSource(fundingCycle.dataSource())
+          .redeemParams(_data);
       } else {
         memo = _memo;
       }
