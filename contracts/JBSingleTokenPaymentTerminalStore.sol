@@ -361,7 +361,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
         _data
       );
     }
-    // Use the funding cycle's weight
+    // Otherwise use the funding cycle's weight
     else {
       _weight = fundingCycle.weight;
       memo = _memo;
@@ -504,7 +504,6 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
           _memo,
           _metadata
         );
-
         (reclaimAmount, memo, delegate) = IJBFundingCycleDataSource(fundingCycle.dataSource())
           .redeemParams(_data);
       } else {
