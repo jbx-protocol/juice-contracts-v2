@@ -17,7 +17,7 @@ import './abstract/JBPayoutRedemptionPaymentTerminal.sol';
   Inherits from -
   JBPayoutRedemptionPaymentTerminal: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
-contract JBERC20PaymentTerminal is JBPayoutRedemptionPaymentTerminal {
+contract JBERC20PaymentTerminalV2_1 is JBPayoutRedemptionPaymentTerminalV2_1 {
   using SafeERC20 for IERC20;
 
   //*********************************************************************//
@@ -60,10 +60,10 @@ contract JBERC20PaymentTerminal is JBPayoutRedemptionPaymentTerminal {
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
     IJBPrices _prices,
-    IJBSingleTokenPaymentTerminalStore _store,
+    IJBSingleTokenPaymentTerminalStoreV2_1 _store,
     address _owner
   )
-    JBPayoutRedemptionPaymentTerminal(
+    JBPayoutRedemptionPaymentTerminalV2_1(
       address(_token),
       _token.decimals(),
       _currency,

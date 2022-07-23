@@ -34,7 +34,7 @@ import './JBSingleTokenPaymentTerminal.sol';
   JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
-abstract contract JBPayoutRedemptionPaymentTerminal is
+abstract contract JBPayoutRedemptionPaymentTerminalV2_1 is
   JBSingleTokenPaymentTerminal,
   JBOperatable,
   Ownable,
@@ -133,7 +133,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @notice
     The contract that stores and manages the terminal's data.
   */
-  IJBSingleTokenPaymentTerminalStore public immutable override store;
+  IJBSingleTokenPaymentTerminalStoreV2_1 public immutable override store;
 
   /**
     @notice
@@ -292,7 +292,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     IJBDirectory _directory,
     IJBSplitsStore _splitsStore,
     IJBPrices _prices,
-    IJBSingleTokenPaymentTerminalStore _store,
+    IJBSingleTokenPaymentTerminalStoreV2_1 _store,
     address _owner
   )
     payable

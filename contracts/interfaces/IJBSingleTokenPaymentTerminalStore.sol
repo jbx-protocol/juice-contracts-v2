@@ -11,7 +11,7 @@ import './IJBPrices.sol';
 import './IJBRedemptionDelegate.sol';
 import './IJBSingleTokenPaymentTerminal.sol';
 
-interface IJBSingleTokenPaymentTerminalStore {
+interface IJBSingleTokenPaymentTerminalStoreV2_1 {
   function fundingCycleStore() external view returns (IJBFundingCycleStore);
 
   function directory() external view returns (IJBDirectory);
