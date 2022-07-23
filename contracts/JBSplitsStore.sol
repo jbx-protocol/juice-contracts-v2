@@ -19,7 +19,7 @@ import './libraries/JBOperations.sol';
   Inherits from -
   JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
-contract JBSplitsStore is JBOperatable, IJBSplitsStore {
+contract JBSplitsStoreV2_1 is JBOperatable, IJBSplitsStore {
   //*********************************************************************//
   // --------------------------- custom errors ------------------------- //
   //*********************************************************************//
@@ -200,33 +200,29 @@ contract JBSplitsStore is JBOperatable, IJBSplitsStore {
     // Get a reference to the project's current splits.
     JBSplit[] memory _currentSplits = _getStructsFor(_projectId, _domain, _group);
 
+    // Keep a reference to the number of splits.
+    uint256 _currentSplitsLength = _currentSplits.length;
+
     // Check to see if all locked splits are included.
-    for (uint256 _i = 0; _i < _currentSplits.length; _i++) {
+    for (uint256 _i = 0; _i < _currentSplitsLength; ) {
       // If not locked, continue.
-      if (block.timestamp >= _currentSplits[_i].lockedUntil) continue;
+      if (
+        block.timestamp < _currentSplits[_i].lockedUntil &&
+        !_includesLocked(_splits, _currentSplits[_i])
+      ) revert PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();
 
-      // Keep a reference to whether or not the locked split being iterated on is included.
-      bool _includesLocked = false;
-
-      for (uint256 _j = 0; _j < _splits.length; _j++) {
-        // Check for sameness.
-        if (
-          _splits[_j].percent == _currentSplits[_i].percent &&
-          _splits[_j].beneficiary == _currentSplits[_i].beneficiary &&
-          _splits[_j].allocator == _currentSplits[_i].allocator &&
-          _splits[_j].projectId == _currentSplits[_i].projectId &&
-          // Allow lock extention.
-          _splits[_j].lockedUntil >= _currentSplits[_i].lockedUntil
-        ) _includesLocked = true;
+      unchecked {
+        ++_i;
       }
-
-      if (!_includesLocked) revert PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();
     }
 
     // Add up all the percents to make sure they cumulative are under 100%.
     uint256 _percentTotal = 0;
 
-    for (uint256 _i = 0; _i < _splits.length; _i++) {
+    // Keep a reference to the number of splits.
+    uint256 _splitsLength = _splits.length;
+
+    for (uint256 _i = 0; _i < _splitsLength; ) {
       // The percent should be greater than 0.
       if (_splits[_i].percent == 0) revert INVALID_SPLIT_PERCENT();
 
@@ -273,10 +269,45 @@ contract JBSplitsStore is JBOperatable, IJBSplitsStore {
         delete _packedSplitParts2Of[_projectId][_domain][_group][_i];
 
       emit SetSplit(_projectId, _domain, _group, _splits[_i], msg.sender);
+
+      unchecked {
+        ++_i;
+      }
     }
 
     // Set the new length of the splits.
-    _splitCountOf[_projectId][_domain][_group] = _splits.length;
+    _splitCountOf[_projectId][_domain][_group] = _splitsLength;
+  }
+
+  /** 
+    @notice
+    A flag indiciating if the provided splits array includes the locked split. 
+
+    @param _splits The array of splits to check within.
+    @param _lockedSplit The locked split.
+
+    @return A flag indicating if the `_lockedSplit` is contained in the `_splits`.
+  */
+  function _includesLocked(JBSplit[] memory _splits, JBSplit memory _lockedSplit)
+    private
+    pure
+    returns (bool)
+  {
+    for (uint256 _j = 0; _j < _splits.length; _j++) {
+      // Check for sameness.
+      if (
+        _splits[_j].percent == _lockedSplit.percent &&
+        _splits[_j].beneficiary == _lockedSplit.beneficiary &&
+        _splits[_j].allocator == _lockedSplit.allocator &&
+        _splits[_j].projectId == _lockedSplit.projectId &&
+        _splits[_j].preferClaimed == _lockedSplit.preferClaimed &&
+        _splits[_j].preferAddToBalance == _lockedSplit.preferAddToBalance &&
+        // Allow lock extention.
+        _splits[_j].lockedUntil >= _lockedSplit.lockedUntil
+      ) return true;
+    }
+
+    return false;
   }
 
   /**
