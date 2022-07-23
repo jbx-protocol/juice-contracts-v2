@@ -14,6 +14,19 @@ import './abstract/JBPayoutRedemptionPaymentTerminal.sol';
 */
 contract JBETHPaymentTerminal is JBPayoutRedemptionPaymentTerminal {
   //*********************************************************************//
+  // -------------------------- internal views ------------------------- //
+  //*********************************************************************//
+
+  /** 
+    @notice
+    Checks the balance of tokens in this contract.
+    @return The contract's balance.
+  */
+  function _balance() internal view override returns (uint256) {
+    return address(this).balance;
+  }
+
+  //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
 
@@ -76,17 +89,5 @@ contract JBETHPaymentTerminal is JBPayoutRedemptionPaymentTerminal {
     _from; // Prevents unused var compiler and natspec complaints.
 
     Address.sendValue(_to, _amount);
-  }
-
-  /** 
-    @notice
-    Logic to be triggered before transferring tokens from this terminal.
-
-    @param _to The address to which the transfer is going.
-    @param _amount The amount of the transfer, as a fixed point number with the same number of decimals as this terminal.
-  */
-  function _beforeTransferTo(address _to, uint256 _amount) internal pure override {
-    _to; // Prevents unused var compiler and natspec complaints.
-    _amount; // Prevents unused var compiler and natspec complaints.
   }
 }

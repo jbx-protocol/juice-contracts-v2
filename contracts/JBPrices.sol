@@ -112,7 +112,10 @@ contract JBPrices is IJBPrices, Ownable {
     IJBPriceFeed _feed
   ) external override onlyOwner {
     // There can't already be a feed for the specified currency.
-    if (feedFor[_currency][_base] != IJBPriceFeed(address(0))) revert PRICE_FEED_ALREADY_EXISTS();
+    if (
+      feedFor[_currency][_base] != IJBPriceFeed(address(0)) ||
+      feedFor[_base][_currency] != IJBPriceFeed(address(0))
+    ) revert PRICE_FEED_ALREADY_EXISTS();
 
     // Store the feed.
     feedFor[_currency][_base] = _feed;

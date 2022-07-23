@@ -18,6 +18,13 @@ contract JBChainlinkV3PriceFeed is IJBPriceFeed {
   using JBFixedPointNumber for uint256;
 
   //*********************************************************************//
+  // --------------------------- custom errors ------------------------- //
+  //*********************************************************************//
+  error STALE_PRICE();
+  error INCOMPLETE_ROUND();
+  error NEGATIVE_PRICE();
+
+  //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
 
@@ -41,7 +48,14 @@ contract JBChainlinkV3PriceFeed is IJBPriceFeed {
   */
   function currentPrice(uint256 _decimals) external view override returns (uint256) {
     // Get the latest round information. Only need the price is needed.
-    (, int256 _price, , , ) = feed.latestRoundData();
+    (uint80 _roundId, int256 _price, , uint256 _updatedAt, uint80 _answeredInRound) = feed
+      .latestRoundData();
+    // Make sure the price isn't stale.
+    if (_answeredInRound < _roundId) revert STALE_PRICE();
+    // Make sure the round is finished.
+    if (_updatedAt == 0) revert INCOMPLETE_ROUND();
+    // Make sure the price is positive.
+    if (_price < 0) revert NEGATIVE_PRICE();
 
     // Get a reference to the number of decimals the feed uses.
     uint256 _feedDecimals = feed.decimals();

@@ -2,7 +2,6 @@
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './../interfaces/IJBController.sol';
@@ -34,14 +33,12 @@ import './JBSingleTokenPaymentTerminal.sol';
   JBSingleTokenPaymentTerminal: Generic terminal managing all inflows of funds into the protocol ecosystem for one token.
   JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
-  ReentrancyGuard: Contract module that helps prevent reentrant calls to a function.
 */
 abstract contract JBPayoutRedemptionPaymentTerminal is
-  IJBPayoutRedemptionPaymentTerminal,
   JBSingleTokenPaymentTerminal,
   JBOperatable,
   Ownable,
-  ReentrancyGuard
+  IJBPayoutRedemptionPaymentTerminal
 {
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
@@ -175,6 +172,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   /**
     @notice
     Addresses that can be paid towards from this terminal without incurring a fee.
+
+    @dev
+    Only addresses that are considered to be contained within the ecosystem can be feeless. Funds set outside the ecosystem may incur fees despite being stored as feeless.
 
     _address The address that can be paid toward.
   */
@@ -345,8 +345,14 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     if (token != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
 
+      // Get a reference to the balance before receiving tokens.
+      uint256 _balanceBefore = _balance();
+
       // Transfer tokens to this terminal from the msg sender.
       _transferFrom(msg.sender, payable(address(this)), _amount);
+
+      // The amount should reflect the change in balance.
+      _amount = _balance() - _balanceBefore;
     }
     // If this terminal's token is ETH, override _amount with msg.value.
     else _amount = msg.value;
@@ -551,8 +557,14 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       // Amount must be greater than 0.
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
 
+      // Get a reference to the balance before receiving tokens.
+      uint256 _balanceBefore = _balance();
+
       // Transfer tokens to this terminal from the msg sender.
       _transferFrom(msg.sender, payable(address(this)), _amount);
+
+      // The amount should reflect the change in balance.
+      _amount = _balance() - _balanceBefore;
     }
     // If the terminal's token is ETH, override `_amount` with msg.value.
     else _amount = msg.value;
@@ -636,9 +648,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @dev
     Only the owner of this contract can change the fee gauge.
 
-    @dev
-    If the fee gauge reverts when called upon while a project is attempting to distribute its funds, a project's funds will be locked. This is a known risk.
-
     @param _feeGauge The new fee gauge.
   */
   function setFeeGauge(IJBFeeGauge _feeGauge) external virtual override onlyOwner {
@@ -681,7 +690,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     address _from,
     address payable _to,
     uint256 _amount
-  ) internal virtual;
+  ) internal virtual {
+    _from; // Prevents unused var compiler and natspec complaints.
+    _to; // Prevents unused var compiler and natspec complaints.
+    _amount; // Prevents unused var compiler and natspec complaints.
+  }
 
   /** 
     @notice
@@ -690,7 +703,10 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     @param _to The address to which the transfer is going.
     @param _amount The amount of the transfer, as a fixed point number with the same number of decimals as this terminal.
   */
-  function _beforeTransferTo(address _to, uint256 _amount) internal virtual;
+  function _beforeTransferTo(address _to, uint256 _amount) internal virtual {
+    _to; // Prevents unused var compiler and natspec complaints.
+    _amount; // Prevents unused var compiler and natspec complaints.
+  }
 
   /**
     @notice
@@ -752,7 +768,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         );
 
       // If delegates were returned by the data source, issue a callback to it.
-      if (_delegates.length > 0) {
+      if (_delegates.length != 0) {
         JBDidRedeemData memory _data = JBDidRedeemData(
           _holder,
           _projectId,
@@ -846,8 +862,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Scoped section prevents stack too deep. `_feeDiscount`, `_feeEligibleDistributionAmount`, and `_leftoverDistributionAmount` only used within scope.
     {
       // Get the amount of discount that should be applied to any fees taken.
-      // If the fee is zero or if the fee is being used by an address that doesn't incur fees, set the discount to 100% for convinience.
-      uint256 _feeDiscount = fee == 0 || isFeelessAddress[msg.sender]
+      // If the fee is zero or if the fee is being used by an address that doesn't incur fees, set the discount to 100% for convenience.
+      uint256 _feeDiscount = fee == 0
         ? JBConstants.MAX_FEE_DISCOUNT
         : _currentFeeDiscount(_projectId);
 
@@ -868,12 +884,15 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       );
 
       // Leftover distribution amount is also eligible for a fee since the funds are going out of the ecosystem to _beneficiary.
-      unchecked {
-        _feeEligibleDistributionAmount += _leftoverDistributionAmount;
+      if (_feeDiscount != JBConstants.MAX_FEE_DISCOUNT) {
+        // Leftover distribution amount is also eligible for a fee since the funds are going out of the ecosystem to _beneficiary.
+        unchecked {
+          _feeEligibleDistributionAmount += _leftoverDistributionAmount;
+        }
       }
 
       // Take the fee.
-      _fee = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT || _feeEligibleDistributionAmount == 0
+      _fee = _feeEligibleDistributionAmount == 0
         ? 0
         : _takeFeeFrom(
           _projectId,
@@ -883,18 +902,16 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           _feeDiscount
         );
 
-      // Get a reference to how much to distribute to the project owner, which is the leftover amount minus any fees.
+      if (_leftoverDistributionAmount != 0) {
+        // Get a reference to how much to distribute to the project owner, which is the leftover amount minus any fees.
+        unchecked {
+          netLeftoverDistributionAmount = _leftoverDistributionAmount - _fee;
+        }
 
-      unchecked {
-        netLeftoverDistributionAmount = _leftoverDistributionAmount == 0
-          ? 0
-          : _leftoverDistributionAmount -
-            _feeAmount(_leftoverDistributionAmount, fee, _feeDiscount);
+        // Transfer any remaining balance to the project owner.
+        if (netLeftoverDistributionAmount != 0)
+          _transferFrom(address(this), _projectOwner, netLeftoverDistributionAmount);
       }
-
-      // Transfer any remaining balance to the project owner.
-      if (netLeftoverDistributionAmount > 0)
-        _transferFrom(address(this), _projectOwner, netLeftoverDistributionAmount);
     }
 
     emit DistributePayouts(
@@ -957,7 +974,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       address _projectOwner = projects.ownerOf(_projectId);
 
       // Get the amount of discount that should be applied to any fees taken.
-      // If the fee is zero or if the fee is being used by an address that doesn't incur fees, set the discount to 100% for convinience.
+      // If the fee is zero or if the fee is being used by an address that doesn't incur fees, set the discount to 100% for convenience.
       uint256 _feeDiscount = fee == 0 || isFeelessAddress[msg.sender]
         ? JBConstants.MAX_FEE_DISCOUNT
         : _currentFeeDiscount(_projectId);
@@ -1036,14 +1053,15 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         // If there's an allocator set, transfer to its `allocate` function.
         if (_split.allocator != IJBSplitAllocator(address(0))) {
           // If the split allocator is set as feeless, this distribution is not eligible for a fee.
-          if (isFeelessAddress[address(_split.allocator)])
+          if (
+            _feeDiscount == JBConstants.MAX_FEE_DISCOUNT ||
+            isFeelessAddress[address(_split.allocator)]
+          )
             _netPayoutAmount = _payoutAmount;
             // This distribution is eligible for a fee since the funds are leaving this contract and the allocator isn't listed as feeless.
           else {
             unchecked {
-              _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
-                ? _payoutAmount
-                : _payoutAmount - _feeAmount(_payoutAmount, fee, _feeDiscount);
+              _netPayoutAmount = _payoutAmount - _feeAmount(_payoutAmount, fee, _feeDiscount);
             }
 
             // This distribution is eligible for a fee since the funds are leaving the ecosystem.
@@ -1102,14 +1120,14 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
               );
           } else {
             // If the terminal is set as feeless, this distribution is not eligible for a fee.
-            if (isFeelessAddress[address(_terminal)])
+            if (
+              _feeDiscount == JBConstants.MAX_FEE_DISCOUNT || isFeelessAddress[address(_terminal)]
+            )
               _netPayoutAmount = _payoutAmount;
               // This distribution is eligible for a fee since the funds are leaving this contract and the terminal isn't listed as feeless.
             else {
               unchecked {
-                _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
-                  ? _payoutAmount
-                  : _payoutAmount - _feeAmount(_payoutAmount, fee, _feeDiscount);
+                _netPayoutAmount = _payoutAmount - _feeAmount(_payoutAmount, fee, _feeDiscount);
               }
 
               feeEligibleDistributionAmount += _payoutAmount;
@@ -1147,21 +1165,27 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
               );
           }
         } else {
-          unchecked {
-            _netPayoutAmount = _feeDiscount == JBConstants.MAX_FEE_DISCOUNT
-              ? _payoutAmount
-              : _payoutAmount - _feeAmount(_payoutAmount, fee, _feeDiscount);
+          // Keep a reference to the beneficiary.
+          address payable _beneficiary = _split.beneficiary != address(0)
+            ? _split.beneficiary
+            : payable(msg.sender);
+
+          // If there's a full discount, this distribution is not eligible for a fee.
+          // Don't enforce feeless address for the beneficiary since the funds are leaving the ecosystem.
+          if (_feeDiscount == JBConstants.MAX_FEE_DISCOUNT)
+            _netPayoutAmount = _payoutAmount;
+            // This distribution is eligible for a fee since the funds are leaving this contract and the beneficiary isn't listed as feeless.
+          else {
+            unchecked {
+              _netPayoutAmount = _payoutAmount - _feeAmount(_payoutAmount, fee, _feeDiscount);
+            }
+
+            // This distribution is eligible for a fee since the funds are leaving the ecosystem.
+            feeEligibleDistributionAmount += _payoutAmount;
           }
 
-          // This distribution is eligible for a fee since the funds are leaving the ecosystem.
-          feeEligibleDistributionAmount += _payoutAmount;
-
           // If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
-          _transferFrom(
-            address(this),
-            _split.beneficiary != address(0) ? _split.beneficiary : payable(msg.sender),
-            _netPayoutAmount
-          );
+          _transferFrom(address(this), _beneficiary, _netPayoutAmount);
         }
 
         // Subtract from the amount to be sent to the beneficiary.
@@ -1286,8 +1310,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Keep a reference to the response from recording the payment.
     JBRecordPaymentResponse memory _response;
 
-    // Scoped section prevents stack too deep. `_delegate` and `_tokenCount` only used within scope.
+    // Scoped section prevents stack too deep. `_delegates` and `_tokenCount` only used within scope.
     {
+      IJBPayDelegate[] memory _delegates;
+      uint256 _tokenCount;
+
       // Bundle the amount info into a JBTokenAmount struct.
       JBTokenAmount memory _bundledAmount = JBTokenAmount(token, _amount, decimals, currency);
 
@@ -1317,8 +1344,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       // The token count for the beneficiary must be greater than or equal to the minimum expected.
       if (beneficiaryTokenCount < _minReturnedTokens) revert INADEQUATE_TOKEN_COUNT();
 
-      // If a delegate was returned by the data source, issue a callback to it.
-      if (_response.delegates.length > 0) {
+      // If delegates were returned by the data source, issue a callback to it.
+      if (_delegates.length != 0) {
         JBDidPayData memory _data = JBDidPayData(
           _payer,
           _projectId,
@@ -1509,4 +1536,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // If the fee discount is greater than the max, nullify the discount.
     if (feeDiscount > JBConstants.MAX_FEE_DISCOUNT) feeDiscount = 0;
   }
+
+  /** 
+    @notice
+    Checks the balance of tokens in this contract.
+    @return The contract's balance.
+  */
+  function _balance() internal view virtual returns (uint256);
 }

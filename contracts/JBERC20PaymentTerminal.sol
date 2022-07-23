@@ -2,6 +2,7 @@
 pragma solidity 0.8.6;
 
 import '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
+import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import './abstract/JBPayoutRedemptionPaymentTerminal.sol';
 
 /** 
@@ -17,6 +18,21 @@ import './abstract/JBPayoutRedemptionPaymentTerminal.sol';
   JBPayoutRedemptionPaymentTerminal: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBERC20PaymentTerminal is JBPayoutRedemptionPaymentTerminal {
+  using SafeERC20 for IERC20;
+
+  //*********************************************************************//
+  // -------------------------- internal views ------------------------- //
+  //*********************************************************************//
+
+  /** 
+    @notice
+    Checks the balance of tokens in this contract.
+    @return The contract's balance.
+  */
+  function _balance() internal view override returns (uint256) {
+    return IERC20(token).balanceOf(address(this));
+  }
+
   //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
@@ -84,8 +100,8 @@ contract JBERC20PaymentTerminal is JBPayoutRedemptionPaymentTerminal {
     uint256 _amount
   ) internal override {
     _from == address(this)
-      ? IERC20(token).transfer(_to, _amount)
-      : IERC20(token).transferFrom(_from, _to, _amount);
+      ? IERC20(token).safeTransfer(_to, _amount)
+      : IERC20(token).safeTransferFrom(_from, _to, _amount);
   }
 
   /** 
