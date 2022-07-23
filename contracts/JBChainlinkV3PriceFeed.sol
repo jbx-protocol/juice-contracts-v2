@@ -13,7 +13,7 @@ import './libraries/JBFixedPointNumber.sol';
   Adheres to -
   IJBPriceFeed: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 */
-contract JBChainlinkV3PriceFeed is IJBPriceFeed {
+contract JBChainlinkV3PriceFeedV2_1 is IJBPriceFeed {
   // A library that provides utility for fixed point numbers.
   using JBFixedPointNumber for uint256;
 

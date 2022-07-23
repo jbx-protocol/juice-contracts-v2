@@ -17,7 +17,7 @@ import './interfaces/IJBPrices.sol';
   Inherits from -
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
-contract JBPrices is IJBPrices, Ownable {
+contract JBPricesV2_1 is IJBPrices, Ownable {
   //*********************************************************************//
   // --------------------------- custom errors ------------------------- //
   //*********************************************************************//
