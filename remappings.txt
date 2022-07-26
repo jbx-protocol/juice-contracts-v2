@@ -1,10 +1,10 @@
 @chainlink=lib/chainlink/
 @juicebox=contracts/
-@openzeppelin=lib/openzeppelin-contracts/
+@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
 @paulrberg/contracts/math/=lib/prb-math/contracts/
 chainlink/=lib/chainlink/
 ds-test/=lib/ds-test/src/
 forge-std/=lib/forge-std/src/
-openzeppelin-contracts/=lib/openzeppelin-contracts/
+openzeppelin-contracts/contracts/=lib/openzeppelin-contracts/contracts/
 prb-math=lib/prb-math/
 prb-math/=lib/prb-math/contracts/
