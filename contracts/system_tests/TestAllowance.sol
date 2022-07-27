@@ -61,7 +61,7 @@ contract TestAllowance is TestBaseWorkflow {
   }
 
   function testAllowance() public {
-    JBETHPaymentTerminal terminal = jbETHPaymentTerminal();
+    JBETHPaymentTerminalV2_1 terminal = jbETHPaymentTerminal();
 
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
@@ -167,7 +167,7 @@ contract TestAllowance is TestBaseWorkflow {
 
     uint256 CURRENCY = jbLibraries().ETH(); // Avoid testing revert on this call...
 
-    JBETHPaymentTerminal terminal = jbETHPaymentTerminal();
+    JBETHPaymentTerminalV2_1 terminal = jbETHPaymentTerminal();
 
     _fundAccessConstraints.push(
       JBFundAccessConstraints({

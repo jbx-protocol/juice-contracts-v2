@@ -12,7 +12,7 @@ import './helpers/TestBaseWorkflow.sol';
  */
 contract TestPayBurnRedeemFlow is TestBaseWorkflow {
   JBController private _controller;
-  JBETHPaymentTerminal private _terminal;
+  JBETHPaymentTerminalV2_1 private _terminal;
   JBTokenStore private _tokenStore;
 
   JBProjectMetadata private _projectMetadata;

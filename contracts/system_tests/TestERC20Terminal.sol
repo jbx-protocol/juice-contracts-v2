@@ -58,7 +58,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
   }
 
   function testAllowanceERC20() public {
-    JBERC20PaymentTerminal terminal = jbERC20PaymentTerminal();
+    JBERC20PaymentTerminalV2_1 terminal = jbERC20PaymentTerminal();
 
     _fundAccessConstraints.push(
       JBFundAccessConstraints({
@@ -169,7 +169,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
   ) public {
     evm.assume(jbToken().totalSupply() >= BALANCE);
 
-    JBERC20PaymentTerminal terminal = jbERC20PaymentTerminal();
+    JBERC20PaymentTerminalV2_1 terminal = jbERC20PaymentTerminal();
 
     _fundAccessConstraints.push(
       JBFundAccessConstraints({

@@ -102,7 +102,12 @@ interface IJBPayoutRedemptionPaymentTerminal is
     address caller
   );
 
-  event DelegateDidPay(IJBPayDelegate indexed delegate, JBDidPayData data, uint256 delegatedAmount, address caller);
+  event DelegateDidPay(
+    IJBPayDelegate indexed delegate,
+    JBDidPayData data,
+    uint256 delegatedAmount,
+    address caller
+  );
 
   event RedeemTokens(
     uint256 indexed fundingCycleConfiguration,
@@ -146,7 +151,7 @@ interface IJBPayoutRedemptionPaymentTerminal is
 
   function prices() external view returns (IJBPrices);
 
-  function store() external view returns (IJBSingleTokenPaymentTerminalStore);
+  function store() external view returns (IJBSingleTokenPaymentTerminalStoreV2_1);
 
   function baseWeightCurrency() external view returns (uint256);
 

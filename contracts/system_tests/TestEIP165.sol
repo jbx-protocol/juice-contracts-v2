@@ -33,7 +33,7 @@ contract TestEIP165 is TestBaseWorkflow {
   }
 
   function testJBERC20PaymentTerminal() public {
-    JBERC20PaymentTerminal terminal = new JBERC20PaymentTerminal(
+    JBERC20PaymentTerminalV2_1 terminal = new JBERC20PaymentTerminalV2_1(
       jbToken(),
       jbLibraries().USD(), // currency
       jbLibraries().ETH(), // base weight currency
@@ -62,7 +62,7 @@ contract TestEIP165 is TestBaseWorkflow {
   }
 
   function testJBETHPaymentTerminal() public {
-    JBETHPaymentTerminal terminal = jbETHPaymentTerminal();
+    JBETHPaymentTerminalV2_1 terminal = jbETHPaymentTerminal();
 
     // Should support these interfaces
     assertTrue(terminal.supportsInterface(type(IERC165).interfaceId));

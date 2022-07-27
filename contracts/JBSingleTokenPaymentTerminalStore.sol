@@ -506,25 +506,31 @@ contract JBSingleTokenPaymentTerminalStoreV2_1 is
 
       // If the funding cycle has configured a data source, use it to derive a claim amount and memo.
       if (fundingCycle.useDataSourceForRedeem()) {
-        // Create the params that'll be sent to the data source.
-        JBRedeemParamsData memory _data = JBRedeemParamsData(
-          IJBSingleTokenPaymentTerminal(msg.sender),
-          _holder,
-          _projectId,
-          fundingCycle.configuration,
-          _tokenCount,
-          _totalSupply,
-          _currentOverflow,
-          _reclaimedTokenAmount,
-          fundingCycle.useTotalOverflowForRedemptions(),
-          fundingCycleStore.currentBallotStateOf(_projectId) == JBBallotState.Active
-            ? fundingCycle.ballotRedemptionRate()
-            : fundingCycle.redemptionRate(),
-          _memo,
-          _metadata
-        );
-        (reclaimAmount, memo, delegates) = IJBFundingCycleDataSource(fundingCycle.dataSource())
-          .redeemParams(_data);
+        // Yet another scoped section prevents stack too deep. `_state`  only used within scope.
+        {
+          // Get a reference to the ballot state.
+          JBBallotState _state = fundingCycleStore.currentBallotStateOf(_projectId);
+
+          // Create the params that'll be sent to the data source.
+          JBRedeemParamsData memory _data = JBRedeemParamsData(
+            IJBSingleTokenPaymentTerminal(msg.sender),
+            _holder,
+            _projectId,
+            fundingCycle.configuration,
+            _tokenCount,
+            _totalSupply,
+            _currentOverflow,
+            _reclaimedTokenAmount,
+            fundingCycle.useTotalOverflowForRedemptions(),
+            _state == JBBallotState.Active
+              ? fundingCycle.ballotRedemptionRate()
+              : fundingCycle.redemptionRate(),
+            _memo,
+            _metadata
+          );
+          (reclaimAmount, memo, delegates) = IJBFundingCycleDataSource(fundingCycle.dataSource())
+            .redeemParams(_data);
+        }
       } else {
         memo = _memo;
       }

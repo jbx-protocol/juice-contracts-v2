@@ -1313,7 +1313,6 @@ abstract contract JBPayoutRedemptionPaymentTerminalV2_1 is
     // Scoped section prevents stack too deep. `_delegates` and `_tokenCount` only used within scope.
     {
       IJBPayDelegate[] memory _delegates;
-      uint256 _tokenCount;
 
       // Bundle the amount info into a JBTokenAmount struct.
       JBTokenAmount memory _bundledAmount = JBTokenAmount(token, _amount, decimals, currency);

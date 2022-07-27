@@ -59,7 +59,7 @@ contract TestBaseWorkflow is DSTest {
   // JBProjects
   JBProjects private _jbProjects;
   // JBPrices
-  JBPrices private _jbPrices;
+  JBPricesV2_1 private _jbPrices;
   // JBDirectory
   JBDirectory private _jbDirectory;
   // JBFundingCycleStore
@@ -73,11 +73,11 @@ contract TestBaseWorkflow is DSTest {
   // JBController
   JBController private _jbController;
   // JBETHPaymentTerminalStore
-  JBSingleTokenPaymentTerminalStore private _jbPaymentTerminalStore;
+  JBSingleTokenPaymentTerminalStoreV2_1 private _jbPaymentTerminalStore;
   // JBETHPaymentTerminal
-  JBETHPaymentTerminal private _jbETHPaymentTerminal;
+  JBETHPaymentTerminalV2_1 private _jbETHPaymentTerminal;
   // JBERC20PaymentTerminal
-  JBERC20PaymentTerminal private _jbERC20PaymentTerminal;
+  JBERC20PaymentTerminalV2_1 private _jbERC20PaymentTerminal;
   // AccessJBLib
   AccessJBLib private _accessJBLib;
 
@@ -101,7 +101,7 @@ contract TestBaseWorkflow is DSTest {
     return _jbProjects;
   }
 
-  function jbPrices() internal view returns (JBPrices) {
+  function jbPrices() internal view returns (JBPricesV2_1) {
     return _jbPrices;
   }
 
@@ -125,15 +125,15 @@ contract TestBaseWorkflow is DSTest {
     return _jbController;
   }
 
-  function jbPaymentTerminalStore() internal view returns (JBSingleTokenPaymentTerminalStore) {
+  function jbPaymentTerminalStore() internal view returns (JBSingleTokenPaymentTerminalStoreV2_1) {
     return _jbPaymentTerminalStore;
   }
 
-  function jbETHPaymentTerminal() internal view returns (JBETHPaymentTerminal) {
+  function jbETHPaymentTerminal() internal view returns (JBETHPaymentTerminalV2_1) {
     return _jbETHPaymentTerminal;
   }
 
-  function jbERC20PaymentTerminal() internal view returns (JBERC20PaymentTerminal) {
+  function jbERC20PaymentTerminal() internal view returns (JBERC20PaymentTerminalV2_1) {
     return _jbERC20PaymentTerminal;
   }
 
@@ -164,7 +164,7 @@ contract TestBaseWorkflow is DSTest {
     evm.label(address(_jbProjects), 'JBProjects');
 
     // JBPrices
-    _jbPrices = new JBPrices(_multisig);
+    _jbPrices = new JBPricesV2_1(_multisig);
     evm.label(address(_jbPrices), 'JBPrices');
 
     address contractAtNoncePlusOne = addressFrom(address(this), 5);
@@ -200,7 +200,7 @@ contract TestBaseWorkflow is DSTest {
     _jbDirectory.setIsAllowedToSetFirstController(address(_jbController), true);
 
     // JBETHPaymentTerminalStore
-    _jbPaymentTerminalStore = new JBSingleTokenPaymentTerminalStore(
+    _jbPaymentTerminalStore = new JBSingleTokenPaymentTerminalStoreV2_1(
       _jbDirectory,
       _jbFundingCycleStore,
       _jbPrices
@@ -211,7 +211,7 @@ contract TestBaseWorkflow is DSTest {
     _accessJBLib = new AccessJBLib();
 
     // JBETHPaymentTerminal
-    _jbETHPaymentTerminal = new JBETHPaymentTerminal(
+    _jbETHPaymentTerminal = new JBETHPaymentTerminalV2_1(
       _accessJBLib.ETH(),
       _jbOperatorStore,
       _jbProjects,
@@ -230,7 +230,7 @@ contract TestBaseWorkflow is DSTest {
     _jbToken.mint(0, _multisig, 100 * 10**18);
 
     // JBERC20PaymentTerminal
-    _jbERC20PaymentTerminal = new JBERC20PaymentTerminal(
+    _jbERC20PaymentTerminal = new JBERC20PaymentTerminalV2_1(
       _jbToken,
       _accessJBLib.ETH(), // currency
       _accessJBLib.ETH(), // base weight currency

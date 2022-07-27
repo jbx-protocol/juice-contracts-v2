@@ -15,8 +15,8 @@ contract TestMultipleTerminals is TestBaseWorkflow {
   JBFundAccessConstraints[] _fundAccessConstraints;
 
   IJBPaymentTerminal[] _terminals;
-  JBERC20PaymentTerminal ERC20terminal;
-  JBETHPaymentTerminal ETHterminal;
+  JBERC20PaymentTerminalV2_1 ERC20terminal;
+  JBETHPaymentTerminalV2_1 ETHterminal;
 
   JBTokenStore _tokenStore;
   address _projectOwner;
@@ -80,7 +80,7 @@ contract TestMultipleTerminals is TestBaseWorkflow {
       dataSource: address(0)
     });
 
-    ERC20terminal = new JBERC20PaymentTerminal(
+    ERC20terminal = new JBERC20PaymentTerminalV2_1(
       jbToken(),
       jbLibraries().USD(), // currency
       jbLibraries().ETH(), // base weight currency
