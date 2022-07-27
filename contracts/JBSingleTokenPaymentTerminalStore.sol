@@ -517,8 +517,9 @@ contract JBSingleTokenPaymentTerminalStoreV2_1 is
           _currentOverflow,
           _reclaimedTokenAmount,
           fundingCycle.useTotalOverflowForRedemptions(),
-          fundingCycle.redemptionRate(),
-          fundingCycle.ballotRedemptionRate(),
+          fundingCycleStore.currentBallotStateOf(_projectId) == JBBallotState.Active
+            ? fundingCycle.ballotRedemptionRate()
+            : fundingCycle.redemptionRate(),
           _memo,
           _metadata
         );
