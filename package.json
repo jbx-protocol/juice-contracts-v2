@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/jbx-protocol/juice-contracts-v2"
   },
-  "version": "8.0.0",
+  "version": "8.0.2",
   "license": "MIT",
   "devDependencies": {
     "@0xsequence/sstore2": "github:0xsequence/sstore2",

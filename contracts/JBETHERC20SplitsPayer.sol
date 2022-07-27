@@ -25,7 +25,7 @@ import './JBETHERC20ProjectPayer.sol';
   JBETHERC20ProjectPayer: Sends ETH or ERC20's to a project treasury as it receives direct payments or has it's functions called.
   ReentrancyGuard: Contract module that helps prevent reentrant calls to a function.
 */
-contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, ReentrancyGuard {
+contract JBETHERC20SplitsPayer is JBETHERC20ProjectPayer, ReentrancyGuard, IJBSplitsPayer {
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
@@ -429,9 +429,36 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
     uint256 _decimals,
     address _defaultBeneficiary
   ) internal virtual returns (uint256 leftoverAmount) {
-    // Get a reference to the splits.
-    JBSplit[] memory _splits = splitsStore.splitsOf(_splitsProjectId, _splitsDomain, _splitsGroup);
+    // Pay the splits.
+    leftoverAmount = _payTo(
+      splitsStore.splitsOf(_splitsProjectId, _splitsDomain, _splitsGroup),
+      _token,
+      _amount,
+      _decimals,
+      _defaultBeneficiary
+    );
+    emit DistributeToSplitGroup(_splitsProjectId, _splitsDomain, _splitsGroup, msg.sender);
+  }
 
+  /** 
+    @notice 
+    Split an amount between all splits.
+
+    @param _splits The splits.
+    @param _token The token the amonut being split is in.
+    @param _amount The amount of tokens being split, as a fixed point number. If the `_token` is ETH, this is ignored and msg.value is used in its place.
+    @param _decimals The number of decimals in the `_amount` fixed point number. 
+    @param _defaultBeneficiary The address that will benefit from any non-specified beneficiaries in splits.
+
+    @return leftoverAmount The amount leftover after all splits were paid.
+  */
+  function _payTo(
+    JBSplit[] memory _splits,
+    address _token,
+    uint256 _amount,
+    uint256 _decimals,
+    address _defaultBeneficiary
+  ) internal virtual returns (uint256 leftoverAmount) {
     // Set the leftover amount to the initial balance.
     leftoverAmount = _amount;
 
@@ -516,15 +543,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
         leftoverAmount = leftoverAmount - _splitAmount;
       }
 
-      emit DistributeToSplit(
-        _splitsProjectId,
-        _splitsDomain,
-        _splitsGroup,
-        _split,
-        _splitAmount,
-        _defaultBeneficiary,
-        msg.sender
-      );
+      emit DistributeToSplit(_split, _splitAmount, _defaultBeneficiary, msg.sender);
     }
   }
 }

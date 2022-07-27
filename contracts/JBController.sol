@@ -16,7 +16,7 @@ import './libraries/JBSplitsGroups.sol';
 
 /**
   @notice
-  Stitches together funding cycles and community tokens, making sure all activity is accounted for and correct.
+  Stitches together funding cycles and project tokens, making sure all activity is accounted for and correct.
 
   @dev
   Adheres to -
@@ -28,7 +28,7 @@ import './libraries/JBSplitsGroups.sol';
   JBOperatable: Several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
   ERC165: Introspection on interface adherance. 
 */
-contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
+contract JBController is JBOperatable, ERC165, IJBController, IJBMigratable {
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
@@ -418,7 +418,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     IJBPaymentTerminal[] memory _terminals,
     string memory _memo
   ) external virtual override returns (uint256 projectId) {
-    // Mint the project into the wallet of the message sender.
+    // Mint the project into the wallet of the owner.
     projectId = projects.createFor(_owner, _projectMetadata);
 
     // Set this contract as the project's controller in the directory.

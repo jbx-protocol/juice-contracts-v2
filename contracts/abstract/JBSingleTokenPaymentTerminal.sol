@@ -11,8 +11,12 @@ import './../interfaces/IJBSingleTokenPaymentTerminal.sol';
   @dev
   Adheres to -
   IJBSingleTokenPaymentTerminals: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
+
+  @dev
+  Inherits from -
+  ERC165: Introspection on interface adherance. 
 */
-abstract contract JBSingleTokenPaymentTerminal is IJBSingleTokenPaymentTerminal, ERC165 {
+abstract contract JBSingleTokenPaymentTerminal is ERC165, IJBSingleTokenPaymentTerminal {
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
   //*********************************************************************//
