@@ -21,3 +21,8 @@ coverage.json
 # VSCode
 workspace.code-workspace
 .vscode/
+
+# Prover
+.certora*
+.last_confs
+resource_errors.json
