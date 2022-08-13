@@ -173,7 +173,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable, ERC165 {
         JBTokens.ETH,
         address(this).balance,
         18, // balance is a fixed point number with 18 decimals.
-        defaultBeneficiary == address(0) ? msg.sender : defaultBeneficiary,
+        defaultBeneficiary == address(0) ? tx.origin : defaultBeneficiary,
         0, // Can't determine expectation of returned tokens ahead of time.
         defaultPreferClaimedTokens,
         defaultMemo,
@@ -387,7 +387,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable, ERC165 {
       _projectId,
       _amount, // ignored if the token is JBTokens.ETH.
       _token,
-      _beneficiary != address(0) ? _beneficiary : msg.sender,
+      _beneficiary != address(0) ? _beneficiary : tx.origin,
       _minReturnedTokens,
       _preferClaimedTokens,
       _memo,
