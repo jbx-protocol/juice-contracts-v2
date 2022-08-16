@@ -318,11 +318,9 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     // Ballot should be a valid contract, supporting the correct interface
     if (_data.ballot != IJBFundingCycleBallot(address(0))) {
       address _ballot = address(_data.ballot);
-      uint32 _size;
-      assembly {
-        _size := extcodesize(_ballot) // No contract at the address ?
-      }
-      if (_size == 0) revert INVALID_BALLOT();
+
+      // No contract at the address ?
+      if (_ballot.code.length == 0) revert INVALID_BALLOT();
 
       // Make sure the ballot supports the expected interface.
       if (!_data.ballot.supportsInterface(type(IJBFundingCycleBallot).interfaceId))
