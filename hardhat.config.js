@@ -58,12 +58,12 @@ module.exports = {
     },
   },
   solidity: {
-    version: '0.8.6',
+    version: '0.8.16',
     settings: {
       optimizer: {
         enabled: true,
         // https://docs.soliditylang.org/en/v0.8.10/internals/optimizer.html#:~:text=Optimizer%20Parameter%20Runs,-The%20number%20of&text=A%20%E2%80%9Cruns%E2%80%9D%20parameter%20of%20%E2%80%9C,is%202**32%2D1%20.
-        runs: 1000000,
+        runs: 10000,
       },
     },
   },

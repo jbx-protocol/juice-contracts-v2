@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 import './../structs/JBPayParamsData.sol';
@@ -21,7 +21,7 @@ import './IJBRedemptionDelegate.sol';
   IERC165 for adequate interface integration
 */
 interface IJBFundingCycleDataSource is IERC165 {
-    /**
+  /**
     @notice
     The datasource implementation for JBPaymentTerminal.pay(..)
 
