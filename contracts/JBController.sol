@@ -420,11 +420,13 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     IJBPaymentTerminal[] memory _terminals,
     string memory _memo
   ) external virtual override returns (uint256 projectId) {
+    IJBDirectory _directory = directory;
+
     // Mint the project into the wallet of the owner.
     projectId = projects.createFor(_owner, _projectMetadata);
 
     // Set this contract as the project's controller in the directory.
-    directory.setControllerOf(projectId, address(this));
+    _directory.setControllerOf(projectId, address(this));
 
     // Configure the first funding cycle.
     uint256 _configuration = _configure(
@@ -437,7 +439,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     );
 
     // Add the provided terminals to the list of terminals.
-    if (_terminals.length > 0) directory.setTerminalsOf(projectId, _terminals);
+    if (_terminals.length > 0) _directory.setTerminalsOf(projectId, _terminals);
 
     emit LaunchProject(_configuration, projectId, _memo, msg.sender);
   }
@@ -800,8 +802,10 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_CONTROLLER)
   {
+    IJBDirectory _directory = directory;
+
     // This controller must be the project's current controller.
-    if (directory.controllerOf(_projectId) != address(this)) revert NOT_CURRENT_CONTROLLER();
+    if (_directory.controllerOf(_projectId) != address(this)) revert NOT_CURRENT_CONTROLLER();
 
     // Get a reference to the project's current funding cycle.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
@@ -819,7 +823,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     _to.prepForMigrationOf(_projectId, address(this));
 
     // Set the new controller.
-    directory.setControllerOf(_projectId, address(_to));
+    _directory.setControllerOf(_projectId, address(_to));
 
     emit Migrate(_projectId, _to, msg.sender);
   }
@@ -841,11 +845,12 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     internal
     returns (uint256 tokenCount)
   {
+    IJBTokenStore _tokenStore = tokenStore;
     // Get the current funding cycle to read the reserved rate from.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Get a reference to new total supply of tokens before minting reserved tokens.
-    uint256 _totalTokens = tokenStore.totalSupplyOf(_projectId);
+    uint256 _totalTokens = _tokenStore.totalSupplyOf(_projectId);
 
     // Get a reference to the number of tokens that need to be minted.
     tokenCount = _reservedTokenAmountFrom(
@@ -871,7 +876,8 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
       );
 
     // Mint any leftover tokens to the project owner.
-    if (_leftoverTokenCount > 0) tokenStore.mintFor(_owner, _projectId, _leftoverTokenCount, false);
+    if (_leftoverTokenCount > 0)
+      _tokenStore.mintFor(_owner, _projectId, _leftoverTokenCount, false);
 
     emit DistributeReservedTokens(
       _fundingCycle.configuration,
@@ -902,6 +908,8 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     uint256 _group,
     uint256 _amount
   ) internal returns (uint256 leftoverAmount) {
+    IJBTokenStore _tokenStore = tokenStore;
+
     // Set the leftover amount to the initial amount.
     leftoverAmount = _amount;
 
@@ -922,7 +930,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
 
       // Mints tokens for the split if needed.
       if (_tokenCount > 0) {
-        tokenStore.mintFor(
+        _tokenStore.mintFor(
           // If an allocator is set in the splits, set it as the beneficiary.
           // Otherwise if a projectId is set in the split, set the project's owner as the beneficiary.
           // If the split has a beneficiary send to the split's beneficiary. Otherwise send to the msg.sender.
@@ -942,7 +950,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
         if (_split.allocator != IJBSplitAllocator(address(0)))
           _split.allocator.allocate(
             JBSplitAllocationData(
-              address(tokenStore.tokenOf(_projectId)),
+              address(_tokenStore.tokenOf(_projectId)),
               _tokenCount,
               18,
               _projectId,

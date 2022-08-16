@@ -25,14 +25,14 @@ contract JBChainlinkV3PriceFeed is IJBPriceFeed {
   error NEGATIVE_PRICE();
 
   //*********************************************************************//
-  // --------------------- public stored properties -------------------- //
+  // ---------------- public stored immutable properties --------------- //
   //*********************************************************************//
 
   /** 
     @notice 
     The feed that prices are reported from.
   */
-  AggregatorV3Interface public feed;
+  AggregatorV3Interface public immutable feed;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
