@@ -515,10 +515,13 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
 
     // Remove the reclaimed funds from the project's balance.
-    if (reclaimAmount > 0)
-      balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
-        balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] -
-        reclaimAmount;
+    if (reclaimAmount > 0) {
+      unchecked {
+        balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
+          balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] -
+          reclaimAmount;
+      }
+    }
   }
 
   /**
@@ -595,9 +598,11 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     ] = _newUsedDistributionLimitOf;
 
     // Removed the distributed funds from the project's token balance.
-    balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
-      balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] -
-      distributedAmount;
+    unchecked {
+      balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
+        balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] -
+        distributedAmount;
+    }
   }
 
   /**
@@ -831,7 +836,10 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
       );
 
     // Overflow is the balance of this project minus the amount that can still be distributed.
-    return _balanceOf > _distributionLimitRemaining ? _balanceOf - _distributionLimitRemaining : 0;
+    unchecked {
+      return
+        _balanceOf > _distributionLimitRemaining ? _balanceOf - _distributionLimitRemaining : 0;
+    }
   }
 
   /**
