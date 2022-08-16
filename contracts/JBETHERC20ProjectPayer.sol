@@ -376,7 +376,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable, ERC165 {
     if (_terminal.decimalsForToken(_token) != _decimals) revert INCORRECT_DECIMAL_AMOUNT();
 
     // Approve the `_amount` of tokens from the destination terminal to transfer tokens from this contract.
-    if (_token != JBTokens.ETH) IERC20(_token).approve(address(_terminal), _amount);
+    if (_token != JBTokens.ETH) IERC20(_token).safeApprove(address(_terminal), _amount);
 
     // If the token is ETH, send it in msg.value.
     uint256 _payableValue = _token == JBTokens.ETH ? _amount : 0;
@@ -424,7 +424,7 @@ contract JBETHERC20ProjectPayer is IJBProjectPayer, Ownable, ERC165 {
     if (_terminal.decimalsForToken(_token) != _decimals) revert INCORRECT_DECIMAL_AMOUNT();
 
     // Approve the `_amount` of tokens from the destination terminal to transfer tokens from this contract.
-    if (_token != JBTokens.ETH) IERC20(_token).approve(address(_terminal), _amount);
+    if (_token != JBTokens.ETH) IERC20(_token).safeApprove(address(_terminal), _amount);
 
     // If the token is ETH, send it in msg.value.
     uint256 _payableValue = _token == JBTokens.ETH ? _amount : 0;

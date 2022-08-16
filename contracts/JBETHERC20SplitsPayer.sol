@@ -505,7 +505,7 @@ contract JBETHERC20SplitsPayer is IJBSplitsPayer, JBETHERC20ProjectPayer, Reentr
 
           // Approve the `_amount` of tokens for the split allocator to transfer tokens from this contract.
           if (_token != JBTokens.ETH)
-            IERC20(_token).approve(address(_split.allocator), _splitAmount);
+            IERC20(_token).safeApprove(address(_split.allocator), _splitAmount);
 
           // If the token is ETH, send it in msg.value.
           uint256 _payableValue = _token == JBTokens.ETH ? _splitAmount : 0;
