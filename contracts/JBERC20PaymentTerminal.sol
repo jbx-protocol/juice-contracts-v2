@@ -113,6 +113,6 @@ contract JBERC20PaymentTerminal is JBPayoutRedemptionPaymentTerminal {
     @param _amount The amount of the transfer, as a fixed point number with the same number of decimals as this terminal.
   */
   function _beforeTransferTo(address _to, uint256 _amount) internal override {
-    IERC20(token).approve(_to, _amount);
+    IERC20(token).safeApprove(_to, _amount);
   }
 }

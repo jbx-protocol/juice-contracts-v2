@@ -331,7 +331,10 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     else _claimedTokensToBurn = _unclaimedBalance < _amount ? _amount - _unclaimedBalance : 0;
 
     // The amount of unclaimed tokens to redeem.
-    uint256 _unclaimedTokensToBurn = _amount - _claimedTokensToBurn;
+    uint256 _unclaimedTokensToBurn;
+    unchecked {
+      _unclaimedTokensToBurn = _amount - _claimedTokensToBurn;
+    }
 
     // Subtract the tokens from the unclaimed balance and total supply.
     if (_unclaimedTokensToBurn > 0) {
