@@ -859,8 +859,12 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     uint256 _ethOverflow;
 
     // Add the current ETH overflow for each terminal.
-    for (uint256 _i = 0; _i < _terminals.length; _i++)
+    for (uint256 _i = 0; _i < _terminals.length; ) {
       _ethOverflow = _ethOverflow + _terminals[_i].currentEthOverflowOf(_projectId);
+      unchecked {
+        ++_i;
+      }
+    }
 
     // Convert the ETH overflow to the specified currency if needed, maintaining a fixed point number with 18 decimals.
     uint256 _totalOverflow18Decimal = _currency == JBCurrencies.ETH

@@ -909,7 +909,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     JBSplit[] memory _splits = splitsStore.splitsOf(_projectId, _domain, _group);
 
     //Transfer between all splits.
-    for (uint256 _i = 0; _i < _splits.length; _i++) {
+    for (uint256 _i = 0; _i < _splits.length; ) {
       // Get a reference to the split being iterated on.
       JBSplit memory _split = _splits[_i];
 
@@ -963,6 +963,10 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
         _tokenCount,
         msg.sender
       );
+
+      unchecked {
+        ++_i;
+      }
     }
   }
 
@@ -1010,7 +1014,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     splitsStore.set(_projectId, _fundingCycle.configuration, _groupedSplits);
 
     // Set distribution limits if there are any.
-    for (uint256 _i; _i < _fundAccessConstraints.length; _i++) {
+    for (uint256 _i; _i < _fundAccessConstraints.length; ) {
       JBFundAccessConstraints memory _constraints = _fundAccessConstraints[_i];
 
       // If distribution limit value is larger than 232 bits, revert.
@@ -1050,6 +1054,10 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
         _constraints,
         msg.sender
       );
+
+      unchecked {
+        ++_i;
+      }
     }
 
     return _fundingCycle.configuration;

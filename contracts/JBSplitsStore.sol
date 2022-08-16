@@ -201,14 +201,14 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     JBSplit[] memory _currentSplits = _getStructsFor(_projectId, _domain, _group);
 
     // Check to see if all locked splits are included.
-    for (uint256 _i = 0; _i < _currentSplits.length; _i++) {
+    for (uint256 _i = 0; _i < _currentSplits.length; ) {
       // If not locked, continue.
       if (block.timestamp >= _currentSplits[_i].lockedUntil) continue;
 
       // Keep a reference to whether or not the locked split being iterated on is included.
       bool _includesLocked = false;
 
-      for (uint256 _j = 0; _j < _splits.length; _j++) {
+      for (uint256 _j = 0; _j < _splits.length; ) {
         // Check for sameness.
         if (
           _splits[_j].percent == _currentSplits[_i].percent &&
@@ -223,15 +223,22 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
           _includesLocked = true;
           break;
         }
+        unchecked {
+          ++_j;
+        }
       }
 
       if (!_includesLocked) revert PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();
+
+      unchecked {
+        ++_i;
+      }
     }
 
     // Add up all the percents to make sure they cumulatively are under 100%.
     uint256 _percentTotal = 0;
 
-    for (uint256 _i = 0; _i < _splits.length; _i++) {
+    for (uint256 _i = 0; _i < _splits.length; ) {
       // The percent should be greater than 0.
       if (_splits[_i].percent == 0) revert INVALID_SPLIT_PERCENT();
 
@@ -278,6 +285,9 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
         delete _packedSplitParts2Of[_projectId][_domain][_group][_i];
 
       emit SetSplit(_projectId, _domain, _group, _splits[_i], msg.sender);
+      unchecked {
+        ++_i;
+      }
     }
 
     // Set the new length of the splits.
