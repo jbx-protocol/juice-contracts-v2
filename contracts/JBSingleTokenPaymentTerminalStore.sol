@@ -342,7 +342,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     uint256 _weight;
 
     // If the funding cycle has configured a data source, use it to derive a weight and memo.
-    if (fundingCycle.useDataSourceForPay()) {
+    if (fundingCycle.useDataSourceForPay() && fundingCycle.dataSource() != address(0)) {
       // Create the params that'll be sent to the data source.
       JBPayParamsData memory _data = JBPayParamsData(
         IJBSingleTokenPaymentTerminal(msg.sender),
@@ -486,7 +486,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
       }
 
       // If the funding cycle has configured a data source, use it to derive a claim amount and memo.
-      if (fundingCycle.useDataSourceForRedeem()) {
+      if (fundingCycle.useDataSourceForRedeem() && fundingCycle.dataSource() != address(0)) {
         // Create the params that'll be sent to the data source.
         JBRedeemParamsData memory _data = JBRedeemParamsData(
           IJBSingleTokenPaymentTerminal(msg.sender),
