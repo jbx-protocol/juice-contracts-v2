@@ -867,7 +867,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     uint256 _ethOverflow;
 
     // Add the current ETH overflow for each terminal.
-    for (uint256 _i = 0; _i < _terminals.length; ) {
+    for (uint256 _i; _i < _terminals.length; ) {
       _ethOverflow = _ethOverflow + _terminals[_i].currentEthOverflowOf(_projectId);
       unchecked {
         ++_i;

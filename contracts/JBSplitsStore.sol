@@ -162,7 +162,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     uint256 _groupedSplitsLength = _groupedSplits.length;
 
     // Set each grouped splits.
-    for (uint256 _i = 0; _i < _groupedSplitsLength; ) {
+    for (uint256 _i; _i < _groupedSplitsLength; ) {
       // Get a reference to the grouped split being iterated on.
       JBGroupedSplits memory _groupedSplit = _groupedSplits[_i];
 
@@ -182,10 +182,8 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
   /** 
     @notice 
     Sets a project's splits.
-
     @dev
     The new splits must include any currently set splits that are locked.
-
     @param _projectId The ID of the project for which splits are being added.
     @param _domain An identifier within which the splits should be considered active.
     @param _group An identifier between of splits being set. All splits within this _group must add up to within 100%.
@@ -200,35 +198,16 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     // Get a reference to the project's current splits.
     JBSplit[] memory _currentSplits = _getStructsFor(_projectId, _domain, _group);
 
+    // Keep a reference to the number of splits.
+    uint256 _currentSplitsLength = _currentSplits.length;
+
     // Check to see if all locked splits are included.
-    for (uint256 _i = 0; _i < _currentSplits.length; ) {
+    for (uint256 _i; _i < _currentSplitsLength; ) {
       // If not locked, continue.
-      if (block.timestamp >= _currentSplits[_i].lockedUntil) continue;
-
-      // Keep a reference to whether or not the locked split being iterated on is included.
-      bool _includesLocked = false;
-
-      for (uint256 _j = 0; _j < _splits.length; ) {
-        // Check for sameness.
-        if (
-          _splits[_j].percent == _currentSplits[_i].percent &&
-          _splits[_j].beneficiary == _currentSplits[_i].beneficiary &&
-          _splits[_j].allocator == _currentSplits[_i].allocator &&
-          _splits[_j].projectId == _currentSplits[_i].projectId &&
-          _splits[_j].preferClaimed == _currentSplits[_i].preferClaimed &&
-          _splits[_j].preferAddToBalance == _currentSplits[_j].preferAddToBalance &&
-          // Allow lock extention.
-          _splits[_j].lockedUntil >= _currentSplits[_i].lockedUntil
-        ) {
-          _includesLocked = true;
-          break;
-        }
-        unchecked {
-          ++_j;
-        }
-      }
-
-      if (!_includesLocked) revert PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();
+      if (
+        block.timestamp < _currentSplits[_i].lockedUntil &&
+        !_includesLocked(_splits, _currentSplits[_i])
+      ) revert PREVIOUS_LOCKED_SPLITS_NOT_INCLUDED();
 
       unchecked {
         ++_i;
@@ -236,9 +215,12 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     }
 
     // Add up all the percents to make sure they cumulatively are under 100%.
-    uint256 _percentTotal = 0;
+    uint256 _percentTotal;
 
-    for (uint256 _i = 0; _i < _splits.length; ) {
+    // Keep a reference to the number of splits.
+    uint256 _splitsLength = _splits.length;
+
+    for (uint256 _i; _i < _splitsLength; ) {
       // The percent should be greater than 0.
       if (_splits[_i].percent == 0) revert INVALID_SPLIT_PERCENT();
 
@@ -264,7 +246,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
       // beneficiary in bits 90-249.
       _packedSplitParts1 |= uint256(uint160(address(_splits[_i].beneficiary))) << 90;
 
-      // Store the first spit part.
+      // Store the first split part.
       _packedSplitParts1Of[_projectId][_domain][_group][_i] = _packedSplitParts1;
 
       // If there's data to store in the second packed split part, pack and store.
@@ -285,13 +267,45 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
         delete _packedSplitParts2Of[_projectId][_domain][_group][_i];
 
       emit SetSplit(_projectId, _domain, _group, _splits[_i], msg.sender);
+
       unchecked {
         ++_i;
       }
     }
 
     // Set the new length of the splits.
-    _splitCountOf[_projectId][_domain][_group] = _splits.length;
+    _splitCountOf[_projectId][_domain][_group] = _splitsLength;
+  }
+
+  /** 
+    @notice
+    A flag indiciating if the provided splits array includes the locked split. 
+
+    @param _splits The array of splits to check within.
+    @param _lockedSplit The locked split.
+
+    @return A flag indicating if the `_lockedSplit` is contained in the `_splits`.
+  */
+  function _includesLocked(JBSplit[] memory _splits, JBSplit memory _lockedSplit)
+    private
+    pure
+    returns (bool)
+  {
+    for (uint256 _j; _j < _splits.length; _j++) {
+      // Check for sameness.
+      if (
+        _splits[_j].percent == _lockedSplit.percent &&
+        _splits[_j].beneficiary == _lockedSplit.beneficiary &&
+        _splits[_j].allocator == _lockedSplit.allocator &&
+        _splits[_j].projectId == _lockedSplit.projectId &&
+        _splits[_j].preferClaimed == _lockedSplit.preferClaimed &&
+        _splits[_j].preferAddToBalance == _lockedSplit.preferAddToBalance &&
+        // Allow lock extention.
+        _splits[_j].lockedUntil >= _lockedSplit.lockedUntil
+      ) return true;
+    }
+
+    return false;
   }
 
   /**
@@ -316,7 +330,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     JBSplit[] memory _splits = new JBSplit[](_splitCount);
 
     // Loop through each split and unpack the values into structs.
-    for (uint256 _i = 0; _i < _splitCount; _i++) {
+    for (uint256 _i; _i < _splitCount; _i++) {
       // Get a reference to the fist packed data.
       uint256 _packedSplitPart1 = _packedSplitParts1Of[_projectId][_domain][_group][_i];
 

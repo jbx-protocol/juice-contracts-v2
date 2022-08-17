@@ -723,7 +723,7 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
       _discountMultiple = _startDistance / _baseFundingCycle.duration; // Non-null duration is excluded above
     }
 
-    for (uint256 _i = 0; _i < _discountMultiple; ) {
+    for (uint256 _i; _i < _discountMultiple; ) {
       // The number of times to apply the discount rate.
       // Base the new weight on the specified funding cycle's weight.
       weight = PRBMath.mulDiv(

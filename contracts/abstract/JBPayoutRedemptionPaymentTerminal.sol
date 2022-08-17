@@ -615,7 +615,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _heldFeeLength = _heldFees.length;
 
     // Process each fee.
-    for (uint256 _i = 0; _i < _heldFeeLength; ) {
+    for (uint256 _i; _i < _heldFeeLength; ) {
       // Get the fee amount.
       uint256 _amount = _feeAmount(
         _heldFees[_i].amount,
@@ -1026,7 +1026,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     JBSplit[] memory _splits = splitsStore.splitsOf(_projectId, _domain, _group);
 
     // Transfer between all splits.
-    for (uint256 _i = 0; _i < _splits.length; ) {
+    for (uint256 _i; _i < _splits.length; ) {
       // Get a reference to the split being iterated on.
       JBSplit memory _split = _splits[_i];
 
@@ -1420,7 +1420,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _heldFeesLength = _heldFees.length;
 
     // Process each fee.
-    for (uint256 _i = 0; _i < _heldFeesLength; ) {
+    for (uint256 _i; _i < _heldFeesLength; ) {
       if (leftoverAmount == 0) _heldFeesOf[_projectId].push(_heldFees[_i]);
       else if (leftoverAmount >= _heldFees[_i].amount) {
         unchecked {
