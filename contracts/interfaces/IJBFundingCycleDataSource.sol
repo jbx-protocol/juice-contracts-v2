@@ -4,6 +4,7 @@ pragma solidity ^0.8.16;
 import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 import './../structs/JBPayParamsData.sol';
 import './../structs/JBRedeemParamsData.sol';
+import './../structs/JBPayDelegateAllocation.sol';
 import './IJBFundingCycleStore.sol';
 import './IJBPayDelegate.sol';
 import './IJBRedemptionDelegate.sol';
@@ -39,15 +40,14 @@ interface IJBFundingCycleDataSource is IERC165 {
 
     @return weight the weight to use to override the funding cycle weight
     @return memo the memo to override the pay(..) memo
-    @return delegates the addresses of the pay delegate (might or might not be the same contract)
+    @return delegateAllocations The amount to send to delegates instead of adding to the local balance.
   */
   function payParams(JBPayParamsData calldata _data)
     external
     returns (
       uint256 weight,
       string memory memo,
-      IJBPayDelegate[] memory delegates,
-      uint256[] memory delegatedAmounts
+      JBPayDelegateAllocation[] memory delegateAllocations
     );
 
   /**

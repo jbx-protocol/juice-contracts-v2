@@ -327,7 +327,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     returns (
       JBFundingCycle memory fundingCycle,
       uint256 tokenCount,
-      JBPayDelegateAllocation[] delegateAllocations,
+      JBPayDelegateAllocation[] memory delegateAllocations,
       string memory memo
     )
   {

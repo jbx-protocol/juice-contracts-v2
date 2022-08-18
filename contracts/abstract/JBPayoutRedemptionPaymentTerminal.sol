@@ -1317,6 +1317,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Scoped section prevents stack too deep. `_delegateAllocations` and `_tokenCount` only used within scope.
     {
       JBPayDelegateAllocation[] memory _delegateAllocations;
+      uint256 _tokenCount;
 
       // Bundle the amount info into a JBTokenAmount struct.
       JBTokenAmount memory _bundledAmount = JBTokenAmount(token, _amount, decimals, currency);
@@ -1366,15 +1367,15 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
         for (uint256 _i; _i < _numDelegates; ) {
           // Get a reference to the delegate being iterated on.
-          JBPayDelegateAllocation _delegateAllocation = _delegateAllocations[_i];
+          JBPayDelegateAllocation memory _delegateAllocation = _delegateAllocations[_i];
 
           // Trigger any inherited pre-transfer logic.
-          _beforeTransferTo(address(_delegate), _delegateAllocation.amount);
+          _beforeTransferTo(address(_delegateAllocation.delegate), _delegateAllocation.amount);
 
           // If this terminal's token is ETH, send it in msg.value.
           uint256 _payableValue = token == JBTokens.ETH ? _delegateAllocation.amount : 0;
 
-          _delegate.didPay{value: _payableValue}(_data);
+          _delegateAllocation.delegate.didPay{value: _payableValue}(_data);
 
           emit DelegateDidPay(
             _delegateAllocation.delegate,
@@ -1391,14 +1392,14 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     }
 
     emit Pay(
-      fundingCycle.configuration,
-      fundingCycle.number,
+      _fundingCycle.configuration,
+      _fundingCycle.number,
       _projectId,
       _payer,
       _beneficiary,
       _amount,
       beneficiaryTokenCount,
-      memo,
+      _memo,
       _metadata,
       msg.sender
     );

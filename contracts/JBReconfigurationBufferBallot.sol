@@ -47,6 +47,8 @@ contract JBReconfigurationBufferBallot is IJBFundingCycleBallot, ERC165 {
     uint256 _configured,
     uint256 _start
   ) public view override returns (JBBallotState) {
+    _projectId; // Prevents unused var compiler and natspec complaints.
+
     // If there was sufficient time between configuration and the start of the cycle, it is approved. Otherwise, it is failed.
     return (_start - _configured < duration) ? JBBallotState.Failed : JBBallotState.Approved;
   }
