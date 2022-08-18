@@ -27,7 +27,11 @@ describe('JBChainlinkV3PriceFeed::currentPrice(...)', function () {
    * Initialiazes mock price feed, adds it to JBPrices, and returns the fetched result.
    */
   async function currentPrice(price, decimals) {
-    await aggregatorV3Contract.mock.latestRoundData.returns(0, price, 0, 0, 0);
+    const blockNum = await ethers.provider.getBlockNumber();
+    const block = await ethers.provider.getBlock(blockNum);
+    const timestamp = block.timestamp;
+
+    await aggregatorV3Contract.mock.latestRoundData.returns(0, price, 0, timestamp - 1, 0);
     await aggregatorV3Contract.mock.decimals.returns(decimals);
     return await jbChainlinkPriceFeed.connect(deployer).currentPrice(targetDecimals);
   }

@@ -105,15 +105,10 @@ describe('JBController::changeTokenOf(...)', function () {
       metadata: packFundingCycleMetadata({ allowChangeToken: 1 }),
     });
 
-    await mockJbTokenStore.mock.changeFor
-      .withArgs(PROJECT_ID, mockJbToken.address, newTokenOwner.address)
-      .returns(ethers.constants.AddressZero);
+    await mockJbTokenStore.mock.setFor.withArgs(PROJECT_ID, mockJbToken.address).returns();
 
-    await expect(
-      jbController
-        .connect(projectOwner)
-        .changeTokenOf(PROJECT_ID, mockJbToken.address, newTokenOwner.address),
-    ).to.be.not.reverted;
+    await expect(jbController.connect(projectOwner).setTokenOf(PROJECT_ID, mockJbToken.address)).to
+      .be.not.reverted;
   });
 
   it(`Should change current token if caller is not project owner but is authorized`, async function () {
