@@ -176,7 +176,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     Deploys a project's ERC-20 token contract.
 
     @dev
-    Only a project's current controller can issue its token.
+    Only a project's owner or operator can issue its token.
 
     @param _projectId The ID of the project being issued tokens.
     @param _name The ERC-20's name.
@@ -188,7 +188,12 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     uint256 _projectId,
     string calldata _name,
     string calldata _symbol
-  ) external override onlyController(_projectId) returns (IJBToken token) {
+  )
+    external
+    override
+    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.ISSUE)
+    returns (IJBToken token)
+  {
     // There must be a name.
     if (bytes(_name).length == 0) revert EMPTY_NAME();
 
@@ -212,7 +217,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     Set a project's token if not already set.
 
     @dev
-    Only a project's current controller can change its token.
+    Only a project's owner or operator can set its token.
 
     @dev
     This contract must have access to all of the token's `IJBToken` interface functions.
@@ -226,7 +231,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
   function setFor(uint256 _projectId, IJBToken _token)
     external
     override
-    onlyController(_projectId)
+    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.CHANGE_TOKEN)
   {
     // Can't set to the zero address.
     if (_token == IJBToken(address(0))) revert EMPTY_TOKEN();

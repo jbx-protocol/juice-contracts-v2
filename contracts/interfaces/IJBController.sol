@@ -168,14 +168,6 @@ interface IJBController is IERC165 {
     string calldata _memo
   ) external returns (uint256);
 
-  function issueTokenFor(
-    uint256 _projectId,
-    string calldata _name,
-    string calldata _symbol
-  ) external returns (IJBToken token);
-
-  function setTokenOf(uint256 _projectId, IJBToken _token) external;
-
   function mintTokensOf(
     uint256 _projectId,
     uint256 _tokenCount,

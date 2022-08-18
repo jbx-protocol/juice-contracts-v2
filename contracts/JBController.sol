@@ -38,7 +38,6 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
   //*********************************************************************//
   error BURN_PAUSED_AND_SENDER_NOT_VALID_TERMINAL_DELEGATE();
   error CANT_MIGRATE_TO_CURRENT_CONTROLLER();
-  error SET_TOKEN_NOT_ALLOWED();
   error FUNDING_CYCLE_ALREADY_LAUNCHED();
   error INVALID_BALLOT_REDEMPTION_RATE();
   error INVALID_DISTRIBUTION_LIMIT();
@@ -547,61 +546,6 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     );
 
     emit ReconfigureFundingCycles(configuration, _projectId, _memo, msg.sender);
-  }
-
-  /**
-    @notice
-    Issues an owner's ERC20 JBTokens that'll be used when claiming tokens.
-
-    @dev
-    Deploys a project's ERC20 JBToken contract.
-
-    @dev
-    Only a project's owner or operator can issue its token.
-
-    @param _projectId The ID of the project being issued tokens.
-    @param _name The ERC20's name.
-    @param _symbol The ERC20's symbol.
-  */
-  function issueTokenFor(
-    uint256 _projectId,
-    string calldata _name,
-    string calldata _symbol
-  )
-    external
-    virtual
-    override
-    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.ISSUE)
-    returns (IJBToken token)
-  {
-    // Issue the token in the store.
-    return tokenStore.issueFor(_projectId, _name, _symbol);
-  }
-
-  /**
-    @notice
-    Set the project's token that is minted and burned.
-
-    @dev
-    Only a project's owner or operator can set its token.
-
-    @param _projectId The ID of the project to which the set token belongs.
-    @param _token The new token.
-  */
-  function setTokenOf(uint256 _projectId, IJBToken _token)
-    external
-    virtual
-    override
-    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.CHANGE_TOKEN)
-  {
-    // Get a reference to the project's current funding cycle.
-    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
-
-    // The current funding cycle must not be paused.
-    if (!_fundingCycle.setTokenAllowed()) revert SET_TOKEN_NOT_ALLOWED();
-
-    // Set the token in the store.
-    tokenStore.setFor(_projectId, _token);
   }
 
   /**

@@ -54,16 +54,12 @@ library JBFundingCycleMetadataResolver {
     return ((_fundingCycle.metadata >> 76) & 1) == 1;
   }
 
-  function setTokenAllowed(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
-    return ((_fundingCycle.metadata >> 77) & 1) == 1;
-  }
-
   function terminalMigrationAllowed(JBFundingCycle memory _fundingCycle)
     internal
     pure
     returns (bool)
   {
-    return ((_fundingCycle.metadata >> 78) & 1) == 1;
+    return ((_fundingCycle.metadata >> 77) & 1) == 1;
   }
 
   function controllerMigrationAllowed(JBFundingCycle memory _fundingCycle)
@@ -71,11 +67,11 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (bool)
   {
-    return ((_fundingCycle.metadata >> 79) & 1) == 1;
+    return ((_fundingCycle.metadata >> 78) & 1) == 1;
   }
 
   function shouldHoldFees(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
-    return ((_fundingCycle.metadata >> 80) & 1) == 1;
+    return ((_fundingCycle.metadata >> 79) & 1) == 1;
   }
 
   function useTotalOverflowForRedemptions(JBFundingCycle memory _fundingCycle)
@@ -83,11 +79,11 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (bool)
   {
-    return ((_fundingCycle.metadata >> 81) & 1) == 1;
+    return ((_fundingCycle.metadata >> 80) & 1) == 1;
   }
 
   function useDataSourceForPay(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
-    return (_fundingCycle.metadata >> 82) & 1 == 1;
+    return (_fundingCycle.metadata >> 81) & 1 == 1;
   }
 
   function useDataSourceForRedeem(JBFundingCycle memory _fundingCycle)
@@ -95,11 +91,11 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (bool)
   {
-    return (_fundingCycle.metadata >> 83) & 1 == 1;
+    return (_fundingCycle.metadata >> 82) & 1 == 1;
   }
 
   function dataSource(JBFundingCycle memory _fundingCycle) internal pure returns (address) {
-    return address(uint160(_fundingCycle.metadata >> 84));
+    return address(uint160(_fundingCycle.metadata >> 83));
   }
 
   /**
@@ -139,22 +135,20 @@ library JBFundingCycleMetadataResolver {
     if (_metadata.pauseBurn) packed |= 1 << 75;
     // allow minting in bit 76.
     if (_metadata.allowMinting) packed |= 1 << 76;
-    // allow set token in bit 77.
-    if (_metadata.allowSetToken) packed |= 1 << 77;
-    // allow terminal migration in bit 78.
-    if (_metadata.allowTerminalMigration) packed |= 1 << 78;
-    // allow controller migration in bit 79.
-    if (_metadata.allowControllerMigration) packed |= 1 << 79;
-    // hold fees in bit 80.
-    if (_metadata.holdFees) packed |= 1 << 80;
-    // useTotalOverflowForRedemptions in bit 81.
-    if (_metadata.useTotalOverflowForRedemptions) packed |= 1 << 81;
-    // use pay data source in bit 82.
-    if (_metadata.useDataSourceForPay) packed |= 1 << 82;
-    // use redeem data source in bit 83.
-    if (_metadata.useDataSourceForRedeem) packed |= 1 << 83;
-    // data source address in bits 84-243.
-    packed |= uint256(uint160(address(_metadata.dataSource))) << 84;
+    // allow terminal migration in bit 77.
+    if (_metadata.allowTerminalMigration) packed |= 1 << 77;
+    // allow controller migration in bit 78.
+    if (_metadata.allowControllerMigration) packed |= 1 << 78;
+    // hold fees in bit 79.
+    if (_metadata.holdFees) packed |= 1 << 79;
+    // useTotalOverflowForRedemptions in bit 80.
+    if (_metadata.useTotalOverflowForRedemptions) packed |= 1 << 80;
+    // use pay data source in bit 81.
+    if (_metadata.useDataSourceForPay) packed |= 1 << 81;
+    // use redeem data source in bit 82.
+    if (_metadata.useDataSourceForRedeem) packed |= 1 << 82;
+    // data source address in bits 83-242.
+    packed |= uint256(uint160(address(_metadata.dataSource))) << 83;
   }
 
   /**
@@ -181,7 +175,6 @@ library JBFundingCycleMetadataResolver {
         redeemPaused(_fundingCycle),
         burnPaused(_fundingCycle),
         mintingAllowed(_fundingCycle),
-        setTokenAllowed(_fundingCycle),
         terminalMigrationAllowed(_fundingCycle),
         controllerMigrationAllowed(_fundingCycle),
         shouldHoldFees(_fundingCycle),
