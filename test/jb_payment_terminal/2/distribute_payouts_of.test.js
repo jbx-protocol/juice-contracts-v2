@@ -302,8 +302,8 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             [
               /*token*/ '0x000000000000000000000000000000000000eeee',
               /*amount paid*/ Math.floor(
-              (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
-            ),
+                (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
+              ),
               /*decimal*/ 18,
               CURRENCY,
             ],
@@ -420,8 +420,8 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             [
               /*token*/ '0x000000000000000000000000000000000000eeee',
               /*amount paid*/ Math.floor(
-              (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
-            ),
+                (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
+              ),
               /*decimal*/ 18,
               CURRENCY,
             ],
@@ -1225,8 +1225,8 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             [
               /*token*/ '0x000000000000000000000000000000000000eeee',
               /*amount paid*/ Math.floor(
-              (AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT,
-            ),
+                (AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT,
+              ),
               /*decimal*/ 18,
               CURRENCY,
             ],
@@ -2513,8 +2513,8 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             [
               /*token*/ '0x000000000000000000000000000000000000eeee',
               /*amount paid*/ Math.floor(
-              (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
-            ),
+                (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
+              ),
               /*decimal*/ 18,
               CURRENCY,
             ],
@@ -2763,7 +2763,116 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         /*_distributedAmount*/ AMOUNT_DISTRIBUTED,
         /*_feeAmount*/ 0,
         /*_leftoverDistributionAmount*/ AMOUNT_DISTRIBUTED -
-        ((AMOUNT_DISTRIBUTED * PERCENT) / SPLITS_TOTAL_PERCENT) * splits.length,
+          ((AMOUNT_DISTRIBUTED * PERCENT) / SPLITS_TOTAL_PERCENT) * splits.length,
+        MEMO,
+        caller.address,
+      );
+  });
+
+  it('Rounding error: should take a fee of 1 if leftover is 1, even when beneficiary is fee-less', async function () {
+    const {
+      projectOwner,
+      terminalOwner,
+      caller,
+      beneficiaryOne,
+      beneficiaryTwo,
+      jbEthPaymentTerminal,
+      timestamp,
+      mockJbSplitsStore,
+      mockJbDirectory,
+      mockJBPaymentTerminalStore,
+    } = await setup();
+
+    const AMOUNT_TO_DISTRIBUTE_ODD = 101;
+    const splits = makeSplits({
+      count: 2,
+      projectId: OTHER_PROJECT_ID,
+      beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
+    });
+
+    await mockJbSplitsStore.mock.splitsOf
+      .withArgs(PROJECT_ID, timestamp, ETH_PAYOUT_INDEX)
+      .returns(splits);
+
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(OTHER_PROJECT_ID, ETH_ADDRESS)
+      .returns(jbEthPaymentTerminal.address);
+
+    // ETH distribution
+    await mockJBPaymentTerminalStore.mock.recordDistributionFor
+      .withArgs(PROJECT_ID, AMOUNT_TO_DISTRIBUTE_ODD, CURRENCY)
+      .returns(fundingCycle, AMOUNT_TO_DISTRIBUTE_ODD - 1);
+
+    await Promise.all(
+      splits.map(async (split) => {
+        await mockJBPaymentTerminalStore.mock.recordPaymentFrom
+          .withArgs(
+            jbEthPaymentTerminal.address,
+            [
+              /*token*/ '0x000000000000000000000000000000000000eeee',
+              /*amount paid*/ Math.floor(
+                (AMOUNT_TO_DISTRIBUTE_ODD * split.percent) / SPLITS_TOTAL_PERCENT,
+              ),
+              /*decimal*/ 18,
+              CURRENCY,
+            ],
+            split.projectId,
+            CURRENCY,
+            split.beneficiary,
+            '',
+            ethers.utils.hexZeroPad(ethers.utils.hexlify(PROJECT_ID), 32),
+          )
+          .returns(fundingCycle, /*count*/ 0, /* delegate */ ethers.constants.AddressZero, '');
+      }),
+    );
+
+    let tx = await jbEthPaymentTerminal
+      .connect(caller)
+      .distributePayoutsOf(
+        PROJECT_ID,
+        AMOUNT_TO_DISTRIBUTE_ODD,
+        ETH_PAYOUT_INDEX,
+        ethers.constants.AddressZero,
+        AMOUNT_TO_DISTRIBUTE_ODD - 1,
+        MEMO,
+      );
+
+    await Promise.all(
+      splits.map(async (split) => {
+        await expect(tx)
+          .to.emit(jbEthPaymentTerminal, 'DistributeToPayoutSplit')
+          .withArgs(
+            PROJECT_ID,
+            /*_fundingCycle.configuration*/ timestamp,
+            ETH_PAYOUT_INDEX,
+            [
+              split.preferClaimed,
+              split.preferAddToBalance,
+              split.percent,
+              split.projectId,
+              split.beneficiary,
+              split.lockedUntil,
+              split.allocator,
+            ],
+            /*payoutAmount*/ Math.floor(
+              (AMOUNT_TO_DISTRIBUTE_ODD * split.percent) / SPLITS_TOTAL_PERCENT,
+            ),
+            caller.address,
+          );
+      }),
+    );
+
+    expect(await tx)
+      .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
+      .withArgs(
+        /*_fundingCycle.configuration*/ timestamp,
+        /*_fundingCycle.number*/ 1,
+        PROJECT_ID,
+        projectOwner.address,
+        /*_amount*/ AMOUNT_TO_DISTRIBUTE_ODD,
+        /*_distributedAmount*/ AMOUNT_TO_DISTRIBUTE_ODD - 1,
+        /*_feeAmount*/ 1,
+        /*_leftoverDistributionAmount*/ 1,
         MEMO,
         caller.address,
       );
