@@ -14,6 +14,7 @@ import './../libraries/JBOperations.sol';
 import './../libraries/JBSplitsGroups.sol';
 import './../libraries/JBTokens.sol';
 import './../structs/JBTokenAmount.sol';
+import './../structs/JBPayDelegateAllocation.sol';
 import './JBOperatable.sol';
 import './JBSingleTokenPaymentTerminal.sol';
 
@@ -1310,18 +1311,18 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     if (_beneficiary == address(0)) revert PAY_TO_ZERO_ADDRESS();
 
     // Define variables that will be needed outside the scoped section below.
-    // Keep a reference to the response from recording the payment.
-    JBRecordPaymentResponse memory _response;
+    // Keep a reference to the funding cycle during which the payment is being made.
+    JBFundingCycle memory _fundingCycle;
 
-    // Scoped section prevents stack too deep. `_delegates` and `_tokenCount` only used within scope.
+    // Scoped section prevents stack too deep. `_delegateAllocations` and `_tokenCount` only used within scope.
     {
-      IJBPayDelegate[] memory _delegates;
+      JBPayDelegateAllocation[] memory _delegateAllocations;
 
       // Bundle the amount info into a JBTokenAmount struct.
       JBTokenAmount memory _bundledAmount = JBTokenAmount(token, _amount, decimals, currency);
 
       // Record the payment.
-      _response = store.recordPaymentFrom(
+      (_fundingCycle, _tokenCount, _delegateAllocations, _memo) = store.recordPaymentFrom(
         _payer,
         _bundledAmount,
         _projectId,
@@ -1332,11 +1333,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       );
 
       // Mint the tokens if needed.
-      if (_response.tokenCount > 0)
+      if (_tokenCount > 0)
         // Set token count to be the number of tokens minted for the beneficiary instead of the total amount.
         beneficiaryTokenCount = IJBController(directory.controllerOf(_projectId)).mintTokensOf(
           _projectId,
-          _response.tokenCount,
+          _tokenCount,
           _beneficiary,
           '',
           _preferClaimedTokens,
@@ -1347,11 +1348,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       if (beneficiaryTokenCount < _minReturnedTokens) revert INADEQUATE_TOKEN_COUNT();
 
       // If delegates were returned by the data source, issue a callback to it.
-      if (_delegates.length != 0) {
+      if (_delegateAllocations.length != 0) {
         JBDidPayData memory _data = JBDidPayData(
           _payer,
           _projectId,
-          _response.fundingCycle.configuration,
+          _fundingCycle.configuration,
           _bundledAmount,
           beneficiaryTokenCount,
           _beneficiary,
@@ -1360,25 +1361,27 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           _metadata
         );
 
-        // Get a reference to the numbe of delegates.
-        uint256 _numDelegates = _response.delegates.length;
+        // Get a reference to the number of delegates to allocate to.
+        uint256 _numDelegates = _delegateAllocations.length;
 
         for (uint256 _i; _i < _numDelegates; ) {
           // Get a reference to the delegate being iterated on.
-          IJBPayDelegate _delegate = _response.delegates[_i];
-
-          // Get a reference to the amount to delegate.
-          uint256 _delegatedAmount = _response.delegatedAmounts[_i];
+          JBPayDelegateAllocation _delegateAllocation = _delegateAllocations[_i];
 
           // Trigger any inherited pre-transfer logic.
-          _beforeTransferTo(address(_delegate), _delegatedAmount);
+          _beforeTransferTo(address(_delegate), _delegateAllocation.amount);
 
           // If this terminal's token is ETH, send it in msg.value.
-          uint256 _payableValue = token == JBTokens.ETH ? _delegatedAmount : 0;
+          uint256 _payableValue = token == JBTokens.ETH ? _delegateAllocation.amount : 0;
 
           _delegate.didPay{value: _payableValue}(_data);
 
-          emit DelegateDidPay(_delegate, _data, _delegatedAmount, msg.sender);
+          emit DelegateDidPay(
+            _delegateAllocation.delegate,
+            _data,
+            _delegateAllocation.amount,
+            msg.sender
+          );
 
           unchecked {
             ++_i;
@@ -1388,14 +1391,14 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     }
 
     emit Pay(
-      _response.fundingCycle.configuration,
-      _response.fundingCycle.number,
+      fundingCycle.configuration,
+      fundingCycle.number,
       _projectId,
       _payer,
       _beneficiary,
       _amount,
       beneficiaryTokenCount,
-      _response.memo,
+      memo,
       _metadata,
       msg.sender
     );
