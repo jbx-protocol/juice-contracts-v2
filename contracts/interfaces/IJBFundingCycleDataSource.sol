@@ -39,14 +39,15 @@ interface IJBFundingCycleDataSource is IERC165 {
 
     @return weight the weight to use to override the funding cycle weight
     @return memo the memo to override the pay(..) memo
-    @return delegate the address of the pay delegate (might or might not be the same contract)
+    @return delegates the addresses of the pay delegate (might or might not be the same contract)
   */
   function payParams(JBPayParamsData calldata _data)
     external
     returns (
       uint256 weight,
       string memory memo,
-      IJBPayDelegate delegate
+      IJBPayDelegate[] memory delegates,
+      uint256[] memory delegatedAmounts
     );
 
   /**
@@ -68,15 +69,15 @@ interface IJBFundingCycleDataSource is IERC165 {
                     string memo;
                     bytes metadata;
 
-    @return reclaimAmount the amount to claim, overriding the terminal logic
-    @return memo the memo to override the redeemTokensOf(..) memo
-    @return delegate the address of the redemption delegate (might or might not be the same contract)
+    @return reclaimAmount The amount to claim, overriding the terminal logic.
+    @return memo The memo to override the redeemTokensOf(..) memo.
+    @return delegates The addresses of the redemption delegates (might or might not be the same contract).
   */
   function redeemParams(JBRedeemParamsData calldata _data)
     external
     returns (
       uint256 reclaimAmount,
       string memory memo,
-      IJBRedemptionDelegate delegate
+      IJBRedemptionDelegate[] memory delegates
     );
 }
