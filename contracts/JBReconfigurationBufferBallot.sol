@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity ^0.8.16;
 
 import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import './interfaces/IJBFundingCycleBallot.sol';

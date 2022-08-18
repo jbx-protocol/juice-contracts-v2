@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity ^0.8.16;
 
 library JBSplitsGroups {
   uint256 public constant ETH_PAYOUT = 1;

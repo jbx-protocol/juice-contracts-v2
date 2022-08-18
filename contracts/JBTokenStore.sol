@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity ^0.8.16;
 
 import './abstract/JBControllerUtility.sol';
 import './abstract/JBOperatable.sol';
@@ -321,18 +321,18 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     // The amount of tokens to burn.
     uint256 _claimedTokensToBurn;
 
-    // If there's no balance, redeem no tokens.
-    if (_claimedBalance == 0)
-      _claimedTokensToBurn = 0;
+    if (_claimedBalance != 0) {
       // If prefer converted, redeem tokens before redeeming unclaimed tokens.
-    else if (_preferClaimedTokens)
-      _claimedTokensToBurn = _claimedBalance < _amount ? _claimedBalance : _amount;
-      // Otherwise, redeem unclaimed tokens before claimed tokens.
-    else {
-      unchecked {
-        _claimedTokensToBurn = _unclaimedBalance < _amount ? _amount - _unclaimedBalance : 0;
+      if (_preferClaimedTokens)
+        _claimedTokensToBurn = _claimedBalance < _amount ? _claimedBalance : _amount;
+        // Otherwise, redeem unclaimed tokens before claimed tokens.
+      else {
+        unchecked {
+          _claimedTokensToBurn = _unclaimedBalance < _amount ? _amount - _unclaimedBalance : 0;
+        }
       }
-    }
+      // If there's no balance, redeem no tokens.
+    } else _claimedTokensToBurn = 0;
 
     // The amount of unclaimed tokens to redeem.
     uint256 _unclaimedTokensToBurn;

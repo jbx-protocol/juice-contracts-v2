@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity ^0.8.16;
 
 import './interfaces/IJBETHERC20ProjectPayerDeployer.sol';
 import './JBETHERC20ProjectPayer.sol';
