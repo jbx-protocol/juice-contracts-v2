@@ -34,5 +34,5 @@ interface IJBPayDelegate is IERC165 {
                   string memo;
                   bytes metadata;
   */
-  function didPay(JBDidPayData calldata _data) external;
+  function didPay(JBDidPayData calldata _data) external payable;
 }
