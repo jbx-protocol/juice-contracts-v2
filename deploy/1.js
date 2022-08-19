@@ -265,13 +265,13 @@ module.exports = async ({ deployments, getChainId }) => {
     // Deploy a JB3DayReconfigurationBufferBallot.
     const JB3DayReconfigurationBufferBallot = await deploy('JBReconfigurationBufferBallot', {
       ...baseDeployArgs,
-      args: [259200, JBFundingCycleStore.address],
+      args: [259200],
     });
 
     // Deploy a JB7DayReconfigurationBufferBallot.
     await deploy('JBReconfigurationBufferBallot', {
       ...baseDeployArgs,
-      args: [604800, JBFundingCycleStore.address],
+      args: [604800],
     });
 
     console.log('Deploying protocol project...');
@@ -305,7 +305,6 @@ module.exports = async ({ deployments, getChainId }) => {
         /*pauseRedeem*/ false,
         /*pauseBurn*/ false,
         /*allowMinting*/ false,
-        /*allowChangeToken*/ false,
         /*allowTerminalMigration*/ false,
         /*allowControllerMigration*/ false,
         /*holdFees*/ false,
