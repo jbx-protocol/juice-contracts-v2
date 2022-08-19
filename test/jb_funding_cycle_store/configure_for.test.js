@@ -10,7 +10,7 @@ import ijbFundingCycleBallot from '../../artifacts/contracts/interfaces/IJBFundi
 import { BigNumber } from 'ethers';
 import errors from '../helpers/errors.json';
 
-describe('JBFundingCycleStore::configureFor(...)', function () {
+describe.only('JBFundingCycleStore::configureFor(...)', function () {
   const PROJECT_ID = 2;
 
   const EMPTY_FUNDING_CYCLE = {

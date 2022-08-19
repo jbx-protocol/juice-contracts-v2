@@ -323,8 +323,13 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
       if (_ballot.code.length == 0) revert INVALID_BALLOT();
 
       // Make sure the ballot supports the expected interface.
-      if (!_data.ballot.supportsInterface(type(IJBFundingCycleBallot).interfaceId))
-        revert INVALID_BALLOT();
+      try _data.ballot.supportsInterface(type(IJBFundingCycleBallot).interfaceId) returns (
+        bool _supports
+      ) {
+        if (!_supports) revert INVALID_BALLOT(); // Contract exists at the address but with the wrong interface
+      } catch {
+        revert INVALID_BALLOT(); // No ERC165 support
+      }
     }
 
     // The configuration timestamp is now.
@@ -857,10 +862,10 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
 
     // ballot in bits 0-159 bits.
     fundingCycle.ballot = IJBFundingCycleBallot(address(uint160(_packedUserProperties)));
-    // duration in bits 160-191 bits.
-    fundingCycle.duration = uint256(uint32(_packedUserProperties >> 160));
-    // discountRate in bits 192-223 bits.
-    fundingCycle.discountRate = uint256(uint32(_packedUserProperties >> 192));
+    // duration in bits 160-223 bits.
+    fundingCycle.duration = uint256(uint64(_packedUserProperties >> 160));
+    // discountRate in bits 224-255 bits.
+    fundingCycle.discountRate = uint256(uint32(_packedUserProperties >> 224));
 
     fundingCycle.metadata = _metadataOf[_projectId][_configuration];
   }
