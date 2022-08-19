@@ -312,6 +312,9 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     // Weight must fit into a uint88.
     if (_data.weight > type(uint88).max) revert INVALID_WEIGHT();
 
+    // If the start date is in the past, set it to be the current timestamp.
+    if (_mustStartAtOrAfter < block.timestamp) _mustStartAtOrAfter = block.timestamp;
+
     // Make sure the min start date fits in a uint56, and that the start date of an upcoming cycle also starts within the max.
     if (_mustStartAtOrAfter + _data.duration > type(uint56).max) revert INVALID_TIMEFRAME();
 
@@ -336,13 +339,7 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     uint256 _configuration = block.timestamp;
 
     // Set up a reconfiguration by configuring intrinsic properties.
-    _configureIntrinsicPropertiesFor(
-      _projectId,
-      _configuration,
-      _data.weight,
-      // Must start on or after the current timestamp.
-      _mustStartAtOrAfter > block.timestamp ? _mustStartAtOrAfter : block.timestamp
-    );
+    _configureIntrinsicPropertiesFor(_projectId, _configuration, _data.weight, _mustStartAtOrAfter);
 
     // Efficiently stores a funding cycles provided user defined properties.
     // If all user config properties are zero, no need to store anything as the default value will have the same outcome.
@@ -354,11 +351,11 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
       // ballot in bits 0-159 bytes.
       uint256 packed = uint160(address(_data.ballot));
 
-      // duration in bits 160-223 bytes.
+      // duration in bits 160-191 bytes.
       packed |= _data.duration << 160;
 
-      // discountRate in bits 224-255 bytes.
-      packed |= _data.discountRate << 224;
+      // discountRate in bits 192-223 bytes.
+      packed |= _data.discountRate << 192;
 
       // Set in storage.
       _packedUserPropertiesOf[_projectId][_configuration] = packed;
@@ -862,10 +859,10 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
 
     // ballot in bits 0-159 bits.
     fundingCycle.ballot = IJBFundingCycleBallot(address(uint160(_packedUserProperties)));
-    // duration in bits 160-223 bits.
-    fundingCycle.duration = uint256(uint64(_packedUserProperties >> 160));
-    // discountRate in bits 224-255 bits.
-    fundingCycle.discountRate = uint256(uint32(_packedUserProperties >> 224));
+    // duration in bits 160-191 bits.
+    fundingCycle.duration = uint256(uint32(_packedUserProperties >> 160));
+    // discountRate in bits 192-223 bits.
+    fundingCycle.discountRate = uint256(uint32(_packedUserProperties >> 192));
 
     fundingCycle.metadata = _metadataOf[_projectId][_configuration];
   }

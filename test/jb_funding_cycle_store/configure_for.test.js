@@ -127,7 +127,7 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
           DEFAULT_FUNDING_CYCLE_DATA.ballot,
         ],
         fundingCycleMetadata,
-        FUNDING_CYCLE_CAN_START_ASAP,
+        configurationTimestamp,
         controller.address,
       );
 
@@ -2455,6 +2455,26 @@ describe.only('JBFundingCycleStore::configureFor(...)', function () {
         .connect(controller)
         .configureFor(PROJECT_ID, fundingCycleData, 0, FUNDING_CYCLE_CAN_START_ASAP),
     ).to.be.revertedWith(errors.INVALID_BALLOT);
+  });
+
+  it(`Can't configure if the upcoming funding cycle start timestamp would overflow the max value`, async function () {
+    const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore } = await setup();
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    const maxDuration = BigNumber.from(2).pow(32).sub(1);
+    const maxStart = BigNumber.from(2).pow(56).sub(maxDuration);
+
+    const fundingCycleData = createFundingCycleData({
+      duration: maxDuration
+    });
+
+    await mockBallot.mock.supportsInterface.returns(false);
+
+    await expect(
+      jbFundingCycleStore
+        .connect(controller)
+        .configureFor(PROJECT_ID, fundingCycleData, 0, maxStart),
+    ).to.be.revertedWith(errors.INVALID_TIMEFRAME);
   });
 
   it(`Can't configure if ballot has not the valid interface`, async function () {
