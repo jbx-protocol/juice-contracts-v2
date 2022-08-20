@@ -18,6 +18,8 @@ import './../structs/JBPayDelegateAllocation.sol';
 import './JBOperatable.sol';
 import './JBSingleTokenPaymentTerminal.sol';
 
+import 'hardhat/console.sol';
+
 /**
   @notice
   Generic terminal managing all inflows and outflows of funds into the protocol ecosystem.
@@ -914,11 +916,13 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           _feeDiscount
         );
 
-      netLeftoverDistributionAmount = _feeEligibleDistributionAmount - _fee;
-
-      // Transfer any remaining balance to the project owner.
-      if (netLeftoverDistributionAmount > 0)
+      // Transfer any remaining balance to the project owner and update returned leftover accordingly
+      if (_leftoverDistributionAmount != 0) {
+        netLeftoverDistributionAmount =
+          _leftoverDistributionAmount -
+          _feeAmount(_leftoverDistributionAmount, fee, _feeDiscount);
         _transferFrom(address(this), _projectOwner, netLeftoverDistributionAmount);
+      } // else netLeftoverDistributionAmount = 0
     }
 
     emit DistributePayouts(
