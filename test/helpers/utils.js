@@ -131,7 +131,6 @@ export function packFundingCycleMetadata({
   pauseRedeem = 0, // boolean
   pauseBurn = 0, // boolean
   allowMinting = 0, // boolean
-  allowChangeToken = 0, // boolean
   allowTerminalMigration = 0, // boolean
   allowControllerMigration = 0, // boolean
   holdFees = 0, // boolean
@@ -153,7 +152,6 @@ export function packFundingCycleMetadata({
   if (pauseRedeem) packed = packed.or(one.shl(74));
   if (pauseBurn) packed = packed.or(one.shl(75));
   if (allowMinting) packed = packed.or(one.shl(76));
-
   if (allowTerminalMigration) packed = packed.or(one.shl(77));
   if (allowControllerMigration) packed = packed.or(one.shl(78));
   if (holdFees) packed = packed.or(one.shl(79));
