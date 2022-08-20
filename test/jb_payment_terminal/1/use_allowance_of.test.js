@@ -340,7 +340,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         /* memo */ '',
         '0x',
       )
-      .returns(fundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
+      .returns(fundingCycle, 0, /* delegateAllocation */ [], '');
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)
@@ -431,7 +431,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         /* memo */ '',
         '0x',
       )
-      .returns(fundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
+      .returns(fundingCycle, 0, /* delegateAllocation */ [], '');
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)
@@ -518,7 +518,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         /* memo */ '',
         '0x',
       )
-      .returns(fundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
+      .returns(fundingCycle, 0, /* delegateAllocation */ [], '');
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)
@@ -605,7 +605,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         /* memo */ '',
         '0x',
       )
-      .returns(fundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
+      .returns(fundingCycle, 0, /* delegateAllocation */ [], '');
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)
@@ -700,7 +700,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         /* memo */ '',
         '0x',
       )
-      .returns(newFundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
+      .returns(newFundingCycle, 0, /* delegateAllocation */ [], '');
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)
@@ -808,7 +808,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         /* memo */ '',
         '0x',
       )
-      .returns(newFundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
+      .returns(newFundingCycle, 0, /* delegateAllocation */ [], '');
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)
@@ -920,7 +920,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         /* memo */ '',
         '0x',
       )
-      .returns(newFundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
+      .returns(newFundingCycle, 0, /* delegateAllocation */ [], '');
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(1, ETH_ADDRESS)

@@ -302,8 +302,8 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             [
               /*token*/ '0x000000000000000000000000000000000000eeee',
               /*amount paid*/ Math.floor(
-              (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
-            ),
+                (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
+              ),
               /*decimal*/ 18,
               CURRENCY,
             ],
@@ -313,7 +313,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             '',
             ethers.utils.hexZeroPad(ethers.utils.hexlify(PROJECT_ID), 32),
           )
-          .returns(fundingCycle, /*count*/ 0, /* delegate */ ethers.constants.AddressZero, '');
+          .returns(fundingCycle, /*count*/ 0, /* delegateAllocation */ [], '');
       }),
     );
 
@@ -420,8 +420,8 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             [
               /*token*/ '0x000000000000000000000000000000000000eeee',
               /*amount paid*/ Math.floor(
-              (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
-            ),
+                (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
+              ),
               /*decimal*/ 18,
               CURRENCY,
             ],
@@ -431,7 +431,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             '',
             ethers.utils.hexZeroPad(ethers.utils.hexlify(PROJECT_ID), 32),
           )
-          .returns(fundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
+          .returns(fundingCycle, 0, /* delegateAllocation */ [], '');
       }),
     );
 
@@ -1215,7 +1215,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         '',
         '0x',
       )
-      .returns(fundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
+      .returns(fundingCycle, 0, /* delegateAllocation */ [], '');
 
     await Promise.all(
       splits.map(async (split) => {
@@ -1225,8 +1225,8 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             [
               /*token*/ '0x000000000000000000000000000000000000eeee',
               /*amount paid*/ Math.floor(
-              (AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT,
-            ),
+                (AMOUNT_MINUS_FEES * split.percent) / SPLITS_TOTAL_PERCENT,
+              ),
               /*decimal*/ 18,
               CURRENCY,
             ],
@@ -1236,7 +1236,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             '',
             '0x',
           )
-          .returns(fundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
+          .returns(fundingCycle, 0, /* delegateAllocation */ [], '');
       }),
     );
 
@@ -2513,8 +2513,8 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             [
               /*token*/ '0x000000000000000000000000000000000000eeee',
               /*amount paid*/ Math.floor(
-              (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
-            ),
+                (AMOUNT_DISTRIBUTED * split.percent) / SPLITS_TOTAL_PERCENT,
+              ),
               /*decimal*/ 18,
               CURRENCY,
             ],
@@ -2524,7 +2524,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
             '',
             ethers.utils.hexZeroPad(ethers.utils.hexlify(PROJECT_ID), 32),
           )
-          .returns(fundingCycle, 0, /* delegate */ ethers.constants.AddressZero, '');
+          .returns(fundingCycle, 0, /* delegateAllocation */ [], '');
       }),
     );
 
@@ -2763,7 +2763,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         /*_distributedAmount*/ AMOUNT_DISTRIBUTED,
         /*_feeAmount*/ 0,
         /*_leftoverDistributionAmount*/ AMOUNT_DISTRIBUTED -
-        ((AMOUNT_DISTRIBUTED * PERCENT) / SPLITS_TOTAL_PERCENT) * splits.length,
+          ((AMOUNT_DISTRIBUTED * PERCENT) / SPLITS_TOTAL_PERCENT) * splits.length,
         MEMO,
         caller.address,
       );
