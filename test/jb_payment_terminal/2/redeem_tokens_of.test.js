@@ -164,7 +164,7 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
         METADATA,
       );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'RedeemTokens')
       .withArgs(
         /* _fundingCycle.configuration */ timestamp,
@@ -225,7 +225,7 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
         METADATA,
       );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'RedeemTokens')
       .withArgs(
         /* _fundingCycle.configuration */ timestamp,
@@ -314,7 +314,7 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
         METADATA,
       );
 
-    expect(await tx).to.emit(jbEthPaymentTerminal, 'DelegateDidRedeem');
+    await expect(tx).to.emit(jbEthPaymentTerminal, 'DelegateDidRedeem');
     // Uncaught AssertionError: expected [ Array(4) ] to equal [ Array(4) ]
 
     // .withArgs(
@@ -337,7 +337,7 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
     //   /* msg.sender */ holder.address,
     // );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'RedeemTokens')
       .withArgs(
         /* _fundingCycle.configuration */ timestamp,
@@ -400,7 +400,7 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
         METADATA,
       );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'RedeemTokens')
       .withArgs(
         /* _fundingCycle.configuration */ timestamp,

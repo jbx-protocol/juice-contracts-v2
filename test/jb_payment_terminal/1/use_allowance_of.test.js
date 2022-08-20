@@ -366,7 +366,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         MEMO,
       );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'UseAllowance')
       .withArgs(
         /* _fundingCycle.configuration */ timestamp,
@@ -459,7 +459,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         MEMO,
       );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'UseAllowance')
       .withArgs(
         /* _fundingCycle.configuration */ timestamp,
@@ -546,7 +546,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         MEMO,
       );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'UseAllowance')
       .withArgs(
         /* _fundingCycle.configuration */ timestamp,
@@ -633,7 +633,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
         MEMO,
       );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'UseAllowance')
       .withArgs(
         /* _fundingCycle.configuration */ timestamp,
@@ -744,7 +744,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     // Process held fees
     const tx = await jbEthPaymentTerminal.connect(projectOwner).processFees(PROJECT_ID);
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'ProcessFee')
       .withArgs(
         PROJECT_ID,
@@ -856,7 +856,7 @@ describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
     // Process held fees
     const tx = await jbEthPaymentTerminal.connect(caller).processFees(PROJECT_ID);
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'ProcessFee')
       .withArgs(
         PROJECT_ID,

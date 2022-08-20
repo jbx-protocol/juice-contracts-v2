@@ -252,7 +252,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         timestamp,
@@ -366,7 +366,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -484,7 +484,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -571,7 +571,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -668,7 +668,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -761,7 +761,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -865,7 +865,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -962,7 +962,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -1062,7 +1062,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -1162,7 +1162,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -1287,7 +1287,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -1406,7 +1406,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -1520,7 +1520,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -1634,7 +1634,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -1720,7 +1720,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -1833,7 +1833,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -1940,7 +1940,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -2034,7 +2034,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbErc20PaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -2105,7 +2105,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         timestamp,
@@ -2120,7 +2120,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
         caller.address,
       );
 
-    expect(await tx).to.changeEtherBalance(caller, AMOUNT_DISTRIBUTED);
+    await expect(tx).to.changeEtherBalance(caller, AMOUNT_DISTRIBUTED);
   });
 
   it('Should distribute payout and use the terminal of the project if project id and beneficiary are set in splits', async function () {
@@ -2206,7 +2206,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -2321,7 +2321,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -2460,7 +2460,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbErc20PaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -2577,7 +2577,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -2676,7 +2676,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -2752,7 +2752,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -2827,7 +2827,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbEthPaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
@@ -2920,7 +2920,7 @@ describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function
       }),
     );
 
-    expect(await tx)
+    await expect(tx)
       .to.emit(jbErc20PaymentTerminal, 'DistributePayouts')
       .withArgs(
         /*_fundingCycle.configuration*/ timestamp,
