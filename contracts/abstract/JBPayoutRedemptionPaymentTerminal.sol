@@ -914,6 +914,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           _feeDiscount
         );
 
+      netLeftoverDistributionAmount = _feeEligibleDistributionAmount - _fee;
+
       // Transfer any remaining balance to the project owner.
       if (netLeftoverDistributionAmount > 0)
         _transferFrom(address(this), _projectOwner, netLeftoverDistributionAmount);
