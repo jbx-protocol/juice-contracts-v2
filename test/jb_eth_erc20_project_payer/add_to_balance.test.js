@@ -38,7 +38,6 @@ describe('JBETHERC20ProjectPayer::addToBalanceOf(...)', function () {
 
     let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
     let mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
-    //let mockToken = await deployMockContract(deployer, ierc20.abi);
     let mockToken = await smock.fake(ierc20.abi);
 
     let jbProjectPayerFactory = await ethers.getContractFactory('JBETHERC20ProjectPayer');
@@ -119,14 +118,11 @@ describe('JBETHERC20ProjectPayer::addToBalanceOf(...)', function () {
       .withArgs(PROJECT_ID, AMOUNT, mockToken.address, MEMO, METADATA)
       .returns();
 
-    // await expect(
-    //   jbProjectPayer
-    //     .connect(caller)
-    //     .addToBalanceOf(PROJECT_ID, mockToken.address, AMOUNT, DECIMALS, MEMO, METADATA),
-    // ).to.be.not.reverted;
-    await jbProjectPayer
-      .connect(caller)
-      .addToBalanceOf(PROJECT_ID, mockToken.address, AMOUNT, DECIMALS, MEMO, METADATA);
+    await expect(
+      jbProjectPayer
+        .connect(caller)
+        .addToBalanceOf(PROJECT_ID, mockToken.address, AMOUNT, DECIMALS, MEMO, METADATA),
+    ).to.be.not.reverted;
   });
 
   it(`Can't add to balance if terminal not found`, async function () {
