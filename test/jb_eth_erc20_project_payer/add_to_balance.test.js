@@ -1,5 +1,6 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
+import { smock } from '@defi-wonderland/smock';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
@@ -37,7 +38,8 @@ describe('JBETHERC20ProjectPayer::addToBalanceOf(...)', function () {
 
     let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
     let mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
-    let mockToken = await deployMockContract(deployer, ierc20.abi);
+    //let mockToken = await deployMockContract(deployer, ierc20.abi);
+    let mockToken = await smock.fake(ierc20.abi);
 
     let jbProjectPayerFactory = await ethers.getContractFactory('JBETHERC20ProjectPayer');
     let jbProjectPayer = await jbProjectPayerFactory.deploy(
@@ -93,26 +95,38 @@ describe('JBETHERC20ProjectPayer::addToBalanceOf(...)', function () {
   it(`Should add an ERC20 to balance of project ID`, async function () {
     const { caller, mockToken, jbProjectPayer, mockJbDirectory, mockJbTerminal } = await setup();
 
+    // first call to balanceOF -> empty
+    mockToken.balanceOf.returnsAtCall(0, 0);
+
+    // Pulling the tokens
+    mockToken.transferFrom
+      .whenCalledWith(caller.address, jbProjectPayer.address, AMOUNT)
+      .returns(true);
+
+    // Second call to balanceOf, with the token now in balance
+    mockToken.balanceOf.returnsAtCall(1, AMOUNT);
+
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(PROJECT_ID, mockToken.address)
       .returns(mockJbTerminal.address);
 
     await mockJbTerminal.mock.decimalsForToken.withArgs(mockToken.address).returns(DECIMALS);
 
+    mockToken.allowance.whenCalledWith(jbProjectPayer.address, mockJbTerminal.address).returns(0);
+    mockToken.approve.whenCalledWith(mockJbTerminal.address, AMOUNT).returns(true);
+
     await mockJbTerminal.mock.addToBalanceOf
       .withArgs(PROJECT_ID, AMOUNT, mockToken.address, MEMO, METADATA)
       .returns();
 
-    await mockToken.mock.transferFrom
-      .withArgs(caller.address, jbProjectPayer.address, AMOUNT)
-      .returns(true);
-    await mockToken.mock.approve.withArgs(mockJbTerminal.address, AMOUNT).returns(true);
-
-    await expect(
-      jbProjectPayer
-        .connect(caller)
-        .addToBalanceOf(PROJECT_ID, mockToken.address, AMOUNT, DECIMALS, MEMO, METADATA),
-    ).to.be.not.reverted;
+    // await expect(
+    //   jbProjectPayer
+    //     .connect(caller)
+    //     .addToBalanceOf(PROJECT_ID, mockToken.address, AMOUNT, DECIMALS, MEMO, METADATA),
+    // ).to.be.not.reverted;
+    await jbProjectPayer
+      .connect(caller)
+      .addToBalanceOf(PROJECT_ID, mockToken.address, AMOUNT, DECIMALS, MEMO, METADATA);
   });
 
   it(`Can't add to balance if terminal not found`, async function () {
