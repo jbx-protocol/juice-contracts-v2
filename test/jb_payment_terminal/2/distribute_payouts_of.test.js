@@ -15,7 +15,7 @@ import jbSplitsStore from '../../../artifacts/contracts/JBSplitsStore.sol/JBSpli
 import jbPrices from '../../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 import IERC20Metadata from '../../../artifacts/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol/IERC20Metadata.json';
 
-describe.only('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function () {
+describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function () {
   const PLATFORM_PROJECT_ID = 1;
   const PROJECT_ID = 2;
   const OTHER_PROJECT_ID = 3;
@@ -2777,7 +2777,7 @@ describe.only('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', fun
       );
   });
 
-  it.only('Rounding error: should take a fee of 1 if leftover is 1, even when beneficiary is fee-less', async function () {
+  it('Should not take a fee of 1 if leftover is 1 (fix rounding error)', async function () {
     const {
       projectOwner,
       terminalOwner,
@@ -2898,8 +2898,8 @@ describe.only('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', fun
         projectOwner.address,
         /*_amount*/ AMOUNT_TO_DISTRIBUTE,
         /*_distributedAmount*/ AMOUNT_TO_DISTRIBUTE,
-        /*_feeAmount*/ 1,
-        /*_leftoverDistributionAmount*/ 0,
+        /*_feeAmount*/ 0,
+        /*_leftoverDistributionAmount*/ 1,
         MEMO,
         caller.address,
       );

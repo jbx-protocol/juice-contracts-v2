@@ -1512,13 +1512,19 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _fee,
     uint256 _feeDiscount
   ) internal pure returns (uint256) {
+    // If max fee, without discount, bypass the rest of the logic
+    if (_fee == JBConstants.MAX_FEE && _feeDiscount == 0) return _amount;
+
     // Calculate the discounted fee.
     uint256 _discountedFee = _fee -
       PRBMath.mulDiv(_fee, _feeDiscount, JBConstants.MAX_FEE_DISCOUNT);
 
-    // The amount of tokens from the `_amount` to pay as a fee.
-    return
-      _amount - PRBMath.mulDiv(_amount, JBConstants.MAX_FEE, _discountedFee + JBConstants.MAX_FEE);
+    // The amount of tokens from the `_amount` to pay as a fee
+    uint256 _feeToPay = _amount -
+      PRBMath.mulDiv(_amount, JBConstants.MAX_FEE, _discountedFee + JBConstants.MAX_FEE);
+
+    // Amount of fees can't be >= _amount (prevent rounding on small _amount), max fee case being already escaped
+    return _feeToPay >= _amount ? 0 : _feeToPay;
   }
 
   /** 
