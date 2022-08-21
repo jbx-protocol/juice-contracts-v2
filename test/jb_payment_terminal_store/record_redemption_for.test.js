@@ -15,7 +15,7 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbTerminal from '../../artifacts/contracts/abstract/JBPayoutRedemptionPaymentTerminal.sol/JBPayoutRedemptionPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function () {
+describe.only('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function () {
   const PROJECT_ID = 2;
   const AMOUNT = ethers.BigNumber.from('4398540');
   const WEIGHT = ethers.BigNumber.from('900000000');
@@ -464,6 +464,8 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
       .withArgs(PROJECT_ID, reservedRate)
       .returns(AMOUNT);
 
+    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(1);
+
     const startingBalance = AMOUNT.mul(ethers.BigNumber.from(2));
 
     const newMemo = 'new memo';
@@ -480,11 +482,10 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
         [token, AMOUNT, /*decimals*/ _FIXED_POINT_MAX_FIDELITY, CURRENCY],
         false,
         redemptionRate,
-        ballotRedemptionRate,
         'test',
         METADATA,
       ])
-      .returns(AMOUNT, newMemo, delegate.address);
+      .returns(AMOUNT, newMemo, [delegate.address]);
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
@@ -507,7 +508,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
     ).to.equal(startingBalance);
 
     // Record redemption
-    const tx = await JBSingleTokenPaymentTerminalStore.connect(
+    const returnedValue = await JBSingleTokenPaymentTerminalStore.connect(
       mockJbTerminalSigner,
     ).callStatic.recordRedemptionFor(
       /* holder */ holder.address,
@@ -517,7 +518,9 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
       METADATA,
     );
 
-    expect(tx.delegate).to.equal(delegate.address);
+    expect(returnedValue.reclaimAmount).to.equal(AMOUNT);
+    expect(returnedValue.delegates).to.eql([delegate.address]);
+    expect(returnedValue.memo).to.equal(newMemo);
   });
 
   /* Sad path tests */
