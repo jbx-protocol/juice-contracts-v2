@@ -647,7 +647,6 @@ describe.only('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', fun
         [token, /*reclaim amount*/ 0, /*decimals*/ _FIXED_POINT_MAX_FIDELITY, CURRENCY],
         false,
         redemptionRate,
-        ballotRedemptionRate,
         'test',
         METADATA,
       ])
@@ -734,7 +733,6 @@ describe.only('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', fun
         [token, /*reclaim amount*/ 0, /*decimals*/ _FIXED_POINT_MAX_FIDELITY, CURRENCY],
         false,
         redemptionRate,
-        ballotRedemptionRate,
         'test',
         METADATA,
       ])
