@@ -18,8 +18,6 @@ import './../structs/JBPayDelegateAllocation.sol';
 import './JBOperatable.sol';
 import './JBSingleTokenPaymentTerminal.sol';
 
-import 'hardhat/console.sol';
-
 /**
   @notice
   Generic terminal managing all inflows and outflows of funds into the protocol ecosystem.

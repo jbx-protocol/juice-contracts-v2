@@ -1,20 +1,21 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
-import { makeSplits, packFundingCycleMetadata, setBalance } from '../../helpers/utils.js';
+import { makeSplits, packFundingCycleMetadata, setBalance } from '../helpers/utils.js';
+import { smock } from '@defi-wonderland/smock';
 
-import errors from '../../helpers/errors.json';
+import errors from '../helpers/errors.json';
 
-import jbDirectory from '../../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import JBEthPaymentTerminal from '../../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
-import jbPaymentTerminalStore from '../../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
-import jbOperatoreStore from '../../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
-import jbProjects from '../../../artifacts/contracts/JBProjects.sol/JBProjects.json';
-import jbSplitsStore from '../../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
-import jbToken from '../../../artifacts/contracts/JBToken.sol/JBToken.json';
-import jbPrices from '../../../artifacts/contracts/JBPrices.sol/JBPrices.json';
+import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
+import JBEthPaymentTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
+import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
+import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
+import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
+import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
+import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
+import ierc20 from '../../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
 
-describe('JBPayoutRedemptionPaymentTerminal_2::addToBalanceOf(...)', function () {
+describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
   const PROTOCOL_PROJECT_ID = 1;
   const PROJECT_ID = 2;
   const AMOUNT = ethers.utils.parseEther('10');
@@ -62,7 +63,6 @@ describe('JBPayoutRedemptionPaymentTerminal_2::addToBalanceOf(...)', function ()
       mockJbProjects,
       mockJbSplitsStore,
       mockJbPrices,
-      mockJbToken,
     ] = await Promise.all([
       deployMockContract(deployer, jbDirectory.abi),
       deployMockContract(deployer, JBEthPaymentTerminal.abi),
@@ -71,8 +71,9 @@ describe('JBPayoutRedemptionPaymentTerminal_2::addToBalanceOf(...)', function ()
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
       deployMockContract(deployer, jbPrices.abi),
-      deployMockContract(deployer, jbToken.abi),
     ]);
+
+    let mockToken = await smock.fake(ierc20.abi);
 
     let jbTerminalFactory = await ethers.getContractFactory(
       'contracts/JBETHPaymentTerminal.sol:JBETHPaymentTerminal',
@@ -82,7 +83,7 @@ describe('JBPayoutRedemptionPaymentTerminal_2::addToBalanceOf(...)', function ()
       'contracts/JBERC20PaymentTerminal.sol:JBERC20PaymentTerminal',
       deployer,
     );
-    const NON_ETH_TOKEN = mockJbToken.address;
+    const NON_ETH_TOKEN = mockToken.address;
 
     let jbEthPaymentTerminal = await jbTerminalFactory
       .connect(deployer)
@@ -99,7 +100,7 @@ describe('JBPayoutRedemptionPaymentTerminal_2::addToBalanceOf(...)', function ()
 
     const DECIMALS = 1;
 
-    await mockJbToken.mock.decimals.returns(DECIMALS);
+    mockToken.decimals.returns(DECIMALS);
 
     let JBERC20PaymentTerminal = await jbErc20TerminalFactory
       .connect(deployer)
@@ -186,7 +187,7 @@ describe('JBPayoutRedemptionPaymentTerminal_2::addToBalanceOf(...)', function ()
       mockJbDirectory,
       mockJbEthPaymentTerminal,
       mockJBPaymentTerminalStore,
-      mockJbToken,
+      mockToken,
       mockJbOperatorStore,
       mockJbSplitsStore,
       timestamp,
@@ -325,24 +326,26 @@ describe('JBPayoutRedemptionPaymentTerminal_2::addToBalanceOf(...)', function ()
       .addToBalanceOf(PROJECT_ID, AMOUNT + 1, ETH_ADDRESS, MEMO, METADATA, { value: AMOUNT });
   });
   it('Should work with non-eth terminal if no value is sent', async function () {
-    const {
-      caller,
-      JBERC20PaymentTerminal,
-      mockJbToken,
-      mockJBPaymentTerminalStore,
-      fundingCycle,
-    } = await setup();
+    const { caller, JBERC20PaymentTerminal, mockToken, mockJBPaymentTerminalStore } = await setup();
     await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor
       .withArgs(PROJECT_ID, AMOUNT)
       .returns();
 
-    await mockJbToken.mock.transferFrom
-      .withArgs(caller.address, JBERC20PaymentTerminal.address, AMOUNT)
-      .returns(0);
+    // first call to balanceOF -> empty
+    mockToken.balanceOf.returnsAtCall(0, 0);
+
+    // Pulling the tokens
+    mockToken.transferFrom
+      .whenCalledWith(caller.address, JBERC20PaymentTerminal.address, AMOUNT)
+      .returns(true);
+
+    // Second call to balanceOf, with the token now in balance
+    mockToken.balanceOf.returnsAtCall(1, AMOUNT);
+
     await JBERC20PaymentTerminal.connect(caller).addToBalanceOf(
       PROJECT_ID,
       AMOUNT,
-      mockJbToken.address,
+      mockToken.address,
       MEMO,
       METADATA,
       {
@@ -350,7 +353,7 @@ describe('JBPayoutRedemptionPaymentTerminal_2::addToBalanceOf(...)', function ()
       },
     );
   });
-  it('Should add to the project balance, partially refund a held fee and substract the amount from the held fee amount and emit event', async function () {
+  it.only('Should add to the project balance, partially refund a held fee and substract the amount from the held fee amount and emit event', async function () {
     const {
       caller,
       beneficiaryOne,
@@ -687,13 +690,13 @@ describe('JBPayoutRedemptionPaymentTerminal_2::addToBalanceOf(...)', function ()
     expect(heldFeeAfter).to.eql([]);
   });
   it("Can't add with value if terminal token isn't ETH", async function () {
-    const { caller, JBERC20PaymentTerminal, mockJbToken } = await setup();
+    const { caller, JBERC20PaymentTerminal, mockToken } = await setup();
 
     await expect(
       JBERC20PaymentTerminal.connect(caller).addToBalanceOf(
         PROJECT_ID,
         AMOUNT,
-        mockJbToken.address,
+        mockToken.address,
         MEMO,
         METADATA,
         {
