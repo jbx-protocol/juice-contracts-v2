@@ -13,7 +13,7 @@ import jbToken from '../../../artifacts/contracts/JBToken.sol/JBToken.json';
 import jbPrices from '../../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 import jbPayDelegate from '../../../artifacts/contracts/interfaces/IJBPayDelegate.sol/IJBPayDelegate.json';
 
-describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
+describe('JBPayoutRedemptionPaymentTerminal_2::pay(...)', function () {
   const PROJECT_ID = 1;
   const MEMO = 'Memo Test';
   const ADJUSTED_MEMO = 'test test memo';

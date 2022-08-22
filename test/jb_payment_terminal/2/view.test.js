@@ -14,7 +14,7 @@ import jbSplitsStore from '../../../artifacts/contracts/JBSplitsStore.sol/JBSpli
 import jbToken from '../../../artifacts/contracts/JBToken.sol/JBToken.json';
 import jbPrices from '../../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 
-describe('JBPayoutRedemptionPaymentTerminal::getters', function () {
+describe('JBPayoutRedemptionPaymentTerminal_2::getters', function () {
   const ETH_ADDRESS = '0x000000000000000000000000000000000000EEEe';
   let CURRENCY_ETH;
 

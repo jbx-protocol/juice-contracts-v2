@@ -15,7 +15,7 @@ import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJB
 import jbTerminal from '../../artifacts/contracts/abstract/JBPayoutRedemptionPaymentTerminal.sol/JBPayoutRedemptionPaymentTerminal.json';
 import jbTokenStore from '../../artifacts/contracts/interfaces/IJBTokenStore.sol/IJBTokenStore.json';
 
-describe.only('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function () {
+describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function () {
   const PROJECT_ID = 2;
   const AMOUNT = ethers.BigNumber.from('4398540');
   const WEIGHT = ethers.BigNumber.from('900000000');
@@ -650,7 +650,7 @@ describe.only('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', fun
         'test',
         METADATA,
       ])
-      .returns(AMOUNT, newMemo, delegate.address);
+      .returns(AMOUNT, newMemo, [delegate.address]);
 
     await mockJbTerminal.mock.token.returns(token);
     await mockJbTerminal.mock.decimals.returns(18);
@@ -736,11 +736,12 @@ describe.only('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', fun
         'test',
         METADATA,
       ])
-      .returns(AMOUNT, newMemo, delegate.address);
+      .returns(AMOUNT, newMemo, [delegate.address]);
 
     await mockJbTerminal.mock.token.returns(token);
     await mockJbTerminal.mock.decimals.returns(18);
     await mockJbTerminal.mock.currency.returns(CURRENCY);
+    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(1);
 
     // Note: The store has 0 balance because we haven't added anything to it
     // Record redemption

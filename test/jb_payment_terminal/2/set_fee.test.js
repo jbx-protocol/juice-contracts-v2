@@ -11,7 +11,7 @@ import jbProjects from '../../../artifacts/contracts/interfaces/IJBProjects.sol/
 import jbSplitsStore from '../../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
 import jbPrices from '../../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 
-describe('JBPayoutRedemptionPaymentTerminal::setFee(...)', function () {
+describe('JBPayoutRedemptionPaymentTerminal_2::setFee(...)', function () {
   const NEW_FEE = 8; // 4%
 
   async function setup() {

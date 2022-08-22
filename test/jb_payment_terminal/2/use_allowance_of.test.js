@@ -13,7 +13,7 @@ import jbProjects from '../../../artifacts/contracts/interfaces/IJBProjects.sol/
 import jbSplitsStore from '../../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
 import jbPrices from '../../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 
-describe('JBPayoutRedemptionPaymentTerminal::useAllowanceOf(...)', function () {
+describe('JBPayoutRedemptionPaymentTerminal_2::useAllowanceOf(...)', function () {
   const AMOUNT_TO_DISTRIBUTE = 40000;
   const AMOUNT = 50000;
   const DEFAULT_FEE = 50000000; // 5%

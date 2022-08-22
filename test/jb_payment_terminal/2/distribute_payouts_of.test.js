@@ -15,7 +15,7 @@ import jbSplitsStore from '../../../artifacts/contracts/JBSplitsStore.sol/JBSpli
 import jbPrices from '../../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 import IERC20Metadata from '../../../artifacts/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol/IERC20Metadata.json';
 
-describe('JBPayoutRedemptionPaymentTerminal::distributePayoutsOf(...)', function () {
+describe('JBPayoutRedemptionPaymentTerminal_2::distributePayoutsOf(...)', function () {
   const PLATFORM_PROJECT_ID = 1;
   const PROJECT_ID = 2;
   const OTHER_PROJECT_ID = 3;

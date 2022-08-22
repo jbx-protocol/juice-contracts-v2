@@ -11,7 +11,7 @@ import jbProjects from '../../../artifacts/contracts/interfaces/IJBProjects.sol/
 import jbSplitsStore from '../../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
 import jbPrices from '../../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 
-describe('JBPayoutRedemptionPaymentTerminal::setFeeGauge(...)', function () {
+describe('JBPayoutRedemptionPaymentTerminal_2::setFeeGauge(...)', function () {
   async function setup() {
     let [deployer, terminalOwner, caller] = await ethers.getSigners();
 

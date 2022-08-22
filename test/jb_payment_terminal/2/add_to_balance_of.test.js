@@ -14,7 +14,7 @@ import jbSplitsStore from '../../../artifacts/contracts/JBSplitsStore.sol/JBSpli
 import jbToken from '../../../artifacts/contracts/JBToken.sol/JBToken.json';
 import jbPrices from '../../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 
-describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
+describe('JBPayoutRedemptionPaymentTerminal_2::addToBalanceOf(...)', function () {
   const PROTOCOL_PROJECT_ID = 1;
   const PROJECT_ID = 2;
   const AMOUNT = ethers.utils.parseEther('10');
