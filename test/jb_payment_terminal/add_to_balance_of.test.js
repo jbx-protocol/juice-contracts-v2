@@ -353,7 +353,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
       },
     );
   });
-  it.only('Should add to the project balance, partially refund a held fee and substract the amount from the held fee amount and emit event', async function () {
+  it('Should add to the project balance, partially refund a held fee and substract the amount from the held fee amount and emit event', async function () {
     const {
       caller,
       beneficiaryOne,
@@ -391,8 +391,8 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
 
     let heldFeeBefore = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
 
-    expect(
-      await jbEthPaymentTerminal
+    await expect(
+      jbEthPaymentTerminal
         .connect(caller)
         .addToBalanceOf(PROJECT_ID, 1, ETH_ADDRESS, MEMO, METADATA, { value: 1 }),
     )
@@ -403,6 +403,7 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
       .withArgs(PROJECT_ID, 1 /*amount*/, 1 /*refund*/, 0 /*leftOver*/, caller.address);
 
     let heldFeeAfter = await jbEthPaymentTerminal.heldFeesOf(PROJECT_ID);
+
     expect(heldFeeAfter[0].amount).to.equal(heldFeeBefore[0].amount.sub(1));
   });
   it('Should add to the project balance, refund multiple held fee by substracting the amount from the held fee amount when possible and emit event', async function () {

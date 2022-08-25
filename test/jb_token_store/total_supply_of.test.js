@@ -29,15 +29,17 @@ describe('JBTokenStore::totalySupplyOf(...)', function () {
     return {
       addrs,
       mockJbDirectory,
+      mockJbProjects,
       jbTokenStore,
     };
   }
 
   it('Should return total supply of tokens for given projectId', async function () {
-    const { addrs, mockJbDirectory, jbTokenStore } = await setup();
+    const { addrs, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
     const controller = addrs[0];
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
 

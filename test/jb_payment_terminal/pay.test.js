@@ -2,14 +2,17 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import { packFundingCycleMetadata } from '../helpers/utils.js';
+import { smock } from '@defi-wonderland/smock';
+
 import errors from '../helpers/errors.json';
+import ierc20 from '../../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
+
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbController from '../../artifacts/contracts/interfaces/IJBController.sol/IJBController.json';
 import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
-import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
 import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 import jbPayDelegate from '../../artifacts/contracts/interfaces/IJBPayDelegate.sol/IJBPayDelegate.json';
 
@@ -58,8 +61,8 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
       deployMockContract(deployer, jbController.abi),
     ]);
 
-    const mockJbToken = await deployMockContract(deployer, jbToken.abi);
-    const NON_ETH_TOKEN = mockJbToken.address;
+    let mockToken = await smock.fake(ierc20.abi);
+    const NON_ETH_TOKEN = mockToken.address;
 
     let jbEthTerminalFactory = await ethers.getContractFactory(
       'contracts/JBETHPaymentTerminal.sol:JBETHPaymentTerminal',
@@ -85,7 +88,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
 
     ethToken = await jbEthPaymentTerminal.token();
 
-    await mockJbToken.mock.decimals.returns(DECIMALS);
+    mockToken.decimals.returns(DECIMALS);
 
     let JBERC20PaymentTerminal = await jbErc20TerminalFactory
       .connect(deployer)
@@ -140,7 +143,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
           metadata: packFundingCycleMetadata(),
         },
         TOKEN_TO_MINT,
-        ethers.constants.AddressZero,
+        [], //delegateAllocations
         ADJUSTED_MEMO,
       );
 
@@ -151,7 +154,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
       addrs,
       jbEthPaymentTerminal,
       JBERC20PaymentTerminal,
-      mockJbToken,
+      mockToken,
       mockJbDirectory,
       mockJBPaymentTerminalStore,
       mockJbPayDelegate,
@@ -267,7 +270,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
           metadata: packFundingCycleMetadata(),
         },
         TOKEN_TO_MINT,
-        mockJbPayDelegate.address,
+        [{ delegate: mockJbPayDelegate.address, amount: 0 }],
         ADJUSTED_MEMO,
       );
 
@@ -375,6 +378,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         { value: ETH_TO_PAY },
       );
   });
+
   it('Should work with no token amount returned from recording payment', async function () {
     const { caller, jbEthPaymentTerminal, mockJBPaymentTerminalStore, beneficiary, timestamp } =
       await setup();
@@ -408,7 +412,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
           metadata: packFundingCycleMetadata(),
         },
         0,
-        ethers.constants.AddressZero,
+        [],
         ADJUSTED_MEMO,
       );
 
@@ -431,7 +435,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
     const {
       caller,
       JBERC20PaymentTerminal,
-      mockJbToken,
+      mockToken,
       mockJbDirectory,
       mockJbController,
       mockJBPaymentTerminalStore,
@@ -452,9 +456,13 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
       )
       .returns(TOKEN_RECEIVED);
 
-    await mockJbToken.mock.transferFrom
-      .withArgs(caller.address, JBERC20PaymentTerminal.address, ETH_TO_PAY)
-      .returns(0);
+    mockToken.balanceOf.returnsAtCall(0, 0);
+
+    mockToken.transferFrom
+      .whenCalledWith(caller.address, JBERC20PaymentTerminal.address, ETH_TO_PAY)
+      .returns(true);
+
+    mockToken.balanceOf.returnsAtCall(1, ETH_TO_PAY);
 
     let tokenAddress = await JBERC20PaymentTerminal.token();
     await mockJBPaymentTerminalStore.mock.recordPaymentFrom
@@ -481,7 +489,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
           metadata: packFundingCycleMetadata(),
         },
         TOKEN_TO_MINT,
-        ethers.constants.AddressZero,
+        [],
         ADJUSTED_MEMO,
       );
 
@@ -560,6 +568,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         ),
     ).to.be.revertedWith(errors.PROJECT_TERMINAL_MISMATCH);
   });
+
   it("Can't pay if minted tokens for beneficiary is less than expected", async function () {
     const { caller, jbEthPaymentTerminal, mockJBPaymentTerminalStore, beneficiary, timestamp } =
       await setup();
@@ -593,7 +602,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
           metadata: packFundingCycleMetadata(),
         },
         0,
-        ethers.constants.AddressZero,
+        [],
         ADJUSTED_MEMO,
       );
 

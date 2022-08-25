@@ -50,13 +50,16 @@ describe('JBTokenStore::claimFor(...)', function () {
     const {
       controller,
       newHolder,
+      projectOwner,
       mockJbDirectory,
       mockJbOperatorStore,
+      mockJbProjects,
       jbTokenStore,
       CLAIM_INDEX,
     } = await setup();
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
     await mockJbOperatorStore.mock.hasPermission
@@ -96,9 +99,11 @@ describe('JBTokenStore::claimFor(...)', function () {
   });
 
   it(`Can't claim more tokens than the current _unclaimedBalance`, async function () {
-    const { controller, newHolder, mockJbDirectory, jbTokenStore, CLAIM_INDEX } = await setup();
+    const { controller, newHolder, mockJbDirectory, mockJbProjects, jbTokenStore, CLAIM_INDEX } =
+      await setup();
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
 

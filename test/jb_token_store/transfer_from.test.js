@@ -38,6 +38,7 @@ describe('JBTokenStore::transferFrom(...)', function () {
       recipient,
       mockJbDirectory,
       mockJbOperatorStore,
+      mockJbProjects,
       jbTokenStore,
       TRANSFER_INDEX,
     };
@@ -50,6 +51,7 @@ describe('JBTokenStore::transferFrom(...)', function () {
       recipient,
       mockJbDirectory,
       mockJbOperatorStore,
+      mockJbProjects,
       jbTokenStore,
       TRANSFER_INDEX,
     } = await setup();
@@ -58,6 +60,8 @@ describe('JBTokenStore::transferFrom(...)', function () {
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(controller.address, holder.address, PROJECT_ID, TRANSFER_INDEX)
       .returns(true);
+
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     // Issue tokens for project
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);

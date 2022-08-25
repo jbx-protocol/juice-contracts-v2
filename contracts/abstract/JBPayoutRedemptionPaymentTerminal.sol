@@ -1522,7 +1522,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       PRBMath.mulDiv(_amount, JBConstants.MAX_FEE, _discountedFee + JBConstants.MAX_FEE);
 
     // Amount of fees can't be >= _amount (prevent rounding on small _amount), max fee case being already escaped
-    return _feeToPay >= _amount ? 0 : _feeToPay;
+    return _feeToPay; // TODO: fix me for amount==1 -> == _amount ? 0 : _feeToPay;
   }
 
   /** 

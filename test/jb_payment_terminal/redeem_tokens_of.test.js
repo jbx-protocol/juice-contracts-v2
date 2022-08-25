@@ -273,7 +273,7 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
       .returns(
         fundingCycle,
         /* reclaimAmount */ RECLAIM_AMOUNT,
-        /* delegate */ mockJbRedemptionDelegate.address,
+        /* delegate */ [mockJbRedemptionDelegate.address],
         ADJUSTED_MEMO,
       );
 

@@ -226,9 +226,14 @@ describe('JBPayoutRedemptionPaymentTerminal::migrate(...)', function () {
     const { projectOwner, JBERC20PaymentTerminal, mockJBERC20PaymentTerminal, mockJbToken } =
       await setup();
 
+    await mockJbToken.mock['allowance(address,address)']
+      .withArgs(JBERC20PaymentTerminal.address, mockJBERC20PaymentTerminal.address)
+      .returns(0);
+
     await mockJbToken.mock['approve(address,uint256)']
       .withArgs(mockJBERC20PaymentTerminal.address, CURRENT_TERMINAL_BALANCE)
-      .returns(0);
+      .returns(true);
+
     await JBERC20PaymentTerminal.connect(projectOwner).migrate(
       PROJECT_ID,
       mockJBERC20PaymentTerminal.address,

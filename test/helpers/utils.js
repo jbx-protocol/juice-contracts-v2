@@ -73,9 +73,9 @@ export async function setBalance(
  * @param {string} symbol
  * @return {ethers.Contract}
  */
-export async function deployJbToken(name, symbol) {
+export async function deployJbToken(name, symbol, projectId) {
   const jbTokenFactory = await ethers.getContractFactory('JBToken');
-  return await jbTokenFactory.deploy(name, symbol);
+  return await jbTokenFactory.deploy(name, symbol, projectId);
 }
 
 /**

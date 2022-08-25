@@ -30,14 +30,17 @@ describe('JBTokenStore::balanceOf(...)', function () {
       newHolder,
       controller,
       mockJbDirectory,
+      mockJbProjects,
       jbTokenStore,
     };
   }
 
   it('Should return token balance for holder', async function () {
-    const { newHolder, controller, mockJbDirectory, jbTokenStore } = await setup();
+    const { newHolder, controller, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
 
