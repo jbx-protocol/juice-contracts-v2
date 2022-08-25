@@ -9,7 +9,7 @@ describe('JBToken::mint(...)', function () {
 
   async function setup() {
     const [deployer, ...addrs] = await ethers.getSigners();
-    const jbToken = await deployJbToken(name, symbol);
+    const jbToken = await deployJbToken(name, symbol, PROJECT_ID);
     return { deployer, addrs, jbToken };
   }
 

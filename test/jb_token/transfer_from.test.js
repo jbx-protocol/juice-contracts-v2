@@ -10,7 +10,7 @@ describe('JBToken::transferFrom(...)', function () {
 
   async function setup() {
     const [deployer, ...addrs] = await ethers.getSigners();
-    const jbToken = await deployJbToken(name, symbol);
+    const jbToken = await await deployJbToken(name, symbol, PROJECT_ID);
     await jbToken.connect(deployer).mint(PROJECT_ID, addrs[1].address, startingBalance);
     return { deployer, addrs, jbToken };
   }
