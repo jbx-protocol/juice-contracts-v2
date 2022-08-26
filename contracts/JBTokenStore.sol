@@ -40,8 +40,8 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
   error EMPTY_TOKEN();
   error INSUFFICIENT_FUNDS();
   error INSUFFICIENT_UNCLAIMED_TOKENS();
-  error NOT_EMPTY();
   error PROJECT_ALREADY_HAS_TOKEN();
+  error PROJECT_ID_MISMATCH();
   error RECIPIENT_ZERO_ADDRESS();
   error TOKEN_NOT_FOUND();
   error TOKENS_MUST_HAVE_18_DECIMALS();
@@ -235,8 +235,11 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     // Can't set to the zero address.
     if (_token == IJBToken(address(0))) revert EMPTY_TOKEN();
 
-    // Can't set a token with a pre-existing supply.
-    if (_token.totalSupply(_projectId) > 0) revert NOT_EMPTY();
+    // Get a reference to the ID of the project the token can be used for.
+    uint256 _tokenProjectId = _token.projectId();
+
+    // Can't use the token if the project IDs don't match, and if the token's project ID isn't the wildcard ID.
+    if (_tokenProjectId != _projectId && _tokenProjectId != 0) revert PROJECT_ID_MISMATCH();
 
     // Can't set token if already set.
     if (tokenOf[_projectId] != IJBToken(address(0))) revert ALREADY_SET();
