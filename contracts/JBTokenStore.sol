@@ -230,7 +230,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
   function setFor(uint256 _projectId, IJBToken _token)
     external
     override
-    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.CHANGE_TOKEN)
+    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.SET_TOKEN)
   {
     // Can't set to the zero address.
     if (_token == IJBToken(address(0))) revert EMPTY_TOKEN();

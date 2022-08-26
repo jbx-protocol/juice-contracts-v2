@@ -9,7 +9,7 @@ library JBOperations {
   uint256 public constant PROCESS_FEES = 5;
   uint256 public constant SET_METADATA = 6;
   uint256 public constant ISSUE = 7;
-  uint256 public constant CHANGE_TOKEN = 8;
+  uint256 public constant SET_TOKEN = 8;
   uint256 public constant MINT = 9;
   uint256 public constant BURN = 10;
   uint256 public constant CLAIM = 11;
