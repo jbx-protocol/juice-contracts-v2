@@ -73,23 +73,23 @@ contract TestTokenFlow is TestBaseWorkflow {
    * launch project → issue token or sets the token → mint token → burn token
    */
   function testFuzzTokenFlow(
-    uint256 mintAmount,
+    uint224 mintAmount,
     uint256 burnAmount,
     bool _issueToken,
     bool mintPreferClaimed,
     bool burnPreferClaimed
   ) public {
     // Might overflow in processed token tracker if burn amount >= max int256 (ie (2**256)/2 -1 )
-    evm.assume(burnAmount < (2**256)/2);
-    
+    evm.assume(burnAmount < (2**256) / 2);
+
     // calls will originate from projectOwner addr
     evm.startPrank(_projectOwner);
 
-    if(_issueToken){
+    if (_issueToken) {
       // issue an ERC-20 token for project
       _tokenStore.issueFor(_projectId, 'TestName', 'TestSymbol');
-    }else{
-       // create a new IJBToken and change it's owner to the tokenStore
+    } else {
+      // create a new IJBToken and change it's owner to the tokenStore
       IJBToken _newToken = new JBToken('NewTestName', 'NewTestSymbol', _projectId);
       Ownable(address(_newToken)).transferOwnership(address(_tokenStore));
 
@@ -158,7 +158,7 @@ contract TestTokenFlow is TestBaseWorkflow {
     // mint claimed tokens to beneficiary addr
     _controller.mintTokensOf(
       _projectId,
-      type(uint224).max,
+      type(uint224).max / 2,
       _beneficiary,
       'Mint memo',
       true,
@@ -168,7 +168,7 @@ contract TestTokenFlow is TestBaseWorkflow {
     // mint unclaimed tokens to beneficiary addr
     _controller.mintTokensOf(
       _projectId,
-      type(uint224).max,
+      type(uint224).max / 2,
       _beneficiary,
       'Mint memo',
       false,
