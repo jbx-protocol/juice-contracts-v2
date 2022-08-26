@@ -43,7 +43,6 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
   error NOT_EMPTY();
   error PROJECT_ALREADY_HAS_TOKEN();
   error RECIPIENT_ZERO_ADDRESS();
-  error TOKEN_ALREADY_IN_USE();
   error TOKEN_NOT_FOUND();
   error TOKENS_MUST_HAVE_18_DECIMALS();
   error OVERFLOW_ALERT();
