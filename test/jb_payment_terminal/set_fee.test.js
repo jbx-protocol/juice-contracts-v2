@@ -65,7 +65,7 @@ describe('JBPayoutRedemptionPaymentTerminal::setFee(...)', function () {
   it('Should set new fee and emit event if caller is terminal owner', async function () {
     const { jbEthPaymentTerminal, terminalOwner } = await setup();
 
-    expect(await jbEthPaymentTerminal.connect(terminalOwner).setFee(NEW_FEE))
+    await expect(jbEthPaymentTerminal.connect(terminalOwner).setFee(NEW_FEE))
       .to.emit(jbEthPaymentTerminal, 'SetFee')
       .withArgs(NEW_FEE, terminalOwner.address);
   });

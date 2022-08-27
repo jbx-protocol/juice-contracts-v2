@@ -66,7 +66,7 @@ describe('JBPayoutRedemptionPaymentTerminal::setFeeGauge(...)', function () {
   it('Should set the fee gauge and emit event if caller is terminal owner', async function () {
     const { terminalOwner, jbEthPaymentTerminal, mockJbFeeGauge } = await setup();
 
-    expect(await jbEthPaymentTerminal.connect(terminalOwner).setFeeGauge(mockJbFeeGauge.address))
+    await expect(jbEthPaymentTerminal.connect(terminalOwner).setFeeGauge(mockJbFeeGauge.address))
       .to.emit(jbEthPaymentTerminal, 'SetFeeGauge')
       .withArgs(mockJbFeeGauge.address, terminalOwner.address);
   });

@@ -51,7 +51,9 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     const mockBallot = await deployMockContract(deployer, ijbFundingCycleBallot.abi);
     await mockBallot.mock.supportsInterface.returns(true);
 
-    const jbFundingCycleStoreFactory = await ethers.getContractFactory('contracts/JBFundingCycleStore.sol:JBFundingCycleStore');
+    const jbFundingCycleStoreFactory = await ethers.getContractFactory(
+      'contracts/JBFundingCycleStore.sol:JBFundingCycleStore',
+    );
     const jbFundingCycleStore = await jbFundingCycleStoreFactory.deploy(mockJbDirectory.address);
 
     return {
@@ -60,7 +62,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
       jbFundingCycleStore,
       mockBallot,
       addrs,
-      deployer
+      deployer,
     };
   }
 
@@ -2290,7 +2292,10 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
 
     //fast forward to within the second cycle, which should have rolled over from the first.
     //keep 10 seconds before the end of the cycle so make all necessary checks before the cycle ends.
-    await fastForward(firstConfigureForTx.blockNumber, firstFundingCycleData.duration.mul(2).sub(10));
+    await fastForward(
+      firstConfigureForTx.blockNumber,
+      firstFundingCycleData.duration.mul(2).sub(10),
+    );
 
     const secondFundingCycleData = createFundingCycleData({
       duration: firstFundingCycleData.duration.add(1),
@@ -2329,7 +2334,10 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
 
     //fast forward to within the cycle.
     //keep 5 seconds before the end of the cycle so make all necessary checks before the cycle ends.
-    await fastForward(firstConfigureForTx.blockNumber, firstFundingCycleData.duration.mul(2).sub(5));
+    await fastForward(
+      firstConfigureForTx.blockNumber,
+      firstFundingCycleData.duration.mul(2).sub(5),
+    );
 
     const thirdFundingCycleData = createFundingCycleData({
       duration: firstFundingCycleData.duration.add(2),
@@ -2465,7 +2473,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     const maxStart = BigNumber.from(2).pow(56).sub(maxDuration);
 
     const fundingCycleData = createFundingCycleData({
-      duration: maxDuration
+      duration: maxDuration,
     });
 
     await mockBallot.mock.supportsInterface.returns(false);
