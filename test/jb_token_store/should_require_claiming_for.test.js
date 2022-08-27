@@ -8,7 +8,7 @@ import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOp
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import errors from '../helpers/errors.json';
 
-describe.skip('JBTokenStore::shouldRequireClaimingFor(...)', function () {
+describe('JBTokenStore::shouldRequireClaimingFor(...)', function () {
   const PROJECT_ID = 2;
   const TOKEN_NAME = 'TestTokenDAO';
   const TOKEN_SYMBOL = 'TEST';
@@ -46,14 +46,12 @@ describe.skip('JBTokenStore::shouldRequireClaimingFor(...)', function () {
   }
 
   it('Should set flag and emit event if caller is project owner', async function () {
-    const { controller, projectOwner, mockJbDirectory, mockJbProjects, jbTokenStore } =
-      await setup();
+    const { projectOwner, mockJbProjects, jbTokenStore } = await setup();
 
-    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
     // Issue token for project
-    await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
+    await jbTokenStore.connect(projectOwner).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
 
     // Set flag value
     const flagVal = true;
@@ -80,15 +78,14 @@ describe.skip('JBTokenStore::shouldRequireClaimingFor(...)', function () {
       REQUIRE_CLAIM_INDEX,
     } = await setup();
 
-    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
-
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
+
     await mockJbOperatorStore.mock.hasPermission
       .withArgs(holder.address, projectOwner.address, PROJECT_ID, REQUIRE_CLAIM_INDEX)
       .returns(true);
 
     // Issue token for project
-    await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
+    await jbTokenStore.connect(projectOwner).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
 
     // Set flag value
     const flagVal = true;
@@ -104,22 +101,12 @@ describe.skip('JBTokenStore::shouldRequireClaimingFor(...)', function () {
   });
 
   it(`Can't set flag if token doesn't exist for project`, async function () {
-    const {
-      controller,
-      holder,
-      mockJbOperatorStore,
-      mockJbProjects,
-      jbTokenStore,
-      REQUIRE_CLAIM_INDEX,
-    } = await setup();
+    const { projectOwner, mockJbProjects, jbTokenStore } = await setup();
 
-    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
-    await mockJbOperatorStore.mock.hasPermission
-      .withArgs(controller.address, holder.address, PROJECT_ID, REQUIRE_CLAIM_INDEX)
-      .returns(true);
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
 
     await expect(
-      jbTokenStore.connect(controller).shouldRequireClaimingFor(PROJECT_ID, /* flag= */ true),
+      jbTokenStore.connect(projectOwner).shouldRequireClaimingFor(PROJECT_ID, /* flag= */ true),
     ).to.be.revertedWith(errors.TOKEN_NOT_FOUND);
   });
 

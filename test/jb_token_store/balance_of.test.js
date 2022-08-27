@@ -38,8 +38,6 @@ describe('JBTokenStore::balanceOf(...)', function () {
   it('Should return token balance for holder', async function () {
     const { newHolder, controller, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
 
-    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
-
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
@@ -53,6 +51,8 @@ describe('JBTokenStore::balanceOf(...)', function () {
     expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(numTokens);
 
     // Mint more claimed tokens
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
     await jbTokenStore
       .connect(controller)
       .mintFor(newHolder.address, PROJECT_ID, numTokens, /* preferClaimedTokens= */ true);

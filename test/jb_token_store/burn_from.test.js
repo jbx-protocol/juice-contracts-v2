@@ -42,7 +42,10 @@ describe('JBTokenStore::burnFrom(...)', function () {
   it('Should burn only claimed tokens and emit event', async function () {
     const { controller, newHolder, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
 
+    // Access to burn
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Access to issue:
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
@@ -78,7 +81,10 @@ describe('JBTokenStore::burnFrom(...)', function () {
   it('Should burn claimed tokens, then unclaimed tokens and emit event', async function () {
     const { controller, newHolder, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
 
+    // Access to burn
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Access to issue:
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
@@ -120,7 +126,10 @@ describe('JBTokenStore::burnFrom(...)', function () {
   it('Should burn unclaimed tokens only, then claimed tokens and emit event', async function () {
     const { controller, newHolder, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
 
+    // Access to burn
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Access to issue:
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
@@ -162,7 +171,10 @@ describe('JBTokenStore::burnFrom(...)', function () {
   it('Should burn unclaimed tokens only, if there is enough of them to not burn claimed ones, and emit event', async function () {
     const { controller, newHolder, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
 
+    // Access to burn
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Access to issue:
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
@@ -204,7 +216,10 @@ describe('JBTokenStore::burnFrom(...)', function () {
   it('Should burn only unclaimed tokens and emit event', async function () {
     const { controller, newHolder, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
 
+    // Access to burn
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Access to issue:
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
@@ -257,7 +272,10 @@ describe('JBTokenStore::burnFrom(...)', function () {
   it(`Can't burn more tokens than the available balance`, async function () {
     const { controller, newHolder, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
 
+    // Access to burn
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Access to issue:
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
@@ -286,7 +304,10 @@ describe('JBTokenStore::burnFrom(...)', function () {
   it(`Can't burn any tokens if none have been issued or allocated'`, async function () {
     const { controller, newHolder, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
 
+    // Access to burn
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Access to issue:
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     const numTokens = 1;

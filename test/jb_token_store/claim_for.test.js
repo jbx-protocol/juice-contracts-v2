@@ -58,7 +58,10 @@ describe('JBTokenStore::claimFor(...)', function () {
       CLAIM_INDEX,
     } = await setup();
 
+    // Mint access:
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Issue access:
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);

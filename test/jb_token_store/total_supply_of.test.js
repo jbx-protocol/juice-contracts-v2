@@ -13,7 +13,8 @@ describe('JBTokenStore::totalySupplyOf(...)', function () {
   const TOKEN_SYMBOL = 'TEST';
 
   async function setup() {
-    const [deployer, ...addrs] = await ethers.getSigners();
+    const [deployer, controller, projectOwner, newHolder, anotherHolder, ...addrs] =
+      await ethers.getSigners();
 
     const mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
     const mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
@@ -27,7 +28,10 @@ describe('JBTokenStore::totalySupplyOf(...)', function () {
     );
 
     return {
-      addrs,
+      controller,
+      projectOwner,
+      newHolder,
+      anotherHolder,
       mockJbDirectory,
       mockJbProjects,
       jbTokenStore,
@@ -35,23 +39,31 @@ describe('JBTokenStore::totalySupplyOf(...)', function () {
   }
 
   it('Should return total supply of tokens for given projectId', async function () {
-    const { addrs, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
-    const controller = addrs[0];
+    const {
+      controller,
+      projectOwner,
+      newHolder,
+      anotherHolder,
+      mockJbDirectory,
+      mockJbProjects,
+      jbTokenStore,
+    } = await setup();
 
+    // Mint access:
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
-    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
-    await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
+    // IssueFor access:
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
+
+    await jbTokenStore.connect(projectOwner).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
 
     // Mint unclaimed tokens
-    const newHolder = addrs[1];
     const numTokens = 20;
     await jbTokenStore
       .connect(controller)
       .mintFor(newHolder.address, PROJECT_ID, numTokens, /* _preferClaimedTokens= */ false);
 
     // Mint claimed tokens for another holder
-    const anotherHolder = addrs[2];
     await jbTokenStore
       .connect(controller)
       .mintFor(anotherHolder.address, PROJECT_ID, numTokens, /* preferClaimedTokens= */ true);
