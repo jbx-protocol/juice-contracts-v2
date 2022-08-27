@@ -68,6 +68,19 @@ describe('JBTokenStore::setFor(...)', function () {
       .withArgs(PROJECT_ID, newTokenAddr, projectOwner.address);
   });
 
+  it(`Should set a token returning the wildcard as projectId`, async function () {
+    const { projectOwner, mockJbProjects, jbTokenStore } = await setup();
+
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
+
+    // Set to a new token.
+    let newToken = await deployJbToken(TOKEN_NAME, TOKEN_SYMBOL, 0);
+
+    await expect(jbTokenStore.connect(projectOwner).setFor(PROJECT_ID, newToken.address))
+      .to.emit(jbTokenStore, 'Set')
+      .withArgs(PROJECT_ID, newToken.address, projectOwner.address);
+  });
+
   it(`Can't set a tokens if caller does not have permission`, async function () {
     const { projectOwner, caller, mockJbProjects, mockJbOperatorStore, jbTokenStore } =
       await setup();
@@ -97,7 +110,7 @@ describe('JBTokenStore::setFor(...)', function () {
     ).to.be.revertedWith('EMPTY_TOKEN()');
   });
 
-  it(`Can't set a token not returning the correct projectId`, async function () {
+  it(`Can't set a token not returning the correct projectId or the wildcard`, async function () {
     const { projectOwner, mockJbProjects, jbTokenStore } = await setup();
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
