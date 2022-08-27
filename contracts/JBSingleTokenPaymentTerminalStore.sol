@@ -374,11 +374,8 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
       // A reference to the total amount that has been delegated.
       uint256 _totalDelegatedAmount;
 
-      // Keep a reference to the number of delegate allocations.
-      uint256 _numberOfDelegatedAmounts = delegateAllocations.length;
-
       // Validate all delegated amounts.
-      for (uint256 _i; _i < _numberOfDelegatedAmounts; ) {
+      for (uint256 _i; _i < delegateAllocations.length; ) {
         // Increment the total amount being delegated.
         _totalDelegatedAmount = _totalDelegatedAmount + delegateAllocations[_i].amount;
 
