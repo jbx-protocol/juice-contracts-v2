@@ -269,7 +269,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     );
   });
 
-  it.only(`Should send ERC20 with 9-decimals towards allocator supporting fee on transfer token`, async function () {
+  it(`Should send ERC20 with 9-decimals towards allocator supporting fee on transfer token`, async function () {
     const { caller, deployer, jbSplitsPayer, mockToken, mockJbSplitsStore } = await setup();
     const DECIMALS = 9;
     const NET_AMOUNT = AMOUNT.sub(100);
