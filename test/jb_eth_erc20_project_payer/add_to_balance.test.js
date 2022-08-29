@@ -125,6 +125,42 @@ describe('JBETHERC20ProjectPayer::addToBalanceOf(...)', function () {
     ).to.be.not.reverted;
   });
 
+  it(`Should add an ERC20 to balance of project ID supporting fee on transfer token`, async function () {
+    const { caller, mockToken, jbProjectPayer, mockJbDirectory, mockJbTerminal } = await setup();
+
+    const NET_AMOUNT = AMOUNT.sub(100);
+
+    // first call to balanceOF -> empty
+    mockToken.balanceOf.returnsAtCall(0, 0);
+
+    // Pulling the tokens
+    mockToken.transferFrom
+      .whenCalledWith(caller.address, jbProjectPayer.address, AMOUNT)
+      .returns(true);
+
+    // Second call to balanceOf, with the token now in balance minus the fee
+    mockToken.balanceOf.returnsAtCall(1, NET_AMOUNT);
+
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(PROJECT_ID, mockToken.address)
+      .returns(mockJbTerminal.address);
+
+    await mockJbTerminal.mock.decimalsForToken.withArgs(mockToken.address).returns(DECIMALS);
+
+    mockToken.allowance.whenCalledWith(jbProjectPayer.address, mockJbTerminal.address).returns(0);
+    mockToken.approve.whenCalledWith(mockJbTerminal.address, NET_AMOUNT).returns(true);
+
+    await mockJbTerminal.mock.addToBalanceOf
+      .withArgs(PROJECT_ID, NET_AMOUNT, mockToken.address, MEMO, METADATA)
+      .returns();
+
+    await expect(
+      jbProjectPayer
+        .connect(caller)
+        .addToBalanceOf(PROJECT_ID, mockToken.address, AMOUNT, DECIMALS, MEMO, METADATA),
+    ).to.be.not.reverted;
+  });
+
   it(`Can't add to balance if terminal not found`, async function () {
     const { jbProjectPayer, mockJbDirectory } = await setup();
 

@@ -201,6 +201,61 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
     ).to.not.be.reverted;
   });
 
+  it(`Should pay funds towards project with a 9-decimals erc20 tokens with fee on transfer`, async function () {
+    const { jbProjectPayer, mockJbDirectory, mockJbTerminal, mockToken, addrs } = await setup();
+
+    const NET_AMOUNT = AMOUNT.sub(100);
+
+    await mockJbTerminal.mock.decimalsForToken.withArgs(mockToken.address).returns(9);
+
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(PROJECT_ID, mockToken.address)
+      .returns(mockJbTerminal.address);
+
+    await mockJbTerminal.mock.pay
+      .withArgs(
+        PROJECT_ID,
+        NET_AMOUNT,
+        mockToken.address,
+        BENEFICIARY,
+        MIN_RETURNED_TOKENS,
+        PREFER_CLAIMED_TOKENS,
+        MEMO,
+        METADATA,
+      )
+      .returns(0);
+
+    const payer = addrs[0];
+
+    mockToken.balanceOf.returnsAtCall(0, 0);
+
+    mockToken.transferFrom
+      .whenCalledWith(payer.address, jbProjectPayer.address, AMOUNT)
+      .returns(true);
+
+    mockToken.balanceOf.returnsAtCall(1, NET_AMOUNT);
+
+    mockToken.allowance.whenCalledWith(jbProjectPayer.address, mockJbTerminal.address).returns(0);
+
+    mockToken.approve.whenCalledWith(mockJbTerminal.address, NET_AMOUNT).returns(true);
+
+    await expect(
+      jbProjectPayer
+        .connect(payer)
+        .pay(
+          PROJECT_ID,
+          mockToken.address,
+          AMOUNT,
+          9,
+          BENEFICIARY,
+          MIN_RETURNED_TOKENS,
+          PREFER_CLAIMED_TOKENS,
+          MEMO,
+          METADATA,
+        ),
+    ).to.not.be.reverted;
+  });
+
   it(`Should pay funds towards project using addToBalanceOf`, async function () {
     const { jbProjectPayer, mockJbDirectory, mockJbTerminal } = await setup();
 

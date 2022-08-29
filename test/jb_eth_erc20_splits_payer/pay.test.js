@@ -269,6 +269,82 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     );
   });
 
+  it.only(`Should send ERC20 with 9-decimals towards allocator supporting fee on transfer token`, async function () {
+    const { caller, deployer, jbSplitsPayer, mockToken, mockJbSplitsStore } = await setup();
+    const DECIMALS = 9;
+    const NET_AMOUNT = AMOUNT.sub(100);
+
+    let mockJbAllocator = await deployMockContract(deployer, jbAllocator.abi);
+
+    let splits = makeSplits({ projectId: PROJECT_ID, allocator: mockJbAllocator.address });
+
+    await Promise.all(
+      splits.map(async (split) => {
+        mockToken.allowance
+          .whenCalledWith(jbSplitsPayer.address, mockJbAllocator.address)
+          .returns(0);
+
+        mockToken.approve
+          .whenCalledWith(
+            mockJbAllocator.address,
+            NET_AMOUNT.mul(split.percent).div(maxSplitsPercent),
+          )
+          .returns(true);
+
+        await mockJbAllocator.mock.allocate
+          .withArgs({
+            token: mockToken.address,
+            amount: NET_AMOUNT.mul(split.percent).div(maxSplitsPercent),
+            decimals: DECIMALS,
+            projectId: DEFAULT_PROJECT_ID,
+            group: 0,
+            split: split,
+          })
+          .returns();
+      }),
+    );
+
+    await mockJbSplitsStore.mock.splitsOf
+      .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
+      .returns(splits);
+
+    mockToken.balanceOf.returnsAtCall(0, 0);
+
+    mockToken.transferFrom
+      .whenCalledWith(caller.address, jbSplitsPayer.address, AMOUNT)
+      .returns(true);
+
+    mockToken.balanceOf.returnsAtCall(1, NET_AMOUNT);
+
+    let tx = jbSplitsPayer
+      .connect(caller)
+      .pay(
+        PROJECT_ID,
+        mockToken.address,
+        AMOUNT,
+        DECIMALS,
+        BENEFICIARY,
+        MIN_RETURNED_TOKENS,
+        PREFER_CLAIMED_TOKENS,
+        MEMO,
+        METADATA,
+      );
+
+    await expect(tx).to.emit(jbSplitsPayer, 'Pay').withArgs(
+      PROJECT_ID,
+      DEFAULT_BENEFICIARY,
+      mockToken.address,
+      NET_AMOUNT,
+      DECIMALS,
+      0, //left over
+      MIN_RETURNED_TOKENS,
+      PREFER_CLAIMED_TOKENS,
+      MEMO,
+      METADATA,
+      caller.address,
+    );
+  });
+
   it(`Should send fund towards project terminal if project ID is set in split and add to balance if it is prefered, and emit event`, async function () {
     const { caller, jbSplitsPayer, mockJbSplitsStore, mockJbDirectory, mockJbTerminal } =
       await setup();

@@ -27,6 +27,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
   const TOKEN_TO_MINT = 200;
   const TOKEN_RECEIVED = 100;
   const ETH_TO_PAY = ethers.utils.parseEther('1');
+  const TOKEN_AMOUNT = ethers.utils.parseEther('1');
   const PREFER_CLAIMED_TOKENS = true;
   const CURRENCY_ETH = 1;
   const DECIMALS = 1;
@@ -504,6 +505,98 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
       METADATA,
       { value: 0 },
     );
+  });
+
+  it('Should work with non-eth terminal supporting fee on transfer token', async function () {
+    const {
+      caller,
+      JBERC20PaymentTerminal,
+      mockToken,
+      mockJbDirectory,
+      mockJbController,
+      mockJBPaymentTerminalStore,
+      beneficiary,
+      timestamp,
+    } = await setup();
+
+    const NET_AMOUNT = TOKEN_AMOUNT.sub(100);
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
+
+    await mockJbController.mock.mintTokensOf
+      .withArgs(
+        PROJECT_ID,
+        TOKEN_TO_MINT,
+        beneficiary.address,
+        '',
+        PREFER_CLAIMED_TOKENS,
+        /* useReservedRate */ true,
+      )
+      .returns(TOKEN_RECEIVED);
+
+    mockToken.balanceOf.returnsAtCall(0, 0);
+
+    mockToken.transferFrom
+      .whenCalledWith(caller.address, JBERC20PaymentTerminal.address, TOKEN_AMOUNT)
+      .returns(true);
+
+    mockToken.balanceOf.returnsAtCall(1, NET_AMOUNT);
+
+    let tokenAddress = await JBERC20PaymentTerminal.token();
+    await mockJBPaymentTerminalStore.mock.recordPaymentFrom
+      .withArgs(
+        caller.address,
+        [/*token*/ tokenAddress, /*amount paid*/ NET_AMOUNT, /*decimal*/ DECIMALS, CURRENCY_ETH],
+        PROJECT_ID,
+        CURRENCY_ETH,
+        beneficiary.address,
+        MEMO,
+        METADATA,
+      )
+      .returns(
+        {
+          // mock JBFundingCycle obj
+          number: 1,
+          configuration: timestamp,
+          basedOn: timestamp,
+          start: timestamp,
+          duration: 0,
+          weight: 0,
+          discountRate: 0,
+          ballot: ethers.constants.AddressZero,
+          metadata: packFundingCycleMetadata(),
+        },
+        TOKEN_TO_MINT,
+        [],
+        ADJUSTED_MEMO,
+      );
+
+    await expect(
+      JBERC20PaymentTerminal.connect(caller).pay(
+        PROJECT_ID,
+        ETH_TO_PAY,
+        ethers.constants.AddressZero,
+        beneficiary.address,
+        MIN_TOKEN_REQUESTED,
+        PREFER_CLAIMED_TOKENS,
+        MEMO,
+        METADATA,
+        { value: 0 },
+      ),
+    )
+      .to.emit(JBERC20PaymentTerminal, 'Pay')
+      .withArgs(
+        /*fundingCycle.configuration=*/ timestamp,
+        FUNDING_CYCLE_NUMBER,
+        PROJECT_ID,
+        caller.address,
+        beneficiary.address,
+        NET_AMOUNT,
+        TOKEN_RECEIVED,
+        ADJUSTED_MEMO,
+        METADATA,
+        caller.address,
+      );
   });
 
   it("Can't pay with value if terminal token isn't ETH", async function () {

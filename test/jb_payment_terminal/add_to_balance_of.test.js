@@ -353,6 +353,44 @@ describe('JBPayoutRedemptionPaymentTerminal::addToBalanceOf(...)', function () {
       },
     );
   });
+
+  it('Should work with non-eth terminal supporting fee on transfer token', async function () {
+    const { caller, JBERC20PaymentTerminal, mockToken, mockJBPaymentTerminalStore } = await setup();
+
+    // The net amount received by the terminal (AMOUNT - fee on transfer)
+    const NET_AMOUNT = AMOUNT.sub(100);
+
+    await mockJBPaymentTerminalStore.mock.recordAddedBalanceFor
+      .withArgs(PROJECT_ID, NET_AMOUNT)
+      .returns();
+
+    // first call to balanceOF -> empty
+    mockToken.balanceOf.returnsAtCall(0, 0);
+
+    // Pulling the tokens
+    mockToken.transferFrom
+      .whenCalledWith(caller.address, JBERC20PaymentTerminal.address, AMOUNT)
+      .returns(true);
+
+    // Second call to balanceOf, with the net token balance
+    mockToken.balanceOf.returnsAtCall(1, NET_AMOUNT);
+
+    await expect(
+      JBERC20PaymentTerminal.connect(caller).addToBalanceOf(
+        PROJECT_ID,
+        AMOUNT,
+        mockToken.address,
+        MEMO,
+        METADATA,
+        {
+          value: 0,
+        },
+      ),
+    )
+      .to.emit(JBERC20PaymentTerminal, 'AddToBalance')
+      .withArgs(PROJECT_ID, NET_AMOUNT, 0, MEMO, METADATA, caller.address);
+  });
+
   it('Should add to the project balance, partially refund a held fee and substract the amount from the held fee amount and emit event', async function () {
     const {
       caller,
