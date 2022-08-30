@@ -1376,8 +1376,14 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           // Trigger any inherited pre-transfer logic.
           _beforeTransferTo(address(_delegateAllocation.delegate), _delegateAllocation.amount);
 
+          // Keep track of the msg.value to use in the delegate call
+          uint256 _payableValue;
+
           // If this terminal's token is ETH, send it in msg.value.
-          uint256 _payableValue = token == JBTokens.ETH ? _delegateAllocation.amount : 0;
+          if (token == JBTokens.ETH) _payableValue = _delegateAllocation.amount;
+
+          // Pass the correct token amount to the delegate
+          _data.amount.value = _delegateAllocation.amount;
 
           _delegateAllocation.delegate.didPay{value: _payableValue}(_data);
 

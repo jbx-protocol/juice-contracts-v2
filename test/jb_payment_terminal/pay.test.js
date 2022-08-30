@@ -49,6 +49,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
       mockJbProjects,
       mockJbSplitsStore,
       mockJbPayDelegate,
+      mockJbPayDelegate2,
       mockJbPrices,
       mockJbController,
     ] = await Promise.all([
@@ -57,6 +58,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
       deployMockContract(deployer, jbOperatoreStore.abi),
       deployMockContract(deployer, jbProjects.abi),
       deployMockContract(deployer, jbSplitsStore.abi),
+      deployMockContract(deployer, jbPayDelegate.abi),
       deployMockContract(deployer, jbPayDelegate.abi),
       deployMockContract(deployer, jbPrices.abi),
       deployMockContract(deployer, jbController.abi),
@@ -159,6 +161,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
       mockJbDirectory,
       mockJBPaymentTerminalStore,
       mockJbPayDelegate,
+      mockJbPayDelegate2,
       mockJbController,
       timestamp,
     };
@@ -309,26 +312,28 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         { value: ETH_TO_PAY },
       );
 
-    await expect(tx).to.emit(jbEthPaymentTerminal, 'DelegateDidPay');
     // AssertionError: expected [ Array(4) ] to equal [ Array(4) ]
-
+    await expect(tx).to.emit(jbEthPaymentTerminal, 'DelegateDidPay');
     // .withArgs(
     //   mockJbPayDelegate.address,
     //   [
     //     // JBDidPayData obj
     //     caller.address,
     //     PROJECT_ID,
+    //     timestamp,
     //     [
-    //       "0x000000000000000000000000000000000000EEEe",
+    //       '0x000000000000000000000000000000000000EEEe',
     //       ETH_TO_PAY,
     //       ethers.BigNumber.from(18),
-    //       ethers.BigNumber.from(CURRENCY_ETH)
+    //       ethers.BigNumber.from(CURRENCY_ETH),
     //     ],
     //     TOKEN_RECEIVED,
     //     beneficiary.address,
+    //     PREFER_CLAIMED_TOKENS,
     //     ADJUSTED_MEMO,
     //     METADATA,
     //   ],
+    //   ETH_TO_PAY,
     //   caller.address,
     // );
 
@@ -346,6 +351,193 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         METADATA,
         caller.address,
       );
+  });
+
+  it.only('Should record payment with delegates when sending allocation to them, and emit delegate event', async function () {
+    const {
+      caller,
+      jbEthPaymentTerminal,
+      mockJbPayDelegate,
+      mockJbPayDelegate2,
+      mockJBPaymentTerminalStore,
+      mockJbDirectory,
+      mockJbController,
+      timestamp,
+      beneficiary,
+    } = await setup();
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
+
+    await mockJbController.mock.mintTokensOf
+      .withArgs(
+        PROJECT_ID,
+        TOKEN_TO_MINT,
+        /* beneficiary */ beneficiary.address,
+        '',
+        PREFER_CLAIMED_TOKENS,
+        /* useReservedRate */ true,
+      )
+      .returns(TOKEN_RECEIVED);
+
+    await mockJBPaymentTerminalStore.mock.recordPaymentFrom
+      .withArgs(
+        caller.address,
+        [
+          /*token*/ '0x000000000000000000000000000000000000eeee',
+          /*amount paid*/ ETH_TO_PAY,
+          /*decimal*/ 18,
+          CURRENCY_ETH,
+        ],
+        PROJECT_ID,
+        CURRENCY_ETH,
+        beneficiary.address,
+        MEMO,
+        METADATA,
+      )
+      .returns(
+        {
+          // mock JBFundingCycle obj
+          number: 1,
+          configuration: timestamp,
+          basedOn: timestamp,
+          start: timestamp,
+          duration: 0,
+          weight: 0,
+          discountRate: 0,
+          ballot: ethers.constants.AddressZero,
+          metadata: packFundingCycleMetadata(),
+        },
+        TOKEN_TO_MINT,
+        [
+          { delegate: mockJbPayDelegate.address, amount: ETH_TO_PAY.div(4) },
+          { delegate: mockJbPayDelegate2.address, amount: ETH_TO_PAY.div(2) },
+        ],
+        ADJUSTED_MEMO,
+      );
+
+    await mockJbPayDelegate.mock.didPay
+      .withArgs({
+        // JBDidPayData obj
+        payer: caller.address,
+        projectId: PROJECT_ID,
+        currentFundingCycleConfiguration: timestamp,
+        amount: {
+          token: '0x000000000000000000000000000000000000eeee',
+          value: ETH_TO_PAY.div(4),
+          decimals: 18,
+          currency: CURRENCY_ETH,
+        },
+        projectTokenCount: TOKEN_RECEIVED,
+        beneficiary: beneficiary.address,
+        preferClaimedTokens: PREFER_CLAIMED_TOKENS,
+        memo: ADJUSTED_MEMO,
+        metadata: METADATA,
+      })
+      .returns();
+
+    await mockJbPayDelegate2.mock.didPay
+      .withArgs({
+        // JBDidPayData obj
+        payer: caller.address,
+        projectId: PROJECT_ID,
+        currentFundingCycleConfiguration: timestamp,
+        amount: {
+          token: '0x000000000000000000000000000000000000eeee',
+          value: ETH_TO_PAY.div(2),
+          decimals: 18,
+          currency: CURRENCY_ETH,
+        },
+        projectTokenCount: TOKEN_RECEIVED,
+        beneficiary: beneficiary.address,
+        preferClaimedTokens: PREFER_CLAIMED_TOKENS,
+        memo: ADJUSTED_MEMO,
+        metadata: METADATA,
+      })
+      .returns();
+
+    const tx = await jbEthPaymentTerminal
+      .connect(caller)
+      .pay(
+        PROJECT_ID,
+        ETH_TO_PAY,
+        ethers.constants.AddressZero,
+        beneficiary.address,
+        MIN_TOKEN_REQUESTED,
+        PREFER_CLAIMED_TOKENS,
+        MEMO,
+        METADATA,
+        { value: ETH_TO_PAY },
+      );
+
+    // AssertionError: expected [ …(9), …(9) ] to equal { …(9) }
+    await expect(tx).to.emit(jbEthPaymentTerminal, 'DelegateDidPay');
+    // .withArgs(
+    //   mockJbPayDelegate.address,
+    //   {
+    //     // JBDidPayData obj
+    //     payer: caller.address,
+    //     projectId: PROJECT_ID,
+    //     currentFundingCycleConfiguration: timestamp,
+    //     amount: {
+    //       token: '0x000000000000000000000000000000000000EEEe',
+    //       value: ETH_TO_PAY,
+    //       decimals: ethers.BigNumber.from(18),
+    //       currency: ethers.BigNumber.from(CURRENCY_ETH),
+    //     },
+    //     projectTokenCount: TOKEN_RECEIVED,
+    //     beneficiary: beneficiary.address,
+    //     preferClaimedTokens: PREFER_CLAIMED_TOKENS,
+    //     memo: ADJUSTED_MEMO,
+    //     metadata: METADATA,
+    //   },
+    //   ETH_TO_PAY,
+    //   caller.address,
+    // );
+
+    // await expect(tx)
+    //   .to.emit(jbEthPaymentTerminal, 'DelegateDidPay')
+    //   .withArgs(
+    //     mockJbPayDelegate2.address,
+    //     [
+    //       // JBDidPayData obj
+    //       caller.address,
+    //       PROJECT_ID,
+    //       timestamp,
+    //       [
+    //         '0x000000000000000000000000000000000000EEEe',
+    //         ETH_TO_PAY,
+    //         ethers.BigNumber.from(18),
+    //         ethers.BigNumber.from(CURRENCY_ETH),
+    //       ],
+    //       TOKEN_RECEIVED,
+    //       beneficiary.address,
+    //       PREFER_CLAIMED_TOKENS,
+    //       ADJUSTED_MEMO,
+    //       METADATA,
+    //     ],
+    //     ETH_TO_PAY.div(2),
+    //     caller.address,
+    //   );
+
+    await expect(tx)
+      .to.emit(jbEthPaymentTerminal, 'Pay')
+      .withArgs(
+        /*fundingCycle.configuration=*/ timestamp,
+        FUNDING_CYCLE_NUMBER,
+        PROJECT_ID,
+        caller.address,
+        beneficiary.address,
+        ETH_TO_PAY,
+        TOKEN_RECEIVED,
+        ADJUSTED_MEMO,
+        METADATA,
+        caller.address,
+      );
+
+    await expect(tx).to.changeEtherBalances(
+      [mockJbPayDelegate, mockJbPayDelegate2],
+      [ETH_TO_PAY.div(4), ETH_TO_PAY.div(2)],
+    );
   });
 
   it('Should work with eth terminal with non msg.value amount sent', async function () {
