@@ -110,19 +110,6 @@ describe('JBTokenStore::setFor(...)', function () {
     ).to.be.revertedWith('EMPTY_TOKEN()');
   });
 
-  it(`Can't set a token not returning the correct projectId or the wildcard`, async function () {
-    const { projectOwner, mockJbProjects, jbTokenStore } = await setup();
-
-    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
-
-    // Set to a new token.
-    let newToken = await deployJbToken(TOKEN_NAME, TOKEN_SYMBOL, PROJECT_ID + 1);
-
-    await expect(
-      jbTokenStore.connect(projectOwner).setFor(PROJECT_ID, newToken.address),
-    ).to.be.revertedWith('PROJECT_ID_MISMATCH()');
-  });
-
   it(`Can't set a token if another token has already been set`, async function () {
     const { projectOwner, mockJbProjects, jbTokenStore } = await setup();
 

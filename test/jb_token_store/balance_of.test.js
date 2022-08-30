@@ -40,6 +40,8 @@ describe('JBTokenStore::balanceOf(...)', function () {
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
 
     // Mint unclaimed tokens
@@ -49,9 +51,6 @@ describe('JBTokenStore::balanceOf(...)', function () {
       .mintFor(newHolder.address, PROJECT_ID, numTokens, /* preferClaimedTokens= */ false);
 
     expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(numTokens);
-
-    // Mint more claimed tokens
-    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore
       .connect(controller)
