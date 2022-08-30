@@ -353,7 +353,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
       );
   });
 
-  it.only('Should record payment with delegates when sending allocation to them, and emit delegate event', async function () {
+  it('Should record payment with delegates when sending allocation to them, and emit delegate event', async function () {
     const {
       caller,
       jbEthPaymentTerminal,
