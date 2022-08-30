@@ -364,7 +364,7 @@ describe('JBPayoutRedemptionPaymentTerminal::redeemTokensOf(...)', function () {
     );
   });
 
-  it.only('Should redeem tokens and call multiple delegate', async function () {
+  it('Should redeem tokens and call multiple delegate', async function () {
     const {
       beneficiary,
       fundingCycle,
