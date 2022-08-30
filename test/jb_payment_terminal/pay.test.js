@@ -286,7 +286,7 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         currentFundingCycleConfiguration: timestamp,
         amount: {
           token: '0x000000000000000000000000000000000000eeee',
-          value: ETH_TO_PAY,
+          value: 0,
           decimals: 18,
           currency: CURRENCY_ETH,
         },
