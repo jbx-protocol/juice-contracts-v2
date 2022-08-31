@@ -30,6 +30,26 @@ describe('JBToken::burn(...)', function () {
     expect(balance).to.equal(startingBalance - numTokens);
   });
 
+  it('Cannot burn from the project ID 0', async function () {
+    const { deployer, addrs, jbToken } = await setup();
+    const addr = addrs[1];
+    const numTokens = 3000;
+
+    await expect(jbToken.connect(deployer).burn(0, addr.address, numTokens)).to.be.revertedWith(
+      'BAD_PROJECT()',
+    );
+  });
+
+  it('Cannot burn from another project id than the one from the token', async function () {
+    const { deployer, addrs, jbToken } = await setup();
+    const addr = addrs[1];
+    const numTokens = 3000;
+
+    await expect(
+      jbToken.connect(deployer).burn(PROJECT_ID + 1, addr.address, numTokens),
+    ).to.be.revertedWith('BAD_PROJECT()');
+  });
+
   it(`Can't burn tokens if caller isn't owner`, async function () {
     const { addrs, jbToken } = await setup();
     const nonOwner = addrs[1];

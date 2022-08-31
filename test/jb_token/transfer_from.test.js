@@ -37,6 +37,38 @@ describe('JBToken::transferFrom(...)', function () {
     expect(balance).to.equal(startingBalance - numTokens);
   });
 
+  it('Cannot transfer from the project ID 0', async function () {
+    const { addrs, jbToken } = await setup();
+    const numTokens = 3000;
+
+    await expect(
+      jbToken
+        .connect(addrs[3])
+        ['transferFrom(uint256,address,address,uint256)'](
+          0,
+          addrs[1].address,
+          addrs[2].address,
+          numTokens,
+        ),
+    ).to.be.revertedWith('BAD_PROJECT()');
+  });
+
+  it('Cannot transfer from another project id than the one from the token', async function () {
+    const { addrs, jbToken } = await setup();
+    const numTokens = 3000;
+
+    await expect(
+      jbToken
+        .connect(addrs[3])
+        ['transferFrom(uint256,address,address,uint256)'](
+          PROJECT_ID + 1,
+          addrs[1].address,
+          addrs[2].address,
+          numTokens,
+        ),
+    ).to.be.revertedWith('BAD_PROJECT()');
+  });
+
   it(`Can't transfer tokens if caller doesn't have approval`, async function () {
     const { addrs, jbToken } = await setup();
     const numTokens = 5;

@@ -31,6 +31,26 @@ describe('JBToken::mint(...)', function () {
     expect(supply).to.equal(numTokens);
   });
 
+  it('Cannot mint for the project ID 0', async function () {
+    const { deployer, addrs, jbToken } = await setup();
+    const addr = addrs[1];
+    const numTokens = 3000;
+
+    await expect(jbToken.connect(deployer).mint(0, addr.address, numTokens)).to.be.revertedWith(
+      'BAD_PROJECT()',
+    );
+  });
+
+  it('Cannot mint from another project id than the one of the token', async function () {
+    const { deployer, addrs, jbToken } = await setup();
+    const addr = addrs[1];
+    const numTokens = 3000;
+
+    await expect(
+      jbToken.connect(deployer).mint(PROJECT_ID + 1, addr.address, numTokens),
+    ).to.be.revertedWith('BAD_PROJECT()');
+  });
+
   it(`Can't mint tokens if caller isn't owner`, async function () {
     const { addrs, jbToken } = await setup();
     const nonOwner = addrs[1];
