@@ -151,9 +151,8 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
 
     // verify: should have held the fee
     if (fee > 0 && payAmountInWei > 0) {
-      assertEq(_terminal.heldFeesOf(_projectId)[0].fee, _terminal.fee());
-      assertEq(_terminal.heldFeesOf(_projectId)[0].feeDiscount, feeDiscount);
-      assertEq(_terminal.heldFeesOf(_projectId)[0].amount, payAmountInWei);
+      // TODO: Add feeAmount check
+      assertEq(_terminal.heldFeesOf(_projectId).amount, payAmountInWei);
     }
 
     // -- add to balance --

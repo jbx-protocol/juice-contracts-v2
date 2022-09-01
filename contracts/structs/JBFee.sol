@@ -9,7 +9,5 @@ pragma solidity ^0.8.16;
 */
 struct JBFee {
   uint256 amount;
-  uint32 fee;
-  uint32 feeDiscount;
-  address beneficiary;
+  uint256 feeAmount;
 }

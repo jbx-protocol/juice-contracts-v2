@@ -100,7 +100,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     _projectId The ID of the project for which fees are being held.
   */
-  mapping(uint256 => JBFee[]) internal _heldFeesOf;
+  mapping(uint256 => JBFee) internal _heldFeesOf;
 
   //*********************************************************************//
   // ---------------- public immutable stored properties --------------- //
@@ -230,7 +230,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
     @return An array of fees that are being held.
   */
-  function heldFeesOf(uint256 _projectId) external view override returns (JBFee[] memory) {
+  function heldFeesOf(uint256 _projectId) external view override returns (JBFee memory) {
     return _heldFeesOf[_projectId];
   }
 
@@ -606,33 +606,14 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       msg.sender == owner()
     )
   {
-    // Get a reference to the project's held fees.
-    JBFee[] memory _heldFees = _heldFeesOf[_projectId];
+    // Get the fee amount
+    uint256 _amount = _heldFeesOf[_projectId].feeAmount;
 
     // Delete the held fees.
     delete _heldFeesOf[_projectId];
 
-    // Push array length in stack
-    uint256 _heldFeeLength = _heldFees.length;
-
-    // Process each fee.
-    for (uint256 _i; _i < _heldFeeLength; ) {
-      // Get the fee amount.
-      uint256 _amount = _feeAmount(
-        _heldFees[_i].amount,
-        _heldFees[_i].fee,
-        _heldFees[_i].feeDiscount
-      );
-
-      // Process the fee.
-      _processFee(_amount, _heldFees[_i].beneficiary);
-
-      emit ProcessFee(_projectId, _amount, true, _heldFees[_i].beneficiary, msg.sender);
-
-      unchecked {
-        ++_i;
-      }
-    }
+    // Process the fee.
+    _processFee(_amount, projects.ownerOf(_projectId));
   }
 
   /**
@@ -1239,8 +1220,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     feeAmount = _feeAmount(_amount, fee, _feeDiscount);
 
     if (_fundingCycle.shouldHoldFees()) {
-      // Store the held fee.
-      _heldFeesOf[_projectId].push(JBFee(_amount, uint32(fee), uint32(_feeDiscount), _beneficiary));
+      _heldFeesOf[_projectId].amount += _amount;
+      _heldFeesOf[_projectId].feeAmount += feeAmount;
 
       emit HoldFee(_projectId, _amount, fee, _feeDiscount, _beneficiary, msg.sender);
     } else {
@@ -1454,51 +1435,24 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     internal
     returns (uint256 refundedFees)
   {
-    // Get a reference to the project's held fees.
-    JBFee[] memory _heldFees = _heldFeesOf[_projectId];
+    JBFee memory _currentFee = _heldFeesOf[_projectId];
+    uint256 _leftoverAmount;
 
-    // Delete the current held fees.
-    delete _heldFeesOf[_projectId];
+    // Check if the entire fee will be repaid
+    if (_currentFee.amount <= _amount) {
+      refundedFees = _currentFee.feeAmount;
+      _leftoverAmount = _amount - _currentFee.amount;
 
-    // Get a reference to the leftover amount once all fees have been settled.
-    uint256 leftoverAmount = _amount;
+      delete _heldFeesOf[_projectId];
+    } else {
+      // A part of the fee will be refunded
+      refundedFees = PRBMath.mulDiv(_amount, _currentFee.feeAmount, _currentFee.amount);
 
-    // Push length in stack
-    uint256 _heldFeesLength = _heldFees.length;
-
-    // Process each fee.
-    for (uint256 _i; _i < _heldFeesLength; ) {
-      if (leftoverAmount == 0) _heldFeesOf[_projectId].push(_heldFees[_i]);
-      else if (leftoverAmount >= _heldFees[_i].amount) {
-        unchecked {
-          leftoverAmount = leftoverAmount - _heldFees[_i].amount;
-          refundedFees += _feeAmount(
-            _heldFees[_i].amount,
-            _heldFees[_i].fee,
-            _heldFees[_i].feeDiscount
-          );
-        }
-      } else {
-        _heldFeesOf[_projectId].push(
-          JBFee(
-            _heldFees[_i].amount - leftoverAmount,
-            _heldFees[_i].fee,
-            _heldFees[_i].feeDiscount,
-            _heldFees[_i].beneficiary
-          )
-        );
-        unchecked {
-          refundedFees += _feeAmount(leftoverAmount, _heldFees[_i].fee, _heldFees[_i].feeDiscount);
-        }
-        leftoverAmount = 0;
-      }
-
-      unchecked {
-        ++_i;
-      }
+      _heldFeesOf[_projectId].amount -= _amount;
+      _heldFeesOf[_projectId].feeAmount -= refundedFees;
     }
 
-    emit RefundHeldFees(_projectId, _amount, refundedFees, leftoverAmount, msg.sender);
+    emit RefundHeldFees(_projectId, _amount, refundedFees, _leftoverAmount, msg.sender);
   }
 
   /** 

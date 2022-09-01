@@ -157,7 +157,7 @@ interface IJBPayoutRedemptionPaymentTerminal is
 
   function payoutSplitsGroup() external view returns (uint256);
 
-  function heldFeesOf(uint256 _projectId) external view returns (JBFee[] memory);
+  function heldFeesOf(uint256 _projectId) external view returns (JBFee memory);
 
   function fee() external view returns (uint256);
 
