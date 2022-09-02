@@ -49,8 +49,16 @@ contract JBReconfigurationBufferBallot is IJBFundingCycleBallot, ERC165 {
   ) public view override returns (JBBallotState) {
     _projectId; // Prevents unused var compiler and natspec complaints.
 
-    // If there was sufficient time between configuration and the start of the cycle, it is approved. Otherwise, it is failed.
-    return (_start - _configured < duration) ? JBBallotState.Failed : JBBallotState.Approved;
+    // If starting in the past, ballot is failed; prevent underflow
+    if (_configured > _start) return JBBallotState.Failed;
+
+    unchecked {
+      // If ballot duration hasn't pass, ballot is still active; _configured is <= timestampe
+      if (duration >= block.timestamp - _configured) return JBBallotState.Active;
+
+      // If there was sufficient time between configuration and the start of the cycle, it is approved. Otherwise, it is failed.
+      return (_start - _configured < duration) ? JBBallotState.Failed : JBBallotState.Approved;
+    }
   }
 
   /**

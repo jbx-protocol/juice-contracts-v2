@@ -3,7 +3,7 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
 
-describe('JBReconfigurationBufferBallot.stateOf(...)', function () {
+describe.only('JBReconfigurationBufferBallot.stateOf(...)', function () {
   const DURATION = 3000;
   const PROJECT_ID = 69;
 
@@ -29,19 +29,20 @@ describe('JBReconfigurationBufferBallot.stateOf(...)', function () {
     };
   }
 
-  it.skip('Should return Active if the delay has not yet passed and the funding cycle has not started yet', async function () {
+  // Logic moved to the fundingcycle store?
+  it('Should return Active if the delay has not yet passed and the funding cycle has not started yet', async function () {
     const { jbBallot, timestamp } = await setup();
 
     expect(
       await jbBallot.stateOf(
         PROJECT_ID,
-        timestamp + 10, // configured
+        timestamp - 5, // configured
         timestamp + 10,
       ), // start (+10 as every Hardhat transaction move timestamp)
     ).to.equals(0);
   });
 
-  it.skip('Should return Failed if the delay has not yet passed and the funding cycle has already started', async function () {
+  it('Should return Failed if the delay has not yet passed and the funding cycle has already started', async function () {
     const { jbBallot, timestamp } = await setup();
 
     expect(await jbBallot.stateOf(PROJECT_ID, timestamp + 10, timestamp - 1)).to.equals(2);

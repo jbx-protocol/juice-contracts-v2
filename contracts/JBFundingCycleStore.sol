@@ -816,13 +816,11 @@ contract JBFundingCycleStore is IJBFundingCycleStore, JBControllerUtility {
     );
 
     // If there is no ballot, the ID is auto approved.
-    // Otherwise if the ballot's duration hasn't passed, it's still active.
-    // Otherwise, return the ballot's state.
     if (_ballotFundingCycle.ballot == IJBFundingCycleBallot(address(0)))
       return JBBallotState.Approved;
-    else if (_ballotFundingCycle.ballot.duration() >= block.timestamp - _configuration)
-      return JBBallotState.Active;
-    else return _ballotFundingCycle.ballot.stateOf(_projectId, _configuration, _start);
+
+    // Return the ballot's state
+    return _ballotFundingCycle.ballot.stateOf(_projectId, _configuration, _start);
   }
 
   /**
