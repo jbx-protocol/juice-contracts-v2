@@ -3,7 +3,7 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
 
-describe.only('JBReconfigurationBufferBallot.stateOf(...)', function () {
+describe('JBReconfigurationBufferBallot.stateOf(...)', function () {
   const DURATION = 3000;
   const PROJECT_ID = 69;
 

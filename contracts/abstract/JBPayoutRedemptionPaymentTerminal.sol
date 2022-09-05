@@ -903,8 +903,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         }
       }
 
-      // Take the fee.
-      _fee = _feeEligibleDistributionAmount == 0
+      // Take the fee (_leftoverDistributionAmount of 1 creates a rounding error in _feeAmount(..), exclude it)
+      _fee = (_feeEligibleDistributionAmount == 0 || _leftoverDistributionAmount == 1)
         ? 0
         : _takeFeeFrom(
           _projectId,
@@ -916,9 +916,10 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
       // Transfer any remaining balance to the project owner and update returned leftover accordingly
       if (_leftoverDistributionAmount != 0) {
-        netLeftoverDistributionAmount =
-          _leftoverDistributionAmount -
-          _feeAmount(_leftoverDistributionAmount, fee, _feeDiscount);
+        netLeftoverDistributionAmount = _leftoverDistributionAmount != 1
+          ? _leftoverDistributionAmount - _feeAmount(_leftoverDistributionAmount, fee, _feeDiscount)
+          : _leftoverDistributionAmount;
+
         _transferFrom(address(this), _projectOwner, netLeftoverDistributionAmount);
       } // else netLeftoverDistributionAmount = 0
     }
