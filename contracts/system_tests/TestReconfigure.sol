@@ -145,7 +145,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
     uint256 currentConfiguration = fundingCycle.configuration;
 
     // Jump to FC+1, rolled over
-    evm.warp(block.timestamp + fundingCycle.duration); 
+    evm.warp(block.timestamp + fundingCycle.duration);
 
     // First reconfiguration
     evm.prank(multisig());
@@ -170,7 +170,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
     evm.prank(multisig());
     controller.reconfigureFundingCyclesOf(
       projectId,
-        JBFundingCycleData({
+      JBFundingCycleData({
         duration: 6 days,
         weight: weightSecondReconfiguration,
         discountRate: 0,
@@ -278,9 +278,9 @@ contract TestReconfigureProject is TestBaseWorkflow {
         // we shift forward the start of the ballot into the fc, one day at a time, from fc to fc
         evm.warp(currentFundingCycle.start + currentFundingCycle.duration + i * 1 days);
 
-        // ballot should be in Approved state now, queued is the reconfiguration rolled over
+        // ballot should be in Approved state now, queued is the newly approved fc
         queuedFundingCycle = jbFundingCycleStore().queuedOf(projectId);
-        assertEq(queuedFundingCycle.weight, currentFundingCycle.weight - 1);
+        assertEq(queuedFundingCycle.weight, _data.weight);
         assertEq(queuedFundingCycle.number, currentFundingCycle.number + 2);
       }
       // the ballot is accross two funding cycles
@@ -293,7 +293,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
         // Warp to after the end of the ballot, within the same fc: should be the new fc (ballot is in Approved state)
         evm.warp(currentFundingCycle.start + currentFundingCycle.duration + FUZZED_BALLOT_DURATION);
         currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
-        assertEq(currentFundingCycle.weight, initialFundingCycle.weight - i - 1);
+        assertEq(currentFundingCycle.weight, _data.weight);
         assertEq(currentFundingCycle.number, cycleNumber + 1);
       }
     }
@@ -588,6 +588,5 @@ contract TestReconfigureProject is TestBaseWorkflow {
     fundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(fundingCycle.number, 2);
     assertEq(fundingCycle.weight, _dataReconfiguration.weight);
-
   }
 }

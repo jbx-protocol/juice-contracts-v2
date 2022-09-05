@@ -7,6 +7,10 @@ describe.only('JBReconfigurationBufferBallot.stateOf(...)', function () {
   const DURATION = 3000;
   const PROJECT_ID = 69;
 
+  const Active = 0;
+  const Approved = 1;
+  const Failed = 2;
+
   async function setup() {
     const blockNum = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(blockNum);
@@ -29,8 +33,7 @@ describe.only('JBReconfigurationBufferBallot.stateOf(...)', function () {
     };
   }
 
-  // Logic moved to the fundingcycle store?
-  it('Should return Active if the delay has not yet passed and the funding cycle has not started yet', async function () {
+  it('Should return Failed if the delay has not yet passed and the funding cycle has not started yet', async function () {
     const { jbBallot, timestamp } = await setup();
 
     expect(
@@ -39,20 +42,20 @@ describe.only('JBReconfigurationBufferBallot.stateOf(...)', function () {
         timestamp - 5, // configured
         timestamp + 10,
       ), // start (+10 as every Hardhat transaction move timestamp)
-    ).to.equals(0);
+    ).to.equals(Failed);
   });
 
   it('Should return Failed if the delay has not yet passed and the funding cycle has already started', async function () {
     const { jbBallot, timestamp } = await setup();
 
-    expect(await jbBallot.stateOf(PROJECT_ID, timestamp + 10, timestamp - 1)).to.equals(2);
+    expect(await jbBallot.stateOf(PROJECT_ID, timestamp + 10, timestamp - 1)).to.equals(Failed);
   });
 
   it('Should return Approved if the delay has passed', async function () {
     const { jbBallot, timestamp } = await setup();
 
     expect(await jbBallot.stateOf(PROJECT_ID, timestamp - DURATION - 10, timestamp + 10)).to.equals(
-      1,
+      Approved,
     );
   });
 });

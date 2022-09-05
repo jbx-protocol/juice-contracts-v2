@@ -40,7 +40,8 @@ contract JBReconfigurationBufferBallot is IJBFundingCycleBallot, ERC165 {
     @param _configured The configuration of the funding cycle to check the state of.
     @param _start The start timestamp of the funding cycle to check the state of.
 
-    @return The state of the provided ballot.
+    @return The state of the provided ballot. JBBallotState.Active is only implicitely used
+            which allows having queuedOf returning the funding cycle under ballot.
   */
   function stateOf(
     uint256 _projectId,
@@ -53,9 +54,6 @@ contract JBReconfigurationBufferBallot is IJBFundingCycleBallot, ERC165 {
     if (_configured > _start) return JBBallotState.Failed;
 
     unchecked {
-      // If ballot duration hasn't pass, ballot is still active; _configured is <= timestampe
-      if (duration >= block.timestamp - _configured) return JBBallotState.Active;
-
       // If there was sufficient time between configuration and the start of the cycle, it is approved. Otherwise, it is failed.
       return (_start - _configured < duration) ? JBBallotState.Failed : JBBallotState.Approved;
     }
