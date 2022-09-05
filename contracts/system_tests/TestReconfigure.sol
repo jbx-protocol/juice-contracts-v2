@@ -263,8 +263,8 @@ contract TestReconfigureProject is TestBaseWorkflow {
       currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
       queuedFundingCycle = jbFundingCycleStore().queuedOf(projectId);
 
-      // While ballot is failed, queued is current rolled over
-      assertEq(queuedFundingCycle.weight, currentFundingCycle.weight);
+      // Queued is the funding cycle currently under ballot
+      assertEq(queuedFundingCycle.weight, _data.weight);
       assertEq(queuedFundingCycle.number, currentFundingCycle.number + 1);
 
       // Is the full ballot duration included in the funding cycle?
@@ -275,13 +275,20 @@ contract TestReconfigureProject is TestBaseWorkflow {
       ) {
         assertEq(currentFundingCycle.weight, initialFundingCycle.weight - i);
 
+        uint256 _previousFundingCycleNumber = currentFundingCycle.number;
+
         // we shift forward the start of the ballot into the fc, one day at a time, from fc to fc
         evm.warp(currentFundingCycle.start + currentFundingCycle.duration + i * 1 days);
 
-        // ballot should be in Approved state now, queued is the newly approved fc
+        // Ballot was Approved and we've changed fc, current is the reconfiguration
+        currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
+        assertEq(currentFundingCycle.weight, _data.weight);
+        assertEq(currentFundingCycle.number, _previousFundingCycleNumber + 1);
+
+        // Queued is the reconfiguration rolled-over
         queuedFundingCycle = jbFundingCycleStore().queuedOf(projectId);
         assertEq(queuedFundingCycle.weight, _data.weight);
-        assertEq(queuedFundingCycle.number, currentFundingCycle.number + 2);
+        assertEq(queuedFundingCycle.number, currentFundingCycle.number + 1);
       }
       // the ballot is accross two funding cycles
       else {
