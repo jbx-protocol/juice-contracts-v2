@@ -1355,11 +1355,14 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
       // If delegates were returned by the data source, issue a callback to it.
       if (_delegateAllocations.length != 0) {
+        JBTokenAmount memory _forwardedAmount = JBTokenAmount(token, _amount, decimals, currency);
+
         JBDidPayData memory _data = JBDidPayData(
           _payer,
           _projectId,
           _fundingCycle.configuration,
           _bundledAmount,
+          _forwardedAmount,
           beneficiaryTokenCount,
           _beneficiary,
           _preferClaimedTokens,
@@ -1383,8 +1386,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           // If this terminal's token is ETH, send it in msg.value.
           if (token == JBTokens.ETH) _payableValue = _delegateAllocation.amount;
 
-          // Pass the correct token amount to the delegate
-          _data.amount.value = _delegateAllocation.amount;
+          // Pass the correct token forwardedAmount to the delegate
+          _data.forwardedAmount.value = _delegateAllocation.amount;
 
           _delegateAllocation.delegate.didPay{value: _payableValue}(_data);
 

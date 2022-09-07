@@ -19,6 +19,7 @@ struct JBDidPayData {
   uint256 projectId;
   uint256 currentFundingCycleConfiguration;
   JBTokenAmount amount;
+  JBTokenAmount forwardedAmount;
   uint256 projectTokenCount;
   address beneficiary;
   bool preferClaimedTokens;

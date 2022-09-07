@@ -286,6 +286,12 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         currentFundingCycleConfiguration: timestamp,
         amount: {
           token: '0x000000000000000000000000000000000000eeee',
+          value: ETH_TO_PAY,
+          decimals: 18,
+          currency: CURRENCY_ETH,
+        },
+        forwardedAmount: {
+          token: '0x000000000000000000000000000000000000eeee',
           value: 0,
           decimals: 18,
           currency: CURRENCY_ETH,
@@ -423,6 +429,12 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         currentFundingCycleConfiguration: timestamp,
         amount: {
           token: '0x000000000000000000000000000000000000eeee',
+          value: ETH_TO_PAY,
+          decimals: 18,
+          currency: CURRENCY_ETH,
+        },
+        forwardedAmount: {
+          token: '0x000000000000000000000000000000000000eeee',
           value: ETH_TO_PAY.div(4),
           decimals: 18,
           currency: CURRENCY_ETH,
@@ -442,6 +454,12 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
         projectId: PROJECT_ID,
         currentFundingCycleConfiguration: timestamp,
         amount: {
+          token: '0x000000000000000000000000000000000000eeee',
+          value: ETH_TO_PAY,
+          decimals: 18,
+          currency: CURRENCY_ETH,
+        },
+        forwardedAmount: {
           token: '0x000000000000000000000000000000000000eeee',
           value: ETH_TO_PAY.div(2),
           decimals: 18,

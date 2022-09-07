@@ -75,12 +75,14 @@ contract TestDelegates is TestBaseWorkflow {
   }
 
   function testPayDelegates(uint128[] memory payDelegateAmounts) public {
-    JBPayDelegateAllocation[] memory _allocations = new JBPayDelegateAllocation[](payDelegateAmounts.length);
+    JBPayDelegateAllocation[] memory _allocations = new JBPayDelegateAllocation[](
+      payDelegateAmounts.length
+    );
     address _beneficiary = address(bytes20(keccak256('beneficiary')));
     uint256 _paySum;
 
     // Check that we are not going to overflow uint256 and calculate the total pay amount
-    for (uint i = 0; i < payDelegateAmounts.length; i++) {
+    for (uint256 i = 0; i < payDelegateAmounts.length; i++) {
       evm.assume(type(uint256).max - _paySum > payDelegateAmounts[i]);
       _paySum += payDelegateAmounts[i];
     }
@@ -88,8 +90,9 @@ contract TestDelegates is TestBaseWorkflow {
     // We can't do a pay without paying
     evm.assume(_paySum > 0);
 
-    (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata) = controller.currentFundingCycleOf(_projectId);
-    for (uint i = 0; i < payDelegateAmounts.length; i++) {
+    (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata) = controller
+      .currentFundingCycleOf(_projectId);
+    for (uint256 i = 0; i < payDelegateAmounts.length; i++) {
       address _delegateAddress = address(bytes20(keccak256(abi.encodePacked('PayDelegate', i))));
 
       _allocations[i] = JBPayDelegateAllocation(
@@ -103,25 +106,26 @@ contract TestDelegates is TestBaseWorkflow {
         _projectId,
         fundingCycle.configuration,
         JBTokenAmount(
-            JBTokens.ETH,
-            _paySum,
-            JBSingleTokenPaymentTerminal(address(_terminals[0])).decimals(),
-            JBSingleTokenPaymentTerminal(address(_terminals[0])).currency()
+          JBTokens.ETH,
+          _paySum,
+          JBSingleTokenPaymentTerminal(address(_terminals[0])).decimals(),
+          JBSingleTokenPaymentTerminal(address(_terminals[0])).currency()
+        ),
+        JBTokenAmount(
+          JBTokens.ETH,
+          _paySum,
+          JBSingleTokenPaymentTerminal(address(_terminals[0])).decimals(),
+          JBSingleTokenPaymentTerminal(address(_terminals[0])).currency()
         ),
         0,
         _beneficiary,
         false,
-        "",
+        '',
         _metadata
       );
 
-
       // Mock the delegate
-      evm.mockCall(
-        _delegateAddress,
-        abi.encodeWithSelector(IJBPayDelegate.didPay.selector),
-        ''
-      );
+      evm.mockCall(_delegateAddress, abi.encodeWithSelector(IJBPayDelegate.didPay.selector), '');
 
       // Assert that the delegate gets called with the expected value
       evm.expectCall(
@@ -132,17 +136,22 @@ contract TestDelegates is TestBaseWorkflow {
 
       // Expect an event to be emitted for every delegate
       evm.expectEmit(true, true, true, true);
-      emit DelegateDidPay(IJBPayDelegate(_delegateAddress), _data, payDelegateAmounts[i], _beneficiary);
+      emit DelegateDidPay(
+        IJBPayDelegate(_delegateAddress),
+        _data,
+        payDelegateAmounts[i],
+        _beneficiary
+      );
     }
 
     evm.mockCall(
-        _datasource,
-        abi.encodeWithSelector(IJBFundingCycleDataSource.payParams.selector),
-        abi.encode(
-          0, // weight
-          '', // memo
-          _allocations // allocations
-        )
+      _datasource,
+      abi.encodeWithSelector(IJBFundingCycleDataSource.payParams.selector),
+      abi.encode(
+        0, // weight
+        '', // memo
+        _allocations // allocations
+      )
     );
 
     evm.deal(_beneficiary, _paySum);
@@ -158,7 +167,6 @@ contract TestDelegates is TestBaseWorkflow {
       new bytes(0)
     );
   }
-
 
   event DelegateDidPay(
     IJBPayDelegate indexed delegate,
