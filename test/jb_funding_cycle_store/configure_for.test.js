@@ -1725,126 +1725,126 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     );
   });
 
-  it.skip("Forge tested - Should hold off on using a reconfigured funding cycle if the current cycle's ballot duration doesn't end until after the current cycle is over", async function () {
-    const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore, addrs } = await setup();
-    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+  // it.skip("Forge tested - Should hold off on using a reconfigured funding cycle if the current cycle's ballot duration doesn't end until after the current cycle is over", async function () {
+  //   const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore, addrs } = await setup();
+  //   await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
-    const firstFundingCycleData = createFundingCycleData({ ballot: mockBallot.address });
+  //   const firstFundingCycleData = createFundingCycleData({ ballot: mockBallot.address });
 
-    // Configure first funding cycle
-    const firstConfigureForTx = await jbFundingCycleStore
-      .connect(controller)
-      .configureFor(
-        PROJECT_ID,
-        firstFundingCycleData,
-        RANDOM_FUNDING_CYCLE_METADATA_1,
-        FUNDING_CYCLE_CAN_START_ASAP,
-      );
+  //   // Configure first funding cycle
+  //   const firstConfigureForTx = await jbFundingCycleStore
+  //     .connect(controller)
+  //     .configureFor(
+  //       PROJECT_ID,
+  //       firstFundingCycleData,
+  //       RANDOM_FUNDING_CYCLE_METADATA_1,
+  //       FUNDING_CYCLE_CAN_START_ASAP,
+  //     );
 
-    // The timestamp the first configuration was made during.
-    const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
+  //   // The timestamp the first configuration was made during.
+  //   const firstConfigurationTimestamp = await getTimestamp(firstConfigureForTx.blockNumber);
 
-    const expectedFirstFundingCycle = {
-      number: ethers.BigNumber.from(1),
-      configuration: firstConfigurationTimestamp,
-      basedOn: ethers.BigNumber.from(0),
-      start: firstConfigurationTimestamp,
-      duration: firstFundingCycleData.duration,
-      weight: firstFundingCycleData.weight,
-      discountRate: firstFundingCycleData.discountRate,
-      ballot: firstFundingCycleData.ballot,
-      metadata: RANDOM_FUNDING_CYCLE_METADATA_1,
-    };
+  //   const expectedFirstFundingCycle = {
+  //     number: ethers.BigNumber.from(1),
+  //     configuration: firstConfigurationTimestamp,
+  //     basedOn: ethers.BigNumber.from(0),
+  //     start: firstConfigurationTimestamp,
+  //     duration: firstFundingCycleData.duration,
+  //     weight: firstFundingCycleData.weight,
+  //     discountRate: firstFundingCycleData.discountRate,
+  //     ballot: firstFundingCycleData.ballot,
+  //     metadata: RANDOM_FUNDING_CYCLE_METADATA_1,
+  //   };
 
-    const secondFundingCycleData = createFundingCycleData({
-      ballot: mockBallot.address,
-      duration: firstFundingCycleData.duration.add(1),
-      discountRate: firstFundingCycleData.discountRate.add(1),
-      weight: firstFundingCycleData.weight.add(1),
-    });
+  //   const secondFundingCycleData = createFundingCycleData({
+  //     ballot: mockBallot.address,
+  //     duration: firstFundingCycleData.duration.add(1),
+  //     discountRate: firstFundingCycleData.discountRate.add(1),
+  //     weight: firstFundingCycleData.weight.add(1),
+  //   });
 
-    // Set the ballot to have a duration longer than the funding cycle.
-    await mockBallot.mock.duration.returns(firstFundingCycleData.duration.add(1));
+  //   // Set the ballot to have a duration longer than the funding cycle.
+  //   await mockBallot.mock.duration.returns(firstFundingCycleData.duration.add(1));
 
-    // Configure second funding cycle
-    const secondConfigureForTx = await jbFundingCycleStore
-      .connect(controller)
-      .configureFor(
-        PROJECT_ID,
-        secondFundingCycleData,
-        RANDOM_FUNDING_CYCLE_METADATA_2,
-        FUNDING_CYCLE_CAN_START_ASAP,
-      );
+  //   // Configure second funding cycle
+  //   const secondConfigureForTx = await jbFundingCycleStore
+  //     .connect(controller)
+  //     .configureFor(
+  //       PROJECT_ID,
+  //       secondFundingCycleData,
+  //       RANDOM_FUNDING_CYCLE_METADATA_2,
+  //       FUNDING_CYCLE_CAN_START_ASAP,
+  //     );
 
-    // The timestamp the second configuration was made during.
-    const secondConfigurationTimestamp = await getTimestamp(secondConfigureForTx.blockNumber);
+  //   // The timestamp the second configuration was made during.
+  //   const secondConfigurationTimestamp = await getTimestamp(secondConfigureForTx.blockNumber);
 
-    await expect(secondConfigureForTx)
-      .to.emit(jbFundingCycleStore, `Init`)
-      .withArgs(secondConfigurationTimestamp, PROJECT_ID, /*basedOn=*/ firstConfigurationTimestamp);
+  //   await expect(secondConfigureForTx)
+  //     .to.emit(jbFundingCycleStore, `Init`)
+  //     .withArgs(secondConfigurationTimestamp, PROJECT_ID, /*basedOn=*/ firstConfigurationTimestamp);
 
-    expect(cleanFundingCycle(await jbFundingCycleStore.queuedOf(PROJECT_ID))).to.eql({
-      ...expectedFirstFundingCycle,
-      number: expectedFirstFundingCycle.number.add(1), // next number
-      start: expectedFirstFundingCycle.start.add(expectedFirstFundingCycle.duration), // starts at the end of the first cycle
-    });
+  //   expect(cleanFundingCycle(await jbFundingCycleStore.queuedOf(PROJECT_ID))).to.eql({
+  //     ...expectedFirstFundingCycle,
+  //     number: expectedFirstFundingCycle.number.add(1), // next number
+  //     start: expectedFirstFundingCycle.start.add(expectedFirstFundingCycle.duration), // starts at the end of the first cycle
+  //   });
 
-    // Fast forward to the next cycle.
-    await fastForward(firstConfigurationTimestamp.blockNumber, firstFundingCycleData.duration);
+  //   // Fast forward to the next cycle.
+  //   await fastForward(firstConfigurationTimestamp.blockNumber, firstFundingCycleData.duration);
 
-    expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql({
-      ...expectedFirstFundingCycle,
-      number: expectedFirstFundingCycle.number.add(1), // next number
-      start: expectedFirstFundingCycle.start.add(expectedFirstFundingCycle.duration), // starts at the end of the first cycle
-    });
-    // The reconfiguration should not have taken effect.
-    expect(cleanFundingCycle(await jbFundingCycleStore.queuedOf(PROJECT_ID))).to.eql({
-      ...expectedFirstFundingCycle,
-      number: expectedFirstFundingCycle.number.add(2), // next number
-      start: expectedFirstFundingCycle.start
-        .add(expectedFirstFundingCycle.duration)
-        .add(expectedFirstFundingCycle.duration), // starts two durations after the end of the first cycle
-    });
+  //   expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql({
+  //     ...expectedFirstFundingCycle,
+  //     number: expectedFirstFundingCycle.number.add(1), // next number
+  //     start: expectedFirstFundingCycle.start.add(expectedFirstFundingCycle.duration), // starts at the end of the first cycle
+  //   });
+  //   // The reconfiguration should not have taken effect.
+  //   expect(cleanFundingCycle(await jbFundingCycleStore.queuedOf(PROJECT_ID))).to.eql({
+  //     ...expectedFirstFundingCycle,
+  //     number: expectedFirstFundingCycle.number.add(2), // next number
+  //     start: expectedFirstFundingCycle.start
+  //       .add(expectedFirstFundingCycle.duration)
+  //       .add(expectedFirstFundingCycle.duration), // starts two durations after the end of the first cycle
+  //   });
 
-    // Fast forward to the moment the ballot duration has passed.
-    await fastForward(
-      'latest',
-      secondConfigurationTimestamp.sub(firstConfigurationTimestamp).add(3), // Add 3 to give a buffer for subsequent calculations
-    );
+  //   // Fast forward to the moment the ballot duration has passed.
+  //   await fastForward(
+  //     'latest',
+  //     secondConfigurationTimestamp.sub(firstConfigurationTimestamp).add(3), // Add 3 to give a buffer for subsequent calculations
+  //   );
 
-    // Mock the ballot on the first funding cycle as approved.
-    await mockBallot.mock.stateOf
-      .withArgs(
-        PROJECT_ID,
-        secondConfigurationTimestamp,
-        firstConfigurationTimestamp
-          .add(firstFundingCycleData.duration)
-          .add(firstFundingCycleData.duration),
-      )
-      .returns(ballotStatus.APPROVED);
+  //   // Mock the ballot on the first funding cycle as approved.
+  //   await mockBallot.mock.stateOf
+  //     .withArgs(
+  //       PROJECT_ID,
+  //       secondConfigurationTimestamp,
+  //       firstConfigurationTimestamp
+  //         .add(firstFundingCycleData.duration)
+  //         .add(firstFundingCycleData.duration),
+  //     )
+  //     .returns(ballotStatus.APPROVED);
 
-    // Ballot status should be approved.
-    expect(await jbFundingCycleStore.currentBallotStateOf(PROJECT_ID)).to.eql(1);
+  //   // Ballot status should be approved.
+  //   expect(await jbFundingCycleStore.currentBallotStateOf(PROJECT_ID)).to.eql(1);
 
-    const expectedReconfiguredFundingCycle = {
-      number: ethers.BigNumber.from(3),
-      configuration: secondConfigurationTimestamp,
-      basedOn: firstConfigurationTimestamp,
-      start: firstConfigurationTimestamp
-        .add(firstFundingCycleData.duration)
-        .add(firstFundingCycleData.duration),
-      duration: secondFundingCycleData.duration,
-      weight: secondFundingCycleData.weight,
-      discountRate: secondFundingCycleData.discountRate,
-      ballot: secondFundingCycleData.ballot,
-      metadata: RANDOM_FUNDING_CYCLE_METADATA_2,
-    };
+  //   const expectedReconfiguredFundingCycle = {
+  //     number: ethers.BigNumber.from(3),
+  //     configuration: secondConfigurationTimestamp,
+  //     basedOn: firstConfigurationTimestamp,
+  //     start: firstConfigurationTimestamp
+  //       .add(firstFundingCycleData.duration)
+  //       .add(firstFundingCycleData.duration),
+  //     duration: secondFundingCycleData.duration,
+  //     weight: secondFundingCycleData.weight,
+  //     discountRate: secondFundingCycleData.discountRate,
+  //     ballot: secondFundingCycleData.ballot,
+  //     metadata: RANDOM_FUNDING_CYCLE_METADATA_2,
+  //   };
 
-    // The reconfiguration should take effect on the third cycle.
-    expect(cleanFundingCycle(await jbFundingCycleStore.queuedOf(PROJECT_ID))).to.eql(
-      expectedReconfiguredFundingCycle,
-    );
-  });
+  //   // The reconfiguration should take effect on the third cycle.
+  //   expect(cleanFundingCycle(await jbFundingCycleStore.queuedOf(PROJECT_ID))).to.eql(
+  //     expectedReconfiguredFundingCycle,
+  //   );
+  // });
 
   it('Should overwrite a pending reconfiguration', async function () {
     const { controller, mockJbDirectory, jbFundingCycleStore, mockBallot } = await setup();

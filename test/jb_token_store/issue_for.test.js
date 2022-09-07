@@ -15,8 +15,10 @@ describe('JBTokenStore::issueFor(...)', function () {
   const TOKEN_NAME = 'TestTokenDAO';
   const TOKEN_SYMBOL = 'TEST';
 
+  let ISSUE_INDEX;
+
   async function setup() {
-    const [deployer, projectOwner] = await ethers.getSigners();
+    const [deployer, projectOwner, caller] = await ethers.getSigners();
 
     const mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
     const mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
@@ -29,10 +31,15 @@ describe('JBTokenStore::issueFor(...)', function () {
       mockJbDirectory.address,
     );
 
+    const jbOperationsFactory = await ethers.getContractFactory('JBOperations');
+    const jbOperations = await jbOperationsFactory.deploy();
+    ISSUE_INDEX = await jbOperations.ISSUE();
+
     return {
       projectOwner,
-      projectOwner,
+      caller,
       mockJbDirectory,
+      mockJbOperatorStore,
       mockJbProjects,
       jbTokenStore,
     };
@@ -60,18 +67,23 @@ describe('JBTokenStore::issueFor(...)', function () {
       .withArgs(PROJECT_ID, tokenAddr, TOKEN_NAME, TOKEN_SYMBOL, projectOwner.address);
   });
 
-  //TODO: require permission test
-  it.skip(`Can't issue tokens if caller does not have permission`, async function () {
-    const { projectOwner, mockJbProjects, jbTokenStore } = await setup();
+  it(`Can't issue tokens if caller does not have permission`, async function () {
+    const { caller, projectOwner, mockJbOperatorStore, mockJbProjects, jbTokenStore } =
+      await setup();
 
-    // Return a random projectOwner address.
-    await mockJbProjects.mock.ownerOf
-      .withArgs(PROJECT_ID)
-      .returns(ethers.Wallet.createRandom().address);
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, projectOwner.address, PROJECT_ID, ISSUE_INDEX)
+      .returns(false);
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(caller.address, projectOwner.address, 0, ISSUE_INDEX)
+      .returns(false);
 
     await expect(
-      jbTokenStore.connect(projectOwner).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL),
-    ).to.be.revertedWith(errors.projectOwner_UNAUTHORIZED);
+      jbTokenStore.connect(caller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL),
+    ).to.be.revertedWith(errors.UNAUTHORIZED);
   });
 
   it(`Can't issue tokens if name is empty`, async function () {
