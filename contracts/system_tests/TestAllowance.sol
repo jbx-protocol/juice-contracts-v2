@@ -253,7 +253,8 @@ contract TestAllowance is TestBaseWorkflow {
       0, // Min wei out
       'Foundry payment' // Memo
     );
-    if (TARGET <= BALANCE && TARGET != 0)
+    if (TARGET <= BALANCE && TARGET > 1)
+      // Avoid rounding error
       assertEq(
         _projectOwner.balance,
         (TARGET * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE())

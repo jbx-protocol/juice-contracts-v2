@@ -113,7 +113,7 @@ contract TestDelegates is TestBaseWorkflow {
         ),
         JBTokenAmount(
           JBTokens.ETH,
-          _paySum,
+          payDelegateAmounts[i],
           JBSingleTokenPaymentTerminal(address(_terminals[0])).decimals(),
           JBSingleTokenPaymentTerminal(address(_terminals[0])).currency()
         ),

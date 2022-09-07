@@ -233,7 +233,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
       'MEMO'
     );
 
-    if (BALANCE != 0 && !willRevert)
+    if (BALANCE > 1 && !willRevert)
       assertEq(
         jbToken().balanceOf(msg.sender),
         PRBMath.mulDiv(ALLOWANCE, jbLibraries().MAX_FEE(), jbLibraries().MAX_FEE() + terminal.fee())
@@ -258,7 +258,7 @@ contract TestERC20Terminal is TestBaseWorkflow {
       'Foundry payment' // Memo
     );
     // Funds leaving the ecosystem -> fee taken
-    if (TARGET <= BALANCE && TARGET != 0)
+    if (TARGET <= BALANCE && TARGET > 1)
       assertEq(
         jbToken().balanceOf(_projectOwner),
         initBalance +

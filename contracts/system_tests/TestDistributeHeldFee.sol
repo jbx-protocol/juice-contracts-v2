@@ -93,6 +93,8 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
   ) external {
     // Assuming we don't revert when distributing too much
     evm.assume(payAmountInWei <= _targetInWei);
+    // Avoid rounding error
+    evm.assume(payAmountInWei > 1);
     evm.assume(feeDiscount <= jbLibraries().MAX_FEE());
     evm.assume(fee <= 50_000_000); // fee cap
     address _userWallet = address(1234);
@@ -150,7 +152,7 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
     );
 
     // verify: should have held the fee
-    if (fee > 0 && payAmountInWei > 0) {
+    if (fee > 0) {
       assertEq(_terminal.heldFeesOf(_projectId)[0].fee, _terminal.fee());
       assertEq(_terminal.heldFeesOf(_projectId)[0].feeDiscount, feeDiscount);
       assertEq(_terminal.heldFeesOf(_projectId)[0].amount, payAmountInWei);
