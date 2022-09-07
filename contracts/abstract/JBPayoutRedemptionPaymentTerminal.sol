@@ -1543,23 +1543,20 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     
     @return feeDiscount The fee discount, which should be interpreted as a percentage out MAX_FEE_DISCOUNT.
   */
-  function _currentFeeDiscount(uint256 _projectId) internal view returns (uint256 feeDiscount) {
+  function _currentFeeDiscount(uint256 _projectId) internal view returns (uint256) {
     // Can't take a fee if the protocol project doesn't have a terminal that accepts the token.
     if (directory.primaryTerminalOf(_PROTOCOL_PROJECT_ID, token) == IJBPaymentTerminal(address(0)))
       return JBConstants.MAX_FEE_DISCOUNT;
 
     // Get the fee discount.
-    if (feeGauge == IJBFeeGauge(address(0)))
-      feeDiscount = 0;
-      // If the guage reverts, set the discount to 0.
-    else
+    if (feeGauge != IJBFeeGauge(address(0))) {
+      // If the guage reverts, keep the discount at 0.
       try feeGauge.currentDiscountFor(_projectId) returns (uint256 discount) {
-        feeDiscount = discount;
-      } catch {
-        feeDiscount = 0;
-      }
+        // If the fee discount is greater than the max, we ignore the return value
+        if (discount <= JBConstants.MAX_FEE_DISCOUNT) return discount;
+      } catch {}
+    }
 
-    // If the fee discount is greater than the max, nullify the discount.
-    if (feeDiscount > JBConstants.MAX_FEE_DISCOUNT) feeDiscount = 0;
+    return 0;
   }
 }
