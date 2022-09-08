@@ -1483,15 +1483,15 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           );
         }
       } else {
-        _heldFeesOf[_projectId].push(
-          JBFee(
-            _heldFees[_i].amount - leftoverAmount,
-            _heldFees[_i].fee,
-            _heldFees[_i].feeDiscount,
-            _heldFees[_i].beneficiary
-          )
-        );
         unchecked {
+          _heldFeesOf[_projectId].push(
+            JBFee(
+              _heldFees[_i].amount - leftoverAmount,
+              _heldFees[_i].fee,
+              _heldFees[_i].feeDiscount,
+              _heldFees[_i].beneficiary
+            )
+          );
           refundedFees += _feeAmount(leftoverAmount, _heldFees[_i].fee, _heldFees[_i].feeDiscount);
         }
         leftoverAmount = 0;
