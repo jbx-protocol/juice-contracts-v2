@@ -903,19 +903,20 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         }
       }
 
-      // Take the fee (_leftoverDistributionAmount of 1 creates a rounding error in _feeAmount(..), exclude it)
-      _fee = (_feeEligibleDistributionAmount == 0 || _leftoverDistributionAmount == 1)
-        ? 0
-        : _takeFeeFrom(
+      // Take the fee
+      _fee = _feeEligibleDistributionAmount != 0
+        ? _takeFeeFrom(
           _projectId,
           _fundingCycle,
           _feeEligibleDistributionAmount,
           _projectOwner,
           _feeDiscount
-        );
+        )
+        : 0;
 
       // Transfer any remaining balance to the project owner and update returned leftover accordingly
       if (_leftoverDistributionAmount != 0) {
+        // (_leftoverDistributionAmount of 1 creates a rounding error in _feeAmount(..), exclude it)
         netLeftoverDistributionAmount = _leftoverDistributionAmount != 1
           ? _leftoverDistributionAmount - _feeAmount(_leftoverDistributionAmount, fee, _feeDiscount)
           : _leftoverDistributionAmount;
@@ -1039,6 +1040,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   ) internal returns (uint256 leftoverAmount, uint256 feeEligibleDistributionAmount) {
     // Set the leftover amount to the initial amount.
     leftoverAmount = _amount;
+    // The total percentage available to split
+    uint256 leftoverPercentage = JBConstants.SPLITS_TOTAL_PERCENT;
 
     // Get a reference to the project's payout splits.
     JBSplit[] memory _splits = splitsStore.splitsOf(_projectId, _domain, _group);
@@ -1048,12 +1051,12 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       // Get a reference to the split being iterated on.
       JBSplit memory _split = _splits[_i];
 
-      // The amount to send towards the split.
-      uint256 _payoutAmount = PRBMath.mulDiv(
-        _amount,
-        _split.percent,
-        JBConstants.SPLITS_TOTAL_PERCENT
-      );
+      // The amount to send towards the split
+      uint256 _payoutAmount = _split.percent == leftoverPercentage
+        ? leftoverAmount
+        : PRBMath.mulDiv(_amount, _split.percent, JBConstants.SPLITS_TOTAL_PERCENT);
+
+      leftoverPercentage -= _split.percent;
 
       // The payout amount substracting any applicable incurred fees.
       uint256 _netPayoutAmount;
@@ -1081,9 +1084,6 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           // Trigger any inherited pre-transfer logic.
           _beforeTransferTo(address(_split.allocator), _netPayoutAmount);
 
-          // If this terminal's token is ETH, send it in msg.value.
-          uint256 _payableValue = token == JBTokens.ETH ? _netPayoutAmount : 0;
-
           // Create the data to send to the allocator.
           JBSplitAllocationData memory _data = JBSplitAllocationData(
             token,
@@ -1095,7 +1095,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           );
 
           // Trigger the allocator's `allocate` function.
-          _split.allocator.allocate{value: _payableValue}(_data);
+          // If this terminal's token is ETH, send it in msg.value.
+          _split.allocator.allocate{value: token == JBTokens.ETH ? _netPayoutAmount : 0}(_data);
 
           // Otherwise, if a project is specified, make a payment to it.
         } else if (_split.projectId != 0) {

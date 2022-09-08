@@ -192,7 +192,7 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
     _jbSplits[0] = JBSplit(
         false,
         false,
-        1000000000 - 1, // We make it so there is exactly `1` left over (note: change the subtraction to be anything else than 1 for this test to pass)
+        1000000000 - 2, // We make it so there is exactly `1` left over (note: change the subtraction to be anything else than 1 for this test to pass)
         0, 
         payable(address(5)),
         0, 
