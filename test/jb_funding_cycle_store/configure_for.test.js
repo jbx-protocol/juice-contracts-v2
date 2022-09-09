@@ -1982,6 +1982,9 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
 
     const ballotDuration = BigNumber.from(100);
 
+    // Set the ballot to have an arbitrary positive duration.
+    await mockBallot.mock.duration.withArgs().returns(ballotDuration);
+
     // Configure second funding cycle
     const secondConfigureForTx = await jbFundingCycleStore
       .connect(controller)
