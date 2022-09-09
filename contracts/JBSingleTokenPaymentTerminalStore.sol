@@ -367,8 +367,9 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
       memo = _memo;
     }
 
-    // If there's no amount being recorded, there's nothing left to do.
-    if (_amount.value == 0) return (fundingCycle, 0, delegateAllocations, memo);
+    // If there's no amount being recorded or forwarded, there's nothing left to do.
+    if (_amount.value == 0 && delegateAllocations.length == 0)
+      return (fundingCycle, 0, delegateAllocations, memo);
 
     {
       // A reference to the total amount that has been delegated.
@@ -428,7 +429,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
 
     @return fundingCycle The funding cycle during which the redemption was made.
     @return reclaimAmount The amount of terminal tokens reclaimed, as a fixed point number with 18 decimals.
-    @return delegates Delegate contracts to use for subsequent calls.
+    @return delegateAllocations The amount to send to delegates instead of sending to the beneficiary.
     @return memo A memo that should be passed along to the emitted event.
   */
   function recordRedemptionFor(
@@ -444,7 +445,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     returns (
       JBFundingCycle memory fundingCycle,
       uint256 reclaimAmount,
-      IJBRedemptionDelegate[] memory delegates,
+      JBRedemptionDelegateAllocation[] memory delegateAllocations,
       string memory memo
     )
   {
@@ -529,24 +530,41 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
             _memo,
             _metadata
           );
-          (reclaimAmount, memo, delegates) = IJBFundingCycleDataSource(fundingCycle.dataSource())
-            .redeemParams(_data);
+          (reclaimAmount, memo, delegateAllocations) = IJBFundingCycleDataSource(
+            fundingCycle.dataSource()
+          ).redeemParams(_data);
         }
       } else {
         memo = _memo;
       }
     }
 
+    // A reference to the total amount that has been delegated.
+    uint256 _totalDelegatedAmount;
+
+    // Validate all delegated amounts.
+    for (uint256 _i; _i < delegateAllocations.length; ) {
+      // Increment the total amount being delegated.
+      _totalDelegatedAmount = _totalDelegatedAmount + delegateAllocations[_i].amount;
+
+      unchecked {
+        ++_i;
+      }
+    }
+
     // The amount being reclaimed must be within the project's balance.
-    if (reclaimAmount > balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId])
-      revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
+    if (
+      reclaimAmount + _totalDelegatedAmount >
+      balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId]
+    ) revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
 
     // Remove the reclaimed funds from the project's balance.
     if (reclaimAmount > 0) {
       unchecked {
         balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
           balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] -
-          reclaimAmount;
+          reclaimAmount +
+          _totalDelegatedAmount;
       }
     }
   }

@@ -125,6 +125,7 @@ interface IJBPayoutRedemptionPaymentTerminal is
   event DelegateDidRedeem(
     IJBRedemptionDelegate indexed delegate,
     JBDidRedeemData data,
+    uint256 delegatedAmount,
     address caller
   );
 

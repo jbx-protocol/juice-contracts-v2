@@ -33,5 +33,5 @@ interface IJBRedemptionDelegate is IERC165 {
                 string memo;
                 bytes metadata;
   */
-  function didRedeem(JBDidRedeemData calldata _data) external;
+  function didRedeem(JBDidRedeemData calldata _data) external payable;
 }
