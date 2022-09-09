@@ -563,7 +563,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
       unchecked {
         balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
           balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] -
-          reclaimAmount +
+          reclaimAmount -
           _totalDelegatedAmount;
       }
     }
