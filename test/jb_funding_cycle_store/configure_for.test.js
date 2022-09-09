@@ -1933,7 +1933,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     );
   });
 
-  it.skip('Should queue reconfiguration after ballot duration if current funding cycle duration is 0', async function () {
+  it('Should queue reconfiguration after ballot duration if current funding cycle duration is 0', async function () {
     const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore, addrs } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
@@ -2004,6 +2004,15 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(
       expectedFirstFundingCycle,
     );
+
+    await mockBallot.mock.stateOf
+      .withArgs(
+        PROJECT_ID,
+        secondConfigurationTimestamp,
+        secondConfigurationTimestamp.add(ballotDuration),
+      )
+      .returns(ballotStatus.ACTIVE);
+
     expect(cleanFundingCycle(await jbFundingCycleStore.queuedOf(PROJECT_ID))).to.eql(
       EMPTY_FUNDING_CYCLE,
     );
