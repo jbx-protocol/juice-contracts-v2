@@ -367,25 +367,32 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
       memo = _memo;
     }
 
-    // If there's no amount being recorded, there's nothing left to do.
-    if (_amount.value == 0) return (fundingCycle, 0, delegateAllocations, memo);
-
     {
       // A reference to the total amount that has been delegated.
       uint256 _totalDelegatedAmount;
 
       // Validate all delegated amounts.
-      for (uint256 _i; _i < delegateAllocations.length; ) {
-        // Increment the total amount being delegated.
-        _totalDelegatedAmount = _totalDelegatedAmount + delegateAllocations[_i].amount;
+      if (delegateAllocations.length > 0)
+        for (uint256 _i; _i < delegateAllocations.length; ) {
+          // Get a reference to the amount to be delegated.
+          uint256 _delegatedAmount = delegateAllocations[_i].amount;
 
-        // Can't delegate more than was paid.
-        if (_totalDelegatedAmount > _amount.value) revert INVALID_AMOUNT_TO_SEND_DELEGATE();
+          // Validate if non-zero.
+          if (_delegatedAmount != 0) {
+            // Increment the total amount being delegated.
+            _totalDelegatedAmount = _totalDelegatedAmount + _delegatedAmount;
 
-        unchecked {
-          ++_i;
+            // Can't delegate more than was paid.
+            if (_totalDelegatedAmount > _amount.value) revert INVALID_AMOUNT_TO_SEND_DELEGATE();
+          }
+
+          unchecked {
+            ++_i;
+          }
         }
-      }
+
+      // If there's no amount being recorded, there's nothing left to do.
+      if (_amount.value == 0) return (fundingCycle, 0, delegateAllocations, memo);
 
       // Add the amount to the token balance of the project. Don't add the amount that will be delegated.
       balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
