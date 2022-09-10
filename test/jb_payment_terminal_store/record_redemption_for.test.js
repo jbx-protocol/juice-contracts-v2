@@ -446,6 +446,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
       dataSource: mockJbFundingCycleDataSource.address,
     });
     const delegate = addrs[0];
+    const delegateAmount = 10;
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
@@ -485,7 +486,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
         'test',
         METADATA,
       ])
-      .returns(AMOUNT, newMemo, [delegate.address]);
+      .returns(AMOUNT, newMemo, [{ delegate: delegate.address, amount: delegateAmount }]);
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
@@ -519,7 +520,9 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
     );
 
     expect(returnedValue.reclaimAmount).to.equal(AMOUNT);
-    expect(returnedValue.delegates).to.eql([delegate.address]);
+    expect(returnedValue.delegateAllocations).to.eql([
+      [delegate.address, ethers.BigNumber.from(delegateAmount)],
+    ]);
     expect(returnedValue.memo).to.equal(newMemo);
   });
 
@@ -650,7 +653,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
         'test',
         METADATA,
       ])
-      .returns(AMOUNT, newMemo, [delegate.address]);
+      .returns(AMOUNT, newMemo, [{ delegate: delegate.address, amount: 0 }]);
 
     await mockJbTerminal.mock.token.returns(token);
     await mockJbTerminal.mock.decimals.returns(18);
@@ -669,7 +672,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
     ).to.be.revertedWith(errors.INSUFFICIENT_TOKENS);
   });
 
-  it(`Can't record redemption with if claim amount > project's total balance`, async function () {
+  it(`Can't record redemption with claim amount > project's total balance`, async function () {
     const {
       holder,
       beneficiary,
@@ -736,7 +739,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
         'test',
         METADATA,
       ])
-      .returns(AMOUNT, newMemo, [delegate.address]);
+      .returns(AMOUNT, newMemo, [{ delegate: delegate.address, amount: 0 }]);
 
     await mockJbTerminal.mock.token.returns(token);
     await mockJbTerminal.mock.decimals.returns(18);
