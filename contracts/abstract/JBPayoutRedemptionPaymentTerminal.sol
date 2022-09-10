@@ -86,9 +86,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
   /**
     @notice
-    The protocol project ID is 1, as it should be the first project launched during the deployment process.
+    The fee beneficiary project ID is 1, as it should be the first project launched during the deployment process.
   */
-  uint256 internal constant _PROTOCOL_PROJECT_ID = 1;
+  uint256 internal constant _FEE_BENEFICIARY_PROJECT_ID = 1;
 
   //*********************************************************************//
   // --------------------- internal stored properties ------------------ //
@@ -175,7 +175,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     Addresses that can be paid towards from this terminal without incurring a fee.
 
     @dev
-    Only addresses that are considered to be contained within the ecosystem can be feeless. Funds set outside the ecosystem may incur fees despite being stored as feeless.
+    Only addresses that are considered to be contained within the ecosystem can be feeless. Funds sent outside the ecosystem may incur fees despite being stored as feeless.
 
     _address The address that can be paid toward.
   */
@@ -1221,7 +1221,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
   /**
     @notice
-    Takes a fee into the platform's project, which has an id of _PROTOCOL_PROJECT_ID.
+    Takes a fee into the platform's project, which has an id of _FEE_BENEFICIARY_PROJECT_ID.
 
     @param _projectId The ID of the project having fees taken from.
     @param _fundingCycle The funding cycle during which the fee is being taken.
@@ -1262,11 +1262,20 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   */
   function _processFee(uint256 _amount, address _beneficiary) internal {
     // Get the terminal for the protocol project.
-    IJBPaymentTerminal _terminal = directory.primaryTerminalOf(_PROTOCOL_PROJECT_ID, token);
+    IJBPaymentTerminal _terminal = directory.primaryTerminalOf(_FEE_BENEFICIARY_PROJECT_ID, token);
 
     // When processing the admin fee, save gas if the admin is using this contract as its terminal.
     if (_terminal == this)
-      _pay(_amount, address(this), _PROTOCOL_PROJECT_ID, _beneficiary, 0, false, '', bytes('')); // Use the local pay call.
+      _pay(
+        _amount,
+        address(this),
+        _FEE_BENEFICIARY_PROJECT_ID,
+        _beneficiary,
+        0,
+        false,
+        '',
+        bytes('')
+      ); // Use the local pay call.
     else {
       // Trigger any inherited pre-transfer logic.
       _beforeTransferTo(address(_terminal), _amount);
@@ -1276,7 +1285,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
 
       // Send the payment.
       _terminal.pay{value: _payableValue}(
-        _PROTOCOL_PROJECT_ID,
+        _FEE_BENEFICIARY_PROJECT_ID,
         _amount,
         token,
         _beneficiary,
@@ -1529,11 +1538,8 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       PRBMath.mulDiv(_fee, _feeDiscount, JBConstants.MAX_FEE_DISCOUNT);
 
     // The amount of tokens from the `_amount` to pay as a fee
-    uint256 _feeToPay = _amount -
-      PRBMath.mulDiv(_amount, JBConstants.MAX_FEE, _discountedFee + JBConstants.MAX_FEE);
-
-    // Amount of fees can't be >= _amount (prevent rounding on small _amount), max fee case being already escaped
-    return _feeToPay; // TODO: fix me for amount==1 -> == _amount ? 0 : _feeToPay;
+    return
+      _amount - PRBMath.mulDiv(_amount, JBConstants.MAX_FEE, _discountedFee + JBConstants.MAX_FEE);
   }
 
   /** 
@@ -1546,17 +1552,20 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
   */
   function _currentFeeDiscount(uint256 _projectId) internal view returns (uint256) {
     // Can't take a fee if the protocol project doesn't have a terminal that accepts the token.
-    if (directory.primaryTerminalOf(_PROTOCOL_PROJECT_ID, token) == IJBPaymentTerminal(address(0)))
-      return JBConstants.MAX_FEE_DISCOUNT;
+    if (
+      directory.primaryTerminalOf(_FEE_BENEFICIARY_PROJECT_ID, token) ==
+      IJBPaymentTerminal(address(0))
+    ) return JBConstants.MAX_FEE_DISCOUNT;
 
     // Get the fee discount.
-    if (feeGauge != IJBFeeGauge(address(0))) {
+    if (feeGauge != IJBFeeGauge(address(0)))
       // If the guage reverts, keep the discount at 0.
       try feeGauge.currentDiscountFor(_projectId) returns (uint256 discount) {
         // If the fee discount is greater than the max, we ignore the return value
         if (discount <= JBConstants.MAX_FEE_DISCOUNT) return discount;
-      } catch {}
-    }
+      } catch {
+        return 0;
+      }
 
     return 0;
   }

@@ -129,16 +129,19 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     override
     returns (IJBPaymentTerminal)
   {
-    // If a primary terminal for the token was specifically set and it's one of the project's terminals, return it.
+    // Keep a reference to the primary terminal for the provided project ID and token.
     IJBPaymentTerminal _primaryTerminal = _primaryTerminalOf[_projectId][_token];
 
+    // If a primary terminal for the token was specifically set and it's one of the project's terminals, return it.
     if (
       _primaryTerminal != IJBPaymentTerminal(address(0)) &&
       isTerminalOf(_projectId, _primaryTerminal)
     ) return _primaryTerminal;
 
-    // Return the first terminal which accepts the specified token.
+    // Keep a reference to the number of terminals the project has.
     uint256 _numberOfTerminals = _terminalsOf[_projectId].length;
+
+    // Return the first terminal which accepts the specified token.
     for (uint256 _i; _i < _numberOfTerminals; ) {
       IJBPaymentTerminal _terminal = _terminalsOf[_projectId][_i];
       if (_terminal.acceptsToken(_token, _projectId)) return _terminal;
@@ -171,13 +174,18 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     override
     returns (bool)
   {
+    // Keep a reference to the number of terminals the project has.
     uint256 _numberOfTerminals = _terminalsOf[_projectId].length;
+
+    // Loop through and return true if the terminal is contained.
     for (uint256 _i; _i < _numberOfTerminals; ) {
       if (_terminalsOf[_projectId][_i] == _terminal) return true;
       unchecked {
         ++_i;
       }
     }
+
+    // Otherwise, return false.
     return false;
   }
 

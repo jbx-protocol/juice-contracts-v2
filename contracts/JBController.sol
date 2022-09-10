@@ -419,6 +419,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     IJBPaymentTerminal[] memory _terminals,
     string memory _memo
   ) external virtual override returns (uint256 projectId) {
+    // Keep a reference to the directory.
     IJBDirectory _directory = directory;
 
     // Mint the project into the wallet of the owner.
@@ -746,6 +747,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_CONTROLLER)
   {
+    // Keep a reference to the directory.
     IJBDirectory _directory = directory;
 
     // This controller must be the project's current controller.
@@ -789,7 +791,9 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     internal
     returns (uint256 tokenCount)
   {
+    // Keep a reference to the token store.
     IJBTokenStore _tokenStore = tokenStore;
+
     // Get the current funding cycle to read the reserved rate from.
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
@@ -852,6 +856,7 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
     uint256 _group,
     uint256 _amount
   ) internal returns (uint256 leftoverAmount) {
+    // Keep a reference to the token store.
     IJBTokenStore _tokenStore = tokenStore;
 
     // Set the leftover amount to the initial amount.
