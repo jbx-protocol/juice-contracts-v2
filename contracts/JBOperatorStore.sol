@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.16;
+pragma solidity 0.8.6;
 
 import './interfaces/IJBOperatorStore.sol';
 
@@ -82,17 +82,13 @@ contract JBOperatorStore is IJBOperatorStore {
     uint256 _domain,
     uint256[] calldata _permissionIndexes
   ) external view override returns (bool) {
-    for (uint256 _i; _i < _permissionIndexes.length; ) {
+    for (uint256 _i = 0; _i < _permissionIndexes.length; _i++) {
       uint256 _permissionIndex = _permissionIndexes[_i];
 
       if (_permissionIndex > 255) revert PERMISSION_INDEX_OUT_OF_BOUNDS();
 
       if (((permissionsOf[_operator][_account][_domain] >> _permissionIndex) & 1) == 0)
         return false;
-
-      unchecked {
-        ++_i;
-      }
     }
     return true;
   }
@@ -136,7 +132,7 @@ contract JBOperatorStore is IJBOperatorStore {
     @param _operatorData The data that specify the params for each operator being set.
   */
   function setOperators(JBOperatorData[] calldata _operatorData) external override {
-    for (uint256 _i; _i < _operatorData.length; ) {
+    for (uint256 _i = 0; _i < _operatorData.length; _i++) {
       // Pack the indexes into a uint256.
       uint256 _packed = _packedPermissions(_operatorData[_i].permissionIndexes);
 
@@ -150,10 +146,6 @@ contract JBOperatorStore is IJBOperatorStore {
         _operatorData[_i].permissionIndexes,
         _packed
       );
-
-      unchecked {
-        ++_i;
-      }
     }
   }
 
@@ -170,17 +162,13 @@ contract JBOperatorStore is IJBOperatorStore {
     @return packed The packed value.
   */
   function _packedPermissions(uint256[] calldata _indexes) private pure returns (uint256 packed) {
-    for (uint256 _i; _i < _indexes.length; ) {
+    for (uint256 _i = 0; _i < _indexes.length; _i++) {
       uint256 _index = _indexes[_i];
 
       if (_index > 255) revert PERMISSION_INDEX_OUT_OF_BOUNDS();
 
       // Turn the bit at the index on.
       packed |= 1 << _index;
-
-      unchecked {
-        ++_i;
-      }
     }
   }
 }
