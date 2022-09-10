@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.16;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/token/ERC721/extensions/draft-ERC721Votes.sol';
@@ -24,7 +24,7 @@ import './libraries/JBOperations.sol';
   ERC721Votes: A checkpointable standard definition for non-fungible tokens (NFTs).
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
-contract JBProjects is JBOperatable, ERC721Votes, Ownable, IJBProjects {
+contract JBProjects is IJBProjects, JBOperatable, ERC721Votes, Ownable {
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
   //*********************************************************************//
@@ -67,11 +67,12 @@ contract JBProjects is JBOperatable, ERC721Votes, Ownable, IJBProjects {
     @return The token URI to use for the provided `_projectId`.
   */
   function tokenURI(uint256 _projectId) public view override returns (string memory) {
+    IJBTokenUriResolver _tokenUriResolver = tokenUriResolver;
     // If there's no resolver, there's no URI.
-    if (tokenUriResolver == IJBTokenUriResolver(address(0))) return '';
+    if (_tokenUriResolver == IJBTokenUriResolver(address(0))) return '';
 
     // Return the resolved URI.
-    return tokenUriResolver.getUri(_projectId);
+    return _tokenUriResolver.getUri(_projectId);
   }
 
   /**
