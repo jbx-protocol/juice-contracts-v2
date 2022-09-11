@@ -145,6 +145,7 @@ describe('JBController::launchProjectFor(...)', function () {
       global: {
         allowSetTerminals,
         allowSetControllers,
+        pauseTransfers,
       },
       reservedRate,
       redemptionRate,
@@ -153,7 +154,6 @@ describe('JBController::launchProjectFor(...)', function () {
       pauseDistributions,
       pauseRedeem,
       pauseBurn,
-      pauseTransfers,
       allowMinting,
       allowChangeToken,
       allowTerminalMigration,

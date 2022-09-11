@@ -44,7 +44,11 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
     });
 
     _metadata = JBFundingCycleMetadata({
-      global: JBGlobalFundingCycleMetadata({allowSetTerminals: false, allowSetController: false}),
+      global: JBGlobalFundingCycleMetadata({
+        allowSetTerminals: false,
+        allowSetController: false,
+        pauseTransfers: false
+      }),
       reservedRate: 0,
       redemptionRate: 10000, //100%
       ballotRedemptionRate: 0,
@@ -52,7 +56,6 @@ contract TestPayBurnRedeemFlow is TestBaseWorkflow {
       pauseDistributions: false,
       pauseRedeem: false,
       pauseBurn: false,
-      pauseTransfers: false,
       allowMinting: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,

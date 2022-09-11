@@ -143,6 +143,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
       global: {
         allowSetTerminals,
         allowSetControllers,
+        pauseTransfers,
       },
       reservedRate,
       redemptionRate,
@@ -151,7 +152,6 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
       pauseDistributions,
       pauseRedeem,
       pauseBurn,
-      pauseTransfers,
       allowMinting,
       allowChangeToken,
       allowTerminalMigration,

@@ -35,7 +35,11 @@ contract TestTokenFlow is TestBaseWorkflow {
     });
 
     _metadata = JBFundingCycleMetadata({
-      global: JBGlobalFundingCycleMetadata({allowSetTerminals: false, allowSetController: false}),
+      global: JBGlobalFundingCycleMetadata({
+        allowSetTerminals: false,
+        allowSetController: false,
+        pauseTransfers: false
+      }),
       reservedRate: _reservedRate,
       redemptionRate: 5000, //50%
       ballotRedemptionRate: 0,
@@ -43,7 +47,6 @@ contract TestTokenFlow is TestBaseWorkflow {
       pauseDistributions: false,
       pauseRedeem: false,
       pauseBurn: false,
-      pauseTransfers: false,
       allowMinting: true,
       allowTerminalMigration: false,
       allowControllerMigration: false,
