@@ -52,7 +52,11 @@ contract TestReconfigureProject is TestBaseWorkflow {
     });
 
     _metadata = JBFundingCycleMetadata({
-      global: JBGlobalFundingCycleMetadata({allowSetTerminals: false, allowSetController: false}),
+      global: JBGlobalFundingCycleMetadata({
+        allowSetTerminals: false,
+        allowSetController: false,
+        pauseTransfers: false
+      }),
       reservedRate: 5000,
       redemptionRate: 5000,
       ballotRedemptionRate: 0,
@@ -60,7 +64,6 @@ contract TestReconfigureProject is TestBaseWorkflow {
       pauseDistributions: false,
       pauseRedeem: false,
       pauseBurn: false,
-      pauseTransfers: false,
       allowMinting: true,
       allowTerminalMigration: false,
       allowControllerMigration: false,
@@ -359,7 +362,11 @@ contract TestReconfigureProject is TestBaseWorkflow {
       projectId,
       _dataWithoutBallot,
       JBFundingCycleMetadata({
-        global: JBGlobalFundingCycleMetadata({allowSetTerminals: false, allowSetController: false}),
+        global: JBGlobalFundingCycleMetadata({
+          allowSetTerminals: false,
+          allowSetController: false,
+          pauseTransfers: false
+        }),
         reservedRate: RESERVED_RATE,
         redemptionRate: REDEMPTION_RATE,
         ballotRedemptionRate: 0,
@@ -367,7 +374,6 @@ contract TestReconfigureProject is TestBaseWorkflow {
         pauseDistributions: false,
         pauseRedeem: false,
         pauseBurn: false,
-        pauseTransfers: false,
         allowMinting: true,
         allowTerminalMigration: false,
         allowControllerMigration: false,

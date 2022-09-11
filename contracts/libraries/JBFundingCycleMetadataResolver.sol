@@ -51,7 +51,7 @@ library JBFundingCycleMetadataResolver {
   }
 
   function mintingAllowed(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
-    return ((_fundingCycle.metadata >> 77) & 1) == 1;
+    return ((_fundingCycle.metadata >> 76) & 1) == 1;
   }
 
   function terminalMigrationAllowed(JBFundingCycle memory _fundingCycle)
@@ -59,7 +59,7 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (bool)
   {
-    return ((_fundingCycle.metadata >> 78) & 1) == 1;
+    return ((_fundingCycle.metadata >> 77) & 1) == 1;
   }
 
   function controllerMigrationAllowed(JBFundingCycle memory _fundingCycle)
@@ -67,11 +67,11 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (bool)
   {
-    return ((_fundingCycle.metadata >> 79) & 1) == 1;
+    return ((_fundingCycle.metadata >> 78) & 1) == 1;
   }
 
   function shouldHoldFees(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
-    return ((_fundingCycle.metadata >> 80) & 1) == 1;
+    return ((_fundingCycle.metadata >> 79) & 1) == 1;
   }
 
   function preferClaimedTokenOverride(JBFundingCycle memory _fundingCycle)
@@ -79,7 +79,7 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (bool)
   {
-    return ((_fundingCycle.metadata >> 81) & 1) == 1;
+    return ((_fundingCycle.metadata >> 80) & 1) == 1;
   }
 
   function useTotalOverflowForRedemptions(JBFundingCycle memory _fundingCycle)
@@ -87,11 +87,11 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (bool)
   {
-    return ((_fundingCycle.metadata >> 82) & 1) == 1;
+    return ((_fundingCycle.metadata >> 81) & 1) == 1;
   }
 
   function useDataSourceForPay(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
-    return (_fundingCycle.metadata >> 83) & 1 == 1;
+    return (_fundingCycle.metadata >> 82) & 1 == 1;
   }
 
   function useDataSourceForRedeem(JBFundingCycle memory _fundingCycle)
@@ -99,15 +99,15 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (bool)
   {
-    return (_fundingCycle.metadata >> 84) & 1 == 1;
+    return (_fundingCycle.metadata >> 83) & 1 == 1;
   }
 
   function dataSource(JBFundingCycle memory _fundingCycle) internal pure returns (address) {
-    return address(uint160(_fundingCycle.metadata >> 85));
+    return address(uint160(_fundingCycle.metadata >> 84));
   }
 
   function metadata(JBFundingCycle memory _fundingCycle) internal pure returns (uint256) {
-    return uint256(uint8(_fundingCycle.metadata >> 245));
+    return uint256(uint8(_fundingCycle.metadata >> 244));
   }
 
   /**
