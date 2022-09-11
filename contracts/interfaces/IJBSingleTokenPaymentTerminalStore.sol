@@ -3,6 +3,7 @@ pragma solidity ^0.8.16;
 
 import './../structs/JBFundingCycle.sol';
 import './../structs/JBPayDelegateAllocation.sol';
+import './../structs/JBRedemptionDelegateAllocation.sol';
 import './../structs/JBTokenAmount.sol';
 import './IJBDirectory.sol';
 import './IJBFundingCycleStore.sol';
@@ -88,7 +89,7 @@ interface IJBSingleTokenPaymentTerminalStore {
     returns (
       JBFundingCycle memory fundingCycle,
       uint256 reclaimAmount,
-      IJBRedemptionDelegate[] memory delegates,
+      JBRedemptionDelegateAllocation[] memory delegateAllocations,
       string memory memo
     );
 

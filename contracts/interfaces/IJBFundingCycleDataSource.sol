@@ -5,6 +5,7 @@ import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 import './../structs/JBPayParamsData.sol';
 import './../structs/JBRedeemParamsData.sol';
 import './../structs/JBPayDelegateAllocation.sol';
+import './../structs/JBRedemptionDelegateAllocation.sol';
 import './IJBFundingCycleStore.sol';
 import './IJBPayDelegate.sol';
 import './IJBRedemptionDelegate.sol';
@@ -71,13 +72,13 @@ interface IJBFundingCycleDataSource is IERC165 {
 
     @return reclaimAmount The amount to claim, overriding the terminal logic.
     @return memo The memo to override the redeemTokensOf(..) memo.
-    @return delegates The addresses of the redemption delegates (might or might not be the same contract).
+    @return delegateAllocations The amount to send to delegates instead of adding to the beneficiary.
   */
   function redeemParams(JBRedeemParamsData calldata _data)
     external
     returns (
       uint256 reclaimAmount,
       string memory memo,
-      IJBRedemptionDelegate[] memory delegates
+      JBRedemptionDelegateAllocation[] memory delegateAllocations
     );
 }

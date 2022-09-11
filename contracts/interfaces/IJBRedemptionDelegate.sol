@@ -29,9 +29,10 @@ interface IJBRedemptionDelegate is IERC165 {
                 uint256 currentFundingCycleConfiguration;
                 uint256 projectTokenCount;
                 JBTokenAmount reclaimedAmount;
+                JBTokenAmount forwardedAmount;
                 address payable beneficiary;
                 string memo;
                 bytes metadata;
   */
-  function didRedeem(JBDidRedeemData calldata _data) external;
+  function didRedeem(JBDidRedeemData calldata _data) external payable;
 }

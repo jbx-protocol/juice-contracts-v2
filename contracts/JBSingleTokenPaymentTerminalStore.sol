@@ -373,7 +373,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
       uint256 _balanceDiff = _amount.value;
 
       // Validate all delegated amounts. This needs to be done before returning the delegate allocations to ensure valid delegated amounts.
-      if (delegateAllocations.length > 0) {
+      if (delegateAllocations.length != 0) {
         for (uint256 _i; _i < delegateAllocations.length; ) {
           // Get a reference to the amount to be delegated.
           uint256 _delegatedAmount = delegateAllocations[_i].amount;
@@ -383,7 +383,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
             // Can't delegate more than was paid.
             if (_delegatedAmount > _balanceDiff) revert INVALID_AMOUNT_TO_SEND_DELEGATE();
 
-            // Increment the total amount being delegated.
+            // Decrement the total amount being added to the balance.
             _balanceDiff = _balanceDiff - _delegatedAmount;
           }
 
@@ -437,7 +437,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
 
     @return fundingCycle The funding cycle during which the redemption was made.
     @return reclaimAmount The amount of terminal tokens reclaimed, as a fixed point number with 18 decimals.
-    @return delegates Delegate contracts to use for subsequent calls.
+    @return delegateAllocations The amount to send to delegates instead of sending to the beneficiary.
     @return memo A memo that should be passed along to the emitted event.
   */
   function recordRedemptionFor(
@@ -453,7 +453,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
     returns (
       JBFundingCycle memory fundingCycle,
       uint256 reclaimAmount,
-      IJBRedemptionDelegate[] memory delegates,
+      JBRedemptionDelegateAllocation[] memory delegateAllocations,
       string memory memo
     )
   {
@@ -501,7 +501,7 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
         // Can't redeem more tokens that is in the supply.
         if (_tokenCount > _totalSupply) revert INSUFFICIENT_TOKENS();
 
-        if (_currentOverflow > 0)
+        if (_currentOverflow != 0)
           // Calculate reclaim amount using the current overflow amount.
           reclaimAmount = _reclaimableOverflowDuring(
             _projectId,
@@ -538,24 +538,45 @@ contract JBSingleTokenPaymentTerminalStore is IJBSingleTokenPaymentTerminalStore
             _memo,
             _metadata
           );
-          (reclaimAmount, memo, delegates) = IJBFundingCycleDataSource(fundingCycle.dataSource())
-            .redeemParams(_data);
+          (reclaimAmount, memo, delegateAllocations) = IJBFundingCycleDataSource(
+            fundingCycle.dataSource()
+          ).redeemParams(_data);
         }
       } else {
         memo = _memo;
       }
     }
 
+    // Keep a reference to the amount that should be subtracted from the project's balance.
+    uint256 _balanceDiff = reclaimAmount;
+
+    if (delegateAllocations.length != 0) {
+      // Validate all delegated amounts.
+      for (uint256 _i; _i < delegateAllocations.length; ) {
+        // Get a reference to the amount to be delegated.
+        uint256 _delegatedAmount = delegateAllocations[_i].amount;
+
+        // Validate if non-zero.
+        if (_delegatedAmount != 0)
+          // Increment the total amount being subtracted from the balance.
+          _balanceDiff = _balanceDiff + _delegatedAmount;
+
+        unchecked {
+          ++_i;
+        }
+      }
+    }
+
     // The amount being reclaimed must be within the project's balance.
-    if (reclaimAmount > balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId])
+    if (_balanceDiff > balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId])
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
 
     // Remove the reclaimed funds from the project's balance.
-    if (reclaimAmount > 0) {
+    if (_balanceDiff != 0) {
       unchecked {
         balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
           balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] -
-          reclaimAmount;
+          _balanceDiff;
       }
     }
   }
