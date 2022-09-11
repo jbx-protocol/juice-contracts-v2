@@ -135,6 +135,67 @@ describe('JBTokenStore::transferFrom(...)', function () {
       .withArgs(holder.address, PROJECT_ID, recipient.address, numTokens, controller.address);
   });
 
+  it('Cannot transfer unclaimed tokens if transfers are paused', async function () {
+    const {
+      controller,
+      holder,
+      recipient,
+      projectOwner,
+      mockJbDirectory,
+      mockJbFundingCycleStore,
+      mockJbOperatorStore,
+      mockJbProjects,
+      jbTokenStore,
+      TRANSFER_INDEX,
+    } = await setup();
+
+    const blockNum = await ethers.provider.getBlockNumber();
+    const block = await ethers.provider.getBlock(blockNum);
+    const timestamp = block.timestamp;
+
+    await mockJbFundingCycleStore.mock.currentOf.returns({
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: 0,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({
+        pauseTransfer: 1,
+      }),
+    });
+
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // IssueFor access:
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
+
+    await mockJbOperatorStore.mock.hasPermission
+      .withArgs(controller.address, holder.address, PROJECT_ID, TRANSFER_INDEX)
+      .returns(true);
+
+    // Issue tokens for project
+    await jbTokenStore.connect(projectOwner).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
+
+    // Mint unclaimed tokens
+    const numTokens = 20;
+    await jbTokenStore.connect(controller).mintFor(holder.address, PROJECT_ID, numTokens, false);
+
+    // Transfer unclaimed tokens to new recipient
+    await expect(
+      jbTokenStore
+        .connect(controller)
+        .transferFrom(
+          /* sender */ holder.address,
+          PROJECT_ID,
+          /* recipient */ recipient.address,
+          numTokens,
+        ),
+    ).to.be.revertedWith(errors.TRANSFERS_PAUSED);
+  });
+
   it(`Can't transfer unclaimed tokens to zero address`, async function () {
     const {
       controller,
