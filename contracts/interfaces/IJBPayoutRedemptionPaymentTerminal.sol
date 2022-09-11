@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import './../structs/JBFee.sol';
 import './IJBAllowanceTerminal.sol';
 import './IJBDirectory.sol';
@@ -13,7 +12,6 @@ import './IJBPrices.sol';
 import './IJBProjects.sol';
 import './IJBRedemptionDelegate.sol';
 import './IJBRedemptionTerminal.sol';
-import './IJBSingleTokenPaymentTerminal.sol';
 import './IJBSingleTokenPaymentTerminalStore.sol';
 import './IJBSplitsStore.sol';
 

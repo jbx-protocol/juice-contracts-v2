@@ -3,7 +3,6 @@ pragma solidity ^0.8.16;
 
 import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 import './../enums/JBBallotState.sol';
-import './IJBFundingCycleStore.sol';
 
 interface IJBFundingCycleBallot is IERC165 {
   function duration() external view returns (uint256);

@@ -3,6 +3,7 @@ pragma solidity ^0.8.16;
 
 import '@openzeppelin/contracts/utils/Address.sol';
 import './abstract/JBPayoutRedemptionPaymentTerminal.sol';
+import './libraries/JBSplitsGroups.sol';
 
 /**
   @notice

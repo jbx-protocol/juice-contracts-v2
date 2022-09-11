@@ -12,7 +12,6 @@ import './IJBFundingCycleStore.sol';
 import './IJBMigratable.sol';
 import './IJBPaymentTerminal.sol';
 import './IJBSplitsStore.sol';
-import './IJBToken.sol';
 import './IJBTokenStore.sol';
 
 interface IJBController is IERC165 {

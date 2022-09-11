@@ -11,7 +11,7 @@ import './libraries/JBConstants.sol';
 
   @dev
   Adheres to -
-  IJBTokenStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
+  IJBFundingCycleStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
   Inherits from -

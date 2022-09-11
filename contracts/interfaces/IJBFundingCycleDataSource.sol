@@ -2,13 +2,10 @@
 pragma solidity ^0.8.16;
 
 import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
+import './../structs/JBPayDelegateAllocation.sol';
 import './../structs/JBPayParamsData.sol';
 import './../structs/JBRedeemParamsData.sol';
-import './../structs/JBPayDelegateAllocation.sol';
 import './../structs/JBRedemptionDelegateAllocation.sol';
-import './IJBFundingCycleStore.sol';
-import './IJBPayDelegate.sol';
-import './IJBRedemptionDelegate.sol';
 
 /**
   @title

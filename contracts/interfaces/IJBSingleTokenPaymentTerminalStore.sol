@@ -7,9 +7,7 @@ import './../structs/JBRedemptionDelegateAllocation.sol';
 import './../structs/JBTokenAmount.sol';
 import './IJBDirectory.sol';
 import './IJBFundingCycleStore.sol';
-import './IJBPayDelegate.sol';
 import './IJBPrices.sol';
-import './IJBRedemptionDelegate.sol';
 import './IJBSingleTokenPaymentTerminal.sol';
 
 interface IJBSingleTokenPaymentTerminalStore {

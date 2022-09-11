@@ -4,12 +4,14 @@ pragma solidity ^0.8.16;
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './interfaces/IJBController.sol';
+import './interfaces/IJBFundingCycleDataSource.sol';
 import './interfaces/IJBSingleTokenPaymentTerminalStore.sol';
 import './libraries/JBConstants.sol';
 import './libraries/JBCurrencies.sol';
 import './libraries/JBFixedPointNumber.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
 import './structs/JBPayDelegateAllocation.sol';
+import './structs/JBPayParamsData.sol';
 
 /**
   @notice

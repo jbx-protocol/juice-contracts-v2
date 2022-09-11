@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import '@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol';
 import './interfaces/IJBToken.sol';
 
 /** 
@@ -15,7 +15,7 @@ import './interfaces/IJBToken.sol';
 
   @dev
   Inherits from -
-  ERC20Votes: General token standard for fungible membership. 
+  ERC20Votes: General token standard for fungible membership with snapshot capabilities sufficient to interact with standard governance contracts. 
   Ownable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBToken is IJBToken, ERC20Votes, Ownable {

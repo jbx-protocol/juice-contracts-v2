@@ -2,7 +2,6 @@
 pragma solidity ^0.8.16;
 
 import './JBGlobalFundingCycleMetadata.sol';
-import './../interfaces/IJBFundingCycleDataSource.sol';
 
 /** 
   @member global Data used globally in non-migratable ecosystem contracts.

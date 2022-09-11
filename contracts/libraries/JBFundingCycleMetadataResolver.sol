@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import './../interfaces/IJBFundingCycleDataSource.sol';
+import './../structs/JBFundingCycle.sol';
 import './../structs/JBFundingCycleMetadata.sol';
 import './../structs/JBGlobalFundingCycleMetadata.sol';
 import './JBConstants.sol';
