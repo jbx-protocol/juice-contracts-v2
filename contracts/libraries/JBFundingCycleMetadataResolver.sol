@@ -11,7 +11,7 @@ library JBFundingCycleMetadataResolver {
   function global(JBFundingCycle memory _fundingCycle)
     internal
     pure
-    returns (JBGlobalFundingCycleMetadata memory metadata)
+    returns (JBGlobalFundingCycleMetadata memory)
   {
     return JBGlobalFundingCycleMetadataResolver.expandMetadata(uint8(_fundingCycle.metadata >> 8));
   }
@@ -98,6 +98,10 @@ library JBFundingCycleMetadataResolver {
     return address(uint160(_fundingCycle.metadata >> 83));
   }
 
+  function metadata(JBFundingCycle memory _fundingCycle) internal pure returns (uint256) {
+    return uint256(uint8(_fundingCycle.metadata >> 243));
+  }
+
   /**
     @notice
     Pack the funding cycle metadata.
@@ -149,6 +153,8 @@ library JBFundingCycleMetadataResolver {
     if (_metadata.useDataSourceForRedeem) packed |= 1 << 82;
     // data source address in bits 83-242.
     packed |= uint256(uint160(address(_metadata.dataSource))) << 83;
+    // metadata in bits 243-251 (8 bits).
+    packed |= _metadata.metadata << 243;
   }
 
   /**
@@ -162,7 +168,7 @@ library JBFundingCycleMetadataResolver {
   function expandMetadata(JBFundingCycle memory _fundingCycle)
     internal
     pure
-    returns (JBFundingCycleMetadata memory metadata)
+    returns (JBFundingCycleMetadata memory)
   {
     return
       JBFundingCycleMetadata(
@@ -181,7 +187,8 @@ library JBFundingCycleMetadataResolver {
         useTotalOverflowForRedemptions(_fundingCycle),
         useDataSourceForPay(_fundingCycle),
         useDataSourceForRedeem(_fundingCycle),
-        dataSource(_fundingCycle)
+        dataSource(_fundingCycle),
+        metadata(_fundingCycle)
       );
   }
 }

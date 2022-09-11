@@ -21,6 +21,7 @@ import './../interfaces/IJBFundingCycleDataSource.sol';
   @member useDataSourceForPay A flag indicating if the data source should be used for pay transactions during this funding cycle.
   @member useDataSourceForRedeem A flag indicating if the data source should be used for redeem transactions during this funding cycle.
   @member dataSource The data source to use during this funding cycle.
+  @member metadata Metadata of the metadata, up to uint8 in size.
 */
 struct JBFundingCycleMetadata {
   JBGlobalFundingCycleMetadata global;
@@ -39,4 +40,5 @@ struct JBFundingCycleMetadata {
   bool useDataSourceForPay;
   bool useDataSourceForRedeem;
   address dataSource;
+  uint256 metadata;
 }
