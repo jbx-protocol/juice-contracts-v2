@@ -49,7 +49,9 @@ describe('JBTokenStore::transferFrom(...)', function () {
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
       metadata: packFundingCycleMetadata({
-        pauseTransfer: 0,
+        global: {
+          pauseTransfer: 0,
+        }
       }),
     });
 
@@ -95,7 +97,9 @@ describe('JBTokenStore::transferFrom(...)', function () {
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
       metadata: packFundingCycleMetadata({
-        pauseTransfer: 0,
+        global: {
+          pauseTransfer: 0,
+        }
       }),
     });
 
@@ -163,7 +167,9 @@ describe('JBTokenStore::transferFrom(...)', function () {
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
       metadata: packFundingCycleMetadata({
-        pauseTransfer: 1,
+        global: {
+          pauseTransfer: 1,
+        }
       }),
     });
 
@@ -220,7 +226,9 @@ describe('JBTokenStore::transferFrom(...)', function () {
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
       metadata: packFundingCycleMetadata({
-        pauseTransfer: 0,
+        global: {
+          pauseTransfer: 0,
+        }
       }),
     });
 
@@ -265,7 +273,9 @@ describe('JBTokenStore::transferFrom(...)', function () {
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
       metadata: packFundingCycleMetadata({
-        pauseTransfer: 0,
+        global: {
+          pauseTransfer: 0,
+        }
       }),
     });
 
@@ -311,7 +321,9 @@ describe('JBTokenStore::transferFrom(...)', function () {
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
       metadata: packFundingCycleMetadata({
-        pauseTransfer: 0,
+        global: {
+          pauseTransfer: 0,
+        }
       }),
     });
 

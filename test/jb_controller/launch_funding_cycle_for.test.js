@@ -167,6 +167,7 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
       global: {
         allowSetTerminals,
         allowSetControllers,
+        pauseTransfers,
       },
       reservedRate,
       redemptionRate,
@@ -175,7 +176,6 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
       pauseDistributions,
       pauseRedeem,
       pauseBurn,
-      pauseTransfers,
       allowMinting,
       allowChangeToken,
       allowTerminalMigration,

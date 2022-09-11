@@ -119,9 +119,11 @@ export function packFundingCycleMetadata({
   global: {
     allowSetTerminals, // boolean
     allowSetController, // boolean
+    pauseTransfer, // boolean
   } = {
     allowSetTerminals: 0, // boolean
     allowSetController: 0, // boolean
+    pauseTransfer: 0
   },
   reservedRate = 0, // percentage
   redemptionRate = 10000, // percentage
@@ -130,7 +132,6 @@ export function packFundingCycleMetadata({
   pauseDistributions = 0, // boolean
   pauseRedeem = 0, // boolean
   pauseBurn = 0, // boolean
-  pauseTransfer = 0, // boolean
   allowMinting = 0, // boolean
   allowTerminalMigration = 0, // boolean
   allowControllerMigration = 0, // boolean
@@ -147,6 +148,7 @@ export function packFundingCycleMetadata({
   let packed = ethers.BigNumber.from(version);
   if (allowSetTerminals) packed = packed.or(one.shl(8));
   if (allowSetController) packed = packed.or(one.shl(9));
+  if (pauseTransfer) packed = packed.or(one.shl(10));
   packed = packed.or(ethers.BigNumber.from(reservedRate).shl(24));
   packed = packed.or(ethers.BigNumber.from(10000 - redemptionRate).shl(40));
   packed = packed.or(ethers.BigNumber.from(10000 - ballotRedemptionRate).shl(56));
@@ -154,17 +156,16 @@ export function packFundingCycleMetadata({
   if (pauseDistributions) packed = packed.or(one.shl(73));
   if (pauseRedeem) packed = packed.or(one.shl(74));
   if (pauseBurn) packed = packed.or(one.shl(75));
-  if (pauseTransfer) packed = packed.or(one.shl(76));
-  if (allowMinting) packed = packed.or(one.shl(77));
-  if (allowTerminalMigration) packed = packed.or(one.shl(78));
-  if (allowControllerMigration) packed = packed.or(one.shl(79));
-  if (holdFees) packed = packed.or(one.shl(80));
-  if (preferClaimedTokenOverride) packed = packed.or(one.shl(81));
-  if (useTotalOverflowForRedemptions) packed = packed.or(one.shl(82));
-  if (useDataSourceForPay) packed = packed.or(one.shl(83));
-  if (useDataSourceForRedeem) packed = packed.or(one.shl(84));
-  packed = packed.or(ethers.BigNumber.from(dataSource).shl(85));
-  return packed.or(ethers.BigNumber.from(metadata).shl(245));
+  if (allowMinting) packed = packed.or(one.shl(76));
+  if (allowTerminalMigration) packed = packed.or(one.shl(77));
+  if (allowControllerMigration) packed = packed.or(one.shl(78));
+  if (holdFees) packed = packed.or(one.shl(79));
+  if (preferClaimedTokenOverride) packed = packed.or(one.shl(80));
+  if (useTotalOverflowForRedemptions) packed = packed.or(one.shl(81));
+  if (useDataSourceForPay) packed = packed.or(one.shl(82));
+  if (useDataSourceForRedeem) packed = packed.or(one.shl(83));
+  packed = packed.or(ethers.BigNumber.from(dataSource).shl(84));
+  return packed.or(ethers.BigNumber.from(metadata).shl(244));
 }
 
 /**
