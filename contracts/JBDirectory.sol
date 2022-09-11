@@ -4,7 +4,7 @@ pragma solidity ^0.8.16;
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBDirectory.sol';
-import './libraries/JBGlobalFundingCycleMetadataResolver.sol';
+import './libraries/JBFundingCycleMetadataResolver.sol';
 import './libraries/JBOperations.sol';
 
 /**
@@ -22,7 +22,7 @@ import './libraries/JBOperations.sol';
 */
 contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   // A library that parses the packed funding cycle metadata into a friendlier format.
-  using JBGlobalFundingCycleMetadataResolver for uint8;
+  using JBFundingCycleMetadataResolver for JBFundingCycle;
 
   //*********************************************************************//
   // --------------------------- custom errors ------------------------- //
@@ -249,7 +249,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     if (
       msg.sender != address(controllerOf[_projectId]) &&
       controllerOf[_projectId] != address(0) &&
-      !uint8(_fundingCycle.metadata >> 8).setControllerAllowed()
+      !_fundingCycle.global().allowSetController
     ) revert SET_CONTROLLER_NOT_ALLOWED();
 
     // Set the new controller.
@@ -283,8 +283,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     // Setting terminals must be allowed if not called from the current controller.
     if (
-      msg.sender != address(controllerOf[_projectId]) &&
-      !uint8(_fundingCycle.metadata >> 8).setTerminalsAllowed()
+      msg.sender != address(controllerOf[_projectId]) && !_fundingCycle.global().allowSetTerminals
     ) revert SET_TERMINALS_NOT_ALLOWED();
 
     // Set the stored terminals for the project.
@@ -391,8 +390,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
     // Setting terminals must be allowed if not called from the current controller.
     if (
-      msg.sender != address(controllerOf[_projectId]) &&
-      !uint8(_fundingCycle.metadata >> 8).setTerminalsAllowed()
+      msg.sender != address(controllerOf[_projectId]) && !_fundingCycle.global().allowSetTerminals
     ) revert SET_TERMINALS_NOT_ALLOWED();
 
     // Add the new terminal.

@@ -434,7 +434,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Must not be paused.
-    if (_fundingCycle.transfersPaused()) revert TRANSFERS_PAUSED();
+    if (_fundingCycle.global().pauseTransfers) revert TRANSFERS_PAUSED();
 
     // Can't transfer to the zero address.
     if (_recipient == address(0)) revert RECIPIENT_ZERO_ADDRESS();
