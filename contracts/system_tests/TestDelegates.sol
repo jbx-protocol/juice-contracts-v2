@@ -50,14 +50,17 @@ contract TestDelegates is TestBaseWorkflow {
       pauseDistributions: false,
       pauseRedeem: false,
       pauseBurn: false,
+      pauseTransfers: false,
       allowMinting: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
       holdFees: false,
+      preferClaimedTokenOverride: false,
       useTotalOverflowForRedemptions: false,
       useDataSourceForPay: true,
       useDataSourceForRedeem: true,
-      dataSource: _datasource
+      dataSource: _datasource,
+      metadata: 0
     });
 
     _terminals.push(jbETHPaymentTerminal());

@@ -69,14 +69,17 @@ contract TestMultipleTerminals is TestBaseWorkflow {
       pauseDistributions: false,
       pauseRedeem: false,
       pauseBurn: false,
-      allowMinting: true,
+      pauseTransfers: false,
+      allowMinting: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
       holdFees: false,
+      preferClaimedTokenOverride: false,
       useTotalOverflowForRedemptions: true,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
-      dataSource: address(0)
+      dataSource: address(0),
+      metadata: 0
     });
 
     ERC20terminal = new JBERC20PaymentTerminal(
