@@ -4,6 +4,7 @@ pragma solidity ^0.8.16;
 import './abstract/JBControllerUtility.sol';
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBTokenStore.sol';
+import './libraries/JBFundingCycleMetadataResolver.sol';
 import './libraries/JBOperations.sol';
 import './JBToken.sol';
 
@@ -31,6 +32,9 @@ import './JBToken.sol';
   JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
+  // A library that parses the packed funding cycle metadata into a friendlier format.
+  using JBFundingCycleMetadataResolver for JBFundingCycle;
+
   //*********************************************************************//
   // --------------------------- custom errors ------------------------- //
   //*********************************************************************//
@@ -44,6 +48,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
   error RECIPIENT_ZERO_ADDRESS();
   error TOKEN_NOT_FOUND();
   error TOKENS_MUST_HAVE_18_DECIMALS();
+  error TRANSFERS_PAUSED();
   error OVERFLOW_ALERT();
 
   //*********************************************************************//
@@ -55,6 +60,12 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     Mints ERC-721's that represent project ownership and transfers.
   */
   IJBProjects public immutable override projects;
+
+  /**
+    @notice
+    The contract storing all funding cycle configurations.
+  */
+  IJBFundingCycleStore public immutable override fundingCycleStore;
 
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
@@ -153,13 +164,16 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     @param _operatorStore A contract storing operator assignments.
     @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
     @param _directory A contract storing directories of terminals and controllers for each project.
+    @param _fundingCycleStore A contract storing all funding cycle configurations.
   */
   constructor(
     IJBOperatorStore _operatorStore,
     IJBProjects _projects,
-    IJBDirectory _directory
+    IJBDirectory _directory,
+    IJBFundingCycleStore _fundingCycleStore
   ) JBOperatable(_operatorStore) JBControllerUtility(_directory) {
     projects = _projects;
+    fundingCycleStore = _fundingCycleStore;
   }
 
   //*********************************************************************//
@@ -425,6 +439,12 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     address _recipient,
     uint256 _amount
   ) external override requirePermission(_holder, _projectId, JBOperations.TRANSFER) {
+    // Get a reference to the current funding cycle for the project.
+    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
+
+    // Must not be paused.
+    if (_fundingCycle.transfersPaused()) revert TRANSFERS_PAUSED();
+
     // Can't transfer to the zero address.
     if (_recipient == address(0)) revert RECIPIENT_ZERO_ADDRESS();
 

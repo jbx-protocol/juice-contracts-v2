@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
+import './IJBFundingCycleStore.sol';
 import './IJBProjects.sol';
 import './IJBToken.sol';
 
@@ -55,6 +56,8 @@ interface IJBTokenStore {
   function tokenOf(uint256 _projectId) external view returns (IJBToken);
 
   function projects() external view returns (IJBProjects);
+
+  function fundingCycleStore() external view returns (IJBFundingCycleStore);
 
   function unclaimedBalanceOf(address _holder, uint256 _projectId) external view returns (uint256);
 
