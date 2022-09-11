@@ -4,6 +4,7 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
+import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import errors from '../helpers/errors.json';
@@ -18,6 +19,7 @@ describe('JBTokenStore::burnFrom(...)', function () {
     const [deployer, controller, newHolder] = await ethers.getSigners();
 
     const mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
+    const mockJbFundingCycleStore = await deployMockContract(deployer, jbFundingCycleStore.abi);
     const mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
     const mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
 
@@ -26,6 +28,7 @@ describe('JBTokenStore::burnFrom(...)', function () {
       mockJbOperatorStore.address,
       mockJbProjects.address,
       mockJbDirectory.address,
+      mockJbFundingCycleStore.address,
     );
 
     return {

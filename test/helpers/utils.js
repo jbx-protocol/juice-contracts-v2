@@ -130,14 +130,17 @@ export function packFundingCycleMetadata({
   pauseDistributions = 0, // boolean
   pauseRedeem = 0, // boolean
   pauseBurn = 0, // boolean
+  pauseTransfer = 0, // boolean
   allowMinting = 0, // boolean
   allowTerminalMigration = 0, // boolean
   allowControllerMigration = 0, // boolean
   holdFees = 0, // boolean
+  preferClaimedTokenOverride = 0, // boolean
   useTotalOverflowForRedemptions = 0, // boolean
   useDataSourceForPay = 0, // boolean
   useDataSourceForRedeem = 0, // boolean
   dataSource = 0, // address
+  metadata = 0, // uint256
 } = {}) {
   const one = ethers.BigNumber.from(1);
 
@@ -151,14 +154,17 @@ export function packFundingCycleMetadata({
   if (pauseDistributions) packed = packed.or(one.shl(73));
   if (pauseRedeem) packed = packed.or(one.shl(74));
   if (pauseBurn) packed = packed.or(one.shl(75));
-  if (allowMinting) packed = packed.or(one.shl(76));
-  if (allowTerminalMigration) packed = packed.or(one.shl(77));
-  if (allowControllerMigration) packed = packed.or(one.shl(78));
-  if (holdFees) packed = packed.or(one.shl(79));
-  if (useTotalOverflowForRedemptions) packed = packed.or(one.shl(80));
-  if (useDataSourceForPay) packed = packed.or(one.shl(81));
-  if (useDataSourceForRedeem) packed = packed.or(one.shl(82));
-  return packed.or(ethers.BigNumber.from(dataSource).shl(83));
+  if (pauseTransfer) packed = packed.or(one.shl(76));
+  if (allowMinting) packed = packed.or(one.shl(77));
+  if (allowTerminalMigration) packed = packed.or(one.shl(78));
+  if (allowControllerMigration) packed = packed.or(one.shl(79));
+  if (holdFees) packed = packed.or(one.shl(80));
+  if (preferClaimedTokenOverride) packed = packed.or(one.shl(81));
+  if (useTotalOverflowForRedemptions) packed = packed.or(one.shl(82));
+  if (useDataSourceForPay) packed = packed.or(one.shl(83));
+  if (useDataSourceForRedeem) packed = packed.or(one.shl(84));
+  packed = packed.or(ethers.BigNumber.from(dataSource).shl(85));
+  return packed.or(ethers.BigNumber.from(metadata).shl(245));
 }
 
 /**

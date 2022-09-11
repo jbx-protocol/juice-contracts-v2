@@ -148,6 +148,7 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
     pauseDistributions = false,
     pauseRedeem = false,
     pauseBurn = false,
+    pauseTransfers = false,
     allowMinting = false,
     allowChangeToken = false,
     allowTerminalMigration = false,
@@ -155,10 +156,12 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
     allowSetTerminals = false,
     allowSetControllers = false,
     holdFees = false,
+    preferClaimedTokenOverride = false,
     useTotalOverflowForRedemptions = false,
     useDataSourceForPay = false,
     useDataSourceForRedeem = false,
     dataSource = ethers.constants.AddressZero,
+    metadata = 0,
   } = {}) {
     const unpackedMetadata = {
       global: {
@@ -172,15 +175,18 @@ describe('JBController::launchFundingCyclesFor(...)', function () {
       pauseDistributions,
       pauseRedeem,
       pauseBurn,
+      pauseTransfers,
       allowMinting,
       allowChangeToken,
       allowTerminalMigration,
       allowControllerMigration,
       holdFees,
+      preferClaimedTokenOverride,
       useTotalOverflowForRedemptions,
       useDataSourceForPay,
       useDataSourceForRedeem,
       dataSource,
+      metadata,
     };
     return { unpacked: unpackedMetadata, packed: packFundingCycleMetadata(unpackedMetadata) };
   }
