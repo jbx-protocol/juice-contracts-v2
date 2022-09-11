@@ -3,7 +3,12 @@ import { ethers } from 'hardhat';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
-import { fastForward, getTimestamp, createFundingCycleData } from '../helpers/utils';
+import {
+  fastForward,
+  getTimestamp,
+  createFundingCycleData,
+  packFundingCycleMetadata,
+} from '../helpers/utils';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import ijbFundingCycleBallot from '../../artifacts/contracts/interfaces/IJBFundingCycleBallot.sol/IJBFundingCycleBallot.json';
@@ -101,8 +106,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     const { controller, mockJbDirectory, jbFundingCycleStore } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
-    // The metadata value doesn't affect the test.
-    const fundingCycleMetadata = ethers.BigNumber.from(0);
+    const fundingCycleMetadata = packFundingCycleMetadata({ metadata: 69 });
 
     // Configure funding cycle
     const configureForTx = await jbFundingCycleStore
@@ -1798,7 +1802,10 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
       .withArgs(
         PROJECT_ID,
         secondConfigurationTimestamp,
-        firstConfigurationTimestamp.add(expectedFirstFundingCycle.duration).add(expectedFirstFundingCycle.duration))
+        firstConfigurationTimestamp
+          .add(expectedFirstFundingCycle.duration)
+          .add(expectedFirstFundingCycle.duration),
+      )
       .returns(ballotStatus.ACTIVE);
 
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql({

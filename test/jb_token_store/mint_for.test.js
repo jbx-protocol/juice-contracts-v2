@@ -104,6 +104,35 @@ describe('JBTokenStore::mintFor(...)', function () {
       );
   });
 
+  it('Should mint unclaimed tokens if no token is deployed', async function () {
+    const { controller, newHolder, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
+
+    // Mint access:
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Mint more unclaimed tokens
+    const numTokens = 20;
+    const mintForTx = await jbTokenStore
+      .connect(controller)
+      .mintFor(newHolder.address, PROJECT_ID, numTokens, /* preferClaimedTokens= */ true);
+
+    expect(await jbTokenStore.unclaimedBalanceOf(newHolder.address, PROJECT_ID)).to.equal(
+      numTokens,
+    );
+    expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(numTokens);
+
+    await expect(mintForTx)
+      .to.emit(jbTokenStore, 'Mint')
+      .withArgs(
+        newHolder.address,
+        PROJECT_ID,
+        numTokens,
+        /* shouldClaimTokens= */ false,
+        /* preferClaimedTokens= */ true,
+        controller.address,
+      );
+  });
+
   it(`Can't mint tokens if caller is not the controller`, async function () {
     const { controller, newHolder, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
 

@@ -232,6 +232,8 @@ describe('JBPayoutRedemptionPaymentTerminal::pay(...)', function () {
       beneficiary,
     } = await setup();
 
+    const DELEGATE_METADATA = 69;
+
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
     await mockJbController.mock.mintTokensOf
