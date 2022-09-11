@@ -96,14 +96,6 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
   */
   mapping(address => mapping(uint256 => uint256)) public override unclaimedBalanceOf;
 
-  /**
-    @notice
-    A flag indicating if tokens are required to be issued as claimed for a particular project.
-
-    _projectId The ID of the project to which the requirement applies.
-  */
-  mapping(uint256 => bool) public override requireClaimFor;
-
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
   //*********************************************************************//
@@ -281,9 +273,8 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     // Get a reference to the project's current token.
     IJBToken _token = tokenOf[_projectId];
 
-    // Save a reference to whether there exists a token and the caller prefers these claimed tokens or the project requires it.
-    bool _shouldClaimTokens = (requireClaimFor[_projectId] || _preferClaimedTokens) &&
-      _token != IJBToken(address(0));
+    // Save a reference to whether there exists a token and the caller prefers these claimed tokens.
+    bool _shouldClaimTokens = _preferClaimedTokens && _token != IJBToken(address(0));
 
     if (_shouldClaimTokens)
       // If tokens should be claimed, mint tokens into the holder's wallet.
@@ -465,32 +456,5 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
       _amount;
 
     emit Transfer(_holder, _projectId, _recipient, _amount, msg.sender);
-  }
-
-  /**
-    @notice
-    Allows a project to force all future mints of its tokens to be claimed into the holder's wallet, or revoke the flag if it's already set.
-
-    @dev
-    Only a token holder or an operator can require claimed token.
-
-    @param _projectId The ID of the project being affected.
-    @param _flag A flag indicating whether or not claiming should be required.
-  */
-  function shouldRequireClaimingFor(uint256 _projectId, bool _flag)
-    external
-    override
-    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.REQUIRE_CLAIM)
-  {
-    // Get a reference to the project's current token.
-    IJBToken _token = tokenOf[_projectId];
-
-    // The project must have a token contract attached.
-    if (_token == IJBToken(address(0))) revert TOKEN_NOT_FOUND();
-
-    // Store the flag.
-    requireClaimFor[_projectId] = _flag;
-
-    emit ShouldRequireClaim(_projectId, _flag, msg.sender);
   }
 }

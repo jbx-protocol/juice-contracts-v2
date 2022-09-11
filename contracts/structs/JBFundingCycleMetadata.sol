@@ -18,6 +18,7 @@ import './../interfaces/IJBFundingCycleDataSource.sol';
   @member allowTerminalMigration A flag indicating if migrating terminals should be allowed during this funding cycle.
   @member allowControllerMigration A flag indicating if migrating controllers should be allowed during this funding cycle.
   @member holdFees A flag indicating if fees should be held during this funding cycle.
+  @member preferClaimedTokenOverride A flag indicating if claimed tokens should always be prefered to unclaimed tokens when minting.
   @member useTotalOverflowForRedemptions A flag indicating if redemptions should use the project's balance held in all terminals instead of the project's local terminal balance from which the redemption is being fulfilled.
   @member useDataSourceForPay A flag indicating if the data source should be used for pay transactions during this funding cycle.
   @member useDataSourceForRedeem A flag indicating if the data source should be used for redeem transactions during this funding cycle.
@@ -38,6 +39,7 @@ struct JBFundingCycleMetadata {
   bool allowTerminalMigration;
   bool allowControllerMigration;
   bool holdFees;
+  bool preferClaimedTokenOverride;
   bool useTotalOverflowForRedemptions;
   bool useDataSourceForPay;
   bool useDataSourceForRedeem;
