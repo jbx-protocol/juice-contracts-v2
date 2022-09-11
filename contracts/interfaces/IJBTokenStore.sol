@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
+import './IJBFundingCycleStore.sol';
 import './IJBProjects.sol';
 import './IJBToken.sol';
 
@@ -40,8 +41,6 @@ interface IJBTokenStore {
     address caller
   );
 
-  event ShouldRequireClaim(uint256 indexed projectId, bool indexed flag, address caller);
-
   event Set(uint256 indexed projectId, IJBToken indexed newToken, address caller);
 
   event Transfer(
@@ -56,6 +55,8 @@ interface IJBTokenStore {
 
   function projects() external view returns (IJBProjects);
 
+  function fundingCycleStore() external view returns (IJBFundingCycleStore);
+
   function unclaimedBalanceOf(address _holder, uint256 _projectId) external view returns (uint256);
 
   function unclaimedTotalSupplyOf(uint256 _projectId) external view returns (uint256);
@@ -63,8 +64,6 @@ interface IJBTokenStore {
   function totalSupplyOf(uint256 _projectId) external view returns (uint256);
 
   function balanceOf(address _holder, uint256 _projectId) external view returns (uint256 _result);
-
-  function requireClaimFor(uint256 _projectId) external view returns (bool);
 
   function issueFor(
     uint256 _projectId,
@@ -87,8 +86,6 @@ interface IJBTokenStore {
     uint256 _amount,
     bool _preferClaimedTokens
   ) external;
-
-  function shouldRequireClaimingFor(uint256 _projectId, bool _flag) external;
 
   function claimFor(
     address _holder,

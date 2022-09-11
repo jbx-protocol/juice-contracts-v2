@@ -48,14 +48,17 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
       pauseDistributions: false,
       pauseRedeem: false,
       pauseBurn: false,
+      pauseTransfers: false,
       allowMinting: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
       holdFees: true,
+      preferClaimedTokenOverride: false,
       useTotalOverflowForRedemptions: false,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
-      dataSource: address(0)
+      dataSource: address(0),
+      metadata: 0
     });
 
     _terminals.push(_terminal);
@@ -190,21 +193,18 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
 
     JBSplit[] memory _jbSplits = new JBSplit[](1);
     _jbSplits[0] = JBSplit(
-        false,
-        false,
-        1000000000 - 1, // We make it so there is exactly `1` left over (note: change the subtraction to be anything else than 1 for this test to pass)
-        0, 
-        payable(address(5)),
-        0, 
-        IJBSplitAllocator(address(0))
+      false,
+      false,
+      1000000000 - 1, // We make it so there is exactly `1` left over (note: change the subtraction to be anything else than 1 for this test to pass)
+      0,
+      payable(address(5)),
+      0,
+      IJBSplitAllocator(address(0))
     );
 
     JBGroupedSplits[] memory _groupedSplitsLocal = new JBGroupedSplits[](1);
-    
-    _groupedSplitsLocal[0] = JBGroupedSplits(
-        _terminal.payoutSplitsGroup(),
-        _jbSplits
-    );
+
+    _groupedSplitsLocal[0] = JBGroupedSplits(_terminal.payoutSplitsGroup(), _jbSplits);
 
     _projectId = _controller.launchProjectFor(
       _projectOwner,

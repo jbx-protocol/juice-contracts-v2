@@ -124,22 +124,25 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
     pauseDistributions = false,
     pauseRedeem = false,
     pauseBurn = false,
+    pauseTransfers = false,
     allowMinting = false,
     allowChangeToken = false,
     allowTerminalMigration = false,
     allowControllerMigration = false,
-    allowSetTerminals = true,
-    allowSetController = true,
+    allowSetTerminals = false,
+    allowSetControllers = false,
     holdFees = false,
+    preferClaimedTokenOverride = false,
     useTotalOverflowForRedemptions = false,
     useDataSourceForPay = false,
     useDataSourceForRedeem = false,
     dataSource = ethers.constants.AddressZero,
+    metadata = 0,
   } = {}) {
     const unpackedMetadata = {
       global: {
         allowSetTerminals,
-        allowSetController,
+        allowSetControllers,
       },
       reservedRate,
       redemptionRate,
@@ -148,19 +151,21 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
       pauseDistributions,
       pauseRedeem,
       pauseBurn,
+      pauseTransfers,
       allowMinting,
       allowChangeToken,
       allowTerminalMigration,
       allowControllerMigration,
       holdFees,
+      preferClaimedTokenOverride,
       useTotalOverflowForRedemptions,
       useDataSourceForPay,
       useDataSourceForRedeem,
       dataSource,
+      metadata,
     };
     return { unpacked: unpackedMetadata, packed: packFundingCycleMetadata(unpackedMetadata) };
   }
-
   function makeFundingCycleDataStruct({
     duration = 0,
     weight = ethers.BigNumber.from('1' + '0'.repeat(18)),
@@ -444,7 +449,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
       fundingCycleMetadata,
       mockJbTerminal1,
       mockJbTerminal2,
-      mockJbSplitsStore
+      mockJbSplitsStore,
     } = await setup();
 
     const terminals = [mockJbTerminal1.address, mockJbTerminal2.address];
@@ -513,7 +518,7 @@ describe('JBController::reconfigureFundingCycleOf(...)', function () {
       fundingCycleMetadata,
       mockJbTerminal1,
       mockJbTerminal2,
-      mockJbSplitsStore
+      mockJbSplitsStore,
     } = await setup();
 
     const groupedSplits = [{ group: 1, splits: [] }];

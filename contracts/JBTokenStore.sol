@@ -4,6 +4,7 @@ pragma solidity ^0.8.16;
 import './abstract/JBControllerUtility.sol';
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBTokenStore.sol';
+import './libraries/JBFundingCycleMetadataResolver.sol';
 import './libraries/JBOperations.sol';
 import './JBToken.sol';
 
@@ -31,6 +32,9 @@ import './JBToken.sol';
   JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
+  // A library that parses the packed funding cycle metadata into a friendlier format.
+  using JBFundingCycleMetadataResolver for JBFundingCycle;
+
   //*********************************************************************//
   // --------------------------- custom errors ------------------------- //
   //*********************************************************************//
@@ -44,6 +48,7 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
   error RECIPIENT_ZERO_ADDRESS();
   error TOKEN_NOT_FOUND();
   error TOKENS_MUST_HAVE_18_DECIMALS();
+  error TRANSFERS_PAUSED();
   error OVERFLOW_ALERT();
 
   //*********************************************************************//
@@ -55,6 +60,12 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     Mints ERC-721's that represent project ownership and transfers.
   */
   IJBProjects public immutable override projects;
+
+  /**
+    @notice
+    The contract storing all funding cycle configurations.
+  */
+  IJBFundingCycleStore public immutable override fundingCycleStore;
 
   //*********************************************************************//
   // --------------------- public stored properties -------------------- //
@@ -84,14 +95,6 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     _projectId The ID of the project to which the token belongs.
   */
   mapping(address => mapping(uint256 => uint256)) public override unclaimedBalanceOf;
-
-  /**
-    @notice
-    A flag indicating if tokens are required to be issued as claimed for a particular project.
-
-    _projectId The ID of the project to which the requirement applies.
-  */
-  mapping(uint256 => bool) public override requireClaimFor;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -153,13 +156,16 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     @param _operatorStore A contract storing operator assignments.
     @param _projects A contract which mints ERC-721's that represent project ownership and transfers.
     @param _directory A contract storing directories of terminals and controllers for each project.
+    @param _fundingCycleStore A contract storing all funding cycle configurations.
   */
   constructor(
     IJBOperatorStore _operatorStore,
     IJBProjects _projects,
-    IJBDirectory _directory
+    IJBDirectory _directory,
+    IJBFundingCycleStore _fundingCycleStore
   ) JBOperatable(_operatorStore) JBControllerUtility(_directory) {
     projects = _projects;
+    fundingCycleStore = _fundingCycleStore;
   }
 
   //*********************************************************************//
@@ -267,9 +273,8 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     // Get a reference to the project's current token.
     IJBToken _token = tokenOf[_projectId];
 
-    // Save a reference to whether there exists a token and the caller prefers these claimed tokens or the project requires it.
-    bool _shouldClaimTokens = (requireClaimFor[_projectId] || _preferClaimedTokens) &&
-      _token != IJBToken(address(0));
+    // Save a reference to whether there exists a token and the caller prefers these claimed tokens.
+    bool _shouldClaimTokens = _preferClaimedTokens && _token != IJBToken(address(0));
 
     if (_shouldClaimTokens)
       // If tokens should be claimed, mint tokens into the holder's wallet.
@@ -425,6 +430,12 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
     address _recipient,
     uint256 _amount
   ) external override requirePermission(_holder, _projectId, JBOperations.TRANSFER) {
+    // Get a reference to the current funding cycle for the project.
+    JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
+
+    // Must not be paused.
+    if (_fundingCycle.transfersPaused()) revert TRANSFERS_PAUSED();
+
     // Can't transfer to the zero address.
     if (_recipient == address(0)) revert RECIPIENT_ZERO_ADDRESS();
 
@@ -445,32 +456,5 @@ contract JBTokenStore is IJBTokenStore, JBControllerUtility, JBOperatable {
       _amount;
 
     emit Transfer(_holder, _projectId, _recipient, _amount, msg.sender);
-  }
-
-  /**
-    @notice
-    Allows a project to force all future mints of its tokens to be claimed into the holder's wallet, or revoke the flag if it's already set.
-
-    @dev
-    Only a token holder or an operator can require claimed token.
-
-    @param _projectId The ID of the project being affected.
-    @param _flag A flag indicating whether or not claiming should be required.
-  */
-  function shouldRequireClaimingFor(uint256 _projectId, bool _flag)
-    external
-    override
-    requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.REQUIRE_CLAIM)
-  {
-    // Get a reference to the project's current token.
-    IJBToken _token = tokenOf[_projectId];
-
-    // The project must have a token contract attached.
-    if (_token == IJBToken(address(0))) revert TOKEN_NOT_FOUND();
-
-    // Store the flag.
-    requireClaimFor[_projectId] = _flag;
-
-    emit ShouldRequireClaim(_projectId, _flag, msg.sender);
   }
 }

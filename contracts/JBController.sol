@@ -603,6 +603,11 @@ contract JBController is IJBController, IJBMigratable, JBOperatable, ERC165 {
 
       // Determine the reserved rate to use.
       _reservedRate = _useReservedRate ? _fundingCycle.reservedRate() : 0;
+
+      // Override the claimed token preference with the funding cycle value.
+      _preferClaimedTokens = _preferClaimedTokens == true
+        ? _preferClaimedTokens
+        : _fundingCycle.preferClaimedTokenOverride();
     }
 
     if (_reservedRate == JBConstants.MAX_RESERVED_RATE)

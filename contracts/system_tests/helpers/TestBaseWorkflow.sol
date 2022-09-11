@@ -178,7 +178,12 @@ contract TestBaseWorkflow is DSTest {
     evm.label(address(_jbDirectory), 'JBDirectory');
 
     // JBTokenStore
-    _jbTokenStore = new JBTokenStore(_jbOperatorStore, _jbProjects, _jbDirectory);
+    _jbTokenStore = new JBTokenStore(
+      _jbOperatorStore,
+      _jbProjects,
+      _jbDirectory,
+      _jbFundingCycleStore
+    );
     evm.label(address(_jbTokenStore), 'JBTokenStore');
 
     // JBSplitsStore
