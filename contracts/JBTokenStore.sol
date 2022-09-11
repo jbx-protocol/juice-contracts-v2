@@ -32,12 +32,9 @@ import './JBToken.sol';
   JBOperatable: Includes convenience functionality for checking a message sender's permissions before executing certain transactions.
 */
 contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
-<<<<<<< HEAD
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
-=======
->>>>>>> origin/main
   //*********************************************************************//
   // --------------------------- custom errors ------------------------- //
   //*********************************************************************//
