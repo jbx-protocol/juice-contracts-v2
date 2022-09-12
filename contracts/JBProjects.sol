@@ -67,7 +67,9 @@ contract JBProjects is JBOperatable, ERC721Votes, Ownable, IJBProjects {
     @return The token URI to use for the provided `_projectId`.
   */
   function tokenURI(uint256 _projectId) public view override returns (string memory) {
+    // Keep a reference to the resolver.
     IJBTokenUriResolver _tokenUriResolver = tokenUriResolver;
+
     // If there's no resolver, there's no URI.
     if (_tokenUriResolver == IJBTokenUriResolver(address(0))) return '';
 

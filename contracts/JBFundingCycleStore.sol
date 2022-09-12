@@ -733,6 +733,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
         JBConstants.MAX_DISCOUNT_RATE - _baseFundingCycle.discountRate,
         JBConstants.MAX_DISCOUNT_RATE
       );
+
       // The calculation doesn't need to continue if the weight is 0.
       if (weight == 0) break;
 

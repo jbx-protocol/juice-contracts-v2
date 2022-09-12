@@ -24,7 +24,7 @@ contract JBERC20PaymentTerminal is JBPayoutRedemptionPaymentTerminal {
     @notice
     Checks the balance of tokens in this contract.
 
-    @return The contract's balance.
+    @return The contract's balance, as a fixed point number with the same amount of decimals as this terminal.
   */
   function _balance() internal view override returns (uint256) {
     return IERC20(token).balanceOf(address(this));

@@ -143,7 +143,10 @@ contract JBDirectory is JBOperatable, Ownable, IJBDirectory {
 
     // Return the first terminal which accepts the specified token.
     for (uint256 _i; _i < _numberOfTerminals; ) {
+      // Keep a reference to the terminal being iterated on.
       IJBPaymentTerminal _terminal = _terminalsOf[_projectId][_i];
+
+      // If the terminal accepts the specified token, return it.
       if (_terminal.acceptsToken(_token, _projectId)) return _terminal;
 
       unchecked {
@@ -179,7 +182,9 @@ contract JBDirectory is JBOperatable, Ownable, IJBDirectory {
 
     // Loop through and return true if the terminal is contained.
     for (uint256 _i; _i < _numberOfTerminals; ) {
+      // If the terminal being iterated on matches the provided terminal, return true.
       if (_terminalsOf[_projectId][_i] == _terminal) return true;
+
       unchecked {
         ++_i;
       }

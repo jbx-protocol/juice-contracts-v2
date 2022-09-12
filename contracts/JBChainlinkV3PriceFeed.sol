@@ -47,13 +47,16 @@ contract JBChainlinkV3PriceFeed is IJBPriceFeed {
     @return The current price of the feed, as a fixed point number with the specified number of decimals.
   */
   function currentPrice(uint256 _decimals) external view override returns (uint256) {
-    // Get the latest round information. Only need the price is needed.
+    // Get the latest round information.
     (uint80 roundId, int256 _price, , uint256 updatedAt, uint80 answeredInRound) = feed
       .latestRoundData();
+
     // Make sure the price isn't stale.
     if (answeredInRound < roundId) revert STALE_PRICE();
+
     // Make sure the round is finished.
     if (updatedAt == 0) revert INCOMPLETE_ROUND();
+
     // Make sure the price is positive.
     if (_price < 0) revert NEGATIVE_PRICE();
 

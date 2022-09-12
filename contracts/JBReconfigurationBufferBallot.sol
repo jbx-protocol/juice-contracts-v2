@@ -40,8 +40,7 @@ contract JBReconfigurationBufferBallot is ERC165, IJBFundingCycleBallot {
     @param _configured The configuration of the funding cycle to check the state of.
     @param _start The start timestamp of the funding cycle to check the state of.
 
-    @return The state of the provided ballot. JBBallotState.Active is only implicitely used
-            which allows having queuedOf returning the funding cycle under ballot.
+    @return The state of the provided ballot. 
   */
   function stateOf(
     uint256 _projectId,
@@ -50,7 +49,7 @@ contract JBReconfigurationBufferBallot is ERC165, IJBFundingCycleBallot {
   ) public view override returns (JBBallotState) {
     _projectId; // Prevents unused var compiler and natspec complaints.
 
-    // If starting in the past, ballot is failed; prevent underflow
+    // If the provided configured timestamp is after the start timestamp, the ballot is Failed.
     if (_configured > _start) return JBBallotState.Failed;
 
     unchecked {

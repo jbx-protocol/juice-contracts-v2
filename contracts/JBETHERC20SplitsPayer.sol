@@ -308,7 +308,7 @@ contract JBETHERC20SplitsPayer is JBETHERC20ProjectPayer, ReentrancyGuard, IJBSp
           // Or, transfer the ERC20.
         else
           IERC20(_token).safeTransfer(
-            // If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
+            // If there's a beneficiary, send the funds directly to the beneficiary. Otherwise send to the tx.origin.
             _beneficiary != address(0) ? _beneficiary : tx.origin,
             _leftoverAmount
           );
@@ -390,14 +390,14 @@ contract JBETHERC20SplitsPayer is JBETHERC20ProjectPayer, ReentrancyGuard, IJBSp
         // Transfer the ETH.
         if (_token == JBTokens.ETH)
           Address.sendValue(
-            // If there's a default beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
+            // If there's a default beneficiary, send the funds directly to the beneficiary. Otherwise send to the tx.origin.
             defaultBeneficiary != address(0) ? defaultBeneficiary : payable(tx.origin),
             _leftoverAmount
           );
           // Or, transfer the ERC20.
         else
           IERC20(_token).safeTransfer(
-            // If there's a default beneficiary, send the funds directly to the beneficiary. Otherwise send to the msg.sender.
+            // If there's a default beneficiary, send the funds directly to the beneficiary. Otherwise send to the tx.origin.
             defaultBeneficiary != address(0) ? defaultBeneficiary : tx.origin,
             _leftoverAmount
           );
