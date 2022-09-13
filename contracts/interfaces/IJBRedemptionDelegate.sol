@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.0;
 
 import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 import './../structs/JBDidRedeemData.sol';
@@ -16,7 +16,7 @@ import './../structs/JBDidRedeemData.sol';
   IERC165 for adequate interface integration
 */
 interface IJBRedemptionDelegate is IERC165 {
-    /**
+  /**
     @notice
     This function is called by JBPaymentTerminal.redeemTokensOf(..), after the execution of its logic
 

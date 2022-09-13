@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.0;
 
 import './../structs/JBGroupedSplits.sol';
 import './../structs/JBSplit.sol';
