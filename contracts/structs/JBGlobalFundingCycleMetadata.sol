@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.16;
+pragma solidity ^0.8.0;
 
 /** 
   @member allowSetTerminals A flag indicating if setting terminals should be allowed during this funding cycle.

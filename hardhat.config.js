@@ -36,8 +36,8 @@ module.exports = {
       url: 'http://localhost:8545',
       blockGasLimit: 0x1fffffffffffff,
     },
-    rinkeby: {
-      url: 'https://rinkeby.infura.io/v3/' + infuraId,
+    goerli: {
+      url: 'https://goerli.infura.io/v3/' + infuraId,
       accounts: {
         mnemonic: mnemonic(),
       },
