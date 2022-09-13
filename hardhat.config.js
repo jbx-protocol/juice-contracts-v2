@@ -38,7 +38,9 @@ module.exports = {
     },
     goerli: {
       url: 'https://goerli.infura.io/v3/' + infuraId,
-      accounts: [process.env.PK],
+      accounts: {
+        mnemonic: mnemonic(),
+      },
     },
     mainnet: {
       url: 'https://mainnet.infura.io/v3/' + infuraId,
