@@ -5,7 +5,7 @@ const { ethers } = require('hardhat');
  *
  * Example usage:
  *
- * npx hardhat deploy --network rinkeby --tags 1
+ * npx hardhat deploy --network goerli --tags 1
  */
 module.exports = async ({ deployments, getChainId }) => {
   console.log('Deploying 1');
@@ -32,10 +32,10 @@ module.exports = async ({ deployments, getChainId }) => {
       chainlinkV2UsdEthPriceFeed = '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419';
       protocolProjectStartsAtOrAfter = 1651951173;
       break;
-    // rinkeby
-    case '4':
-      multisigAddress = '0xAF28bcB48C40dBC86f52D459A6562F658fc94B1e';
-      chainlinkV2UsdEthPriceFeed = '0x8A753747A1Fa494EC906cE90E9f37563A8AF630e';
+    // Goerli
+    case '5':
+      multisigAddress = '0x46D623731E179FAF971CdA04fF8c499C95461b3c';
+      chainlinkV2UsdEthPriceFeed = '0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e';
       protocolProjectStartsAtOrAfter = 0;
       break;
     // hardhat / localhost
@@ -212,8 +212,10 @@ module.exports = async ({ deployments, getChainId }) => {
   }
 
   // If needed, transfer the ownership of the JBDirectory contract to the multisig.
-  if ((await jbDirectoryContract.connect(deployer).owner()) != multisigAddress)
-    await jbDirectoryContract.connect(deployer).transferOwnership(multisigAddress);
+  if ((await jbDirectoryContract.connect(deployer).owner()) != multisigAddress) {
+    let tx = await jbDirectoryContract.connect(deployer).transferOwnership(multisigAddress);
+    await tx.wait();
+  }
 
   // If needed, deploy the protocol project
   if ((await jbProjects.connect(deployer).count()) == 0) {
@@ -301,7 +303,7 @@ module.exports = async ({ deployments, getChainId }) => {
       /*fundingCycleMetadata*/
       [
         /*global*/
-        [/*allowSetTerminals*/ false, /*allowSetController*/ false],
+        [/*allowSetTerminals*/ false, /*allowSetController*/ false, /*pauseTransfer*/ false],
         /*reservedRate*/ ethers.BigNumber.from(5000),
         /*redemptionRate*/ ethers.BigNumber.from(9500),
         /*ballotRedemptionRate*/ ethers.BigNumber.from(9500),
@@ -313,10 +315,12 @@ module.exports = async ({ deployments, getChainId }) => {
         /*allowTerminalMigration*/ false,
         /*allowControllerMigration*/ false,
         /*holdFees*/ false,
+        /*preferClaimedTokenOverride*/ false,
         /*useTotalOverflowForRedemptions*/ false,
         /*useDataSourceForPay*/ false,
         /*useDataSourceForRedeem*/ false,
         /*dataSource*/ ethers.constants.AddressZero,
+        /*metadata*/ 0,
       ],
 
       /*mustStartAtOrAfter*/ ethers.BigNumber.from(protocolProjectStartsAtOrAfter),
