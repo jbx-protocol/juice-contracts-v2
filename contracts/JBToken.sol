@@ -32,7 +32,7 @@ contract JBToken is ERC20Votes, Ownable, IJBToken {
     @notice
     The ID of the project that this token should be exclusively used for. Send 0 to support any project. 
   */
-  uint256 public override projectId;
+  uint256 public immutable override projectId;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -100,10 +100,7 @@ contract JBToken is ERC20Votes, Ownable, IJBToken {
     string memory _name,
     string memory _symbol,
     uint256 _projectId
-  )
-    ERC20(_name, _symbol)
-    ERC20Permit(_name) // solhint-disable-next-line no-empty-blocks
-  {
+  ) ERC20(_name, _symbol) ERC20Permit(_name) {
     projectId = _projectId;
   }
 
