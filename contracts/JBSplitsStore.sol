@@ -182,8 +182,10 @@ contract JBSplitsStore is JBOperatable, IJBSplitsStore {
   /** 
     @notice 
     Sets a project's splits.
+
     @dev
     The new splits must include any currently set splits that are locked.
+
     @param _projectId The ID of the project for which splits are being added.
     @param _domain An identifier within which the splits should be considered active.
     @param _group An identifier between of splits being set. All splits within this _group must add up to within 100%.
@@ -291,18 +293,25 @@ contract JBSplitsStore is JBOperatable, IJBSplitsStore {
     pure
     returns (bool)
   {
-    for (uint256 _j; _j < _splits.length; _j++) {
+    // Keep a reference to the number of splits.
+    uint256 _numberOfSplits = _splits.length;
+
+    for (uint256 _i; _i < _numberOfSplits; ) {
       // Check for sameness.
       if (
-        _splits[_j].percent == _lockedSplit.percent &&
-        _splits[_j].beneficiary == _lockedSplit.beneficiary &&
-        _splits[_j].allocator == _lockedSplit.allocator &&
-        _splits[_j].projectId == _lockedSplit.projectId &&
-        _splits[_j].preferClaimed == _lockedSplit.preferClaimed &&
-        _splits[_j].preferAddToBalance == _lockedSplit.preferAddToBalance &&
+        _splits[_i].percent == _lockedSplit.percent &&
+        _splits[_i].beneficiary == _lockedSplit.beneficiary &&
+        _splits[_i].allocator == _lockedSplit.allocator &&
+        _splits[_i].projectId == _lockedSplit.projectId &&
+        _splits[_i].preferClaimed == _lockedSplit.preferClaimed &&
+        _splits[_i].preferAddToBalance == _lockedSplit.preferAddToBalance &&
         // Allow lock extention.
-        _splits[_j].lockedUntil >= _lockedSplit.lockedUntil
+        _splits[_i].lockedUntil >= _lockedSplit.lockedUntil
       ) return true;
+
+      unchecked {
+        ++_i;
+      }
     }
 
     return false;
@@ -330,7 +339,7 @@ contract JBSplitsStore is JBOperatable, IJBSplitsStore {
     JBSplit[] memory _splits = new JBSplit[](_splitCount);
 
     // Loop through each split and unpack the values into structs.
-    for (uint256 _i; _i < _splitCount; _i++) {
+    for (uint256 _i; _i < _splitCount; ) {
       // Get a reference to the fist packed data.
       uint256 _packedSplitPart1 = _packedSplitParts1Of[_projectId][_domain][_group][_i];
 
@@ -361,6 +370,10 @@ contract JBSplitsStore is JBOperatable, IJBSplitsStore {
 
       // Add the split to the value being returned.
       _splits[_i] = _split;
+
+      unchecked {
+        ++_i;
+      }
     }
 
     return _splits;
