@@ -10,7 +10,7 @@ describe('JBToken::burn(...)', function () {
 
   async function setup() {
     const [deployer, ...addrs] = await ethers.getSigners();
-    const jbToken = await deployJbToken(name, symbol);
+    const jbToken = await deployJbToken(name, symbol, PROJECT_ID);
     await jbToken.connect(deployer).mint(PROJECT_ID, addrs[1].address, startingBalance);
     return { deployer, addrs, jbToken };
   }
@@ -28,6 +28,26 @@ describe('JBToken::burn(...)', function () {
     // overloaded functions need to be called using the full function signature
     const balance = await jbToken['balanceOf(address,uint256)'](addr.address, PROJECT_ID);
     expect(balance).to.equal(startingBalance - numTokens);
+  });
+
+  it('Cannot burn from the project ID 0', async function () {
+    const { deployer, addrs, jbToken } = await setup();
+    const addr = addrs[1];
+    const numTokens = 3000;
+
+    await expect(jbToken.connect(deployer).burn(0, addr.address, numTokens)).to.be.revertedWith(
+      'BAD_PROJECT()',
+    );
+  });
+
+  it('Cannot burn from another project id than the one from the token', async function () {
+    const { deployer, addrs, jbToken } = await setup();
+    const addr = addrs[1];
+    const numTokens = 3000;
+
+    await expect(
+      jbToken.connect(deployer).burn(PROJECT_ID + 1, addr.address, numTokens),
+    ).to.be.revertedWith('BAD_PROJECT()');
   });
 
   it(`Can't burn tokens if caller isn't owner`, async function () {

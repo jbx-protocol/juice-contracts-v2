@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.16;
 
 import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
+import './../structs/JBPayDelegateAllocation.sol';
 import './../structs/JBPayParamsData.sol';
 import './../structs/JBRedeemParamsData.sol';
-import './IJBFundingCycleStore.sol';
-import './IJBPayDelegate.sol';
-import './IJBRedemptionDelegate.sol';
+import './../structs/JBRedemptionDelegateAllocation.sol';
 
 /**
   @title
@@ -21,7 +20,7 @@ import './IJBRedemptionDelegate.sol';
   IERC165 for adequate interface integration
 */
 interface IJBFundingCycleDataSource is IERC165 {
-    /**
+  /**
     @notice
     The datasource implementation for JBPaymentTerminal.pay(..)
 
@@ -39,14 +38,14 @@ interface IJBFundingCycleDataSource is IERC165 {
 
     @return weight the weight to use to override the funding cycle weight
     @return memo the memo to override the pay(..) memo
-    @return delegate the address of the pay delegate (might or might not be the same contract)
+    @return delegateAllocations The amount to send to delegates instead of adding to the local balance.
   */
   function payParams(JBPayParamsData calldata _data)
     external
     returns (
       uint256 weight,
       string memory memo,
-      IJBPayDelegate delegate
+      JBPayDelegateAllocation[] memory delegateAllocations
     );
 
   /**
@@ -68,15 +67,15 @@ interface IJBFundingCycleDataSource is IERC165 {
                     string memo;
                     bytes metadata;
 
-    @return reclaimAmount the amount to claim, overriding the terminal logic
-    @return memo the memo to override the redeemTokensOf(..) memo
-    @return delegate the address of the redemption delegate (might or might not be the same contract)
+    @return reclaimAmount The amount to claim, overriding the terminal logic.
+    @return memo The memo to override the redeemTokensOf(..) memo.
+    @return delegateAllocations The amount to send to delegates instead of adding to the beneficiary.
   */
   function redeemParams(JBRedeemParamsData calldata _data)
     external
     returns (
       uint256 reclaimAmount,
       string memory memo,
-      IJBRedemptionDelegate delegate
+      JBRedemptionDelegateAllocation[] memory delegateAllocations
     );
 }

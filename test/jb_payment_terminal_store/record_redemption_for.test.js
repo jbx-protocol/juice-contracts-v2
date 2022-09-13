@@ -446,6 +446,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
       dataSource: mockJbFundingCycleDataSource.address,
     });
     const delegate = addrs[0];
+    const delegateAmount = 10;
 
     await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
       // mock JBFundingCycle obj
@@ -464,6 +465,8 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
       .withArgs(PROJECT_ID, reservedRate)
       .returns(AMOUNT);
 
+    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(1);
+
     const startingBalance = AMOUNT.mul(ethers.BigNumber.from(2));
 
     const newMemo = 'new memo';
@@ -480,11 +483,10 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
         [token, AMOUNT, /*decimals*/ _FIXED_POINT_MAX_FIDELITY, CURRENCY],
         false,
         redemptionRate,
-        ballotRedemptionRate,
         'test',
         METADATA,
       ])
-      .returns(AMOUNT, newMemo, delegate.address);
+      .returns(AMOUNT, newMemo, [{ delegate: delegate.address, amount: delegateAmount }]);
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(mockJbController.address);
 
@@ -507,7 +509,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
     ).to.equal(startingBalance);
 
     // Record redemption
-    const tx = await JBSingleTokenPaymentTerminalStore.connect(
+    const returnedValue = await JBSingleTokenPaymentTerminalStore.connect(
       mockJbTerminalSigner,
     ).callStatic.recordRedemptionFor(
       /* holder */ holder.address,
@@ -517,7 +519,11 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
       METADATA,
     );
 
-    expect(tx.delegate).to.equal(delegate.address);
+    expect(returnedValue.reclaimAmount).to.equal(AMOUNT);
+    expect(returnedValue.delegateAllocations).to.eql([
+      [delegate.address, ethers.BigNumber.from(delegateAmount)],
+    ]);
+    expect(returnedValue.memo).to.equal(newMemo);
   });
 
   /* Sad path tests */
@@ -644,11 +650,10 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
         [token, /*reclaim amount*/ 0, /*decimals*/ _FIXED_POINT_MAX_FIDELITY, CURRENCY],
         false,
         redemptionRate,
-        ballotRedemptionRate,
         'test',
         METADATA,
       ])
-      .returns(AMOUNT, newMemo, delegate.address);
+      .returns(AMOUNT, newMemo, [{ delegate: delegate.address, amount: 0 }]);
 
     await mockJbTerminal.mock.token.returns(token);
     await mockJbTerminal.mock.decimals.returns(18);
@@ -667,7 +672,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
     ).to.be.revertedWith(errors.INSUFFICIENT_TOKENS);
   });
 
-  it(`Can't record redemption with if claim amount > project's total balance`, async function () {
+  it(`Can't record redemption with claim amount > project's total balance`, async function () {
     const {
       holder,
       beneficiary,
@@ -731,15 +736,15 @@ describe('JBSingleTokenPaymentTerminalStore::recordRedemptionFor(...)', function
         [token, /*reclaim amount*/ 0, /*decimals*/ _FIXED_POINT_MAX_FIDELITY, CURRENCY],
         false,
         redemptionRate,
-        ballotRedemptionRate,
         'test',
         METADATA,
       ])
-      .returns(AMOUNT, newMemo, delegate.address);
+      .returns(AMOUNT, newMemo, [{ delegate: delegate.address, amount: 0 }]);
 
     await mockJbTerminal.mock.token.returns(token);
     await mockJbTerminal.mock.decimals.returns(18);
     await mockJbTerminal.mock.currency.returns(CURRENCY);
+    await mockJbFundingCycleStore.mock.currentBallotStateOf.withArgs(PROJECT_ID).returns(1);
 
     // Note: The store has 0 balance because we haven't added anything to it
     // Record redemption

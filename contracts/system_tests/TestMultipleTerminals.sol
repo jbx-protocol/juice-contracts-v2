@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.6;
 
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './helpers/TestBaseWorkflow.sol';
@@ -61,7 +61,11 @@ contract TestMultipleTerminals is TestBaseWorkflow {
     });
 
     _metadata = JBFundingCycleMetadata({
-      global: JBGlobalFundingCycleMetadata({allowSetTerminals: false, allowSetController: false}),
+      global: JBGlobalFundingCycleMetadata({
+        allowSetTerminals: false,
+        allowSetController: false,
+        pauseTransfers: false
+      }),
       reservedRate: 5000, //50%
       redemptionRate: 10000, //100%
       ballotRedemptionRate: 0,
@@ -69,15 +73,16 @@ contract TestMultipleTerminals is TestBaseWorkflow {
       pauseDistributions: false,
       pauseRedeem: false,
       pauseBurn: false,
-      allowMinting: true,
-      allowChangeToken: false,
+      allowMinting: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
       holdFees: false,
+      preferClaimedTokenOverride: false,
       useTotalOverflowForRedemptions: true,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
-      dataSource: address(0)
+      dataSource: address(0),
+      metadata: 0
     });
 
     ERC20terminal = new JBERC20PaymentTerminal(
@@ -143,12 +148,6 @@ contract TestMultipleTerminals is TestBaseWorkflow {
       jbLibraries().USD(), // currency
       jbLibraries().ETH(), // base weight currency
       _priceFeedUsdEth
-    );
-
-    jbPrices().addFeedFor(
-      jbLibraries().ETH(), // currency
-      jbLibraries().USD(), // base weight currency
-      _priceFeed
     );
 
     evm.stopPrank();

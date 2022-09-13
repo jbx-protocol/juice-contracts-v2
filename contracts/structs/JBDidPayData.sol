@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.16;
 
 import './JBTokenAmount.sol';
 
@@ -8,6 +8,7 @@ import './JBTokenAmount.sol';
   @member projectId The ID of the project for which the payment was made.
   @member currentFundingCycleConfiguration The configuration of the funding cycle during which the payment is being made.
   @member amount The amount of the payment. Includes the token being paid, the value, the number of decimals included, and the currency of the amount.
+  @member forwardedAmount The amount of the payment that is being sent to the delegate. Includes the token being paid, the value, the number of decimals included, and the currency of the amount.
   @member projectTokenCount The number of project tokens minted for the beneficiary.
   @member beneficiary The address to which the tokens were minted.
   @member preferClaimedTokens A flag indicating whether the request prefered to mint project tokens into the beneficiaries wallet rather than leaving them unclaimed. This is only possible if the project has an attached token contract.
@@ -19,6 +20,7 @@ struct JBDidPayData {
   uint256 projectId;
   uint256 currentFundingCycleConfiguration;
   JBTokenAmount amount;
+  JBTokenAmount forwardedAmount;
   uint256 projectTokenCount;
   address beneficiary;
   bool preferClaimedTokens;

@@ -1,6 +1,7 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 import { makeSplits } from '../helpers/utils.js';
+import { smock } from '@defi-wonderland/smock';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
@@ -47,17 +48,27 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
   });
 
   async function setup() {
-    let [deployer, owner, caller, beneficiaryOne, beneficiaryTwo, beneficiaryThree, defaultBeneficiarySigner, ...addrs] =
-      await ethers.getSigners();
+    let [
+      deployer,
+      owner,
+      caller,
+      beneficiaryOne,
+      beneficiaryTwo,
+      beneficiaryThree,
+      defaultBeneficiarySigner,
+      ...addrs
+    ] = await ethers.getSigners();
 
     DEFAULT_BENEFICIARY = defaultBeneficiarySigner.address;
 
     let mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
     let mockJbSplitsStore = await deployMockContract(deployer, jbSplitsStore.abi);
     let mockJbTerminal = await deployMockContract(deployer, jbTerminal.abi);
-    let mockToken = await deployMockContract(deployer, ierc20.abi);
+    let mockToken = await smock.fake(ierc20.abi);
 
-    let jbSplitsPayerFactory = await ethers.getContractFactory('contracts/JBETHERC20SplitsPayer.sol:JBETHERC20SplitsPayer');
+    let jbSplitsPayerFactory = await ethers.getContractFactory(
+      'contracts/JBETHERC20SplitsPayer.sol:JBETHERC20SplitsPayer',
+    );
 
     await mockJbSplitsStore.mock.directory.returns(mockJbDirectory.address);
 
@@ -149,12 +160,14 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
       }),
     );
 
-    await expect(tx).to.emit(jbSplitsPayer, 'DistributeToSplitGroup').withArgs(
-      DEFAULT_SPLITS_PROJECT_ID,
-      DEFAULT_SPLITS_DOMAIN,
-      DEFAULT_SPLITS_GROUP,
-      caller.address,
-    );
+    await expect(tx)
+      .to.emit(jbSplitsPayer, 'DistributeToSplitGroup')
+      .withArgs(
+        DEFAULT_SPLITS_PROJECT_ID,
+        DEFAULT_SPLITS_DOMAIN,
+        DEFAULT_SPLITS_GROUP,
+        caller.address,
+      );
 
     await expect(tx).to.emit(jbSplitsPayer, 'AddToBalance').withArgs(
       PROJECT_ID,
@@ -179,8 +192,12 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
 
     await Promise.all(
       splits.map(async (split) => {
-        await mockToken.mock.approve
-          .withArgs(mockJbAllocator.address, AMOUNT.mul(split.percent).div(maxSplitsPercent))
+        mockToken.allowance
+          .whenCalledWith(jbSplitsPayer.address, mockJbAllocator.address)
+          .returns(0);
+
+        mockToken.approve
+          .whenCalledWith(mockJbAllocator.address, AMOUNT.mul(split.percent).div(maxSplitsPercent))
           .returns(true);
 
         await mockJbAllocator.mock.allocate
@@ -200,9 +217,13 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
       .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
       .returns(splits);
 
-    await mockToken.mock.transferFrom
-      .withArgs(caller.address, jbSplitsPayer.address, AMOUNT)
+    mockToken.balanceOf.returnsAtCall(0, 0);
+
+    mockToken.transferFrom
+      .whenCalledWith(caller.address, jbSplitsPayer.address, AMOUNT)
       .returns(true);
+
+    mockToken.balanceOf.returnsAtCall(1, AMOUNT);
 
     let tx = jbSplitsPayer
       .connect(caller)
@@ -241,12 +262,108 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
       }),
     );
 
-    await expect(tx).to.emit(jbSplitsPayer, 'DistributeToSplitGroup').withArgs(
-      DEFAULT_SPLITS_PROJECT_ID,
-      DEFAULT_SPLITS_DOMAIN,
-      DEFAULT_SPLITS_GROUP,
+    await expect(tx)
+      .to.emit(jbSplitsPayer, 'DistributeToSplitGroup')
+      .withArgs(
+        DEFAULT_SPLITS_PROJECT_ID,
+        DEFAULT_SPLITS_DOMAIN,
+        DEFAULT_SPLITS_GROUP,
+        caller.address,
+      );
+  });
+
+  it(`Should send ERC20 with 9-decimals towards allocator supporting fee on transfer token`, async function () {
+    const { caller, deployer, jbSplitsPayer, mockToken, mockJbSplitsStore } = await setup();
+    const DECIMALS = 9;
+    const NET_AMOUNT = AMOUNT.sub(100);
+
+    let mockJbAllocator = await deployMockContract(deployer, jbAllocator.abi);
+
+    let splits = makeSplits({ projectId: PROJECT_ID, allocator: mockJbAllocator.address });
+
+    await Promise.all(
+      splits.map(async (split) => {
+        mockToken.allowance
+          .whenCalledWith(jbSplitsPayer.address, mockJbAllocator.address)
+          .returns(0);
+
+        mockToken.approve
+          .whenCalledWith(
+            mockJbAllocator.address,
+            NET_AMOUNT.mul(split.percent).div(maxSplitsPercent),
+          )
+          .returns(true);
+
+        await mockJbAllocator.mock.allocate
+          .withArgs({
+            token: mockToken.address,
+            amount: NET_AMOUNT.mul(split.percent).div(maxSplitsPercent),
+            decimals: DECIMALS,
+            projectId: DEFAULT_PROJECT_ID,
+            group: 0,
+            split: split,
+          })
+          .returns();
+      }),
+    );
+
+    await mockJbSplitsStore.mock.splitsOf
+      .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
+      .returns(splits);
+
+    mockToken.balanceOf.returnsAtCall(0, 0);
+
+    mockToken.transferFrom
+      .whenCalledWith(caller.address, jbSplitsPayer.address, AMOUNT)
+      .returns(true);
+
+    mockToken.balanceOf.returnsAtCall(1, NET_AMOUNT);
+
+    let tx = jbSplitsPayer
+      .connect(caller)
+      .addToBalanceOf(PROJECT_ID, mockToken.address, AMOUNT, DECIMALS, MEMO, METADATA);
+
+    await expect(tx).to.emit(jbSplitsPayer, 'AddToBalance').withArgs(
+      PROJECT_ID,
+      DEFAULT_BENEFICIARY,
+      mockToken.address,
+      NET_AMOUNT,
+      DECIMALS,
+      0, //leftover
+      MEMO,
+      METADATA,
       caller.address,
     );
+
+    await Promise.all(
+      splits.map(async (split) => {
+        await expect(tx)
+          .to.emit(jbSplitsPayer, 'DistributeToSplit')
+          .withArgs(
+            [
+              split.preferClaimed,
+              split.preferAddToBalance,
+              split.percent,
+              split.projectId,
+              split.beneficiary,
+              split.lockedUntil,
+              split.allocator,
+            ],
+            NET_AMOUNT.mul(split.percent).div(maxSplitsPercent),
+            DEFAULT_BENEFICIARY,
+            caller.address,
+          );
+      }),
+    );
+
+    await expect(tx)
+      .to.emit(jbSplitsPayer, 'DistributeToSplitGroup')
+      .withArgs(
+        DEFAULT_SPLITS_PROJECT_ID,
+        DEFAULT_SPLITS_DOMAIN,
+        DEFAULT_SPLITS_GROUP,
+        caller.address,
+      );
   });
 
   it(`Should send fund towards project terminal if project ID is set in split and add to balance if it is prefered and emit event`, async function () {
@@ -320,12 +437,14 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
       }),
     );
 
-    await expect(tx).to.emit(jbSplitsPayer, 'DistributeToSplitGroup').withArgs(
-      DEFAULT_SPLITS_PROJECT_ID,
-      DEFAULT_SPLITS_DOMAIN,
-      DEFAULT_SPLITS_GROUP,
-      caller.address,
-    );
+    await expect(tx)
+      .to.emit(jbSplitsPayer, 'DistributeToSplitGroup')
+      .withArgs(
+        DEFAULT_SPLITS_PROJECT_ID,
+        DEFAULT_SPLITS_DOMAIN,
+        DEFAULT_SPLITS_GROUP,
+        caller.address,
+      );
   });
 
   it(`Should send fund towards project terminal if project ID is set in split, using pay with beneficiaries set in splits and emit event`, async function () {
@@ -412,12 +531,14 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
       }),
     );
 
-    await expect(tx).to.emit(jbSplitsPayer, 'DistributeToSplitGroup').withArgs(
-      DEFAULT_SPLITS_PROJECT_ID,
-      DEFAULT_SPLITS_DOMAIN,
-      DEFAULT_SPLITS_GROUP,
-      caller.address,
-    );
+    await expect(tx)
+      .to.emit(jbSplitsPayer, 'DistributeToSplitGroup')
+      .withArgs(
+        DEFAULT_SPLITS_PROJECT_ID,
+        DEFAULT_SPLITS_DOMAIN,
+        DEFAULT_SPLITS_GROUP,
+        caller.address,
+      );
   });
 
   it(`Should send fund towards project terminal if project ID is set in split, using pay with the default beneficiary if none is set in splits and emit event`, async function () {
@@ -494,12 +615,14 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
       }),
     );
 
-    await expect(tx).to.emit(jbSplitsPayer, 'DistributeToSplitGroup').withArgs(
-      DEFAULT_SPLITS_PROJECT_ID,
-      DEFAULT_SPLITS_DOMAIN,
-      DEFAULT_SPLITS_GROUP,
-      caller.address,
-    );
+    await expect(tx)
+      .to.emit(jbSplitsPayer, 'DistributeToSplitGroup')
+      .withArgs(
+        DEFAULT_SPLITS_PROJECT_ID,
+        DEFAULT_SPLITS_DOMAIN,
+        DEFAULT_SPLITS_GROUP,
+        caller.address,
+      );
   });
 
   it(`Should send fund directly to a beneficiary set in split, if no allocator or project ID is set in splits and emit event`, async function () {
@@ -562,12 +685,14 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
       }),
     );
 
-    await expect(tx).to.emit(jbSplitsPayer, 'DistributeToSplitGroup').withArgs(
-      DEFAULT_SPLITS_PROJECT_ID,
-      DEFAULT_SPLITS_DOMAIN,
-      DEFAULT_SPLITS_GROUP,
-      caller.address,
-    );
+    await expect(tx)
+      .to.emit(jbSplitsPayer, 'DistributeToSplitGroup')
+      .withArgs(
+        DEFAULT_SPLITS_PROJECT_ID,
+        DEFAULT_SPLITS_DOMAIN,
+        DEFAULT_SPLITS_GROUP,
+        caller.address,
+      );
   });
 
   it(`Should send fund directly to the default beneficiary, if no allocator, project ID or beneficiary is set,  and emit event`, async function () {
@@ -717,10 +842,13 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
       percent: maxSplitsPercent.div('4'),
     });
 
-    // Transfer to splitsPayer
-    await mockToken.mock.transferFrom
-      .withArgs(caller.address, jbSplitsPayer.address, AMOUNT)
+    mockToken.balanceOf.returnsAtCall(0, 0);
+
+    mockToken.transferFrom
+      .whenCalledWith(caller.address, jbSplitsPayer.address, AMOUNT)
       .returns(true);
+
+    mockToken.balanceOf.returnsAtCall(1, AMOUNT);
 
     await mockJbSplitsStore.mock.splitsOf
       .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
@@ -729,8 +857,8 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
     // Transfer from splitsPayer to splits beneficiaries
     await Promise.all(
       splits.map(async (split) => {
-        await mockToken.mock.transfer
-          .withArgs(split.beneficiary, AMOUNT.mul(split.percent).div(maxSplitsPercent))
+        mockToken.transfer
+          .whenCalledWith(split.beneficiary, AMOUNT.mul(split.percent).div(maxSplitsPercent))
           .returns(true);
       }),
     );
@@ -743,7 +871,8 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
     await mockJbTerminal.mock.decimalsForToken.withArgs(mockToken.address).returns(DECIMALS);
 
     // Approve transfer to the default project ID terminal
-    await mockToken.mock.approve.withArgs(mockJbTerminal.address, AMOUNT.div('2')).returns(true);
+    mockToken.allowance.whenCalledWith(jbSplitsPayer.address, mockJbTerminal.address).returns(0);
+    mockToken.approve.whenCalledWith(mockJbTerminal.address, AMOUNT.div('2')).returns(true);
 
     // Pay the leftover with the default beneficiary
     await mockJbTerminal.mock.addToBalanceOf
@@ -876,9 +1005,13 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
     });
 
     // Transfer to splitsPayer
-    await mockToken.mock.transferFrom
-      .withArgs(caller.address, jbSplitsPayer.address, AMOUNT)
+    mockToken.balanceOf.returnsAtCall(0, 0);
+
+    mockToken.transferFrom
+      .whenCalledWith(caller.address, jbSplitsPayer.address, AMOUNT)
       .returns(true);
+
+    mockToken.balanceOf.returnsAtCall(1, AMOUNT);
 
     await mockJbSplitsStore.mock.splitsOf
       .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
@@ -887,14 +1020,14 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
     // Transfer from splitsPayer to splits beneficiaries
     await Promise.all(
       splits.map(async (split) => {
-        await mockToken.mock.transfer
-          .withArgs(split.beneficiary, AMOUNT.mul(split.percent).div(maxSplitsPercent))
+        mockToken.transfer
+          .whenCalledWith(split.beneficiary, AMOUNT.mul(split.percent).div(maxSplitsPercent))
           .returns(true);
       }),
     );
 
     // Transfer from splitsPayer to default beneficiary
-    await mockToken.mock.transfer.withArgs(beneficiaryThree.address, AMOUNT.div('2')).returns(true);
+    mockToken.transfer.whenCalledWith(beneficiaryThree.address, AMOUNT.div('2')).returns(true);
 
     await expect(
       jbSplitsPayer
@@ -1022,9 +1155,13 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
     });
 
     // Transfer to splitsPayer
-    await mockToken.mock.transferFrom
-      .withArgs(caller.address, jbSplitsPayer.address, AMOUNT)
+    mockToken.balanceOf.returnsAtCall(0, 0);
+
+    mockToken.transferFrom
+      .whenCalledWith(caller.address, jbSplitsPayer.address, AMOUNT)
       .returns(true);
+
+    mockToken.balanceOf.returnsAtCall(1, AMOUNT);
 
     await mockJbSplitsStore.mock.splitsOf
       .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
@@ -1033,14 +1170,14 @@ describe('JBETHERC20SplitsPayer::addToBalanceOf(...)', function () {
     // Transfer from splitsPayer to splits beneficiaries
     await Promise.all(
       splits.map(async (split) => {
-        await mockToken.mock.transfer
-          .withArgs(split.beneficiary, AMOUNT.mul(split.percent).div(maxSplitsPercent))
+        mockToken.transfer
+          .whenCalledWith(split.beneficiary, AMOUNT.mul(split.percent).div(maxSplitsPercent))
           .returns(true);
       }),
     );
 
     // Transfer leftover from splitsPayer to msg.sender
-    await mockToken.mock.transfer.withArgs(caller.address, AMOUNT.div('2')).returns(true);
+    mockToken.transfer.whenCalledWith(caller.address, AMOUNT.div('2')).returns(true);
 
     await expect(
       jbSplitsPayer

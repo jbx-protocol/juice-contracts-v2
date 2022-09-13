@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.16;
 
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './abstract/JBControllerUtility.sol';
@@ -11,7 +11,7 @@ import './libraries/JBConstants.sol';
 
   @dev
   Adheres to -
-  IJBTokenStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
+  IJBFundingCycleStore: General interface for the methods in this contract that interact with the blockchain's state according to the protocol's rules.
 
   @dev
   Inherits from -
@@ -21,10 +21,11 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
   //*********************************************************************//
   // --------------------------- custom errors ------------------------- //
   //*********************************************************************//
+  error INVALID_BALLOT();
   error INVALID_DISCOUNT_RATE();
   error INVALID_DURATION();
+  error INVALID_TIMEFRAME();
   error INVALID_WEIGHT();
-  error INVALID_BALLOT();
   error NO_SAME_BLOCK_RECONFIGURATION();
 
   //*********************************************************************//
@@ -302,8 +303,8 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _metadata,
     uint256 _mustStartAtOrAfter
   ) external override onlyController(_projectId) returns (JBFundingCycle memory) {
-    // Duration must fit in a uint64.
-    if (_data.duration > type(uint64).max) revert INVALID_DURATION();
+    // Duration must fit in a uint32.
+    if (_data.duration > type(uint32).max) revert INVALID_DURATION();
 
     // Discount rate must be less than or equal to 100%.
     if (_data.discountRate > JBConstants.MAX_DISCOUNT_RATE) revert INVALID_DISCOUNT_RATE();
@@ -311,18 +312,24 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     // Weight must fit into a uint88.
     if (_data.weight > type(uint88).max) revert INVALID_WEIGHT();
 
+    // If the start date is in the past, set it to be the current timestamp.
+    if (_mustStartAtOrAfter < block.timestamp) _mustStartAtOrAfter = block.timestamp;
+
+    // Make sure the min start date fits in a uint56, and that the start date of an upcoming cycle also starts within the max.
+    if (_mustStartAtOrAfter + _data.duration > type(uint56).max) revert INVALID_TIMEFRAME();
+
     // Ballot should be a valid contract, supporting the correct interface
-    if(_data.ballot != IJBFundingCycleBallot(address(0))) {
-
+    if (_data.ballot != IJBFundingCycleBallot(address(0))) {
       address _ballot = address(_data.ballot);
-      uint32 _size;
-      assembly {
-        _size := extcodesize(_ballot) // No contract at the address ?
-      }
-      if (_size == 0) revert INVALID_BALLOT();
 
-      try _data.ballot.supportsInterface(type(IJBFundingCycleBallot).interfaceId) returns (bool _supports) {
-        if(!_supports) revert INVALID_BALLOT(); // Contract exists at the address but with the wrong interface
+      // No contract at the address ?
+      if (_ballot.code.length == 0) revert INVALID_BALLOT();
+
+      // Make sure the ballot supports the expected interface.
+      try _data.ballot.supportsInterface(type(IJBFundingCycleBallot).interfaceId) returns (
+        bool _supports
+      ) {
+        if (!_supports) revert INVALID_BALLOT(); // Contract exists at the address but with the wrong interface
       } catch {
         revert INVALID_BALLOT(); // No ERC165 support
       }
@@ -332,13 +339,7 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _configuration = block.timestamp;
 
     // Set up a reconfiguration by configuring intrinsic properties.
-    _configureIntrinsicPropertiesFor(
-      _projectId,
-      _configuration,
-      _data.weight,
-      // Must start on or after the current timestamp.
-      _mustStartAtOrAfter > block.timestamp ? _mustStartAtOrAfter : block.timestamp
-    );
+    _configureIntrinsicPropertiesFor(_projectId, _configuration, _data.weight, _mustStartAtOrAfter);
 
     // Efficiently stores a funding cycles provided user defined properties.
     // If all user config properties are zero, no need to store anything as the default value will have the same outcome.
@@ -350,11 +351,11 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
       // ballot in bits 0-159 bytes.
       uint256 packed = uint160(address(_data.ballot));
 
-      // duration in bits 160-223 bytes.
+      // duration in bits 160-191 bytes.
       packed |= _data.duration << 160;
 
-      // discountRate in bits 224-255 bytes.
-      packed |= _data.discountRate << 224;
+      // discountRate in bits 192-223 bytes.
+      packed |= _data.discountRate << 192;
 
       // Set in storage.
       _packedUserPropertiesOf[_projectId][_configuration] = packed;
@@ -719,9 +720,12 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     uint256 _startDistance = _start - _baseFundingCycle.start;
 
     // Apply the base funding cycle's discount rate for each cycle that has passed.
-    uint256 _discountMultiple = _startDistance / _baseFundingCycle.duration;
+    uint256 _discountMultiple;
+    unchecked {
+      _discountMultiple = _startDistance / _baseFundingCycle.duration; // Non-null duration is excluded above
+    }
 
-    for (uint256 i = 0; i < _discountMultiple; i++) {
+    for (uint256 _i; _i < _discountMultiple; ) {
       // The number of times to apply the discount rate.
       // Base the new weight on the specified funding cycle's weight.
       weight = PRBMath.mulDiv(
@@ -729,8 +733,13 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
         JBConstants.MAX_DISCOUNT_RATE - _baseFundingCycle.discountRate,
         JBConstants.MAX_DISCOUNT_RATE
       );
+
       // The calculation doesn't need to continue if the weight is 0.
       if (weight == 0) break;
+
+      unchecked {
+        ++_i;
+      }
     }
   }
 
@@ -808,13 +817,11 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
     );
 
     // If there is no ballot, the ID is auto approved.
-    // Otherwise if the ballot's duration hasn't passed, its still active.
-    // Otherwise, return the ballot's state.
     if (_ballotFundingCycle.ballot == IJBFundingCycleBallot(address(0)))
       return JBBallotState.Approved;
-    else if (_ballotFundingCycle.ballot.duration() >= block.timestamp - _configuration)
-      return JBBallotState.Active;
-    else return _ballotFundingCycle.ballot.stateOf(_projectId, _configuration, _start);
+
+    // Return the ballot's state
+    return _ballotFundingCycle.ballot.stateOf(_projectId, _configuration, _start);
   }
 
   /**
@@ -851,10 +858,10 @@ contract JBFundingCycleStore is JBControllerUtility, IJBFundingCycleStore {
 
     // ballot in bits 0-159 bits.
     fundingCycle.ballot = IJBFundingCycleBallot(address(uint160(_packedUserProperties)));
-    // duration in bits 160-223 bits.
-    fundingCycle.duration = uint256(uint64(_packedUserProperties >> 160));
-    // discountRate in bits 224-255 bits.
-    fundingCycle.discountRate = uint256(uint32(_packedUserProperties >> 224));
+    // duration in bits 160-191 bits.
+    fundingCycle.duration = uint256(uint32(_packedUserProperties >> 160));
+    // discountRate in bits 192-223 bits.
+    fundingCycle.discountRate = uint256(uint32(_packedUserProperties >> 192));
 
     fundingCycle.metadata = _metadataOf[_projectId][_configuration];
   }

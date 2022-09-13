@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.6;
 
 import './hevm.sol';
 import '../../../lib/ds-test/src/test.sol';
@@ -178,7 +178,12 @@ contract TestBaseWorkflow is DSTest {
     evm.label(address(_jbDirectory), 'JBDirectory');
 
     // JBTokenStore
-    _jbTokenStore = new JBTokenStore(_jbOperatorStore, _jbProjects, _jbDirectory);
+    _jbTokenStore = new JBTokenStore(
+      _jbOperatorStore,
+      _jbProjects,
+      _jbDirectory,
+      _jbFundingCycleStore
+    );
     evm.label(address(_jbTokenStore), 'JBTokenStore');
 
     // JBSplitsStore
@@ -224,10 +229,10 @@ contract TestBaseWorkflow is DSTest {
     evm.label(address(_jbETHPaymentTerminal), 'JBETHPaymentTerminal');
 
     evm.prank(_multisig);
-    _jbToken = new JBToken('MyToken', 'MT');
+    _jbToken = new JBToken('MyToken', 'MT', 1);
 
     evm.prank(_multisig);
-    _jbToken.mint(0, _multisig, 100 * 10**18);
+    _jbToken.mint(1, _multisig, 100 * 10**18);
 
     // JBERC20PaymentTerminal
     _jbERC20PaymentTerminal = new JBERC20PaymentTerminal(

@@ -9,7 +9,7 @@ describe('JBToken::mint(...)', function () {
 
   async function setup() {
     const [deployer, ...addrs] = await ethers.getSigners();
-    const jbToken = await deployJbToken(name, symbol);
+    const jbToken = await deployJbToken(name, symbol, PROJECT_ID);
     return { deployer, addrs, jbToken };
   }
 
@@ -29,6 +29,26 @@ describe('JBToken::mint(...)', function () {
 
     const supply = await jbToken['totalSupply(uint256)'](PROJECT_ID);
     expect(supply).to.equal(numTokens);
+  });
+
+  it('Cannot mint for the project ID 0', async function () {
+    const { deployer, addrs, jbToken } = await setup();
+    const addr = addrs[1];
+    const numTokens = 3000;
+
+    await expect(jbToken.connect(deployer).mint(0, addr.address, numTokens)).to.be.revertedWith(
+      'BAD_PROJECT()',
+    );
+  });
+
+  it('Cannot mint from another project id than the one of the token', async function () {
+    const { deployer, addrs, jbToken } = await setup();
+    const addr = addrs[1];
+    const numTokens = 3000;
+
+    await expect(
+      jbToken.connect(deployer).mint(PROJECT_ID + 1, addr.address, numTokens),
+    ).to.be.revertedWith('BAD_PROJECT()');
   });
 
   it(`Can't mint tokens if caller isn't owner`, async function () {

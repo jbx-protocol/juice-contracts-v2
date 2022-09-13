@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.6;
 
 import '@paulrberg/contracts/math/PRBMath.sol';
 import '@paulrberg/contracts/math/PRBMathUD60x18.sol';
@@ -40,7 +40,11 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
     });
 
     _metadata = JBFundingCycleMetadata({
-      global: JBGlobalFundingCycleMetadata({allowSetTerminals: false, allowSetController: false}),
+      global: JBGlobalFundingCycleMetadata({
+        allowSetTerminals: false,
+        allowSetController: false,
+        pauseTransfers: false
+      }),
       reservedRate: 0,
       redemptionRate: 10000, //100%
       ballotRedemptionRate: 0,
@@ -49,14 +53,15 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
       pauseRedeem: false,
       pauseBurn: false,
       allowMinting: false,
-      allowChangeToken: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
       holdFees: true,
+      preferClaimedTokenOverride: false,
       useTotalOverflowForRedemptions: false,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
-      dataSource: address(0)
+      dataSource: address(0),
+      metadata: 0
     });
 
     _terminals.push(_terminal);
@@ -94,6 +99,8 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
   ) external {
     // Assuming we don't revert when distributing too much
     evm.assume(payAmountInWei <= _targetInWei);
+    // Avoid rounding error
+    evm.assume(payAmountInWei > 1);
     evm.assume(feeDiscount <= jbLibraries().MAX_FEE());
     evm.assume(fee <= 50_000_000); // fee cap
     address _userWallet = address(1234);
@@ -151,7 +158,7 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
     );
 
     // verify: should have held the fee
-    if (fee > 0 && payAmountInWei > 0) {
+    if (fee > 0) {
       assertEq(_terminal.heldFeesOf(_projectId)[0].fee, _terminal.fee());
       assertEq(_terminal.heldFeesOf(_projectId)[0].feeDiscount, feeDiscount);
       assertEq(_terminal.heldFeesOf(_projectId)[0].amount, payAmountInWei);
@@ -180,5 +187,94 @@ contract TestDistributeHeldFee is TestBaseWorkflow {
       jbPaymentTerminalStore().balanceOf(_terminal, _projectId),
       balanceBefore + heldFee + payAmountInWei
     );
+  }
+
+  function testFeeGetsHeldSpecialCase() public {
+    uint256 feeDiscount = 0;
+    uint256 fee = 50_000_000;
+    uint256 payAmountInWei = 1000000000; // The same value as 100% in the split (makes it easy to leave `1` left over)
+
+    JBSplit[] memory _jbSplits = new JBSplit[](1);
+    _jbSplits[0] = JBSplit(
+      false,
+      false,
+      1000000000 - 1, // We make it so there is exactly `1` left over (note: change the subtraction to be anything else than 1 for this test to pass)
+      0,
+      payable(address(5)),
+      0,
+      IJBSplitAllocator(address(0))
+    );
+
+    JBGroupedSplits[] memory _groupedSplitsLocal = new JBGroupedSplits[](1);
+
+    _groupedSplitsLocal[0] = JBGroupedSplits(_terminal.payoutSplitsGroup(), _jbSplits);
+
+    _projectId = _controller.launchProjectFor(
+      _projectOwner,
+      _projectMetadata,
+      _data,
+      _metadata,
+      block.timestamp,
+      _groupedSplitsLocal,
+      _fundAccessConstraints,
+      _terminals,
+      ''
+    );
+
+    address _userWallet = address(1234);
+    evm.deal(_userWallet, payAmountInWei);
+    evm.prank(multisig());
+    _terminal.setFee(fee);
+
+    IJBFeeGauge feeGauge = IJBFeeGauge(address(69696969));
+    evm.etch(address(feeGauge), new bytes(0x1));
+    evm.mockCall(
+      address(feeGauge),
+      abi.encodeWithSignature('currentDiscountFor(uint256)', _projectId),
+      abi.encode(feeDiscount)
+    );
+    evm.prank(multisig());
+    _terminal.setFeeGauge(feeGauge);
+
+    // -- pay --
+    _terminal.pay{value: payAmountInWei}(
+      _projectId,
+      payAmountInWei,
+      address(0),
+      /* _beneficiary */
+      _userWallet,
+      /* _minReturnedTokens */
+      0,
+      /* _preferClaimedTokens */
+      false,
+      /* _memo */
+      'Take my money!',
+      /* _delegateMetadata */
+      new bytes(0)
+    );
+
+    // verify: ETH balance in terminal should be up to date
+    uint256 _terminalBalanceInWei = payAmountInWei;
+    assertEq(jbPaymentTerminalStore().balanceOf(_terminal, _projectId), _terminalBalanceInWei);
+
+    // -- distribute --
+    _terminal.distributePayoutsOf(
+      _projectId,
+      payAmountInWei,
+      jbLibraries().ETH(),
+      address(0), //token (unused)
+      /*min out*/
+      0,
+      /*LFG*/
+      'lfg'
+    );
+
+    // Verify that a fee was held
+    assertEq(_terminal.heldFeesOf(_projectId).length, 1);
+
+    // verify: should have held the fee
+    assertEq(_terminal.heldFeesOf(_projectId)[0].fee, _terminal.fee());
+    assertEq(_terminal.heldFeesOf(_projectId)[0].feeDiscount, feeDiscount);
+    assertEq(_terminal.heldFeesOf(_projectId)[0].amount, payAmountInWei);
   }
 }

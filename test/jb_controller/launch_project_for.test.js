@@ -126,22 +126,26 @@ describe('JBController::launchProjectFor(...)', function () {
     pauseDistributions = false,
     pauseRedeem = false,
     pauseBurn = false,
+    pauseTransfers = false,
     allowMinting = false,
     allowChangeToken = false,
     allowTerminalMigration = false,
     allowControllerMigration = false,
-    allowSetTerminal = false,
-    allowSetController = false,
+    allowSetTerminals = false,
+    allowSetControllers = false,
     holdFees = false,
+    preferClaimedTokenOverride = false,
     useTotalOverflowForRedemptions = false,
     useDataSourceForPay = false,
     useDataSourceForRedeem = false,
     dataSource = ethers.constants.AddressZero,
+    metadata = 0,
   } = {}) {
     const unpackedMetadata = {
       global: {
-        allowSetTerminal,
-        allowSetController,
+        allowSetTerminals,
+        allowSetControllers,
+        pauseTransfers,
       },
       reservedRate,
       redemptionRate,
@@ -155,10 +159,12 @@ describe('JBController::launchProjectFor(...)', function () {
       allowTerminalMigration,
       allowControllerMigration,
       holdFees,
+      preferClaimedTokenOverride,
       useTotalOverflowForRedemptions,
       useDataSourceForPay,
       useDataSourceForRedeem,
       dataSource,
+      metadata,
     };
     return { unpacked: unpackedMetadata, packed: packFundingCycleMetadata(unpackedMetadata) };
   }

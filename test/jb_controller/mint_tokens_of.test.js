@@ -82,7 +82,10 @@ describe('JBController::mintTokensOf(...)', function () {
       weight: 0,
       discountRate: 0,
       ballot: ethers.constants.AddressZero,
-      metadata: packFundingCycleMetadata({ allowMinting: 1, reservedRate: RESERVED_RATE }),
+      metadata: packFundingCycleMetadata({
+        allowMinting: 1,
+        reservedRate: RESERVED_RATE,
+      }),
     });
 
     await mockJbTokenStore.mock.mintFor
@@ -118,6 +121,65 @@ describe('JBController::mintTokensOf(...)', function () {
           beneficiary.address,
           MEMO,
           /*_preferClaimedTokens=*/ true,
+          /* _useReservedRate=*/ true,
+        ),
+    )
+      .to.emit(jbController, 'MintTokens')
+      .withArgs(
+        beneficiary.address,
+        PROJECT_ID,
+        AMOUNT_TO_MINT,
+        AMOUNT_TO_RECEIVE,
+        MEMO,
+        RESERVED_RATE,
+        projectOwner.address,
+      );
+
+    let newReservedTokenBalance = await jbController.reservedTokenBalanceOf(
+      PROJECT_ID,
+      RESERVED_RATE,
+    );
+    expect(newReservedTokenBalance).to.equal(AMOUNT_TO_MINT - AMOUNT_TO_RECEIVE);
+  });
+
+  it(`Should mint claimed token if funding cycle forces it`, async function () {
+    const { projectOwner, beneficiary, jbController, mockJbFundingCycleStore, mockJbTokenStore } =
+      await setup();
+
+    const blockNum = await ethers.provider.getBlockNumber();
+    const block = await ethers.provider.getBlock(blockNum);
+    const timestamp = block.timestamp;
+
+    await mockJbFundingCycleStore.mock.currentOf.withArgs(PROJECT_ID).returns({
+      number: 1,
+      configuration: timestamp,
+      basedOn: timestamp,
+      start: timestamp,
+      duration: 0,
+      weight: 0,
+      discountRate: 0,
+      ballot: ethers.constants.AddressZero,
+      metadata: packFundingCycleMetadata({
+        preferClaimedTokenOverride: 1,
+        allowMinting: 1,
+        reservedRate: RESERVED_RATE,
+      }),
+    });
+
+    // _preferClaimedTokens will be forced as true
+    await mockJbTokenStore.mock.mintFor
+      .withArgs(beneficiary.address, PROJECT_ID, AMOUNT_TO_RECEIVE, /*_preferClaimedTokens=*/ true)
+      .returns();
+
+    await expect(
+      jbController
+        .connect(projectOwner)
+        .mintTokensOf(
+          PROJECT_ID,
+          AMOUNT_TO_MINT,
+          beneficiary.address,
+          MEMO,
+          /*_preferClaimedTokens=*/ false,
           /* _useReservedRate=*/ true,
         ),
     )

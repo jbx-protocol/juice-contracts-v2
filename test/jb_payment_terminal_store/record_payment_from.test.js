@@ -224,7 +224,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function (
         memo: memo,
         metadata: METADATA,
       })
-      .returns(WEIGHT, newMemo, delegate.address);
+      .returns(WEIGHT, newMemo, [{ delegate: delegate.address, amount: 0 }]);
 
     expect(
       await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
@@ -399,14 +399,14 @@ describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function (
         memo: memo,
         metadata: METADATA,
       })
-      .returns(WEIGHT, newMemo, delegate.address);
+      .returns(WEIGHT, newMemo, [{ delegate: delegate.address, amount: 0 }]);
 
     expect(
       await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(0);
 
     // Record the payment
-    const tx = await JBSingleTokenPaymentTerminalStore.connect(
+    const returnedValue = await JBSingleTokenPaymentTerminalStore.connect(
       mockJbTerminalSigner,
     ).callStatic.recordPaymentFrom(
       /* payer */ payer.address,
@@ -432,8 +432,7 @@ describe('JBSingleTokenPaymentTerminalStore::recordPaymentFrom(...)', function (
     expect(
       await JBSingleTokenPaymentTerminalStore.balanceOf(mockJbTerminalSigner.address, PROJECT_ID),
     ).to.equal(0);
-
-    expect(tx.delegate).to.equal(delegate.address);
+    expect(returnedValue.delegateAllocations[0].delegate).to.equal(delegate.address);
   });
 
   /* Sad path tests */

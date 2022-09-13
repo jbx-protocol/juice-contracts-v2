@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.6;
 
 import './helpers/TestBaseWorkflow.sol';
 
@@ -35,7 +35,11 @@ contract TestTokenFlow is TestBaseWorkflow {
     });
 
     _metadata = JBFundingCycleMetadata({
-      global: JBGlobalFundingCycleMetadata({allowSetTerminals: false, allowSetController: false}),
+      global: JBGlobalFundingCycleMetadata({
+        allowSetTerminals: false,
+        allowSetController: false,
+        pauseTransfers: false
+      }),
       reservedRate: _reservedRate,
       redemptionRate: 5000, //50%
       ballotRedemptionRate: 0,
@@ -44,14 +48,15 @@ contract TestTokenFlow is TestBaseWorkflow {
       pauseRedeem: false,
       pauseBurn: false,
       allowMinting: true,
-      allowChangeToken: true,
       allowTerminalMigration: false,
       allowControllerMigration: false,
       holdFees: false,
+      preferClaimedTokenOverride: false,
       useTotalOverflowForRedemptions: false,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
-      dataSource: address(0)
+      dataSource: address(0),
+      metadata: 0
     });
 
     _projectOwner = multisig();
@@ -71,32 +76,35 @@ contract TestTokenFlow is TestBaseWorkflow {
 
   /**
    * @notice tests the following flow with fuzzed values:
-   * launch project → issue token → change token → mint token → burn token
+   * launch project → issue token or sets the token → mint token → burn token
    */
   function testFuzzTokenFlow(
-    uint256 mintAmount,
+    uint224 mintAmount,
     uint256 burnAmount,
+    bool _issueToken,
     bool mintPreferClaimed,
     bool burnPreferClaimed
   ) public {
     // Might overflow in processed token tracker if burn amount >= max int256 (ie (2**256)/2 -1 )
-    evm.assume(burnAmount < (2**256)/2);
-    
+    evm.assume(burnAmount < (2**256) / 2);
+
     // calls will originate from projectOwner addr
     evm.startPrank(_projectOwner);
 
-    // issue an ERC-20 token for project
-    _controller.issueTokenFor(_projectId, 'TestName', 'TestSymbol');
+    if (_issueToken) {
+      // issue an ERC-20 token for project
+      _tokenStore.issueFor(_projectId, 'TestName', 'TestSymbol');
+    } else {
+      // create a new IJBToken and change it's owner to the tokenStore
+      IJBToken _newToken = new JBToken('NewTestName', 'NewTestSymbol', _projectId);
+      Ownable(address(_newToken)).transferOwnership(address(_tokenStore));
 
-    // create a new IJBToken and change it's owner to the tokenStore
-    IJBToken _newToken = new JBToken('NewTestName', 'NewTestSymbol');
-    _newToken.transferOwnership(_projectId, address(_tokenStore));
+      // change the projects token to _newToken
+      _tokenStore.setFor(_projectId, _newToken);
 
-    // change the projects token to _newToken
-    _controller.changeTokenOf(_projectId, _newToken, address(0));
-
-    // confirm the project's new JBToken
-    assertEq(address(_tokenStore.tokenOf(_projectId)), address(_newToken));
+      // confirm the project's new JBToken
+      assertEq(address(_tokenStore.tokenOf(_projectId)), address(_newToken));
+    }
 
     address _beneficiary = address(1234);
     uint256 _expectedTokenBalance = 0;
@@ -149,14 +157,14 @@ contract TestTokenFlow is TestBaseWorkflow {
     evm.startPrank(_projectOwner);
 
     // issue an ERC-20 token for project
-    _controller.issueTokenFor(_projectId, 'TestName', 'TestSymbol');
+    _tokenStore.issueFor(_projectId, 'TestName', 'TestSymbol');
 
     address _beneficiary = address(1234);
 
     // mint claimed tokens to beneficiary addr
     _controller.mintTokensOf(
       _projectId,
-      type(uint224).max,
+      type(uint224).max / 2,
       _beneficiary,
       'Mint memo',
       true,
@@ -166,7 +174,7 @@ contract TestTokenFlow is TestBaseWorkflow {
     // mint unclaimed tokens to beneficiary addr
     _controller.mintTokensOf(
       _projectId,
-      type(uint256).max,
+      type(uint224).max / 2,
       _beneficiary,
       'Mint memo',
       false,
@@ -184,48 +192,49 @@ contract TestTokenFlow is TestBaseWorkflow {
     );
   }
 
-  /**
-   * @notice tests the following corner case:
-   * launch project → issue token → mint unclaimed tokens → switch to new token → claim unclaimed tokens of the new token
-   */
-  function testTokenChangeFlow() public {
-    // calls will originate from projectOwner addr
-    evm.startPrank(_projectOwner);
+  // note: Option to change the token after setting it once was removed, so test no longer fuctions
+  // /**
+  //  * @notice tests the following corner case:
+  //  * launch project → issue token → mint unclaimed tokens → switch to new token → claim unclaimed tokens of the new token
+  //  */
+  // function testTokenChangeFlow() public {
+  //   // calls will originate from projectOwner addr
+  //   evm.startPrank(_projectOwner);
 
-    // issue an ERC-20 token for project
-    _controller.issueTokenFor(_projectId, 'TestName', 'TestSymbol');
+  //   // issue an ERC-20 token for project
+  //   _tokenStore.issueFor(_projectId, 'TestName', 'TestSymbol');
 
-    address _beneficiary = address(1234);
+  //   address _beneficiary = address(1234);
 
-    // mint unclaimed tokens to beneficiary addr
-    _controller.mintTokensOf(
-      _projectId,
-      type(uint256).max,
-      _beneficiary,
-      'Mint memo',
-      false,
-      false
-    );
+  //   // mint unclaimed tokens to beneficiary addr
+  //   _controller.mintTokensOf(
+  //     _projectId,
+  //     type(uint256).max,
+  //     _beneficiary,
+  //     'Mint memo',
+  //     false,
+  //     false
+  //   );
 
-    // create a new IJBToken and change it's owner to the tokenStore
-    IJBToken _newToken = new JBToken('NewTestName', 'NewTestSymbol');
-    _newToken.transferOwnership(_projectId, address(_tokenStore));
+  //   // create a new IJBToken and change it's owner to the tokenStore
+  //   IJBToken _newToken = new JBToken('NewTestName', 'NewTestSymbol', _projectId);
+  //   Ownable(address(_newToken)).transferOwnership(address(_tokenStore));
 
-    // change the projects token to _newToken
-    _controller.changeTokenOf(_projectId, _newToken, address(0));
+  //   // change the projects token to _newToken
+  //   _tokenStore.setFor(_projectId, _newToken);
 
-    // claim and mint the max possible amount of unclaimed tokens
-    evm.stopPrank();
-    evm.prank(_beneficiary);
-    _tokenStore.claimFor(_beneficiary, _projectId, type(uint224).max);
+  //   // claim and mint the max possible amount of unclaimed tokens
+  //   evm.stopPrank();
+  //   evm.prank(_beneficiary);
+  //   _tokenStore.claimFor(_beneficiary, _projectId, type(uint224).max);
 
-    // total token balanced should be updated
-    assertEq(_newToken.balanceOf(_beneficiary, _projectId), type(uint224).max);
-    assertEq(
-      _tokenStore.unclaimedBalanceOf(_beneficiary, _projectId),
-      type(uint256).max - type(uint224).max
-    );
-    assertEq(_tokenStore.unclaimedTotalSupplyOf(_projectId), type(uint256).max - type(uint224).max);
-    assertEq(_tokenStore.balanceOf(_beneficiary, _projectId), type(uint256).max);
-  }
+  //   // total token balanced should be updated
+  //   assertEq(_newToken.balanceOf(_beneficiary, _projectId), type(uint224).max);
+  //   assertEq(
+  //     _tokenStore.unclaimedBalanceOf(_beneficiary, _projectId),
+  //     type(uint256).max - type(uint224).max
+  //   );
+  //   assertEq(_tokenStore.unclaimedTotalSupplyOf(_projectId), type(uint256).max - type(uint224).max);
+  //   assertEq(_tokenStore.balanceOf(_beneficiary, _projectId), type(uint256).max);
+  // }
 }

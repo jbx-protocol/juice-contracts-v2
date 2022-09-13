@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.16;
 
 import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
 import './interfaces/IJBPriceFeed.sol';
@@ -18,14 +18,21 @@ contract JBChainlinkV3PriceFeed is IJBPriceFeed {
   using JBFixedPointNumber for uint256;
 
   //*********************************************************************//
-  // --------------------- public stored properties -------------------- //
+  // --------------------------- custom errors ------------------------- //
+  //*********************************************************************//
+  error STALE_PRICE();
+  error INCOMPLETE_ROUND();
+  error NEGATIVE_PRICE();
+
+  //*********************************************************************//
+  // ---------------- public stored immutable properties --------------- //
   //*********************************************************************//
 
   /** 
     @notice 
     The feed that prices are reported from.
   */
-  AggregatorV3Interface public feed;
+  AggregatorV3Interface public immutable feed;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -40,8 +47,18 @@ contract JBChainlinkV3PriceFeed is IJBPriceFeed {
     @return The current price of the feed, as a fixed point number with the specified number of decimals.
   */
   function currentPrice(uint256 _decimals) external view override returns (uint256) {
-    // Get the latest round information. Only need the price is needed.
-    (, int256 _price, , , ) = feed.latestRoundData();
+    // Get the latest round information.
+    (uint80 roundId, int256 _price, , uint256 updatedAt, uint80 answeredInRound) = feed
+      .latestRoundData();
+
+    // Make sure the price isn't stale.
+    if (answeredInRound < roundId) revert STALE_PRICE();
+
+    // Make sure the round is finished.
+    if (updatedAt == 0) revert INCOMPLETE_ROUND();
+
+    // Make sure the price is positive.
+    if (_price < 0) revert NEGATIVE_PRICE();
 
     // Get a reference to the number of decimals the feed uses.
     uint256 _feedDecimals = feed.decimals();

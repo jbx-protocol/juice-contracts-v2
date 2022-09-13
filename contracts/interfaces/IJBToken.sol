@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.16;
 
 interface IJBToken {
+  function projectId() external view returns (uint256);
+
   function decimals() external view returns (uint8);
 
   function totalSupply(uint256 _projectId) external view returns (uint256);
@@ -38,6 +40,4 @@ interface IJBToken {
     address _to,
     uint256 _amount
   ) external;
-
-  function transferOwnership(uint256 _projectId, address _newOwner) external;
 }

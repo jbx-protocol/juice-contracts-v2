@@ -9,11 +9,11 @@ describe('JBToken::approve(...)', function () {
 
   async function setup() {
     const [deployer, ...addrs] = await ethers.getSigners();
-    const jbToken = await deployJbToken(name, symbol);
+    const jbToken = await deployJbToken(name, symbol, PROJECT_ID);
     return { deployer, addrs, jbToken };
   }
 
-  it('Should approve and emit event if caller is owner', async function () {
+  it('Should approve and emit event if caller is token owner', async function () {
     const { deployer, addrs, jbToken } = await setup();
     const addr = addrs[1];
     const numTokens = 3000;
@@ -31,5 +31,27 @@ describe('JBToken::approve(...)', function () {
       .connect(deployer)
       ['allowance(address,address)'](deployer.address, addr.address);
     expect(allowance).to.equal(numTokens);
+  });
+
+  it('Cannot approve the project ID 0', async function () {
+    const { deployer, addrs, jbToken } = await setup();
+    const addr = addrs[1];
+    const numTokens = 3000;
+
+    await expect(
+      jbToken.connect(deployer)['approve(uint256,address,uint256)'](0, addr.address, numTokens),
+    ).to.be.revertedWith('BAD_PROJECT()');
+  });
+
+  it('Cannot approve another project id than the one from the token', async function () {
+    const { deployer, addrs, jbToken } = await setup();
+    const addr = addrs[1];
+    const numTokens = 3000;
+
+    await expect(
+      jbToken
+        .connect(deployer)
+        ['approve(uint256,address,uint256)'](PROJECT_ID + 1, addr.address, numTokens),
+    ).to.be.revertedWith('BAD_PROJECT()');
   });
 });

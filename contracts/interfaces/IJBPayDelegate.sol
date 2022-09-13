@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.16;
 
 import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 import './../structs/JBDidPayData.sol';
@@ -28,11 +28,12 @@ interface IJBPayDelegate is IERC165 {
                   uint256 projectId;
                   uint256 currentFundingCycleConfiguration;
                   JBTokenAmount amount;
+                  JBTokenAmount forwardedAmount;
                   uint256 projectTokenCount;
                   address beneficiary;
                   bool preferClaimedTokens;
                   string memo;
                   bytes metadata;
   */
-  function didPay(JBDidPayData calldata _data) external;
+  function didPay(JBDidPayData calldata _data) external payable;
 }

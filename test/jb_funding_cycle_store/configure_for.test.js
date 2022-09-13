@@ -3,7 +3,12 @@ import { ethers } from 'hardhat';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
-import { fastForward, getTimestamp, createFundingCycleData } from '../helpers/utils';
+import {
+  fastForward,
+  getTimestamp,
+  createFundingCycleData,
+  packFundingCycleMetadata,
+} from '../helpers/utils';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import ijbFundingCycleBallot from '../../artifacts/contracts/interfaces/IJBFundingCycleBallot.sol/IJBFundingCycleBallot.json';
@@ -51,7 +56,9 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     const mockBallot = await deployMockContract(deployer, ijbFundingCycleBallot.abi);
     await mockBallot.mock.supportsInterface.returns(true);
 
-    const jbFundingCycleStoreFactory = await ethers.getContractFactory('contracts/JBFundingCycleStore.sol:JBFundingCycleStore');
+    const jbFundingCycleStoreFactory = await ethers.getContractFactory(
+      'contracts/JBFundingCycleStore.sol:JBFundingCycleStore',
+    );
     const jbFundingCycleStore = await jbFundingCycleStoreFactory.deploy(mockJbDirectory.address);
 
     return {
@@ -60,7 +67,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
       jbFundingCycleStore,
       mockBallot,
       addrs,
-      deployer
+      deployer,
     };
   }
 
@@ -99,8 +106,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     const { controller, mockJbDirectory, jbFundingCycleStore } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
-    // The metadata value doesn't affect the test.
-    const fundingCycleMetadata = ethers.BigNumber.from(0);
+    const fundingCycleMetadata = packFundingCycleMetadata({ metadata: 69 });
 
     // Configure funding cycle
     const configureForTx = await jbFundingCycleStore
@@ -127,7 +133,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
           DEFAULT_FUNDING_CYCLE_DATA.ballot,
         ],
         fundingCycleMetadata,
-        FUNDING_CYCLE_CAN_START_ASAP,
+        configurationTimestamp,
         controller.address,
       );
 
@@ -1761,11 +1767,10 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
       weight: firstFundingCycleData.weight.add(1),
     });
 
-    // Set the ballot to have a duration longer than the funding cycle.
-    await mockBallot.mock.duration.returns(firstFundingCycleData.duration.add(1));
+    const ballotDuration = firstFundingCycleData.duration.add(1);
 
-    // Ballot status should be approved.
-    expect(await jbFundingCycleStore.currentBallotStateOf(PROJECT_ID)).to.eql(1);
+    // Set the ballot to have a duration longer than the funding cycle.
+    await mockBallot.mock.duration.returns(ballotDuration);
 
     // Configure second funding cycle
     const secondConfigureForTx = await jbFundingCycleStore
@@ -1780,9 +1785,6 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     // The timestamp the second configuration was made during.
     const secondConfigurationTimestamp = await getTimestamp(secondConfigureForTx.blockNumber);
 
-    // Ballot status should be active.
-    expect(await jbFundingCycleStore.currentBallotStateOf(PROJECT_ID)).to.eql(0);
-
     await expect(secondConfigureForTx)
       .to.emit(jbFundingCycleStore, `Init`)
       .withArgs(secondConfigurationTimestamp, PROJECT_ID, /*basedOn=*/ firstConfigurationTimestamp);
@@ -1795,6 +1797,16 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
 
     // Fast forward to the next cycle.
     await fastForward(firstConfigurationTimestamp.blockNumber, firstFundingCycleData.duration);
+
+    await mockBallot.mock.stateOf
+      .withArgs(
+        PROJECT_ID,
+        secondConfigurationTimestamp,
+        firstConfigurationTimestamp
+          .add(expectedFirstFundingCycle.duration)
+          .add(expectedFirstFundingCycle.duration),
+      )
+      .returns(ballotStatus.ACTIVE);
 
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql({
       ...expectedFirstFundingCycle,
@@ -2008,6 +2020,15 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     expect(cleanFundingCycle(await jbFundingCycleStore.currentOf(PROJECT_ID))).to.eql(
       expectedFirstFundingCycle,
     );
+
+    await mockBallot.mock.stateOf
+      .withArgs(
+        PROJECT_ID,
+        secondConfigurationTimestamp,
+        secondConfigurationTimestamp.add(ballotDuration),
+      )
+      .returns(ballotStatus.ACTIVE);
+
     expect(cleanFundingCycle(await jbFundingCycleStore.queuedOf(PROJECT_ID))).to.eql(
       EMPTY_FUNDING_CYCLE,
     );
@@ -2290,7 +2311,10 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
 
     //fast forward to within the second cycle, which should have rolled over from the first.
     //keep 10 seconds before the end of the cycle so make all necessary checks before the cycle ends.
-    await fastForward(firstConfigureForTx.blockNumber, firstFundingCycleData.duration.mul(2).sub(10));
+    await fastForward(
+      firstConfigureForTx.blockNumber,
+      firstFundingCycleData.duration.mul(2).sub(10),
+    );
 
     const secondFundingCycleData = createFundingCycleData({
       duration: firstFundingCycleData.duration.add(1),
@@ -2329,7 +2353,10 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
 
     //fast forward to within the cycle.
     //keep 5 seconds before the end of the cycle so make all necessary checks before the cycle ends.
-    await fastForward(firstConfigureForTx.blockNumber, firstFundingCycleData.duration.mul(2).sub(5));
+    await fastForward(
+      firstConfigureForTx.blockNumber,
+      firstFundingCycleData.duration.mul(2).sub(5),
+    );
 
     const thirdFundingCycleData = createFundingCycleData({
       duration: firstFundingCycleData.duration.add(2),
@@ -2457,6 +2484,26 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     ).to.be.revertedWith(errors.INVALID_BALLOT);
   });
 
+  it(`Can't configure if the upcoming funding cycle start timestamp would overflow the max value`, async function () {
+    const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore } = await setup();
+    await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    const maxDuration = BigNumber.from(2).pow(32).sub(1);
+    const maxStart = BigNumber.from(2).pow(56).sub(maxDuration);
+
+    const fundingCycleData = createFundingCycleData({
+      duration: maxDuration,
+    });
+
+    await mockBallot.mock.supportsInterface.returns(false);
+
+    await expect(
+      jbFundingCycleStore
+        .connect(controller)
+        .configureFor(PROJECT_ID, fundingCycleData, 0, maxStart),
+    ).to.be.revertedWith(errors.INVALID_TIMEFRAME);
+  });
+
   it(`Can't configure if ballot has not the valid interface`, async function () {
     const { controller, mockJbDirectory, mockBallot, jbFundingCycleStore } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
@@ -2477,7 +2524,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
   it(`Can't configure if ballot is not IERC165 compliant`, async function () {
     const { controller, deployer, mockJbDirectory, jbFundingCycleStore } = await setup();
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
-    
+
     const mockBallotNew = await deployMockContract(deployer, ijbFundingCycleBallot.abi);
 
     const fundingCycleData = createFundingCycleData({

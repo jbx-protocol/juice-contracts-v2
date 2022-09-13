@@ -4,6 +4,7 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
+import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 
@@ -15,27 +16,32 @@ describe('JBTokenStore::balanceOf(...)', function () {
   async function setup() {
     const [deployer, controller, newHolder] = await ethers.getSigners();
 
+    const mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
+    const mockJbFundingCycleStore = await deployMockContract(deployer, jbFundingCycleStore.abi);
     const mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
     const mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
-    const mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
 
     const jbTokenStoreFactory = await ethers.getContractFactory('JBTokenStore');
     const jbTokenStore = await jbTokenStoreFactory.deploy(
       mockJbOperatorStore.address,
       mockJbProjects.address,
       mockJbDirectory.address,
+      mockJbFundingCycleStore.address,
     );
 
     return {
       newHolder,
       controller,
       mockJbDirectory,
+      mockJbProjects,
       jbTokenStore,
     };
   }
 
   it('Should return token balance for holder', async function () {
-    const { newHolder, controller, mockJbDirectory, jbTokenStore } = await setup();
+    const { newHolder, controller, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
+
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
 
@@ -49,7 +55,6 @@ describe('JBTokenStore::balanceOf(...)', function () {
 
     expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(numTokens);
 
-    // Mint more claimed tokens
     await jbTokenStore
       .connect(controller)
       .mintFor(newHolder.address, PROJECT_ID, numTokens, /* preferClaimedTokens= */ true);

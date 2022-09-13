@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.16;
 
-import './../interfaces/IJBFundingCycleDataSource.sol';
+import './../structs/JBFundingCycle.sol';
 import './../structs/JBFundingCycleMetadata.sol';
 import './../structs/JBGlobalFundingCycleMetadata.sol';
 import './JBConstants.sol';
@@ -11,7 +11,7 @@ library JBFundingCycleMetadataResolver {
   function global(JBFundingCycle memory _fundingCycle)
     internal
     pure
-    returns (JBGlobalFundingCycleMetadata memory metadata)
+    returns (JBGlobalFundingCycleMetadata memory)
   {
     return JBGlobalFundingCycleMetadataResolver.expandMetadata(uint8(_fundingCycle.metadata >> 8));
   }
@@ -54,16 +54,12 @@ library JBFundingCycleMetadataResolver {
     return ((_fundingCycle.metadata >> 76) & 1) == 1;
   }
 
-  function changeTokenAllowed(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
-    return ((_fundingCycle.metadata >> 77) & 1) == 1;
-  }
-
   function terminalMigrationAllowed(JBFundingCycle memory _fundingCycle)
     internal
     pure
     returns (bool)
   {
-    return ((_fundingCycle.metadata >> 78) & 1) == 1;
+    return ((_fundingCycle.metadata >> 77) & 1) == 1;
   }
 
   function controllerMigrationAllowed(JBFundingCycle memory _fundingCycle)
@@ -71,10 +67,18 @@ library JBFundingCycleMetadataResolver {
     pure
     returns (bool)
   {
-    return ((_fundingCycle.metadata >> 79) & 1) == 1;
+    return ((_fundingCycle.metadata >> 78) & 1) == 1;
   }
 
   function shouldHoldFees(JBFundingCycle memory _fundingCycle) internal pure returns (bool) {
+    return ((_fundingCycle.metadata >> 79) & 1) == 1;
+  }
+
+  function preferClaimedTokenOverride(JBFundingCycle memory _fundingCycle)
+    internal
+    pure
+    returns (bool)
+  {
     return ((_fundingCycle.metadata >> 80) & 1) == 1;
   }
 
@@ -100,6 +104,10 @@ library JBFundingCycleMetadataResolver {
 
   function dataSource(JBFundingCycle memory _fundingCycle) internal pure returns (address) {
     return address(uint160(_fundingCycle.metadata >> 84));
+  }
+
+  function metadata(JBFundingCycle memory _fundingCycle) internal pure returns (uint256) {
+    return uint256(uint8(_fundingCycle.metadata >> 244));
   }
 
   /**
@@ -139,14 +147,14 @@ library JBFundingCycleMetadataResolver {
     if (_metadata.pauseBurn) packed |= 1 << 75;
     // allow minting in bit 76.
     if (_metadata.allowMinting) packed |= 1 << 76;
-    // allow change token in bit 77.
-    if (_metadata.allowChangeToken) packed |= 1 << 77;
-    // allow terminal migration in bit 78.
-    if (_metadata.allowTerminalMigration) packed |= 1 << 78;
-    // allow controller migration in bit 79.
-    if (_metadata.allowControllerMigration) packed |= 1 << 79;
-    // hold fees in bit 80.
-    if (_metadata.holdFees) packed |= 1 << 80;
+    // allow terminal migration in bit 77.
+    if (_metadata.allowTerminalMigration) packed |= 1 << 77;
+    // allow controller migration in bit 78.
+    if (_metadata.allowControllerMigration) packed |= 1 << 78;
+    // hold fees in bit 79.
+    if (_metadata.holdFees) packed |= 1 << 79;
+    // prefer claimed token override in bit 80.
+    if (_metadata.preferClaimedTokenOverride) packed |= 1 << 80;
     // useTotalOverflowForRedemptions in bit 81.
     if (_metadata.useTotalOverflowForRedemptions) packed |= 1 << 81;
     // use pay data source in bit 82.
@@ -155,6 +163,8 @@ library JBFundingCycleMetadataResolver {
     if (_metadata.useDataSourceForRedeem) packed |= 1 << 83;
     // data source address in bits 84-243.
     packed |= uint256(uint160(address(_metadata.dataSource))) << 84;
+    // metadata in bits 244-252 (8 bits).
+    packed |= _metadata.metadata << 244;
   }
 
   /**
@@ -168,7 +178,7 @@ library JBFundingCycleMetadataResolver {
   function expandMetadata(JBFundingCycle memory _fundingCycle)
     internal
     pure
-    returns (JBFundingCycleMetadata memory metadata)
+    returns (JBFundingCycleMetadata memory)
   {
     return
       JBFundingCycleMetadata(
@@ -181,14 +191,15 @@ library JBFundingCycleMetadataResolver {
         redeemPaused(_fundingCycle),
         burnPaused(_fundingCycle),
         mintingAllowed(_fundingCycle),
-        changeTokenAllowed(_fundingCycle),
         terminalMigrationAllowed(_fundingCycle),
         controllerMigrationAllowed(_fundingCycle),
         shouldHoldFees(_fundingCycle),
+        preferClaimedTokenOverride(_fundingCycle),
         useTotalOverflowForRedemptions(_fundingCycle),
         useDataSourceForPay(_fundingCycle),
         useDataSourceForRedeem(_fundingCycle),
-        dataSource(_fundingCycle)
+        dataSource(_fundingCycle),
+        metadata(_fundingCycle)
       );
   }
 }

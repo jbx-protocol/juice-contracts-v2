@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.16;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/token/ERC721/extensions/draft-ERC721Votes.sol';
@@ -67,11 +67,14 @@ contract JBProjects is JBOperatable, ERC721Votes, Ownable, IJBProjects {
     @return The token URI to use for the provided `_projectId`.
   */
   function tokenURI(uint256 _projectId) public view override returns (string memory) {
+    // Keep a reference to the resolver.
+    IJBTokenUriResolver _tokenUriResolver = tokenUriResolver;
+
     // If there's no resolver, there's no URI.
-    if (tokenUriResolver == IJBTokenUriResolver(address(0))) return '';
+    if (_tokenUriResolver == IJBTokenUriResolver(address(0))) return '';
 
     // Return the resolved URI.
-    return tokenUriResolver.getUri(_projectId);
+    return _tokenUriResolver.getUri(_projectId);
   }
 
   /**

@@ -4,6 +4,7 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
+import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import errors from '../helpers/errors.json';
@@ -16,10 +17,10 @@ describe('JBTokenStore::claimFor(...)', function () {
   async function setup() {
     const [deployer, controller, newHolder, projectOwner] = await ethers.getSigners();
 
+    const mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
+    const mockJbFundingCycleStore = await deployMockContract(deployer, jbFundingCycleStore.abi);
     const mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
     const mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
-    const mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
-
     const jbOperationsFactory = await ethers.getContractFactory('JBOperations');
     const jbOperations = await jbOperationsFactory.deploy();
 
@@ -30,6 +31,7 @@ describe('JBTokenStore::claimFor(...)', function () {
       mockJbOperatorStore.address,
       mockJbProjects.address,
       mockJbDirectory.address,
+      mockJbFundingCycleStore.address,
     );
 
     await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(projectOwner.address);
@@ -50,13 +52,19 @@ describe('JBTokenStore::claimFor(...)', function () {
     const {
       controller,
       newHolder,
+      projectOwner,
       mockJbDirectory,
       mockJbOperatorStore,
+      mockJbProjects,
       jbTokenStore,
       CLAIM_INDEX,
     } = await setup();
 
+    // Mint access:
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Issue access:
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
     await mockJbOperatorStore.mock.hasPermission
@@ -96,9 +104,11 @@ describe('JBTokenStore::claimFor(...)', function () {
   });
 
   it(`Can't claim more tokens than the current _unclaimedBalance`, async function () {
-    const { controller, newHolder, mockJbDirectory, jbTokenStore, CLAIM_INDEX } = await setup();
+    const { controller, newHolder, mockJbDirectory, mockJbProjects, jbTokenStore, CLAIM_INDEX } =
+      await setup();
 
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
 

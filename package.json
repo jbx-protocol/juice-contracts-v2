@@ -1,16 +1,17 @@
 {
-  "name": "@jbx-protocol/contracts-v2",
+  "name": "@jbx-protocol/juice-contracts-v3",
   "bugs": {
-    "url": "https://github.com/jbx-protocol/juice-contracts-v2/issues"
+    "url": "https://github.com/jbx-protocol/juice-contracts-v3/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jbx-protocol/juice-contracts-v2"
+    "url": "https://github.com/jbx-protocol/juice-contracts-v3"
   },
-  "version": "8.0.2",
+  "version": "1.0.0",
   "license": "MIT",
   "devDependencies": {
     "@chainlink/contracts": "^0.1.6",
+    "@defi-wonderland/smock": "^2.2.0",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-etherscan": "^2.1.4",
     "@nomiclabs/hardhat-waffle": "^2.0.1",

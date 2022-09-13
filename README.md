@@ -1,5 +1,6 @@
-# juice-contracts-v2
+# juice-contracts-v3
 
+Protocol overview, architecture, and API documentation: https://info.juicebox.money/dev/
 ## Develop
 
 ### Unit Tests

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity >=0.8.6;
 
 import './helpers/TestBaseWorkflow.sol';
 
@@ -38,7 +38,11 @@ contract TestAllowance is TestBaseWorkflow {
     });
 
     _metadata = JBFundingCycleMetadata({
-      global: JBGlobalFundingCycleMetadata({allowSetTerminals: false, allowSetController: false}),
+      global: JBGlobalFundingCycleMetadata({
+        allowSetTerminals: false,
+        allowSetController: false,
+        pauseTransfers: false
+      }),
       reservedRate: 5000, //50%
       redemptionRate: 5000, //50%
       ballotRedemptionRate: 0,
@@ -47,14 +51,15 @@ contract TestAllowance is TestBaseWorkflow {
       pauseRedeem: false,
       pauseBurn: false,
       allowMinting: false,
-      allowChangeToken: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
       holdFees: false,
+      preferClaimedTokenOverride: false,
       useTotalOverflowForRedemptions: false,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
-      dataSource: address(0)
+      dataSource: address(0),
+      metadata: 0
     });
 
     _terminals.push(jbETHPaymentTerminal());
@@ -254,7 +259,8 @@ contract TestAllowance is TestBaseWorkflow {
       0, // Min wei out
       'Foundry payment' // Memo
     );
-    if (TARGET <= BALANCE && TARGET != 0)
+    if (TARGET <= BALANCE && TARGET > 1)
+      // Avoid rounding error
       assertEq(
         _projectOwner.balance,
         (TARGET * jbLibraries().MAX_FEE()) / (terminal.fee() + jbLibraries().MAX_FEE())

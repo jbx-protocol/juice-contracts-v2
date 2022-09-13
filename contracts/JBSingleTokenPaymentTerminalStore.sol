@@ -1,14 +1,17 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.16;
 
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './interfaces/IJBController.sol';
+import './interfaces/IJBFundingCycleDataSource.sol';
 import './interfaces/IJBSingleTokenPaymentTerminalStore.sol';
 import './libraries/JBConstants.sol';
 import './libraries/JBCurrencies.sol';
 import './libraries/JBFixedPointNumber.sol';
 import './libraries/JBFundingCycleMetadataResolver.sol';
+import './structs/JBPayDelegateAllocation.sol';
+import './structs/JBPayParamsData.sol';
 
 /**
   @notice
@@ -29,6 +32,7 @@ contract JBSingleTokenPaymentTerminalStore is ReentrancyGuard, IJBSingleTokenPay
   //*********************************************************************//
   // --------------------------- custom errors ------------------------- //
   //*********************************************************************//
+  error INVALID_AMOUNT_TO_SEND_DELEGATE();
   error CURRENCY_MISMATCH();
   error DISTRIBUTION_AMOUNT_LIMIT_REACHED();
   error FUNDING_CYCLE_PAYMENT_PAUSED();
@@ -292,7 +296,7 @@ contract JBSingleTokenPaymentTerminalStore is ReentrancyGuard, IJBSingleTokenPay
     Records newly contributed tokens to a project.
 
     @dev
-    Mint's the project's tokens according to values provided by a configured data source. If no data source is configured, mints tokens proportional to the amount of the contribution.
+    Mints the project's tokens according to values provided by a configured data source. If no data source is configured, mints tokens proportional to the amount of the contribution.
 
     @dev
     The msg.sender must be an IJBSingleTokenPaymentTerminal. The amount specified in the params is in terms of the msg.sender's tokens.
@@ -307,7 +311,7 @@ contract JBSingleTokenPaymentTerminalStore is ReentrancyGuard, IJBSingleTokenPay
 
     @return fundingCycle The project's funding cycle during which payment was made.
     @return tokenCount The number of project tokens that were minted, as a fixed point number with 18 decimals.
-    @return delegate A delegate contract to use for subsequent calls.
+    @return delegateAllocations The amount to send to delegates instead of adding to the local balance.
     @return memo A memo that should be passed along to the emitted event.
   */
   function recordPaymentFrom(
@@ -325,7 +329,7 @@ contract JBSingleTokenPaymentTerminalStore is ReentrancyGuard, IJBSingleTokenPay
     returns (
       JBFundingCycle memory fundingCycle,
       uint256 tokenCount,
-      IJBPayDelegate delegate,
+      JBPayDelegateAllocation[] memory delegateAllocations,
       string memory memo
     )
   {
@@ -342,7 +346,7 @@ contract JBSingleTokenPaymentTerminalStore is ReentrancyGuard, IJBSingleTokenPay
     uint256 _weight;
 
     // If the funding cycle has configured a data source, use it to derive a weight and memo.
-    if (fundingCycle.useDataSourceForPay()) {
+    if (fundingCycle.useDataSourceForPay() && fundingCycle.dataSource() != address(0)) {
       // Create the params that'll be sent to the data source.
       JBPayParamsData memory _data = JBPayParamsData(
         IJBSingleTokenPaymentTerminal(msg.sender),
@@ -356,9 +360,8 @@ contract JBSingleTokenPaymentTerminalStore is ReentrancyGuard, IJBSingleTokenPay
         _memo,
         _metadata
       );
-      (_weight, memo, delegate) = IJBFundingCycleDataSource(fundingCycle.dataSource()).payParams(
-        _data
-      );
+      (_weight, memo, delegateAllocations) = IJBFundingCycleDataSource(fundingCycle.dataSource())
+        .payParams(_data);
     }
     // Otherwise use the funding cycle's weight
     else {
@@ -366,16 +369,44 @@ contract JBSingleTokenPaymentTerminalStore is ReentrancyGuard, IJBSingleTokenPay
       memo = _memo;
     }
 
-    // If there's no amount being recorded, there's nothing left to do.
-    if (_amount.value == 0) return (fundingCycle, 0, delegate, memo);
+    // Scoped section prevents stack too deep. `_balanceDiff` only used within scope.
+    {
+      // Keep a reference to the amount that should be added to the project's balance.
+      uint256 _balanceDiff = _amount.value;
 
-    // Add the amount to the token balance of the project.
-    balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
-      balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] +
-      _amount.value;
+      // Validate all delegated amounts. This needs to be done before returning the delegate allocations to ensure valid delegated amounts.
+      if (delegateAllocations.length != 0) {
+        for (uint256 _i; _i < delegateAllocations.length; ) {
+          // Get a reference to the amount to be delegated.
+          uint256 _delegatedAmount = delegateAllocations[_i].amount;
+
+          // Validate if non-zero.
+          if (_delegatedAmount != 0) {
+            // Can't delegate more than was paid.
+            if (_delegatedAmount > _balanceDiff) revert INVALID_AMOUNT_TO_SEND_DELEGATE();
+
+            // Decrement the total amount being added to the balance.
+            _balanceDiff = _balanceDiff - _delegatedAmount;
+          }
+
+          unchecked {
+            ++_i;
+          }
+        }
+      }
+
+      // If there's no amount being recorded, there's nothing left to do.
+      if (_amount.value == 0) return (fundingCycle, 0, delegateAllocations, memo);
+
+      // Add the correct balance difference to the token balance of the project.
+      if (_balanceDiff != 0)
+        balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
+          balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] +
+          _balanceDiff;
+    }
 
     // If there's no weight, token count must be 0 so there's nothing left to do.
-    if (_weight == 0) return (fundingCycle, 0, delegate, memo);
+    if (_weight == 0) return (fundingCycle, 0, delegateAllocations, memo);
 
     // Get a reference to the number of decimals in the amount. (prevents stack too deep).
     uint256 _decimals = _amount.decimals;
@@ -408,7 +439,7 @@ contract JBSingleTokenPaymentTerminalStore is ReentrancyGuard, IJBSingleTokenPay
 
     @return fundingCycle The funding cycle during which the redemption was made.
     @return reclaimAmount The amount of terminal tokens reclaimed, as a fixed point number with 18 decimals.
-    @return delegate A delegate contract to use for subsequent calls.
+    @return delegateAllocations The amount to send to delegates instead of sending to the beneficiary.
     @return memo A memo that should be passed along to the emitted event.
   */
   function recordRedemptionFor(
@@ -424,7 +455,7 @@ contract JBSingleTokenPaymentTerminalStore is ReentrancyGuard, IJBSingleTokenPay
     returns (
       JBFundingCycle memory fundingCycle,
       uint256 reclaimAmount,
-      IJBRedemptionDelegate delegate,
+      JBRedemptionDelegateAllocation[] memory delegateAllocations,
       string memory memo
     )
   {
@@ -472,7 +503,7 @@ contract JBSingleTokenPaymentTerminalStore is ReentrancyGuard, IJBSingleTokenPay
         // Can't redeem more tokens that is in the supply.
         if (_tokenCount > _totalSupply) revert INSUFFICIENT_TOKENS();
 
-        if (_currentOverflow > 0)
+        if (_currentOverflow != 0)
           // Calculate reclaim amount using the current overflow amount.
           reclaimAmount = _reclaimableOverflowDuring(
             _projectId,
@@ -486,39 +517,70 @@ contract JBSingleTokenPaymentTerminalStore is ReentrancyGuard, IJBSingleTokenPay
       }
 
       // If the funding cycle has configured a data source, use it to derive a claim amount and memo.
-      if (fundingCycle.useDataSourceForRedeem()) {
-        // Create the params that'll be sent to the data source.
-        JBRedeemParamsData memory _data = JBRedeemParamsData(
-          IJBSingleTokenPaymentTerminal(msg.sender),
-          _holder,
-          _projectId,
-          fundingCycle.configuration,
-          _tokenCount,
-          _totalSupply,
-          _currentOverflow,
-          _reclaimedTokenAmount,
-          fundingCycle.useTotalOverflowForRedemptions(),
-          fundingCycle.redemptionRate(),
-          fundingCycle.ballotRedemptionRate(),
-          _memo,
-          _metadata
-        );
-        (reclaimAmount, memo, delegate) = IJBFundingCycleDataSource(fundingCycle.dataSource())
-          .redeemParams(_data);
+      if (fundingCycle.useDataSourceForRedeem() && fundingCycle.dataSource() != address(0)) {
+        // Yet another scoped section prevents stack too deep. `_state`  only used within scope.
+        {
+          // Get a reference to the ballot state.
+          JBBallotState _state = fundingCycleStore.currentBallotStateOf(_projectId);
+
+          // Create the params that'll be sent to the data source.
+          JBRedeemParamsData memory _data = JBRedeemParamsData(
+            IJBSingleTokenPaymentTerminal(msg.sender),
+            _holder,
+            _projectId,
+            fundingCycle.configuration,
+            _tokenCount,
+            _totalSupply,
+            _currentOverflow,
+            _reclaimedTokenAmount,
+            fundingCycle.useTotalOverflowForRedemptions(),
+            _state == JBBallotState.Active
+              ? fundingCycle.ballotRedemptionRate()
+              : fundingCycle.redemptionRate(),
+            _memo,
+            _metadata
+          );
+          (reclaimAmount, memo, delegateAllocations) = IJBFundingCycleDataSource(
+            fundingCycle.dataSource()
+          ).redeemParams(_data);
+        }
       } else {
         memo = _memo;
       }
     }
 
+    // Keep a reference to the amount that should be subtracted from the project's balance.
+    uint256 _balanceDiff = reclaimAmount;
+
+    if (delegateAllocations.length != 0) {
+      // Validate all delegated amounts.
+      for (uint256 _i; _i < delegateAllocations.length; ) {
+        // Get a reference to the amount to be delegated.
+        uint256 _delegatedAmount = delegateAllocations[_i].amount;
+
+        // Validate if non-zero.
+        if (_delegatedAmount != 0)
+          // Increment the total amount being subtracted from the balance.
+          _balanceDiff = _balanceDiff + _delegatedAmount;
+
+        unchecked {
+          ++_i;
+        }
+      }
+    }
+
     // The amount being reclaimed must be within the project's balance.
-    if (reclaimAmount > balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId])
+    if (_balanceDiff > balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId])
       revert INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE();
 
     // Remove the reclaimed funds from the project's balance.
-    if (reclaimAmount > 0)
-      balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
-        balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] -
-        reclaimAmount;
+    if (_balanceDiff != 0) {
+      unchecked {
+        balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
+          balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] -
+          _balanceDiff;
+      }
+    }
   }
 
   /**
@@ -595,9 +657,11 @@ contract JBSingleTokenPaymentTerminalStore is ReentrancyGuard, IJBSingleTokenPay
     ] = _newUsedDistributionLimitOf;
 
     // Removed the distributed funds from the project's token balance.
-    balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
-      balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] -
-      distributedAmount;
+    unchecked {
+      balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] =
+        balanceOf[IJBSingleTokenPaymentTerminal(msg.sender)][_projectId] -
+        distributedAmount;
+    }
   }
 
   /**
@@ -831,7 +895,10 @@ contract JBSingleTokenPaymentTerminalStore is ReentrancyGuard, IJBSingleTokenPay
       );
 
     // Overflow is the balance of this project minus the amount that can still be distributed.
-    return _balanceOf > _distributionLimitRemaining ? _balanceOf - _distributionLimitRemaining : 0;
+    unchecked {
+      return
+        _balanceOf > _distributionLimitRemaining ? _balanceOf - _distributionLimitRemaining : 0;
+    }
   }
 
   /**
@@ -859,8 +926,12 @@ contract JBSingleTokenPaymentTerminalStore is ReentrancyGuard, IJBSingleTokenPay
     uint256 _ethOverflow;
 
     // Add the current ETH overflow for each terminal.
-    for (uint256 _i = 0; _i < _terminals.length; _i++)
+    for (uint256 _i; _i < _terminals.length; ) {
       _ethOverflow = _ethOverflow + _terminals[_i].currentEthOverflowOf(_projectId);
+      unchecked {
+        ++_i;
+      }
+    }
 
     // Convert the ETH overflow to the specified currency if needed, maintaining a fixed point number with 18 decimals.
     uint256 _totalOverflow18Decimal = _currency == JBCurrencies.ETH

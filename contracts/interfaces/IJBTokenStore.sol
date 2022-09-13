@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.16;
 
+import './IJBFundingCycleStore.sol';
 import './IJBProjects.sol';
 import './IJBToken.sol';
 
@@ -40,15 +41,7 @@ interface IJBTokenStore {
     address caller
   );
 
-  event ShouldRequireClaim(uint256 indexed projectId, bool indexed flag, address caller);
-
-  event Change(
-    uint256 indexed projectId,
-    IJBToken indexed newToken,
-    IJBToken indexed oldToken,
-    address owner,
-    address caller
-  );
+  event Set(uint256 indexed projectId, IJBToken indexed newToken, address caller);
 
   event Transfer(
     address indexed holder,
@@ -60,9 +53,9 @@ interface IJBTokenStore {
 
   function tokenOf(uint256 _projectId) external view returns (IJBToken);
 
-  function projectOf(IJBToken _token) external view returns (uint256);
-
   function projects() external view returns (IJBProjects);
+
+  function fundingCycleStore() external view returns (IJBFundingCycleStore);
 
   function unclaimedBalanceOf(address _holder, uint256 _projectId) external view returns (uint256);
 
@@ -72,19 +65,13 @@ interface IJBTokenStore {
 
   function balanceOf(address _holder, uint256 _projectId) external view returns (uint256 _result);
 
-  function requireClaimFor(uint256 _projectId) external view returns (bool);
-
   function issueFor(
     uint256 _projectId,
     string calldata _name,
     string calldata _symbol
   ) external returns (IJBToken token);
 
-  function changeFor(
-    uint256 _projectId,
-    IJBToken _token,
-    address _newOwner
-  ) external returns (IJBToken oldToken);
+  function setFor(uint256 _projectId, IJBToken _token) external;
 
   function burnFrom(
     address _holder,
@@ -99,8 +86,6 @@ interface IJBTokenStore {
     uint256 _amount,
     bool _preferClaimedTokens
   ) external;
-
-  function shouldRequireClaimingFor(uint256 _projectId, bool _flag) external;
 
   function claimFor(
     address _holder,

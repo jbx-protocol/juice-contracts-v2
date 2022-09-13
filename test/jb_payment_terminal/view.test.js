@@ -1,18 +1,18 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
-import { makeSplits, packFundingCycleMetadata, setBalance } from '../../helpers/utils.js';
+import { makeSplits, packFundingCycleMetadata, setBalance } from '../helpers/utils.js';
 
-import errors from '../../helpers/errors.json';
+import errors from '../helpers/errors.json';
 
-import jbDirectory from '../../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
-import JBEthPaymentTerminal from '../../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
-import jbPaymentTerminalStore from '../../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
-import jbOperatoreStore from '../../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
-import jbProjects from '../../../artifacts/contracts/JBProjects.sol/JBProjects.json';
-import jbSplitsStore from '../../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
-import jbToken from '../../../artifacts/contracts/JBToken.sol/JBToken.json';
-import jbPrices from '../../../artifacts/contracts/JBPrices.sol/JBPrices.json';
+import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
+import JBEthPaymentTerminal from '../../artifacts/contracts/JBETHPaymentTerminal.sol/JBETHPaymentTerminal.json';
+import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
+import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
+import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
+import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
+import jbToken from '../../artifacts/contracts/JBToken.sol/JBToken.json';
+import jbPrices from '../../artifacts/contracts/JBPrices.sol/JBPrices.json';
 
 describe('JBPayoutRedemptionPaymentTerminal::getters', function () {
   const ETH_ADDRESS = '0x000000000000000000000000000000000000EEEe';

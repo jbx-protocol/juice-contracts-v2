@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.16;
 
 import '@openzeppelin/contracts/utils/Address.sol';
 import './abstract/JBPayoutRedemptionPaymentTerminal.sol';
+import './libraries/JBSplitsGroups.sol';
 
 /**
   @notice
@@ -13,6 +14,20 @@ import './abstract/JBPayoutRedemptionPaymentTerminal.sol';
   JBPayoutRedemptionPaymentTerminal: Generic terminal managing all inflows and outflows of funds into the protocol ecosystem.
 */
 contract JBETHPaymentTerminal is JBPayoutRedemptionPaymentTerminal {
+  //*********************************************************************//
+  // -------------------------- internal views ------------------------- //
+  //*********************************************************************//
+
+  /** 
+    @notice
+    Checks the balance of tokens in this contract.
+
+    @return The contract's balance, as a fixed point number with the same amount of decimals as this terminal.
+  */
+  function _balance() internal view override returns (uint256) {
+    return address(this).balance;
+  }
+
   //*********************************************************************//
   // -------------------------- constructor ---------------------------- //
   //*********************************************************************//
@@ -76,17 +91,5 @@ contract JBETHPaymentTerminal is JBPayoutRedemptionPaymentTerminal {
     _from; // Prevents unused var compiler and natspec complaints.
 
     Address.sendValue(_to, _amount);
-  }
-
-  /** 
-    @notice
-    Logic to be triggered before transferring tokens from this terminal.
-
-    @param _to The address to which the transfer is going.
-    @param _amount The amount of the transfer, as a fixed point number with the same number of decimals as this terminal.
-  */
-  function _beforeTransferTo(address _to, uint256 _amount) internal pure override {
-    _to; // Prevents unused var compiler and natspec complaints.
-    _amount; // Prevents unused var compiler and natspec complaints.
   }
 }

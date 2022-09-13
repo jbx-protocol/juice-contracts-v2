@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.6;
 
 import './helpers/TestBaseWorkflow.sol';
 
 contract TestLaunchProject is TestBaseWorkflow {
-  JBController controller;
   JBProjectMetadata _projectMetadata;
   JBFundingCycleData _data;
   JBFundingCycleMetadata _metadata;
@@ -14,8 +13,6 @@ contract TestLaunchProject is TestBaseWorkflow {
 
   function setUp() public override {
     super.setUp();
-
-    controller = jbController();
 
     _projectMetadata = JBProjectMetadata({content: 'myIPFSHash', domain: 1});
 
@@ -27,7 +24,11 @@ contract TestLaunchProject is TestBaseWorkflow {
     });
 
     _metadata = JBFundingCycleMetadata({
-      global: JBGlobalFundingCycleMetadata({allowSetTerminals: false, allowSetController: false}),
+      global: JBGlobalFundingCycleMetadata({
+        allowSetTerminals: false,
+        allowSetController: false,
+        pauseTransfers: false
+      }),
       reservedRate: 5000, //50%
       redemptionRate: 5000, //50%
       ballotRedemptionRate: 0,
@@ -36,19 +37,20 @@ contract TestLaunchProject is TestBaseWorkflow {
       pauseRedeem: false,
       pauseBurn: false,
       allowMinting: false,
-      allowChangeToken: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
       holdFees: false,
+      preferClaimedTokenOverride: false,
       useTotalOverflowForRedemptions: false,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
-      dataSource: address(0)
+      dataSource: address(0),
+      metadata: 0
     });
   }
 
   function testLaunchProject() public {
-    uint256 projectId = controller.launchProjectFor(
+    uint256 projectId = jbController().launchProjectFor(
       msg.sender,
       _projectMetadata,
       _data,
@@ -80,7 +82,7 @@ contract TestLaunchProject is TestBaseWorkflow {
     if (WEIGHT > type(uint88).max) {
       evm.expectRevert(abi.encodeWithSignature('INVALID_WEIGHT()'));
 
-      projectId = controller.launchProjectFor(
+      projectId = jbController().launchProjectFor(
         msg.sender,
         _projectMetadata,
         _data,
@@ -92,7 +94,7 @@ contract TestLaunchProject is TestBaseWorkflow {
         ''
       );
     } else {
-      projectId = controller.launchProjectFor(
+      projectId = jbController().launchProjectFor(
         msg.sender,
         _projectMetadata,
         _data,

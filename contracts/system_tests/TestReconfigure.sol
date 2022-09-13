@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.6;
 
 import './helpers/TestBaseWorkflow.sol';
 
@@ -28,7 +28,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
 
     _projectMetadata = JBProjectMetadata({content: 'myIPFSHash', domain: 1});
 
-    _ballot = new JBReconfigurationBufferBallot(BALLOT_DURATION, jbFundingCycleStore());
+    _ballot = new JBReconfigurationBufferBallot(BALLOT_DURATION);
 
     _data = JBFundingCycleData({
       duration: 6 days,
@@ -52,7 +52,11 @@ contract TestReconfigureProject is TestBaseWorkflow {
     });
 
     _metadata = JBFundingCycleMetadata({
-      global: JBGlobalFundingCycleMetadata({allowSetTerminals: false, allowSetController: false}),
+      global: JBGlobalFundingCycleMetadata({
+        allowSetTerminals: false,
+        allowSetController: false,
+        pauseTransfers: false
+      }),
       reservedRate: 5000,
       redemptionRate: 5000,
       ballotRedemptionRate: 0,
@@ -61,14 +65,15 @@ contract TestReconfigureProject is TestBaseWorkflow {
       pauseRedeem: false,
       pauseBurn: false,
       allowMinting: true,
-      allowChangeToken: false,
       allowTerminalMigration: false,
       allowControllerMigration: false,
       holdFees: false,
+      preferClaimedTokenOverride: false,
       useTotalOverflowForRedemptions: false,
       useDataSourceForPay: false,
       useDataSourceForRedeem: false,
-      dataSource: address(0)
+      dataSource: address(0),
+      metadata: 0
     });
 
     _terminals = [jbETHPaymentTerminal()];
@@ -146,7 +151,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
     uint256 currentConfiguration = fundingCycle.configuration;
 
     // Jump to FC+1, rolled over
-    evm.warp(block.timestamp + fundingCycle.duration); 
+    evm.warp(block.timestamp + fundingCycle.duration);
 
     // First reconfiguration
     evm.prank(multisig());
@@ -171,7 +176,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
     evm.prank(multisig());
     controller.reconfigureFundingCyclesOf(
       projectId,
-        JBFundingCycleData({
+      JBFundingCycleData({
         duration: 6 days,
         weight: weightSecondReconfiguration,
         discountRate: 0,
@@ -210,7 +215,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
   }
 
   function testMultipleReconfigure(uint8 FUZZED_BALLOT_DURATION) public {
-    _ballot = new JBReconfigurationBufferBallot(FUZZED_BALLOT_DURATION, jbFundingCycleStore());
+    _ballot = new JBReconfigurationBufferBallot(FUZZED_BALLOT_DURATION);
 
     _data = JBFundingCycleData({
       duration: 6 days,
@@ -264,8 +269,8 @@ contract TestReconfigureProject is TestBaseWorkflow {
       currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
       queuedFundingCycle = jbFundingCycleStore().queuedOf(projectId);
 
-      // While ballot is failed, queued is current rolled over
-      assertEq(queuedFundingCycle.weight, currentFundingCycle.weight);
+      // Queued is the funding cycle currently under ballot
+      assertEq(queuedFundingCycle.weight, _data.weight);
       assertEq(queuedFundingCycle.number, currentFundingCycle.number + 1);
 
       // Is the full ballot duration included in the funding cycle?
@@ -276,13 +281,20 @@ contract TestReconfigureProject is TestBaseWorkflow {
       ) {
         assertEq(currentFundingCycle.weight, initialFundingCycle.weight - i);
 
+        uint256 _previousFundingCycleNumber = currentFundingCycle.number;
+
         // we shift forward the start of the ballot into the fc, one day at a time, from fc to fc
         evm.warp(currentFundingCycle.start + currentFundingCycle.duration + i * 1 days);
 
-        // ballot should be in Approved state now, queued is the reconfiguration rolled over
+        // Ballot was Approved and we've changed fc, current is the reconfiguration
+        currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
+        assertEq(currentFundingCycle.weight, _data.weight);
+        assertEq(currentFundingCycle.number, _previousFundingCycleNumber + 1);
+
+        // Queued is the reconfiguration rolled-over
         queuedFundingCycle = jbFundingCycleStore().queuedOf(projectId);
-        assertEq(queuedFundingCycle.weight, currentFundingCycle.weight - 1);
-        assertEq(queuedFundingCycle.number, currentFundingCycle.number + 2);
+        assertEq(queuedFundingCycle.weight, _data.weight);
+        assertEq(queuedFundingCycle.number, currentFundingCycle.number + 1);
       }
       // the ballot is accross two funding cycles
       else {
@@ -294,7 +306,7 @@ contract TestReconfigureProject is TestBaseWorkflow {
         // Warp to after the end of the ballot, within the same fc: should be the new fc (ballot is in Approved state)
         evm.warp(currentFundingCycle.start + currentFundingCycle.duration + FUZZED_BALLOT_DURATION);
         currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
-        assertEq(currentFundingCycle.weight, initialFundingCycle.weight - i - 1);
+        assertEq(currentFundingCycle.weight, _data.weight);
         assertEq(currentFundingCycle.number, cycleNumber + 1);
       }
     }
@@ -350,7 +362,11 @@ contract TestReconfigureProject is TestBaseWorkflow {
       projectId,
       _dataWithoutBallot,
       JBFundingCycleMetadata({
-        global: JBGlobalFundingCycleMetadata({allowSetTerminals: false, allowSetController: false}),
+        global: JBGlobalFundingCycleMetadata({
+          allowSetTerminals: false,
+          allowSetController: false,
+          pauseTransfers: false
+        }),
         reservedRate: RESERVED_RATE,
         redemptionRate: REDEMPTION_RATE,
         ballotRedemptionRate: 0,
@@ -359,14 +375,15 @@ contract TestReconfigureProject is TestBaseWorkflow {
         pauseRedeem: false,
         pauseBurn: false,
         allowMinting: true,
-        allowChangeToken: false,
         allowTerminalMigration: false,
         allowControllerMigration: false,
         holdFees: false,
+        preferClaimedTokenOverride: false,
         useTotalOverflowForRedemptions: false,
         useDataSourceForPay: false,
         useDataSourceForRedeem: false,
-        dataSource: address(0)
+        dataSource: address(0),
+        metadata: 0
       }),
       0,
       _groupedSplits,
@@ -590,6 +607,5 @@ contract TestReconfigureProject is TestBaseWorkflow {
     fundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(fundingCycle.number, 2);
     assertEq(fundingCycle.weight, _dataReconfiguration.weight);
-
   }
 }

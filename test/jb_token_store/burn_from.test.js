@@ -4,6 +4,7 @@ import { ethers } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
+import jbFundingCycleStore from '../../artifacts/contracts/JBFundingCycleStore.sol/JBFundingCycleStore.json';
 import jbOperatoreStore from '../../artifacts/contracts/JBOperatorStore.sol/JBOperatorStore.json';
 import jbProjects from '../../artifacts/contracts/JBProjects.sol/JBProjects.json';
 import errors from '../helpers/errors.json';
@@ -12,12 +13,13 @@ describe('JBTokenStore::burnFrom(...)', function () {
   const PROJECT_ID = 2;
   const TOKEN_NAME = 'TestTokenDAO';
   const TOKEN_SYMBOL = 'TEST';
-  const MAX_TOKENS = BigInt(2 ** 224) - BigInt(1); // Max supply for ERC20Votes tokens
+  const MINTED_TOKENS = 123456;
 
   async function setup() {
     const [deployer, controller, newHolder] = await ethers.getSigners();
 
     const mockJbOperatorStore = await deployMockContract(deployer, jbOperatoreStore.abi);
+    const mockJbFundingCycleStore = await deployMockContract(deployer, jbFundingCycleStore.abi);
     const mockJbProjects = await deployMockContract(deployer, jbProjects.abi);
     const mockJbDirectory = await deployMockContract(deployer, jbDirectory.abi);
 
@@ -26,12 +28,14 @@ describe('JBTokenStore::burnFrom(...)', function () {
       mockJbOperatorStore.address,
       mockJbProjects.address,
       mockJbDirectory.address,
+      mockJbFundingCycleStore.address,
     );
 
     return {
       controller,
       newHolder,
       mockJbDirectory,
+      mockJbProjects,
       jbTokenStore,
     };
   }
@@ -39,22 +43,26 @@ describe('JBTokenStore::burnFrom(...)', function () {
   /* Happy path tests with controller access */
 
   it('Should burn only claimed tokens and emit event', async function () {
-    const { controller, newHolder, mockJbDirectory, jbTokenStore } = await setup();
+    const { controller, newHolder, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
 
+    // Access to burn
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Access to issue:
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
 
     // Mint more claimed tokens
     const preferClaimedTokens = true;
+
     await jbTokenStore
       .connect(controller)
-      .mintFor(newHolder.address, PROJECT_ID, MAX_TOKENS, preferClaimedTokens);
-
+      .mintFor(newHolder.address, PROJECT_ID, MINTED_TOKENS, preferClaimedTokens);
     // Burn the claimed tokens
     const burnFromTx = await jbTokenStore
       .connect(controller)
-      .burnFrom(newHolder.address, PROJECT_ID, MAX_TOKENS, preferClaimedTokens);
+      .burnFrom(newHolder.address, PROJECT_ID, MINTED_TOKENS, preferClaimedTokens);
 
     expect(await jbTokenStore.unclaimedBalanceOf(newHolder.address, PROJECT_ID)).to.equal(0);
     expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(0);
@@ -65,18 +73,22 @@ describe('JBTokenStore::burnFrom(...)', function () {
       .withArgs(
         newHolder.address,
         PROJECT_ID,
-        MAX_TOKENS,
+        MINTED_TOKENS,
         /* unclaimedBalance= */ 0,
-        MAX_TOKENS,
+        MINTED_TOKENS,
         preferClaimedTokens,
         controller.address,
       );
   });
 
   it('Should burn claimed tokens, then unclaimed tokens and emit event', async function () {
-    const { controller, newHolder, mockJbDirectory, jbTokenStore } = await setup();
+    const { controller, newHolder, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
 
+    // Access to burn
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Access to issue:
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
 
@@ -84,15 +96,15 @@ describe('JBTokenStore::burnFrom(...)', function () {
     const preferClaimedTokens = true;
     await jbTokenStore
       .connect(controller)
-      .mintFor(newHolder.address, PROJECT_ID, MAX_TOKENS, preferClaimedTokens);
+      .mintFor(newHolder.address, PROJECT_ID, MINTED_TOKENS, preferClaimedTokens);
 
     // Mint more unclaimed tokens
     await jbTokenStore
       .connect(controller)
-      .mintFor(newHolder.address, PROJECT_ID, MAX_TOKENS, /* preferClaimedTokens= */ false);
+      .mintFor(newHolder.address, PROJECT_ID, MINTED_TOKENS, /* preferClaimedTokens= */ false);
 
     // Burn all claimed tokens and then some of the unclaimed tokens. Leave 1 unclaimed token.
-    const burnAmt = MAX_TOKENS * BigInt(2) - BigInt(1);
+    const burnAmt = MINTED_TOKENS * 2 - 1;
     const burnFromTx = await jbTokenStore
       .connect(controller)
       .burnFrom(newHolder.address, PROJECT_ID, burnAmt, preferClaimedTokens);
@@ -107,17 +119,21 @@ describe('JBTokenStore::burnFrom(...)', function () {
         newHolder.address,
         PROJECT_ID,
         burnAmt,
-        MAX_TOKENS,
-        MAX_TOKENS,
+        MINTED_TOKENS,
+        MINTED_TOKENS,
         preferClaimedTokens,
         controller.address,
       );
   });
 
   it('Should burn unclaimed tokens only, then claimed tokens and emit event', async function () {
-    const { controller, newHolder, mockJbDirectory, jbTokenStore } = await setup();
+    const { controller, newHolder, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
 
+    // Access to burn
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Access to issue:
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
 
@@ -125,15 +141,15 @@ describe('JBTokenStore::burnFrom(...)', function () {
     const preferClaimedTokens = true;
     await jbTokenStore
       .connect(controller)
-      .mintFor(newHolder.address, PROJECT_ID, MAX_TOKENS, preferClaimedTokens);
+      .mintFor(newHolder.address, PROJECT_ID, MINTED_TOKENS, preferClaimedTokens);
 
     // Mint more unclaimed tokens
     await jbTokenStore
       .connect(controller)
-      .mintFor(newHolder.address, PROJECT_ID, MAX_TOKENS, /* preferClaimedTokens= */ false);
+      .mintFor(newHolder.address, PROJECT_ID, MINTED_TOKENS, /* preferClaimedTokens= */ false);
 
     // Burn all unclaimed tokens and then some of the claimed tokens. Leave 1 claimed token.
-    const burnAmt = MAX_TOKENS * BigInt(2) - BigInt(1);
+    const burnAmt = MINTED_TOKENS * 2 - 1;
     const burnFromTx = await jbTokenStore
       .connect(controller)
       .burnFrom(newHolder.address, PROJECT_ID, burnAmt, /* preferClaimedTokens= */ false);
@@ -148,17 +164,21 @@ describe('JBTokenStore::burnFrom(...)', function () {
         newHolder.address,
         PROJECT_ID,
         burnAmt,
-        MAX_TOKENS,
-        MAX_TOKENS,
+        MINTED_TOKENS,
+        MINTED_TOKENS,
         /* preferClaimedTokens= */ false,
         controller.address,
       );
   });
 
   it('Should burn unclaimed tokens only, if there is enough of them to not burn claimed ones, and emit event', async function () {
-    const { controller, newHolder, mockJbDirectory, jbTokenStore } = await setup();
+    const { controller, newHolder, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
 
+    // Access to burn
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Access to issue:
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
 
@@ -166,24 +186,22 @@ describe('JBTokenStore::burnFrom(...)', function () {
     const preferClaimedTokens = true;
     await jbTokenStore
       .connect(controller)
-      .mintFor(newHolder.address, PROJECT_ID, MAX_TOKENS, preferClaimedTokens);
+      .mintFor(newHolder.address, PROJECT_ID, MINTED_TOKENS, preferClaimedTokens);
 
     // Mint more unclaimed tokens
     await jbTokenStore
       .connect(controller)
-      .mintFor(newHolder.address, PROJECT_ID, MAX_TOKENS, /* preferClaimedTokens= */ false);
+      .mintFor(newHolder.address, PROJECT_ID, MINTED_TOKENS, /* preferClaimedTokens= */ false);
 
     // Burn all unclaimed tokens except one.
-    const burnAmt = MAX_TOKENS - BigInt(1);
+    const burnAmt = MINTED_TOKENS - 1;
     const burnFromTx = await jbTokenStore
       .connect(controller)
       .burnFrom(newHolder.address, PROJECT_ID, burnAmt, /* preferClaimedTokens= */ false);
 
     expect(await jbTokenStore.unclaimedBalanceOf(newHolder.address, PROJECT_ID)).to.equal(1);
-    expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(
-      MAX_TOKENS + BigInt(1),
-    );
-    expect(await jbTokenStore.totalSupplyOf(PROJECT_ID)).to.equal(MAX_TOKENS + BigInt(1));
+    expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(MINTED_TOKENS + 1);
+    expect(await jbTokenStore.totalSupplyOf(PROJECT_ID)).to.equal(MINTED_TOKENS + 1);
 
     await expect(burnFromTx)
       .to.emit(jbTokenStore, 'Burn')
@@ -191,17 +209,21 @@ describe('JBTokenStore::burnFrom(...)', function () {
         newHolder.address,
         PROJECT_ID,
         burnAmt,
-        MAX_TOKENS,
-        MAX_TOKENS,
+        MINTED_TOKENS,
+        MINTED_TOKENS,
         /* preferClaimedTokens= */ false,
         controller.address,
       );
   });
 
   it('Should burn only unclaimed tokens and emit event', async function () {
-    const { controller, newHolder, mockJbDirectory, jbTokenStore } = await setup();
+    const { controller, newHolder, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
 
+    // Access to burn
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Access to issue:
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
 
@@ -209,12 +231,12 @@ describe('JBTokenStore::burnFrom(...)', function () {
     const preferClaimedTokens = false;
     await jbTokenStore
       .connect(controller)
-      .mintFor(newHolder.address, PROJECT_ID, MAX_TOKENS, preferClaimedTokens);
+      .mintFor(newHolder.address, PROJECT_ID, MINTED_TOKENS, preferClaimedTokens);
 
     // Burn the unclaimed tokens
     const burnFromTx = await jbTokenStore
       .connect(controller)
-      .burnFrom(newHolder.address, PROJECT_ID, MAX_TOKENS, preferClaimedTokens);
+      .burnFrom(newHolder.address, PROJECT_ID, MINTED_TOKENS, preferClaimedTokens);
 
     expect(await jbTokenStore.unclaimedBalanceOf(newHolder.address, PROJECT_ID)).to.equal(0);
     expect(await jbTokenStore.balanceOf(newHolder.address, PROJECT_ID)).to.equal(0);
@@ -225,8 +247,8 @@ describe('JBTokenStore::burnFrom(...)', function () {
       .withArgs(
         newHolder.address,
         PROJECT_ID,
-        MAX_TOKENS,
-        MAX_TOKENS,
+        MINTED_TOKENS,
+        MINTED_TOKENS,
         0,
         preferClaimedTokens,
         controller.address,
@@ -251,9 +273,13 @@ describe('JBTokenStore::burnFrom(...)', function () {
   });
 
   it(`Can't burn more tokens than the available balance`, async function () {
-    const { controller, newHolder, mockJbDirectory, jbTokenStore } = await setup();
+    const { controller, newHolder, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
 
+    // Access to burn
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Access to issue:
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     await jbTokenStore.connect(controller).issueFor(PROJECT_ID, TOKEN_NAME, TOKEN_SYMBOL);
 
@@ -261,15 +287,15 @@ describe('JBTokenStore::burnFrom(...)', function () {
     const preferClaimedTokens = true;
     await jbTokenStore
       .connect(controller)
-      .mintFor(newHolder.address, PROJECT_ID, MAX_TOKENS, preferClaimedTokens);
+      .mintFor(newHolder.address, PROJECT_ID, MINTED_TOKENS, preferClaimedTokens);
 
     // Mint more unclaimed tokens
     await jbTokenStore
       .connect(controller)
-      .mintFor(newHolder.address, PROJECT_ID, MAX_TOKENS, /* preferClaimedTokens= */ false);
+      .mintFor(newHolder.address, PROJECT_ID, MINTED_TOKENS, /* preferClaimedTokens= */ false);
 
     // Burn more than the available balance
-    const burnAmt = MAX_TOKENS * BigInt(2) + BigInt(1);
+    const burnAmt = MINTED_TOKENS * 2 + 1;
 
     await expect(
       jbTokenStore
@@ -279,9 +305,13 @@ describe('JBTokenStore::burnFrom(...)', function () {
   });
 
   it(`Can't burn any tokens if none have been issued or allocated'`, async function () {
-    const { controller, newHolder, mockJbDirectory, jbTokenStore } = await setup();
+    const { controller, newHolder, mockJbDirectory, mockJbProjects, jbTokenStore } = await setup();
 
+    // Access to burn
     await mockJbDirectory.mock.controllerOf.withArgs(PROJECT_ID).returns(controller.address);
+
+    // Access to issue:
+    await mockJbProjects.mock.ownerOf.withArgs(PROJECT_ID).returns(controller.address);
 
     const numTokens = 1;
     const preferClaimedTokens = true;

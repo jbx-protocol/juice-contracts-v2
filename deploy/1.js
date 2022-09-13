@@ -5,10 +5,10 @@ const { ethers } = require('hardhat');
  *
  * Example usage:
  *
- * npx hardhat deploy --network rinkeby --tag 1
+ * npx hardhat deploy --network rinkeby --tags 1
  */
 module.exports = async ({ deployments, getChainId }) => {
-  console.log("Deploying 1");
+  console.log('Deploying 1');
 
   const { deploy } = deployments;
   const [deployer] = await ethers.getSigners();
@@ -56,7 +56,7 @@ module.exports = async ({ deployments, getChainId }) => {
   // Deploy a JBETHERC20SplitsPayerDeployer contract.
   await deploy('JBETHERC20SplitsPayerDeployer', {
     ...baseDeployArgs,
-    contract: "contracts/JBETHERC20SplitsPayerDeployer.sol:JBETHERC20SplitsPayerDeployer",
+    contract: 'contracts/JBETHERC20SplitsPayerDeployer.sol:JBETHERC20SplitsPayerDeployer',
     args: [],
   });
 
@@ -100,27 +100,32 @@ module.exports = async ({ deployments, getChainId }) => {
   // Deploy a JBFundingCycleStore.
   const JBFundingCycleStore = await deploy('JBFundingCycleStore', {
     ...baseDeployArgs,
-    contract: "contracts/JBFundingCycleStore.sol:JBFundingCycleStore",
+    contract: 'contracts/JBFundingCycleStore.sol:JBFundingCycleStore',
     args: [JBDirectory.address],
   });
 
   // Deploy a JBTokenStore.
   const JBTokenStore = await deploy('JBTokenStore', {
     ...baseDeployArgs,
-    args: [JBOperatorStore.address, JBProjects.address, JBDirectory.address],
+    args: [
+      JBOperatorStore.address,
+      JBProjects.address,
+      JBDirectory.address,
+      JBFundingCycleStore.address,
+    ],
   });
 
   // Deploy a JBSplitStore.
   const JBSplitStore = await deploy('JBSplitsStore', {
     ...baseDeployArgs,
-    contract: "contracts/JBSplitsStore.sol:JBSplitsStore",
+    contract: 'contracts/JBSplitsStore.sol:JBSplitsStore',
     args: [JBOperatorStore.address, JBProjects.address, JBDirectory.address],
   });
 
   // Deploy a JBController contract.
   const JBController = await deploy('JBController', {
     ...baseDeployArgs,
-    contract: "contracts/JBController.sol:JBController",
+    contract: 'contracts/JBController.sol:JBController',
     args: [
       JBOperatorStore.address,
       JBProjects.address,
@@ -134,7 +139,7 @@ module.exports = async ({ deployments, getChainId }) => {
   // Deploy a JBSingleTokenPaymentTerminalStore contract.
   const JBSingleTokenPaymentTerminalStore = await deploy('JBSingleTokenPaymentTerminalStore', {
     ...baseDeployArgs,
-    contract: "contracts/JBSingleTokenPaymentTerminalStore.sol:JBSingleTokenPaymentTerminalStore",
+    contract: 'contracts/JBSingleTokenPaymentTerminalStore.sol:JBSingleTokenPaymentTerminalStore',
     args: [JBDirectory.address, JBFundingCycleStore.address, JBPrices.address],
   });
 
@@ -158,7 +163,7 @@ module.exports = async ({ deployments, getChainId }) => {
   // Deploy a JBETHPaymentTerminal contract.
   const JBETHPaymentTerminal = await deploy('JBETHPaymentTerminal', {
     ...baseDeployArgs,
-    contract: "contracts/JBETHPaymentTerminal.sol:JBETHPaymentTerminal",
+    contract: 'contracts/JBETHPaymentTerminal.sol:JBETHPaymentTerminal',
     args: [
       ETH,
       JBOperatorStore.address,
@@ -265,13 +270,13 @@ module.exports = async ({ deployments, getChainId }) => {
     // Deploy a JB3DayReconfigurationBufferBallot.
     const JB3DayReconfigurationBufferBallot = await deploy('JBReconfigurationBufferBallot', {
       ...baseDeployArgs,
-      args: [259200, JBFundingCycleStore.address],
+      args: [259200],
     });
 
     // Deploy a JB7DayReconfigurationBufferBallot.
     await deploy('JBReconfigurationBufferBallot', {
       ...baseDeployArgs,
-      args: [604800, JBFundingCycleStore.address],
+      args: [604800],
     });
 
     console.log('Deploying protocol project...');
@@ -305,7 +310,6 @@ module.exports = async ({ deployments, getChainId }) => {
         /*pauseRedeem*/ false,
         /*pauseBurn*/ false,
         /*allowMinting*/ false,
-        /*allowChangeToken*/ false,
         /*allowTerminalMigration*/ false,
         /*allowControllerMigration*/ false,
         /*holdFees*/ false,
@@ -317,11 +321,11 @@ module.exports = async ({ deployments, getChainId }) => {
 
       /*mustStartAtOrAfter*/ ethers.BigNumber.from(protocolProjectStartsAtOrAfter),
 
-      /*groupedSplits*/[groupedSplits],
+      /*groupedSplits*/ [groupedSplits],
 
-      /*fundAccessConstraints*/[],
+      /*fundAccessConstraints*/ [],
 
-      /*terminals*/[JBETHPaymentTerminal.address],
+      /*terminals*/ [JBETHPaymentTerminal.address],
 
       /*memo*/ '',
     );

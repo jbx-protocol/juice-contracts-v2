@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.16;
 
-import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import './interfaces/IJBProjectPayer.sol';
 import './libraries/JBTokens.sol';
 
@@ -24,6 +25,8 @@ import './libraries/JBTokens.sol';
   ERC165: Introspection on interface adherance. 
 */
 contract JBETHERC20ProjectPayer is Ownable, ERC165, IJBProjectPayer {
+  using SafeERC20 for IERC20;
+
   //*********************************************************************//
   // -------------------------- custom errors -------------------------- //
   //*********************************************************************//
@@ -170,7 +173,7 @@ contract JBETHERC20ProjectPayer is Ownable, ERC165, IJBProjectPayer {
         JBTokens.ETH,
         address(this).balance,
         18, // balance is a fixed point number with 18 decimals.
-        defaultBeneficiary == address(0) ? msg.sender : defaultBeneficiary,
+        defaultBeneficiary == address(0) ? tx.origin : defaultBeneficiary,
         0, // Can't determine expectation of returned tokens ahead of time.
         defaultPreferClaimedTokens,
         defaultMemo,
@@ -267,8 +270,14 @@ contract JBETHERC20ProjectPayer is Ownable, ERC165, IJBProjectPayer {
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
 
+      // Get a reference to the balance before receiving tokens.
+      uint256 _balanceBefore = IERC20(_token).balanceOf(address(this));
+
       // Transfer tokens to this contract from the msg sender.
-      IERC20(_token).transferFrom(msg.sender, address(this), _amount);
+      IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
+
+      // The amount should reflect the change in balance.
+      _amount = IERC20(_token).balanceOf(address(this)) - _balanceBefore;
     } else {
       // If ETH is being paid, set the amount to the message value, and decimals to 18.
       _amount = msg.value;
@@ -311,8 +320,14 @@ contract JBETHERC20ProjectPayer is Ownable, ERC165, IJBProjectPayer {
     if (address(_token) != JBTokens.ETH) {
       if (msg.value > 0) revert NO_MSG_VALUE_ALLOWED();
 
+      // Get a reference to the balance before receiving tokens.
+      uint256 _balanceBefore = IERC20(_token).balanceOf(address(this));
+
       // Transfer tokens to this contract from the msg sender.
-      IERC20(_token).transferFrom(msg.sender, address(this), _amount);
+      IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
+
+      // The amount should reflect the change in balance.
+      _amount = IERC20(_token).balanceOf(address(this)) - _balanceBefore;
     } else {
       // If ETH is being paid, set the amount to the message value, and decimals to 18.
       _amount = msg.value;
@@ -361,7 +376,7 @@ contract JBETHERC20ProjectPayer is Ownable, ERC165, IJBProjectPayer {
     if (_terminal.decimalsForToken(_token) != _decimals) revert INCORRECT_DECIMAL_AMOUNT();
 
     // Approve the `_amount` of tokens from the destination terminal to transfer tokens from this contract.
-    if (_token != JBTokens.ETH) IERC20(_token).approve(address(_terminal), _amount);
+    if (_token != JBTokens.ETH) IERC20(_token).safeApprove(address(_terminal), _amount);
 
     // If the token is ETH, send it in msg.value.
     uint256 _payableValue = _token == JBTokens.ETH ? _amount : 0;
@@ -372,7 +387,7 @@ contract JBETHERC20ProjectPayer is Ownable, ERC165, IJBProjectPayer {
       _projectId,
       _amount, // ignored if the token is JBTokens.ETH.
       _token,
-      _beneficiary != address(0) ? _beneficiary : msg.sender,
+      _beneficiary != address(0) ? _beneficiary : tx.origin,
       _minReturnedTokens,
       _preferClaimedTokens,
       _memo,
@@ -409,7 +424,7 @@ contract JBETHERC20ProjectPayer is Ownable, ERC165, IJBProjectPayer {
     if (_terminal.decimalsForToken(_token) != _decimals) revert INCORRECT_DECIMAL_AMOUNT();
 
     // Approve the `_amount` of tokens from the destination terminal to transfer tokens from this contract.
-    if (_token != JBTokens.ETH) IERC20(_token).approve(address(_terminal), _amount);
+    if (_token != JBTokens.ETH) IERC20(_token).safeApprove(address(_terminal), _amount);
 
     // If the token is ETH, send it in msg.value.
     uint256 _payableValue = _token == JBTokens.ETH ? _amount : 0;

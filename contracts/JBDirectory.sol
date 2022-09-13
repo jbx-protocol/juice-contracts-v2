@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.16;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBDirectory.sol';
-import './libraries/JBGlobalFundingCycleMetadataResolver.sol';
+import './libraries/JBFundingCycleMetadataResolver.sol';
 import './libraries/JBOperations.sol';
 
 /**
@@ -22,7 +22,7 @@ import './libraries/JBOperations.sol';
 */
 contract JBDirectory is JBOperatable, Ownable, IJBDirectory {
   // A library that parses the packed funding cycle metadata into a friendlier format.
-  using JBGlobalFundingCycleMetadataResolver for uint8;
+  using JBFundingCycleMetadataResolver for JBFundingCycle;
 
   //*********************************************************************//
   // --------------------------- custom errors ------------------------- //
@@ -129,16 +129,29 @@ contract JBDirectory is JBOperatable, Ownable, IJBDirectory {
     override
     returns (IJBPaymentTerminal)
   {
-    // If a primary terminal for the token was specifically set and its one of the project's terminals, return it.
+    // Keep a reference to the primary terminal for the provided project ID and token.
+    IJBPaymentTerminal _primaryTerminal = _primaryTerminalOf[_projectId][_token];
+
+    // If a primary terminal for the token was specifically set and it's one of the project's terminals, return it.
     if (
-      _primaryTerminalOf[_projectId][_token] != IJBPaymentTerminal(address(0)) &&
-      isTerminalOf(_projectId, _primaryTerminalOf[_projectId][_token])
-    ) return _primaryTerminalOf[_projectId][_token];
+      _primaryTerminal != IJBPaymentTerminal(address(0)) &&
+      isTerminalOf(_projectId, _primaryTerminal)
+    ) return _primaryTerminal;
+
+    // Keep a reference to the number of terminals the project has.
+    uint256 _numberOfTerminals = _terminalsOf[_projectId].length;
 
     // Return the first terminal which accepts the specified token.
-    for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++) {
+    for (uint256 _i; _i < _numberOfTerminals; ) {
+      // Keep a reference to the terminal being iterated on.
       IJBPaymentTerminal _terminal = _terminalsOf[_projectId][_i];
+
+      // If the terminal accepts the specified token, return it.
       if (_terminal.acceptsToken(_token, _projectId)) return _terminal;
+
+      unchecked {
+        ++_i;
+      }
     }
 
     // Not found.
@@ -164,8 +177,20 @@ contract JBDirectory is JBOperatable, Ownable, IJBDirectory {
     override
     returns (bool)
   {
-    for (uint256 _i; _i < _terminalsOf[_projectId].length; _i++)
+    // Keep a reference to the number of terminals the project has.
+    uint256 _numberOfTerminals = _terminalsOf[_projectId].length;
+
+    // Loop through and return true if the terminal is contained.
+    for (uint256 _i; _i < _numberOfTerminals; ) {
+      // If the terminal being iterated on matches the provided terminal, return true.
       if (_terminalsOf[_projectId][_i] == _terminal) return true;
+
+      unchecked {
+        ++_i;
+      }
+    }
+
+    // Otherwise, return false.
     return false;
   }
 
@@ -229,7 +254,7 @@ contract JBDirectory is JBOperatable, Ownable, IJBDirectory {
     if (
       msg.sender != address(controllerOf[_projectId]) &&
       controllerOf[_projectId] != address(0) &&
-      !uint8(_fundingCycle.metadata >> 8).setControllerAllowed()
+      !_fundingCycle.global().allowSetController
     ) revert SET_CONTROLLER_NOT_ALLOWED();
 
     // Set the new controller.
@@ -263,19 +288,28 @@ contract JBDirectory is JBOperatable, Ownable, IJBDirectory {
 
     // Setting terminals must be allowed if not called from the current controller.
     if (
-      msg.sender != address(controllerOf[_projectId]) &&
-      !uint8(_fundingCycle.metadata >> 8).setTerminalsAllowed()
+      msg.sender != address(controllerOf[_projectId]) && !_fundingCycle.global().allowSetTerminals
     ) revert SET_TERMINALS_NOT_ALLOWED();
 
-    // Delete the stored terminals for the project.
+    // Set the stored terminals for the project.
     _terminalsOf[_projectId] = _terminals;
 
     // Make sure duplicates were not added.
-    if (_terminals.length > 1)
-      for (uint256 _i; _i < _terminals.length; _i++)
-        for (uint256 _j = _i + 1; _j < _terminals.length; _j++)
+    if (_terminals.length > 1) {
+      for (uint256 _i; _i < _terminals.length; ) {
+        for (uint256 _j = _i + 1; _j < _terminals.length; ) {
           if (_terminals[_i] == _terminals[_j]) revert DUPLICATE_TERMINALS();
 
+          unchecked {
+            ++_j;
+          }
+        }
+
+        unchecked {
+          ++_i;
+        }
+      }
+    }
     emit SetTerminals(_projectId, _terminals, msg.sender);
   }
 
@@ -361,8 +395,7 @@ contract JBDirectory is JBOperatable, Ownable, IJBDirectory {
 
     // Setting terminals must be allowed if not called from the current controller.
     if (
-      msg.sender != address(controllerOf[_projectId]) &&
-      !uint8(_fundingCycle.metadata >> 8).setTerminalsAllowed()
+      msg.sender != address(controllerOf[_projectId]) && !_fundingCycle.global().allowSetTerminals
     ) revert SET_TERMINALS_NOT_ALLOWED();
 
     // Add the new terminal.

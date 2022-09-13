@@ -1,15 +1,15 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import errors from '../../helpers/errors.json';
+import errors from '../helpers/errors.json';
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
-import jbDirectory from '../../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
-import jbPaymentTerminalStore from '../../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
-import jbOperatoreStore from '../../../artifacts/contracts/interfaces/IJBOperatorStore.sol/IJBOperatorStore.json';
-import jbProjects from '../../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
-import jbSplitsStore from '../../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
-import jbPrices from '../../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
+import jbDirectory from '../../artifacts/contracts/interfaces/IJBDirectory.sol/IJBDirectory.json';
+import jbPaymentTerminalStore from '../../artifacts/contracts/JBSingleTokenPaymentTerminalStore.sol/JBSingleTokenPaymentTerminalStore.json';
+import jbOperatoreStore from '../../artifacts/contracts/interfaces/IJBOperatorStore.sol/IJBOperatorStore.json';
+import jbProjects from '../../artifacts/contracts/interfaces/IJBProjects.sol/IJBProjects.json';
+import jbSplitsStore from '../../artifacts/contracts/interfaces/IJBSplitsStore.sol/IJBSplitsStore.json';
+import jbPrices from '../../artifacts/contracts/interfaces/IJBPrices.sol/IJBPrices.json';
 
 describe('JBPayoutRedemptionPaymentTerminal::setFee(...)', function () {
   const NEW_FEE = 8; // 4%
@@ -65,7 +65,7 @@ describe('JBPayoutRedemptionPaymentTerminal::setFee(...)', function () {
   it('Should set new fee and emit event if caller is terminal owner', async function () {
     const { jbEthPaymentTerminal, terminalOwner } = await setup();
 
-    expect(await jbEthPaymentTerminal.connect(terminalOwner).setFee(NEW_FEE))
+    await expect(jbEthPaymentTerminal.connect(terminalOwner).setFee(NEW_FEE))
       .to.emit(jbEthPaymentTerminal, 'SetFee')
       .withArgs(NEW_FEE, terminalOwner.address);
   });

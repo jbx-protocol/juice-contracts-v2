@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity ^0.8.16;
 
 import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 import './../structs/JBFundAccessConstraints.sol';
@@ -12,7 +12,6 @@ import './IJBFundingCycleStore.sol';
 import './IJBMigratable.sol';
 import './IJBPaymentTerminal.sol';
 import './IJBSplitsStore.sol';
-import './IJBToken.sol';
 import './IJBTokenStore.sol';
 
 interface IJBController is IERC165 {
@@ -167,18 +166,6 @@ interface IJBController is IERC165 {
     JBFundAccessConstraints[] memory _fundAccessConstraints,
     string calldata _memo
   ) external returns (uint256);
-
-  function issueTokenFor(
-    uint256 _projectId,
-    string calldata _name,
-    string calldata _symbol
-  ) external returns (IJBToken token);
-
-  function changeTokenOf(
-    uint256 _projectId,
-    IJBToken _token,
-    address _newOwner
-  ) external;
 
   function mintTokensOf(
     uint256 _projectId,
