@@ -778,8 +778,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
           false
         );
 
-      // If delegates were returned by the data source, issue a callback to it.
+      // If delegate allocations were specified by the data source, fulfill them.
       if (_delegateAllocations.length != 0) {
+        // Keep a reference to the token amount being forwarded to the delegate.
         JBTokenAmount memory _forwardedAmount = JBTokenAmount(token, 0, decimals, currency);
 
         JBDidRedeemData memory _data = JBDidRedeemData(
@@ -921,7 +922,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         }
       }
 
-      // Take the fee
+      // Take the fee.
       _fee = _feeEligibleDistributionAmount != 0
         ? _takeFeeFrom(
           _projectId,
@@ -932,15 +933,16 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
         )
         : 0;
 
-      // Transfer any remaining balance to the project owner and update returned leftover accordingly
+      // Transfer any remaining balance to the project owner and update returned leftover accordingly.
       if (_leftoverDistributionAmount != 0) {
-        // (_leftoverDistributionAmount of 1 creates a rounding error in _feeAmount(..), exclude it)
-        netLeftoverDistributionAmount = _leftoverDistributionAmount != 1
-          ? _leftoverDistributionAmount - _feeAmount(_leftoverDistributionAmount, fee, _feeDiscount)
-          : _leftoverDistributionAmount;
+        // Subtract the fee from the net leftover amount.
+        netLeftoverDistributionAmount =
+          _leftoverDistributionAmount -
+          _feeAmount(_leftoverDistributionAmount, fee, _feeDiscount);
 
+        // Transfer the amount to the project owner.
         _transferFrom(address(this), _projectOwner, netLeftoverDistributionAmount);
-      } // else netLeftoverDistributionAmount = 0
+      }
     }
 
     emit DistributePayouts(
@@ -1069,11 +1071,12 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       // Get a reference to the split being iterated on.
       JBSplit memory _split = _splits[_i];
 
-      // The amount to send towards the split
+      // The amount to send towards the split.
       uint256 _payoutAmount = _split.percent == leftoverPercentage
         ? leftoverAmount
         : PRBMath.mulDiv(_amount, _split.percent, JBConstants.SPLITS_TOTAL_PERCENT);
 
+      // Decrement the leftover percentage.
       leftoverPercentage -= _split.percent;
 
       // The payout amount substracting any applicable incurred fees.
@@ -1381,8 +1384,9 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
       // The token count for the beneficiary must be greater than or equal to the minimum expected.
       if (beneficiaryTokenCount < _minReturnedTokens) revert INADEQUATE_TOKEN_COUNT();
 
-      // If delegates were returned by the data source, issue a callback to it.
+      // If delegate allocations were specified by the data source, fulfill them.
       if (_delegateAllocations.length != 0) {
+        // Keep a reference to the token amount being forwarded to the delegate.
         JBTokenAmount memory _forwardedAmount = JBTokenAmount(token, _amount, decimals, currency);
 
         JBDidPayData memory _data = JBDidPayData(
@@ -1548,14 +1552,11 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     uint256 _fee,
     uint256 _feeDiscount
   ) internal pure returns (uint256) {
-    // If max fee, without discount, bypass the rest of the logic
-    if (_fee == JBConstants.MAX_FEE && _feeDiscount == 0) return _amount;
-
     // Calculate the discounted fee.
     uint256 _discountedFee = _fee -
       PRBMath.mulDiv(_fee, _feeDiscount, JBConstants.MAX_FEE_DISCOUNT);
 
-    // The amount of tokens from the `_amount` to pay as a fee
+    // The amount of tokens from the `_amount` to pay as a fee.
     return
       _amount - PRBMath.mulDiv(_amount, JBConstants.MAX_FEE, _discountedFee + JBConstants.MAX_FEE);
   }

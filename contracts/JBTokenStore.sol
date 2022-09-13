@@ -223,12 +223,6 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     @dev
     Only a project's owner or operator can set its token.
 
-    @dev
-    This contract must have access to all of the token's `IJBToken` interface functions.
-
-    @dev
-    Can't set a token that's currently being used by another project.
-
     @param _projectId The ID of the project to which the set token belongs.
     @param _token The new token. 
   */
@@ -326,9 +320,10 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     // The amount of tokens to burn.
     uint256 _claimedTokensToBurn;
 
-    if (_claimedBalance != 0) {
-      // If prefer converted, redeem tokens before redeeming unclaimed tokens.
+    // Get a reference to how many claimed tokens should be burned
+    if (_claimedBalance != 0)
       if (_preferClaimedTokens)
+        // If prefer converted, redeem tokens before redeeming unclaimed tokens.
         _claimedTokensToBurn = _claimedBalance < _amount ? _claimedBalance : _amount;
         // Otherwise, redeem unclaimed tokens before claimed tokens.
       else {
@@ -336,8 +331,6 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
           _claimedTokensToBurn = _unclaimedBalance < _amount ? _amount - _unclaimedBalance : 0;
         }
       }
-      // If there's no balance, redeem no tokens.
-    } else _claimedTokensToBurn = 0;
 
     // The amount of unclaimed tokens to redeem.
     uint256 _unclaimedTokensToBurn;
@@ -398,11 +391,11 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     // There must be enough unclaimed tokens to claim.
     if (_unclaimedBalance < _amount) revert INSUFFICIENT_UNCLAIMED_TOKENS();
 
-    // Subtract the claim amount from the holder's unclaimed project token balance.
-    unclaimedBalanceOf[_holder][_projectId] = unclaimedBalanceOf[_holder][_projectId] - _amount;
-
-    // Subtract the claim amount from the project's unclaimed total supply.
     unchecked {
+      // Subtract the claim amount from the holder's unclaimed project token balance.
+      unclaimedBalanceOf[_holder][_projectId] = _unclaimedBalance - _amount;
+
+      // Subtract the claim amount from the project's unclaimed total supply.
       unclaimedTotalSupplyOf[_projectId] = unclaimedTotalSupplyOf[_projectId] - _amount;
     }
 
