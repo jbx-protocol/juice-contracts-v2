@@ -3,6 +3,7 @@ pragma solidity ^0.8.16;
 
 import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 import './../structs/JBSplit.sol';
+import './../structs/JBSplitGroup.sol';
 import './IJBSplitsStore.sol';
 
 interface IJBSplitsPayer is IERC165 {
@@ -60,9 +61,16 @@ interface IJBSplitsPayer is IERC165 {
 
   function splitsStore() external view returns (IJBSplitsStore);
 
-  function setDefaultSplits(
+  function setDefaultSplitsReference(
     uint256 _projectId,
     uint256 _domain,
     uint256 _group
+  ) external;
+
+  function setDefaultSplits(
+    uint256 _projectId,
+    uint256 _domain,
+    uint256 _group,
+    JBSplitsGroup[] memory _splitsGroup
   ) external;
 }

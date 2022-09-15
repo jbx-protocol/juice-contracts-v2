@@ -199,17 +199,43 @@ contract JBETHERC20SplitsPayer is JBETHERC20ProjectPayer, ReentrancyGuard, IJBSp
 
   /** 
     @notice
+    Sets the splits in the splits store that payments this contract receives will be split between.
+
+    @param _projectId The ID of project for which the default splits are stored. 
+    @param _domain The domain within which the default splits are stored. 
+    @param _group The group within which the default splits are stored. 
+    @param _groupedSplits The split groups to set.
+  */
+  function setDefaultSplits(
+    uint256 _projectId,
+    uint256 _domain,
+    uint256 _group,
+    JBGroupedSplits[] memory _groupedSplits
+  ) external virtual override onlyOwner {
+    // Set the splits in the store.
+    splitsStore.set(_projectId, _domain, _groupedSplits);
+
+    // Set the splits reference.
+    setDefaultSplitsReference(_projectId, _domain, _group);
+  }
+
+  //*********************************************************************//
+  // ----------------------- public transactions ----------------------- //
+  //*********************************************************************//
+
+  /** 
+    @notice
     Sets the location of the splits that payments this contract receives will be split between.
 
     @param _projectId The ID of project for which the default splits are stored. 
     @param _domain The domain within which the default splits are stored. 
     @param _group The group within which the default splits are stored. 
   */
-  function setDefaultSplits(
+  function setDefaultSplitsReference(
     uint256 _projectId,
     uint256 _domain,
     uint256 _group
-  ) external virtual override onlyOwner {
+  ) public virtual override onlyOwner {
     // Set the default splits project ID if it's changing.
     if (_projectId != defaultSplitsProjectId) defaultSplitsProjectId = _projectId;
 
@@ -221,10 +247,6 @@ contract JBETHERC20SplitsPayer is JBETHERC20ProjectPayer, ReentrancyGuard, IJBSp
 
     emit SetDefaultSplits(_projectId, _domain, _group, msg.sender);
   }
-
-  //*********************************************************************//
-  // ----------------------- public transactions ----------------------- //
-  //*********************************************************************//
 
   /** 
     @notice 
