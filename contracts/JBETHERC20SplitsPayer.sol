@@ -245,7 +245,7 @@ contract JBETHERC20SplitsPayer is JBETHERC20ProjectPayer, ReentrancyGuard, IJBSp
     // Set the default splits group if it's changing.
     if (_group != defaultSplitsGroup) defaultSplitsGroup = _group;
 
-    emit SetDefaultSplits(_projectId, _domain, _group, msg.sender);
+    emit SetDefaultSplitsReference(_projectId, _domain, _group, msg.sender);
   }
 
   /** 
