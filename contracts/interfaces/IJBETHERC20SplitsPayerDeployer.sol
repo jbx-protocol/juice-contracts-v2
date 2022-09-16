@@ -34,4 +34,17 @@ interface IJBETHERC20SplitsPayerDeployer {
     bool _preferAddToBalance,
     address _owner
   ) external returns (IJBSplitsPayer splitsPayer);
+
+  function deploySplitsPayerWithSplits(
+    uint256 _defaultSplitsProjectId,
+    JBSplit[] memory _defaultSplits,
+    IJBSplitsStore _splitsStore,
+    uint256 _defaultProjectId,
+    address payable _defaultBeneficiary,
+    bool _defaultPreferClaimedTokens,
+    string memory _defaultMemo,
+    bytes memory _defaultMetadata,
+    bool _defaultPreferAddToBalance,
+    address _owner
+  ) external returns (IJBSplitsPayer splitsPayer);
 }
