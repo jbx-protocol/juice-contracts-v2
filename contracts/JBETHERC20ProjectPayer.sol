@@ -387,7 +387,9 @@ contract JBETHERC20ProjectPayer is Ownable, ERC165, IJBProjectPayer {
       _projectId,
       _amount, // ignored if the token is JBTokens.ETH.
       _token,
-      _beneficiary != address(0) ? _beneficiary : tx.origin,
+      _beneficiary != address(0) ? _beneficiary : defaultBeneficiary != address(0)
+        ? defaultBeneficiary
+        : tx.origin,
       _minReturnedTokens,
       _preferClaimedTokens,
       _memo,
