@@ -61,6 +61,7 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
       mockJbDirectory,
       mockJbTerminal,
       jbProjectPayer,
+      jbProjectPayerFactory,
     };
   }
 
@@ -105,8 +106,61 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
     ).to.not.be.reverted;
   });
 
-  it(`Should pay and use the caller if no beneficiary is set`, async function () {
+  it(`Should pay and use the default beneficiary if set and none is passed`, async function () {
     const { caller, jbProjectPayer, mockJbDirectory, mockJbTerminal } = await setup();
+
+    await mockJbDirectory.mock.primaryTerminalOf
+      .withArgs(PROJECT_ID, ethToken)
+      .returns(mockJbTerminal.address);
+
+    // Eth payments should use 18 decimals.
+    await mockJbTerminal.mock.decimalsForToken.withArgs(ethToken).returns(18);
+
+    await mockJbTerminal.mock.pay
+      .withArgs(
+        PROJECT_ID,
+        AMOUNT,
+        ethToken,
+        INITIAL_BENEFICIARY,
+        MIN_RETURNED_TOKENS,
+        PREFER_CLAIMED_TOKENS,
+        MEMO,
+        METADATA,
+      )
+      .returns(0);
+
+    await jbProjectPayer
+      .connect(caller)
+      .pay(
+        PROJECT_ID,
+        ethToken,
+        0,
+        DECIMALS,
+        ethers.constants.AddressZero,
+        MIN_RETURNED_TOKENS,
+        PREFER_CLAIMED_TOKENS,
+        MEMO,
+        METADATA,
+        {
+          value: AMOUNT,
+        },
+      );
+    // ).to.not.be.reverted;
+  });
+
+  it(`Should pay and use the caller if no beneficiary or default beneficiary is set`, async function () {
+    const { owner, caller, jbProjectPayerFactory, mockJbDirectory, mockJbTerminal } = await setup();
+
+    let _jbProjectPayer = await jbProjectPayerFactory.deploy(
+      INITIAL_PROJECT_ID,
+      ethers.constants.AddressZero,
+      INITIAL_PREFER_CLAIMED_TOKENS,
+      INITIAL_MEMO,
+      INITIAL_METADATA,
+      INITIAL_PREFER_ADD_TO_BALANCE,
+      mockJbDirectory.address,
+      owner.address,
+    );
 
     await mockJbDirectory.mock.primaryTerminalOf
       .withArgs(PROJECT_ID, ethToken)
@@ -128,24 +182,23 @@ describe('JBETHERC20ProjectPayer::pay(...)', function () {
       )
       .returns(0);
 
-    await expect(
-      jbProjectPayer
-        .connect(caller)
-        .pay(
-          PROJECT_ID,
-          ethToken,
-          0,
-          DECIMALS,
-          ethers.constants.AddressZero,
-          MIN_RETURNED_TOKENS,
-          PREFER_CLAIMED_TOKENS,
-          MEMO,
-          METADATA,
-          {
-            value: AMOUNT,
-          },
-        ),
-    ).to.not.be.reverted;
+    await _jbProjectPayer
+      .connect(caller)
+      .pay(
+        PROJECT_ID,
+        ethToken,
+        0,
+        DECIMALS,
+        ethers.constants.AddressZero,
+        MIN_RETURNED_TOKENS,
+        PREFER_CLAIMED_TOKENS,
+        MEMO,
+        METADATA,
+        {
+          value: AMOUNT,
+        },
+      );
+    // ).to.not.be.reverted;
   });
 
   it(`Should pay funds towards project with a 9-decimals erc20 tokens`, async function () {

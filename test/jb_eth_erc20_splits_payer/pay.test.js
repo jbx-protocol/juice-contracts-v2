@@ -154,7 +154,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
 
     await expect(tx).emit(jbSplitsPayer, 'Pay').withArgs(
       PROJECT_ID,
-      DEFAULT_BENEFICIARY,
+      BENEFICIARY,
       ethToken,
       AMOUNT,
       18,
@@ -256,7 +256,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
 
     await expect(tx).to.emit(jbSplitsPayer, 'Pay').withArgs(
       PROJECT_ID,
-      DEFAULT_BENEFICIARY,
+      BENEFICIARY,
       mockToken.address,
       AMOUNT,
       DECIMALS,
@@ -332,7 +332,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
 
     await expect(tx).to.emit(jbSplitsPayer, 'Pay').withArgs(
       PROJECT_ID,
-      DEFAULT_BENEFICIARY,
+      BENEFICIARY,
       mockToken.address,
       NET_AMOUNT,
       DECIMALS,
@@ -394,7 +394,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
 
     await expect(tx).to.emit(jbSplitsPayer, 'Pay').withArgs(
       PROJECT_ID,
-      DEFAULT_BENEFICIARY,
+      BENEFICIARY,
       ethToken,
       AMOUNT,
       18,
@@ -468,7 +468,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       );
     await expect(tx).to.emit(jbSplitsPayer, 'Pay').withArgs(
       PROJECT_ID,
-      DEFAULT_BENEFICIARY,
+      BENEFICIARY,
       ethToken,
       AMOUNT,
       18,
@@ -561,7 +561,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       );
     await expect(tx).to.emit(jbSplitsPayer, 'Pay').withArgs(
       PROJECT_ID,
-      DEFAULT_BENEFICIARY,
+      BENEFICIARY,
       ethToken,
       AMOUNT,
       18,
@@ -645,7 +645,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
 
     await expect(tx).to.emit(jbSplitsPayer, 'Pay').withArgs(
       PROJECT_ID,
-      DEFAULT_BENEFICIARY,
+      BENEFICIARY,
       ethToken,
       AMOUNT,
       18,
@@ -704,7 +704,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
         ethToken,
         AMOUNT,
         DECIMALS,
-        BENEFICIARY,
+        ethers.constants.AddressZero,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
         MEMO,
@@ -789,7 +789,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
         ethToken,
         AMOUNT,
         DECIMALS,
-        BENEFICIARY,
+        ethers.constants.AddressZero,
         MIN_RETURNED_TOKENS,
         PREFER_CLAIMED_TOKENS,
         MEMO,
@@ -802,7 +802,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     await expect(tx).to.changeEtherBalance(caller, 0); // -AMOUNT then +AMOUNT, gas is not taken into account
     await expect(tx).to.emit(jbSplitsPayerWithoutDefaultBeneficiary, 'Pay').withArgs(
       PROJECT_ID,
-      ethers.constants.AddressZero, // default beneficary
+      caller.address,
       ethToken,
       AMOUNT,
       18,
@@ -907,7 +907,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       .to.emit(jbSplitsPayer, 'Pay')
       .withArgs(
         PROJECT_ID,
-        DEFAULT_BENEFICIARY,
+        beneficiaryThree.address,
         ethToken,
         AMOUNT,
         18,
@@ -1002,7 +1002,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       .to.emit(jbSplitsPayer, 'Pay')
       .withArgs(
         PROJECT_ID,
-        DEFAULT_BENEFICIARY,
+        beneficiaryThree.address,
         mockToken.address,
         AMOUNT,
         18,
@@ -1073,7 +1073,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
 
     await expect(tx).to.emit(jbSplitsPayer, 'Pay').withArgs(
       0,
-      DEFAULT_BENEFICIARY,
+      beneficiaryThree.address,
       ethToken,
       AMOUNT,
       18,
@@ -1145,7 +1145,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
 
     await expect(tx).to.emit(jbSplitsPayer, 'Pay').withArgs(
       0,
-      DEFAULT_BENEFICIARY,
+      beneficiaryThree.address,
       mockToken.address,
       AMOUNT,
       DECIMALS,
@@ -1161,7 +1161,8 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
   it(`Should send eth leftover to the caller if no project id nor beneficiary is set and emit event`, async function () {
     const {
       caller,
-      jbSplitsPayer,
+      owner,
+      jbSplitsPayerFactory,
       mockJbDirectory,
       mockJbSplitsStore,
       mockJbTerminal,
@@ -1176,6 +1177,20 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       beneficiary: [beneficiaryOne.address, beneficiaryTwo.address],
       percent: maxSplitsPercent.div('4'),
     });
+
+    let jbSplitsPayerWithoutDefaultBeneficiary = await jbSplitsPayerFactory.deploy(
+      DEFAULT_SPLITS_PROJECT_ID,
+      DEFAULT_SPLITS_DOMAIN,
+      DEFAULT_SPLITS_GROUP,
+      mockJbSplitsStore.address,
+      DEFAULT_PROJECT_ID,
+      ethers.constants.AddressZero,
+      DEFAULT_PREFER_CLAIMED_TOKENS,
+      DEFAULT_MEMO,
+      DEFAULT_METADATA,
+      PREFER_ADD_TO_BALANCE,
+      owner.address,
+    );
 
     await mockJbSplitsStore.mock.splitsOf
       .withArgs(DEFAULT_SPLITS_PROJECT_ID, DEFAULT_SPLITS_DOMAIN, DEFAULT_SPLITS_GROUP)
@@ -1196,7 +1211,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       )
       .returns(0); // Not used
 
-    let tx = await jbSplitsPayer
+    let tx = await jbSplitsPayerWithoutDefaultBeneficiary
       .connect(caller)
       .pay(
         0,
@@ -1213,8 +1228,8 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
         },
       );
 
-    await expect(tx).to.changeEtherBalance(caller, AMOUNT.div('-2')); // Only 50% are dsitributed
-    await expect(tx).to.emit(jbSplitsPayer, 'Pay').withArgs(
+    await expect(tx).to.changeEtherBalance(caller, AMOUNT.div('-2')); // Only 50% are dsitributed, rest is returned
+    await expect(tx).to.emit(jbSplitsPayerWithoutDefaultBeneficiary, 'Pay').withArgs(
       0,
       caller.address,
       ethToken,
@@ -1232,7 +1247,8 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
   it(`Should send erc20 leftover to the caller if no project id nor beneficiary is set and emit event`, async function () {
     const {
       caller,
-      jbSplitsPayer,
+      owner,
+      jbSplitsPayerFactory,
       mockJbSplitsStore,
       mockToken,
       beneficiaryOne,
@@ -1247,11 +1263,25 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       percent: maxSplitsPercent.div('4'),
     });
 
+    let jbSplitsPayerWithoutDefaultBeneficiary = await jbSplitsPayerFactory.deploy(
+      DEFAULT_SPLITS_PROJECT_ID,
+      DEFAULT_SPLITS_DOMAIN,
+      DEFAULT_SPLITS_GROUP,
+      mockJbSplitsStore.address,
+      DEFAULT_PROJECT_ID,
+      ethers.constants.AddressZero,
+      DEFAULT_PREFER_CLAIMED_TOKENS,
+      DEFAULT_MEMO,
+      DEFAULT_METADATA,
+      PREFER_ADD_TO_BALANCE,
+      owner.address,
+    );
+
     // Transfer to splitsPayer
     mockToken.balanceOf.returnsAtCall(0, 0);
 
     mockToken.transferFrom
-      .whenCalledWith(caller.address, jbSplitsPayer.address, AMOUNT)
+      .whenCalledWith(caller.address, jbSplitsPayerWithoutDefaultBeneficiary.address, AMOUNT)
       .returns(true);
 
     mockToken.balanceOf.returnsAtCall(1, AMOUNT);
@@ -1272,7 +1302,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
     // Transfer leftover from splitsPayer to msg.sender
     mockToken.transfer.whenCalledWith(caller.address, AMOUNT.div('2')).returns(true);
 
-    let tx = await jbSplitsPayer
+    let tx = await jbSplitsPayerWithoutDefaultBeneficiary
       .connect(caller)
       .pay(
         0,
@@ -1286,7 +1316,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
         METADATA,
       );
 
-    await expect(tx).to.emit(jbSplitsPayer, 'Pay').withArgs(
+    await expect(tx).to.emit(jbSplitsPayerWithoutDefaultBeneficiary, 'Pay').withArgs(
       0,
       caller.address,
       mockToken.address,
@@ -1333,7 +1363,7 @@ describe('JBETHERC20SplitsPayer::pay(...)', function () {
       .to.emit(jbSplitsPayer, 'Pay')
       .withArgs(
         PROJECT_ID,
-        DEFAULT_BENEFICIARY,
+        BENEFICIARY,
         ethToken,
         0,
         DECIMALS,
