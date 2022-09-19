@@ -8,7 +8,7 @@ import { makeSplits } from '../helpers/utils';
 import jbDirectory from '../../artifacts/contracts/JBDirectory.sol/JBDirectory.json';
 import jbSplitsStore from '../../artifacts/contracts/JBSplitsStore.sol/JBSplitsStore.json';
 
-describe('JBSplitsPayerDeployer::deploySplitsPayer(...)', function () {
+describe('JBSplitsPayerDeployer::deploySplitsPayerWithSplits(...)', function () {
   const DEFAULT_SPLITS_PROJECT_ID = 3;
   const DEFAULT_SPLITS = makeSplits();
   const DEFAULT_PROJECT_ID = 2;
@@ -38,7 +38,7 @@ describe('JBSplitsPayerDeployer::deploySplitsPayer(...)', function () {
     };
   }
 
-  it(`Should deploy and emit event`, async function () {
+  it(`Should deploy splits payer with splits, correct domain and group, and emit event`, async function () {
     let { deployer, owner, jbSplitsPayerDeployer, mockJbSplitsStore } = await setup();
 
     const expectedDomain = ethers.BigNumber.from(jbSplitsPayerDeployer.address);
