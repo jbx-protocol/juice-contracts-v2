@@ -59,6 +59,7 @@ contract JBETHERC20SplitsPayerDeployer is IJBETHERC20SplitsPayerDeployer {
 
     // Set the splits in the store.
     JBGroupedSplits[] memory _groupedSplits;
+    _groupedSplits = new JBGroupedSplits[](1);
     _groupedSplits[0] = JBGroupedSplits(_group, _defaultSplits);
     _splitsStore.set(_defaultSplitsProjectId, _domain, _groupedSplits);
 
