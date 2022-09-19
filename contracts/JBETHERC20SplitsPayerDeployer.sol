@@ -23,6 +23,9 @@ contract JBETHERC20SplitsPayerDeployer is IJBETHERC20SplitsPayerDeployer {
     @notice 
     Allows anyone to deploy a new splits payer contract.
 
+    @dev
+    This contract must have Operator permissions over the SET_SPLITS permission of the specified `_defaultSplitsProjectId`.
+
     @param _defaultSplitsProjectId The ID of project for which the default splits are stored.
     @param _defaultSplits The splits to payout when this contract receives direct payments.
     @param _splitsStore A contract that stores splits for each project.
