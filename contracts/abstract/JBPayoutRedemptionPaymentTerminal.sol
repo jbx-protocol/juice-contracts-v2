@@ -894,7 +894,7 @@ abstract contract JBPayoutRedemptionPaymentTerminal is
     // Scoped section prevents stack too deep. `_feeDiscount`, `_feeEligibleDistributionAmount`, and `_leftoverDistributionAmount` only used within scope.
     {
       // Get the amount of discount that should be applied to any fees taken.
-      // If the fee is zero or if the fee is being used by an address that doesn't incur fees, set the discount to 100% for convenience.
+      // If the fee is zero, set the discount to 100% for convenience.
       uint256 _feeDiscount = fee == 0
         ? JBConstants.MAX_FEE_DISCOUNT
         : _currentFeeDiscount(_projectId);
