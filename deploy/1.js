@@ -30,7 +30,7 @@ module.exports = async ({ deployments, getChainId }) => {
     case '1':
       multisigAddress = '0xAF28bcB48C40dBC86f52D459A6562F658fc94B1e';
       chainlinkV2UsdEthPriceFeed = '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419';
-      protocolProjectStartsAtOrAfter = 1651951173;
+      protocolProjectStartsAtOrAfter = 1664047173;
       break;
     // Goerli
     case '5':
@@ -222,22 +222,32 @@ module.exports = async ({ deployments, getChainId }) => {
     console.log('Adding reserved token splits with current beneficiaries (as of deployment)');
 
     const beneficiaries = [
-      '0x90eda5165e5e1633e0bdb6307cdecae564b10ff7',
-      '0xe7879a2d05dba966fcca34ee9c3f99eee7edefd1',
-      '0x1dd2091f250876ba87b6fe17e6ca925e1b1c0cf0',
-      '0xf7253a0e87e39d2cd6365919d4a3d56d431d0041',
-      '0x111040f27f05e2017e32b9ac6d1e9593e4e19a2a',
-      '0x5d95baebb8412ad827287240a5c281e3bb30d27e',
-      '0xd551b861414b7a2836e4b4615b8155c4b1ecc067',
-      '0x34724d71ce674fcd4d06e60dd1baa88c14d36b75',
-      '0xf0fe43a75ff248fd2e75d33fa1ebde71c6d1abad',
-      '0x6860f1a0cf179ed93abd3739c7f6c8961a4eea3c',
-      '0x30670d81e487c80b9edc54370e6eaf943b6eab39',
-      '0xca6ed3fdc8162304d7f1fcfc9ca3a81632d5e5b0',
-      '0x28c173b8f20488eef1b0f48df8453a2f59c38337',
-      '0xe16a238d207b9ac8b419c7a866b0de013c73357b',
-      '0x63a2368f4b509438ca90186cb1c15156713d5834',
-      '0x823b92d6a4b2aed4b15675c7917c9f922ea8adad',
+      `0x428f196c4D754A96642854AC5d9f29a0e6eC707E`,
+      `0xF8284136B169213E4c50cE09f3E1D9A9b484BAea`,
+      `0x25910143C255828F623786f46fe9A8941B7983bB`,
+      `0xC0b8eed3314B625d0c4eBC5432a5bd4f31370B4d`,
+      `0xA8488938161c9Afa127E93Fef6d3447051588664`,
+      `0x2DdA8dc2f67f1eB94b250CaEFAc9De16f70c5A51`,
+      `0x5706d5aD7A68bf8692bD341234bE44ca7Bf2f654`,
+      `0xb045708e396E20071324C1aed2E4CFB90A0764FE`,
+      `0x823b92d6a4b2AED4b15675c7917c9f922ea8ADAD`,
+      `0x63A2368F4B509438ca90186cb1C15156713D5834`,
+      `0xE16a238d207B9ac8B419C7A866b0De013c73357B`,
+      `0x28C173B8F20488eEF1b0f48Df8453A2f59C38337`,
+      `0xca6Ed3Fdc8162304d7f1fCFC9cA3A81632d5E5B0`,
+      `0x30670D81E487c80b9EDc54370e6EaF943B6EAB39`,
+      `0x6860f1A0cF179eD93ABd3739c7f6c8961A4EEa3c`,
+      `0xf0FE43a75Ff248FD2E75D33fa1ebde71c6d1abAd`,
+      `0x34724D71cE674FcD4d06e60Dd1BaA88c14D36b75`,
+      `0x5d95baEBB8412AD827287240A5c281E3bB30d27E`,
+      `0x111040F27f05E2017e32B9ac6d1e9593E4E19A2a`,
+      `0xf7253A0E87E39d2cD6365919D4a3D56D431D0041`,
+      `0x1DD2091f250876Ba87B6fE17e6ca925e1B1c0CF0`,
+      `0xe7879a2D05dBA966Fcca34EE9C3F99eEe7eDEFd1`,
+      `0x90eda5165e5E1633E0Bdb6307cDecaE564b10ff7`,
+      `0xfda746f4c3f9f5a02b3e63ed6d0ebbc002d1f788`,
+      `0x68dfb9b374b0a1ce996770ddf32916a530b4785f`,
+      `0x123a3c28eb9e701c173d3a73412489f3554f3005`,
     ];
 
     let splits = [];
@@ -246,7 +256,7 @@ module.exports = async ({ deployments, getChainId }) => {
       splits.push({
         preferClaimed: false,
         preferAddToBalance: false,
-        percent: (1000000000 - 400000000) / beneficiaries.length, // 40% for JBDao
+        percent: (1000000000 - 300600000) / beneficiaries.length, // 30.06% for JBDao
         projectId: 0,
         beneficiary: beneficiary,
         lockedUntil: 0,
@@ -257,7 +267,7 @@ module.exports = async ({ deployments, getChainId }) => {
     splits.push({
       preferClaimed: false,
       preferAddToBalance: false,
-      percent: 400000000, // 40% for JBDao
+      percent: 300600000, // 30.06% for JBDao
       projectId: 0,
       beneficiary: '0xaf28bcb48c40dbc86f52d459a6562f658fc94b1e',
       lockedUntil: 0,
@@ -270,14 +280,16 @@ module.exports = async ({ deployments, getChainId }) => {
     };
 
     // Deploy a JB3DayReconfigurationBufferBallot.
-    const JB3DayReconfigurationBufferBallot = await deploy('JBReconfigurationBufferBallot', {
+    const JB3DayReconfigurationBufferBallot = await deploy('JB3DayReconfigurationBufferBallot', {
       ...baseDeployArgs,
+      contract: "contracts/JBReconfigurationBufferBallot.sol:JBReconfigurationBufferBallot",
       args: [259200],
     });
 
     // Deploy a JB7DayReconfigurationBufferBallot.
-    await deploy('JBReconfigurationBufferBallot', {
+    await deploy('JB7DayReconfigurationBufferBallot', {
       ...baseDeployArgs,
+      contract: "contracts/JBReconfigurationBufferBallot.sol:JBReconfigurationBufferBallot",
       args: [604800],
     });
 
@@ -288,25 +300,25 @@ module.exports = async ({ deployments, getChainId }) => {
 
       /* projectMetadata */
       [
-        /*content*/ 'QmToqoMoakcVuGbELoJYRfWY5N7qr3Jawxq3xH6u3tbPiv',
+        /*content*/ 'QmQHGuXv7nDh1rxj48HnzFtwvVxwF1KU9AfB6HbfG8fmJF',
         /*domain*/ ethers.BigNumber.from(0),
       ],
 
       /*fundingCycleData*/
       [
         /*duration*/ ethers.BigNumber.from(1209600),
-        /*weight*/ ethers.BigNumber.from('100863594919583409312000'),
-        /*discountRate*/ ethers.BigNumber.from(100000000),
+        /*weight*/ ethers.BigNumber.from('62850518250000000000000'),
+        /*discountRate*/ ethers.BigNumber.from(5000000),
         /*ballot*/ JB3DayReconfigurationBufferBallot.address,
       ],
 
       /*fundingCycleMetadata*/
       [
         /*global*/
-        [/*allowSetTerminals*/ false, /*allowSetController*/ false, /*pauseTransfer*/ false],
+        [/*allowSetTerminals*/ false, /*allowSetController*/ true, /*pauseTransfer*/ true],
         /*reservedRate*/ ethers.BigNumber.from(5000),
-        /*redemptionRate*/ ethers.BigNumber.from(9500),
-        /*ballotRedemptionRate*/ ethers.BigNumber.from(9500),
+        /*redemptionRate*/ ethers.BigNumber.from(0),
+        /*ballotRedemptionRate*/ ethers.BigNumber.from(0),
         /*pausePay*/ false,
         /*pauseDistributions*/ false,
         /*pauseRedeem*/ false,
@@ -325,11 +337,11 @@ module.exports = async ({ deployments, getChainId }) => {
 
       /*mustStartAtOrAfter*/ ethers.BigNumber.from(protocolProjectStartsAtOrAfter),
 
-      /*groupedSplits*/ [groupedSplits],
+      /*groupedSplits*/[groupedSplits],
 
-      /*fundAccessConstraints*/ [],
+      /*fundAccessConstraints*/[],
 
-      /*terminals*/ [JBETHPaymentTerminal.address],
+      /*terminals*/[JBETHPaymentTerminal.address],
 
       /*memo*/ '',
     );
