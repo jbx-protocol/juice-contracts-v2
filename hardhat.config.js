@@ -82,81 +82,20 @@ module.exports = {
   },
 };
 
-// List details of deployer account.
-task('account', 'Get balance informations for the deployment account.', async (_, { ethers }) => {
-  const hdkey = require('ethereumjs-wallet/hdkey');
-  const bip39 = require('bip39');
-  let mnemonic = fs.readFileSync('./mnemonic.txt').toString().trim();
-  const seed = await bip39.mnemonicToSeed(mnemonic);
-  const hdwallet = hdkey.fromMasterSeed(seed);
-  const wallet_hdpath = "m/44'/60'/0'/0/";
-  const account_index = 0;
-  let fullPath = wallet_hdpath + account_index;
-  const wallet = hdwallet.derivePath(fullPath).getWallet();
-  var EthUtil = require('ethereumjs-util');
-  const address = '0x' + EthUtil.privateToAddress(wallet._privKey).toString('hex');
-
-  console.log('Deployer Account: ' + address);
-  for (let n in config.networks) {
-    try {
-      let provider = new ethers.providers.JsonRpcProvider(config.networks[n].url);
-      let balance = await provider.getBalance(address);
-      console.log(' -- ' + n + ' --  -- -- 📡 ');
-      console.log('   balance: ' + ethers.utils.formatEther(balance));
-      console.log('   nonce: ' + (await provider.getTransactionCount(address)));
-    } catch (e) {
-      console.log(e);
-    }
-  }
-});
-
-task('compile:one', 'Compiles a single contract in isolation')
-  .addPositionalParam('contractName')
-  .setAction(async function (args, env) {
-    const sourceName = env.artifacts.readArtifactSync(args.contractName).sourceName;
-
-    const dependencyGraph = await env.run(taskNames.TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH, {
-      sourceNames: [sourceName],
-    });
-
-    const resolvedFiles = dependencyGraph.getResolvedFiles().filter((resolvedFile) => {
-      return resolvedFile.sourceName === sourceName;
-    });
-
-    const compilationJob = await env.run(
-      taskNames.TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE,
-      {
-        dependencyGraph,
-        file: resolvedFiles[0],
-      },
-    );
-
-    await env.run(taskNames.TASK_COMPILE_SOLIDITY_COMPILE_JOB, {
-      compilationJob,
-      compilationJobs: [compilationJob],
-      compilationJobIndex: 0,
-      emitsArtifacts: true,
-      quiet: true,
-    });
-  });
-
 task('deploy-ballot', 'Deploy a buffer ballot of a given duration')
   .addParam('duration', 'Set the ballot duration (in seconds)')
   .setAction(async (taskArgs, hre) => {
     try {
-      const { get, deploy } = deployments;
+      const { deploy } = deployments;
       const [deployer] = await hre.ethers.getSigners();
 
-      // Take the previously deployed
-      const JBFundingCycleStoreDeployed = await get('JBFundingCycleStore');
-
-      const JB3DayReconfigurationBufferBallot = await deploy('JBReconfigurationBufferBallot', {
+      const JBReconfigurationBufferBallot = await deploy('JBReconfigurationBufferBallot', {
         from: deployer.address,
         log: true,
-        args: [taskArgs.duration, JBFundingCycleStoreDeployed.address],
+        args: [taskArgs.duration],
       });
 
-      console.log('Buffer ballot deployed at ' + JB3DayReconfigurationBufferBallot.address);
+      console.log('Buffer ballot deployed at ' + JBReconfigurationBufferBallot.address);
     } catch (error) {
       console.log(error);
     }
