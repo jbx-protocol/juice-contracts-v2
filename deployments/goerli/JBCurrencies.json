@@ -1,0 +1,67 @@
+{
+  "address": "0x1ABea264425cD8e65315e34A50F9C83bC3A43a50",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "ETH",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "USD",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x3d19226871670b481c8d6b98a53d2291d7ce599fa1acdc2a51eb51d7a874b6ef",
+  "receipt": {
+    "to": null,
+    "from": "0xE9bE6df23C7f9CaBa3005DA2fa2d8714d340D0aF",
+    "contractAddress": "0x1ABea264425cD8e65315e34A50F9C83bC3A43a50",
+    "transactionIndex": 18,
+    "gasUsed": "86465",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x10f839d2a3ad48753b8055e29c3e64d7961dd72a61e273c1d5776fedf55ee729",
+    "transactionHash": "0x3d19226871670b481c8d6b98a53d2291d7ce599fa1acdc2a51eb51d7a874b6ef",
+    "logs": [],
+    "blockNumber": 7627974,
+    "cumulativeGasUsed": "7190122",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "7f5ae5369c2a685c882e67f75315b841",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.16+commit.07a7930e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"ETH\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"USD\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/libraries/JBCurrencies.sol\":\"JBCurrencies\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":10000},\"remappings\":[]},\"sources\":{\"contracts/libraries/JBCurrencies.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\nlibrary JBCurrencies {\\n  uint256 public constant ETH = 1;\\n  uint256 public constant USD = 2;\\n}\\n\",\"keccak256\":\"0x7e417ff25c173608ee4fe6d9fc3dcd5e1458c78c889af12bac47b1189a436076\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x6098610038600b82828239805160001a607314602b57634e487b7160e01b600052600060045260246000fd5b30600052607381538281f3fe7300000000000000000000000000000000000000003014608060405260043610603d5760003560e01c80631bf6c21b1460425780638322fff214605b575b600080fd5b6049600281565b60405190815260200160405180910390f35b604960018156fea26469706673582212208e32101aeba6edc358f5290053c6689dcf3794fbbd6e585ae8d847fbb75a0dfe64736f6c63430008100033",
+  "deployedBytecode": "0x7300000000000000000000000000000000000000003014608060405260043610603d5760003560e01c80631bf6c21b1460425780638322fff214605b575b600080fd5b6049600281565b60405190815260200160405180910390f35b604960018156fea26469706673582212208e32101aeba6edc358f5290053c6689dcf3794fbbd6e585ae8d847fbb75a0dfe64736f6c63430008100033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}
