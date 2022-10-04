@@ -217,6 +217,27 @@ module.exports = async ({ deployments, getChainId }) => {
     await tx.wait();
   }
 
+  // Deploy a JB1DayReconfigurationBufferBallot.
+  await deploy('JB1DayReconfigurationBufferBallot', {
+    ...baseDeployArgs,
+    contract: "contracts/JBReconfigurationBufferBallot.sol:JBReconfigurationBufferBallot",
+    args: [86400],
+  });
+
+  // Deploy a JB3DayReconfigurationBufferBallot.
+  const JB3DayReconfigurationBufferBallot = await deploy('JB3DayReconfigurationBufferBallot', {
+    ...baseDeployArgs,
+    contract: "contracts/JBReconfigurationBufferBallot.sol:JBReconfigurationBufferBallot",
+    args: [259200],
+  });
+
+  // Deploy a JB7DayReconfigurationBufferBallot.
+  await deploy('JB7DayReconfigurationBufferBallot', {
+    ...baseDeployArgs,
+    contract: "contracts/JBReconfigurationBufferBallot.sol:JBReconfigurationBufferBallot",
+    args: [604800],
+  });
+
   // If needed, deploy the protocol project
   if ((await jbProjects.connect(deployer).count()) == 0) {
     console.log('Adding reserved token splits with current beneficiaries (as of deployment)');
@@ -279,19 +300,6 @@ module.exports = async ({ deployments, getChainId }) => {
       splits: splits,
     };
 
-    // Deploy a JB3DayReconfigurationBufferBallot.
-    const JB3DayReconfigurationBufferBallot = await deploy('JB3DayReconfigurationBufferBallot', {
-      ...baseDeployArgs,
-      contract: "contracts/JBReconfigurationBufferBallot.sol:JBReconfigurationBufferBallot",
-      args: [259200],
-    });
-
-    // Deploy a JB7DayReconfigurationBufferBallot.
-    await deploy('JB7DayReconfigurationBufferBallot', {
-      ...baseDeployArgs,
-      contract: "contracts/JBReconfigurationBufferBallot.sol:JBReconfigurationBufferBallot",
-      args: [604800],
-    });
 
     console.log('Deploying protocol project...');
 
