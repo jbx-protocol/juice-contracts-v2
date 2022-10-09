@@ -42,6 +42,10 @@ module.exports = {
         mnemonic: mnemonic(),
       },
     },
+    goerli: {
+      url: 'https://goerli.infura.io/v3/' + infuraId,
+      accounts: [process.env.PK],
+    },
     mainnet: {
       url: 'https://mainnet.infura.io/v3/' + infuraId,
       accounts: {
@@ -63,7 +67,7 @@ module.exports = {
       optimizer: {
         enabled: true,
         // https://docs.soliditylang.org/en/v0.8.10/internals/optimizer.html#:~:text=Optimizer%20Parameter%20Runs,-The%20number%20of&text=A%20%E2%80%9Cruns%E2%80%9D%20parameter%20of%20%E2%80%9C,is%202**32%2D1%20.
-        runs: 1000000,
+        runs: 10000,
       },
     },
   },
