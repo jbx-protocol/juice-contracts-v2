@@ -41,44 +41,44 @@ module.exports = {
       accounts: {
         mnemonic: mnemonic(),
       },
-      mainnet: {
-        url: 'https://mainnet.infura.io/v3/' + infuraId,
-        accounts: {
-          mnemonic: mnemonic(),
-        },
+    },
+    mainnet: {
+      url: 'https://mainnet.infura.io/v3/' + infuraId,
+      accounts: {
+        mnemonic: mnemonic(),
       },
     },
-    namedAccounts: {
-      deployer: {
-        default: 0,
+  },
+  namedAccounts: {
+    deployer: {
+      default: 0,
+    },
+    feeCollector: {
+      default: 0,
+    },
+  },
+  solidity: {
+    version: '0.8.6',
+    settings: {
+      optimizer: {
+        enabled: true,
+        // https://docs.soliditylang.org/en/v0.8.10/internals/optimizer.html#:~:text=Optimizer%20Parameter%20Runs,-The%20number%20of&text=A%20%E2%80%9Cruns%E2%80%9D%20parameter%20of%20%E2%80%9C,is%202**32%2D1%20.
+        runs: 1000000,
       },
-      feeCollector: {
-        default: 0,
-      },
     },
-    solidity: {
-      version: '0.8.6',
-      settings: {
-        optimizer: {
-          enabled: true,
-          // https://docs.soliditylang.org/en/v0.8.10/internals/optimizer.html#:~:text=Optimizer%20Parameter%20Runs,-The%20number%20of&text=A%20%E2%80%9Cruns%E2%80%9D%20parameter%20of%20%E2%80%9C,is%202**32%2D1%20.
-          runs: 10000,
-        },
-      },
-    },
-    mocha: {
-      bail: true,
-      timeout: 12000,
-    },
-    gasReporter: {
-      currency: 'USD',
-      // gasPrice: 21,
-      enabled: !!process.env.REPORT_GAS,
-      showTimeSpent: true,
-    },
-    etherscan: {
-      apiKey: `${process.env.ETHERSCAN_API_KEY}`,
-    },
+  },
+  mocha: {
+    bail: true,
+    timeout: 12000,
+  },
+  gasReporter: {
+    currency: 'USD',
+    // gasPrice: 21,
+    enabled: !!process.env.REPORT_GAS,
+    showTimeSpent: true,
+  },
+  etherscan: {
+    apiKey: `${process.env.ETHERSCAN_API_KEY}`,
   },
 };
 
