@@ -5,7 +5,7 @@ import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import '@openzeppelin/contracts/utils/math/SafeCast.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './abstract/JBOperatable.sol';
-import './interfaces/IJBController1_1.sol';
+import './interfaces/IJBController3_1.sol';
 import './interfaces/IJBMigratable.sol';
 import './interfaces/IJBOperatorStore.sol';
 import './interfaces/IJBPaymentTerminal.sol';
@@ -21,7 +21,7 @@ import './libraries/JBSplitsGroups.sol';
 
   @dev
   Adheres to -
-  IJBController1_1: General interface for the generic controller methods in this contract that interacts with funding cycles and tokens according to the protocol's rules.
+  IJBController3_1: General interface for the generic controller methods in this contract that interacts with funding cycles and tokens according to the protocol's rules.
   IJBMigratable: Allows migrating to this contract, with a hook called to prepare for the migration.
 
   @dev
@@ -29,7 +29,7 @@ import './libraries/JBSplitsGroups.sol';
   JBOperatable: Several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
   ERC165: Introspection on interface adherance. 
 */
-contract JBController1_1 is JBOperatable, ERC165, IJBController1_1, IJBMigratable {
+contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratable {
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
@@ -314,7 +314,7 @@ contract JBController1_1 is JBOperatable, ERC165, IJBController1_1, IJBMigratabl
     returns (bool)
   {
     return
-      _interfaceId == type(IJBController1_1).interfaceId ||
+      _interfaceId == type(IJBController3_1).interfaceId ||
       _interfaceId == type(IJBMigratable).interfaceId ||
       _interfaceId == type(IJBOperatable).interfaceId ||
       super.supportsInterface(_interfaceId);

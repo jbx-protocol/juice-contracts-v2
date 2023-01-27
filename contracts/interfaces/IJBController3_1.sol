@@ -14,7 +14,7 @@ import './IJBPaymentTerminal.sol';
 import './IJBSplitsStore.sol';
 import './IJBTokenStore.sol';
 
-interface IJBController1_1 is IERC165 {
+interface IJBController3_1 is IERC165 {
   event LaunchProject(uint256 configuration, uint256 projectId, string memo, address caller);
 
   event LaunchFundingCycles(uint256 configuration, uint256 projectId, string memo, address caller);
