@@ -575,9 +575,7 @@ contract JBController1_1 is JBOperatable, ERC165, IJBController1_1, IJBMigratabl
         : _fundingCycle.preferClaimedTokenOverride();
     }
 
-    if (_reservedRate == JBConstants.MAX_RESERVED_RATE)
-      reservedTokenBalanceOf[_projectId] += _tokenCount;
-    else {
+    if (_reservedRate != JBConstants.MAX_RESERVED_RATE) {
       // The unreserved token count that will be minted for the beneficiary.
       beneficiaryTokenCount = PRBMath.mulDiv(
         _tokenCount,
@@ -585,12 +583,13 @@ contract JBController1_1 is JBOperatable, ERC165, IJBController1_1, IJBMigratabl
         JBConstants.MAX_RESERVED_RATE
       );
 
-      if (_reservedRate > 0)
-        reservedTokenBalanceOf[_projectId] += _tokenCount - beneficiaryTokenCount;
-
       // Mint the tokens.
       tokenStore.mintFor(_beneficiary, _projectId, beneficiaryTokenCount, _preferClaimedTokens);
     }
+
+    // Add reserved tokens if needed
+    if (_reservedRate > 0)
+      reservedTokenBalanceOf[_projectId] += _tokenCount - beneficiaryTokenCount;
 
     emit MintTokens(
       _beneficiary,
