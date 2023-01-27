@@ -828,10 +828,10 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
           _split.allocator != IJBSplitAllocator(address(0))
             ? address(_split.allocator)
             : _split.projectId != 0
-            ? projects.ownerOf(_split.projectId)
-            : _split.beneficiary != address(0)
-            ? _split.beneficiary
-            : msg.sender,
+              ? projects.ownerOf(_split.projectId)
+              : _split.beneficiary != address(0)
+                ? _split.beneficiary
+                : msg.sender,
           _projectId,
           _tokenCount,
           _split.preferClaimed
