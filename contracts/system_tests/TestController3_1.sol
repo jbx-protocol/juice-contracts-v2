@@ -132,22 +132,33 @@ contract TestControllerV3_1_Fork is Test {
         splitsStore
     );
 
+    address protocolOwner = projects.ownerOf(1);
 
-    // Migrate Juicebox controller:
+    // -- Migrate Juicebox controller --
+
+    // Allow controller migration in the fc
+    metadata.allowControllerMigration = true;
+    vm.prank(protocolOwner);
+    oldJbController.reconfigureFundingCyclesOf(
+      1,
+      data,
+      metadata,
+      0,
+      groupedSplits,
+      fundAccessConstraints,
+      ''
+    );
+
+    // warp to the next funding cycle
+    JBFundingCycle memory fundingCycle = fundingCycleStore.currentOf(1);
+    vm.warp(fundingCycle.start + fundingCycle.duration);
+
+    // Prepare the new controller
     jbController.prepForMigrationOf(1, address(oldJbController));
+    
+    // Migrate the project to the new controller
+    vm.prank(protocolOwner);
     oldJbController.migrate(1, jbController);
-
-    // projectId = jbController.launchProjectFor(
-    //     projectOwner,
-    //     projectMetadata,
-    //     data,
-    //     metadata,
-    //     block.timestamp,
-    //     groupedSplits,
-    //     fundAccessConstraints,
-    //     terminals,
-    //     ""
-    // );
   }
 
     // function testFuzzPayBurnRedeemFlow(
