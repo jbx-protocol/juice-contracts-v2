@@ -6,6 +6,7 @@ import '@openzeppelin/contracts/utils/math/SafeCast.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './abstract/JBOperatable.sol';
 import './interfaces/IJBController3_1.sol';
+import './interfaces/IJBController.sol';
 import './interfaces/IJBMigratable.sol';
 import './interfaces/IJBOperatorStore.sol';
 import './interfaces/IJBPaymentTerminal.sol';
@@ -29,7 +30,7 @@ import './libraries/JBSplitsGroups.sol';
   JBOperatable: Several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
   ERC165: Introspection on interface adherance. 
 */
-contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratable {
+contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBController, IJBMigratable {
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
@@ -93,6 +94,14 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
   mapping(uint256 => mapping(uint256 => mapping(IJBPaymentTerminal => mapping(address => uint256))))
     internal _packedOverflowAllowanceDataOf;
 
+  /**
+    @notice
+    The current undistributed reserved token balance of.
+
+    _projectId The ID of the project to get a reserved token balance of.
+  */
+  mapping(uint256 => uint256) internal _reservedTokensOf;
+
   //*********************************************************************//
   // --------------- public immutable stored properties ---------------- //
   //*********************************************************************//
@@ -101,43 +110,31 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
     @notice
     Mints ERC-721's that represent project ownership.
   */
-  IJBProjects public immutable override projects;
+  IJBProjects public immutable override(IJBController, IJBController3_1) projects;
 
   /**
     @notice
     The contract storing all funding cycle configurations.
   */
-  IJBFundingCycleStore public immutable override fundingCycleStore;
+  IJBFundingCycleStore public immutable override(IJBController, IJBController3_1) fundingCycleStore;
 
   /**
     @notice
     The contract that manages token minting and burning.
   */
-  IJBTokenStore public immutable override tokenStore;
+  IJBTokenStore public immutable override(IJBController, IJBController3_1) tokenStore;
 
   /**
     @notice
     The contract that stores splits for each project.
   */
-  IJBSplitsStore public immutable override splitsStore;
+  IJBSplitsStore public immutable override(IJBController, IJBController3_1) splitsStore;
 
   /**
     @notice
     The directory of terminals and controllers for projects.
   */
-  IJBDirectory public immutable override directory;
-
-  //*********************************************************************//
-  // -------------------- public stored properties --------------------- //
-  //*********************************************************************//
-
-  /**
-    @notice
-    The current undistributed reserved token balance of.
-
-    _projectId The ID of the project to get a reserved token balance of.
-  */
-  mapping(uint256 => uint256) public override reservedTokenBalanceOf;
+  IJBDirectory public immutable override(IJBController, IJBController3_1) directory;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -163,7 +160,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
     uint256 _configuration,
     IJBPaymentTerminal _terminal,
     address _token
-  ) external view override returns (uint256, uint256) {
+  ) external view override(IJBController, IJBController3_1) returns (uint256, uint256) {
     // Get a reference to the packed data.
     uint256 _data = _packedDistributionLimitDataOf[_projectId][_configuration][_terminal][_token];
 
@@ -191,25 +188,12 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
     uint256 _configuration,
     IJBPaymentTerminal _terminal,
     address _token
-  ) external view override returns (uint256, uint256) {
+  ) external view override(IJBController, IJBController3_1) returns (uint256, uint256) {
     // Get a reference to the packed data.
     uint256 _data = _packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal][_token];
 
     // The allowance is in bits 0-231. The currency is in bits 232-255.
     return (uint256(uint232(_data)), _data >> 232);
-  }
-
-  /**
-    @notice
-    Gets the current total amount of outstanding tokens for a project.
-
-    @param _projectId The ID of the project to get total outstanding tokens of.
-
-    @return The current total amount of outstanding tokens for the project.
-  */
-  function totalOutstandingTokensOf(uint256 _projectId) external view override returns (uint256) {
-    // Add the reserved tokens to the total supply.
-    return tokenStore.totalSupplyOf(_projectId) + reservedTokenBalanceOf[_projectId];
   }
 
   /** 
@@ -224,7 +208,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
   function getFundingCycleOf(uint256 _projectId, uint256 _configuration)
     external
     view
-    override
+    override(IJBController, IJBController3_1)
     returns (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata)
   {
     fundingCycle = fundingCycleStore.get(_projectId, _configuration);
@@ -244,7 +228,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
   function latestConfiguredFundingCycleOf(uint256 _projectId)
     external
     view
-    override
+    override(IJBController, IJBController3_1)
     returns (
       JBFundingCycle memory fundingCycle,
       JBFundingCycleMetadata memory metadata,
@@ -267,7 +251,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
   function currentFundingCycleOf(uint256 _projectId)
     external
     view
-    override
+    override(IJBController, IJBController3_1)
     returns (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata)
   {
     fundingCycle = fundingCycleStore.currentOf(_projectId);
@@ -286,16 +270,84 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
   function queuedFundingCycleOf(uint256 _projectId)
     external
     view
-    override
+    override(IJBController, IJBController3_1)
     returns (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata)
   {
     fundingCycle = fundingCycleStore.queuedOf(_projectId);
     metadata = fundingCycle.expandMetadata();
   }
 
+  /**	
+    @notice	
+    Gets the amount of reserved tokens that a project has available to distribute.	
+
+    @param _projectId The ID of the project to get a reserved token balance of.	
+
+    @return The current amount of reserved tokens.	
+  */
+  function reservedTokenBalanceOf(uint256 _projectId) external view override returns (uint256) {
+    return _reservedTokensOf[_projectId];
+  }
+
+  /**	
+    @notice	
+    Gets the amount of reserved tokens that a project has available to distribute.	
+
+    @dev
+    This is just for IJBController backwards compatibility.
+
+    @param _projectId The ID of the project to get a reserved token balance of.	
+    @param _reservedRate The reserved rate to use when making the calculation.	
+
+    @return The current amount of reserved tokens.	
+  */
+  function reservedTokenBalanceOf(uint256 _projectId, uint256 _reservedRate)
+    external
+    view
+    override
+    returns (uint256)
+  {
+    return _reservedTokensOf[_projectId];
+  }
+
+  /**	
+    @notice	
+    Gets the current total amount of outstanding tokens for a project, given a reserved rate.	
+
+    @dev
+    This is just for IJBController backwards compatibility.
+
+    @param _projectId The ID of the project to get total outstanding tokens of.	
+    @param _reservedRate The reserved rate to use when making the calculation.	
+
+    @return The current total amount of outstanding tokens for the project.	
+  */
+  function totalOutstandingTokensOf(uint256 _projectId, uint256 _reservedRate)
+    external
+    view
+    override
+    returns (uint256)
+  {
+    // Add the reserved tokens to the total supply.
+    return totalOutstandingTokensOf(_projectId);
+  }
+
   //*********************************************************************//
   // -------------------------- public views --------------------------- //
   //*********************************************************************//
+
+  /**
+    @notice
+    Gets the current total amount of outstanding tokens for a project.
+
+    @param _projectId The ID of the project to get total outstanding tokens of.
+
+    @return The current total amount of outstanding tokens for the project.
+  */
+  function totalOutstandingTokensOf(uint256 _projectId) public view override returns (uint256) {
+    // Add the reserved tokens to the total supply.
+    return tokenStore.totalSupplyOf(_projectId) + _reservedTokensOf[_projectId];
+  }
 
   /**
     @notice
@@ -383,7 +435,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
     JBFundAccessConstraints[] calldata _fundAccessConstraints,
     IJBPaymentTerminal[] memory _terminals,
     string memory _memo
-  ) external virtual override returns (uint256 projectId) {
+  ) external virtual override(IJBController, IJBController3_1) returns (uint256 projectId) {
     // Keep a reference to the directory.
     IJBDirectory _directory = directory;
 
@@ -442,7 +494,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
   )
     external
     virtual
-    override
+    override(IJBController, IJBController3_1)
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
     returns (uint256 configuration)
   {
@@ -497,7 +549,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
   )
     external
     virtual
-    override
+    override(IJBController, IJBController3_1)
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
     returns (uint256 configuration)
   {
@@ -537,7 +589,12 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
     string calldata _memo,
     bool _preferClaimedTokens,
     bool _useReservedRate
-  ) external virtual override returns (uint256 beneficiaryTokenCount) {
+  )
+    external
+    virtual
+    override(IJBController, IJBController3_1)
+    returns (uint256 beneficiaryTokenCount)
+  {
     // There should be tokens to mint.
     if (_tokenCount == 0) revert ZERO_TOKENS_TO_MINT();
 
@@ -588,8 +645,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
     }
 
     // Add reserved tokens if needed
-    if (_reservedRate > 0)
-      reservedTokenBalanceOf[_projectId] += _tokenCount - beneficiaryTokenCount;
+    if (_reservedRate > 0) _reservedTokensOf[_projectId] += _tokenCount - beneficiaryTokenCount;
 
     emit MintTokens(
       _beneficiary,
@@ -624,7 +680,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
   )
     external
     virtual
-    override
+    override(IJBController, IJBController3_1)
     requirePermissionAllowingOverride(
       _holder,
       _projectId,
@@ -662,7 +718,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
   function distributeReservedTokensOf(uint256 _projectId, string calldata _memo)
     external
     virtual
-    override
+    override(IJBController, IJBController3_1)
     returns (uint256)
   {
     return _distributeReservedTokensOf(_projectId, _memo);
@@ -696,7 +752,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
   function migrate(uint256 _projectId, IJBMigratable _to)
     external
     virtual
-    override
+    override(IJBController, IJBController3_1)
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_CONTROLLER)
   {
     // Keep a reference to the directory.
@@ -712,7 +768,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
     if (!_fundingCycle.controllerMigrationAllowed()) revert MIGRATION_NOT_ALLOWED();
 
     // All reserved tokens must be minted before migrating.
-    if (reservedTokenBalanceOf[_projectId] != 0) _distributeReservedTokensOf(_projectId, '');
+    if (_reservedTokensOf[_projectId] != 0) _distributeReservedTokensOf(_projectId, '');
 
     // Make sure the new controller is prepped for the migration.
     _to.prepForMigrationOf(_projectId, address(this));
@@ -747,10 +803,10 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Get a reference to the number of tokens that need to be minted.
-    tokenCount = reservedTokenBalanceOf[_projectId];
+    tokenCount = _reservedTokensOf[_projectId];
 
     // Reset the reserved token balance
-    reservedTokenBalanceOf[_projectId] = 0;
+    _reservedTokensOf[_projectId] = 0;
 
     // Get a reference to the project owner.
     address _owner = projects.ownerOf(_projectId);
@@ -828,10 +884,10 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
           _split.allocator != IJBSplitAllocator(address(0))
             ? address(_split.allocator)
             : _split.projectId != 0
-              ? projects.ownerOf(_split.projectId)
-              : _split.beneficiary != address(0)
-                ? _split.beneficiary
-                : msg.sender,
+            ? projects.ownerOf(_split.projectId)
+            : _split.beneficiary != address(0)
+            ? _split.beneficiary
+            : msg.sender,
           _projectId,
           _tokenCount,
           _split.preferClaimed
