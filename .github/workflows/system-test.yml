@@ -51,4 +51,4 @@ jobs:
       - name: install libraries
         run: git submodule update --init
       - name: Run system tests
-        run: forge test && FOUNDRY_PROFILE=CI forge test
+        run: forge build --sizes && forge test && FOUNDRY_PROFILE=CI forge test
