@@ -25,7 +25,10 @@ import './structs/JBPayParamsData.sol';
   Inherits from -
   ReentrancyGuard: Contract module that helps prevent reentrant calls to a function.
 */
-contract JBSingleTokenPaymentTerminalStore is ReentrancyGuard, IJBSingleTokenPaymentTerminalStore {
+contract JBSingleTokenPaymentTerminalStore3_1 is
+  ReentrancyGuard,
+  IJBSingleTokenPaymentTerminalStore
+{
   // A library that parses the packed funding cycle metadata into a friendlier format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
