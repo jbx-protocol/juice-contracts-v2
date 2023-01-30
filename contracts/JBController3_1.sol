@@ -30,7 +30,7 @@ import './libraries/JBSplitsGroups.sol';
   JBOperatable: Several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
   ERC165: Introspection on interface adherance. 
 */
-contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBController, IJBMigratable {
+contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratable {
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
@@ -110,31 +110,31 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBControlle
     @notice
     Mints ERC-721's that represent project ownership.
   */
-  IJBProjects public immutable override(IJBController, IJBController3_1) projects;
+  IJBProjects public immutable override projects;
 
   /**
     @notice
     The contract storing all funding cycle configurations.
   */
-  IJBFundingCycleStore public immutable override(IJBController, IJBController3_1) fundingCycleStore;
+  IJBFundingCycleStore public immutable override fundingCycleStore;
 
   /**
     @notice
     The contract that manages token minting and burning.
   */
-  IJBTokenStore public immutable override(IJBController, IJBController3_1) tokenStore;
+  IJBTokenStore public immutable override tokenStore;
 
   /**
     @notice
     The contract that stores splits for each project.
   */
-  IJBSplitsStore public immutable override(IJBController, IJBController3_1) splitsStore;
+  IJBSplitsStore public immutable override splitsStore;
 
   /**
     @notice
     The directory of terminals and controllers for projects.
   */
-  IJBDirectory public immutable override(IJBController, IJBController3_1) directory;
+  IJBDirectory public immutable override directory;
 
   //*********************************************************************//
   // ------------------------- external views -------------------------- //
@@ -160,7 +160,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBControlle
     uint256 _configuration,
     IJBPaymentTerminal _terminal,
     address _token
-  ) external view override(IJBController, IJBController3_1) returns (uint256, uint256) {
+  ) external view override returns (uint256, uint256) {
     // Get a reference to the packed data.
     uint256 _data = _packedDistributionLimitDataOf[_projectId][_configuration][_terminal][_token];
 
@@ -188,7 +188,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBControlle
     uint256 _configuration,
     IJBPaymentTerminal _terminal,
     address _token
-  ) external view override(IJBController, IJBController3_1) returns (uint256, uint256) {
+  ) external view override returns (uint256, uint256) {
     // Get a reference to the packed data.
     uint256 _data = _packedOverflowAllowanceDataOf[_projectId][_configuration][_terminal][_token];
 
@@ -208,7 +208,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBControlle
   function getFundingCycleOf(uint256 _projectId, uint256 _configuration)
     external
     view
-    override(IJBController, IJBController3_1)
+    override
     returns (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata)
   {
     fundingCycle = fundingCycleStore.get(_projectId, _configuration);
@@ -228,7 +228,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBControlle
   function latestConfiguredFundingCycleOf(uint256 _projectId)
     external
     view
-    override(IJBController, IJBController3_1)
+    override
     returns (
       JBFundingCycle memory fundingCycle,
       JBFundingCycleMetadata memory metadata,
@@ -251,7 +251,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBControlle
   function currentFundingCycleOf(uint256 _projectId)
     external
     view
-    override(IJBController, IJBController3_1)
+    override
     returns (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata)
   {
     fundingCycle = fundingCycleStore.currentOf(_projectId);
@@ -270,7 +270,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBControlle
   function queuedFundingCycleOf(uint256 _projectId)
     external
     view
-    override(IJBController, IJBController3_1)
+    override
     returns (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata)
   {
     fundingCycle = fundingCycleStore.queuedOf(_projectId);
@@ -435,7 +435,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBControlle
     JBFundAccessConstraints[] calldata _fundAccessConstraints,
     IJBPaymentTerminal[] memory _terminals,
     string memory _memo
-  ) external virtual override(IJBController, IJBController3_1) returns (uint256 projectId) {
+  ) external virtual override returns (uint256 projectId) {
     // Keep a reference to the directory.
     IJBDirectory _directory = directory;
 
@@ -494,7 +494,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBControlle
   )
     external
     virtual
-    override(IJBController, IJBController3_1)
+    override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
     returns (uint256 configuration)
   {
@@ -549,7 +549,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBControlle
   )
     external
     virtual
-    override(IJBController, IJBController3_1)
+    override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.RECONFIGURE)
     returns (uint256 configuration)
   {
@@ -592,7 +592,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBControlle
   )
     external
     virtual
-    override(IJBController, IJBController3_1)
+    override
     returns (uint256 beneficiaryTokenCount)
   {
     // There should be tokens to mint.
@@ -680,7 +680,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBControlle
   )
     external
     virtual
-    override(IJBController, IJBController3_1)
+    override
     requirePermissionAllowingOverride(
       _holder,
       _projectId,
@@ -718,7 +718,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBControlle
   function distributeReservedTokensOf(uint256 _projectId, string calldata _memo)
     external
     virtual
-    override(IJBController, IJBController3_1)
+    override
     returns (uint256)
   {
     return _distributeReservedTokensOf(_projectId, _memo);
@@ -752,7 +752,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBControlle
   function migrate(uint256 _projectId, IJBMigratable _to)
     external
     virtual
-    override(IJBController, IJBController3_1)
+    override
     requirePermission(projects.ownerOf(_projectId), _projectId, JBOperations.MIGRATE_CONTROLLER)
   {
     // Keep a reference to the directory.
