@@ -86,10 +86,10 @@ contract TestTokenFlow_Local is TestBaseWorkflow {
     bool burnPreferClaimed
   ) public {
     // Might overflow in processed token tracker if burn amount >= max int256 (ie (2**256)/2 -1 )
-    evm.assume(burnAmount < (2**256) / 2);
+    vm.assume(burnAmount < (2**256) / 2);
 
     // calls will originate from projectOwner addr
-    evm.startPrank(_projectOwner);
+    vm.startPrank(_projectOwner);
 
     if (_issueToken) {
       // issue an ERC-20 token for project
@@ -110,7 +110,7 @@ contract TestTokenFlow_Local is TestBaseWorkflow {
     uint256 _expectedTokenBalance = 0;
     uint256 _beneficiaryTokenAmount = mintAmount / 2; // 50% reserved rate results in half the mintAmount
 
-    if (mintAmount == 0) evm.expectRevert(abi.encodeWithSignature('ZERO_TOKENS_TO_MINT()'));
+    if (mintAmount == 0) vm.expectRevert(abi.encodeWithSignature('ZERO_TOKENS_TO_MINT()'));
     else _expectedTokenBalance = _beneficiaryTokenAmount;
 
     // mint tokens to beneficiary addr
@@ -126,15 +126,15 @@ contract TestTokenFlow_Local is TestBaseWorkflow {
     // total token balance should be half of token count due to 50% reserved rate
     assertEq(_tokenStore.balanceOf(_beneficiary, _projectId), _expectedTokenBalance);
 
-    if (burnAmount == 0) evm.expectRevert(abi.encodeWithSignature('NO_BURNABLE_TOKENS()'));
+    if (burnAmount == 0) vm.expectRevert(abi.encodeWithSignature('NO_BURNABLE_TOKENS()'));
     else if (burnAmount > _expectedTokenBalance)
-      evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_FUNDS()'));
+      vm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_FUNDS()'));
     else _expectedTokenBalance = _expectedTokenBalance - burnAmount;
 
     // burn tokens from beneficiary addr
     // next call will originate from holder addr
-    evm.stopPrank();
-    evm.prank(_beneficiary);
+    vm.stopPrank();
+    vm.prank(_beneficiary);
     _controller.burnTokensOf(
       _beneficiary,
       _projectId,
@@ -154,7 +154,7 @@ contract TestTokenFlow_Local is TestBaseWorkflow {
    */
   function testLargeTokenClaimFlow() public {
     // calls will originate from projectOwner addr
-    evm.startPrank(_projectOwner);
+    vm.startPrank(_projectOwner);
 
     // issue an ERC-20 token for project
     _tokenStore.issueFor(_projectId, 'TestName', 'TestSymbol');
@@ -182,8 +182,8 @@ contract TestTokenFlow_Local is TestBaseWorkflow {
     );
 
     // try to claim the unclaimed tokens
-    evm.stopPrank();
-    evm.prank(_beneficiary);
+    vm.stopPrank();
+    vm.prank(_beneficiary);
     _tokenStore.claimFor(
       _beneficiary,
       _projectId,
@@ -199,7 +199,7 @@ contract TestTokenFlow_Local is TestBaseWorkflow {
   //  */
   // function testTokenChangeFlow() public {
   //   // calls will originate from projectOwner addr
-  //   evm.startPrank(_projectOwner);
+  //   vm.startPrank(_projectOwner);
 
   //   // issue an ERC-20 token for project
   //   _tokenStore.issueFor(_projectId, 'TestName', 'TestSymbol');
@@ -224,8 +224,8 @@ contract TestTokenFlow_Local is TestBaseWorkflow {
   //   _tokenStore.setFor(_projectId, _newToken);
 
   //   // claim and mint the max possible amount of unclaimed tokens
-  //   evm.stopPrank();
-  //   evm.prank(_beneficiary);
+  //   vm.stopPrank();
+  //   vm.prank(_beneficiary);
   //   _tokenStore.claimFor(_beneficiary, _projectId, type(uint224).max);
 
   //   // total token balanced should be updated

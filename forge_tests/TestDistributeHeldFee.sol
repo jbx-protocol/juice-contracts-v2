@@ -98,24 +98,24 @@ contract TestDistributeHeldFee_Local is TestBaseWorkflow {
     uint256 feeDiscount
   ) external {
     // Assuming we don't revert when distributing too much
-    evm.assume(payAmountInWei <= _targetInWei);
+    vm.assume(payAmountInWei <= _targetInWei);
     // Avoid rounding error
-    evm.assume(payAmountInWei > 1);
-    evm.assume(feeDiscount <= jbLibraries().MAX_FEE());
-    evm.assume(fee <= 50_000_000); // fee cap
+    vm.assume(payAmountInWei > 1);
+    vm.assume(feeDiscount <= jbLibraries().MAX_FEE());
+    vm.assume(fee <= 50_000_000); // fee cap
     address _userWallet = address(1234);
 
-    evm.prank(multisig());
+    vm.prank(multisig());
     _terminal.setFee(fee);
 
     IJBFeeGauge feeGauge = IJBFeeGauge(address(69696969));
-    evm.etch(address(feeGauge), new bytes(0x1));
-    evm.mockCall(
+    vm.etch(address(feeGauge), new bytes(0x1));
+    vm.mockCall(
       address(feeGauge),
       abi.encodeWithSignature('currentDiscountFor(uint256)', _projectId),
       abi.encode(feeDiscount)
     );
-    evm.prank(multisig());
+    vm.prank(multisig());
     _terminal.setFeeGauge(feeGauge);
 
     uint256 discountedFee = fee - PRBMath.mulDiv(fee, feeDiscount, jbLibraries().MAX_FEE());
@@ -222,18 +222,18 @@ contract TestDistributeHeldFee_Local is TestBaseWorkflow {
     );
 
     address _userWallet = address(1234);
-    evm.deal(_userWallet, payAmountInWei);
-    evm.prank(multisig());
+    vm.deal(_userWallet, payAmountInWei);
+    vm.prank(multisig());
     _terminal.setFee(fee);
 
     IJBFeeGauge feeGauge = IJBFeeGauge(address(69696969));
-    evm.etch(address(feeGauge), new bytes(0x1));
-    evm.mockCall(
+    vm.etch(address(feeGauge), new bytes(0x1));
+    vm.mockCall(
       address(feeGauge),
       abi.encodeWithSignature('currentDiscountFor(uint256)', _projectId),
       abi.encode(feeDiscount)
     );
-    evm.prank(multisig());
+    vm.prank(multisig());
     _terminal.setFeeGauge(feeGauge);
 
     // -- pay --

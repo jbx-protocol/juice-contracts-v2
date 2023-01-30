@@ -29,7 +29,7 @@ contract TestMultipleTerminals_Local is TestBaseWorkflow {
 
   function setUp() public override {
     super.setUp();
-    evm.label(caller, 'caller');
+    vm.label(caller, 'caller');
 
     _groupedSplits.push();
     _groupedSplits[0].group = 1;
@@ -98,7 +98,7 @@ contract TestMultipleTerminals_Local is TestBaseWorkflow {
       jbPaymentTerminalStore(),
       multisig()
     );
-    evm.label(address(ERC20terminal), 'JBERC20PaymentTerminalUSD');
+    vm.label(address(ERC20terminal), 'JBERC20PaymentTerminalUSD');
 
     ETHterminal = jbETHPaymentTerminal();
 
@@ -139,10 +139,10 @@ contract TestMultipleTerminals_Local is TestBaseWorkflow {
       ''
     );
 
-    evm.startPrank(_projectOwner);
+    vm.startPrank(_projectOwner);
     MockPriceFeed _priceFeed = new MockPriceFeed(FAKE_PRICE);
     MockPriceFeed _priceFeedUsdEth = new MockPriceFeed(FAKE_PRICE);
-    evm.label(address(_priceFeed), 'MockPrice Feed');
+    vm.label(address(_priceFeed), 'MockPrice Feed');
 
     jbPrices().addFeedFor(
       jbLibraries().USD(), // currency
@@ -150,18 +150,18 @@ contract TestMultipleTerminals_Local is TestBaseWorkflow {
       _priceFeedUsdEth
     );
 
-    evm.stopPrank();
+    vm.stopPrank();
   }
 
   function testMultipleTerminal() public {
     // Send some token to the caller, so he can play
-    evm.prank(_projectOwner);
+    vm.prank(_projectOwner);
     jbToken().transfer(caller, 20 * 10**18);
 
     // ---- Pay in token ----
-    evm.prank(caller); // back to regular msg.sender (bug?)
+    vm.prank(caller); // back to regular msg.sender (bug?)
     jbToken().approve(address(ERC20terminal), 20 * 10**18);
-    evm.prank(caller); // back to regular msg.sender (bug?)
+    vm.prank(caller); // back to regular msg.sender (bug?)
     ERC20terminal.pay(
       projectId,
       20 * 10**18,
@@ -202,7 +202,7 @@ contract TestMultipleTerminals_Local is TestBaseWorkflow {
     assertEq(jbPaymentTerminalStore().balanceOf(ETHterminal, projectId), 20 ether);
 
     // ---- Use allowance ----
-    evm.startPrank(_projectOwner);
+    vm.startPrank(_projectOwner);
     ERC20terminal.useAllowanceOf(
       projectId,
       5 * 10**18, // amt in ETH (overflow allowance currency is in ETH)
@@ -212,7 +212,7 @@ contract TestMultipleTerminals_Local is TestBaseWorkflow {
       payable(msg.sender), // Beneficiary
       'MEMO'
     );
-    evm.stopPrank();
+    vm.stopPrank();
 
     // Funds leaving the contract -> take the fee
     assertEq(
@@ -226,7 +226,7 @@ contract TestMultipleTerminals_Local is TestBaseWorkflow {
 
     // Distribute the funding target ETH
     uint256 initBalance = caller.balance;
-    evm.prank(_projectOwner);
+    vm.prank(_projectOwner);
     ETHterminal.distributePayoutsOf(
       projectId,
       10 * 10**18,
@@ -252,7 +252,7 @@ contract TestMultipleTerminals_Local is TestBaseWorkflow {
 
     uint256 callerEthBalanceBefore = caller.balance;
 
-    evm.prank(caller);
+    vm.prank(caller);
     ETHterminal.redeemTokensOf(
       caller,
       projectId,

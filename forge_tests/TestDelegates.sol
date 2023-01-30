@@ -89,12 +89,12 @@ contract TestDelegates_Local is TestBaseWorkflow {
 
     // Check that we are not going to overflow uint256 and calculate the total pay amount
     for (uint256 i = 0; i < payDelegateAmounts.length; i++) {
-      evm.assume(type(uint256).max - _paySum > payDelegateAmounts[i]);
+      vm.assume(type(uint256).max - _paySum > payDelegateAmounts[i]);
       _paySum += payDelegateAmounts[i];
     }
 
     // We can't do a pay without paying
-    evm.assume(_paySum > 0);
+    vm.assume(_paySum > 0);
 
     (JBFundingCycle memory fundingCycle, JBFundingCycleMetadata memory metadata) = controller
       .currentFundingCycleOf(_projectId);
@@ -131,17 +131,17 @@ contract TestDelegates_Local is TestBaseWorkflow {
       );
 
       // Mock the delegate
-      evm.mockCall(_delegateAddress, abi.encodeWithSelector(IJBPayDelegate.didPay.selector), '');
+      vm.mockCall(_delegateAddress, abi.encodeWithSelector(IJBPayDelegate.didPay.selector), '');
 
       // Assert that the delegate gets called with the expected value
-      evm.expectCall(
+      vm.expectCall(
         _delegateAddress,
         payDelegateAmounts[i],
         abi.encodeWithSelector(IJBPayDelegate.didPay.selector, _data)
       );
 
       // Expect an event to be emitted for every delegate
-      evm.expectEmit(true, true, true, true);
+      vm.expectEmit(true, true, true, true);
       emit DelegateDidPay(
         IJBPayDelegate(_delegateAddress),
         _data,
@@ -150,7 +150,7 @@ contract TestDelegates_Local is TestBaseWorkflow {
       );
     }
 
-    evm.mockCall(
+    vm.mockCall(
       _datasource,
       abi.encodeWithSelector(IJBFundingCycleDataSource.payParams.selector),
       abi.encode(
@@ -160,8 +160,8 @@ contract TestDelegates_Local is TestBaseWorkflow {
       )
     );
 
-    evm.deal(_beneficiary, _paySum);
-    evm.prank(_beneficiary);
+    vm.deal(_beneficiary, _paySum);
+    vm.prank(_beneficiary);
     _terminals[0].pay{value: _paySum}(
       _projectId,
       _paySum,

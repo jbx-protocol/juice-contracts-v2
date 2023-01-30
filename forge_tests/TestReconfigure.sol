@@ -3,7 +3,7 @@ pragma solidity ^0.8.6;
 
 import './helpers/TestBaseWorkflow.sol';
 
-import '../JBReconfigurationBufferBallot.sol';
+import '@juicebox/JBReconfigurationBufferBallot.sol';
 
 uint256 constant WEIGHT = 1000 * 10**18;
 
@@ -99,9 +99,9 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
 
     uint256 currentConfiguration = fundingCycle.configuration;
 
-    evm.warp(block.timestamp + 1); // Avoid overwriting if same timestamp
+    vm.warp(block.timestamp + 1); // Avoid overwriting if same timestamp
 
-    evm.prank(multisig());
+    vm.prank(multisig());
     controller.reconfigureFundingCyclesOf(
       projectId,
       _data, // 3days ballot
@@ -119,7 +119,7 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
     assertEq(fundingCycle.weight, _data.weight);
 
     // should be new funding cycle
-    evm.warp(fundingCycle.start + fundingCycle.duration);
+    vm.warp(fundingCycle.start + fundingCycle.duration);
 
     JBFundingCycle memory newFundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(newFundingCycle.number, 2);
@@ -151,10 +151,10 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
     uint256 currentConfiguration = fundingCycle.configuration;
 
     // Jump to FC+1, rolled over
-    evm.warp(block.timestamp + fundingCycle.duration);
+    vm.warp(block.timestamp + fundingCycle.duration);
 
     // First reconfiguration
-    evm.prank(multisig());
+    vm.prank(multisig());
     controller.reconfigureFundingCyclesOf(
       projectId,
       JBFundingCycleData({
@@ -170,10 +170,10 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
       ''
     );
 
-    evm.warp(block.timestamp + 1); // Avoid overwrite
+    vm.warp(block.timestamp + 1); // Avoid overwrite
 
     // Second reconfiguration (different configuration)
-    evm.prank(multisig());
+    vm.prank(multisig());
     controller.reconfigureFundingCyclesOf(
       projectId,
       JBFundingCycleData({
@@ -197,7 +197,7 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
     assertEq(fundingCycle.weight, _data.weight);
 
     // Jump to after the ballot passed, but before the next FC
-    evm.warp(fundingCycle.start + fundingCycle.duration - 1);
+    vm.warp(fundingCycle.start + fundingCycle.duration - 1);
 
     // Queued should be the second reconfiguration
     JBFundingCycle memory queuedFundingCycle = jbFundingCycleStore().queuedOf(projectId);
@@ -205,7 +205,7 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
     assertEq(queuedFundingCycle.configuration, secondReconfiguration);
     assertEq(queuedFundingCycle.weight, weightSecondReconfiguration);
 
-    evm.warp(fundingCycle.start + fundingCycle.duration);
+    vm.warp(fundingCycle.start + fundingCycle.duration);
 
     // Second reconfiguration should be now the current one
     JBFundingCycle memory newFundingCycle = jbFundingCycleStore().currentOf(projectId);
@@ -240,7 +240,7 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
     JBFundingCycle memory currentFundingCycle = initialFundingCycle;
     JBFundingCycle memory queuedFundingCycle = jbFundingCycleStore().queuedOf(projectId);
 
-    evm.warp(currentFundingCycle.start + 1); // Avoid overwriting current fc while reconfiguring
+    vm.warp(currentFundingCycle.start + 1); // Avoid overwriting current fc while reconfiguring
 
     for (uint256 i = 0; i < 4; i++) {
       currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
@@ -255,7 +255,7 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
         ballot: _ballot
       });
 
-      evm.prank(multisig());
+      vm.prank(multisig());
       controller.reconfigureFundingCyclesOf(
         projectId,
         _data,
@@ -284,7 +284,7 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
         uint256 _previousFundingCycleNumber = currentFundingCycle.number;
 
         // we shift forward the start of the ballot into the fc, one day at a time, from fc to fc
-        evm.warp(currentFundingCycle.start + currentFundingCycle.duration + i * 1 days);
+        vm.warp(currentFundingCycle.start + currentFundingCycle.duration + i * 1 days);
 
         // Ballot was Approved and we've changed fc, current is the reconfiguration
         currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
@@ -299,12 +299,12 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
       // the ballot is accross two funding cycles
       else {
         // Warp to begining of next FC: should be the previous fc config rolled over (ballot is in Failed state)
-        evm.warp(currentFundingCycle.start + currentFundingCycle.duration);
+        vm.warp(currentFundingCycle.start + currentFundingCycle.duration);
         assertEq(currentFundingCycle.weight, initialFundingCycle.weight - i);
         uint256 cycleNumber = currentFundingCycle.number;
 
         // Warp to after the end of the ballot, within the same fc: should be the new fc (ballot is in Approved state)
-        evm.warp(currentFundingCycle.start + currentFundingCycle.duration + FUZZED_BALLOT_DURATION);
+        vm.warp(currentFundingCycle.start + currentFundingCycle.duration + FUZZED_BALLOT_DURATION);
         currentFundingCycle = jbFundingCycleStore().currentOf(projectId);
         assertEq(currentFundingCycle.weight, _data.weight);
         assertEq(currentFundingCycle.number, cycleNumber + 1);
@@ -317,8 +317,8 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
     uint96 REDEMPTION_RATE,
     uint96 BALANCE
   ) public {
-    evm.assume(payable(msg.sender).balance / 2 >= BALANCE);
-    evm.assume(100 < BALANCE);
+    vm.assume(payable(msg.sender).balance / 2 >= BALANCE);
+    vm.assume(100 < BALANCE);
 
     address _beneficiary = address(69420);
     uint256 projectId = controller.launchProjectFor(
@@ -336,7 +336,7 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
     JBFundingCycle memory fundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(fundingCycle.number, 1);
 
-    evm.warp(block.timestamp + 1);
+    vm.warp(block.timestamp + 1);
 
     jbETHPaymentTerminal().pay{value: BALANCE}(
       projectId,
@@ -353,10 +353,10 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
     if (BALANCE != 0)
       assertEq(jbTokenStore().balanceOf(_beneficiary, projectId), _userTokenBalance);
 
-    evm.prank(multisig());
-    if (RESERVED_RATE > 10000) evm.expectRevert(abi.encodeWithSignature('INVALID_RESERVED_RATE()'));
+    vm.prank(multisig());
+    if (RESERVED_RATE > 10000) vm.expectRevert(abi.encodeWithSignature('INVALID_RESERVED_RATE()'));
     else if (REDEMPTION_RATE > 10000)
-      evm.expectRevert(abi.encodeWithSignature('INVALID_REDEMPTION_RATE()'));
+      vm.expectRevert(abi.encodeWithSignature('INVALID_REDEMPTION_RATE()'));
 
     controller.reconfigureFundingCyclesOf(
       projectId,
@@ -396,7 +396,7 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
       RESERVED_RATE = 5000;
     }
 
-    evm.warp(block.timestamp + fundingCycle.duration);
+    vm.warp(block.timestamp + fundingCycle.duration);
 
     fundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(fundingCycle.number, 2);
@@ -426,7 +426,7 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
     uint256 totalSupply = jbController().totalOutstandingTokensOf(projectId, RESERVED_RATE);
     uint256 overflow = jbETHPaymentTerminal().currentEthOverflowOf(projectId);
 
-    evm.startPrank(_beneficiary);
+    vm.startPrank(_beneficiary);
     jbETHPaymentTerminal().redeemTokensOf(
       _beneficiary,
       projectId,
@@ -437,7 +437,7 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
       '',
       new bytes(0)
     );
-    evm.stopPrank();
+    vm.stopPrank();
 
     if (BALANCE != 0 && REDEMPTION_RATE != 0)
       assertEq(
@@ -470,10 +470,10 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
       ballot: IJBFundingCycleBallot(address(6969)) // Wrong ballot address
     });
 
-    evm.warp(block.timestamp + 1); // Avoid overwriting if same timestamp
+    vm.warp(block.timestamp + 1); // Avoid overwriting if same timestamp
 
-    evm.prank(multisig());
-    evm.expectRevert(abi.encodeWithSignature('INVALID_BALLOT()'));
+    vm.prank(multisig());
+    vm.expectRevert(abi.encodeWithSignature('INVALID_BALLOT()'));
     controller.reconfigureFundingCyclesOf(
       projectId,
       _dataNew, // wrong ballot
@@ -519,9 +519,9 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
 
     uint256 currentConfiguration = fundingCycle.configuration;
 
-    evm.warp(block.timestamp + 1); // Avoid overwriting if same timestamp
+    vm.warp(block.timestamp + 1); // Avoid overwriting if same timestamp
 
-    evm.prank(multisig());
+    vm.prank(multisig());
     controller.reconfigureFundingCyclesOf(
       projectId,
       _dataReconfiguration,
@@ -539,14 +539,14 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
     assertEq(fundingCycle.weight, _data.weight);
 
     // shouldn't have changed (new cycle but ballot is still active)
-    evm.warp(fundingCycle.start + fundingCycle.duration);
+    vm.warp(fundingCycle.start + fundingCycle.duration);
 
     JBFundingCycle memory newFundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(newFundingCycle.number, 2);
     assertEq(newFundingCycle.weight, _data.weight);
 
     // should now be the reconfiguration (ballot duration is over)
-    evm.warp(fundingCycle.start + fundingCycle.duration + 3 days);
+    vm.warp(fundingCycle.start + fundingCycle.duration + 3 days);
 
     newFundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(newFundingCycle.number, fundingCycle.number + (3 days / 5 minutes) + 1);
@@ -585,9 +585,9 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
     assertEq(fundingCycle.number, 1);
     assertEq(fundingCycle.weight, _data.weight);
 
-    evm.warp(block.timestamp + 10); // Avoid overwriting if same timestamp
+    vm.warp(block.timestamp + 10); // Avoid overwriting if same timestamp
 
-    evm.prank(multisig());
+    vm.prank(multisig());
     controller.reconfigureFundingCyclesOf(
       projectId,
       _dataReconfiguration,
@@ -603,7 +603,7 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
     assertEq(fundingCycle.weight, _data.weight);
 
     // Should have changed after the current funding cycle is over
-    evm.warp(fundingCycle.start + fundingCycle.duration);
+    vm.warp(fundingCycle.start + fundingCycle.duration);
     fundingCycle = jbFundingCycleStore().currentOf(projectId);
     assertEq(fundingCycle.number, 2);
     assertEq(fundingCycle.weight, _dataReconfiguration.weight);

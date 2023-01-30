@@ -2,17 +2,17 @@
 pragma solidity ^0.8.6;
 
 
-import "../JBController3_1.sol";
+import "@juicebox/JBController3_1.sol";
 
-import "../interfaces/IJBController.sol";
-import "../interfaces/IJBMigratable.sol";
-import "../interfaces/IJBOperatorStore.sol";
-import "../interfaces/IJBPaymentTerminal.sol";
-import "../interfaces/IJBProjects.sol";
+import "@juicebox/interfaces/IJBController.sol";
+import "@juicebox/interfaces/IJBMigratable.sol";
+import "@juicebox/interfaces/IJBOperatorStore.sol";
+import "@juicebox/interfaces/IJBPaymentTerminal.sol";
+import "@juicebox/interfaces/IJBProjects.sol";
 
-import "../interfaces/IJBPayoutRedemptionPaymentTerminal.sol";
+import "@juicebox/interfaces/IJBPayoutRedemptionPaymentTerminal.sol";
 
-import "../libraries/JBTokens.sol";
+import "@juicebox/libraries/JBTokens.sol";
 
 import "@paulrberg/contracts/math/PRBMath.sol";
 import "@paulrberg/contracts/math/PRBMathUD60x18.sol";
@@ -169,7 +169,7 @@ contract TestControllerV3_1_Fork is Test {
     //     uint256 redeemTokenAmount // 0
     // ) external {
     //     // issue an ERC-20 token for project
-    //     evm.prank(_projectOwner);
+    //     vm.prank(_projectOwner);
     //     _tokenStore.issueFor(_projectId, "TestName", "TestSymbol");
 
     //     address _userWallet = address(1234);
@@ -200,16 +200,16 @@ contract TestControllerV3_1_Fork is Test {
 
     //     // burn tokens from beneficiary addr
     //     if (burnTokenAmount == 0) {
-    //         evm.expectRevert(abi.encodeWithSignature("NO_BURNABLE_TOKENS()"));
+    //         vm.expectRevert(abi.encodeWithSignature("NO_BURNABLE_TOKENS()"));
     //     } else if (burnTokenAmount > uint256(type(int256).max)) {
-    //         evm.expectRevert("SafeCast: value doesn't fit in an int256");
+    //         vm.expectRevert("SafeCast: value doesn't fit in an int256");
     //     } else if (burnTokenAmount > _userTokenBalance) {
-    //         evm.expectRevert(abi.encodeWithSignature("INSUFFICIENT_FUNDS()"));
+    //         vm.expectRevert(abi.encodeWithSignature("INSUFFICIENT_FUNDS()"));
     //     } else {
     //         _userTokenBalance = _userTokenBalance - burnTokenAmount;
     //     }
 
-    //     evm.prank(_userWallet);
+    //     vm.prank(_userWallet);
     //     _controller.burnTokensOf(
     //         _userWallet,
     //         _projectId,
@@ -226,12 +226,12 @@ contract TestControllerV3_1_Fork is Test {
 
     //     // redeem tokens
     //     if (redeemTokenAmount > _userTokenBalance) {
-    //         evm.expectRevert(abi.encodeWithSignature("INSUFFICIENT_TOKENS()"));
+    //         vm.expectRevert(abi.encodeWithSignature("INSUFFICIENT_TOKENS()"));
     //     } else {
     //         _userTokenBalance = _userTokenBalance - redeemTokenAmount;
     //     }
 
-    //     evm.prank(_userWallet);
+    //     vm.prank(_userWallet);
     //     uint256 _reclaimAmtInWei = _terminal.redeemTokensOf(
     //         /* _holder */
     //         _userWallet,

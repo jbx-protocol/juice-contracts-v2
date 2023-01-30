@@ -2,8 +2,8 @@
 pragma solidity ^0.8.6;
 
 import './helpers/TestBaseWorkflow.sol';
-import '../JBReconfigurationBufferBallot.sol';
-import '../JBETHERC20SplitsPayer.sol';
+import '@juicebox/JBReconfigurationBufferBallot.sol';
+import '@juicebox/JBETHERC20SplitsPayer.sol';
 
 contract TestEIP165_Local is TestBaseWorkflow {
   bytes4 constant notSupportedInterface = 0xffffffff;

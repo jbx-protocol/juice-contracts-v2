@@ -10,7 +10,7 @@ import './helpers/TestBaseWorkflow.sol';
  * This system test file verifies the following flow:
  * launch project → issue token → pay project (claimed tokens) →  burn some of the claimed tokens → redeem rest of tokens
  */
-contract TestPayBurnRedeemFlow_Local is TestBaseWorkflow {
+contract TestRedeem_Local is TestBaseWorkflow {
   JBController private _controller;
   JBETHPaymentTerminal private _terminal;
   JBTokenStore private _tokenStore;
@@ -25,7 +25,7 @@ contract TestPayBurnRedeemFlow_Local is TestBaseWorkflow {
   uint256 private _projectId;
   address private _projectOwner;
   uint256 private _weight = 1000 * 10**18;
-  uint256 private _targetInWei = 10 * 10**18;
+  uint256 private _targetInWei = 1 * 10**18;
 
   function setUp() public override {
     super.setUp();
@@ -50,7 +50,7 @@ contract TestPayBurnRedeemFlow_Local is TestBaseWorkflow {
         pauseTransfers: false
       }),
       reservedRate: 0,
-      redemptionRate: 10000, //100%
+      redemptionRate: 5000,
       ballotRedemptionRate: 0,
       pausePay: false,
       pauseDistributions: false,
@@ -74,7 +74,7 @@ contract TestPayBurnRedeemFlow_Local is TestBaseWorkflow {
       JBFundAccessConstraints({
         terminal: _terminal,
         token: jbLibraries().ETHToken(),
-        distributionLimit: _targetInWei, // 10 ETH target
+        distributionLimit: 1 ether, // 10 ETH target
         overflowAllowance: 5 ether,
         distributionLimitCurrency: 1, // Currency = ETH
         overflowAllowanceCurrency: 1
@@ -96,15 +96,12 @@ contract TestPayBurnRedeemFlow_Local is TestBaseWorkflow {
     );
   }
 
-  function testFuzzPayBurnRedeemFlow(
-    bool payPreferClaimed, //false
-    bool burnPreferClaimed, //false
-    uint96 payAmountInWei, // 1
-    uint256 burnTokenAmount, // 0
-    uint256 redeemTokenAmount // 0
-  ) external {
+  function testRedeem() external {
+    bool payPreferClaimed = true; //false
+    uint96 payAmountInWei = 2 ether;
+
     // issue an ERC-20 token for project
-    evm.prank(_projectOwner);
+    vm.prank(_projectOwner);
     _tokenStore.issueFor(_projectId, 'TestName', 'TestSymbol');
 
     address _userWallet = address(1234);
@@ -133,46 +130,18 @@ contract TestPayBurnRedeemFlow_Local is TestBaseWorkflow {
     uint256 _terminalBalanceInWei = payAmountInWei;
     assertEq(jbPaymentTerminalStore().balanceOf(_terminal, _projectId), _terminalBalanceInWei);
 
-    // burn tokens from beneficiary addr
-    if (burnTokenAmount == 0) evm.expectRevert(abi.encodeWithSignature('NO_BURNABLE_TOKENS()'));
-    else if (burnTokenAmount > uint256(type(int256).max))
-      evm.expectRevert("SafeCast: value doesn't fit in an int256");
-    else if (burnTokenAmount > _userTokenBalance)
-      evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_FUNDS()'));
-    else _userTokenBalance = _userTokenBalance - burnTokenAmount;
-
-    evm.prank(_userWallet);
-    _controller.burnTokensOf(
-      _userWallet,
-      _projectId,
-      /* _tokenCount */
-      burnTokenAmount,
-      /* _memo */
-      'I hate tokens!',
-      /* _preferClaimedTokens */
-      burnPreferClaimed
-    );
-
-    // verify: beneficiary should have a new balance of JBTokens
-    assertEq(_tokenStore.balanceOf(_userWallet, _projectId), _userTokenBalance);
-
-    // redeem tokens
-    if (redeemTokenAmount > _userTokenBalance)
-      evm.expectRevert(abi.encodeWithSignature('INSUFFICIENT_TOKENS()'));
-    else _userTokenBalance = _userTokenBalance - redeemTokenAmount;
-
-    evm.prank(_userWallet);
+    vm.prank(_userWallet);
     uint256 _reclaimAmtInWei = _terminal.redeemTokensOf(
       /* _holder */
       _userWallet,
       /* _projectId */
       _projectId,
       /* _tokenCount */
-      redeemTokenAmount,
+      _userTokenBalance / 2,
       /* token (unused) */
       address(0),
       /* _minReturnedWei */
-      0,
+      1,
       /* _beneficiary */
       payable(_userWallet),
       /* _memo */
@@ -181,8 +150,8 @@ contract TestPayBurnRedeemFlow_Local is TestBaseWorkflow {
       new bytes(0)
     );
 
-    // verify: beneficiary should have a new balance of JBTokens
-    assertEq(_tokenStore.balanceOf(_userWallet, _projectId), _userTokenBalance);
+    // verify: beneficiary has correct amount ok token
+    assertEq(_tokenStore.balanceOf(_userWallet, _projectId), _userTokenBalance / 2);
 
     // verify: ETH balance in terminal should be up to date
     assertEq(

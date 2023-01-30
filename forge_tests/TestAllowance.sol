@@ -110,7 +110,7 @@ contract TestAllowance_Local is TestBaseWorkflow {
     assertEq(jbPaymentTerminalStore().balanceOf(terminal, projectId), 20 ether);
 
     // Discretionary use of overflow allowance by project owner (allowance = 5ETH)
-    evm.prank(_projectOwner); // Prank only next call
+    vm.prank(_projectOwner); // Prank only next call
     terminal.useAllowanceOf(
       projectId,
       5 ether,
@@ -126,7 +126,7 @@ contract TestAllowance_Local is TestBaseWorkflow {
     );
 
     // Distribute the funding target ETH -> splits[] is empty -> everything in left-over, to project owner
-    evm.prank(_projectOwner);
+    vm.prank(_projectOwner);
     terminal.distributePayoutsOf(
       projectId,
       10 ether,
@@ -142,7 +142,7 @@ contract TestAllowance_Local is TestBaseWorkflow {
 
     // redeem eth from the overflow by the token holder:
     uint256 senderBalance = _tokenStore.balanceOf(_beneficiary, projectId);
-    evm.prank(_beneficiary);
+    vm.prank(_beneficiary);
     terminal.redeemTokensOf(
       _beneficiary,
       projectId,
@@ -163,11 +163,11 @@ contract TestAllowance_Local is TestBaseWorkflow {
     uint232 TARGET,
     uint96 BALANCE
   ) public {
-    evm.assume(jbToken().totalSupply() >= BALANCE);
+    vm.assume(jbToken().totalSupply() >= BALANCE);
 
     unchecked {
       // Check for overflow
-      evm.assume(ALLOWANCE + TARGET >= ALLOWANCE && ALLOWANCE + TARGET >= TARGET);
+      vm.assume(ALLOWANCE + TARGET >= ALLOWANCE && ALLOWANCE + TARGET >= TARGET);
     }
 
     uint256 CURRENCY = jbLibraries().ETH(); // Avoid testing revert on this call...
@@ -215,16 +215,16 @@ contract TestAllowance_Local is TestBaseWorkflow {
     // verify: ETH balance in terminal should be up to date
     assertEq(jbPaymentTerminalStore().balanceOf(terminal, projectId), BALANCE);
 
-    evm.startPrank(_projectOwner);
+    vm.startPrank(_projectOwner);
 
     bool willRevert;
 
     if (ALLOWANCE == 0) {
-      evm.expectRevert(abi.encodeWithSignature('INADEQUATE_CONTROLLER_ALLOWANCE()'));
+      vm.expectRevert(abi.encodeWithSignature('INADEQUATE_CONTROLLER_ALLOWANCE()'));
       willRevert = true;
     } else if (TARGET >= BALANCE || ALLOWANCE > (BALANCE - TARGET)) {
       // Too much to withdraw or no overflow ?
-      evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
+      vm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
       willRevert = true;
     }
     terminal.useAllowanceOf(
@@ -246,10 +246,10 @@ contract TestAllowance_Local is TestBaseWorkflow {
       );
 
     if (TARGET > BALANCE)
-      evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
+      vm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
 
     if (TARGET == 0)
-      evm.expectRevert(abi.encodeWithSignature('DISTRIBUTION_AMOUNT_LIMIT_REACHED()'));
+      vm.expectRevert(abi.encodeWithSignature('DISTRIBUTION_AMOUNT_LIMIT_REACHED()'));
 
     terminal.distributePayoutsOf(
       projectId,

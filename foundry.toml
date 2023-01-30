@@ -1,6 +1,6 @@
 [profile.default]
-src = 'contracts'
-test = 'test'
+src = 'forge_tests'
+test = 'forge_tests'
 out = 'out'
 libs = ['lib']
 remappings = [

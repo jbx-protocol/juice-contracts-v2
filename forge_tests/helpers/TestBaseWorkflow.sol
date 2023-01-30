@@ -1,38 +1,37 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.6;
 
-import './hevm.sol';
-import '../../../lib/ds-test/src/test.sol';
+import 'forge-std/Test.sol';
 
-import '../../JBController.sol';
-import '../../JBDirectory.sol';
-import '../../JBETHPaymentTerminal.sol';
-import '../../JBERC20PaymentTerminal.sol';
-import '../../JBSingleTokenPaymentTerminalStore.sol';
-import '../../JBFundingCycleStore.sol';
-import '../../JBOperatorStore.sol';
-import '../../JBPrices.sol';
-import '../../JBProjects.sol';
-import '../../JBSplitsStore.sol';
-import '../../JBToken.sol';
-import '../../JBTokenStore.sol';
+import '@juicebox/JBController.sol';
+import '@juicebox/JBDirectory.sol';
+import '@juicebox/JBETHPaymentTerminal.sol';
+import '@juicebox/JBERC20PaymentTerminal.sol';
+import '@juicebox/JBSingleTokenPaymentTerminalStore.sol';
+import '@juicebox/JBFundingCycleStore.sol';
+import '@juicebox/JBOperatorStore.sol';
+import '@juicebox/JBPrices.sol';
+import '@juicebox/JBProjects.sol';
+import '@juicebox/JBSplitsStore.sol';
+import '@juicebox/JBToken.sol';
+import '@juicebox/JBTokenStore.sol';
 
-import '../../structs/JBDidPayData.sol';
-import '../../structs/JBDidRedeemData.sol';
-import '../../structs/JBFee.sol';
-import '../../structs/JBFundAccessConstraints.sol';
-import '../../structs/JBFundingCycle.sol';
-import '../../structs/JBFundingCycleData.sol';
-import '../../structs/JBFundingCycleMetadata.sol';
-import '../../structs/JBGroupedSplits.sol';
-import '../../structs/JBOperatorData.sol';
-import '../../structs/JBPayParamsData.sol';
-import '../../structs/JBProjectMetadata.sol';
-import '../../structs/JBRedeemParamsData.sol';
-import '../../structs/JBSplit.sol';
+import '@juicebox/structs/JBDidPayData.sol';
+import '@juicebox/structs/JBDidRedeemData.sol';
+import '@juicebox/structs/JBFee.sol';
+import '@juicebox/structs/JBFundAccessConstraints.sol';
+import '@juicebox/structs/JBFundingCycle.sol';
+import '@juicebox/structs/JBFundingCycleData.sol';
+import '@juicebox/structs/JBFundingCycleMetadata.sol';
+import '@juicebox/structs/JBGroupedSplits.sol';
+import '@juicebox/structs/JBOperatorData.sol';
+import '@juicebox/structs/JBPayParamsData.sol';
+import '@juicebox/structs/JBProjectMetadata.sol';
+import '@juicebox/structs/JBRedeemParamsData.sol';
+import '@juicebox/structs/JBSplit.sol';
 
-import '../../interfaces/IJBPaymentTerminal.sol';
-import '../../interfaces/IJBToken.sol';
+import '@juicebox/interfaces/IJBPaymentTerminal.sol';
+import '@juicebox/interfaces/IJBToken.sol';
 
 import './AccessJBLib.sol';
 
@@ -41,7 +40,7 @@ import '@paulrberg/contracts/math/PRBMath.sol';
 // Base contract for Juicebox system tests.
 //
 // Provides common functionality, such as deploying contracts on test setup.
-contract TestBaseWorkflow is DSTest {
+contract TestBaseWorkflow is Test {
   //*********************************************************************//
   // --------------------- private stored properties ------------------- //
   //*********************************************************************//
@@ -50,9 +49,6 @@ contract TestBaseWorkflow is DSTest {
   address private _multisig = address(123);
 
   address private _beneficiary = address(69420);
-
-  // EVM Cheat codes - test addresses via prank and startPrank in hevm
-  Hevm public evm = Hevm(HEVM_ADDRESS);
 
   // JBOperatorStore
   JBOperatorStore private _jbOperatorStore;
@@ -152,30 +148,30 @@ contract TestBaseWorkflow is DSTest {
   // Deploys and initializes contracts for testing.
   function setUp() public virtual {
     // Labels
-    evm.label(_multisig, 'projectOwner');
-    evm.label(_beneficiary, 'beneficiary');
+    vm.label(_multisig, 'projectOwner');
+    vm.label(_beneficiary, 'beneficiary');
 
     // JBOperatorStore
     _jbOperatorStore = new JBOperatorStore();
-    evm.label(address(_jbOperatorStore), 'JBOperatorStore');
+    vm.label(address(_jbOperatorStore), 'JBOperatorStore');
 
     // JBProjects
     _jbProjects = new JBProjects(_jbOperatorStore);
-    evm.label(address(_jbProjects), 'JBProjects');
+    vm.label(address(_jbProjects), 'JBProjects');
 
     // JBPrices
     _jbPrices = new JBPrices(_multisig);
-    evm.label(address(_jbPrices), 'JBPrices');
+    vm.label(address(_jbPrices), 'JBPrices');
 
     address contractAtNoncePlusOne = addressFrom(address(this), 5);
 
     // JBFundingCycleStore
     _jbFundingCycleStore = new JBFundingCycleStore(IJBDirectory(contractAtNoncePlusOne));
-    evm.label(address(_jbFundingCycleStore), 'JBFundingCycleStore');
+    vm.label(address(_jbFundingCycleStore), 'JBFundingCycleStore');
 
     // JBDirectory
     _jbDirectory = new JBDirectory(_jbOperatorStore, _jbProjects, _jbFundingCycleStore, _multisig);
-    evm.label(address(_jbDirectory), 'JBDirectory');
+    vm.label(address(_jbDirectory), 'JBDirectory');
 
     // JBTokenStore
     _jbTokenStore = new JBTokenStore(
@@ -184,11 +180,11 @@ contract TestBaseWorkflow is DSTest {
       _jbDirectory,
       _jbFundingCycleStore
     );
-    evm.label(address(_jbTokenStore), 'JBTokenStore');
+    vm.label(address(_jbTokenStore), 'JBTokenStore');
 
     // JBSplitsStore
     _jbSplitsStore = new JBSplitsStore(_jbOperatorStore, _jbProjects, _jbDirectory);
-    evm.label(address(_jbSplitsStore), 'JBSplitsStore');
+    vm.label(address(_jbSplitsStore), 'JBSplitsStore');
 
     // JBController
     _jbController = new JBController(
@@ -199,9 +195,9 @@ contract TestBaseWorkflow is DSTest {
       _jbTokenStore,
       _jbSplitsStore
     );
-    evm.label(address(_jbController), 'JBController');
+    vm.label(address(_jbController), 'JBController');
 
-    evm.prank(_multisig);
+    vm.prank(_multisig);
     _jbDirectory.setIsAllowedToSetFirstController(address(_jbController), true);
 
     // JBETHPaymentTerminalStore
@@ -210,7 +206,7 @@ contract TestBaseWorkflow is DSTest {
       _jbFundingCycleStore,
       _jbPrices
     );
-    evm.label(address(_jbPaymentTerminalStore), 'JBSingleTokenPaymentTerminalStore');
+    vm.label(address(_jbPaymentTerminalStore), 'JBSingleTokenPaymentTerminalStore');
 
     // AccessJBLib
     _accessJBLib = new AccessJBLib();
@@ -226,12 +222,12 @@ contract TestBaseWorkflow is DSTest {
       _jbPaymentTerminalStore,
       _multisig
     );
-    evm.label(address(_jbETHPaymentTerminal), 'JBETHPaymentTerminal');
+    vm.label(address(_jbETHPaymentTerminal), 'JBETHPaymentTerminal');
 
-    evm.prank(_multisig);
+    vm.prank(_multisig);
     _jbToken = new JBToken('MyToken', 'MT', 1);
 
-    evm.prank(_multisig);
+    vm.prank(_multisig);
     _jbToken.mint(1, _multisig, 100 * 10**18);
 
     // JBERC20PaymentTerminal
@@ -248,7 +244,7 @@ contract TestBaseWorkflow is DSTest {
       _jbPaymentTerminalStore,
       _multisig
     );
-    evm.label(address(_jbERC20PaymentTerminal), 'JBERC20PaymentTerminal');
+    vm.label(address(_jbERC20PaymentTerminal), 'JBERC20PaymentTerminal');
   }
 
   //https://ethereum.stackexchange.com/questions/24248/how-to-calculate-an-ethereum-contracts-address-during-its-creation-using-the-so

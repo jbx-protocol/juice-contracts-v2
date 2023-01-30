@@ -89,13 +89,13 @@ contract TestERC20Terminal_Local is TestBaseWorkflow {
     );
 
     address caller = msg.sender;
-    evm.label(caller, 'caller');
-    evm.prank(_projectOwner);
+    vm.label(caller, 'caller');
+    vm.prank(_projectOwner);
     jbToken().transfer(caller, 20 * 10**18);
 
-    evm.prank(caller); // back to regular msg.sender (bug?)
+    vm.prank(caller); // back to regular msg.sender (bug?)
     jbToken().approve(address(terminal), 20 * 10**18);
-    evm.prank(caller); // back to regular msg.sender (bug?)
+    vm.prank(caller); // back to regular msg.sender (bug?)
     terminal.pay(
       projectId,
       20 * 10**18,
@@ -115,7 +115,7 @@ contract TestERC20Terminal_Local is TestBaseWorkflow {
     assertEq(jbPaymentTerminalStore().balanceOf(terminal, projectId), 20 * 10**18);
 
     // Discretionary use of overflow allowance by project owner (allowance = 5ETH)
-    evm.prank(_projectOwner); // Prank only next call
+    vm.prank(_projectOwner); // Prank only next call
     terminal.useAllowanceOf(
       projectId,
       5 * 10**18,
@@ -132,7 +132,7 @@ contract TestERC20Terminal_Local is TestBaseWorkflow {
 
     // Distribute the funding target ETH -> splits[] is empty -> everything in left-over, to project owner
     uint256 initBalance = jbToken().balanceOf(_projectOwner);
-    evm.prank(_projectOwner);
+    vm.prank(_projectOwner);
     terminal.distributePayoutsOf(
       projectId,
       10 * 10**18,
@@ -151,7 +151,7 @@ contract TestERC20Terminal_Local is TestBaseWorkflow {
 
     // redeem eth from the overflow by the token holder:
     uint256 senderBalance = _tokenStore.balanceOf(msg.sender, projectId);
-    evm.prank(msg.sender);
+    vm.prank(msg.sender);
     terminal.redeemTokensOf(
       msg.sender,
       projectId,
@@ -172,7 +172,7 @@ contract TestERC20Terminal_Local is TestBaseWorkflow {
     uint232 TARGET,
     uint96 BALANCE
   ) public {
-    evm.assume(jbToken().totalSupply() >= BALANCE);
+    vm.assume(jbToken().totalSupply() >= BALANCE);
 
     JBERC20PaymentTerminal terminal = jbERC20PaymentTerminal();
 
@@ -200,13 +200,13 @@ contract TestERC20Terminal_Local is TestBaseWorkflow {
     );
 
     address caller = msg.sender;
-    evm.label(caller, 'caller');
-    evm.prank(_projectOwner);
+    vm.label(caller, 'caller');
+    vm.prank(_projectOwner);
     jbToken().transfer(caller, BALANCE);
 
-    evm.prank(caller); // back to regular msg.sender (bug?)
+    vm.prank(caller); // back to regular msg.sender (bug?)
     jbToken().approve(address(terminal), BALANCE);
-    evm.prank(caller); // back to regular msg.sender (bug?)
+    vm.prank(caller); // back to regular msg.sender (bug?)
     terminal.pay(projectId, BALANCE, address(0), msg.sender, 0, false, 'Forge test', new bytes(0)); // funding target met and 10 ETH are now in the overflow
 
     // verify: beneficiary should have a balance of JBTokens (divided by 2 -> reserved rate = 50%)
@@ -220,15 +220,15 @@ contract TestERC20Terminal_Local is TestBaseWorkflow {
 
     // Discretionary use of overflow allowance by project owner (allowance = 5ETH)
     if (ALLOWANCE == 0) {
-      evm.expectRevert(abi.encodeWithSignature('INADEQUATE_CONTROLLER_ALLOWANCE()'));
+      vm.expectRevert(abi.encodeWithSignature('INADEQUATE_CONTROLLER_ALLOWANCE()'));
       willRevert = true;
     } else if (TARGET >= BALANCE || ALLOWANCE > (BALANCE - TARGET)) {
       // Too much to withdraw or no overflow ?
-      evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
+      vm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
       willRevert = true;
     }
 
-    evm.prank(_projectOwner); // Prank only next call
+    vm.prank(_projectOwner); // Prank only next call
     terminal.useAllowanceOf(
       projectId,
       ALLOWANCE,
@@ -249,12 +249,12 @@ contract TestERC20Terminal_Local is TestBaseWorkflow {
     uint256 initBalance = jbToken().balanceOf(_projectOwner);
 
     if (TARGET > BALANCE)
-      evm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
+      vm.expectRevert(abi.encodeWithSignature('INADEQUATE_PAYMENT_TERMINAL_STORE_BALANCE()'));
 
     if (TARGET == 0)
-      evm.expectRevert(abi.encodeWithSignature('DISTRIBUTION_AMOUNT_LIMIT_REACHED()'));
+      vm.expectRevert(abi.encodeWithSignature('DISTRIBUTION_AMOUNT_LIMIT_REACHED()'));
 
-    evm.prank(_projectOwner);
+    vm.prank(_projectOwner);
     terminal.distributePayoutsOf(
       projectId,
       TARGET,
@@ -274,7 +274,7 @@ contract TestERC20Terminal_Local is TestBaseWorkflow {
     // redeem eth from the overflow by the token holder:
     uint256 senderBalance = _tokenStore.balanceOf(msg.sender, projectId);
 
-    evm.prank(msg.sender);
+    vm.prank(msg.sender);
     terminal.redeemTokensOf(
       msg.sender,
       projectId,

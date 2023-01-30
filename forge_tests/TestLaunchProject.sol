@@ -80,7 +80,7 @@ contract TestLaunchProject_Local is TestBaseWorkflow {
 
     // expectRevert on the next call if weight overflowing
     if (WEIGHT > type(uint88).max) {
-      evm.expectRevert(abi.encodeWithSignature('INVALID_WEIGHT()'));
+      vm.expectRevert(abi.encodeWithSignature('INVALID_WEIGHT()'));
 
       projectId = jbController().launchProjectFor(
         msg.sender,
