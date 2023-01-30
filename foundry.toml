@@ -13,17 +13,9 @@ remappings = [
     'forge-std/=lib/forge-std/src/',
 ]
 libraries = []
-cache = true
-force = false
-evm_version = 'london'
 gas_reports = ['*']
-auto_detect_solc = true
-optimizer = true
-optimizer_runs = 200
-verbosity = 0
+verbosity = 3
 ignored_error_codes = []
-fuzz_runs = 1024
-ffi = false
 sender = '0x00a329c0648769a73afac7f9381e08fb43dbea72'
 tx_origin = '0x00a329c0648769a73afac7f9381e08fb43dbea72'
 initial_balance = '0xffffffffffffffffffffffff'
@@ -34,4 +26,8 @@ block_base_fee_per_gas = 0
 block_coinbase = '0x0000000000000000000000000000000000000000'
 block_timestamp = 1643802347
 block_difficulty = 0
+sizes=true
 
+[profile.CI] # run via FOUNDRY_PROFILE=CI foundry test
+fs_permissions = [{ access = "read", path = "./deployments/mainnet"}] # Get the deployment addresses for forking
+match_contract = "Fork"
