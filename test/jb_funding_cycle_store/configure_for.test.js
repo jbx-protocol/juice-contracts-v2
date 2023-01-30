@@ -84,30 +84,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
     metadata: fc[8],
   });
 
-  it.only('Should have no current or queued funding cycle before configuring', async function () {
-    const { jbFundingCycleStore } = await setup();
-
-    const hashs = [
-      "QmXpzh75idyHx49qG26DyYrWEfR556HVSKS7fZeDqDbDeC",
-      "QmTZBrAWc8yMCr1qJo7i7ueNogqD9MkUusBsK25wsfg89Z",
-      "QmRd3ecF21b3wbweaC3wSV6XEjyws16di1J16vUSo4Pa3d",
-      "QmPre5Mrus55CcqRwA48JStZRwcgJQWQBvkjKEFwrYcuhn",
-      "QmPzwDnjLHENuS73aVwUe79XccBqPdiFS6pFMFZW3Yk4Vn",
-      "QmfEPVRtQxLgSZojBMgojdPiTNhD3ivJYGxJtYXJ3QQKwX",
-      "QmTCRqby9ay9npjSyyxQR3McLaTrm4QW8Q6Pwyh5Awq7bX",
-      "QmV8XyiEygCg3HwWV6c5SQuuJFEtR3nVYMkHoxMVrzr9rj",
-      "QmUpAW16kcaw1iZ3q7NSNSu23jJoYBe3SrFiH7BrGurdT6",
-      "QmYaGebmAtcmFkbCsmYUhSdXf2jMCcYvSQRp3s928qT4nE",
-      "QmQSptL4amZhXjAzXLfWhDKzJ4aNYy87bn1gDfmycRzZbK",
-      "QmXit8N3G5KRy4BT1QeprPUL6ZWM8PF4rECAEZH77ZbmJk",
-      "QmdTGVS45unb2KTL8pz3o8QoVtM1ioqXKxShKB5DzxG8eB",
-      "QmZgoqDT4F6M2bPEruawnfVPxRtYc3EFpmH4B8wSSvAkhk"
-    ];
-
-    for (const IPFS_HASH of hashs) {
-      console.log(IPFS_HASH);
-      console.log(`0x${Buffer.from(bs58.decode(IPFS_HASH).slice(2)).toString('hex')}`);
-    }
+  it('Should have no current or queued funding cycle before configuring', async function () {
 
     // Ballot status should be approved since there is no ballot.
     expect(await jbFundingCycleStore.currentBallotStateOf(PROJECT_ID)).to.eql(1);
