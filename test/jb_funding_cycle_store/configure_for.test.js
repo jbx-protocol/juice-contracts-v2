@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-const bs58 = require('bs58')
 
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
@@ -85,6 +84,7 @@ describe('JBFundingCycleStore::configureFor(...)', function () {
   });
 
   it('Should have no current or queued funding cycle before configuring', async function () {
+    const { jbFundingCycleStore } = await setup();
 
     // Ballot status should be approved since there is no ballot.
     expect(await jbFundingCycleStore.currentBallotStateOf(PROJECT_ID)).to.eql(1);
