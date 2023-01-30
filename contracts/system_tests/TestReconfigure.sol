@@ -7,7 +7,7 @@ import '../JBReconfigurationBufferBallot.sol';
 
 uint256 constant WEIGHT = 1000 * 10**18;
 
-contract TestReconfigureProject is TestBaseWorkflow {
+contract TestReconfigureProject_Local is TestBaseWorkflow {
   JBController controller;
   JBProjectMetadata _projectMetadata;
   JBFundingCycleData _data;

@@ -4,7 +4,7 @@ pragma solidity ^0.8.6;
 import './helpers/TestBaseWorkflow.sol';
 
 /// @notice This file tests JBToken related flows
-contract TestTokenFlow is TestBaseWorkflow {
+contract TestTokenFlow_Local is TestBaseWorkflow {
   JBController private _controller;
   JBTokenStore private _tokenStore;
 

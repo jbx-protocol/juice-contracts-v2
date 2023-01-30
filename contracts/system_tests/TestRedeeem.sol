@@ -10,7 +10,7 @@ import './helpers/TestBaseWorkflow.sol';
  * This system test file verifies the following flow:
  * launch project → issue token → pay project (claimed tokens) →  burn some of the claimed tokens → redeem rest of tokens
  */
-contract TestRedeem is TestBaseWorkflow {
+contract TestRedeem_Local is TestBaseWorkflow {
   JBController private _controller;
   JBETHPaymentTerminal private _terminal;
   JBTokenStore private _tokenStore;

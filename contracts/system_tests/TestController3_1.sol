@@ -26,6 +26,7 @@ import "forge-std/Test.sol";
  */
 contract TestControllerV3_1_Fork is Test {
     IJBPayoutRedemptionPaymentTerminal jbEthTerminal;
+    IJBController oldJbController;
 
     IJBOperatorStore operatorStore;
     IJBProjects projects;
@@ -54,7 +55,7 @@ contract TestControllerV3_1_Fork is Test {
             stdJson.readAddress(vm.readFile("./deployments/mainnet/JBETHPaymentTerminal.json"), "address")
         );
 
-        IJBController oldJbController = IJBController(
+        oldJbController = IJBController(
             stdJson.readAddress(
                 vm.readFile("./deployments/mainnet/JBController.json"),
                 "address"
@@ -131,17 +132,22 @@ contract TestControllerV3_1_Fork is Test {
         splitsStore
     );
 
-    projectId = jbController.launchProjectFor(
-        projectOwner,
-        projectMetadata,
-        data,
-        metadata,
-        block.timestamp,
-        groupedSplits,
-        fundAccessConstraints,
-        terminals,
-        ""
-    );
+
+    // Migrate Juicebox controller:
+    jbController.prepForMigrationOf(1, address(oldJbController));
+    oldJbController.migrate(1, jbController);
+
+    // projectId = jbController.launchProjectFor(
+    //     projectOwner,
+    //     projectMetadata,
+    //     data,
+    //     metadata,
+    //     block.timestamp,
+    //     groupedSplits,
+    //     fundAccessConstraints,
+    //     terminals,
+    //     ""
+    // );
   }
 
     // function testFuzzPayBurnRedeemFlow(

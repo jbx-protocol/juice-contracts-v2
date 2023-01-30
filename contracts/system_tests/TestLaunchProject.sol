@@ -3,7 +3,7 @@ pragma solidity ^0.8.6;
 
 import './helpers/TestBaseWorkflow.sol';
 
-contract TestLaunchProject is TestBaseWorkflow {
+contract TestLaunchProject_Local is TestBaseWorkflow {
   JBProjectMetadata _projectMetadata;
   JBFundingCycleData _data;
   JBFundingCycleMetadata _metadata;

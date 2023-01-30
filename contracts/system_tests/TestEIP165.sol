@@ -5,7 +5,7 @@ import './helpers/TestBaseWorkflow.sol';
 import '../JBReconfigurationBufferBallot.sol';
 import '../JBETHERC20SplitsPayer.sol';
 
-contract TestEIP165 is TestBaseWorkflow {
+contract TestEIP165_Local is TestBaseWorkflow {
   bytes4 constant notSupportedInterface = 0xffffffff;
 
   uint256 constant projectId = 2;

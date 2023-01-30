@@ -27,7 +27,8 @@ block_coinbase = '0x0000000000000000000000000000000000000000'
 block_timestamp = 1643802347
 block_difficulty = 0
 sizes=true
+match_contract = "_Local" # Do not run fork tests
 
 [profile.CI] # run via FOUNDRY_PROFILE=CI foundry test
 fs_permissions = [{ access = "read", path = "./deployments/mainnet"}] # Get the deployment addresses for forking
-match_contract = "Fork"
+match_contract = "_Fork"

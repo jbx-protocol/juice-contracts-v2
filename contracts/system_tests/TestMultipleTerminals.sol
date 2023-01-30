@@ -6,7 +6,7 @@ import './helpers/TestBaseWorkflow.sol';
 import './mock/MockPriceFeed.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 
-contract TestMultipleTerminals is TestBaseWorkflow {
+contract TestMultipleTerminals_Local is TestBaseWorkflow {
   JBController controller;
   JBProjectMetadata _projectMetadata;
   JBFundingCycleData _data;

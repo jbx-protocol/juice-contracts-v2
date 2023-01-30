@@ -3,7 +3,7 @@ pragma solidity >=0.8.6;
 
 import './helpers/TestBaseWorkflow.sol';
 
-contract TestAllowance is TestBaseWorkflow {
+contract TestAllowance_Local is TestBaseWorkflow {
   JBController controller;
   JBProjectMetadata _projectMetadata;
   JBFundingCycleData _data;
