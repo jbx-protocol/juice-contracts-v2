@@ -15,7 +15,7 @@ import './IJBPaymentTerminal.sol';
 import './IJBSplitsStore.sol';
 import './IJBTokenStore.sol';
 
-interface IJBController3_1 is IJBController {
+interface IJBController3_1 {
   function reservedTokenBalanceOf(uint256 _projectId) external view returns (uint256);
   function totalOutstandingTokensOf(uint256 _projectId) external view returns (uint256);
 }

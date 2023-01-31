@@ -30,7 +30,7 @@ import './libraries/JBSplitsGroups.sol';
   JBOperatable: Several functions in this contract can only be accessed by a project owner, or an address that has been preconfifigured to be an operator of the project.
   ERC165: Introspection on interface adherance. 
 */
-contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratable {
+contract JBController3_1 is JBOperatable, ERC165, IJBController, IJBController3_1, IJBMigratable {
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
