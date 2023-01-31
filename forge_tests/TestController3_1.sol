@@ -39,7 +39,6 @@ contract TestController31_Fork is Test {
     JBProjectMetadata projectMetadata;
     JBFundingCycleData data;
     JBFundingCycleMetadata metadata;
-    JBGroupedSplits[] groupedSplits;
     JBFundAccessConstraints[] fundAccessConstraints;
     IJBPaymentTerminal[] terminals;
 
@@ -127,12 +126,34 @@ contract TestController31_Fork is Test {
         assertEq(jbDirectory.controllerOf(_projectId), address(jbController));
     }
 
-    // TODO: add a reserved beneficiaries list and check their balance
+    // TODO: add a reserved beneficiaries list and check their balance 
+    // (0x: I added this, leaving this todo for now so you can check if it was added like intended)
     function testController31_Migration_distributeReservedTokenBeforeMigrating() external {
         address _projectOwner = makeAddr("_projectOwner");
         address _userWallet = makeAddr("_userWallet");
 
         uint256 _reservedRate = 4000; // 40%
+        uint256 n_reserved_split = 5;
+
+        // Configure the grouped splits
+        JBSplit[] memory _split = new JBSplit[](n_reserved_split);
+        for (uint i = 0; i < n_reserved_split; i++) {
+            address _user = vm.addr(i + 1);
+            _split[i] = JBSplit({
+                preferClaimed: false,
+                preferAddToBalance: false,
+                percent: JBConstants.SPLITS_TOTAL_PERCENT / n_reserved_split,
+                projectId: 0,
+                beneficiary: payable(_user),
+                lockedUntil: 0,
+                allocator: IJBSplitAllocator(address(0))
+            });
+        }
+        JBGroupedSplits[] memory _groupedSplits = new JBGroupedSplits[](1);
+        _groupedSplits[0] = JBGroupedSplits({
+            group: JBSplitsGroups.RESERVED_TOKENS,
+            splits: _split
+        });
 
         // Create a project with a reserved rate to insure the project has undistributed reserved tokens
         metadata.reservedRate = _reservedRate;
@@ -142,7 +163,7 @@ contract TestController31_Fork is Test {
             data,
             metadata,
             block.timestamp,
-            groupedSplits,
+            _groupedSplits,
             fundAccessConstraints,
             terminals,
             ""
@@ -168,12 +189,26 @@ contract TestController31_Fork is Test {
         );
 
         // Weight is 1-1, so the reserved tokens are 40% of the gross pay amount
-        assertEq(oldJbController.reservedTokenBalanceOf(_projectId, _reservedRate), payAmountInWei * _reservedRate / JBConstants.MAX_RESERVED_RATE);
+        assertEq(
+            oldJbController.reservedTokenBalanceOf(_projectId, _reservedRate),
+            payAmountInWei * _reservedRate / JBConstants.MAX_RESERVED_RATE
+        );
 
-        JBController3_1 jbController = migrate(_projectId);
+        // Migrate the controller to v3_1
+        JBController3_1 jbController = migrateWithGroupedsplits(_projectId, _groupedSplits);
 
+        // Assert that the reserved tokens have been distributed and can no longer be distributed
         assertEq(oldJbController.reservedTokenBalanceOf(_projectId, _reservedRate), 0);
         assertEq(jbController.reservedTokenBalanceOf(_projectId), 0);
+
+        // Assert that all users in the split received their share
+        for (uint i = 0; i < n_reserved_split; i++) {
+            address _user = vm.addr(i + 1);
+            assertEq(
+                jbController.tokenStore().unclaimedBalanceOf(_user, _projectId),
+                payAmountInWei * _reservedRate / JBConstants.MAX_RESERVED_RATE / n_reserved_split
+            );
+        }
     }
 
     function testController31_Migration_tracksReservedTokenInNewController() external {
@@ -181,6 +216,10 @@ contract TestController31_Fork is Test {
     }
 
     function migrate(uint256 _projectId) internal returns (JBController3_1 jbController) {
+        return migrateWithGroupedsplits(_projectId, new JBGroupedSplits[](0));
+    }
+
+    function migrateWithGroupedsplits(uint256 _projectId, JBGroupedSplits[] memory _groupedSplits) internal returns (JBController3_1 jbController) {
         jbController = new JBController3_1(
             jbOperatorStore,
             jbProjects,
@@ -198,7 +237,7 @@ contract TestController31_Fork is Test {
         metadata.allowControllerMigration = true;
         vm.prank(protocolOwner);
         oldJbController.reconfigureFundingCyclesOf(
-            _projectId, data, metadata, 0, groupedSplits, fundAccessConstraints, ""
+            _projectId, data, metadata, 0, _groupedSplits, fundAccessConstraints, ""
         );
 
         // warp to the next funding cycle
