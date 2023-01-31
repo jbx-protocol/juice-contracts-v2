@@ -311,6 +311,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController, IJBController3_
     override
     returns (uint256)
   {
+    _reservedRate;
     return _reservedTokenBalanceOf[_projectId];
   }
 
@@ -332,6 +333,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController, IJBController3_
     override
     returns (uint256)
   {
+    _reservedRate;
     // Add the reserved tokens to the total supply.
     return totalOutstandingTokensOf(_projectId);
   }
