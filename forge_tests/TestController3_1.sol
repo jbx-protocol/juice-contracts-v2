@@ -127,6 +127,7 @@ contract TestController31_Fork is Test {
         assertEq(jbDirectory.controllerOf(_projectId), address(jbController));
     }
 
+    // TODO: add a reserved beneficiaries list and check their balance
     function testController31_Migration_distributeReservedTokenBeforeMigrating() external {
         address _projectOwner = makeAddr("_projectOwner");
         address _userWallet = makeAddr("_userWallet");
@@ -172,7 +173,7 @@ contract TestController31_Fork is Test {
         JBController3_1 jbController = migrate(_projectId);
 
         assertEq(oldJbController.reservedTokenBalanceOf(_projectId, _reservedRate), 0);
-
+        assertEq(jbController.reservedTokenBalanceOf(_projectId), 0);
     }
 
     function testController31_Migration_tracksReservedTokenInNewController() external {
@@ -204,10 +205,7 @@ contract TestController31_Fork is Test {
         JBFundingCycle memory fundingCycle = jbFundingCycleStore.currentOf(_projectId);
         vm.warp(fundingCycle.start + fundingCycle.duration);
 
-        // Prepare the new controller
-        jbController.prepForMigrationOf(_projectId, address(oldJbController));
-
-        // Migrate the project to the new controller
+        // Migrate the project to the new controller (no prepForMigration needed anymore)
         vm.prank(protocolOwner);
         oldJbController.migrate(_projectId, jbController);
     }
