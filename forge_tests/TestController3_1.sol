@@ -28,12 +28,12 @@ contract TestControllerV3_1_Fork is Test {
     IJBPayoutRedemptionPaymentTerminal jbEthTerminal;
     IJBController oldJbController;
 
-    IJBOperatorStore operatorStore;
-    IJBProjects projects;
-    IJBDirectory directory;
-    IJBFundingCycleStore fundingCycleStore;
-    IJBTokenStore tokenStore;
-    IJBSplitsStore splitsStore;
+    IJBOperatorStore jbOperatorStore;
+    IJBProjects jbProjects;
+    IJBDirectory jbDirectory;
+    IJBFundingCycleStore jbFundingCycleStore;
+    IJBTokenStore jbTokenStore;
+    IJBSplitsStore jbSplitsStore;
 
     JBProjectMetadata projectMetadata;
     JBFundingCycleData data;
@@ -43,7 +43,7 @@ contract TestControllerV3_1_Fork is Test {
     IJBPaymentTerminal[] terminals;
 
     uint256 projectId;
-    address projectOwner;
+
     uint256 weight = 1000 * 10 ** 18;
     uint256 targetInWei = 10 * 10 ** 18;
 
@@ -62,15 +62,15 @@ contract TestControllerV3_1_Fork is Test {
             )
         );
 
-        operatorStore = IJBOperatorStore(
+        jbOperatorStore = IJBOperatorStore(
             stdJson.readAddress(vm.readFile("./deployments/mainnet/JBOperatorStore.json"), "address")
         );
 
-        projects = oldJbController.projects();
-        directory = oldJbController.directory();
-        fundingCycleStore = oldJbController.fundingCycleStore();
-        tokenStore = oldJbController.tokenStore();
-        splitsStore = oldJbController.splitsStore();
+        jbProjects = oldJbController.projects();
+        jbDirectory = oldJbController.directory();
+        jbFundingCycleStore = oldJbController.fundingCycleStore();
+        jbTokenStore = oldJbController.tokenStore();
+        jbSplitsStore = oldJbController.splitsStore();
 
         projectMetadata = JBProjectMetadata({content: "myIPFSHash", domain: 1});
 
@@ -118,48 +118,54 @@ contract TestControllerV3_1_Fork is Test {
                 overflowAllowanceCurrency: 1
             })
         );
-
-        projectOwner = msg.sender;
     }
 
-  function testControllerMigrationLaunchProject() public {
-    JBController3_1 jbController = new JBController3_1(
-        operatorStore,
-        projects,
-        directory,
-        fundingCycleStore,
-        tokenStore,
-        splitsStore
-    );
+    function testController_Migration_v3toV31(uint8 _projectId) public {
+        // Migrate only existing projects
+        vm.assume(_projectId <= jbProjects.count() && _projectId > 0);
 
-    address protocolOwner = projects.ownerOf(1);
+        // Migrate only project which are not archived/have a controller
+        vm.assume(jbDirectory.controllerOf(_projectId) != address(0));
 
-    // -- Migrate Juicebox controller --
+        JBController3_1 jbController = new JBController3_1(
+            jbOperatorStore,
+            jbProjects,
+            jbDirectory,
+            jbFundingCycleStore,
+            jbTokenStore,
+            jbSplitsStore
+        );
 
-    // Allow controller migration in the fc
-    metadata.allowControllerMigration = true;
-    vm.prank(protocolOwner);
-    oldJbController.reconfigureFundingCyclesOf(
-      1,
-      data,
-      metadata,
-      0,
-      groupedSplits,
-      fundAccessConstraints,
-      ''
-    );
+        address protocolOwner = jbProjects.ownerOf(_projectId);
 
-    // warp to the next funding cycle
-    JBFundingCycle memory fundingCycle = fundingCycleStore.currentOf(1);
-    vm.warp(fundingCycle.start + fundingCycle.duration);
+        // -- Migrate Juicebox controller --
 
-    // Prepare the new controller
-    jbController.prepForMigrationOf(1, address(oldJbController));
-    
-    // Migrate the project to the new controller
-    vm.prank(protocolOwner);
-    oldJbController.migrate(1, jbController);
-  }
+        // Allow controller migration in the fc
+        metadata.allowControllerMigration = true;
+        vm.prank(protocolOwner);
+        oldJbController.reconfigureFundingCyclesOf(
+        _projectId,
+        data,
+        metadata,
+        0,
+        groupedSplits,
+        fundAccessConstraints,
+        ''
+        );
+
+        // warp to the next funding cycle
+        JBFundingCycle memory fundingCycle = jbFundingCycleStore.currentOf(_projectId);
+        vm.warp(fundingCycle.start + fundingCycle.duration);
+
+        // Prepare the new controller
+        jbController.prepForMigrationOf(_projectId, address(oldJbController));
+        
+        // Migrate the project to the new controller
+        vm.prank(protocolOwner);
+        oldJbController.migrate(_projectId, jbController);
+
+        assertEq(jbDirectory.controllerOf(_projectId), address(jbController));
+    }
 
     // function testFuzzPayBurnRedeemFlow(
     //     bool payPreferClaimed, //false
