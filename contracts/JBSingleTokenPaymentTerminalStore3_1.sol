@@ -24,6 +24,9 @@ import './structs/JBPayParamsData.sol';
   @dev
   Inherits from -
   ReentrancyGuard: Contract module that helps prevent reentrant calls to a function.
+
+  @dev
+  This Store expects a project's controller to be an IJBController3_1. This is the only difference between this version and the original.
 */
 contract JBSingleTokenPaymentTerminalStore3_1 is
   ReentrancyGuard,
