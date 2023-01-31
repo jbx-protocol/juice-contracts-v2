@@ -33,7 +33,7 @@ import './libraries/JBSplitsGroups.sol';
   @dev
   This Controller has the same functionality as JBController3_1, except it is not backwards compatible with the original IJBController view methods.
 */
-contract JBController3_2 is JBOperatable, ERC165, IJBController3_1, IJBMigratable {
+contract JBController3_1_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratable {
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 

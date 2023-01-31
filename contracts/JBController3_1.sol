@@ -104,7 +104,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController, IJBController3_
 
     _projectId The ID of the project to get a reserved token balance of.
   */
-  mapping(uint256 => uint256) internal _reservedTokensOf;
+  mapping(uint256 => uint256) internal _reservedTokenBalanceOf;
 
   //*********************************************************************//
   // --------------- public immutable stored properties ---------------- //
@@ -290,7 +290,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController, IJBController3_
     @return The current amount of reserved tokens.	
   */
   function reservedTokenBalanceOf(uint256 _projectId) external view override returns (uint256) {
-    return _reservedTokensOf[_projectId];
+    return _reservedTokenBalanceOf[_projectId];
   }
 
   /**	
@@ -311,7 +311,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController, IJBController3_
     override
     returns (uint256)
   {
-    return _reservedTokensOf[_projectId];
+    return _reservedTokenBalanceOf[_projectId];
   }
 
   /**	
@@ -350,7 +350,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController, IJBController3_
   */
   function totalOutstandingTokensOf(uint256 _projectId) public view override returns (uint256) {
     // Add the reserved tokens to the total supply.
-    return tokenStore.totalSupplyOf(_projectId) + _reservedTokensOf[_projectId];
+    return tokenStore.totalSupplyOf(_projectId) + _reservedTokenBalanceOf[_projectId];
   }
 
   /**
@@ -649,7 +649,8 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController, IJBController3_
     }
 
     // Add reserved tokens if needed
-    if (_reservedRate > 0) _reservedTokensOf[_projectId] += _tokenCount - beneficiaryTokenCount;
+    if (_reservedRate > 0)
+      _reservedTokenBalanceOf[_projectId] += _tokenCount - beneficiaryTokenCount;
 
     emit MintTokens(
       _beneficiary,
@@ -772,7 +773,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController, IJBController3_
     if (!_fundingCycle.controllerMigrationAllowed()) revert MIGRATION_NOT_ALLOWED();
 
     // All reserved tokens must be minted before migrating.
-    if (_reservedTokensOf[_projectId] != 0) _distributeReservedTokensOf(_projectId, '');
+    if (_reservedTokenBalanceOf[_projectId] != 0) _distributeReservedTokensOf(_projectId, '');
 
     // Make sure the new controller is prepped for the migration.
     _to.prepForMigrationOf(_projectId, address(this));
@@ -807,10 +808,10 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController, IJBController3_
     JBFundingCycle memory _fundingCycle = fundingCycleStore.currentOf(_projectId);
 
     // Get a reference to the number of tokens that need to be minted.
-    tokenCount = _reservedTokensOf[_projectId];
+    tokenCount = _reservedTokenBalanceOf[_projectId];
 
     // Reset the reserved token balance
-    _reservedTokensOf[_projectId] = 0;
+    _reservedTokenBalanceOf[_projectId] = 0;
 
     // Get a reference to the project owner.
     address _owner = projects.ownerOf(_projectId);
