@@ -4,6 +4,7 @@ pragma solidity ^0.8.6;
 import "forge-std/Test.sol";
 
 import "@juicebox/JBController.sol";
+import "@juicebox/JBController3_1.sol";
 import "@juicebox/JBDirectory.sol";
 import "@juicebox/JBETHPaymentTerminal.sol";
 import "@juicebox/JBERC20PaymentTerminal.sol";
@@ -66,8 +67,9 @@ contract TestBaseWorkflow is Test {
     JBTokenStore private _jbTokenStore;
     // JBSplitsStore
     JBSplitsStore private _jbSplitsStore;
-    // JBController
+    // JBController(s)
     JBController private _jbController;
+    JBController3_1 private _jbController3_1;
     // JBETHPaymentTerminalStore
     JBSingleTokenPaymentTerminalStore private _jbPaymentTerminalStore;
     // JBETHPaymentTerminal
@@ -117,8 +119,17 @@ contract TestBaseWorkflow is Test {
         return _jbSplitsStore;
     }
 
-    function jbController() internal view returns (JBController) {
-        return _jbController;
+    function jbController() internal returns (JBController) {
+        // If no controller is specified we use the newest one by default
+        string memory controller = vm.envOr("JBX_CONTROLLER_VERSION", string("3_1"));
+
+        if (strEqual(controller, "3_1")) {
+            return JBController(address(_jbController3_1));
+        }else if (strEqual(controller , "3_0")){
+            return _jbController;
+        }else {
+            revert("Invalid 'JBX_CONTROLLER_VERSION' specified");
+        }
     }
 
     function jbPaymentTerminalStore() internal view returns (JBSingleTokenPaymentTerminalStore) {
@@ -200,6 +211,19 @@ contract TestBaseWorkflow is Test {
         vm.prank(_multisig);
         _jbDirectory.setIsAllowedToSetFirstController(address(_jbController), true);
 
+        _jbController3_1 = new JBController3_1(
+      _jbOperatorStore,
+      _jbProjects,
+      _jbDirectory,
+      _jbFundingCycleStore,
+      _jbTokenStore,
+      _jbSplitsStore
+    );
+        vm.label(address(_jbController3_1), "JBController3_1");
+
+        vm.prank(_multisig);
+        _jbDirectory.setIsAllowedToSetFirstController(address(_jbController3_1), true);
+
         // JBETHPaymentTerminalStore
         _jbPaymentTerminalStore = new JBSingleTokenPaymentTerminalStore(
       _jbDirectory,
@@ -268,5 +292,9 @@ contract TestBaseWorkflow is Test {
             mstore(0, hash)
             _address := mload(0)
         }
+    }
+
+    function strEqual(string memory a, string memory b) internal returns (bool){
+        return keccak256(abi.encode(a)) == keccak256(abi.encode(b));
     }
 }
