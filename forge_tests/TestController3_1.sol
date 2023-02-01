@@ -45,6 +45,7 @@ contract TestController31_Fork is Test {
     JBFundingCycleMetadata metadata;
     JBFundAccessConstraints[] fundAccessConstraints;
     IJBPaymentTerminal[] terminals;
+    JBGroupedSplits[] groupedSplits;
 
     uint256 weight = 1 * 10 ** 18;
     uint256 targetInWei = 10 * 10 ** 18;
@@ -75,7 +76,7 @@ contract TestController31_Fork is Test {
         data = JBFundingCycleData({
             duration: 14,
             weight: weight,
-            discountRate: 450000000,
+            discountRate: 0,
             ballot: IJBFundingCycleBallot(address(0))
         });
 
@@ -139,8 +140,6 @@ contract TestController31_Fork is Test {
         assertEq(jbDirectory.controllerOf(_projectId), address(jbController));
     }
 
-    // TODO: add a reserved beneficiaries list and check their balance 
-    // (0x: I added this, leaving this todo for now so you can check if it was added like intended)
     function testController31_Migration_distributeReservedTokenBeforeMigrating() external {
         address _projectOwner = makeAddr("_projectOwner");
         address _userWallet = makeAddr("_userWallet");
@@ -208,7 +207,7 @@ contract TestController31_Fork is Test {
         );
 
         // Migrate the controller to v3_1
-        JBController3_1 jbController = migrateWithGroupedsplits(_projectId, _groupedSplits);
+        JBController3_1 jbController = _migrateWithGroupedsplits(_projectId, _groupedSplits);
 
         // Assert that the reserved tokens have been distributed and can no longer be distributed
         assertEq(oldJbController.reservedTokenBalanceOf(_projectId, _reservedRate), 0);
@@ -224,12 +223,17 @@ contract TestController31_Fork is Test {
         }
     }
 
-    function testController31_Migration_tracksReservedTokenInNewController() external {
-        uint256 _projectId = 1;
+    function testController31_Migration_tracksReservedTokenInNewController(uint8 _projectId) external {
+        // Migrate only existing projects
+        vm.assume(_projectId <= jbProjects.count() && _projectId > 0);
+
+        // Migrate only project which are not archived/have a controller
+        vm.assume(jbDirectory.controllerOf(_projectId) != address(0));
+
         address _userWallet = makeAddr("_userWallet");
         
         metadata.reservedRate = 4000; // 40%
-        JBController3_1 jbController = _migrate(1);
+        JBController3_1 jbController = _migrate(_projectId);
 
         // No reserved token before any transaction
         assertEq(jbController.reservedTokenBalanceOf(_projectId), 0);
@@ -242,7 +246,7 @@ contract TestController31_Fork is Test {
             address(0),
             _userWallet,
             /* _minReturnedTokens */
-            0,
+            1,
             /* _preferClaimedTokens */
             false,
             /* _memo */
@@ -254,8 +258,35 @@ contract TestController31_Fork is Test {
         assertEq(jbController.reservedTokenBalanceOf(_projectId), payAmountInWei * 4000 / JBConstants.MAX_RESERVED_RATE);
     }
 
-    function testController31_Migration_launchNewProjectViaNewController() external {
-        // JBController3_1 jbController = _migrate(1);
+    function testController31_Migration_launchNewProjectViaNewController(uint16 _reservedRate) external {
+        vm.assume(_reservedRate <= JBConstants.MAX_RESERVED_RATE);
+        
+        address _projectOwner = makeAddr("projectOwner");
+
+        address _protocolOwner = jbProjects.ownerOf(1);
+
+        JBController3_1 jbController = _migrate(1);
+
+        // Grant the permission to the new controller to launch a project
+        vm.prank(_protocolOwner);
+        jbDirectory.setIsAllowedToSetFirstController(address(jbController), true);
+
+        // Create a project with a reserved rate to insure the project has undistributed reserved tokens
+        metadata.reservedRate = _reservedRate;
+
+        uint256 _projectId = jbController.launchProjectFor(
+            _projectOwner,
+            projectMetadata,
+            data,
+            metadata,
+            block.timestamp,
+            groupedSplits,
+            fundAccessConstraints,
+            terminals,
+            ""
+        );
+
+        assertTrue(_projectId > 0);
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -274,11 +305,11 @@ contract TestController31_Fork is Test {
     function testController31_setController_changeJuiceboxDaoControllerWithoutReconfiguration() public {
     }
 
-    function migrate(uint256 _projectId) internal returns (JBController3_1 jbController) {
-        return migrateWithGroupedsplits(_projectId, new JBGroupedSplits[](0));
+    function _migrate(uint256 _projectId) internal returns (JBController3_1 jbController) {
+        return _migrateWithGroupedsplits(_projectId, new JBGroupedSplits[](0));
     }
 
-    function migrateWithGroupedsplits(uint256 _projectId, JBGroupedSplits[] memory _groupedSplits) internal returns (JBController3_1 jbController) {
+    function _migrateWithGroupedsplits(uint256 _projectId, JBGroupedSplits[] memory _groupedSplits) internal returns (JBController3_1 jbController) {
         jbController = new JBController3_1(
             jbOperatorStore,
             jbProjects,
