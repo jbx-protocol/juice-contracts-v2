@@ -260,21 +260,30 @@ contract TestController31_Fork is Test {
 
     function testController31_Migration_launchNewProjectViaNewController(uint16 _reservedRate) external {
         vm.assume(_reservedRate <= JBConstants.MAX_RESERVED_RATE);
-        
+
+        address _userWallet = makeAddr("_userWallet");
+
         address _projectOwner = makeAddr("projectOwner");
 
         address _protocolOwner = jbProjects.ownerOf(1);
 
-        JBController3_1 jbController = _migrate(1);
+        JBController3_1 _jbController = new JBController3_1(
+            jbOperatorStore,
+            jbProjects,
+            jbDirectory,
+            jbFundingCycleStore,
+            jbTokenStore,
+            jbSplitsStore
+        );
 
         // Grant the permission to the new controller to launch a project
         vm.prank(_protocolOwner);
-        jbDirectory.setIsAllowedToSetFirstController(address(jbController), true);
+        jbDirectory.setIsAllowedToSetFirstController(address(_jbController), true);
 
         // Create a project with a reserved rate to insure the project has undistributed reserved tokens
         metadata.reservedRate = _reservedRate;
 
-        uint256 _projectId = jbController.launchProjectFor(
+        uint256 _projectId = _jbController.launchProjectFor(
             _projectOwner,
             projectMetadata,
             data,
@@ -287,6 +296,25 @@ contract TestController31_Fork is Test {
         );
 
         assertTrue(_projectId > 0);
+
+        // Pay the project, 40% are reserved
+        uint256 payAmountInWei = 10 ether;
+        jbEthTerminal.pay{value: payAmountInWei}(
+            _projectId,
+            payAmountInWei,
+            address(0),
+            _userWallet,
+            /* _minReturnedTokens */
+            0,
+            /* _preferClaimedTokens */
+            false,
+            /* _memo */
+            "Take my money!",
+            /* _delegateMetadata */
+            new bytes(0)
+        );
+
+        assertEq(_jbController.reservedTokenBalanceOf(_projectId), payAmountInWei * _reservedRate / JBConstants.MAX_RESERVED_RATE);
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -300,9 +328,49 @@ contract TestController31_Fork is Test {
 
         // Migrate only project which are not archived/have a controller
         vm.assume(jbDirectory.controllerOf(_projectId) != address(0));
+
+        JBController3_1 _jbController = new JBController3_1(
+            jbOperatorStore,
+            jbProjects,
+            jbDirectory,
+            jbFundingCycleStore,
+            jbTokenStore,
+            jbSplitsStore
+        );
+
+        address _projectOwner = jbProjects.ownerOf(_projectId);
+
+        // Allow controller migration in the fc
+        metadata.global.allowSetController = true;
+        vm.prank(_projectOwner);
+        oldJbController.reconfigureFundingCyclesOf(
+            _projectId, data, metadata, 0, groupedSplits, fundAccessConstraints, ""
+        );
+
+        // warp to the next funding cycle
+        JBFundingCycle memory fundingCycle = jbFundingCycleStore.currentOf(_projectId);
+        vm.warp(fundingCycle.start + (fundingCycle.duration) * 2); // skip 2 fc to avoid ballot
+
+        // Change the controller
+        vm.prank(_projectOwner);
+        jbDirectory.setControllerOf(_projectId, address(_jbController));
+
     }
 
     function testController31_setController_changeJuiceboxDaoControllerWithoutReconfiguration() public {
+        JBController3_1 _jbController = new JBController3_1(
+            jbOperatorStore,
+            jbProjects,
+            jbDirectory,
+            jbFundingCycleStore,
+            jbTokenStore,
+            jbSplitsStore
+        );
+
+        address _projectOwner = jbProjects.ownerOf(1);
+        // Change the controller
+        vm.prank(_projectOwner);
+        jbDirectory.setControllerOf(1, address(_jbController));
     }
 
     function _migrate(uint256 _projectId) internal returns (JBController3_1 jbController) {
@@ -319,13 +387,13 @@ contract TestController31_Fork is Test {
             jbSplitsStore
         );
 
-        address protocolOwner = jbProjects.ownerOf(_projectId);
+        address _projectOwner = jbProjects.ownerOf(_projectId);
 
-        // -- Migrate Juicebox controller --
+        // -- Migrate controller --
 
         // Allow controller migration in the fc
         metadata.allowControllerMigration = true;
-        vm.prank(protocolOwner);
+        vm.prank(_projectOwner);
         oldJbController.reconfigureFundingCyclesOf(
             _projectId, data, metadata, 0, _groupedSplits, fundAccessConstraints, ""
         );
@@ -335,7 +403,7 @@ contract TestController31_Fork is Test {
         vm.warp(fundingCycle.start + (fundingCycle.duration) * 2); // skip 2 fc to avoid ballot
 
         // Migrate the project to the new controller (no prepForMigration needed anymore)
-        vm.prank(protocolOwner);
+        vm.prank(_projectOwner);
         oldJbController.migrate(_projectId, jbController);
     }
 }
