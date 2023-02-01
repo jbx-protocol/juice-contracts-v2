@@ -13,6 +13,8 @@ import "@juicebox/interfaces/IJBProjects.sol";
 import "@juicebox/interfaces/IJBPayoutRedemptionPaymentTerminal.sol";
 
 import "@juicebox/libraries/JBTokens.sol";
+import '@juicebox/libraries/JBFundingCycleMetadataResolver.sol';
+
 
 import "@paulrberg/contracts/math/PRBMath.sol";
 import "@paulrberg/contracts/math/PRBMathUD60x18.sol";
@@ -25,6 +27,8 @@ import "forge-std/Test.sol";
  *
  */
 contract TestController31_Fork is Test {
+    using JBFundingCycleMetadataResolver for JBFundingCycle;
+
     IJBPayoutRedemptionPaymentTerminal jbEthTerminal;
     IJBSingleTokenPaymentTerminalStore jbTerminalStore;
     IJBController oldJbController;
@@ -114,6 +118,15 @@ contract TestController31_Fork is Test {
         );
     }
 
+    // 2 ways of changing the controller:
+    // - proper migration (distribute the reserved tokens first then change the controller) -> need the allowControllerMigration flag (calling prep migration is not needed anymore)
+    // - change the controller in the directory (reserved token aren't distributed) -> need the allowSetController flag (in the Global fundingCycle metadata)
+
+    ////////////////////////////////////////////////////////////////////
+    //                      Migration flow                            //
+    ////////////////////////////////////////////////////////////////////
+
+    // Reconfigure with allowControllerMigration
     function testController31_Migration_migrateAnyExistingProject(uint8 _projectId) public {
         // Migrate only existing projects
         vm.assume(_projectId <= jbProjects.count() && _projectId > 0);
@@ -121,7 +134,7 @@ contract TestController31_Fork is Test {
         // Migrate only project which are not archived/have a controller
         vm.assume(jbDirectory.controllerOf(_projectId) != address(0));
 
-        JBController3_1 jbController = migrate(_projectId);
+        JBController3_1 jbController = _migrate(_projectId);
 
         assertEq(jbDirectory.controllerOf(_projectId), address(jbController));
     }
@@ -212,7 +225,53 @@ contract TestController31_Fork is Test {
     }
 
     function testController31_Migration_tracksReservedTokenInNewController() external {
-        // JBController3_1 jbController = migrate(1);
+        uint256 _projectId = 1;
+        address _userWallet = makeAddr("_userWallet");
+        
+        metadata.reservedRate = 4000; // 40%
+        JBController3_1 jbController = _migrate(1);
+
+        // No reserved token before any transaction
+        assertEq(jbController.reservedTokenBalanceOf(_projectId), 0);
+
+        // Pay the project, 40% are reserved
+        uint256 payAmountInWei = 10 ether;
+        jbEthTerminal.pay{value: payAmountInWei}(
+            _projectId,
+            payAmountInWei,
+            address(0),
+            _userWallet,
+            /* _minReturnedTokens */
+            0,
+            /* _preferClaimedTokens */
+            false,
+            /* _memo */
+            "Take my money!",
+            /* _delegateMetadata */
+            new bytes(0)
+        );
+
+        assertEq(jbController.reservedTokenBalanceOf(_projectId), payAmountInWei * 4000 / JBConstants.MAX_RESERVED_RATE);
+    }
+
+    function testController31_Migration_launchNewProjectViaNewController() external {
+        // JBController3_1 jbController = _migrate(1);
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    //                    Set controller flow                         //
+    ////////////////////////////////////////////////////////////////////
+
+    // Reconfigure with allowSetController
+    function testController31_setController_changeTheControllerForAnyProject(uint8 _projectId) public {
+        // Migrate only existing projects
+        vm.assume(_projectId <= jbProjects.count() && _projectId > 0);
+
+        // Migrate only project which are not archived/have a controller
+        vm.assume(jbDirectory.controllerOf(_projectId) != address(0));
+    }
+
+    function testController31_setController_changeJuiceboxDaoControllerWithoutReconfiguration() public {
     }
 
     function migrate(uint256 _projectId) internal returns (JBController3_1 jbController) {
@@ -242,7 +301,7 @@ contract TestController31_Fork is Test {
 
         // warp to the next funding cycle
         JBFundingCycle memory fundingCycle = jbFundingCycleStore.currentOf(_projectId);
-        vm.warp(fundingCycle.start + fundingCycle.duration);
+        vm.warp(fundingCycle.start + (fundingCycle.duration) * 2); // skip 2 fc to avoid ballot
 
         // Migrate the project to the new controller (no prepForMigration needed anymore)
         vm.prank(protocolOwner);
