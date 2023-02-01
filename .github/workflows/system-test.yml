@@ -4,12 +4,10 @@ on:
     branches:
       - main
       - test/system-tests
-      - feat/TestBaseWorkflowEnvConfiguration
   push:
     branches:
       - main
       - test/system-tests
-      - feat/TestBaseWorkflowEnvConfiguration
 jobs:
   forge-test:
     runs-on: ubuntu-latest
