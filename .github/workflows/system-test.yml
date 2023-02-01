@@ -50,5 +50,9 @@ jobs:
         run: yarn install --frozen-lockfile --prefer-offline
       - name: install libraries
         run: git submodule update --init
-      - name: Run system tests
-        run: forge build --sizes && forge test && FOUNDRY_PROFILE=CI forge test
+      - name: Run forked tests
+        run: forge build --sizes && FOUNDRY_PROFILE=CI forge test
+      - name: Run system tests (JBControllerV3)
+        run: JBX_CONTROLLER_VERSION=3_0 forge test
+      - name: Run system tests (JBControllerV3_1)
+        run: JBX_CONTROLLER_VERSION=3_1 forge test
