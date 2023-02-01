@@ -138,7 +138,7 @@ contract TestPayBurnRedeemFlow_Local is TestBaseWorkflow {
             vm.expectRevert(abi.encodeWithSignature("NO_BURNABLE_TOKENS()"));
         } else if (burnTokenAmount > uint256(type(int256).max) && isUsingJbController3_0()) {
             vm.expectRevert("SafeCast: value doesn't fit in an int256");
-        } else if (burnTokenAmount > _userTokenBalance) {
+        } else if (burnTokenAmount > _userTokenBalance && isUsingJbController3_0()) {
             vm.expectRevert(abi.encodeWithSignature("INSUFFICIENT_FUNDS()"));
         } else {
             _userTokenBalance = _userTokenBalance - burnTokenAmount;
