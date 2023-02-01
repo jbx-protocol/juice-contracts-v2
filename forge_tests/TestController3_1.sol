@@ -34,6 +34,9 @@ import "forge-std/Test.sol";
  *      -> need the allowSetController flag (in the Global fundingCycle metadata)
  *
  *  This test too the JuiceboxDAO project migration (at current block height), with allowSetController alread set
+ *
+ *  @dev This test runs on a fork and will NOT be executed by forge test by default (only on CI). To run it locally, you need to run:
+ *       `FOUNDRY_PROFILE=CI forge test`
  */
 contract TestController31_Fork is Test {
     using JBFundingCycleMetadataResolver for JBFundingCycle;
@@ -421,8 +424,8 @@ contract TestController31_Fork is Test {
     /**
      * @notice  Create a new controller, set a new fc with the allowControllerMigration flag set to true
      *          then warp and migrate the project to the new controller   
-     * @params  _projectId      The id of the project to migrate
-     * @params  _groupedSplits  A grouped splits for the reserved tokens
+     * @param   _projectId      The id of the project to migrate
+     * @param   _groupedSplits  A grouped splits for the reserved tokens
      * @return  jbController    The new controller
      */
     function _migrateWithGroupedsplits(uint256 _projectId, JBGroupedSplits[] memory _groupedSplits) internal returns (JBController3_1 jbController) {
