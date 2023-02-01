@@ -5,8 +5,7 @@ import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import '@openzeppelin/contracts/utils/math/SafeCast.sol';
 import '@paulrberg/contracts/math/PRBMath.sol';
 import './abstract/JBOperatable.sol';
-import './interfaces/IJBController3_1.sol';
-import './interfaces/IJBController.sol';
+import './interfaces/IJBController3_1_1.sol';
 import './interfaces/IJBMigratable.sol';
 import './interfaces/IJBOperatorStore.sol';
 import './interfaces/IJBPaymentTerminal.sol';
@@ -33,7 +32,7 @@ import './libraries/JBSplitsGroups.sol';
   @dev
   This Controller has the same functionality as JBController3_1, except it is not backwards compatible with the original IJBController view methods.
 */
-contract JBController3_1_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratable {
+contract JBController3_1_1 is JBOperatable, ERC165, IJBController3_1_1, IJBMigratable {
   // A library that parses the packed funding cycle metadata into a more friendly format.
   using JBFundingCycleMetadataResolver for JBFundingCycle;
 
@@ -318,7 +317,7 @@ contract JBController3_1_1 is JBOperatable, ERC165, IJBController3_1, IJBMigrata
     returns (bool)
   {
     return
-      _interfaceId == type(IJBController3_1).interfaceId ||
+      _interfaceId == type(IJBController3_1_1).interfaceId ||
       _interfaceId == type(IJBMigratable).interfaceId ||
       _interfaceId == type(IJBOperatable).interfaceId ||
       super.supportsInterface(_interfaceId);
