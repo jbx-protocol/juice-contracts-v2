@@ -24,9 +24,14 @@ contract TestEIP165_Local is TestBaseWorkflow {
 
         // Should support these interfaces
         assertTrue(controller.supportsInterface(type(IERC165).interfaceId));
-        assertTrue(controller.supportsInterface(type(IJBController).interfaceId));
         assertTrue(controller.supportsInterface(type(IJBMigratable).interfaceId));
         assertTrue(controller.supportsInterface(type(IJBOperatable).interfaceId));
+
+        if (isUsingJbController3_0()) {
+            assertTrue(controller.supportsInterface(type(IJBController).interfaceId));
+        }else{
+            assertTrue(controller.supportsInterface(type(IJBController3_1).interfaceId));
+        }
 
         // Make sure it doesn't always return true
         assertTrue(!controller.supportsInterface(notSupportedInterface));
