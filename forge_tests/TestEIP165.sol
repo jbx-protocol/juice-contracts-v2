@@ -29,7 +29,7 @@ contract TestEIP165_Local is TestBaseWorkflow {
 
         if (isUsingJbController3_0()) {
             assertTrue(controller.supportsInterface(type(IJBController).interfaceId));
-        }else{
+        } else {
             assertTrue(controller.supportsInterface(type(IJBController3_1).interfaceId));
         }
 

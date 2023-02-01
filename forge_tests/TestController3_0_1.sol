@@ -13,8 +13,7 @@ import "@juicebox/interfaces/IJBProjects.sol";
 import "@juicebox/interfaces/IJBPayoutRedemptionPaymentTerminal.sol";
 
 import "@juicebox/libraries/JBTokens.sol";
-import '@juicebox/libraries/JBFundingCycleMetadataResolver.sol';
-
+import "@juicebox/libraries/JBFundingCycleMetadataResolver.sol";
 
 import "@paulrberg/contracts/math/PRBMath.sol";
 import "@paulrberg/contracts/math/PRBMathUD60x18.sol";
@@ -167,7 +166,7 @@ contract TestController31_Fork is Test {
 
         // Configure the grouped splits
         JBSplit[] memory _split = new JBSplit[](n_reserved_split);
-        for (uint i = 0; i < n_reserved_split; i++) {
+        for (uint256 i = 0; i < n_reserved_split; i++) {
             address _user = vm.addr(i + 1);
             _split[i] = JBSplit({
                 preferClaimed: false,
@@ -180,10 +179,7 @@ contract TestController31_Fork is Test {
             });
         }
         JBGroupedSplits[] memory _groupedSplits = new JBGroupedSplits[](1);
-        _groupedSplits[0] = JBGroupedSplits({
-            group: JBSplitsGroups.RESERVED_TOKENS,
-            splits: _split
-        });
+        _groupedSplits[0] = JBGroupedSplits({group: JBSplitsGroups.RESERVED_TOKENS, splits: _split});
 
         // Create a project with a reserved rate to insure the project has undistributed reserved tokens
         metadata.reservedRate = _reservedRate;
@@ -233,7 +229,7 @@ contract TestController31_Fork is Test {
         assertEq(jbController.reservedTokenBalanceOf(_projectId), 0);
 
         // Check: Assert that all users in the split received their share
-        for (uint i = 0; i < n_reserved_split; i++) {
+        for (uint256 i = 0; i < n_reserved_split; i++) {
             address _user = vm.addr(i + 1);
             assertEq(
                 jbController.tokenStore().unclaimedBalanceOf(_user, _projectId),
@@ -253,7 +249,7 @@ contract TestController31_Fork is Test {
         vm.assume(jbDirectory.controllerOf(_projectId) != address(0));
 
         address _userWallet = makeAddr("_userWallet");
-        
+
         metadata.reservedRate = 4000; // 40%
 
         JBController3_0_1 jbController = _migrate(_projectId);
@@ -344,7 +340,10 @@ contract TestController31_Fork is Test {
         );
 
         // Check: Weight is 1-1, so the reserved tokens are 40% of the gross pay amount
-        assertEq(_jbController.reservedTokenBalanceOf(_projectId), payAmountInWei * _reservedRate / JBConstants.MAX_RESERVED_RATE);
+        assertEq(
+            _jbController.reservedTokenBalanceOf(_projectId),
+            payAmountInWei * _reservedRate / JBConstants.MAX_RESERVED_RATE
+        );
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -423,12 +422,15 @@ contract TestController31_Fork is Test {
 
     /**
      * @notice  Create a new controller, set a new fc with the allowControllerMigration flag set to true
-     *          then warp and migrate the project to the new controller   
+     *          then warp and migrate the project to the new controller
      * @param   _projectId      The id of the project to migrate
      * @param   _groupedSplits  A grouped splits for the reserved tokens
      * @return  jbController    The new controller
      */
-    function _migrateWithGroupedsplits(uint256 _projectId, JBGroupedSplits[] memory _groupedSplits) internal returns (JBController3_0_1 jbController) {
+    function _migrateWithGroupedsplits(uint256 _projectId, JBGroupedSplits[] memory _groupedSplits)
+        internal
+        returns (JBController3_0_1 jbController)
+    {
         // Create a new controller
         jbController = new JBController3_0_1(
             jbOperatorStore,

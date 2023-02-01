@@ -382,10 +382,11 @@ contract TestReconfigureProject_Local is TestBaseWorkflow {
         uint256 tokenBalance = jbTokenStore().balanceOf(_beneficiary, projectId);
 
         uint256 totalSupply;
-        if(isUsingJbController3_0())
+        if (isUsingJbController3_0()) {
             totalSupply = jbController().totalOutstandingTokensOf(projectId, RESERVED_RATE);
-        else
+        } else {
             totalSupply = IJBController3_1(address(jbController())).totalOutstandingTokensOf(projectId);
+        }
 
         uint256 overflow = jbETHPaymentTerminal().currentEthOverflowOf(projectId);
 
