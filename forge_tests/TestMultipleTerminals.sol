@@ -223,7 +223,12 @@ contract TestMultipleTerminals_Local is TestBaseWorkflow {
         );
 
         // redeem eth from the overflow by the token holder:
-        uint256 totalSupply = jbController().totalOutstandingTokensOf(projectId, 5000);
+        uint256 totalSupply;
+        if(isUsingJbController3_0())
+            totalSupply = jbController().totalOutstandingTokensOf(projectId, 5000);
+        else
+            totalSupply = IJBController3_1(address(jbController())).totalOutstandingTokensOf(projectId);
+
         uint256 overflow = jbPaymentTerminalStore().currentTotalOverflowOf(projectId, 18, 1);
 
         uint256 callerEthBalanceBefore = caller.balance;

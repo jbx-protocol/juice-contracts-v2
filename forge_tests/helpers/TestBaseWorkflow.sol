@@ -9,6 +9,7 @@ import "@juicebox/JBDirectory.sol";
 import "@juicebox/JBETHPaymentTerminal.sol";
 import "@juicebox/JBERC20PaymentTerminal.sol";
 import "@juicebox/JBSingleTokenPaymentTerminalStore.sol";
+import "@juicebox/JBSingleTokenPaymentTerminalStore3_1.sol";
 import "@juicebox/JBFundingCycleStore.sol";
 import "@juicebox/JBOperatorStore.sol";
 import "@juicebox/JBPrices.sol";
@@ -67,15 +68,22 @@ contract TestBaseWorkflow is Test {
     JBTokenStore private _jbTokenStore;
     // JBSplitsStore
     JBSplitsStore private _jbSplitsStore;
+
     // JBController(s)
     JBController private _jbController;
     JBController3_1 private _jbController3_1;
+
     // JBETHPaymentTerminalStore
     JBSingleTokenPaymentTerminalStore private _jbPaymentTerminalStore;
+    JBSingleTokenPaymentTerminalStore3_1 private _jbPaymentTerminalStore3_1;
+
     // JBETHPaymentTerminal
     JBETHPaymentTerminal private _jbETHPaymentTerminal;
+    JBETHPaymentTerminal private _jbETHPaymentTerminal3_1;
+
     // JBERC20PaymentTerminal
     JBERC20PaymentTerminal private _jbERC20PaymentTerminal;
+    JBERC20PaymentTerminal private _jbERC20PaymentTerminal3_1;
     // AccessJBLib
     AccessJBLib private _accessJBLib;
 
@@ -125,23 +133,26 @@ contract TestBaseWorkflow is Test {
 
         if (strEqual(controller, "3_1")) {
             return JBController(address(_jbController3_1));
-        }else if (strEqual(controller , "3_0")){
+        } else if (strEqual(controller, "3_0")) {
             return _jbController;
-        }else {
+        } else {
             revert("Invalid 'JBX_CONTROLLER_VERSION' specified");
         }
     }
 
-    function jbPaymentTerminalStore() internal view returns (JBSingleTokenPaymentTerminalStore) {
-        return _jbPaymentTerminalStore;
+    function jbPaymentTerminalStore() internal returns (JBSingleTokenPaymentTerminalStore) {
+        if (isUsingJbController3_0()) return _jbPaymentTerminalStore;
+        else return JBSingleTokenPaymentTerminalStore(address(_jbPaymentTerminalStore3_1));
     }
 
-    function jbETHPaymentTerminal() internal view returns (JBETHPaymentTerminal) {
-        return _jbETHPaymentTerminal;
+    function jbETHPaymentTerminal() internal returns (JBETHPaymentTerminal) {
+        if (isUsingJbController3_0()) return _jbETHPaymentTerminal;
+        else return _jbETHPaymentTerminal3_1;
     }
 
-    function jbERC20PaymentTerminal() internal view returns (JBERC20PaymentTerminal) {
-        return _jbERC20PaymentTerminal;
+    function jbERC20PaymentTerminal() internal returns (JBERC20PaymentTerminal) {
+        if (isUsingJbController3_0()) return _jbERC20PaymentTerminal;
+        else return _jbERC20PaymentTerminal3_1;
     }
 
     function jbToken() internal view returns (JBToken) {
@@ -151,7 +162,6 @@ contract TestBaseWorkflow is Test {
     function jbLibraries() internal view returns (AccessJBLib) {
         return _accessJBLib;
     }
-
 
     //*********************************************************************//
     // --------------------------- test helpers -------------------------- //
@@ -196,11 +206,11 @@ contract TestBaseWorkflow is Test {
 
         // JBTokenStore
         _jbTokenStore = new JBTokenStore(
-      _jbOperatorStore,
-      _jbProjects,
-      _jbDirectory,
-      _jbFundingCycleStore
-    );
+            _jbOperatorStore,
+            _jbProjects,
+            _jbDirectory,
+            _jbFundingCycleStore
+        );
         vm.label(address(_jbTokenStore), "JBTokenStore");
 
         // JBSplitsStore
@@ -242,6 +252,14 @@ contract TestBaseWorkflow is Test {
     );
         vm.label(address(_jbPaymentTerminalStore), "JBSingleTokenPaymentTerminalStore");
 
+        // JBETHPaymentTerminalStore
+        _jbPaymentTerminalStore3_1 = new JBSingleTokenPaymentTerminalStore3_1(
+      _jbDirectory,
+      _jbFundingCycleStore,
+      _jbPrices
+    );
+        vm.label(address(_jbPaymentTerminalStore3_1), "JBSingleTokenPaymentTerminalStore3_1");
+
         // AccessJBLib
         _accessJBLib = new AccessJBLib();
 
@@ -257,6 +275,19 @@ contract TestBaseWorkflow is Test {
       _multisig
     );
         vm.label(address(_jbETHPaymentTerminal), "JBETHPaymentTerminal");
+
+        // JBETHPaymentTerminal
+        _jbETHPaymentTerminal3_1 = new JBETHPaymentTerminal(
+      _accessJBLib.ETH(),
+      _jbOperatorStore,
+      _jbProjects,
+      _jbDirectory,
+      _jbSplitsStore,
+      _jbPrices,
+      _jbPaymentTerminalStore3_1,
+      _multisig
+    );
+        vm.label(address(_jbETHPaymentTerminal3_1), "JBETHPaymentTerminal3_1");
 
         vm.prank(_multisig);
         _jbToken = new JBToken('MyToken', 'MT', 1);
@@ -279,6 +310,22 @@ contract TestBaseWorkflow is Test {
       _multisig
     );
         vm.label(address(_jbERC20PaymentTerminal), "JBERC20PaymentTerminal");
+
+        // JBERC20PaymentTerminal
+        _jbERC20PaymentTerminal3_1 = new JBERC20PaymentTerminal(
+      _jbToken,
+      _accessJBLib.ETH(), // currency
+      _accessJBLib.ETH(), // base weight currency
+      1, // JBSplitsGroupe
+      _jbOperatorStore,
+      _jbProjects,
+      _jbDirectory,
+      _jbSplitsStore,
+      _jbPrices,
+      _jbPaymentTerminalStore3_1,
+      _multisig
+    );
+        vm.label(address(_jbERC20PaymentTerminal3_1), "JBERC20PaymentTerminal3_1");
     }
 
     //https://ethereum.stackexchange.com/questions/24248/how-to-calculate-an-ethereum-contracts-address-during-its-creation-using-the-so
@@ -304,7 +351,7 @@ contract TestBaseWorkflow is Test {
         }
     }
 
-    function strEqual(string memory a, string memory b) internal returns (bool){
+    function strEqual(string memory a, string memory b) internal returns (bool) {
         return keccak256(abi.encode(a)) == keccak256(abi.encode(b));
     }
 }
