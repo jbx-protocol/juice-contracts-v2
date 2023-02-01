@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.6;
 
-import "@juicebox/JBController3_1.sol";
+import "@juicebox/JBController3_0_1.sol";
 
 import "@juicebox/interfaces/IJBController.sol";
 import "@juicebox/interfaces/IJBMigratable.sol";
@@ -149,7 +149,7 @@ contract TestController31_Fork is Test {
         // Migrate only project which are not archived/have a controller
         vm.assume(jbDirectory.controllerOf(_projectId) != address(0));
 
-        JBController3_1 jbController = _migrate(_projectId);
+        JBController3_0_1 jbController = _migrate(_projectId);
 
         // Check: the project must have the new controller
         assertEq(jbDirectory.controllerOf(_projectId), address(jbController));
@@ -226,7 +226,7 @@ contract TestController31_Fork is Test {
         );
 
         // Migrate the controller to v3_1
-        JBController3_1 jbController = _migrateWithGroupedsplits(_projectId, _groupedSplits);
+        JBController3_0_1 jbController = _migrateWithGroupedsplits(_projectId, _groupedSplits);
 
         // Check: Assert that the reserved tokens have been distributed and can no longer be distributed
         assertEq(oldJbController.reservedTokenBalanceOf(_projectId, _reservedRate), 0);
@@ -256,7 +256,7 @@ contract TestController31_Fork is Test {
         
         metadata.reservedRate = 4000; // 40%
 
-        JBController3_1 jbController = _migrate(_projectId);
+        JBController3_0_1 jbController = _migrate(_projectId);
 
         // No reserved token before any transaction
         assertEq(jbController.reservedTokenBalanceOf(_projectId), 0);
@@ -295,7 +295,7 @@ contract TestController31_Fork is Test {
         address _protocolOwner = jbProjects.ownerOf(1);
 
         // Create a new controller
-        JBController3_1 _jbController = new JBController3_1(
+        JBController3_0_1 _jbController = new JBController3_0_1(
             jbOperatorStore,
             jbProjects,
             jbDirectory,
@@ -363,7 +363,7 @@ contract TestController31_Fork is Test {
         vm.assume(jbDirectory.controllerOf(_projectId) != address(0));
 
         // Create a new controller
-        JBController3_1 _jbController = new JBController3_1(
+        JBController3_0_1 _jbController = new JBController3_0_1(
             jbOperatorStore,
             jbProjects,
             jbDirectory,
@@ -401,7 +401,7 @@ contract TestController31_Fork is Test {
         vm.rollFork(16536403);
 
         // Create a new controller
-        JBController3_1 _jbController = new JBController3_1(
+        JBController3_0_1 _jbController = new JBController3_0_1(
             jbOperatorStore,
             jbProjects,
             jbDirectory,
@@ -417,7 +417,7 @@ contract TestController31_Fork is Test {
         jbDirectory.setControllerOf(1, address(_jbController));
     }
 
-    function _migrate(uint256 _projectId) internal returns (JBController3_1 jbController) {
+    function _migrate(uint256 _projectId) internal returns (JBController3_0_1 jbController) {
         return _migrateWithGroupedsplits(_projectId, new JBGroupedSplits[](0));
     }
 
@@ -428,9 +428,9 @@ contract TestController31_Fork is Test {
      * @param   _groupedSplits  A grouped splits for the reserved tokens
      * @return  jbController    The new controller
      */
-    function _migrateWithGroupedsplits(uint256 _projectId, JBGroupedSplits[] memory _groupedSplits) internal returns (JBController3_1 jbController) {
+    function _migrateWithGroupedsplits(uint256 _projectId, JBGroupedSplits[] memory _groupedSplits) internal returns (JBController3_0_1 jbController) {
         // Create a new controller
-        jbController = new JBController3_1(
+        jbController = new JBController3_0_1(
             jbOperatorStore,
             jbProjects,
             jbDirectory,
