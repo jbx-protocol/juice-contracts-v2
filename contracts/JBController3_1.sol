@@ -964,38 +964,4 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
 
     return _fundingCycle.configuration;
   }
-
-  /**
-    @notice
-    Gets the amount of reserved tokens currently tracked for a project given a reserved rate.
-
-    @param _processedTokenTracker The tracker to make the calculation with.
-    @param _reservedRate The reserved rate to use to make the calculation.
-    @param _totalEligibleTokens The total amount to make the calculation with.
-
-    @return amount reserved token amount.
-  */
-  function _reservedTokenAmountFrom(
-    int256 _processedTokenTracker,
-    uint256 _reservedRate,
-    uint256 _totalEligibleTokens
-  ) internal pure returns (uint256) {
-    // Get a reference to the amount of tokens that are unprocessed.
-    uint256 _unprocessedTokenBalanceOf = _processedTokenTracker >= 0
-      ? _totalEligibleTokens - uint256(_processedTokenTracker)
-      : _totalEligibleTokens + uint256(-_processedTokenTracker);
-
-    // If there are no unprocessed tokens, return.
-    if (_unprocessedTokenBalanceOf == 0) return 0;
-
-    // If all tokens are reserved, return the full unprocessed amount.
-    if (_reservedRate == JBConstants.MAX_RESERVED_RATE) return _unprocessedTokenBalanceOf;
-
-    return
-      PRBMath.mulDiv(
-        _unprocessedTokenBalanceOf,
-        JBConstants.MAX_RESERVED_RATE,
-        JBConstants.MAX_RESERVED_RATE - _reservedRate
-      ) - _unprocessedTokenBalanceOf;
-  }
 }
