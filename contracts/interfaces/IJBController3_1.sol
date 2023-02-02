@@ -15,9 +15,21 @@ import './IJBSplitsStore.sol';
 import './IJBTokenStore.sol';
 
 interface IJBController3_1 is IERC165 {
-  event LaunchProject(uint256 configuration, uint256 projectId, string memo, address caller);
+  event LaunchProject(
+    uint256 configuration,
+    uint256 projectId,
+    string metadata,
+    string memo,
+    address caller
+  );
 
-  event LaunchFundingCycles(uint256 configuration, uint256 projectId, string memo, address caller);
+  event LaunchFundingCycles(
+    uint256 configuration,
+    uint256 projectId,
+    string metadata,
+    string memo,
+    address caller
+  );
 
   event ReconfigureFundingCycles(
     uint256 configuration,
@@ -132,22 +144,24 @@ interface IJBController3_1 is IERC165 {
     address _owner,
     JBProjectMetadata calldata _projectMetadata,
     JBFundingCycleData calldata _data,
-    JBFundingCycleMetadata calldata _metadata,
+    JBFundingCycleMetadata calldata _cycleMetadata,
     uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
     IJBPaymentTerminal[] memory _terminals,
+    string memory _metadata,
     string calldata _memo
   ) external returns (uint256 projectId);
 
   function launchFundingCyclesFor(
     uint256 _projectId,
     JBFundingCycleData calldata _data,
-    JBFundingCycleMetadata calldata _metadata,
+    JBFundingCycleMetadata calldata _cycleMetadata,
     uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] memory _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
     IJBPaymentTerminal[] memory _terminals,
+    string memory _metadata,
     string calldata _memo
   ) external returns (uint256 configuration);
 

@@ -367,11 +367,12 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
     @param _owner The address to set as the owner of the project. The project ERC-721 will be owned by this address.
     @param _projectMetadata Metadata to associate with the project within a particular domain. This can be updated any time by the owner of the project.
     @param _data Data that defines the project's first funding cycle. These properties will remain fixed for the duration of the funding cycle.
-    @param _metadata Metadata specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
+    @param _cycleMetadata Metadata specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
     @param _mustStartAtOrAfter The time before which the configured funding cycle cannot start.
     @param _groupedSplits An array of splits to set for any number of groups. 
     @param _fundAccessConstraints An array containing amounts that a project can use from its treasury for each payment terminal. Amounts are fixed point numbers using the same number of decimals as the accompanying terminal. The `_distributionLimit` and `_overflowAllowance` parameters must fit in a `uint232`.
     @param _terminals Payment terminals to add for the project.
+    @param _metadata Metadata to pass along to the emitted event.
     @param _memo A memo to pass along to the emitted event.
 
     @return projectId The ID of the project.
@@ -380,11 +381,12 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
     address _owner,
     JBProjectMetadata calldata _projectMetadata,
     JBFundingCycleData calldata _data,
-    JBFundingCycleMetadata calldata _metadata,
+    JBFundingCycleMetadata calldata _cycleMetadata,
     uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] calldata _groupedSplits,
     JBFundAccessConstraints[] calldata _fundAccessConstraints,
     IJBPaymentTerminal[] memory _terminals,
+    string memory _metadata,
     string memory _memo
   ) external virtual override returns (uint256 projectId) {
     // Keep a reference to the directory.
@@ -400,7 +402,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
     uint256 _configuration = _configure(
       projectId,
       _data,
-      _metadata,
+      _cycleMetadata,
       _mustStartAtOrAfter,
       _groupedSplits,
       _fundAccessConstraints
@@ -409,7 +411,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
     // Add the provided terminals to the list of terminals.
     if (_terminals.length > 0) _directory.setTerminalsOf(projectId, _terminals);
 
-    emit LaunchProject(_configuration, projectId, _memo, msg.sender);
+    emit LaunchProject(_configuration, projectId, _metadata, _memo, msg.sender);
   }
 
   /**
@@ -424,11 +426,12 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
 
     @param _projectId The ID of the project to launch funding cycles for.
     @param _data Data that defines the project's first funding cycle. These properties will remain fixed for the duration of the funding cycle.
-    @param _metadata Metadata specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
+    @param _cycleMetadata Metadata specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
     @param _mustStartAtOrAfter The time before which the configured funding cycle cannot start.
     @param _groupedSplits An array of splits to set for any number of groups. 
     @param _fundAccessConstraints An array containing amounts that a project can use from its treasury for each payment terminal. Amounts are fixed point numbers using the same number of decimals as the accompanying terminal. The `_distributionLimit` and `_overflowAllowance` parameters must fit in a `uint232`.
     @param _terminals Payment terminals to add for the project.
+    @param _metadata Metadata to pass along to the emitted event.
     @param _memo A memo to pass along to the emitted event.
 
     @return configuration The configuration of the funding cycle that was successfully created.
@@ -436,11 +439,12 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
   function launchFundingCyclesFor(
     uint256 _projectId,
     JBFundingCycleData calldata _data,
-    JBFundingCycleMetadata calldata _metadata,
+    JBFundingCycleMetadata calldata _cycleMetadata,
     uint256 _mustStartAtOrAfter,
     JBGroupedSplits[] calldata _groupedSplits,
     JBFundAccessConstraints[] memory _fundAccessConstraints,
     IJBPaymentTerminal[] memory _terminals,
+    string memory _metadata,
     string memory _memo
   )
     external
@@ -460,7 +464,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
     configuration = _configure(
       _projectId,
       _data,
-      _metadata,
+      _cycleMetadata,
       _mustStartAtOrAfter,
       _groupedSplits,
       _fundAccessConstraints
@@ -469,7 +473,7 @@ contract JBController3_1 is JBOperatable, ERC165, IJBController3_1, IJBMigratabl
     // Add the provided terminals to the list of terminals.
     if (_terminals.length > 0) directory.setTerminalsOf(_projectId, _terminals);
 
-    emit LaunchFundingCycles(configuration, _projectId, _memo, msg.sender);
+    emit LaunchFundingCycles(configuration, _projectId, _metadata, _memo, msg.sender);
   }
 
   /**
